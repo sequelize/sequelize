@@ -717,10 +717,14 @@ class VIRTUAL extends ABSTRACT {
  * DataTypes.ENUM({
  *   values: ['value', 'another value']
  * })
+ * DataTypes.ENUM({
+ *   name: 'name',
+ *   values: ['value', 'another value']
+ * })
  */
 class ENUM extends ABSTRACT {
   /**
-   * @param {...any|{ values: any[] }|any[]} args either array of values or options object with values array. It also supports variadic values
+   * @param {...any|{ name: string, values: any[] }|any[]} args either array of values or options object with optional name and values array. It also supports variadic values
    */
   constructor(...args) {
     super();
@@ -730,6 +734,7 @@ class ENUM extends ABSTRACT {
         return result.concat(Array.isArray(element) ? element : [element]);
       }, [])
     };
+    this.name = options.name;
     this.values = options.values;
     this.options = options;
   }

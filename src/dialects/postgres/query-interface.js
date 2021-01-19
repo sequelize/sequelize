@@ -33,7 +33,7 @@ class PostgresQueryInterface extends QueryInterface {
         type instanceof DataTypes.ENUM ||
         (type instanceof DataTypes.ARRAY && type.type instanceof DataTypes.ENUM) //ARRAY sub type is ENUM
       ) {
-        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
+        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options, type);
         promises.push(
           this.sequelize.query(sql, {
             ...options,
@@ -50,7 +50,14 @@ class PostgresQueryInterface extends QueryInterface {
     let enumIdx = 0;
 
     // This little function allows us to re-use the same code that prepends or appends new value to enum array
-    const addEnumValue = (field, value, relativeValue, position = 'before', spliceStart = promises.length) => {
+    const addEnumValue = (
+      field,
+      value,
+      relativeValue,
+      enumType,
+      position = 'before',
+      spliceStart = promises.length
+    ) => {
       const valueOptions = { ...options };
       valueOptions.before = null;
       valueOptions.after = null;
@@ -66,7 +73,10 @@ class PostgresQueryInterface extends QueryInterface {
       }
 
       promises.splice(spliceStart, 0, () => {
-        return this.sequelize.query(this.queryGenerator.pgEnumAdd(tableName, field, value, valueOptions), valueOptions);
+        return this.sequelize.query(
+          this.queryGenerator.pgEnumAdd(tableName, field, value, valueOptions, enumType),
+          valueOptions
+        );
       });
     };
 
@@ -117,7 +127,7 @@ class PostgresQueryInterface extends QueryInterface {
                 break;
               }
 
-              addEnumValue(field, newValuesBefore[reverseIdx], lastOldEnumValue, 'before', promisesLength);
+              addEnumValue(field, newValuesBefore[reverseIdx], lastOldEnumValue, enumType, 'before', promisesLength);
             }
 
             // we detect the most 'right' position of old value in new enum array so we can append new values to it
@@ -129,7 +139,7 @@ class PostgresQueryInterface extends QueryInterface {
           if (lastOldEnumValue && rightestPosition < vals.length - 1) {
             const remainingEnumValues = vals.slice(rightestPosition + 1);
             for (let reverseIdx = remainingEnumValues.length - 1; reverseIdx >= 0; reverseIdx--) {
-              addEnumValue(field, remainingEnumValues[reverseIdx], lastOldEnumValue, 'after');
+              addEnumValue(field, remainingEnumValues[reverseIdx], lastOldEnumValue, enumType, 'after');
             }
           }
 
@@ -249,8 +259,9 @@ class PostgresQueryInterface extends QueryInterface {
     const keyLen = keys.length;
 
     for (let i = 0; i < keyLen; i++) {
-      if (instanceTable.rawAttributes[keys[i]].type instanceof DataTypes.ENUM) {
-        const sql = this.queryGenerator.pgEnumDrop(getTableName, keys[i]);
+      const type = instanceTable.rawAttributes[keys[i]].type;
+      if (type instanceof DataTypes.ENUM) {
+        const sql = this.queryGenerator.pgEnumDrop(getTableName, keys[i], type.name);
         options.supportsSearchPath = false;
         promises.push(this.sequelize.query(sql, { ...options, raw: true }));
       }

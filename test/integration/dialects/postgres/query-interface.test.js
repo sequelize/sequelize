@@ -353,5 +353,59 @@ if (dialect.match(/^postgres/)) {
         expect(indexColumns).to.be.empty;
       });
     });
+
+    describe('addColumn', () => {
+      beforeEach(function () {
+        return this.sequelize.createSchema('archive').then(() => {
+          return this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            }
+          });
+        });
+      });
+
+      it('should work with named enums', function () {
+        return this.queryInterface
+          .addColumn('users', 'mood', {
+            type: DataTypes.ENUM({
+              name: 'mood_enum',
+              values: ['happy', 'sad', 'neutral']
+            })
+          })
+          .then(() =>
+            this.sequelize.query(
+              "SELECT udt_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'mood'",
+              { type: this.sequelize.QueryTypes.SELECT }
+            )
+          )
+          .then(res => {
+            expect(res[0].udt_name).to.be.equal('mood_enum');
+          });
+      });
+
+      it('should work with array of named enums', function () {
+        return this.queryInterface
+          .addColumn('users', 'moods', {
+            type: DataTypes.ARRAY(
+              DataTypes.ENUM({
+                name: 'array_mood_enum',
+                values: ['happy', 'sad', 'neutral']
+              })
+            )
+          })
+          .then(() =>
+            this.sequelize.query(
+              "SELECT udt_name FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'moods'",
+              { type: this.sequelize.QueryTypes.SELECT }
+            )
+          )
+          .then(res => {
+            expect(res[0].udt_name).to.be.equal('_array_mood_enum');
+          });
+      });
+    });
   });
 }

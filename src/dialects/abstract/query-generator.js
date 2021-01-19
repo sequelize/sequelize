@@ -1505,6 +1505,14 @@ class QueryGenerator {
     return this.quote(this._getAliasForField(tableName, src, options) || src, model);
   }
 
+  attributesToTypes(attributes) {
+    if (!attributes) return [];
+
+    const types = Object.values(attributes).map(attr => attr.type.type || attr.type);
+
+    return _.zipObject(Object.keys(attributes), types);
+  }
+
   escapeAttributes(attributes, options, mainTableAs) {
     return (
       attributes &&

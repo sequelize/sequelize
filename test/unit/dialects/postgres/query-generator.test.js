@@ -468,6 +468,52 @@ if (dialect.startsWith('postgres')) {
           ],
           expectation:
             'ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(\'value 1\', \'value 2\');ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public"."enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(\'value 3\', \'value 4\');ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public"."enum_myTable_col_2");'
+        },
+        {
+          arguments: [
+            'myTable',
+            {
+              col_1: "ENUM('value 1', 'value 2') NOT NULL",
+              col_2: "ENUM('value 3', 'value 4') NOT NULL"
+            },
+            {
+              col_1: DataTypes.ENUM({
+                name: 'value_enum',
+                values: ['value 1', 'value 2']
+              }),
+              col_2: DataTypes.ENUM({
+                name: 'value_enum_2',
+                values: ['value 3', 'value 4']
+              })
+            }
+          ],
+          expectation:
+            'ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;CREATE TYPE "public"."value_enum" AS ENUM(\'value 1\', \'value 2\');ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."value_enum" USING ("col_1"::"public"."value_enum");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;CREATE TYPE "public"."value_enum_2" AS ENUM(\'value 3\', \'value 4\');ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."value_enum_2" USING ("col_2"::"public"."value_enum_2");'
+        },
+        {
+          arguments: [
+            'myTable',
+            {
+              col_1: "ENUM('value 1', 'value 2') NOT NULL",
+              col_2: "ENUM('value 3', 'value 4') NOT NULL"
+            },
+            {
+              col_1: DataTypes.ARRAY(
+                DataTypes.ENUM({
+                  name: 'values_enum',
+                  values: ['value 1', 'value 2']
+                })
+              ),
+              col_2: DataTypes.ARRAY(
+                DataTypes.ENUM({
+                  name: 'values_enum_2',
+                  values: ['value 3', 'value 4']
+                })
+              )
+            }
+          ],
+          expectation:
+            'ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;CREATE TYPE "public"."values_enum" AS ENUM(\'value 1\', \'value 2\');ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."values_enum" USING ("col_1"::"public"."values_enum");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;CREATE TYPE "public"."values_enum_2" AS ENUM(\'value 3\', \'value 4\');ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."values_enum_2" USING ("col_2"::"public"."values_enum_2");'
         }
       ],
 
@@ -1798,6 +1844,35 @@ if (dialect.startsWith('postgres')) {
             'ON ccu.constraint_name = tc.constraint_name ' +
             "WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='myTable' AND  kcu.column_name = 'myColumn'" +
             " AND tc.table_schema = 'mySchema'"
+        }
+      ],
+
+      addColumnQuery: [
+        {
+          arguments: [
+            'myTable',
+            'mood',
+            DataTypes.ENUM({
+              name: 'mood_enum',
+              values: ['happy', 'sad', 'neutral']
+            })
+          ],
+          expectation:
+            'CREATE TYPE "public"."mood_enum" AS ENUM(\'happy\', \'sad\', \'neutral\');ALTER TABLE "public"."myTable" ADD COLUMN "mood" "public"."mood_enum";'
+        },
+        {
+          arguments: [
+            'myTable',
+            'moods',
+            DataTypes.ARRAY(
+              DataTypes.ENUM({
+                name: 'moods_enum',
+                values: ['happy', 'sad', 'neutral']
+              })
+            )
+          ],
+          expectation:
+            'CREATE TYPE "public"."moods_enum" AS ENUM(\'happy\', \'sad\', \'neutral\');ALTER TABLE "public"."myTable" ADD COLUMN "moods" "public"."moods_enum"[];'
         }
       ]
     };

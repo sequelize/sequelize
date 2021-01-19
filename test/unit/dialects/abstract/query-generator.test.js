@@ -116,4 +116,23 @@ describe('QueryGenerator', () => {
       expect(() => QG.format(value)).to.throw(Error);
     });
   });
+
+  describe('attributesToTypes', () => {
+    it('should return empty array when null', function () {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      expect(QG.attributesToTypes(null)).to.eql([]);
+    });
+
+    it('should map the types to the attributes', function () {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      const attributes = {
+        test: {
+          type: 'the type'
+        }
+      };
+      expect(QG.attributesToTypes(attributes)).to.eql({
+        test: 'the type'
+      });
+    });
+  });
 });

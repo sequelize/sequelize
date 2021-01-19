@@ -211,11 +211,14 @@ class QueryInterface {
       });
     }
 
+    const types = this.queryGenerator.attributesToTypes(attributes);
+
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable'
     });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
+
+    sql = this.queryGenerator.createTableQuery(tableName, attributes, options, types);
 
     return await this.sequelize.query(sql, options);
   }
@@ -440,16 +443,15 @@ class QueryInterface {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options = options || {};
 
-    const query = this.queryGenerator.attributesToSQL(
-      {
-        [attributeName]: this.normalizeAttribute(dataTypeOrOptions)
-      },
-      {
-        context: 'changeColumn',
-        table: tableName
-      }
-    );
-    const sql = this.queryGenerator.changeColumnQuery(tableName, query);
+    const attributes = {
+      [attributeName]: this.normalizeAttribute(dataTypeOrOptions)
+    };
+    const types = this.queryGenerator.attributesToTypes(attributes);
+    const query = this.queryGenerator.attributesToSQL(attributes, {
+      context: 'changeColumn',
+      table: tableName
+    });
+    const sql = this.queryGenerator.changeColumnQuery(tableName, query, types);
 
     return this.sequelize.query(sql, options);
   }

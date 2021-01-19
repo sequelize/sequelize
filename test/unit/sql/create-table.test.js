@@ -20,20 +20,86 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
     );
 
+    const FooUserWithNamedEnum = current.define(
+      'user',
+      {
+        mood: DataTypes.ENUM({
+          name: 'mood',
+          values: ['happy', 'sad']
+        })
+      },
+      {
+        schema: 'foo',
+        timestamps: false
+      }
+    );
+
+    const FooUserWithArrayNamedEnum = current.define(
+      'user',
+      {
+        mood: DataTypes.ARRAY(
+          DataTypes.ENUM({
+            name: 'moods',
+            values: ['happy', 'sad']
+          })
+        )
+      },
+      {
+        schema: 'foo',
+        timestamps: false
+      }
+    );
+
     describe('with enums', () => {
-      it('references enum in the right schema #3171', () => {
-        expectsql(sql.createTableQuery(FooUser.getTableName(), sql.attributesToSQL(FooUser.rawAttributes), {}), {
-          sqlite: 'CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `mood` TEXT);',
-          postgres:
-            'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."enum_users_mood", PRIMARY KEY ("id"));',
-          mariadb:
-            "CREATE TABLE IF NOT EXISTS `foo`.`users` (`id` INTEGER NOT NULL auto_increment , `mood` ENUM('happy', 'sad'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
-          mysql:
-            "CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER NOT NULL auto_increment , `mood` ENUM('happy', 'sad'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
-          mssql:
-            "IF OBJECT_ID('[foo].[users]', 'U') IS NULL CREATE TABLE [foo].[users] ([id] INTEGER NOT NULL IDENTITY(1,1) , [mood] VARCHAR(255) CHECK ([mood] IN(N'happy', N'sad')), PRIMARY KEY ([id]));"
+      describe('with generated names', () => {
+        it('references enum in the right schema #3171', () => {
+          expectsql(sql.createTableQuery(FooUser.getTableName(), sql.attributesToSQL(FooUser.rawAttributes), {}), {
+            sqlite: 'CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `mood` TEXT);',
+            postgres:
+              'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."enum_users_mood", PRIMARY KEY ("id"));',
+            mariadb:
+              "CREATE TABLE IF NOT EXISTS `foo`.`users` (`id` INTEGER NOT NULL auto_increment , `mood` ENUM('happy', 'sad'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+            mysql:
+              "CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER NOT NULL auto_increment , `mood` ENUM('happy', 'sad'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+            mssql:
+              "IF OBJECT_ID('[foo].[users]', 'U') IS NULL CREATE TABLE [foo].[users] ([id] INTEGER NOT NULL IDENTITY(1,1) , [mood] VARCHAR(255) CHECK ([mood] IN(N'happy', N'sad')), PRIMARY KEY ([id]));"
+          });
         });
       });
+
+      if (current.dialect.name === 'postgres') {
+        describe('with user specified names', () => {
+          it('used the name', () => {
+            expectsql(
+              sql.createTableQuery(
+                FooUserWithNamedEnum.getTableName(),
+                sql.attributesToSQL(FooUserWithNamedEnum.rawAttributes),
+                {},
+                sql.attributesToTypes(FooUserWithNamedEnum.rawAttributes)
+              ),
+              {
+                postgres:
+                  'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."mood", PRIMARY KEY ("id"));'
+              }
+            );
+          });
+
+          it('used the name when it is an array', () => {
+            expectsql(
+              sql.createTableQuery(
+                FooUserWithArrayNamedEnum.getTableName(),
+                sql.attributesToSQL(FooUserWithArrayNamedEnum.rawAttributes),
+                {},
+                sql.attributesToTypes(FooUserWithArrayNamedEnum.rawAttributes)
+              ),
+              {
+                postgres:
+                  'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."moods"[], PRIMARY KEY ("id"));'
+              }
+            );
+          });
+        });
+      }
     });
 
     describe('with references', () => {
