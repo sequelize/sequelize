@@ -865,7 +865,11 @@ class Model {
 
   static _mergeFunction(objValue, srcValue, key) {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
-      return _.union(objValue, srcValue);
+      if (['where', 'include'].indexOf(key) >= 0) {
+        return _.union(objValue, srcValue);
+      }
+
+      return srcValue;
     }
     if (key === 'where' || key === 'having') {
       if (srcValue instanceof Utils.SequelizeMethod) {
