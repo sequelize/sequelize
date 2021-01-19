@@ -975,8 +975,13 @@ class QueryInterface {
 
   async select(model, tableName, optionsArg) {
     const options = { ...optionsArg, type: QueryTypes.SELECT, model };
+    const query = this.QueryGenerator.selectQuery(tableName, options, model);
 
-    return await this.sequelize.query(this.queryGenerator.selectQuery(tableName, options, model), options);
+    if (options.getRawSql) {
+      return Promise.resolve({ query });
+    }
+
+    return await this.sequelize.query(query, options);
   }
 
   async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
