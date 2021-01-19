@@ -2542,6 +2542,16 @@ class QueryGenerator {
     if (options.model && options.model.fieldRawAttributesMap && options.model.fieldRawAttributesMap[key]) {
       return options.model.fieldRawAttributesMap[key];
     }
+
+    if (typeof key === 'string' && key.startsWith('$') && key.endsWith('$') && options.includeMap) {
+      const trimmed = key.slice(1, -1);
+      const fieldsArray = trimmed.split('.');
+      const modelName = fieldsArray[Math.max(fieldsArray.length - 2, 0)];
+      const keyName = fieldsArray[Math.max(fieldsArray.length - 1, 0)];
+      const { model } = options.includeMap[modelName];
+
+      if (model) return this._findField(keyName, { model });
+    }
   }
 
   // OR/AND/NOT grouping logic
@@ -2883,7 +2893,8 @@ class QueryGenerator {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName,
-        type: options.type
+        type: options.type,
+        includeMap: options.includeMap
       });
     }
     if (typeof smth === 'number') {
@@ -2900,13 +2911,15 @@ class QueryGenerator {
 
       return this.whereItemsQuery(where, {
         model: factory,
-        prefix: prepend && tableName
+        prefix: prepend && tableName,
+        includeMap: options.includeMap
       });
     }
     if (typeof smth === 'string') {
       return this.whereItemsQuery(smth, {
         model: factory,
-        prefix: prepend && tableName
+        prefix: prepend && tableName,
+        includeMap: options.includeMap
       });
     }
     if (Buffer.isBuffer(smth)) {
@@ -2923,7 +2936,8 @@ class QueryGenerator {
     if (smth === null) {
       return this.whereItemsQuery(smth, {
         model: factory,
-        prefix: prepend && tableName
+        prefix: prepend && tableName,
+        includeMap: options.includeMap
       });
     }
 
