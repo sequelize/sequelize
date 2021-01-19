@@ -4141,14 +4141,12 @@ class Model {
         options.fields = _.uniq(options.fields.concat(hookChanged));
       }
 
-      if (hookChanged) {
-        if (options.validate) {
-          // Validate again
+      if (hookChanged && hookChanged.length > 0 && options.validate) {
+        // Validate again
 
-          options.skip = _.difference(Object.keys(this.constructor.rawAttributes), hookChanged);
-          await this.validate(options);
-          delete options.skip;
-        }
+        options.skip = _.difference(Object.keys(this.constructor.rawAttributes), hookChanged);
+        await this.validate(options);
+        delete options.skip;
       }
     }
     if (options.fields.length && this.isNewRecord && this._options.include && this._options.include.length) {
