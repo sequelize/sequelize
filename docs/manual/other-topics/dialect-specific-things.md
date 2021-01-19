@@ -83,7 +83,7 @@ You can provide custom options to it using `dialectOptions.options` in the Seque
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'postgres',
+  dialect: 'mssql',
   dialectOptions: {
     // Observe the need for this nested `options` field for MSSQL
     options: {
