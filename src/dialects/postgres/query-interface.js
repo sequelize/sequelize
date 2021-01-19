@@ -153,15 +153,22 @@ class PostgresQueryInterface extends QueryInterface {
   /**
    * @override
    */
-  async getForeignKeyReferencesForTable(tableName, options) {
+  async getForeignKeyReferencesForTable(table, options) {
     const queryOptions = {
       ...options,
       type: QueryTypes.FOREIGNKEYS
     };
 
+    const tableName = typeof table === 'object' ? table.tableName : table;
+
     // postgres needs some special treatment as those field names returned are all lowercase
     // in order to keep same result with other dialects.
-    const query = this.queryGenerator.getForeignKeyReferencesQuery(tableName, this.sequelize.config.database);
+    const query = this.queryGenerator.getForeignKeyReferencesQuery(
+      tableName,
+      this.sequelize.config.database,
+      table.schema
+    );
+
     const result = await this.sequelize.query(query, queryOptions);
     return result.map(Utils.camelizeObjectKeys);
   }

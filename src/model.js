@@ -1420,7 +1420,10 @@ class Model {
           const references = currentAttribute.references;
           if (currentAttribute.references) {
             const database = this.sequelize.config.database;
-            const schema = this.sequelize.config.schema;
+            const schema = tableName.schema;
+            const foreignReferenceSchema = currentAttribute.references.model.schema;
+            const foreignReferenceTableName =
+              typeof references.model === 'object' ? references.model.tableName : references.model;
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
@@ -1428,9 +1431,11 @@ class Model {
                 !!constraintName &&
                 foreignKeyReference.tableCatalog === database &&
                 (schema ? foreignKeyReference.tableSchema === schema : true) &&
-                foreignKeyReference.referencedTableName === references.model &&
+                foreignKeyReference.referencedTableName === foreignReferenceTableName &&
                 foreignKeyReference.referencedColumnName === references.key &&
-                (schema ? foreignKeyReference.referencedTableSchema === schema : true) &&
+                (foreignReferenceSchema
+                  ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
+                  : true) &&
                 !removedConstraints[constraintName]
               ) {
                 // Remove constraint on foreign keys.
