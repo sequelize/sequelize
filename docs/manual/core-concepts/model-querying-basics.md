@@ -161,7 +161,7 @@ Multiple checks can be passed:
 ```js
 Post.findAll({
   where: {
-    authorId: 12
+    authorId: 12,
     status: 'active'
   }
 });
