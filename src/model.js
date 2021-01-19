@@ -2571,7 +2571,7 @@ class Model {
     const now = Utils.now(this.sequelize.options.dialect);
 
     // Attach createdAt
-    if (createdAtAttr && !updateValues[createdAtAttr]) {
+    if (createdAtAttr && !insertValues[createdAtAttr]) {
       const field = this.rawAttributes[createdAtAttr].field || createdAtAttr;
       insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
     }
