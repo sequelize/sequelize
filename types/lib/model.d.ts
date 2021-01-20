@@ -1093,13 +1093,13 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
-
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  
   /**
    * don't allow specific substrings
    */
