@@ -110,39 +110,79 @@ if (current.dialect.supports.transactions) {
         expect(hook).to.not.have.been.called;
       });
 
-      //Promise rejection test is specific to postgres
       if (dialect === 'postgres') {
-        it('do not rollback if already committed', async function() {
-          const SumSumSum = this.sequelize.define('transaction', {
-            value: {
-              type: Support.Sequelize.DECIMAL(10, 3),
-              field: 'value'
-            }
-          });
+        // See #3689, #3726 and #6972 (https://github.com/sequelize/sequelize/pull/6972/files#diff-533eac602d424db379c3d72af5089e9345fd9d3bbe0a26344503c22a0a5764f7L75)
+        it('does not try to rollback a transaction that failed upon committing with SERIALIZABLE isolation level (#3689)', async function() {
+          // See https://wiki.postgresql.org/wiki/SSI
 
-          const transTest = val => {
-            return this.sequelize.transaction({
-              isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
-            }, async t => {
-              await delay(1000);
-              await SumSumSum.sum('value', { transaction: t });
-              await delay(1000);
-              await SumSumSum.create({ value: -val }, { transaction: t });
-              await delay(1000);
+          const Dots = this.sequelize.define('dots', { color: Sequelize.STRING });
+          await Dots.sync({ force: true });
+
+          const initialData = [
+            { color: 'red' },
+            { color: 'green' },
+            { color: 'green' },
+            { color: 'red' },
+            { color: 'green' },
+            { color: 'red' },
+            { color: 'green' },
+            { color: 'green' },
+            { color: 'green' },
+            { color: 'red' },
+            { color: 'red' },
+            { color: 'red' },
+            { color: 'green' },
+            { color: 'red' },
+            { color: 'red' },
+            { color: 'red' },
+            { color: 'green' },
+            { color: 'red' }
+          ];
+
+          await Dots.bulkCreate(initialData);
+
+          const isolationLevel = Transaction.ISOLATION_LEVELS.SERIALIZABLE;
+
+          let firstTransactionGotNearCommit = false;
+          let secondTransactionGotNearCommit = false;
+
+          const firstTransaction = async () => {
+            await this.sequelize.transaction({ isolationLevel }, async t => {
+              await Dots.update({ color: 'red' }, {
+                where: { color: 'green' },
+                transaction: t
+              });
+              await delay(1500);
+              firstTransactionGotNearCommit = true;
             });
           };
 
-          await SumSumSum.sync({ force: true });
+          const secondTransaction = async () => {
+            await delay(500);
+            await this.sequelize.transaction({ isolationLevel }, async t => {
+              await Dots.update({ color: 'green' }, {
+                where: { color: 'red' },
+                transaction: t
+              });
+
+              // Sanity check - in this test we want this line to be reached before the
+              // first transaction gets to commit
+              expect(firstTransactionGotNearCommit).to.be.false;
+
+              secondTransactionGotNearCommit = true;
+            });
+          };
 
           await expect(
-            Promise.all([
-              transTest(80),
-              transTest(80)
-            ])
+            Promise.all([firstTransaction(), secondTransaction()])
           ).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
 
-          // one row was created, another was rejected due to rollback
-          expect(await SumSumSum.count()).to.equal(1);
+          expect(firstTransactionGotNearCommit).to.be.true;
+          expect(secondTransactionGotNearCommit).to.be.true;
+
+          // Only the second transaction worked
+          expect(await Dots.count({ where: { color: 'red' } })).to.equal(0);
+          expect(await Dots.count({ where: { color: 'green' } })).to.equal(initialData.length);
         });
       }
 
