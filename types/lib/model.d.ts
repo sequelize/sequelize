@@ -1843,6 +1843,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options?: FindOptions<M['_attributes']>
   ): Promise<M | null>;
+  public static findOne<M extends Model>(
+    this: ModelStatic<M>,
+    options?: NonNullFindOptions<M['_attributes']> | FindOptions<M['_attributes']>
+  ): Promise<M | null>;
 
   /**
    * Run an aggregation method on the specified field
@@ -1877,6 +1881,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options?: CountOptions<M['_attributes']>
   ): Promise<number>;
+  public static count<M extends Model>(
+    this: ModelStatic<M>,
+    options?: CountWithOptions<M['_attributes']> | CountOptions<M['_attributes']>
+  ): Promise<{ [key: string]: number } | number>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
@@ -1976,6 +1984,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: M['_creationAttributes'],
     options: CreateOptions<M['_attributes']> & { returning: false }
   ): Promise<void>;
+  public static create<M extends Model>(
+    this: ModelStatic<M>,
+    values: M['_creationAttributes'],
+    options: CreateOptions<M['_attributes']> | CreateOptions<M['_attributes']> & { returning: false }
+  ): Promise<M | void>;
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
@@ -2116,6 +2129,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     fields: { [key in keyof M['_attributes']]?: number },
     options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
+  /**
+   * Increments multiple fields by different values.
+   */
+  public static increment<M extends Model>(
+    this: ModelStatic<M>,
+    fields: keyof M['_attributes'] | ReadonlyArray<keyof M['_attributes']> | { [key in keyof M['_attributes']]?: number },
+    options: IncrementDecrementOptionsWithBy<M['_attributes']> | IncrementDecrementOptions<M['_attributes']>
+  ): Promise<M>;
 
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
@@ -2136,11 +2157,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeValidate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
   public static beforeValidate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
 
@@ -2152,14 +2173,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterValidate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
   public static afterValidate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
-
+    
   /**
    * A hook that is run before creating a single instance
    *
@@ -2168,11 +2189,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2184,14 +2205,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
-
+    
   /**
    * A hook that is run before destroying a single instance
    *
@@ -2200,11 +2221,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
   public static beforeDestroy<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
 
@@ -2216,11 +2237,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
   public static afterDestroy<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
 
@@ -2232,11 +2253,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2248,11 +2269,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2264,11 +2285,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2280,11 +2301,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2296,11 +2317,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2312,11 +2333,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2328,9 +2349,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn): void;
+    fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn): void;
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2342,10 +2364,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
+    fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2357,10 +2380,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2372,10 +2396,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2387,10 +2412,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2402,10 +2428,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: CountOptions<M['_attributes']>) => HookReturn
+    fn: (options: CountOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: CountOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2417,10 +2444,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2432,10 +2460,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (options: FindOptions<M['_attributes']>) => void
   ): HookReturn;
 
@@ -2447,11 +2476,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
     fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
+    name: string,
     fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
@@ -2459,29 +2488,29 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
+  public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
+  public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run before Model.sync call
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
+  public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after Model.sync call
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
+  public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added
@@ -2704,6 +2733,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public changed<K extends keyof this>(key: K): boolean;
   public changed<K extends keyof this>(key: K, dirty: boolean): void;
   public changed(): false | string[];
+  public changed<K extends keyof this>(key: K, dirty: boolean): boolean | string[] | void;
 
   /**
    * Returns the previous value for key from `_previousDataValues`.
