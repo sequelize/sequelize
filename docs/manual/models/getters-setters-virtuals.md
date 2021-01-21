@@ -149,7 +149,7 @@ const User = sequelize.define('user', {
 });
 ```
 
-The `VIRTUAL` field does not cause a column in the table to exist. In other words, the model above will not have a `fullName` column. However, it will appear to have it!
+The `VIRTUAL` field does not cause a column in the table to exist. In other words, the model above will not have a `fullName` column. However, any instance of the model will have the virtual attribute.
 
 ```js
 const user = await User.create({ firstName: 'John', lastName: 'Doe' });

@@ -1,0 +1,24 @@
+This  is a little note of some thoughts about the docs and how they ought to be designed better.
+
+
+1. Sequelize has all these gotchas that annoyingly sneak up on you.
+1. The docs surface advanced/edge case topics and bury simple explanations.
+1.
+
+
+Todos
+
+1. Surface emphasis on naming conventions and singular vs. plural convention, capitals etc.
+1. Getting started similar to mongoose's (https://mongoosejs.com/docs/index.html)
+1. Simple setup (agnostic to framework, no sequelize-cli) - need to recommend best practice for this.
+1. Express and Sequelize-CLI setup (sequelize-it quick start)
+1. Rename API "core concepts"
+  1. combine model-basics and model-instances
+  1. combine querying-basics and query-finders
+1. Unique constraint in validations talks about how the model influences the sync call... sync is radioactive.
+
+
+
+# Sequelize-Auto
+
+https://github.com/sequelize/sequelize-auto

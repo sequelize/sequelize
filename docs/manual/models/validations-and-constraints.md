@@ -1,70 +1,34 @@
 # Validations & Constraints
 
-In this tutorial you will learn how to setup validations and constraints for your models in Sequelize.
+**Validations** performed at the application level in JavaScript. They can be one of the built-in validators or a custom validator function. If a validation fails, no SQL query will be sent to the database at all. Sequelize.js uses [validator.js](https://github.com/chriso/validator.js) to add **Validators** to your models.
 
-For this tutorial, the following setup will be assumed:
+**Constraints** are rules defined at SQL level. The most basic example of constraint is an Unique Constraint. If a constraint check fails, an error will be thrown by the database and Sequelize will forward this error to JavaScript (in this example, throwing a `SequelizeUniqueConstraintError`). Note that in this case, the SQL query was performed, unlike the case for validations.
 
-```js
-const { Sequelize, Op, Model, DataTypes } = require("sequelize");
-const sequelize = new Sequelize("sqlite::memory:");
-
-const User = sequelize.define("user", {
-  username: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    unique: true
-  },
-  hashedPassword: {
-    type: DataTypes.STRING(64),
-    is: /^[0-9a-f]{64}$/i
-  }
-});
-
-(async () => {
-  await sequelize.sync({ force: true });
-  // Code here
-})();
-```
-
-## Difference between Validations and Constraints
-
-Validations are checks performed in the Sequelize level, in pure JavaScript. They can be arbitrarily complex if you provide a custom validator function, or can be one of the built-in validators offered by Sequelize. If a validation fails, no SQL query will be sent to the database at all.
-
-On the other hand, constraints are rules defined at SQL level. The most basic example of constraint is an Unique Constraint. If a constraint check fails, an error will be thrown by the database and Sequelize will forward this error to JavaScript (in this example, throwing a `SequelizeUniqueConstraintError`). Note that in this case, the SQL query was performed, unlike the case for validations.
-
-## Unique Constraint
-
-Our code example above defines a unique constraint on the `username` field:
+For example if you wanted to add the `allowNull` and `unique` constraints and and a validation for the min/max length of a `title` attribute on a `Todo` model, your model would look like this:
 
 ```js
-/* ... */ {
-  username: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    unique: true
-  },
-} /* ... */
+// models/todo.js
+'use strict';
+
+module.exports = (sequelize, DataTypes) => {
+
+  const Todo = sequelize.define('Todo', {
+    title: {
+      DataTypes.STRING,
+      unique: true,
+      validate: { min: 0, max: 180 }
+    }
+  }, {});
+
+  Todo.associate = function(models) {
+    // associations can be defined here
+  };
+
+  return Todo;
+};
 ```
 
-When this model is synchronized (by calling `sequelize.sync` for example), the `username` field will be created in the table as `` `name` TEXT UNIQUE``, and an attempt to insert an username that already exists there will throw a `SequelizeUniqueConstraintError`.
-
-## Allowing/disallowing null values
-
-By default, `null` is an allowed value for every column of a model. This can be disabled setting the `allowNull: false` option for a column, as it was done in the `username` field from our code example:
-
-```js
-/* ... */ {
-  username: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    unique: true
-  },
-} /* ... */
-```
-
-Without `allowNull: false`, the call `User.create({})` would work.
-
-### Note about `allowNull` implementation
+**Exception to the rule *allowNull***
 
 The `allowNull` check is the only check in Sequelize that is a mix of a *validation* and a *constraint* in the senses described at the beginning of this tutorial. This is because:
 

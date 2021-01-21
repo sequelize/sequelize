@@ -24,6 +24,14 @@ Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10
 
 You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.html).
 
+## Shortcuts
+
+Sequelize and some of its associated libraries offer some optional methods that can accelerate development.
+
+* `sequelize.sync()` is an optional method that will create a SQL database on the fly based on the definition of your Sequelize models, making migrations unnecessary.
+* Sequelize-CLI is a commandline tool separate from Sequelize that is required to generate and run migrations. It also has various generators that can be used optionally.
+* Sequelize-Auto is a library
+
 ## Quick example
 
 ```js
@@ -31,19 +39,25 @@ const { Sequelize, Model, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
+
 User.init({
   username: DataTypes.STRING,
   birthday: DataTypes.DATE
 }, { sequelize, modelName: 'user' });
 
 (async () => {
+
   await sequelize.sync();
+
   const jane = await User.create({
     username: 'janedoe',
     birthday: new Date(1980, 6, 20)
   });
   console.log(jane.toJSON());
+
 })();
 ```
 
 To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started.html).
+
+Of course, using `async` and `await` works normally as well.
