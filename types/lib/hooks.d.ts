@@ -32,6 +32,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  beforeUpsert(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  afterUpsert(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
