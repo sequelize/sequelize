@@ -31,10 +31,10 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
   beforeRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
-  beforeUpdate(instance: M, options: UpsertOptions<TAttributes>): HookReturn;
-  afterUpdate(instance: M, options: UpsertOptions<TAttributes>): HookReturn;
-  beforeUpsert(instance: M, options: InstanceUpsertOptions<TAttributes>): HookReturn;
-  afterUpsert(instance: M, options: InstanceUpsertOptions<TAttributes>): HookReturn;
+  beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
+  afterUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
