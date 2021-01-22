@@ -93,6 +93,13 @@ if (dialect === 'mysql') {
           expectation: { id: 'INTEGER DEFAULT 0' }
         },
         {
+          arguments: [function(sequelize) {
+            return { geodata: { type: 'GEOMETRYCOLLECTION', defaultValue: sequelize.fn('ST_GeomFromText', 'GEOMETRYCOLLECTION EMPTY') } };
+          }],
+          expectation: { geodata: 'GEOMETRYCOLLECTION DEFAULT (ST_GeomFromText(\'GEOMETRYCOLLECTION EMPTY\'))' },
+          needsSequelize: true
+        },
+        {
           title: 'Add column level comment',
           arguments: [{ id: { type: 'INTEGER', comment: 'Test' } }],
           expectation: { id: 'INTEGER COMMENT \'Test\'' }
@@ -780,8 +787,11 @@ if (dialect === 'mysql') {
           const title = test.title || `MySQL correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function() {
             if (test.needsSequelize) {
-              if (typeof test.arguments[1] === 'function') test.arguments[1] = test.arguments[1](this.sequelize);
-              if (typeof test.arguments[2] === 'function') test.arguments[2] = test.arguments[2](this.sequelize);
+              test.arguments.forEach((arg, i) => {
+                if (typeof arg === 'function') {
+                  test.arguments[i] = arg(this.sequelize);
+                }
+              });
             }
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
