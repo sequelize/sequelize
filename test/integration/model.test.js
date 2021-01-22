@@ -468,7 +468,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx2.type).to.equal('FULLTEXT');
 
         let expectedOrder = 'ASC';
-        if (semver.gte(current.options.databaseVersion, '8.0.0')) {
+        if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '8.0.0')) {
           expectedOrder = 'DESC';
         }
 
