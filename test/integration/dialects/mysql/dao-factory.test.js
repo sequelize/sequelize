@@ -22,7 +22,7 @@ if (dialect === 'mysql') {
         const User = this.sequelize.define(`User${config.rand()}`, {
           username: { type: DataTypes.STRING, defaultValue: 'foo' }
         }, { timestamps: false });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ username: "VARCHAR(255) DEFAULT ('foo')", id: 'INTEGER NOT NULL auto_increment PRIMARY KEY' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ username: "VARCHAR(255) DEFAULT 'foo'", id: 'INTEGER NOT NULL auto_increment PRIMARY KEY' });
       });
 
       it('handles extended attributes (null)', function() {
