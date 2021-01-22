@@ -467,9 +467,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx1.type).to.equal('BTREE');
         expect(idx2.type).to.equal('FULLTEXT');
 
+        let expectedOrder = 'ASC';
+        if (semver.gte(current.options.databaseVersion, '8.0.0')) {
+          expectedOrder = 'DESC';
+        }
+
         expect(idx1.fields).to.deep.equal([
           { attribute: 'fieldB', length: undefined, order: 'ASC' },
-          { attribute: 'fieldA', length: 5, order: 'DESC' }
+          { attribute: 'fieldA', length: 5, order: expectedOrder }
         ]);
 
         expect(idx2.fields).to.deep.equal([
