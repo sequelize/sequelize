@@ -382,7 +382,7 @@ export interface Options extends Logging {
   minifyAliases?: boolean;
 
   /**
-   * Set to `true` to show bind patameters in log.
+   * Set to `true` to show bind parameters in log.
    *
    * @default false
    */
