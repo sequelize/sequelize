@@ -730,7 +730,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await delay(10);
       const user2 = await User.create({});
 
-      for (const user in [user1, user2]) {
+      for (const user of [user1, user2]) {
         expect(user).to.be.ok;
         expect(user.created_time).to.be.ok;
         expect(user.updated_time).to.be.ok;
