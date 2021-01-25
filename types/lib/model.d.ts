@@ -70,7 +70,7 @@ export interface Paranoid {
   paranoid?: boolean;
 }
 
-export type GroupOption = string | Fn | Col | readonly (string | Fn | Col)[];
+export type GroupOption = string | Fn | Col | (string | Fn | Col)[];
 
 /**
  * Options to pass to Model on drop
@@ -126,7 +126,7 @@ export interface AnyOperator {
   [Op.any]: readonly (string | number)[];
 }
 
-/** Undocumented? */
+/** TODO: Undocumented? */
 export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[];
 }
@@ -444,7 +444,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * Load further nested related models
    */
-  include?: readonly Includeable[];
+  include?: Includeable[];
 
   /**
    * Order include. Only available when setting `separate` to true.
@@ -464,16 +464,16 @@ export type OrderItem =
   | Fn
   | Col
   | Literal
-  | readonly [OrderItemColumn, string]
-  | readonly [OrderItemAssociation, OrderItemColumn]
-  | readonly [OrderItemAssociation, OrderItemColumn, string]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | readonly [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = string | Fn | Col | Literal | readonly OrderItem[];
+  | [OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemColumn]
+  | [OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+export type Order = string | Fn | Col | Literal | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
@@ -482,26 +482,26 @@ export type Order = string | Fn | Col | Literal | readonly OrderItem[];
 export type ProjectionAlias = readonly [string | Literal | Fn, string];
 
 export type FindAttributeOptions =
-  | readonly (string | ProjectionAlias)[]
+  | (string | ProjectionAlias)[]
   | {
-    exclude: readonly string[];
-    include?: readonly (string | ProjectionAlias)[];
+    exclude: string[];
+    include?: (string | ProjectionAlias)[];
   }
   | {
-    exclude?: readonly string[];
-    include: readonly (string | ProjectionAlias)[];
+    exclude?: string[];
+    include: (string | ProjectionAlias)[];
   };
 
 export interface IndexHint {
   type: IndexHints;
-  values: readonly string[];
+  values: string[];
 }
 
 export interface IndexHintable {
   /**
    * MySQL only.
    */
-  indexHints?: readonly IndexHint[];
+  indexHints?: IndexHint[];
 }
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
@@ -521,7 +521,7 @@ export interface FindOptions<TAttributes = any>
    * If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in
    * the as attribute when eager loading Y).
    */
-  include?: Includeable | readonly Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide
@@ -592,7 +592,7 @@ export interface CountOptions<TAttributes = any>
   /**
    * Include options. See `find` for details
    */
-  include?: Includeable | readonly Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Apply COUNT(DISTINCT(col))
@@ -645,7 +645,7 @@ export interface BuildOptions {
    *
    * TODO: See set
    */
-  include?: Includeable | readonly Includeable[];
+  include?: Includeable | Includeable[];
 }
 
 export interface Silent {
@@ -664,7 +664,7 @@ export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging,
   /**
    * If set, only columns matching those in fields will be saved
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
 
   /**
    * On Duplicate
@@ -699,7 +699,7 @@ export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TA
   /**
    * The fields to insert / update. Defaults to all fields
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
   /**
    * Default values to use if building a new instance
    */
@@ -713,7 +713,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * The fields to insert / update. Defaults to all fields
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
 
   /**
    * Return the affected rows (only for postgres)
@@ -733,7 +733,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Fields to insert (defaults to all fields)
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
 
   /**
    * Should each row be subject to validation before it is inserted. The whole insert will fail if one row
@@ -758,17 +758,17 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
    * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5). By default, all fields are updated.
    */
-  updateOnDuplicate?: readonly (keyof TAttributes)[];
+  updateOnDuplicate?: (keyof TAttributes)[];
 
   /**
    * Include options. See `find` for details
    */
-  include?: Includeable | readonly Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | readonly (keyof TAttributes)[];
+  returning?: boolean | (keyof TAttributes)[];
 }
 
 /**
@@ -846,7 +846,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fields to update (defaults to all fields)
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
 
   /**
    * Should each row be subject to validation before it is inserted. The whole insert will fail if one row
@@ -969,7 +969,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
    */
-  fields?: readonly (keyof TAttributes)[];
+  fields?: (keyof TAttributes)[];
 
   /**
    * If false, validations won't be run.
@@ -2297,11 +2297,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2812,7 +2812,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public equals(other: this): boolean;
 
   /**
-   * Check if this is eqaul to one of `others` by calling equals
+   * Check if this is equal to one of `others` by calling equals
    */
   public equalsOneOf(others: readonly this[]): boolean;
 

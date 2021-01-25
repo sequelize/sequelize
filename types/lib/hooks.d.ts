@@ -40,7 +40,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
   ): HookReturn;
-  beforeBulkCreate(instances: readonly M[], options: BulkCreateOptions<TAttributes>): HookReturn;
+  beforeBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): HookReturn;
   afterBulkCreate(instances: readonly M[], options: BulkCreateOptions<TAttributes>): HookReturn;
   beforeBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
   afterBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
