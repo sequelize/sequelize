@@ -9,6 +9,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   Op = Sequelize.Op,
   _ = require('lodash'),
+  delay = require('delay'),
   assert = require('assert'),
   current = Support.sequelize,
   pTimeout = require('p-timeout');
@@ -724,12 +725,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      const user = await User.create({});
-      expect(user).to.be.ok;
-      expect(user.created_time).to.be.ok;
-      expect(user.updated_time).to.be.ok;
-      expect(user.created_time.getMilliseconds()).not.to.equal(0);
-      expect(user.updated_time.getMilliseconds()).not.to.equal(0);
+
+      const user1 = await User.create({});
+      await delay(10);
+      const user2 = await User.create({});
+
+      for (const user in [user1, user2]) {
+        expect(user).to.be.ok;
+        expect(user.created_time).to.be.ok;
+        expect(user.updated_time).to.be.ok;
+      }
+
+      // Timestamps should have milliseconds. However, there is a small chance that
+      // it really is 0 for one of them, by coincidence. So we check twice with two
+      // users created almost at the same time.
+      expect([
+        user1.created_time.getMilliseconds(),
+        user2.created_time.getMilliseconds()
+      ]).not.to.deep.equal([0, 0]);
+      expect([
+        user1.updated_time.getMilliseconds(),
+        user2.updated_time.getMilliseconds()
+      ]).not.to.deep.equal([0, 0]);
     });
 
     it('works with custom timestamps and underscored', async function() {
@@ -1423,7 +1440,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   if (current.dialect.supports.returnValues) {
     it('should return default value set by the database (create)', async function() {
-  
+
       const User = this.sequelize.define('User', {
         name: DataTypes.STRING,
         code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
@@ -1432,9 +1449,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.sync({ force: true });
 
       const user = await User.create({ name: 'FooBar' });
-  
+
       expect(user.name).to.be.equal('FooBar');
       expect(user.code).to.be.equal(2020);
     });
-  }  
+  }
 });
