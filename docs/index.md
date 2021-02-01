@@ -18,26 +18,28 @@
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based Node.js [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
+Sequelize is a promise-based, asynchronous Node.js [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
 Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10 and above.
 
 You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.html).
 
-## Shortcuts
+## Rapid Development Options
 
-Sequelize and some of its associated libraries offer some optional methods that can accelerate development.
+Sequelize and its library ecosystem accelerates development and integration with new and existing SQL databases.
 
-* `sequelize.sync()` is an optional method that will create a SQL database on the fly based on the definition of your Sequelize models, making migrations unnecessary.
-* Sequelize-CLI is a commandline tool separate from Sequelize that is required to generate and run migrations. It also has various generators that can be used optionally.
-* Sequelize-Auto is a library
+* Sequelize-CLI is a commandline tool separate from Sequelize that is required to generate and run migrations. It also has generators that can be used to initiate projects and create model, migration, and seed files.
+* `sequelize.sync()` is a method that enables rapid prototyping by creating and structuring your SQL database on the fly based on the definition of your Sequelize models. This makes writing migrations unnecessary in your development environment.
+* [Sequelize-Auto](https://github.com/sequelize/sequelize-auto) is a library built for rapidly integrating an existing SQL database with your sequelize implementation.
 
-## Quick example
+## Ultralight Sequelize Implementation
 
 ```js
+// CONNECT TO DB
 const { Sequelize, Model, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('sqlite::memory:');
 
+// DEFINE A MODEL
 class User extends Model {}
 
 User.init({
@@ -47,17 +49,18 @@ User.init({
 
 (async () => {
 
+  // BOOSTRAP DB WITH SYNC
   await sequelize.sync();
 
+  // SAVE A RECORD
   const jane = await User.create({
     username: 'janedoe',
     birthday: new Date(1980, 6, 20)
   });
+
   console.log(jane.toJSON());
 
 })();
 ```
 
-To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started.html).
-
-Of course, using `async` and `await` works normally as well.
+To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with the [Quick Start](manual/quick-start.html).

@@ -1,6 +1,6 @@
-## Seeds
+# Seeds
 
-### Creating the first Seed
+## Creating the first Seed
 
 Suppose we want to insert some data into a few tables by default. If we follow up on previous example we can consider creating a demo user for `User` table.
 

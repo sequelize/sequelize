@@ -1,5 +1,15 @@
 
 
+To define a proper model, you also need to create a migration. For simplicity use a the `sequelize-cli` generators to get started:
+
+```bash
+$ sequelize model:create --name Todo --attributes title:string,desc:text
+```
+
+This creates a `models/todo.js` model file and a corresponding migration in the `migrations` folder.
+
+
+
 For this tutorial, the following setup will be assumed:
 
 ```js

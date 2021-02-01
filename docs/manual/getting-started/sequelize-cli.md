@@ -1,7 +1,6 @@
-# Sequelize CLI & Sequelize Auto
+# Sequelize CLI
 
-
-[Sequelize Command-Line Interface (sequelize-cli)](https://github.com/sequelize/cli) gives you command line support for creating and running migration files and various generators that help with quickly getting your project up and running.
+[Sequelize Command-Line Interface (sequelize-cli)](https://github.com/sequelize/cli) gives you command line support to initialize your project, create and run migration files, and various generators that help with quickly getting your project up and running.
 
 ## Installing the CLI
 
@@ -144,5 +143,3 @@ module.exports = {
 ```
 
 Of course, the outcome will depend upon your babel configuration (such as in a `.babelrc` file). Learn more at [babeljs.io](https://babeljs.io).
-
-## Sequelize Auto

@@ -459,8 +459,6 @@ console.log((await ship.getCaptain()).toJSON());
 
 Defining an Alias is more powerful than simply specifying a custom name for the foreign key. This is better understood with an example:
 
-<!-- NOTE: any change in this part might also require a change on advanced-many-to-many.md -->
-
 ```js
 Ship.belongsTo(Captain, { as: 'leader' }); // This creates the `leaderId` foreign key in Ship.
 

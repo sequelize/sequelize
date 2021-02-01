@@ -8,18 +8,20 @@ This  is a little note of some thoughts about the docs and how they ought to be 
 
 Todos
 
-1. Standardize index.js code
-1. Surface emphasis on naming conventions and singular vs. plural convention, capitals etc.
-1. Simple setup (agnostic to framework, no sequelize-cli) - need to recommend best practice for this.
-1. Express and Sequelize-CLI setup (sequelize-it quick start)
+1. Add https://sequelize.org/ information to homepage of docs
 1. Rename API "core concepts"
   1. combine model-basics and model-instances
   1. combine querying-basics and query-finders
-1. Unique constraint in validations talks about how the model influences the sync call... sync is radioactive.
-
-
+  1. integrate assoc.md docs into associations section
+  1. Pull all sync gotchas into a sync article. e.g. Unique constraint in validations talks about how the model influences the sync call
+1. Standardize index.js code
+1. Surface emphasis on naming conventions and singular vs. plural convention, capitals etc.
+1. Fix all internal links
+1. Create redirects for files I destroyed put in "moved" folder
 
 1. DONE Getting started similar to mongoose's (https://mongoosejs.com/docs/index.html)
+1. DONE Express and Sequelize-CLI setup (sequelize-it quick start)
+1. DONE Recommend using migrations. Treat sync as its own "Rapid Prototyping" pattern
 
 
 # Sequelize-Auto

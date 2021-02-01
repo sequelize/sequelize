@@ -1,8 +1,9 @@
 {
    "Getting Started":[
-      "getting-started/quick-start.md",
-      "getting-started/connecting-to-a-db.md",
-      "getting-started/sequelize-cli-and-auto.md"
+      "getting-started/ultralight-guide.md",
+      "getting-started/standard-guide.md",
+      "getting-started/sequelize-cli.md",
+      "getting-started/connecting-to-a-db.md"
    ],
    "Models":[
       "models/model-basics.md",
@@ -52,6 +53,7 @@
       "other-topics/legal.md"
    ],
    "__hidden__":[
+      "moved/assocs.md",
       "moved/associations.md",
       "moved/data-types.md",
       "moved/models-definition.md",
