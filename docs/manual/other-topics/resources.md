@@ -10,7 +10,7 @@
 
 ### Auto Code Generation & Scaffolding
 
-* [meteor modeler](https://www.datensen.com/) - Desktop tool for visual definition of Sequelize models and asssociations.
+* [meteor modeler](https://www.datensen.com/) - Desktop tool for visual definition of Sequelize models and associations.
 * [sequelize-ui](https://github.com/tomjschuster/sequelize-ui) - Online tool for building models, relations and more.
 * [sequelizer](https://github.com/andyforever/sequelizer) - A GUI Desktop App for generating Sequelize models. Support for Mysql, Mariadb, Postgres, Sqlite, Mssql.
 * [sequelize-auto](https://github.com/sequelize/sequelize-auto) Generating models for SequelizeJS via the command line is another choice.

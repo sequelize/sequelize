@@ -93,7 +93,7 @@ This is a step-by-step tutorial for a standard setup of sequelize using Node.js 
 
 1. Database setup and connected! Now we just need to define models and migrations to begin reading and writing to our database.
 
-## Define a Migration
+## Define and Run a Migration
 
 <!-- To define a proper model, you also need to create a migration. For simplicity use a the `sequelize-cli` generators to get started:
 
@@ -151,8 +151,6 @@ module.exports = {
 
 Once your migration is created its time to run it:
 
-## Running & Rolling Back Migrations
-
 ```bash
 $ sequelize db:migrate
 ```
@@ -185,6 +183,8 @@ module.exports = (sequelize, DataTypes) => {
 ```
 
 Using this `Todo` model we can use Sequelize's query API to read and write data to the `Todos` table.
+
+## Write Queries
 
 You can run queries such as:
 

@@ -8,8 +8,8 @@ This  is a little note of some thoughts about the docs and how they ought to be 
 
 Todos
 
+1. Standardize index.js code
 1. Surface emphasis on naming conventions and singular vs. plural convention, capitals etc.
-1. Getting started similar to mongoose's (https://mongoosejs.com/docs/index.html)
 1. Simple setup (agnostic to framework, no sequelize-cli) - need to recommend best practice for this.
 1. Express and Sequelize-CLI setup (sequelize-it quick start)
 1. Rename API "core concepts"
@@ -19,6 +19,54 @@ Todos
 
 
 
+1. DONE Getting started similar to mongoose's (https://mongoosejs.com/docs/index.html)
+
+
 # Sequelize-Auto
 
 https://github.com/sequelize/sequelize-auto
+
+
+
+index.js options:
+
+'use strict';
+
+// Create Connection
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  store: ':memory'
+});
+
+// Initialize Models
+const Post = require('./models/post.js')(sequelize, Sequelize);
+const User = require('./models/user.js')(sequelize, Sequelize);
+const Tag = require('./models/tag.js')(sequelize, Sequelize);
+const Comment = require('./models/comment.js')(sequelize, Sequelize);
+
+// Define Associations
+Post.belongsTo(User, { as: 'author' });
+Post.hasMany(Comment);
+Post.belongsToMany(Tag, { through: 'postTags' });
+
+User.hasMany(Post, { foreignKey: 'authorId' });
+User.hasMany(Comment, { foreignKey: 'authorId' });
+
+Tag.belongsToMany(Post, { through: 'postTags' });
+
+Comment.belongsTo(User, { as: 'author' });
+Comment.belongsTo(Post);
+Comment.belongsTo(Comment, { as: 'parent' });
+Comment.hasMany(Comment, { foreignKey: 'parentId', as: 'response' });
+
+// Export connection and models
+module.exports = {
+  sequelize,
+  Sequelize,
+  Post,
+  User,
+  Tag,
+  Comment
+}

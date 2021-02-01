@@ -13,7 +13,7 @@ npm install sequelize-cli
 
 For details see the [CLI GitHub repository](https://github.com/sequelize/cli).
 
-## The `.sequelizerc` file
+### The `.sequelizerc` file
 
 This is a special configuration file. It lets you specify the following options that you would usually pass as arguments to CLI:
 
@@ -55,7 +55,7 @@ This changes the default paths to the following:
 - Use `db/seeders` as seeders folder;
 - Use `db/migrations` as migrations folder.
 
-## Dynamic configuration
+### Dynamic configuration
 
 The configuration file is by default a JSON file called `config.json`. But sometimes you need a dynamic configuration, for example to access environment variables or execute some other code to determine the configuration.
 
@@ -120,7 +120,7 @@ module.exports = {
 
 The example above also shows how to add custom dialect options to the configuration.
 
-## Using Babel
+### Using Babel
 
 To enable more modern constructions in your migrations and seeders, you can simply install `babel-register` and require it at the beginning of `.sequelizerc`:
 
@@ -146,5 +146,3 @@ module.exports = {
 Of course, the outcome will depend upon your babel configuration (such as in a `.babelrc` file). Learn more at [babeljs.io](https://babeljs.io).
 
 ## Sequelize Auto
-
-TODO
