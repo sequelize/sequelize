@@ -1245,9 +1245,16 @@ export class Sequelize extends Hooks {
   /**
    * Create a new database schema.
    *
-   * Note,that this is a schema in the
+   * Note, that this is a schema in the
    * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this command will do nothing.
+   *
+   * Here is an example for creating a schema if it does not exist:
+   *
+   * ```js
+   * await sequelize.authenticate() // Authenticate first to fetch the databaseVersion required for creating the schema if it does not exist
+   * await sequelize.createSchema('your_schema_name', options)
+   * ```
    *
    * @param schema Name of the schema
    * @param options Options supplied
@@ -1257,7 +1264,7 @@ export class Sequelize extends Hooks {
   /**
    * Show all defined schemas
    *
-   * Note,that this is a schema in the
+   * Note, that this is a schema in the
    * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this will show all tables.
    *
@@ -1268,7 +1275,7 @@ export class Sequelize extends Hooks {
   /**
    * Drop a single schema
    *
-   * Note,that this is a schema in the
+   * Note, that this is a schema in the
    * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this drop a table matching the schema name
    *
@@ -1280,7 +1287,7 @@ export class Sequelize extends Hooks {
   /**
    * Drop all schemas
    *
-   * Note,that this is a schema in the
+   * Note, that this is a schema in the
    * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
    *
