@@ -1,4 +1,4 @@
-_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [Slack](https://sequelize.slack.com) & [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js).
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js).
 
 # Issues
 
@@ -19,7 +19,7 @@ If you can even provide a pull request with a failing unit test, we will love yo
 
 # Pull requests
 
-We're glad to get pull request if any functionality is missing or something is buggy. However, there are a couple of things you can do to make life easier for the maintainers:
+We're glad to get pull requests if any functionality is missing or something is buggy. However, there are a couple of things you can do to make life easier for the maintainers:
 
 - Explain the issue that your PR is solving - or link to an existing issue
 - Make sure that all existing tests pass
