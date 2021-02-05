@@ -23,7 +23,7 @@ We're more than happy to accept feature requests! Before we get into how you can
 
   1. Feature requests go through an approval process - please give us _48 hours_ to label your request as approved. Approval is met when *75%* of our active contributors vote in favor of integrating this feature.
 
-    - Please be sure to communicate the following:
+  Please be sure to communicate the following:
 
       1. What problem your feature request aims to solve OR what aspect of the Sequelize workflow it aims to improve.
 
@@ -31,12 +31,12 @@ We're more than happy to accept feature requests! Before we get into how you can
 
       3. Why does it make sense that Sequelize should integrate this feature?
 
-    - If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
+  If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
 
-        - Something too similar to already exists within Sequelize
-        - This feature seems out of scope of what Sequelize exists to accomplish
+    - Something too similar to already exists within Sequelize
+    - This feature seems out of scope of what Sequelize exists to accomplish
 
-    - We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
+  We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
 
   2. Once approved, your feature request will be logged and moved to our _Trello Board_ - to which we'll provide you a link so you can follow along with its progress!
 
