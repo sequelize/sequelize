@@ -19,7 +19,7 @@ If you can even provide a pull request with a failing unit test, we will love yo
 
 # Feature Requests
 
-We're more than happy to accept feature requests! Before we get into how you can bring these to your attention, let's talk about our process for integrating feature requests into Sequelize:
+We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for integrating feature requests into Sequelize:
 
   1. Feature requests go through an approval process - please give us _48 hours_ to label your request as approved. Approval is met when *75%* of our active contributors vote in favor of integrating this feature.
 
