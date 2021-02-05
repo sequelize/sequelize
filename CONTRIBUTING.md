@@ -17,6 +17,24 @@ When you post code, please use [Github flavored markdown](https://help.github.co
 
 If you can even provide a pull request with a failing unit test, we will love you long time! Plus your issue will likely be fixed much faster.
 
+# Feature Requests
+
+We're more than happy to accept feature requests! Before we get into how you can bring these to your attention, let's talk about our process for integrating feature requests into sequelize:
+
+  1. Feature requests go through an approval process - please give us _48 hours_ to label your request as approved. Approval is met when *x%* of our active contributors vote in favor of integrating this feature.
+
+    - If we don't approve your feature request, we'll provide you with our reasoning before closing it out, such as (but not strictly limited to):
+        - Something too similar to this already exists
+        - This feature seems out of scope of what sequelize exists to accomplish
+
+    - If we don't approve your feature request, we'll make sure that we've understood your proposed feature entirely as well as the reasoning behind the request, so that we don't deny feature requests that could make our users lives easier!
+
+  2. Once approved, your feature request will be logged and moved to our *organizational software here* - to which we'll provide you a link so you can follow along with its progress!
+
+  3. Feature requests can be submitted as issues for us to approve them. Once you've submitted your feature request, it will be labeled as such. Please provide 48 hours from the time its labeled for all of our active maintainers in various time zones to have the chance to vote on it.
+
+  4. If you'd like to help us implement a feature request, once its approved, please open a pull request. See the section on pull requests below and make sure you follow all guidelines. If you help us implement a feature, we want to say in advance: **thank you!**. 
+
 # Pull requests
 
 We're glad to get pull requests if any functionality is missing or something is buggy. However, there are a couple of things you can do to make life easier for the maintainers:
