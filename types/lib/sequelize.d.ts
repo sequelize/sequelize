@@ -20,6 +20,7 @@ import {
   WhereOperators,
   ModelCtor,
   Hookable,
+  ModelType,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
@@ -747,8 +748,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public static afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public static afterDefine(fn: (model: typeof Model) => void): void;
+  public static afterDefine(name: string, fn: (model: ModelType) => void): void;
+  public static afterDefine(fn: (model: ModelType) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
@@ -1046,8 +1047,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public afterDefine(fn: (model: typeof Model) => void): void;
+  public afterDefine(name: string, fn: (model: ModelType) => void): void;
+  public afterDefine(fn: (model: ModelType) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
