@@ -3,14 +3,10 @@
 const { expect } = require('chai');
 const PostgresDialect = require('../../lib/dialects/postgres');
 const Sequelize = require('../../index');
+const config = require('../config/config');
 
 const options = {
-  host: '127.0.0.1',
-  port: 5432,
-  pool: {
-    max: 5,
-    idle: 3000
-  },
+  ...config.postgres,
   dialect: PostgresDialect
 };
 
