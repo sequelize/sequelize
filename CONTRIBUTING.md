@@ -1,8 +1,8 @@
-_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/Sequelize.js).
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js).
 
 # Issues
 
-Issues are always very welcome - after all, they are a big part of making Sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
+Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
 
 ### Tell us:
 
@@ -11,7 +11,7 @@ Issues are always very welcome - after all, they are a big part of making Sequel
   - What do you expect to happen?
   - What is actually happening?
 - Which dialect you are using (postgres, mysql etc)?
-- Which Sequelize version you are using?
+- Which sequelize version you are using?
 
 When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
 
@@ -19,22 +19,22 @@ If you can even provide a pull request with a failing unit test, we will love yo
 
 # Feature Requests
 
-We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for integrating feature requests into Sequelize:
+We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for integrating feature requests into sequelize:
 
-  1. Feature requests go through an approval process - please give us _48 hours_ to label your request as approved. Approval is met when *75%* of our active contributors vote in favor of integrating this feature.
+  1. Feature requests go through an approval process - please give us time to label your request as approved. Approval is met when *75%* of our active contributors vote in favor of integrating this feature.
 
   Please be sure to communicate the following:
 
-  1. What problem your feature request aims to solve OR what aspect of the Sequelize workflow it aims to improve.
+  1. What problem your feature request aims to solve OR what aspect of the sequelize workflow it aims to improve.
 
   2. Under what conditions are you anticipating this feature to be most beneficial?
 
-  3. Why does it make sense that Sequelize should integrate this feature?
+  3. Why does it make sense that sequelize should integrate this feature?
 
   If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
 
-  - Something too similar to already exists within Sequelize
-  - This feature seems out of scope of what Sequelize exists to accomplish
+  - Something too similar to already exists within sequelize
+  - This feature seems out of scope of what sequelize exists to accomplish
 
   We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
 
@@ -52,7 +52,7 @@ We're glad to get pull requests if any functionality is missing or something is 
 
 - Explain the issue that your PR is solving - or link to an existing issue
 - Make sure that all existing tests pass
-- Make sure you followed [coding guidelines](https://github.com/Sequelize/Sequelize/blob/main/CONTRIBUTING.md#coding-guidelines)
+- Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#coding-guidelines)
 - Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
   - Use [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
@@ -68,10 +68,10 @@ Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
-Just "cd" into Sequelize directory and run `npm ci`, see an example below:
+Just "cd" into sequelize directory and run `npm ci`, see an example below:
 
 ```sh
-$ cd path/to/Sequelize
+$ cd path/to/sequelize
 $ npm ci
 $ npm run tsc
 ```
@@ -82,11 +82,11 @@ Database instances for testing can be started using Docker or you can use local 
 
 #### 3.a Local instances
 
-For MySQL and PostgreSQL you'll need to create a DB called `Sequelize_test`.
+For MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
 For MySQL this would look like this:
 
 ```sh
-$ echo "CREATE DATABASE Sequelize_test;" | mysql -uroot
+$ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 ```
 
 **HINT:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`.
@@ -96,11 +96,11 @@ For Postgres, creating the database and (optionally) adding the test user this w
 ```sh
 $ psql
 
-# create database Sequelize_test;
+# create database sequelize_test;
 # create user postgres with superuser; -- optional; usually built-in
 ```
 
-You may need to specify credentials using the environment variables `SEQ_PG_USER` and `SEQ_PG_PW` when running tests or set a password of 'postgres' for the postgres user on your local database to allow Sequelize to connect via TCP to localhost. Refer to `test/config/config.js` for the default credentials and environment variables.
+You may need to specify credentials using the environment variables `SEQ_PG_USER` and `SEQ_PG_PW` when running tests or set a password of 'postgres' for the postgres user on your local database to allow sequelize to connect via TCP to localhost. Refer to `test/config/config.js` for the default credentials and environment variables.
 
 For Postgres you may also need to install the `postgresql-postgis` package (an optional component of some Postgres distributions, e.g. Ubuntu). The package will be named something like: `postgresql-<pg_version_number>-postgis-<postgis_version_number>`, e.g. `postgresql-9.5-postgis-2.2`. You should be able to find the exact package name on a Debian/Ubuntu system by running the command: `apt-cache search -- -postgis`.
 
@@ -146,7 +146,7 @@ $ docker-compose up postgres-95 mysql-57 mssql
 
 **MSSQL:** Please run `npm run setup-mssql` to create the test database.
 
-**POSTGRES:** Sequelize uses [special](https://github.com/sushantdhiman/Sequelize-postgres) Docker image for PostgreSQL, which install all the extensions required by tests.
+**POSTGRES:** Sequelize uses [special](https://github.com/sushantdhiman/sequelize-postgres) Docker image for PostgreSQL, which install all the extensions required by tests.
 
 ### 4. Running tests
 
@@ -186,7 +186,7 @@ Have a look at our [.eslintrc.json](https://github.com/Sequelize/Sequelize/blob/
 
 # Contributing to the documentation
 
-For contribution guidelines for the documentation, see [CONTRIBUTING.DOCS.md](https://github.com/Sequelize/Sequelize/blob/main/CONTRIBUTING.DOCS.md).
+For contribution guidelines for the documentation, see [CONTRIBUTING.DOCS.md](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.DOCS.md).
 
 # Publishing a release (For Maintainers)
 
