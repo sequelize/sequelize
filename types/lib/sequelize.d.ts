@@ -166,7 +166,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | Object;
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -178,7 +178,7 @@ export interface RetryOptions {
  */
 export interface Options extends Logging {
   /**
-   * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql.
+   * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql, or a custom dialect object.
    *
    * @default 'mysql'
    */
