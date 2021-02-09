@@ -27,6 +27,7 @@ import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Cast, Col, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
+import { AbstractDialect } from './abstract-dialect';
 
 /**
  * Additional options for table altering during sync
@@ -166,7 +167,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | Object;
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | AbstractDialect;
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -178,7 +179,7 @@ export interface RetryOptions {
  */
 export interface Options extends Logging {
   /**
-   * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql, or a custom dialect object.
+   * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql, or a custom dialect class.
    *
    * @default 'mysql'
    */
