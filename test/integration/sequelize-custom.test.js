@@ -6,7 +6,7 @@ const { expect } = require('chai');
 const Sequelize = require('../../index');
 const config = require('../config/config');
 
-const CustomDialect = require(`../../lib/dialects/ + ${dialectName}`);
+const CustomDialect = require(`../../lib/dialects/${dialectName}`);
 
 const options = {
   ...config[dialectName],
