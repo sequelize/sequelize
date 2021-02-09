@@ -19,28 +19,28 @@ If you can even provide a pull request with a failing unit test, we will love yo
 
 # Feature Requests
 
-We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for integrating feature requests into sequelize:
+We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for integrating feature requests into Sequelize:
 
   1. Feature requests go through an approval process - please give us time to label your request as approved. Approval is met when *75%* of our active contributors vote in favor of integrating this feature.
 
   Please be sure to communicate the following:
 
-  1. What problem your feature request aims to solve OR what aspect of the sequelize workflow it aims to improve.
+  1. What problem your feature request aims to solve OR what aspect of the Sequelize workflow it aims to improve.
 
   2. Under what conditions are you anticipating this feature to be most beneficial?
 
-  3. Why does it make sense that sequelize should integrate this feature?
+  3. Why does it make sense that Sequelize should integrate this feature?
 
   If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
 
-  - Something too similar to already exists within sequelize
-  - This feature seems out of scope of what sequelize exists to accomplish
+  - Something too similar to already exists within Sequelize
+  - This feature seems out of scope of what Sequelize exists to accomplish
 
   We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
 
-  2. Once approved, your feature request will be logged and moved to our _Trello Board_ - to which we'll provide you a link so you can follow along with its progress!
+  2. Once approved, your feature request will be logged and moved (the issue will be closed) for us to be able to better organize tasks as we implement this feature.
 
-  3. Feature requests **should be submitted as issues**. Once you've submitted your feature request, it will be labeled and submitted for approval. **Please provide 48 hours from the time its labeled for all of our active maintainers in various time zones to have the chance to vote on it.**
+  3. Feature requests **should be submitted as issues**. Once you've submitted your feature request, it will be labeled and submitted for approval. **Please provide some time from the time it is labeled for all of our active maintainers in various time zones to have the chance to vote on it.**
 
   4. If you'd like to help us implement a feature request, you may absolutely open a pull request **after your request has been approved**. See our pull request outline below and make sure you follow all guidelines.
 
