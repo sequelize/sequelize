@@ -10,7 +10,7 @@ const options = {
   dialect: PostgresDialect
 };
 
-this.sequelize = new Sequelize('sequelize_test', 'postgres', 'postgres', options);
+this.sequelize = new Sequelize(options);
 
 describe('Custom Dialect', () => {
 
