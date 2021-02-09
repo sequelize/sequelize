@@ -10,7 +10,7 @@ assignees: ''
 <!--
 If you don't follow the issue template, your issue may be closed.
 Please note this is an issue tracker, not a support forum.
-For general questions, please use StackOverflow or Slack.
+For general questions, please use StackOverflow.
 -->
 
 ## Feature Description

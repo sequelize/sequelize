@@ -10,7 +10,7 @@ assignees: ''
 <!--
 If you don't follow the issue template, your issue may be closed.
 Please note this is an issue tracker, not a support forum.
-For general questions, please use StackOverflow or Slack.
+For general questions, please use StackOverflow.
 -->
 
 ## Issue Description
@@ -25,7 +25,7 @@ Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-e
 
 ### StackOverflow / Slack attempts
 
-If you have tried asking on StackOverflow / Slack about this, add a link to that here.
+If you have tried asking on StackOverflow about this, add a link to that here.
 
 ### Additional context
 Add any other context or screenshots about the issue here.

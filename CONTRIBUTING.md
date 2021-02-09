@@ -31,6 +31,8 @@ We're more than happy to accept feature requests! Before we get into how you can
 
   3. Why does it make sense that Sequelize should integrate this feature?
 
+  4. See our [Feature Request template](https://github.com/sequelize/sequelize/blob/main/.github/ISSUE_TEMPLATE/feature_request.md) for more details on what to include. Please be sure to follow this template.
+
   If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
 
   - Something too similar to already exists within Sequelize
