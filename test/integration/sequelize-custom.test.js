@@ -1,22 +1,26 @@
 'use strict';
 
-const dialectName = process.env.DIALECT; 
-
 const { expect } = require('chai');
 const Sequelize = require('../../index');
 const config = require('../config/config');
 
+const dialectName = process.env.DIALECT === 'postgres-native' ? 'postgres' : process.env.DIALECT;
 const CustomDialect = require(`../../lib/dialects/${dialectName}`);
 
-const options = {
-  ...config[dialectName],
-  dialect: CustomDialect
-};
+before(() => {
+  const options = {
+    ...config[dialectName],
+    dialect: CustomDialect
+  };
+  
+  this.sequelize = new Sequelize(options);
+});
 
-this.sequelize = new Sequelize(options);
+after(() => {
+  this.sequelize.close();
+});
 
 describe('Custom Dialect', () => {
-
   describe('authenticate', () => {
     it('connects to database successfully', async () => {
       try {
@@ -30,7 +34,7 @@ describe('Custom Dialect', () => {
 
   describe('getDialect', () => {
     it('returns the defined dialect', () => {
-      expect(this.sequelize.getDialect()).to.equal(options.dialect);
+      expect(this.sequelize.getDialect()).to.equal(CustomDialect);
     });
   });
 
