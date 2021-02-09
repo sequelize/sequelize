@@ -1,13 +1,16 @@
 'use strict';
 
+const dialectName = process.env.DIALECT; 
+
 const { expect } = require('chai');
-const PostgresDialect = require('../../lib/dialects/postgres');
 const Sequelize = require('../../index');
 const config = require('../config/config');
 
+const CustomDialect = require(`../../lib/dialects/ + ${dialectName}`);
+
 const options = {
-  ...config.postgres,
-  dialect: PostgresDialect
+  ...config[dialectName],
+  dialect: CustomDialect
 };
 
 this.sequelize = new Sequelize(options);
