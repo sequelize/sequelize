@@ -236,7 +236,7 @@ export interface Options extends Logging {
   /**
    * The port of the relational database.
    */
-  port?: number;
+  port?: string | number;
 
   /**
    * A flag that defines if is used SSL.
