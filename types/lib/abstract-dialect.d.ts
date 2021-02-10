@@ -1,3 +1,9 @@
+import { Sequelize } from './sequelize'
+
+interface AbstractDialectConstructor {
+  new(sequelize: Sequelize): AbstractDialect
+}
+
 export interface AbstractDialect {
   supports: {
     'DEFAULT': boolean,
