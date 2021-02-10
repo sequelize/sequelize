@@ -22,13 +22,8 @@ after(() => {
 
 describe('Custom Dialect', () => {
   describe('authenticate', () => {
-    it('connects to database successfully', async () => {
-      try {
-        await this.sequelize.authenticate();
-        expect(true).to.equal(true);
-      } catch (error) {
-        console.error(error);
-      }
+    it('connects to database successfully', () => {
+      return expect(this.sequelize.authenticate()).to.eventually.be.fulfilled;
     });
   });
 
