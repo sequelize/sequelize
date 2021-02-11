@@ -334,6 +334,7 @@ export interface WhereGeometryOptions {
 export type WhereValue<TAttributes = any> =
   | string // literal value
   | number // literal value
+  | bigint
   | boolean // literal value
   | Date // literal value
   | Buffer // literal value
