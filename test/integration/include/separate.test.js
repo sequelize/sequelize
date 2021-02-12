@@ -55,7 +55,6 @@ if (current.dialect.supports.groupedLimit) {
 
         expect(users[0].get('tasks')[0].createdAt).to.be.ok;
         expect(users[0].get('tasks')[0].updatedAt).to.be.ok;
-
         expect(sqlSpy).to.have.been.calledTwice;
       });
 
@@ -171,7 +170,7 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should run a hasMany association with limit in a separate query', async function() {
+      it('should run a hasMany association with limit in a separate query if LATERAL not supported', async function() {
         const User = this.sequelize.define('User', {}),
           Task = this.sequelize.define('Task', {
             userId: {
@@ -220,7 +219,10 @@ if (current.dialect.supports.groupedLimit) {
         expect(users[0].get('tasks').length).to.equal(2);
         expect(users[1].get('tasks')).to.be.ok;
         expect(users[1].get('tasks').length).to.equal(2);
-        expect(sqlSpy).to.have.been.calledTwice;
+        if (current.dialect.supports.LATERAL)
+          expect(sqlSpy).to.have.been.calledOnce;
+        else
+          expect(sqlSpy).to.have.been.calledTwice;
       });
 
       it('should run a nested (from a non-separate include) hasMany association in a separate query', async function() {
