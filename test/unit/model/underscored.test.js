@@ -109,4 +109,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(this.NM.rawAttributes['m_id'].field).to.equal('mama_id');
     });
   });
+
+  describe('options.underscored timestamps', () => {
+    beforeEach(function() {
+      this.N = this.sequelize.define('N', {
+        id: {
+          type: DataTypes.CHAR(10),
+          primaryKey: true,
+          field: 'n_id'
+        }
+      }, {
+        underscored: true,
+        timestamps: true,
+        paranoid: true
+      });
+    });
+
+    it('underscores timestamp attributes', function() {
+      expect(this.N.rawAttributes['created_at'].field).to.equal('created_at');
+      expect(this.N.rawAttributes['updated_at'].field).to.equal('updated_at');
+      expect(this.N.rawAttributes['deleted_at'].field).to.equal('deleted_at');
+    });
+  });
 });
