@@ -510,6 +510,36 @@ if (current.dialect.supports.groupedLimit) {
         expect(results[0].User.Tasks[0].User.id).to.equal(2);
         expect(results[0].User.Tasks[0].User.Company.id).to.equal(3);
       });
+
+      it('should fail on large associations with include limit', async function() {
+        const User = this.sequelize.define('User', {}),
+          Task = this.sequelize.define('Task', {}),
+          sqlSpy = sinon.spy();
+
+        User.Tasks = User.hasMany(Task, { as: 'tasks' });
+
+        await this.sequelize.sync({ force: true });
+
+        await User.bulkCreate([...Array(10000)].map(() => ({})));
+
+        let thrown = false;
+
+        try {
+          await User.findAll({
+            include: [
+              { association: User.Tasks, limit: 1 }
+            ],
+            order: [
+              ['id', 'ASC']
+            ],
+            logging: sqlSpy
+          });
+        } catch (err) {
+          thrown = true;
+        }
+
+        expect(thrown, 'Exception thrown').to.equal(['postgres', 'mysql', 'mssql'].includes(dialect)); //mariadb does well so far
+      });
     });
   });
 }
