@@ -81,33 +81,42 @@ if (current.dialect.supports.transactions) {
         expect(t.finished).to.be.equal('rollback');
       });
 
-      it('supports running hooks when a transaction is committed', async function() {
-        const hook = sinon.spy();
+      it('supports running appropriate hooks when a transaction is committed', async function() {
+        const afterCommitHook = sinon.spy();
+        const afterRollbackHook = sinon.spy();
         let transaction;
 
         await expect((async () => {
           await this.sequelize.transaction(t => {
             transaction = t;
-            transaction.afterCommit(hook);
+            transaction.afterCommit(afterCommitHook);
+            transaction.afterRollback(afterRollbackHook);
             return this.sequelize.query('SELECT 1+1', { transaction, type: QueryTypes.SELECT });
           });
 
-          expect(hook).to.have.been.calledOnce;
-          expect(hook).to.have.been.calledWith(transaction);
-        })()
-        ).to.eventually.be.fulfilled;
+          expect(afterCommitHook).to.have.been.calledOnce;
+          expect(afterCommitHook).to.have.been.calledWith(transaction);
+
+          expect(afterRollbackHook).to.not.have.been.called;
+        })()).to.eventually.be.fulfilled;
       });
 
-      it('does not run hooks when a transaction is rolled back', async function() {
-        const hook = sinon.spy();
+      it('does not run appropriate hooks when a transaction is rolled back', async function() {
+        const afterCommitHook = sinon.spy();
+        const afterRollbackHook = sinon.spy();
+        let transaction;
 
-        await expect(this.sequelize.transaction(async transaction => {
-          transaction.afterCommit(hook);
+        await expect(this.sequelize.transaction(async t => {
+          transaction = t;
+          transaction.afterCommit(afterCommitHook);
+          transaction.afterRollback(afterRollbackHook);
           throw new Error('Rollback');
-        })
-        ).to.eventually.be.rejected;
+        })).to.eventually.be.rejected;
 
-        expect(hook).to.not.have.been.called;
+        expect(afterCommitHook).to.not.have.been.called;
+
+        expect(afterRollbackHook).to.have.been.calledOnce;
+        expect(afterRollbackHook).to.have.been.calledWith(transaction);
       });
 
       if (dialect === 'postgres') {
@@ -257,8 +266,9 @@ if (current.dialect.supports.transactions) {
       ).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: commit');
     });
 
-    it('should run hooks if a non-auto callback transaction is committed', async function() {
-      const hook = sinon.spy();
+    it('should run appropriate hooks if a non-auto callback transaction is committed', async function() {
+      const afterCommitHook = sinon.spy();
+      const afterRollbackHook = sinon.spy();
       let transaction;
 
       await expect(
@@ -266,10 +276,14 @@ if (current.dialect.supports.transactions) {
           try {
             const t = await this.sequelize.transaction();
             transaction = t;
-            transaction.afterCommit(hook);
+            transaction.afterCommit(afterCommitHook);
+            transaction.afterRollback(afterRollbackHook);
             await t.commit();
-            expect(hook).to.have.been.calledOnce;
-            expect(hook).to.have.been.calledWith(t);
+
+            expect(afterCommitHook).to.have.been.calledOnce;
+            expect(afterCommitHook).to.have.been.calledWith(t);
+
+            expect(afterRollbackHook).to.not.have.been.called;
           } catch (err) {
             // Cleanup this transaction so other tests don't
             // fail due to an open transaction
@@ -283,15 +297,24 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.fulfilled;
     });
 
-    it('should not run hooks if a non-auto callback transaction is rolled back', async function() {
-      const hook = sinon.spy();
+    it('should run appropriate hooks if a non-auto callback transaction is rolled back', async function() {
+      const afterCommitHook = sinon.spy();
+      const afterRollbackHook = sinon.spy();
+      let transaction;
 
       await expect(
         (async () => {
           const t = await this.sequelize.transaction();
-          t.afterCommit(hook);
+          transaction = t;
+          transaction.afterCommit(afterCommitHook);
+          transaction.afterRollback(afterRollbackHook);
+
           await t.rollback();
-          expect(hook).to.not.have.been.called;
+
+          expect(afterCommitHook).to.not.have.been.called;
+
+          expect(afterRollbackHook).to.have.been.calledWith(t);
+          expect(afterRollbackHook).to.have.been.calledOnce;
         })()
       ).to.eventually.be.fulfilled;
     });
@@ -307,6 +330,30 @@ if (current.dialect.supports.transactions) {
             transaction = t;
             transaction.afterCommit(hook);
             return await t.commit();
+          } catch (err) {
+            // Cleanup this transaction so other tests don't
+            // fail due to an open transaction
+            if (!transaction.finished) {
+              await transaction.rollback();
+              throw err;
+            }
+            throw err;
+          }
+        })()
+      ).to.eventually.be.rejectedWith('"fn" must be a function');
+    });
+
+    it('should throw an error if null is passed to afterRollback', async function() {
+      const hook = null;
+      let transaction;
+
+      await expect(
+        (async () => {
+          try {
+            const t = await this.sequelize.transaction();
+            transaction = t;
+            transaction.afterRollback(hook);
+            return await t.rollback();
           } catch (err) {
             // Cleanup this transaction so other tests don't
             // fail due to an open transaction
@@ -344,6 +391,30 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.rejectedWith('"fn" must be a function');
     });
 
+    it('should throw an error if undefined is passed to afterRollback', async function() {
+      const hook = undefined;
+      let transaction;
+
+      await expect(
+        (async () => {
+          try {
+            const t = await this.sequelize.transaction();
+            transaction = t;
+            transaction.afterRollback(hook);
+            return await t.rollback();
+          } catch (err) {
+            // Cleanup this transaction so other tests don't
+            // fail due to an open transaction
+            if (!transaction.finished) {
+              await transaction.rollback();
+              throw err;
+            }
+            throw err;
+          }
+        })()
+      ).to.eventually.be.rejectedWith('"fn" must be a function');
+    });
+
     it('should throw an error if an object is passed to afterCommit', async function() {
       const hook = {};
       let transaction;
@@ -355,6 +426,30 @@ if (current.dialect.supports.transactions) {
             transaction = t;
             transaction.afterCommit(hook);
             return await t.commit();
+          } catch (err) {
+            // Cleanup this transaction so other tests don't
+            // fail due to an open transaction
+            if (!transaction.finished) {
+              await transaction.rollback();
+              throw err;
+            }
+            throw err;
+          }
+        })()
+      ).to.eventually.be.rejectedWith('"fn" must be a function');
+    });
+
+    it('should throw an error if an object is passed to afterRollback', async function() {
+      const hook = {};
+      let transaction;
+
+      await expect(
+        (async () => {
+          try {
+            const t = await this.sequelize.transaction();
+            transaction = t;
+            transaction.afterRollback(hook);
+            return await t.rollback();
           } catch (err) {
             // Cleanup this transaction so other tests don't
             // fail due to an open transaction
