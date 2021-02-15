@@ -540,7 +540,7 @@ if (current.dialect.supports.groupedLimit) {
           thrown = true;
         }
 
-        expect(thrown, 'Exception thrown').to.equal(['postgres', 'mysql', 'mssql'].includes(dialect)); //mariadb does well so far
+        expect(thrown, 'Exception thrown').to.equal(['mysql', 'mssql'].includes(dialect)); //mariadb does well so far
       });
     });
   });
