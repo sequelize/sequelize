@@ -540,7 +540,89 @@ if (current.dialect.supports.groupedLimit) {
           thrown = true;
         }
 
-        expect(thrown, 'Exception thrown').to.equal(['mysql', 'mssql'].includes(dialect)); //mariadb does well so far
+        expect(thrown, 'Exception thrown').to.equal(['mysql'].includes(dialect)); //mariadb does well so far
+      });
+
+      it('should obey "required" option for eager loading', async function() {
+        const User = this.sequelize.define('User', { name: DataTypes.STRING });
+        const Task = this.sequelize.define('Task', {});
+
+        Task.User = Task.belongsTo(User);
+        User.Tasks = User.hasMany(Task);
+
+        await this.sequelize.sync({ force: true });
+
+        const task = await Task.create({ id: 1 });
+        await task.createUser({ id: 2, name: 'withTask' });
+        await User.create({ name: 'withoutTasks' });
+
+        {
+          const results = await User.findAll({
+            include: [{
+              association: User.Tasks,
+              required: true
+            }]
+          });
+          expect(results.length).to.equal(1);
+          expect(results.some(user => user.name == 'withTask')).eq(true);
+        }
+
+        {
+          const results = await User.findAll({
+            include: [{
+              association: User.Tasks,
+              required: false
+            }]
+          });
+          expect(results.length).to.equal(2);
+          expect(results.some(user => user.name == 'withTask')).eq(true);
+          expect(results.some(user => user.name == 'withoutTasks')).eq(true);
+        }
+      });
+
+      it('should obey "required" option for eager loading with "limit"', async function() {
+        if (!current.dialect.supports.LATERAL)
+        {
+          //I'll consider this a known bug
+          return;
+        }
+
+        const User = this.sequelize.define('User', { name: DataTypes.STRING });
+        const Task = this.sequelize.define('Task', {});
+
+        Task.User = Task.belongsTo(User);
+        User.Tasks = User.hasMany(Task);
+
+        await this.sequelize.sync({ force: true });
+
+        const task = await Task.create({ id: 1 });
+        await task.createUser({ id: 2, name: 'withTask' });
+        await User.create({ name: 'withoutTasks' });
+
+        {
+          const results = await User.findAll({
+            include: [{
+              association: User.Tasks,
+              required: true,
+              limit: 10
+            }]
+          });
+          expect(results.length).to.equal(1);
+          expect(results.some(user => user.name == 'withTask')).eq(true);
+        }
+
+        {
+          const results = await User.findAll({
+            include: [{
+              association: User.Tasks,
+              required: false,
+              limit: 10
+            }]
+          });
+          expect(results.length).to.equal(2);
+          expect(results.some(user => user.name == 'withTask')).eq(true);
+          expect(results.some(user => user.name == 'withoutTasks')).eq(true);
+        }
       });
     });
   });
