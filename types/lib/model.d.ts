@@ -2706,10 +2706,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public changed(): false | string[];
 
   /**
-   * Returns the previous value for key from `_previousDataValues`.
+   * If previous is called with a string it will return the previous value for that key from `_previousDataValues`.
+   *
+   * If previous is called without an argument it will return an object where the keys are the changed property names
+   *  and the values are the previous values for that key from `_previousDataValues`.
    */
-  public previous(): Record<string, unknown>;
   public previous<K extends keyof this>(key: K): this[K];
+  public previous(): Record<string, unknown>;
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
