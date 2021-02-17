@@ -2708,6 +2708,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
+  public previous(): Record<string, unknown>;
   public previous<K extends keyof this>(key: K): this[K];
 
   /**
