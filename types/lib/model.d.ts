@@ -2820,7 +2820,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all
    * values gotten from the DB, and apply all custom getters.
    */
-  public toJSON(): object;
+  public toJSON(): TModelAttributes;
 
   /**
    * Helper method to determine if a instance is "soft deleted". This is
