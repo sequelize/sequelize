@@ -624,6 +624,39 @@ if (current.dialect.supports.groupedLimit) {
           expect(results.some(user => user.name == 'withoutTasks')).eq(true);
         }
       });
+
+      it('should not be affected by bug #13048', async function() {
+        if (!current.dialect.supports.LATERAL)
+        {
+          //I'll consider this a known bug
+          return;
+        }
+
+        const User = this.sequelize.define('User', {});
+        const Team = this.sequelize.define('Team', {});
+        const Project = this.sequelize.define('Project', {});
+
+        Project.hasMany(User);
+        User.belongsTo(Team);
+
+        await this.sequelize.sync({ force: true });
+
+        await Project.bulkCreate([{}, {}]);
+
+        const results = await Project.findAll({
+          include: [{
+            model: User,
+            'limit': 1,
+            'include': [
+              {
+                model: Team
+              }
+            ],
+            'attributes': ['id']
+          }]
+        });
+        expect(results.length).eq(2);
+      });
     });
   });
 }
