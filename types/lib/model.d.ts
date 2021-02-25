@@ -473,7 +473,7 @@ export type OrderItem =
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = string | Fn | Col | Literal | OrderItem[];
+export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
