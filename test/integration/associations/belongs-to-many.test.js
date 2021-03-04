@@ -1510,6 +1510,59 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(commentTags).to.have.length(1);
     });
 
+    it('using scope to set associations using UUID', async function() {
+      const ItemTag = this.sequelize.define('ItemTag', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          tag_id: { type: DataTypes.UUID, unique: false },
+          taggable: { type: DataTypes.STRING },
+          taggable_id: { type: DataTypes.UUID, unique: false }
+        }),
+        Tag = this.sequelize.define('Tag', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+          name: DataTypes.STRING
+        }),
+        Comment = this.sequelize.define('Comment', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+          name: DataTypes.STRING
+        }),
+        Post = this.sequelize.define('Post', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+          name: DataTypes.STRING
+        });
+
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id'
+      });
+
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+        foreignKey: 'taggable_id'
+      });
+
+      await this.sequelize.sync({ force: true });
+
+      const [post, comment, tag] = await Promise.all([
+        Post.create({ name: 'post1' }),
+        Comment.create({ name: 'comment1' }),
+        Tag.create({ name: 'tag1' })
+      ]);
+
+      this.post = post;
+      this.comment = comment;
+      this.tag = tag;
+      await this.post.setTags([this.tag]);
+      await this.comment.setTags([this.tag]);
+
+      const [postTags, commentTags] = await Promise.all([
+        this.post.getTags(),
+        this.comment.getTags()
+      ]);
+
+      expect(postTags).to.have.length(1);
+      expect(commentTags).to.have.length(1);
+    });
+
     it('updating association via set associations with scope', async function() {
       const ItemTag = this.sequelize.define('ItemTag', {
           id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -1527,6 +1580,62 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }),
         Post = this.sequelize.define('Post', {
           id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING
+        });
+
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id'
+      });
+
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+        foreignKey: 'taggable_id'
+      });
+
+      await this.sequelize.sync({ force: true });
+
+      const [post, comment, tag, secondTag] = await Promise.all([
+        Post.create({ name: 'post1' }),
+        Comment.create({ name: 'comment1' }),
+        Tag.create({ name: 'tag1' }),
+        Tag.create({ name: 'tag2' })
+      ]);
+
+      this.post = post;
+      this.comment = comment;
+      this.tag = tag;
+      this.secondTag = secondTag;
+      await this.post.setTags([this.tag, this.secondTag]);
+      await this.comment.setTags([this.tag, this.secondTag]);
+      await this.post.setTags([this.tag]);
+
+      const [postTags, commentTags] = await Promise.all([
+        this.post.getTags(),
+        this.comment.getTags()
+      ]);
+
+      expect(postTags).to.have.length(1);
+      expect(commentTags).to.have.length(2);
+    });
+
+    it('updating association via set associations with scope using UUID', async function() {
+      const ItemTag = this.sequelize.define('ItemTag', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          tag_id: { type: DataTypes.UUID, unique: false },
+          taggable: { type: DataTypes.STRING },
+          taggable_id: { type: DataTypes.UUID, unique: false }
+        }),
+        Tag = this.sequelize.define('Tag', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+          name: DataTypes.STRING
+        }),
+        Comment = this.sequelize.define('Comment', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+          name: DataTypes.STRING
+        }),
+        Post = this.sequelize.define('Post', {
+          id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
           name: DataTypes.STRING
         });
 
