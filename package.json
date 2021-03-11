@@ -1,7 +1,7 @@
 {
-  "name": "sequelize",
+  "name": "@perengo/sequelize-patched",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
+  "version": "5.22.4-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Sascha Depold <sascha@depold.com>",
