@@ -35,7 +35,7 @@ export interface Transactionable {
   /**
    * Transaction to run query under
    */
-  transaction?: Transaction;
+  transaction?: Transaction | null;
 }
 
 export interface SearchPathable {
