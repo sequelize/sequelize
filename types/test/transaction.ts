@@ -81,6 +81,6 @@ async function nestedTransact() {
 
 async function excludeFromTransaction() {
   await sequelize.transaction(async t =>
-    sequelize.query('SELECT 1', { transaction: null })
+    await sequelize.query('SELECT 1', { transaction: null })
   );
 }
