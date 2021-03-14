@@ -2708,7 +2708,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
-  public previous<K extends keyof this>(key: K): this[K];
+  public previous<K extends keyof TCreationAttributes>(key: K): TCreationAttributes[K];
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
