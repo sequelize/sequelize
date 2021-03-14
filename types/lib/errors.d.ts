@@ -1,3 +1,5 @@
+import Model from "./model";
+
 /**
  * The Base Error all Sequelize Errors inherit from.
  */
@@ -43,6 +45,9 @@ export class ValidationErrorItem {
 
   /** The value that generated the error */
   public readonly  value: string;
+
+  /** The DAO instance that caused the validation error */
+  public readonly  instance: Model;
 
   public readonly original: Error;
 
