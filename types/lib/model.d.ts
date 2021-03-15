@@ -1518,14 +1518,9 @@ export interface AddScopeOptions {
   override: boolean;
 }
 
-export abstract class Model<
-  TModelAttributes extends {} = any,
-  TCreationAttributes extends {} = TModelAttributes
-> extends Hooks<
-  Model<TModelAttributes, TCreationAttributes>,
-  TModelAttributes,
-  TCreationAttributes
-> {
+export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
+  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes>
+{
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -1576,9 +1571,7 @@ export abstract class Model<
   /**
    * The attributes of the model
    */
-  public static readonly rawAttributes: {
-    [attribute: string]: ModelAttributeColumnOptions;
-  };
+  public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -1630,8 +1623,7 @@ export abstract class Model<
    */
   public static init<M extends Model>(
     this: ModelStatic<M>,
-    attributes: ModelAttributes<M, M["_attributes"]>,
-    options: InitOptions<M>
+    attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
   ): Model;
 
   /**
@@ -1667,7 +1659,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     schema: string,
     options?: SchemaOptions
-  ): { new (): M } & typeof Model;
+  ): { new(): M } & typeof Model;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
@@ -1678,13 +1670,11 @@ export abstract class Model<
    *     (eg.
    *     subscribers_1, subscribers_2)
    */
-  public static getTableName():
-    | string
-    | {
-        tableName: string;
-        schema: string;
-        delimiter: string;
-      };
+  public static getTableName(): string | {
+    tableName: string;
+    schema: string;
+    delimiter: string;
+  };
 
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
@@ -1737,11 +1727,7 @@ export abstract class Model<
    */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
-    options?:
-      | string
-      | ScopeOptions
-      | readonly (string | ScopeOptions)[]
-      | WhereAttributeHash<M>
+    options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
 
   /**
@@ -1755,13 +1741,13 @@ export abstract class Model<
   public static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope: FindOptions<M["_attributes"]>,
+    scope: FindOptions<M['_attributes']>,
     options?: AddScopeOptions
   ): void;
   public static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope: (...args: readonly any[]) => FindOptions<M["_attributes"]>,
+    scope: (...args: readonly any[]) => FindOptions<M['_attributes']>,
     options?: AddScopeOptions
   ): void;
 
@@ -1829,8 +1815,7 @@ export abstract class Model<
    */
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M["_attributes"]>
-  ): Promise<M[]>;
+    options?: FindOptions<M['_attributes']>): Promise<M[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1839,12 +1824,12 @@ export abstract class Model<
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<M["_attributes"]>, "where">
+    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'>
   ): Promise<M>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<M["_attributes"]>, "where">
+    options?: Omit<FindOptions<M['_attributes']>, 'where'>
   ): Promise<M | null>;
 
   /**
@@ -1852,11 +1837,11 @@ export abstract class Model<
    */
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<M["_attributes"]>
+    options: NonNullFindOptions<M['_attributes']>
   ): Promise<M>;
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M["_attributes"]>
+    options?: FindOptions<M['_attributes']>
   ): Promise<M | null>;
 
   /**
@@ -1870,9 +1855,9 @@ export abstract class Model<
    */
   public static aggregate<T, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M["_attributes"] | "*",
+    field: keyof M['_attributes'] | '*',
     aggregateFunction: string,
-    options?: AggregateOptions<T, M["_attributes"]>
+    options?: AggregateOptions<T, M['_attributes']>
   ): Promise<T>;
 
   /**
@@ -1880,7 +1865,7 @@ export abstract class Model<
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options: CountWithOptions<M["_attributes"]>
+    options: CountWithOptions<M['_attributes']>
   ): Promise<{ [key: string]: number }>;
 
   /**
@@ -1890,7 +1875,7 @@ export abstract class Model<
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: CountOptions<M["_attributes"]>
+    options?: CountOptions<M['_attributes']>
   ): Promise<number>;
 
   /**
@@ -1930,7 +1915,7 @@ export abstract class Model<
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M["_attributes"]>
+    options?: FindAndCountOptions<M['_attributes']>
   ): Promise<{ rows: M[]; count: number }>;
 
   /**
@@ -1938,8 +1923,8 @@ export abstract class Model<
    */
   public static max<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M["_attributes"],
-    options?: AggregateOptions<T, M["_attributes"]>
+    field: keyof M['_attributes'],
+    options?: AggregateOptions<T, M['_attributes']>
   ): Promise<T>;
 
   /**
@@ -1947,8 +1932,8 @@ export abstract class Model<
    */
   public static min<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M["_attributes"],
-    options?: AggregateOptions<T, M["_attributes"]>
+    field: keyof M['_attributes'],
+    options?: AggregateOptions<T, M['_attributes']>
   ): Promise<T>;
 
   /**
@@ -1956,8 +1941,8 @@ export abstract class Model<
    */
   public static sum<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M["_attributes"],
-    options?: AggregateOptions<T, M["_attributes"]>
+    field: keyof M['_attributes'],
+    options?: AggregateOptions<T, M['_attributes']>
   ): Promise<number>;
 
   /**
@@ -1965,7 +1950,7 @@ export abstract class Model<
    */
   public static build<M extends Model>(
     this: ModelStatic<M>,
-    record?: M["_creationAttributes"],
+    record?: M['_creationAttributes'],
     options?: BuildOptions
   ): M;
 
@@ -1974,7 +1959,7 @@ export abstract class Model<
    */
   public static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<M["_creationAttributes"]>,
+    records: ReadonlyArray<M['_creationAttributes']>,
     options?: BuildOptions
   ): M[];
 
@@ -1983,13 +1968,13 @@ export abstract class Model<
    */
   public static create<M extends Model>(
     this: ModelStatic<M>,
-    values?: M["_creationAttributes"],
-    options?: CreateOptions<M["_attributes"]>
+    values?: M['_creationAttributes'],
+    options?: CreateOptions<M['_attributes']>
   ): Promise<M>;
   public static create<M extends Model>(
     this: ModelStatic<M>,
-    values: M["_creationAttributes"],
-    options: CreateOptions<M["_attributes"]> & { returning: false }
+    values: M['_creationAttributes'],
+    options: CreateOptions<M['_attributes']> & { returning: false }
   ): Promise<void>;
 
   /**
@@ -1998,7 +1983,7 @@ export abstract class Model<
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M["_attributes"], M["_creationAttributes"]>
+    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2014,7 +1999,7 @@ export abstract class Model<
    */
   public static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M["_attributes"], M["_creationAttributes"]>
+    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2023,7 +2008,7 @@ export abstract class Model<
    */
   public static findCreateFind<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M["_attributes"], M["_creationAttributes"]>
+    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2047,8 +2032,8 @@ export abstract class Model<
    */
   public static upsert<M extends Model>(
     this: ModelStatic<M>,
-    values: M["_creationAttributes"],
-    options?: UpsertOptions<M["_attributes"]>
+    values: M['_creationAttributes'],
+    options?: UpsertOptions<M['_attributes']>
   ): Promise<[M, boolean | null]>;
 
   /**
@@ -2064,8 +2049,8 @@ export abstract class Model<
    */
   public static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<M["_creationAttributes"]>,
-    options?: BulkCreateOptions<M["_attributes"]>
+    records: ReadonlyArray<M['_creationAttributes']>,
+    options?: BulkCreateOptions<M['_attributes']>
   ): Promise<M[]>;
 
   /**
@@ -2073,7 +2058,7 @@ export abstract class Model<
    */
   public static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<M["_attributes"]>
+    options?: TruncateOptions<M['_attributes']>
   ): Promise<void>;
 
   /**
@@ -2083,7 +2068,7 @@ export abstract class Model<
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
-    options?: DestroyOptions<M["_attributes"]>
+    options?: DestroyOptions<M['_attributes']>
   ): Promise<number>;
 
   /**
@@ -2091,7 +2076,7 @@ export abstract class Model<
    */
   public static restore<M extends Model>(
     this: ModelStatic<M>,
-    options?: RestoreOptions<M["_attributes"]>
+    options?: RestoreOptions<M['_attributes']>
   ): Promise<void>;
 
   /**
@@ -2101,8 +2086,8 @@ export abstract class Model<
    */
   public static update<M extends Model>(
     this: ModelStatic<M>,
-    values: Partial<M["_attributes"]>,
-    options: UpdateOptions<M["_attributes"]>
+    values: Partial<M['_attributes']>,
+    options: UpdateOptions<M['_attributes']>
   ): Promise<[number, M[]]>;
 
   /**
@@ -2110,8 +2095,8 @@ export abstract class Model<
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M["_attributes"],
-    options: IncrementDecrementOptionsWithBy<M["_attributes"]>
+    field: keyof M['_attributes'],
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
   ): Promise<M>;
 
   /**
@@ -2119,8 +2104,8 @@ export abstract class Model<
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    fields: ReadonlyArray<keyof M["_attributes"]>,
-    options: IncrementDecrementOptionsWithBy<M["_attributes"]>
+    fields: ReadonlyArray<keyof M['_attributes']>,
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
   ): Promise<M>;
 
   /**
@@ -2128,8 +2113,8 @@ export abstract class Model<
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    fields: { [key in keyof M["_attributes"]]?: number },
-    options: IncrementDecrementOptions<M["_attributes"]>
+    fields: { [key in keyof M['_attributes']]?: number },
+    options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
 
   /**
@@ -2184,11 +2169,11 @@ export abstract class Model<
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: CreateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2200,11 +2185,11 @@ export abstract class Model<
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: CreateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2248,11 +2233,11 @@ export abstract class Model<
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2264,11 +2249,11 @@ export abstract class Model<
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2280,17 +2265,11 @@ export abstract class Model<
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (
-      instance: M,
-      options: UpdateOptions<M["_attributes"]> | SaveOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
-    fn: (
-      instance: M,
-      options: UpdateOptions<M["_attributes"]> | SaveOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2302,17 +2281,11 @@ export abstract class Model<
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (
-      instance: M,
-      options: UpdateOptions<M["_attributes"]> | SaveOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
-    fn: (
-      instance: M,
-      options: UpdateOptions<M["_attributes"]> | SaveOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2324,17 +2297,11 @@ export abstract class Model<
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (
-      instances: M[],
-      options: BulkCreateOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (
-      instances: M[],
-      options: BulkCreateOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2346,17 +2313,11 @@ export abstract class Model<
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (
-      instances: readonly M[],
-      options: BulkCreateOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (
-      instances: readonly M[],
-      options: BulkCreateOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2367,12 +2328,10 @@ export abstract class Model<
    */
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: BulkCreateOptions<M["_attributes"]>) => HookReturn
-  ): void;
+    name: string, fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn): void;
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: BulkCreateOptions<M["_attributes"]>) => HookReturn
+    fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2383,12 +2342,11 @@ export abstract class Model<
    */
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: DestroyOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: DestroyOptions<M["_attributes"]>) => HookReturn
+    fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2399,12 +2357,11 @@ export abstract class Model<
    */
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: UpdateOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2415,12 +2372,11 @@ export abstract class Model<
    */
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: UpdateOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: UpdateOptions<M["_attributes"]>) => HookReturn
+    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2431,12 +2387,11 @@ export abstract class Model<
    */
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: FindOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M["_attributes"]>) => HookReturn
+    fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2447,12 +2402,11 @@ export abstract class Model<
    */
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: CountOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: CountOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: CountOptions<M["_attributes"]>) => HookReturn
+    fn: (options: CountOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2463,12 +2417,11 @@ export abstract class Model<
    */
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: FindOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M["_attributes"]>) => HookReturn
+    fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2479,12 +2432,11 @@ export abstract class Model<
    */
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
-    name: string,
-    fn: (options: FindOptions<M["_attributes"]>) => HookReturn
+    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M["_attributes"]>) => void
+    fn: (options: FindOptions<M['_attributes']>) => void
   ): HookReturn;
 
   /**
@@ -2496,57 +2448,39 @@ export abstract class Model<
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (
-      instancesOrInstance: readonly M[] | M | null,
-      options: FindOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
-    fn: (
-      instancesOrInstance: readonly M[] | M | null,
-      options: FindOptions<M["_attributes"]>
-    ) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static beforeBulkSync(
-    name: string,
-    fn: (options: SyncOptions) => HookReturn
-  ): void;
+  public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static afterBulkSync(
-    name: string,
-    fn: (options: SyncOptions) => HookReturn
-  ): void;
+  public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run before Model.sync call
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static beforeSync(
-    name: string,
-    fn: (options: SyncOptions) => HookReturn
-  ): void;
+  public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after Model.sync call
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static afterSync(
-    name: string,
-    fn: (options: SyncOptions) => HookReturn
-  ): void;
+  public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
@@ -2559,9 +2493,7 @@ export abstract class Model<
    * @param options Options for the association
    */
   public static hasOne<M extends Model, T extends Model>(
-    this: ModelStatic<M>,
-    target: ModelStatic<T>,
-    options?: HasOneOptions
+    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasOneOptions
   ): HasOne<M, T>;
 
   /**
@@ -2574,9 +2506,7 @@ export abstract class Model<
    * @param options Options for the association
    */
   public static belongsTo<M extends Model, T extends Model>(
-    this: ModelStatic<M>,
-    target: ModelStatic<T>,
-    options?: BelongsToOptions
+    this: ModelStatic<M>, target: ModelStatic<T>, options?: BelongsToOptions
   ): BelongsTo<M, T>;
 
   /**
@@ -2633,9 +2563,7 @@ export abstract class Model<
    * @param options Options for the association
    */
   public static hasMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>,
-    target: ModelStatic<T>,
-    options?: HasManyOptions
+    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasManyOptions
   ): HasMany<M, T>;
 
   /**
@@ -2688,9 +2616,7 @@ export abstract class Model<
    *
    */
   public static belongsToMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>,
-    target: ModelStatic<T>,
-    options: BelongsToManyOptions
+    this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
   /**
@@ -2717,17 +2643,12 @@ export abstract class Model<
   /**
    * Get the value of the underlying data value
    */
-  public getDataValue<K extends keyof TModelAttributes>(
-    key: K
-  ): TModelAttributes[K];
+  public getDataValue<K extends keyof TModelAttributes>(key: K): TModelAttributes[K];
 
   /**
    * Update the underlying data value
    */
-  public setDataValue<K extends keyof TModelAttributes>(
-    key: K,
-    value: TModelAttributes[K]
-  ): void;
+  public setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
 
   /**
    * If no key is given, returns all values of the instance, also invoking virtual getters.
@@ -2738,14 +2659,8 @@ export abstract class Model<
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): TModelAttributes;
-  public get<K extends keyof this>(
-    key: K,
-    options?: { plain?: boolean; clone?: boolean }
-  ): this[K];
-  public get(
-    key: string,
-    options?: { plain?: boolean; clone?: boolean }
-  ): unknown;
+  public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
@@ -2771,21 +2686,10 @@ export abstract class Model<
    * @param options.raw If set to true, field and virtual setters will be ignored
    * @param options.reset Clear all previously set data values
    */
-  public set<K extends keyof TModelAttributes>(
-    key: K,
-    value: TModelAttributes[K],
-    options?: SetOptions
-  ): this;
+  public set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
   public set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
-  public setAttributes<K extends keyof TModelAttributes>(
-    key: K,
-    value: TModelAttributes[K],
-    options?: SetOptions
-  ): this;
-  public setAttributes(
-    keys: Partial<TModelAttributes>,
-    options?: SetOptions
-  ): this;
+  public setAttributes<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
+  public setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
   /**
    * If changed is called with a string it will return a boolean indicating whether the value of that key in
@@ -2839,15 +2743,8 @@ export abstract class Model<
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public update<K extends keyof this>(
-    key: K,
-    value: this[K],
-    options?: InstanceUpdateOptions<TModelAttributes>
-  ): Promise<this>;
-  public update(
-    keys: object,
-    options?: InstanceUpdateOptions<TModelAttributes>
-  ): Promise<this>;
+  public update<K extends keyof this>(key: K, value: this[K], options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update(keys: object, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
 
   /**
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
