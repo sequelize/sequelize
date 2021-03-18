@@ -77,7 +77,7 @@ You can use [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-met
 Model.findAll({
   attributes: [
     'foo',
-    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats']
+    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats'],
     'bar'
   ]
 });
@@ -261,6 +261,7 @@ Post.findAll({
       [Op.notIRegexp]: '^[h|a|t]',             // !~* '^[h|a|t]' (PG only)
 
       [Op.any]: [2, 3],                        // ANY ARRAY[2, 3]::INTEGER (PG only)
+      [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // match text search for strings 'fat' and 'rat' (PG only)
 
       // In Postgres, Op.like/Op.iLike/Op.notLike can be combined to Op.any:
       [Op.like]: { [Op.any]: ['cat', 'hat'] }  // LIKE ANY ARRAY['cat', 'hat']

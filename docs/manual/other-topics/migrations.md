@@ -330,6 +330,34 @@ module.exports = {
 };
 ```
 
+The next example is of a migration that creates an unique index composed of multiple fields with a condition, which allows a relation to exist multiple times but only one can satisfy the condition:
+
+```js
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    queryInterface.createTable('Person', {
+      name: Sequelize.DataTypes.STRING,
+      bool: {
+        type: Sequelize.DataTypes.BOOLEAN,
+        defaultValue: false
+      }
+    }).then((queryInterface, Sequelize) => {
+      queryInterface.addIndex(
+        'Person',
+        ['name', 'bool'],
+        {
+          indicesType: 'UNIQUE',
+          where: { bool : 'true' },
+        }
+      );
+    });
+  },
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Person');
+  }
+}
+```
+
 ### The `.sequelizerc` file
 
 This is a special configuration file. It lets you specify the following options that you would usually pass as arguments to CLI:
@@ -426,7 +454,7 @@ module.exports = {
     dialectOptions: {
       bigNumberStrings: true,
       ssl: {
-        ca: fs.readFileSync(__dirname + '/mysql-ca-master.crt')
+        ca: fs.readFileSync(__dirname + '/mysql-ca-main.crt')
       }
     }
   }

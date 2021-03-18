@@ -1,3 +1,4 @@
+import { expectTypeOf } from 'expect-type';
 import { BuildOptions, DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from './connection';
 
@@ -12,9 +13,7 @@ interface UserAttributes {
 
 interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
 
-interface UserModel
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {}
+interface UserModel extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {}
 
 const User = sequelize.define<UserModel>(
   'User',
@@ -28,14 +27,14 @@ const User = sequelize.define<UserModel>(
 );
 
 async function test() {
-  const user: UserModel = new User() as UserModel;
+  expectTypeOf<UserModel>().toMatchTypeOf(new User());
 
-  const user2: UserModel | null = await User.findOne();
-  if (!user2) return;
+  const user = await User.findOne();
+  expectTypeOf(user).toEqualTypeOf<UserModel | null>();
 
-  user2.firstName = 'John';
-
-  await user2.save();
+  if (!user) return;
+  user.firstName = 'John';
+  await user.save();
 }
 
 // The below doesn't define Attribute types, but should still work
@@ -61,12 +60,12 @@ UntypedUser.customStaticMethod = () => {};
 async function testUntyped() {
   UntypedUser.customStaticMethod();
 
-  const user: UntypedUserModel = new UntypedUser() as UntypedUserModel;
+  expectTypeOf<UntypedUserModel>().toMatchTypeOf(new UntypedUser());
 
-  const user2: UntypedUserModel | null = await UntypedUser.findOne();
-  if (!user2) return;
+  const user = await UntypedUser.findOne();
+  expectTypeOf(user).toEqualTypeOf<UntypedUserModel | null>();
 
-  user2.firstName = 'John';
-
-  await user2.save();
+  if (!user) return;
+  user.firstName = 'John';
+  await user.save();
 }
