@@ -42,7 +42,7 @@
     "semver": "^6.3.0",
     "sequelize-pool": "^2.3.0",
     "toposort-class": "^1.0.1",
-    "uuid": "^3.3.3",
+    "uuid": "^8.3.2",
     "validator": "^10.11.0",
     "wkx": "^0.4.8"
   },
