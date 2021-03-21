@@ -15,6 +15,7 @@ import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
+import { Deferrable } from './deferrable';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -216,6 +217,7 @@ export interface BaseConstraintOptions {
 
 export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
   type: 'unique';
+  deferrable?: Deferrable;
 }
 
 export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
@@ -230,6 +232,7 @@ export interface AddCheckConstraintOptions extends BaseConstraintOptions {
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
+  deferrable?: Deferrable;
 }
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
@@ -240,6 +243,7 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   };
   onDelete: string;
   onUpdate: string;
+  deferrable?: Deferrable;
 }
 
 export type AddConstraintOptions =
