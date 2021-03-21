@@ -217,7 +217,7 @@ export interface BaseConstraintOptions {
 
 export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
   type: 'unique';
-  deferrable?: string | Deferrable;
+  deferrable?: Deferrable;
 }
 
 export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
@@ -232,7 +232,7 @@ export interface AddCheckConstraintOptions extends BaseConstraintOptions {
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
-  deferrable?: string | Deferrable;
+  deferrable?: Deferrable;
 }
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
@@ -243,7 +243,7 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   };
   onDelete: string;
   onUpdate: string;
-  deferrable?: string | Deferrable;
+  deferrable?: Deferrable;
 }
 
 export type AddConstraintOptions =
