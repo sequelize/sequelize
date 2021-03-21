@@ -1,3 +1,5 @@
+import Model from "./model";
+
 /**
  * The Base Error all Sequelize Errors inherit from.
  */
@@ -33,29 +35,53 @@ export class ValidationError extends BaseError {
 
 export class ValidationErrorItem {
   /** An error message */
-  public readonly  message: string;
+  public readonly message: string;
 
-  /** The type of the validation error */
-  public readonly  type: string;
+  /** The type/origin of the validation error */
+  public readonly type: string | null;
 
   /** The field that triggered the validation error */
-  public readonly  path: string;
+  public readonly path: string | null;
 
   /** The value that generated the error */
-  public readonly  value: string;
+  public readonly value: string | null;
+
+  /** The DAO instance that caused the validation error */
+  public readonly instance: Model | null;
+
+  /** A validation "key", used for identification */
+  public readonly validatorKey: string | null;
+
+  /** Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable */
+  public readonly validatorName: string | null;
+
+  /** Parameters used with the BUILT-IN validator function, if applicable */
+  public readonly validatorArgs: unknown[];
 
   public readonly original: Error;
 
   /**
-   * Validation Error Item
-   * Instances of this class are included in the `ValidationError.errors` property.
+   * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
    *
    * @param message An error message
-   * @param type The type of the validation error
+   * @param type The type/origin of the validation error
    * @param path The field that triggered the validation error
    * @param value The value that generated the error
+   * @param instance the DAO instance that caused the validation error
+   * @param validatorKey a validation "key", used for identification
+   * @param fnName property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
+   * @param fnArgs parameters used with the BUILT-IN validator function, if applicable
    */
-  constructor(message?: string, type?: string, path?: string, value?: string);
+  constructor(
+    message?: string,
+    type?: string,
+    path?: string,
+    value?: string,
+    instance?: object,
+    validatorKey?: string,
+    fnName?: string,
+    fnArgs?: unknown[]
+  );
 }
 
 export interface CommonErrorProperties {
