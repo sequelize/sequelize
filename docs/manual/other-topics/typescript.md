@@ -21,7 +21,6 @@ Example of a minimal TypeScript project with strict type-checking for attributes
 import {
   Sequelize,
   Model,
-  ModelDefined,
   DataTypes,
   HasManyGetAssociationsMixin,
   HasManyAddAssociationMixin,
@@ -176,10 +175,10 @@ Address.init(
 );
 
 // And with a functional approach defining a module looks like this
-const Note: ModelDefined<
-  NoteAttributes,
-  NoteCreationAttributes
-> = sequelize.define(
+const Note = sequelize.define<
+    NoteAttributes,
+    NoteCreationAttributes
+  >(
   'Note',
   {
     id: {
