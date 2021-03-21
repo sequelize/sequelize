@@ -78,3 +78,9 @@ async function nestedTransact() {
   });
   await tr.commit();
 }
+
+async function excludeFromTransaction() {
+  await sequelize.transaction(async t =>
+    await sequelize.query('SELECT 1', { transaction: null })
+  );
+}
