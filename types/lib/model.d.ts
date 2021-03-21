@@ -332,12 +332,12 @@ export interface WhereGeometryOptions {
  * WhereAttributeHash is in there for JSON columns.
  */
 export type WhereValue<TAttributes = any> =
-  | string // literal value
-  | number // literal value
+  | string
+  | number
   | bigint
-  | boolean // literal value
-  | Date // literal value
-  | Buffer // literal value
+  | boolean
+  | Date
+  | Buffer
   | null
   | WhereOperators
   | WhereAttributeHash<any> // for JSON columns
