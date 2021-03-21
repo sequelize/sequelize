@@ -1,4 +1,3 @@
-import * as DataTypes from './data-types';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -27,6 +26,7 @@ import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Cast, Col, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
+import { ModelDefined } from './model';
 
 /**
  * Additional options for table altering during sync
@@ -1164,11 +1164,18 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TCreationAttributes = M['_attributes']>(
+  public define<
+    TModelAttributes extends Model | Model["_attributes"],
+    TCreationAttributes = Model["_attributes"]
+  >(
     modelName: string,
-    attributes: ModelAttributes<M, TCreationAttributes>,
+    attributes: ModelAttributes<Model, Partial<TCreationAttributes>>,
     options?: ModelOptions
-  ): ModelCtor<M>;
+  ): ModelDefined<
+    | (TCreationAttributes & Record<string, unknown>)
+    | (TModelAttributes & Record<string, unknown>),
+    TCreationAttributes & Record<string, unknown>
+  >;
 
   /**
    * Fetch a Model which is already defined
