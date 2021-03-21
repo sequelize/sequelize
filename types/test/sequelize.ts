@@ -76,7 +76,7 @@ expectTypeOf(myModel2).toEqualTypeOf<
       } & Record<string, unknown>),
     {
       column: unknown;
-    }
+    } & Record<string, unknown>
   >
 >();
 
