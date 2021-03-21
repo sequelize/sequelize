@@ -284,7 +284,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public QueryGenerator: unknown;
+  public queryGenerator: unknown;
 
   /**
    * Returns the current sequelize instance.
