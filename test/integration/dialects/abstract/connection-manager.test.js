@@ -130,12 +130,12 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
 
   it('should allow forced reads from the write pool', async () => {
-    const master = { ...poolEntry };
-    master.host = 'the-boss';
+    const main = { ...poolEntry };
+    main.host = 'the-boss';
 
     const options = {
       replication: {
-        write: master,
+        write: main,
         read: [{ ...poolEntry }]
       }
     };

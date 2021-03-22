@@ -23,7 +23,7 @@ We're glad to get pull request if any functionality is missing or something is b
 
 - Explain the issue that your PR is solving - or link to an existing issue
 - Make sure that all existing tests pass
-- Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
+- Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#coding-guidelines)
 - Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
   - Use [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
@@ -153,18 +153,18 @@ Then push and send your pull request. Happy hacking and thank you for contributi
 
 # Coding guidelines
 
-Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/master/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/main/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
 # Contributing to the documentation
 
-For contribution guidelines for the documentation, see [CONTRIBUTING.DOCS.md](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.DOCS.md).
+For contribution guidelines for the documentation, see [CONTRIBUTING.DOCS.md](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.DOCS.md).
 
 # Publishing a release (For Maintainers)
 
-1. Ensure that latest build on master is green
-2. Ensure your local code is up to date (`git pull origin master`)
+1. Ensure that latest build on the main branch is green
+2. Ensure your local code is up to date (`git pull origin main`)
 3. `npm version patch|minor|major` (see [Semantic Versioning](http://semver.org))
 4. Update changelog to match version number, commit changelog
-5. `git push --tags origin master`
+5. `git push --tags origin main`
 6. `npm publish .`
 7. Copy changelog for version to release notes for version on github

@@ -2,7 +2,7 @@
 
 ## License
 
-Sequelize library is distributed with MIT license. You can find original license [here.](https://github.com/sequelize/sequelize/blob/master/LICENSE)
+Sequelize library is distributed with MIT license. You can find original license [here.](https://github.com/sequelize/sequelize/blob/main/LICENSE)
 
 ```text
 MIT License

@@ -41,7 +41,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
   ): HookReturn;
   beforeBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): HookReturn;
-  afterBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): HookReturn;
+  afterBulkCreate(instances: readonly M[], options: BulkCreateOptions<TAttributes>): HookReturn;
   beforeBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
   afterBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
   beforeBulkRestore(options: RestoreOptions<TAttributes>): HookReturn;
@@ -52,7 +52,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeCount(options: CountOptions<TAttributes>): HookReturn;
   beforeFindAfterExpandIncludeAll(options: FindOptions<TAttributes>): HookReturn;
   beforeFindAfterOptions(options: FindOptions<TAttributes>): HookReturn;
-  afterFind(instancesOrInstance: M[] | M | null, options: FindOptions<TAttributes>): HookReturn;
+  afterFind(instancesOrInstance: readonly M[] | M | null, options: FindOptions<TAttributes>): HookReturn;
   beforeSync(options: SyncOptions): HookReturn;
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
