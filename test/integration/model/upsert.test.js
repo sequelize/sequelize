@@ -491,7 +491,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       if (current.dialect.supports.returnValues) {
-        describe('with returning option', () => {
+        describe('returns values', () => {
           it('works with upsert on id', async function() {
             const [user0, created0] = await this.User.upsert({ id: 42, username: 'john' }, { returning: true });
             expect(user0.get('id')).to.equal(42);
