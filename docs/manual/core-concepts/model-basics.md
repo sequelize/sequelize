@@ -255,7 +255,7 @@ sequelize.define('Foo', {
 
 ## Data Types
 
-Every column you define in your model must have a data type. Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/master/lib/data-types.js). To access a built-in data type, you must import `DataTypes`:
+Every column you define in your model must have a data type. Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/lib/data-types.js). To access a built-in data type, you must import `DataTypes`:
 
 ```js
 const { DataTypes } = require("sequelize"); // Import the built-in data types
@@ -270,6 +270,7 @@ DataTypes.STRING.BINARY      // VARCHAR BINARY
 DataTypes.TEXT               // TEXT
 DataTypes.TEXT('tiny')       // TINYTEXT
 DataTypes.CITEXT             // CITEXT          PostgreSQL and SQLite only.
+DataTypes.TSVECTOR           // TSVECTOR        PostgreSQL only.
 ```
 
 ### Boolean

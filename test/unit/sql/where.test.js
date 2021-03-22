@@ -1206,6 +1206,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
     }
 
+    if (current.dialect.supports.TSVESCTOR) {
+      describe('Op.match', () => {
+        testsql(
+          'username',
+          {
+            [Op.match]: Support.sequelize.fn('to_tsvector', 'swagger')
+          },
+          {
+            postgres: "[username] @@ to_tsvector('swagger')"
+          }
+        );
+      });
+    }
+
     describe('fn', () => {
       it('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
         expectsql(sql.whereQuery({ name: this.sequelize.fn('LOWER', 'DERP') }), {
@@ -1248,6 +1262,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql([current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
       current.where(current.fn('lower', current.col('name')), null)], {
       default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
+    });
+    
+    testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
+      default: '[hours] BETWEEN 0 AND 5'
+    });
+    
+    testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
+      default: '[hours] NOT BETWEEN 0 AND 5'
     });
   });
 });

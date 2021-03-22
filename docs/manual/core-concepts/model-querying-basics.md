@@ -18,7 +18,7 @@ console.log("Jane's auto-generated ID:", jane.id);
 
 The [`Model.create()`](../class/lib/model.js~Model.html#static-method-create) method is a shorthand for building an unsaved instance with [`Model.build()`](../class/lib/model.js~Model.html#static-method-build) and saving the instance with [`instance.save()`](../class/lib/model.js~Model.html#instance-method-save).
 
-It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username and an address but not an admin flag:
+It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username but not an admin flag (i.e., `isAdmin`):
 
 ```js
 const user = await User.create({
@@ -261,6 +261,7 @@ Post.findAll({
       [Op.notIRegexp]: '^[h|a|t]',             // !~* '^[h|a|t]' (PG only)
 
       [Op.any]: [2, 3],                        // ANY ARRAY[2, 3]::INTEGER (PG only)
+      [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // match text search for strings 'fat' and 'rat' (PG only)
 
       // In Postgres, Op.like/Op.iLike/Op.notLike can be combined to Op.any:
       [Op.like]: { [Op.any]: ['cat', 'hat'] }  // LIKE ANY ARRAY['cat', 'hat']

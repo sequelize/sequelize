@@ -8,13 +8,14 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor, ModelStatic
+  ModelCtor, ModelStatic, ModelType
 } from './model';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
+import { Deferrable } from './deferrable';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -216,6 +217,7 @@ export interface BaseConstraintOptions {
 
 export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
   type: 'unique';
+  deferrable?: Deferrable;
 }
 
 export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
@@ -230,6 +232,7 @@ export interface AddCheckConstraintOptions extends BaseConstraintOptions {
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
+  deferrable?: Deferrable;
 }
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
@@ -240,6 +243,7 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   };
   onDelete: string;
   onUpdate: string;
+  deferrable?: Deferrable;
 }
 
 export type AddConstraintOptions =
@@ -284,7 +288,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public QueryGenerator: unknown;
+  public queryGenerator: unknown;
 
   /**
    * Returns the current sequelize instance.
@@ -483,7 +487,7 @@ export class QueryInterface {
     insertValues: object,
     updateValues: object,
     where: object,
-    model: typeof Model,
+    model: ModelType,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -536,13 +540,13 @@ export class QueryInterface {
     tableName: TableName,
     identifier: WhereOptions<any>,
     options?: QueryOptions,
-    model?: typeof Model
+    model?: ModelType
   ): Promise<object>;
 
   /**
    * Returns selected rows
    */
-  public select(model: typeof Model | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: ModelType | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -562,7 +566,7 @@ export class QueryInterface {
     tableName: TableName,
     options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
-    model?: typeof Model
+    model?: ModelType
   ): Promise<string[]>;
 
   /**

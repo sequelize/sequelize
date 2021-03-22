@@ -491,7 +491,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       if (current.dialect.supports.returnValues) {
-        describe('with returning option', () => {
+        describe('returns values', () => {
           it('works with upsert on id', async function() {
             const [user0, created0] = await this.User.upsert({ id: 42, username: 'john' }, { returning: true });
             expect(user0.get('id')).to.equal(42);
@@ -576,26 +576,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(created).to.be.false;
             }
           });
-        });
 
-        it('should return default value set by the database (upsert)', async function() {      
-          const User = this.sequelize.define('User', {
-            name: { type: DataTypes.STRING, primaryKey: true },
-            code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+          it('should return default value set by the database (upsert)', async function() {
+            const User = this.sequelize.define('User', {
+              name: { type: DataTypes.STRING, primaryKey: true },
+              code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+            });
+
+            await User.sync({ force: true });
+
+            const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
+
+            expect(user.name).to.be.equal('Test default value');
+            expect(user.code).to.be.equal(2020);
+
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created).to.be.null;
+            } else {
+              expect(created).to.be.true;
+            }
           });
-    
-          await User.sync({ force: true });
-    
-          const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
-      
-          expect(user.name).to.be.equal('Test default value');
-          expect(user.code).to.be.equal(2020);
-
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created).to.be.null;
-          } else {
-            expect(created).to.be.true;
-          }
         });
       }
     });
