@@ -1,3 +1,4 @@
+import { ModelType } from '../index';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -65,7 +66,7 @@ export interface SequelizeHooks<
   TCreationAttributes = TAttributes
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
-  afterDefine(model: typeof Model): void;
+  afterDefine(model: ModelType): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
   beforeConnect(config: Config): HookReturn;
