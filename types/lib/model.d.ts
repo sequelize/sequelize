@@ -379,7 +379,7 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = typeof Model | Association | IncludeOptions | { all: true, nested?: true } | string;
+export type Includeable = ModelType | Association | IncludeOptions | { all: true, nested?: true } | string;
 
 /**
  * Complex include options
@@ -392,7 +392,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
-  model?: typeof Model;
+  model?: ModelType;
 
   /**
    * The alias of the relation, in case the model you want to eagerly load is aliassed. For `hasOne` /
@@ -1232,7 +1232,7 @@ export interface ModelAttributeColumnReferencesOptions {
   /**
    * If this column references another table, provide it here as a Model, or a string
    */
-  model?: string | typeof Model;
+  model?: string | ModelType;
 
   /**
    * The column of the foreign table that this column references
@@ -1660,7 +1660,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     schema: string,
     options?: SchemaOptions
-  ): { new(): M } & typeof Model;
+  ): ModelCtor<M>;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
@@ -2127,7 +2127,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Unscope the model
    */
-  public static unscoped<M extends typeof Model>(this: M): M;
+  public static unscoped<M extends ModelType>(this: M): M;
 
   /**
    * A hook that is run before validation
@@ -2833,7 +2833,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
-export type ModelType = typeof Model;
+export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
 // Do not switch the order of `typeof Model` and `{ new(): M }`. For
 // instances created by `sequelize.define` to typecheck well, `typeof Model`
