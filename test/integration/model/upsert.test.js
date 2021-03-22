@@ -492,6 +492,91 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.returnValues) {
         describe('with returning option', () => {
+          it('works with upsert on id', async function() {
+            const [user0, created0] = await this.User.upsert({ id: 42, username: 'john' }, { returning: true });
+            expect(user0.get('id')).to.equal(42);
+            expect(user0.get('username')).to.equal('john');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created0).to.be.null;
+            } else {
+              expect(created0).to.be.true;
+            }
+
+            const [user, created] = await this.User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            expect(user.get('id')).to.equal(42);
+            expect(user.get('username')).to.equal('doe');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created).to.be.null;
+            } else {
+              expect(created).to.be.false;
+            }
+          });
+
+          it('works for table with custom primary key field', async function() {
+            const User = this.sequelize.define('User', {
+              id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+                field: 'id_the_primary'
+              },
+              username: {
+                type: DataTypes.STRING
+              }
+            });
+
+            await User.sync({ force: true });
+            const [user0, created0] = await User.upsert({ id: 42, username: 'john' }, { returning: true });
+            expect(user0.get('id')).to.equal(42);
+            expect(user0.get('username')).to.equal('john');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created0).to.be.null;
+            } else {
+              expect(created0).to.be.true;
+            }
+
+            const [user, created] = await User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            expect(user.get('id')).to.equal(42);
+            expect(user.get('username')).to.equal('doe');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created).to.be.null;
+            } else {
+              expect(created).to.be.false;
+            }
+          });
+
+          it('works for non incrementing primaryKey', async function() {
+            const User = this.sequelize.define('User', {
+              id: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+                field: 'id_the_primary'
+              },
+              username: {
+                type: DataTypes.STRING
+              }
+            });
+
+            await User.sync({ force: true });
+            const [user0, created0] = await User.upsert({ id: 'surya', username: 'john' }, { returning: true });
+            expect(user0.get('id')).to.equal('surya');
+            expect(user0.get('username')).to.equal('john');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created0).to.be.null;
+            } else {
+              expect(created0).to.be.true;
+            }
+
+            const [user, created] = await User.upsert({ id: 'surya', username: 'doe' }, { returning: true });
+            expect(user.get('id')).to.equal('surya');
+            expect(user.get('username')).to.equal('doe');
+            if (dialect === 'sqlite' || dialect === 'postgres') {
+              expect(created).to.be.null;
+            } else {
+              expect(created).to.be.false;
+            }
+          });
+
           it('should return default value set by the database (upsert)', async function() {
             const User = this.sequelize.define('User', {
               name: { type: DataTypes.STRING, primaryKey: true },
@@ -513,93 +598,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       }
-
-      describe('returns primary key', () => {
-        it('works with upsert on id', async function() {
-          const [user0, created0] = await this.User.upsert({ id: 42, username: 'john' }, { returning: true });
-          expect(user0.get('id')).to.equal(42);
-          expect(user0.get('username')).to.equal('john');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created0).to.be.null;
-          } else {
-            expect(created0).to.be.true;
-          }
-
-          const [user, created] = await this.User.upsert({ id: 42, username: 'doe' }, { returning: true });
-          expect(user.get('id')).to.equal(42);
-          expect(user.get('username')).to.equal('doe');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created).to.be.null;
-          } else {
-            expect(created).to.be.false;
-          }
-        });
-
-        it('works for table with custom primary key field', async function() {
-          const User = this.sequelize.define('User', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-              field: 'id_the_primary'
-            },
-            username: {
-              type: DataTypes.STRING
-            }
-          });
-
-          await User.sync({ force: true });
-          const [user0, created0] = await User.upsert({ id: 42, username: 'john' }, { returning: true });
-          expect(user0.get('id')).to.equal(42);
-          expect(user0.get('username')).to.equal('john');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created0).to.be.null;
-          } else {
-            expect(created0).to.be.true;
-          }
-
-          const [user, created] = await User.upsert({ id: 42, username: 'doe' }, { returning: true });
-          expect(user.get('id')).to.equal(42);
-          expect(user.get('username')).to.equal('doe');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created).to.be.null;
-          } else {
-            expect(created).to.be.false;
-          }
-        });
-
-        it('works for non incrementing primaryKey', async function() {
-          const User = this.sequelize.define('User', {
-            id: {
-              type: DataTypes.STRING,
-              primaryKey: true,
-              field: 'id_the_primary'
-            },
-            username: {
-              type: DataTypes.STRING
-            }
-          });
-
-          await User.sync({ force: true });
-          const [user0, created0] = await User.upsert({ id: 'surya', username: 'john' }, { returning: true });
-          expect(user0.get('id')).to.equal('surya');
-          expect(user0.get('username')).to.equal('john');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created0).to.be.null;
-          } else {
-            expect(created0).to.be.true;
-          }
-
-          const [user, created] = await User.upsert({ id: 'surya', username: 'doe' }, { returning: true });
-          expect(user.get('id')).to.equal('surya');
-          expect(user.get('username')).to.equal('doe');
-          if (dialect === 'sqlite' || dialect === 'postgres') {
-            expect(created).to.be.null;
-          } else {
-            expect(created).to.be.false;
-          }
-        });
-      });
     });
   }
 });
