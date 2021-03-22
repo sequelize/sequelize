@@ -875,7 +875,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean;
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * How many rows to update (only for mysql and mariadb)
