@@ -35,7 +35,7 @@ export interface Transactionable {
   /**
    * Transaction to run query under
    */
-  transaction?: Transaction;
+  transaction?: Transaction | null;
 }
 
 export interface SearchPathable {
@@ -332,11 +332,12 @@ export interface WhereGeometryOptions {
  * WhereAttributeHash is in there for JSON columns.
  */
 export type WhereValue<TAttributes = any> =
-  | string // literal value
-  | number // literal value
-  | boolean // literal value
-  | Date // literal value
-  | Buffer // literal value
+  | string
+  | number
+  | bigint
+  | boolean
+  | Date
+  | Buffer
   | null
   | WhereOperators
   | WhereAttributeHash<any> // for JSON columns
@@ -479,7 +480,7 @@ export type Order = string | Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn, string];
+export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
@@ -2708,7 +2709,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
-  public previous<K extends keyof this>(key: K): this[K];
+  public previous<K extends keyof TCreationAttributes>(key: K): TCreationAttributes[K] | undefined;
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.

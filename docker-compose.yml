@@ -53,7 +53,7 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-    - $MARIADB_ENTRYPOINT:/docker-entrypoint-initdb.d
+    - $MARIADB_ENTRYPOINT/:/docker-entrypoint-initdb.d
     ports:
     - "8960:3306"
     container_name: mariadb-103
@@ -67,7 +67,7 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-    - $MYSQLDB_ENTRYPOINT:/docker-entrypoint-initdb.d
+    - $MYSQLDB_ENTRYPOINT/:/docker-entrypoint-initdb.d
     ports:
       - "8980:3306"
     container_name: mysql-57
