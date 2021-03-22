@@ -1263,5 +1263,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       current.where(current.fn('lower', current.col('name')), null)], {
       default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
     });
+    
+    testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
+      default: '[hours] BETWEEN 0 AND 5'
+    });
+    
+    testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
+      default: '[hours] NOT BETWEEN 0 AND 5'
+    });
   });
 });
