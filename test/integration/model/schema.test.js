@@ -518,6 +518,51 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(task).to.be.ok;
         });
 
+        describe('regressions', () => {
+          it('should be able to sync model with schema set at sync time', async function() {
+            this.sequelize.models = [];
+            this.sequelize.define(
+              'User3',
+              {
+                name: DataTypes.STRING,
+                value: DataTypes.INTEGER
+              },
+              {
+                indexes: [
+                  {
+                    name: 'test_user3_idx',
+                    fields: ['name']
+                  }
+                ]
+              }
+            );
+
+            this.sequelize.define(
+              'Task3',
+              {
+                name: DataTypes.STRING,
+                value: DataTypes.INTEGER
+              },
+              {
+                indexes: [
+                  {
+                    name: 'test_task3_idx',
+                    fields: ['name']
+                  }
+                ]
+              }
+            );
+
+            return Promise.all([
+              this.sequelize.sync({ schema: SCHEMA_ONE, force: true }),
+              this.sequelize.sync({ schema: SCHEMA_TWO, force: true })
+            ]).then(([res1, res2]) => {
+              expect(res1).to.be.ok;
+              expect(res2).to.be.ok;
+            });
+          });
+        });
+
         // TODO: this should work with MSSQL / MariaDB too
         // Need to fix addSchema return type
         if (dialect.match(/^postgres/)) {
@@ -540,7 +585,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const user0 = await User.schema(SCHEMA_ONE).create({});
             const task = await Task.schema(SCHEMA_ONE).create({});
             await task.setUserXYZ(user0);
-            const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
+            let user = await task.getUserXYZ({ schema: SCHEMA_ONE });
+            expect(user).to.be.ok;
+            user = await task.getUserXYZ(); // Default to schema of task entity
             expect(user).to.be.ok;
           });
         }
