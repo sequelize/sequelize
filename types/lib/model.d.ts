@@ -2709,6 +2709,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
+  public previous(): Partial<TCreationAttributes>;
   public previous<K extends keyof TCreationAttributes>(key: K): TCreationAttributes[K] | undefined;
 
   /**
