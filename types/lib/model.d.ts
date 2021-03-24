@@ -2745,7 +2745,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * This is the same as calling `set` and then calling `save`.
    */
   public update<K extends keyof this>(key: K, value: this[K], options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
-  public update(keys: object, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update(keys: Partial<TModelAttributes>, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
 
   /**
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
