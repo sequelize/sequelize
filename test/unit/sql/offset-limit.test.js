@@ -79,5 +79,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
     });
+
+    testsql({
+      limit: 10,
+      order: [], // When the order is an empty array, one is automagically prepended
+      model: { primaryKeyField: 'id', name: 'tableRef' }
+    }, {
+      default: ' LIMIT 10',
+      mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+    });
   });
 });
