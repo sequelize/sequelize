@@ -16,3 +16,9 @@ User.update({}, { where: {}, returning: false });
 User.update({}, { where: {}, returning: ['username'] });
 // @ts-expect-error
 User.update({}, { where: {}, returning: ['foo'] });
+
+TestModel.update({ foo: 'bar' }, { where: {} });  // to validate models that were defined without types still allow any attribute/values
+
+User.update({ username: 'name_123' }, { where: {} });
+// @ts-expect-error
+User.update({ foo: 'bar' }, { where: {} }); // because User doesn't have a `foo` attribute
