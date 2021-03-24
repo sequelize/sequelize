@@ -586,6 +586,117 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(people[1].name).to.equal('Bob');
               });
           });
+
+          it('when the composite primary key column names and model field names are different', function() {
+            const Person = this.sequelize.define('Person', {
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
+          it('when the primary key column names and model field names are different and have composite unique constraints', function() {
+            const Person = this.sequelize.define('Person', {
+              id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'id'
+              },
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { id: 2, systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
         });
 
 
@@ -670,6 +781,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(user.get('maId')).to.be.ok;
                 expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
                   .and.to.equal(i + 1);
+              });
+            });
+        });
+
+        it('should only return fields that are not defined in the model (with returning: true)', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: true
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).not.to.have.property('not_on_model');
+              });
+            });
+        });
+
+        it('should return fields that are not defined in the model (with returning: ["*"])', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: ['*']
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).to.have.property('not_on_model');
               });
             });
         });
