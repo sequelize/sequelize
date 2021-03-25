@@ -357,6 +357,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.username).to.equal('user');
     });
 
+
+    it('updates attributes for model with date pk', async function() {
+      this.Event = this.sequelize.define('Event', {
+        date: { type: DataTypes.DATE, allowNull: false, primaryKey: true },
+        name: { type: DataTypes.STRING }
+      });
+      await this.Event.sync({ force: true });
+      const event = await this.Event.create({
+        date: new Date(),
+        name: 'event'
+      });
+      expect(event.name).to.equal('event');
+      const event0 = await event.update({ name: 'event updated' });
+      expect(event0.name).to.equal('event updated');
+    });
+
     it('doesn\'t update primary keys or timestamps', async function() {
       const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
