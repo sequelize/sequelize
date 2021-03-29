@@ -1562,7 +1562,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.comment.getTags()
       ]);
 
-      expect(postTags).to.have.length(2);
+      expect(postTags).to.have.length(1);
       expect(commentTags).to.have.length(2);
     });
 
