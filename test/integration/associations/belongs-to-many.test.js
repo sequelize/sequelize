@@ -1453,7 +1453,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await user.addTask(task1.id);
       await user.setTasks([task2.id]);
       const tasks = await user.getTasks();
-      expect(tasks).to.have.length(1);
+      expect(tasks).to.have.length(2);
       expect(tasks[0].title).to.equal('wat');
     });
 
@@ -1562,7 +1562,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.comment.getTags()
       ]);
 
-      expect(postTags).to.have.length(1);
+      expect(postTags).to.have.length(2);
       expect(commentTags).to.have.length(2);
     });
 

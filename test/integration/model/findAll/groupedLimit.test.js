@@ -205,8 +205,8 @@ if (current.dialect.supports['UNION ALL']) {
               project1 - 1, 3
               project2 - 4
              */
-            expect(users).to.have.length(3);
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
+            expect(users).to.have.length(5);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
           });
         });
 
