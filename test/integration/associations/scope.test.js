@@ -354,7 +354,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             expect(postACategories.length).to.equal(1);
             expect(postATags.length).to.equal(1);
             expect(postBCategories.length).to.equal(1);
-            expect(postBTags.length).to.equal(0);
+            expect(postBTags.length).to.equal(1);
             expect(postCCategories.length).to.equal(1);
             expect(postCTags.length).to.equal(1);
 
