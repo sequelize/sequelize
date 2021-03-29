@@ -2031,7 +2031,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         logging: spy
       });
 
-      expect(spy.calledTwice).to.be.ok;
+      expect(spy.calledOnce).to.be.ok;
     });
   }); // end optimization using bulk create, destroy and update
 
