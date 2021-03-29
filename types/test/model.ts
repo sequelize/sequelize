@@ -16,6 +16,8 @@ class OtherModel extends Model {}
 
 const Instance: MyModel = new MyModel({ int: 10 });
 
+const gotten = Instance.get();
+expectTypeOf(Instance.toJSON()).toEqualTypeOf<typeof gotten>();
 expectTypeOf(Instance.get('num')).toEqualTypeOf<number>();
 
 MyModel.findOne({
