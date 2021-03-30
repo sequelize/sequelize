@@ -1,10 +1,10 @@
 'use strict';
 
-const Support   = require('../support'),
+const Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
-  current   = Support.sequelize,
-  sql       = current.dialect.queryGenerator;
+  current = Support.sequelize,
+  sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -151,15 +151,69 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       // mapping primary keys to their "field" override values
       const primaryKeys = User.primaryKeyAttributes.map(attr => User.rawAttributes[attr].field || attr);
 
-      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
-        {
-          default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
-          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
-          mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
-          mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
-          mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
-          sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
-        });
+      expectsql(sql.bulkInsertQuery(User.tableName, [{
+        user_name: 'testuser',
+        pass_word: '12345'
+      }], {
+        updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+        upsertKeys: primaryKeys
+      }, User.fieldRawAttributesMap),
+      {
+        default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+        postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+        mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
+        mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+        mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+        sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
+      });
     });
+
+    it('bulk create with onConflictDoUpdateWhere', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name',
+          primaryKey: true
+        },
+        password: {
+          type: DataTypes.STRING,
+          field: 'pass_word'
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          field: 'updated_at'
+        }
+      }, {
+        timestamps: true
+      });
+
+      const upsertKeys = User.primaryKeyAttributes.map(attr => User.rawAttributes[attr].field || attr);
+
+      expectsql(sql.bulkInsertQuery(
+        User.tableName,
+        [{ user_name: 'testuser', pass_word: '12345' }],
+        {
+          updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+          onConflictDoUpdateWhere: {
+            user_name: 'test where value'
+          },
+          upsertKeys
+        },
+        User.fieldRawAttributesMap
+      ),
+      {
+        default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+        postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at" WHERE "users"."user_name" = \'test where value\';',
+        mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
+        mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+        mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+        sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at` WHERE `users`.`user_name` = \'test where value\';'
+      });
+    });
+
   });
 });
