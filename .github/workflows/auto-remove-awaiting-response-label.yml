@@ -1,0 +1,19 @@
+name: Auto-remove "awaiting response" label
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  auto-remove-awaiting-response-label:
+    name: Run
+    runs-on: ubuntu-latest
+    env:
+      # Case insensitive. Replace spaces with `%20`.
+      LABEL_TO_REMOVE: "status:%20awaiting%20response"
+    steps:
+      - name: Run
+        run: |-
+          curl -X DELETE \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.event.comment.issue_url }}/labels/$LABEL_TO_REMOVE"
