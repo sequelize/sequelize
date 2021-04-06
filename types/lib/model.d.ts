@@ -35,7 +35,7 @@ export interface Transactionable {
   /**
    * Transaction to run query under
    */
-  transaction?: Transaction;
+  transaction?: Transaction | null;
 }
 
 export interface SearchPathable {
@@ -103,7 +103,7 @@ export interface ScopeOptions {
    * any arguments, or an array, where the first element is the name of the method, and consecutive elements
    * are arguments to that method. Pass null to remove all scopes, including the default.
    */
-  method: string | [string, ...unknown[]];
+  method: string | readonly [string, ...unknown[]];
 }
 
 /**
@@ -123,15 +123,15 @@ export type WhereOptions<TAttributes = any> =
  * _PG only_
  */
 export interface AnyOperator {
-  [Op.any]: (string | number)[];
+  [Op.any]: readonly (string | number)[];
 }
 
-/** Undocumented? */
+/** TODO: Undocumented? */
 export interface AllOperator {
-  [Op.all]: (string | number | Date | Literal)[];
+  [Op.all]: readonly (string | number | Date | Literal)[];
 }
 
-export type Rangable = [number, number] | [Date, Date] | Literal;
+export type Rangable = readonly [number, number] | readonly [Date, Date] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
@@ -144,7 +144,7 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-  [Op.any]?: (string | number | Literal)[] | Literal;
+  [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
   [Op.gte]?: number | string | Date | Literal;
@@ -165,10 +165,10 @@ export interface WhereOperators {
   [Op.between]?: Rangable;
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: (string | number | Literal)[] | Literal;
+  [Op.in]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: (string | number | Literal)[] | Literal;
+  [Op.notIn]?: readonly (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
@@ -205,14 +205,14 @@ export interface WhereOperators {
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: (string | number)[] | Rangable;
+  [Op.contains]?: readonly (string | number)[] | Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: (string | number)[] | Rangable;
+  [Op.contained]?: readonly (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date | Literal;
@@ -311,12 +311,12 @@ export interface WhereOperators {
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
 export interface OrOperator<TAttributes = any> {
-  [Op.or]: WhereOptions<TAttributes> | WhereOptions<TAttributes>[] | WhereValue<TAttributes> | WhereValue<TAttributes>[];
+  [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
 
 /** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
 export interface AndOperator<TAttributes = any> {
-  [Op.and]: WhereOptions<TAttributes> | WhereOptions<TAttributes>[] | WhereValue<TAttributes> | WhereValue<TAttributes>[];
+  [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
 
 /**
@@ -324,7 +324,7 @@ export interface AndOperator<TAttributes = any> {
  */
 export interface WhereGeometryOptions {
   type: string;
-  coordinates: (number[] | number)[];
+  coordinates: readonly (number[] | number)[];
 }
 
 /**
@@ -332,11 +332,12 @@ export interface WhereGeometryOptions {
  * WhereAttributeHash is in there for JSON columns.
  */
 export type WhereValue<TAttributes = any> =
-  | string // literal value
-  | number // literal value
-  | boolean // literal value
-  | Date // literal value
-  | Buffer // literal value
+  | string
+  | number
+  | bigint
+  | boolean
+  | Date
+  | Buffer
   | null
   | WhereOperators
   | WhereAttributeHash<any> // for JSON columns
@@ -345,7 +346,7 @@ export type WhereValue<TAttributes = any> =
   | OrOperator<TAttributes>
   | AndOperator<TAttributes>
   | WhereGeometryOptions
-  | (string | number | Buffer | WhereAttributeHash<TAttributes>)[]; // implicit [Op.or]
+  | readonly (string | number | Buffer | WhereAttributeHash<TAttributes>)[]; // implicit [Op.or]
 
 /**
  * A hash of attributes to describe your search.
@@ -378,7 +379,7 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = typeof Model | Association | IncludeOptions | { all: true, nested?: true } | string;
+export type Includeable = ModelType | Association | IncludeOptions | { all: true, nested?: true } | string;
 
 /**
  * Complex include options
@@ -391,7 +392,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
-  model?: typeof Model;
+  model?: ModelType;
 
   /**
    * The alias of the relation, in case the model you want to eagerly load is aliassed. For `hasOne` /
@@ -473,13 +474,13 @@ export type OrderItem =
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = string | Fn | Col | Literal | OrderItem[];
+export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = [string | Literal | Fn, string];
+export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
@@ -874,7 +875,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean;
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * How many rows to update (only for mysql and mariadb)
@@ -990,15 +991,15 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
  */
 export interface ModelValidateOptions {
   /**
-   * is: ["^[a-z]+$",'i'] // will only allow letters
-   * is: /^[a-z]+[Op./i]  // same as the previous example using real RegExp
+   * - `{ is: ['^[a-z]+$','i'] }` will only allow letters
+   * - `{ is: /^[a-z]+$/i }` also only allows letters
    */
-  is?: string | (string | RegExp)[] | RegExp | { msg: string; args: string | (string | RegExp)[] | RegExp };
+  is?: string | readonly (string | RegExp)[] | RegExp | { msg: string; args: string | readonly (string | RegExp)[] | RegExp };
 
   /**
-   * not: ["[a-z]",'i']  // will not allow letters
+   * - `{ not: ['[a-z]','i'] }` will not allow letters
    */
-  not?: string | (string | RegExp)[] | RegExp | { msg: string; args: string | (string | RegExp)[] | RegExp };
+  not?: string | readonly (string | RegExp)[] | RegExp | { msg: string; args: string | readonly (string | RegExp)[] | RegExp };
 
   /**
    * checks for email format (foo@bar.com)
@@ -1093,22 +1094,22 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: string[][] | { msg: string; args: string[][] };
+  notIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: string[][] | { msg: string; args: string[][] };
+  isIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
 
   /**
    * don't allow specific substrings
    */
-  notContains?: string[] | string | { msg: string; args: string[] | string };
+  notContains?: readonly string[] | string | { msg: string; args: readonly string[] | string };
 
   /**
    * only allow values with length between 2 and 10
    */
-  len?: [number, number] | { msg: string; args: [number, number] };
+  len?: readonly [number, number] | { msg: string; args: readonly [number, number] };
 
   /**
    * only allow uuids
@@ -1133,12 +1134,12 @@ export interface ModelValidateOptions {
   /**
    * only allow values
    */
-  max?: number | { msg: string; args: [number] };
+  max?: number | { msg: string; args: readonly [number] };
 
   /**
    * only allow values >= 23
    */
-  min?: number | { msg: string; args: [number] };
+  min?: number | { msg: string; args: readonly [number] };
 
   /**
    * only allow arrays
@@ -1150,20 +1151,10 @@ export interface ModelValidateOptions {
    */
   isCreditCard?: boolean | { msg: string; args: boolean };
 
+  // TODO: Enforce 'rest' indexes to have type `(value: unknown) => boolean`
+  // Blocked by: https://github.com/microsoft/TypeScript/issues/7765
   /**
-   * custom validations are also possible
-   *
-   * Implementation notes :
-   *
-   * We can't enforce any other method to be a function, so :
-   *
-   * ```typescript
-   * [name: string] : ( value : unknown ) => boolean;
-   * ```
-   *
-   * doesn't work in combination with the properties above
-   *
-   * @see https://github.com/Microsoft/TypeScript/issues/1889
+   * Custom validations are also possible
    */
   [name: string]: unknown;
 }
@@ -1209,7 +1200,7 @@ export interface ModelScopeOptions<TAttributes = any> {
   /**
    * Name of the scope and it's query
    */
-  [scopeName: string]: FindOptions<TAttributes> | ((...args: any[]) => FindOptions<TAttributes>);
+  [scopeName: string]: FindOptions<TAttributes> | ((...args: readonly any[]) => FindOptions<TAttributes>);
 }
 
 /**
@@ -1241,7 +1232,7 @@ export interface ModelAttributeColumnReferencesOptions {
   /**
    * If this column references another table, provide it here as a Model, or a string
    */
-  model?: string | typeof Model;
+  model?: string | ModelType;
 
   /**
    * The column of the foreign table that this column references
@@ -1334,7 +1325,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * }, { sequelize })
    * ```
    */
-  values?: string[];
+  values?: readonly string[];
 
   /**
    * Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying
@@ -1426,7 +1417,7 @@ export interface ModelOptions<M extends Model = Model> {
   /**
    * Indexes for the provided database table
    */
-  indexes?: ModelIndexesOptions[];
+  indexes?: readonly ModelIndexesOptions[];
 
   /**
    * Override the name of the createdAt column if a string is provided, or disable it if false. Timestamps
@@ -1564,7 +1555,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * The name of the primary key attributes
    */
-  public static readonly primaryKeyAttributes: string[];
+  public static readonly primaryKeyAttributes: readonly string[];
 
   /**
    * An object hash from alias to association object
@@ -1669,7 +1660,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     schema: string,
     options?: SchemaOptions
-  ): { new(): M } & typeof Model;
+  ): ModelCtor<M>;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
@@ -1737,7 +1728,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
-    options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash<M>
+    options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
 
   /**
@@ -1757,7 +1748,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope: (...args: any[]) => FindOptions<M['_attributes']>,
+    scope: (...args: readonly any[]) => FindOptions<M['_attributes']>,
     options?: AddScopeOptions
   ): void;
 
@@ -1969,7 +1960,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
-    records: (M['_creationAttributes'])[],
+    records: ReadonlyArray<M['_creationAttributes']>,
     options?: BuildOptions
   ): M[];
 
@@ -2059,7 +2050,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    records: (M['_creationAttributes'])[],
+    records: ReadonlyArray<M['_creationAttributes']>,
     options?: BulkCreateOptions<M['_attributes']>
   ): Promise<M[]>;
 
@@ -2114,7 +2105,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    fields: (keyof M['_attributes'])[],
+    fields: ReadonlyArray<keyof M['_attributes']>,
     options: IncrementDecrementOptionsWithBy<M['_attributes']>
   ): Promise<M>;
 
@@ -2136,7 +2127,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Unscope the model
    */
-  public static unscoped<M extends typeof Model>(this: M): M;
+  public static unscoped<M extends ModelType>(this: M): M;
 
   /**
    * A hook that is run before validation
@@ -2323,11 +2314,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2458,11 +2449,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instancesOrInstance: M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instancesOrInstance: M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
   ): void;
 
   /**
@@ -2718,7 +2709,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
-  public previous<K extends keyof this>(key: K): this[K];
+  public previous(): Partial<TCreationAttributes>;
+  public previous<K extends keyof TCreationAttributes>(key: K): TCreationAttributes[K] | undefined;
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
@@ -2787,7 +2779,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If and object is provided, each column is incremented by the value given.
    */
   public increment<K extends keyof TModelAttributes>(
-    fields: K | K[] | Partial<TModelAttributes>,
+    fields: K | readonly K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
 
@@ -2812,7 +2804,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If and object is provided, each column is decremented by the value given
    */
   public decrement<K extends keyof TModelAttributes>(
-    fields: K | K[] | Partial<TModelAttributes>,
+    fields: K | readonly K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
 
@@ -2822,9 +2814,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public equals(other: this): boolean;
 
   /**
-   * Check if this is eqaul to one of `others` by calling equals
+   * Check if this is equal to one of `others` by calling equals
    */
-  public equalsOneOf(others: this[]): boolean;
+  public equalsOneOf(others: readonly this[]): boolean;
 
   /**
    * Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all
@@ -2842,7 +2834,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
-export type ModelType = typeof Model;
+export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
 // Do not switch the order of `typeof Model` and `{ new(): M }`. For
 // instances created by `sequelize.define` to typecheck well, `typeof Model`

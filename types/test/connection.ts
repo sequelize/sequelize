@@ -1,3 +1,4 @@
+import { expectTypeOf } from "expect-type";
 import { QueryTypes, Sequelize, SyncOptions } from 'sequelize';
 import { User } from 'models/User';
 
@@ -8,22 +9,18 @@ sequelize.afterBulkSync((options: SyncOptions) => {
 });
 
 async function test() {
-  const rows: unknown[] = await sequelize
-  .query('SELECT * FROM `test`', {
-    type: QueryTypes.SELECT,
-  });
-  const [autoIncrementId, affectedRows] = await sequelize
-  .query('INSERT into test set test=1', {
-    type: QueryTypes.INSERT,
-  });
+  expectTypeOf(
+    await sequelize.query('SELECT * FROM `test`', { type: QueryTypes.SELECT })
+  ).toEqualTypeOf<unknown[]>();
+
+  expectTypeOf(
+    await sequelize.query('INSERT into test set test=1', { type: QueryTypes.INSERT })
+  ).toEqualTypeOf<[number, number]>();
 }
 
-
-
-
 sequelize.transaction<void>(async transaction => {
-  const rows = await sequelize
-    .query('SELECT * FROM `user`', {
+  expectTypeOf(
+    await sequelize.query('SELECT * FROM `user`', {
       retry: {
         max: 123,
       },
@@ -31,12 +28,15 @@ sequelize.transaction<void>(async transaction => {
       transaction,
       logging: true,
     })
+  ).toEqualTypeOf<User[]>();
 });
 
-sequelize.query('SELECT * FROM `user` WHERE status = $1',
+sequelize.query(
+  'SELECT * FROM `user` WHERE status = $1',
   { bind: ['active'], type: QueryTypes.SELECT }
 );
 
-sequelize.query('SELECT * FROM `user` WHERE status = $status',
+sequelize.query(
+  'SELECT * FROM `user` WHERE status = $status',
   { bind: { status: 'active' }, type: QueryTypes.SELECT }
 );
