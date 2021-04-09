@@ -123,9 +123,6 @@
     "nodejs",
     "object relational mapper"
   ],
-  "options": {
-    "env_cmd": "-f ./test/config/.docker.env"
-  },
   "commitlint": {
     "extends": [
       "@commitlint/config-angular"
@@ -177,7 +174,7 @@
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",
-    "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
+    "test-docker-integration": "npm run env-docker -- npm run test-integration",
     "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "teaser": "node scripts/teaser",
     "test-unit": "mocha --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
@@ -210,13 +207,14 @@
     "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha -t 30000 --exit \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha -t 30000 --exit \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
-    "sscce": "env-cmd $npm_package_options_env_cmd node sscce.js",
+    "sscce": "npm run env-docker -- node sscce.js",
     "sscce-mariadb": "cross-env DIALECT=mariadb npm run sscce",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
     "sscce-mssql": "cross-env DIALECT=mssql npm run sscce",
-    "setup-mssql": "env-cmd $npm_package_options_env_cmd ./scripts/setup-mssql",
-    "semantic-release": "semantic-release"
+    "setup-mssql": "npm run env-docker -- ./scripts/setup-mssql",
+    "semantic-release": "semantic-release",
+    "env-docker": "env-cmd -f ./test/config/.docker.env"
   }
 }
