@@ -39,16 +39,52 @@ Now that we have the `.sequelizerc` file setup, let's initialize Sequelize with 
   $ sequelize init
 ```
 
-This will create the following folder and file structure:
+Move the `index.js` file to the root of the `db` folder, so your file structure looks like this:
 
 ```
   /db
     /config
       - config.json
     /models
-      - index.js
     /migrations
     /seeders
+    - index.js
+```
+
+Delete the default `index.js` file content and update it to this:
+
+```js
+
+'use strict';
+
+const Sequelize = require('sequelize');
+const TodoModel = require('./models/post.js');
+// const UserModel = require('./models/user.js');
+
+if (config.use_env_variable) {
+  var sequelize = new Sequelize(process.env[config.use_env_variable]);
+} else {
+  var sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
+
+const Post = TodoModel(sequelize, Sequelize);
+
+
+// ASSOCIATIONS GO HERE e.g.
+
+// Todo.belongsTo(User, {
+//   as: 'author'
+// });
+//
+// User.hasMany(Todo, {
+//   foreignKey: 'authorId'
+// });
+
+module.exports = {
+  sequelize,
+  Sequelize,
+  Todo
+}
 ```
 
 The `config/config.json` file has the configuration setup for your development, test, and production environments. The `models/index.js` file has boilerplate code that will unify and associate the models you put in the `models` directory.
@@ -95,15 +131,15 @@ Your database setup and connected! Now we just need to define models and migrati
 
 Now that we've made a connection to our new database, its time to define a migration to create a table in our SQL database and a corresponding model so we can use Sequelize to read and write to it.
 
-For this example we'll pretend we are making a todo list app and want to create a `Todos` migration and table and then a `Todo` model.
+For this example we'll pretend we are making a todo list app and want to create a `todos` migration and table and then a `Todo` model. (Although you may see variation around this even within these docs, the proper convention is to make tables plural and lowercase and models singular and uppercase.)
 
 To define a migration use the `sequelize-cli` generator:
 
 ```bash
-$ sequelize migration:generate --name create-todo
+$ sequelize migration:generate --name create-todos
 ```
 
-This will create a migration file in the `db/migrations` folder with the standard `up` and `down` method boilerplate. To create a `Todos` table update those methods as follows:
+This will create a migration file in the `db/migrations` folder with the standard `up` and `down` method boilerplate. To create a `todos` table update those methods as follows:
 
 ```js
 // migrations/20201206223919-create-todo.js
@@ -158,15 +194,12 @@ To create a model, add a file called `todo.js` do your `db/models` directory. In
 ```js
 // models/todo.js
 'use strict';
+
 module.exports = (sequelize, DataTypes) => {
-  const Todo = sequelize.define('todo', {
+  const Todo = sequelize.define('todos', {
     title: DataTypes.STRING,
     desc: DataTypes.TEXT
   }, {});
-
-  Todo.associate = function(models) {
-    // associations can be defined here
-  };
 
   return Todo;
 };
@@ -176,13 +209,13 @@ Using this `Todo` model we can use Sequelize's query API to read and write data 
 
 ## Write Queries
 
-You can run queries such as:
+You can run queries in your controllers such as:
 
 ```js
-const models  = require('../db/models');
+const db  = require('../db');
 // INDEX
 
-models.Todo.findAll({ where: { finished: true } }).then(todos => {
+db.Todo.findAll({ where: { finished: true } }).then(todos => {
   let completedTodos = todos;
 }).catch(err => { console.log(err) })
 
@@ -191,21 +224,21 @@ models.Todo.findAll({ where: { finished: true } }).then(todos => {
 ```js
 // CREATE
 
-let todo = await models.Todo.create(req.body);
+let todo = await db.Todo.create(req.body);
 
 ```
 
 ```js
 // UPDATE
 
-let todo = await models.Todo.findById(todoId);
+let todo = await db.Todo.findByPk(todoId);
 todo = await task.update(req.body);
 
 ```
 
 ```js
 // DESTROY
-Todo.findById(todoId).then(todo => {
+Todo.findByPk(todoId).then(todo => {
   todo.destroy()
 }).catch(err => ({ console.log(err) })
 ```

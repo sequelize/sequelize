@@ -1,10 +1,8 @@
 This  is a little note of some thoughts about the docs and how they ought to be designed better.
 
-
 1. Sequelize has all these gotchas that annoyingly sneak up on you.
 1. The docs surface advanced/edge case topics and bury simple explanations.
 1.
-
 
 Todos
 
@@ -14,6 +12,7 @@ Todos
   1. combine querying-basics and query-finders
   1. integrate assoc.md docs into associations section
   1. Pull all sync gotchas into a sync article. e.g. Unique constraint in validations talks about how the model influences the sync call
+1. rename table names as plural and lower case
 1. Standardize index.js code
 1. Surface emphasis on naming conventions and singular vs. plural convention, capitals etc.
 1. Fix all internal links
@@ -27,8 +26,6 @@ Todos
 # Sequelize-Auto
 
 https://github.com/sequelize/sequelize-auto
-
-
 
 index.js options:
 

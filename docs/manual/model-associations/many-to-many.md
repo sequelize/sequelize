@@ -9,8 +9,8 @@ Here is an example using Users and Events.
 Use the `.belongsToMany()` function to define the association on both models:
 
 ```js
-Event.belongsToMany(User, {through: 'rsvps'})
-User.belongsToMany(Event, {through: 'rsvps', foreignKey: 'GuestId', as: 'Guests'})
+Event.belongsToMany(User, { through: 'rsvps' })
+User.belongsToMany(Event, { through: 'rsvps', foreignKey: 'GuestId', as: 'Guests' })
 ```
 
 Create a `rsvps` table with two foreign keys

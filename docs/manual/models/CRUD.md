@@ -30,10 +30,10 @@ try {
 
 ## Show
 
-`.findById()` (if you have the id)
+`.findByPk()` (if you have the id)
 
 ```js
-models.User.findById(userId).then(user => {
+models.User.findByPk(userId).then(user => {
 
 }).catch(err => ({
 
@@ -42,7 +42,7 @@ models.User.findById(userId).then(user => {
 // OR WITH ASYNC/AWAIT
 
 try {
-  let user = await models.User.findById(userId);
+  let user = await models.User.findByPk(userId);
 } catch (err) {
 
 }
@@ -60,7 +60,7 @@ models.User.findOne({ where: { attribute: value } }).then(user => {
 // OR WITH ASYNC/AWAIT
 
 try {
-  let user = await models.User.findById(userId);
+  let user = await models.User.findByPk(userId);
 } catch (err) {
 
 }
@@ -111,7 +111,7 @@ try {
 `.update()`
 
 ```js
-models.Task.findById(taskId).then(task => {
+models.Task.findByPk(taskId).then(task => {
   task.update(req.body).then(task => {
 
   }).catch(err => ({
@@ -124,7 +124,7 @@ models.Task.findById(taskId).then(task => {
 // OR USE ASYNC/AWAIT
 
 try {
-  let task = await models.Task.findById(taskId);
+  let task = await models.Task.findByPk(taskId);
   task = await task.update(req.body);
 } catch (err) {
 
@@ -136,7 +136,7 @@ try {
 `.destroy()`
 
 ```js
-Task.findById(taskId).then(task => {
+Task.findByPk(taskId).then(task => {
   task.destroy()
 }).catch(err => ({
 
@@ -145,7 +145,7 @@ Task.findById(taskId).then(task => {
 // OR USE ASYNC/AWAIT
 
 try {
-  let task = await models.Task.findById(taskId);
+  let task = await models.Task.findByPk(taskId);
   task.destroy();
 } catch (err) {
 

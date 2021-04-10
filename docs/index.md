@@ -24,6 +24,8 @@ Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10
 
 You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.html).
 
+If you want to see some examples of Sequelize and Express, go check out our [sequelize/express-example](https://github.com/sequelize/express-example) repo.
+
 ## Rapid Development Options
 
 Sequelize and its library ecosystem accelerates development and integration with new and existing SQL databases.
@@ -63,4 +65,4 @@ User.init({
 })();
 ```
 
-To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with the [Quick Start](manual/quick-start.html).
+To learn more about how to use Sequelize, read the tutorials available in the left menu. You could begin with the [Ultralight Guide](manual/ultralight-guide.html) or the [Standard Guide](manual/standard-guide.md).
