@@ -43,8 +43,8 @@ Just "cd" into sequelize directory and run `npm ci`, see an example below:
 
 ```sh
 $ cd path/to/sequelize
-$ npm ci
-$ npm run tsc
+$ npm install
+$ npm run test-typings
 ```
 
 ### 3. Database
