@@ -152,18 +152,17 @@ jobs:
           SA_PASSWORD: Password12!
         ports:
           - 1433:1433
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -l 30 -Q \"SELECT 1\" || exit 1"
-          --health-start-period 10s
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+        options: >- # we have to run the db creation inside of a health check or it has a high chance to fail…
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;\" || exit 1"
+          --health-start-period=10s
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     env:
       DIALECT: mssql
       SEQ_USER: SA
       SEQ_PW: Password12!
     steps:
-      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
