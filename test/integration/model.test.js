@@ -2638,13 +2638,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const users1 = await user.findAll();
       expect(users1[0].username).to.equal('jon');
     });
-
-    it('should not alter options', async function() {
-      const user = this.sequelize.define('User');
-      await this.sequelize.sync({ force: true });
-      const options = { toto: 1 };
-      await user.bulkCreate([{  }], options);
-      expect(options).to.eql({ toto: 1 });
-    });
   });
 });
