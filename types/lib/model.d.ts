@@ -1622,10 +1622,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    * @return Return the initialized model
    */
-  public static init<M extends Model>(
-    this: ModelStatic<M>,
+  public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
+    this: MS,
     attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
-  ): Model;
+  ): MS;
 
   /**
    * Remove attribute from model definition
