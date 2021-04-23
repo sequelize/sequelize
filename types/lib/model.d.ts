@@ -668,9 +668,14 @@ export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging,
   fields?: (keyof TAttributes)[];
 
   /**
-   * On Duplicate
+   * dialect specific ON CONFLICT DO NOTHING / INSERT IGNORE
    */
-  onDuplicate?: string;
+  ignoreDuplicates?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: true | (keyof TAttributes)[];
 
   /**
    * If false, validations won't be run.
@@ -749,7 +754,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   individualHooks?: boolean;
 
   /**
-   * Ignore duplicate values for primary keys? (not supported by postgres)
+   * Ignore duplicate values for primary keys?
    *
    * @default false
    */
@@ -1975,7 +1980,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static create<M extends Model>(
     this: ModelStatic<M>,
     values: M['_creationAttributes'],
-    options: CreateOptions<M['_attributes']> & { returning: false }
+    options: Omit<CreateOptions<M['_attributes']>, 'returning'> & { returning: false }
   ): Promise<void>;
 
   /**
