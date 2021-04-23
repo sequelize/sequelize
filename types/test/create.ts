@@ -11,17 +11,45 @@ async () => {
     });
     expectTypeOf(user).toEqualTypeOf<User>()
 
-    const voidUser = await User.create({
-        id: 123,
-        firstName: '<first-name>',
-    }, {
-        ignoreDuplicates: true,
-        returning: false,
-    });
-    expectTypeOf(voidUser).toEqualTypeOf<void>()
+    const voidUsers = await Promise.all([
+        User.create({
+            id: 123,
+            firstName: '<first-name>',
+        }, {
+            ignoreDuplicates: true,
+            returning: false,
+        }),
+        User.create({
+            id: 123,
+            firstName: '<first-name>',
+        }, {
+            ignoreDuplicates: true,
+            returning: true,
+        }),
+        User.create({
+            id: 123,
+            firstName: '<first-name>',
+        }, {
+            ignoreDuplicates: false,
+            returning: false,
+        }),
+        User.create({
+            id: 123,
+            firstName: '<first-name>',
+        }, { returning: false }),
+        User.create({
+            id: 123,
+            firstName: '<first-name>',
+        }, { ignoreDuplicates: true }),
+    ]);
+    expectTypeOf(voidUsers).toEqualTypeOf<[void, void, void, void, void]>()
 
-    const emptyUser = await User.create(undefined);
-    expectTypeOf(emptyUser).toEqualTypeOf<User>()
+    const emptyUsers = await Promise.all([
+        User.create(),
+        User.create(undefined),
+        User.create(undefined, undefined),
+    ]);
+    expectTypeOf(emptyUsers).toEqualTypeOf<[User, User, User]>()
 
     const partialUser = await User.create({
         id: 123,
@@ -29,6 +57,7 @@ async () => {
         lastName: '<last-name>',
     }, {
         fields: ['firstName'],
+        returning: ['id'],
     });
     expectTypeOf(partialUser).toEqualTypeOf<User>()
 
