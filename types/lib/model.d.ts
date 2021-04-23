@@ -459,22 +459,24 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
 }
 
 type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as: string } | string
-type OrderItemColumn = string | Col | Fn | Literal
+type OrderItemColumn = string | Col | Fn | Literal | Where
+type OrderOptions = 'ASC' | 'DESC' | `${'ASC' | 'DESC'} NULLS ${'FIRST' | 'LAST'}` | `NULLS ${'FIRST' | 'LAST'}`
 export type OrderItem =
   | string
   | Fn
   | Col
   | Literal
-  | [OrderItemColumn, string]
+  | Where
+  | [OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = Fn | Col | Literal | OrderItem[];
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
+export type Order = Fn | Col | Literal | Where | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
