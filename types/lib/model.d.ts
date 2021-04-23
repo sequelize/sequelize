@@ -460,7 +460,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
 
 type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as: string } | string
 type OrderItemColumn = string | Col | Fn | Literal | Where
-type OrderOptions = 'ASC' | 'DESC' | `${'ASC' | 'DESC'} NULLS ${'FIRST' | 'LAST'}` | `NULLS ${'FIRST' | 'LAST'}`
+type OrderOptions = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST' | 'NULLS FIRST' | 'NULLS LAST'
 export type OrderItem =
   | string
   | Fn
