@@ -1,5 +1,5 @@
 import { expectTypeOf } from 'expect-type'
-import Sequelize, { Op } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 import { User } from './models/User';
 
 async () => {
