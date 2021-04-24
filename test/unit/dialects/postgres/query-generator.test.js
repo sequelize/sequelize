@@ -1102,7 +1102,13 @@ if (dialect.startsWith('postgres')) {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX IF EXISTS "user_foo_bar"'
         }, {
+          arguments: [{ tableName: 'User' }, ['foo', 'bar']],
+          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"'
+        }, {
           arguments: ['User', 'mySchema.user_foo_bar'],
+          expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"'
+        }, {
+          arguments: [{ schema: 'mySchema', tableName: 'User' }, 'user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"'
         },
 
