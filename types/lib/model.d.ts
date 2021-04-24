@@ -4,7 +4,7 @@ import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { QueryOptions, IndexesOptions } from './query-interface';
+import { QueryOptions, IndexesOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { Transaction, LOCK } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
@@ -1232,7 +1232,7 @@ export interface ModelAttributeColumnReferencesOptions {
   /**
    * If this column references another table, provide it here as a Model, or a string
    */
-  model?: string | ModelType;
+  model?: TableName | ModelType;
 
   /**
    * The column of the foreign table that this column references
