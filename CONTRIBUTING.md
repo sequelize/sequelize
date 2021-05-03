@@ -53,7 +53,8 @@ Database instances for testing can be started using Docker or you can use local 
 
 #### 3.a Local instances
 
-For MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
+For Db2 testing if you want yo ucan create a DB called `sequelize_test` else it will use the DB configured in config.js or set in SEQ_DB2_DB env variable.
+MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
 For MySQL this would look like this:
 
 ```sh
