@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\lib",
+    "\\lib\\dialects",
+    "\\lib\\dialects\\db2",
+    "\\test",
+    "\\test\\unit"
+  ],
+  "SelectedNode": "\\lib\\sequelize.js",
+  "PreviewInSolutionExplorer": false
+}
