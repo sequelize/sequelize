@@ -7,6 +7,7 @@ import IndexHints = require('./lib/index-hints');
 import Utils = require('./lib/utils');
 
 export * from './lib/sequelize';
+export * from './lib/query-generator';
 export * from './lib/query-interface';
 export * from './lib/data-types';
 export * from './lib/model';

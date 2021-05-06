@@ -78,7 +78,10 @@ export function classToInvokable<T extends new (...args: any[]) => any>(ctor: T)
 }
 
 export class SequelizeMethod {
-
+    /**
+     * Does not actually exist. Used to type-exclude non sequelize methods.
+     */
+    private _sequelizeMethod: symbol;
 }
 
 /*
