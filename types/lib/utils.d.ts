@@ -81,7 +81,7 @@ export class SequelizeMethod {
     /**
      * Does not actually exist. Used to type-exclude non sequelize methods.
      */
-    private _sequelizeMethod: symbol;
+    private readonly _sequelizeMethod: symbol;
 }
 
 /*

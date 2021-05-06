@@ -11,8 +11,8 @@ export class QueryGenerator {
   /**
    * Returns the current sequelize instance.
    */
-  public sequelize: Sequelize;
-  public dialect: Dialect;
+   public readonly sequelize: Sequelize;
+   public readonly dialect: Dialect;
 
    public handleSequelizeMethod(smth: SequelizeMethod): string
 }
