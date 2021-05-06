@@ -14,5 +14,5 @@ export class QueryGenerator {
    public readonly sequelize: Sequelize;
    public readonly dialect: Dialect;
 
-   public handleSequelizeMethod(smth: SequelizeMethod): string
+   public handleSequelizeMethod(smth: SequelizeMethod): string;
 }
