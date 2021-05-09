@@ -1550,12 +1550,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * The name of the primary key attribute
    */
-  public static readonly primaryKeyAttribute: string;
+  public static readonly primaryKeyAttribute: keyof Model;
 
   /**
    * The name of the primary key attributes
    */
-  public static readonly primaryKeyAttributes: readonly string[];
+  public static readonly primaryKeyAttributes: Array<keyof Model>;
 
   /**
    * An object hash from alias to association object
