@@ -185,3 +185,5 @@ expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unref
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
+expectTypeOf(MyModel.primaryKeyAttribute).toEqualTypeOf<keyof MyModel>()
+expectTypeOf(MyModel.primaryKeyAttributes).toEqualTypeOf<Array<keyof MyModel>>()
