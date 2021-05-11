@@ -715,7 +715,16 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * The fields to insert / update. Defaults to all fields
    */
   fields?: (keyof TAttributes)[];
-
+  /**
+   * Optional specification for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictFields?: (keyof TAttributes)[];
+  /**
+   * Optional where clause for the `ON CONFLICT` part of the generated query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictWhere?: WhereOptions<TAttributes>;
   /**
    * Return the affected rows (only for postgres)
    */
@@ -770,6 +779,20 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | (keyof TAttributes)[];
+
+  /**
+   * An optional parameter that specifies which keys should be used in the `ON CONFLICT` part of the query.
+   * (note: updateOnDuplicate must be present for this to be used.)
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  upsertFields?: (keyof TAttributes)[];
+
+  /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query.
+   * (note: updateOnDuplicate must be present for this to be used.)
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  upsertWhere?: WhereOptions<TAttributes>;
 }
 
 /**
@@ -2033,7 +2056,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static upsert<M extends Model>(
     this: ModelStatic<M>,
-    values: M['_creationAttributes'],
+    values: Partial<M['_creationAttributes']>,
     options?: UpsertOptions<M['_attributes']>
   ): Promise<[M, boolean | null]>;
 

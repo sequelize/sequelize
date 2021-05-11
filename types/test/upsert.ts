@@ -1,41 +1,75 @@
-import {Model} from "sequelize"
-import {sequelize} from './connection';
+import { DataTypes, Model, Optional } from 'sequelize';
+import { sequelize } from './connection';
 
-class TestModel extends Model {
+interface ITestModel {
+  testId: number;
+  testString: string | null;
+  testEnum: 'd' | 'e' | 'f' | null;
 }
 
-TestModel.init({}, {sequelize})
+class TestModel extends Model<
+  ITestModel,
+  Optional<ITestModel, 'testString' | 'testEnum'>
+> {}
 
-sequelize.transaction(async trx => {
-  const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
-    benchmark: true,
-    fields: ['testField'],
-    hooks: true,
-    logging: true,
-    returning: true,
-    searchPath: 'DEFAULT',
-    transaction: trx,
-    validate: true,
-  });
+TestModel.init(
+  {
+    testId: { type: DataTypes.NUMBER },
+    testString: { type: DataTypes.STRING },
+    testEnum: { type: DataTypes.STRING },
+  },
+  { sequelize }
+);
 
-  const res2: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
-    benchmark: true,
-    fields: ['testField'],
-    hooks: true,
-    logging: true,
-    returning: false,
-    searchPath: 'DEFAULT',
-    transaction: trx,
-    validate: true,
-  });
+sequelize.transaction(async (trx) => {
+  const res1: [TestModel, boolean | null] = await TestModel.upsert(
+    {},
+    {
+      benchmark: true,
+      fields: ['testEnum'],
+      hooks: true,
+      logging: true,
+      returning: true,
+      searchPath: 'DEFAULT',
+      transaction: trx,
+      validate: true,
+    }
+  );
 
-  const res3: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
-    benchmark: true,
-    fields: ['testField'],
-    hooks: true,
-    logging: true,
-    searchPath: 'DEFAULT',
-    transaction: trx,
-    validate: true,
-  });
-})
+  const res2: [TestModel, boolean | null] = await TestModel.upsert(
+    {},
+    {
+      benchmark: true,
+      fields: ['testId'],
+      hooks: true,
+      logging: true,
+      returning: false,
+      searchPath: 'DEFAULT',
+      transaction: trx,
+      validate: true,
+    }
+  );
+
+  const res3: [TestModel, boolean | null] = await TestModel.upsert(
+    {},
+    {
+      benchmark: true,
+      fields: ['testString'],
+      hooks: true,
+      logging: true,
+      searchPath: 'DEFAULT',
+      transaction: trx,
+      validate: true,
+    }
+  );
+
+  const res4: [TestModel, boolean | null] = await TestModel.upsert(
+    {},
+    {
+      where: {
+        testEnum: null,
+      },
+      conflictFields: ['testId'],
+    }
+  );
+});

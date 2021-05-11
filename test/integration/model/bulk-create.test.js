@@ -662,6 +662,199 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.User.bulkCreate(data, { updateOnDuplicate: [] })
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
+
+        if (current.dialect.supports.inserts.onConfliectWhere) {
+          const randomRange = length =>
+            [...Array(2)]
+              .map(() => Math.floor(Math.random() * length))
+              .sort((a, b) => a - b);
+
+          it('picks up partial index on deletedAt = NULL if a single index field is specified', async function() {
+            const Model = this.sequelize.define(
+              'on_conflict_deletedAt',
+              {
+                columnA: {
+                  type: DataTypes.NUMBER
+                },
+                columnB: {
+                  type: DataTypes.STRING
+                }
+              },
+              {
+                indexes: [
+                  {
+                    fields: ['columnA'],
+                    unique: true,
+                    where: { deletedAt: null }
+                  }
+                ],
+                deletedAt: 'deletedAt',
+                paranoid: true
+              }
+            );
+
+            await Model.sync({ force: true });
+
+            const columnAValues = [...Array(15)].map((_, i) => ({
+              columnA: i,
+              columnB: 'oldValue'
+            }));
+
+            await Model.bulkCreate(columnAValues);
+
+            const [updatedStart, updatedEnd] = randomRange(
+              columnAValues.length
+            );
+
+            const updatedValues = columnAValues.slice(updatedStart, updatedEnd);
+
+            await Model.bulkCreate(updatedValues, {
+              updateOnDuplicate: ['columnB'],
+              upsertFields: ['columnA']
+            });
+
+            const expectedValues = columnAValues.map((v, i) => ({
+              ...v,
+              columnB:
+                i >= updatedStart && i < updatedEnd ? 'newValue' : v.columnB
+            }));
+
+            const dbValues = await Model.findAll({
+              order: ['columnA'],
+              plain: true
+            });
+
+            expect(dbValues).to.equal(expectedValues);
+          });
+
+          it('picks up partial index on deletedAt = NULL if multiple index fields are specified', async function() {
+            const Model = this.sequelize.define(
+              'on_conflict_deletedAt_2',
+              {
+                columnA: {
+                  type: DataTypes.NUMBER
+                },
+                columnB: {
+                  type: DataTypes.NUMBER
+                },
+                columnC: {
+                  type: DataTypes.STRING
+                }
+              },
+              {
+                indexes: [
+                  {
+                    fields: ['columnA', 'columnB'],
+                    unique: true,
+                    where: { deletedAt: null }
+                  }
+                ],
+                deletedAt: 'deletedAt',
+                paranoid: true
+              }
+            );
+
+            await Model.sync({ force: true });
+
+            const initialValues = [...Array(15)].map((_, i) => ({
+              columnA: i,
+              columnB: i ** 2,
+              columnC: 'oldValue'
+            }));
+
+            await Model.bulkCreate(initialValues);
+
+            const [updatedStart, updatedEnd] = randomRange(
+              initialValues.length
+            );
+
+            const updatedValues = initialValues.slice(updatedStart, updatedEnd);
+
+            await Model.bulkCreate(updatedValues, {
+              updateOnDuplicate: ['columnC'],
+              upsertFields: ['columnA', 'columnB']
+            });
+
+            const expectedValues = initialValues.map((v, i) => ({
+              ...v,
+              columnC:
+                i >= updatedStart && i < updatedEnd ? 'newValue' : v.columnC
+            }));
+
+            const dbValues = await Model.findAll({
+              order: ['columnA'],
+              plain: true
+            });
+
+            expect(dbValues).to.equal(expectedValues);
+          });
+
+          it('Uses the where clause of the query with on conflict w/ an index that has only 1 field.', async function() {
+            const Model = this.sequelize.define(
+              'on_conflict_where',
+              {
+                id: { type: DataTypes.NUMBER, primaryKey: true },
+                columnA: { type: DataTypes.NUMBER },
+                columnB: { type: DataTypes.STRING },
+                isUnique: { type: DataTypes.BOOLEAN }
+              },
+              {
+                indexes: [
+                  {
+                    fields: ['columnA'],
+                    unique: true,
+                    where: { isUnique: true }
+                  }
+                ]
+              }
+            );
+
+            const initialValues = Model.bulkCreate(
+              [...Array(15)].map((_, i) => ({
+                columnA: i,
+                columnB: 'oldValue',
+                isUnique: !(i % 2)
+              })),
+              { plain: true }
+            );
+
+            await Model.bulkCreate(
+              initialValues.map(v => ({
+                columnA: v.columnA,
+                columnB: 'newValue',
+                isUnique: v.isUnique
+              })),
+              {
+                updateOnDuplicate: ['columnB'],
+                upsertFields: ['columnA'],
+                upsertWhere: { isUnique: true }
+              }
+            );
+
+            const dbValues = await Model.findAll({
+              plain: true,
+              attributes: ['columnA', 'isUnique']
+            });
+
+            expect(dbValues).to.contain.members(
+              initialValues
+                .map(v => ({
+                  columnA: v.columnA,
+                  columnB: v.isUnique ? 'newValue' : 'oldValue',
+                  isUnique: v.isUnique
+                }))
+                .concat(
+                  initialValues
+                    .filter(v => !v.isUnique)
+                    .map(v => ({
+                      columnA: v.columnA,
+                      columnB: 'newValue',
+                      isUnique: false
+                    }))
+                )
+            );
+          });
+        }
       });
     }
 
