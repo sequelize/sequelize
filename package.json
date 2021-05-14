@@ -87,6 +87,7 @@
     "semver-regex": ">=3.1.3",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
+    "snowflake-sdk": "^1.6.1",
     "sqlite3": "^4.2.0",
     "tar": ">=4.4.18",
     "tedious": "8.3.0",
@@ -100,6 +101,9 @@
       "optional": true
     },
     "mysql2": {
+      "optional": true
+    },
+    "snowflake-sdk": {
       "optional": true
     },
     "mariadb": {
@@ -122,6 +126,7 @@
     "mssql",
     "sql",
     "sqlserver",
+    "snowflake",
     "orm",
     "nodejs",
     "object relational mapper",
@@ -186,6 +191,7 @@
     "----------------------------------------- tests ---------------------------------------------------": "",
     "test-unit": "mocha \"test/unit/**/*.test.js\"",
     "test-integration": "mocha \"test/integration/**/*.test.js\"",
+    "test-sf": "mocha --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/connector-manager.test.js\"",
     "teaser": "node test/teaser.js",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
@@ -213,6 +219,7 @@
     "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
     "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
+    "test-unit-all": "npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
     "test-integration-mariadb": "cross-env DIALECT=mariadb npm run test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
