@@ -33,6 +33,17 @@ module.exports = {
     }
   },
 
+  snowflake: {
+    username: env.SEQ_SNOWFLAKE_USER || env.SEQ_USER || 'root',
+    password: env.SEQ_SNOWFLAKE_PW || env.SEQ_PW || null,
+    database: env.SEQ_SNOWFLAKE_DB || env.SEQ_DB || 'sequelize_test',
+    dialectOptions: {
+      account: env.SEQ_SNOWFLAKE_ACCOUNT || env.SEQ_ACCOUNT || 'sequelize_test',
+      role: env.SEQ_SNOWFLAKE_ROLE || env.SEQ_ROLE || 'role',
+      warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse'
+    }
+  },
+
   mariadb: {
     database: env.SEQ_MARIADB_DB || env.SEQ_DB || 'sequelize_test',
     username: env.SEQ_MARIADB_USER || env.SEQ_USER || 'sequelize_test',
