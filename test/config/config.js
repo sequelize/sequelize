@@ -40,7 +40,8 @@ module.exports = {
     dialectOptions: {
       account: env.SEQ_SNOWFLAKE_ACCOUNT || env.SEQ_ACCOUNT || 'sequelize_test',
       role: env.SEQ_SNOWFLAKE_ROLE || env.SEQ_ROLE || 'role',
-      warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse'
+      warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse',
+      schema: env.SEQ_SNOWFLAKE_SCHEMA || env.SEQ_SCHEMA || ''
     }
   },
 
