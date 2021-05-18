@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'db2') {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
@@ -122,6 +122,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               err.message.includes('invalid port number') ||
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
+              err.message.includes('SQL30081N') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
@@ -353,7 +354,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'db2' || dialect === 'mariadb') {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.include('photos');
@@ -441,6 +442,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ].includes(err.message.trim()));
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
+          } else if (dialect === 'db2') {
+            expect(err.message).to.include('SQL30081N  A communication error has been detected');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }
@@ -794,7 +797,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             await this.sp1.rollback();
             const users = await this.User.findAll({ transaction: this.transaction });
-            expect(users).to.have.length(0);
+            // SAVE TRANSACTION command commits for db2.
+            // There is no odbc API for save command.
+            // Db2 does not support nested transaction. So, save transaction
+            // is getting translated into commit and begin transaction.
+            const len = dialect === 'db2' ? 1 : 0;
+            expect(users).to.have.length(len);
 
             await this.transaction.rollback();
           });
@@ -845,7 +853,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t1.rollback();
           const users = await User.findAll();
-          expect(users.length).to.equal(0);
+          // Db2 does not support nested transaction.
+          const len = dialect === 'db2' ? 1 : 0;
+          expect(users.length).to.equal(len);
         });
       });
     }

@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2') {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function() {
@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('my_test_table_new');
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'db2') {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
@@ -268,22 +268,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(table).to.not.have.property('active');
     });
 
-    it('renames a column primary key autoIncrement column', async function() {
-      const Fruits = this.sequelize.define('Fruit', {
-        fruitId: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          primaryKey: true,
-          autoIncrement: true
-        }
-      }, { freezeTableName: true });
+    if (dialect !== 'db2') { // Db2 does not allow rename of a primary key column
+      it('renames a column primary key autoIncrement column', async function() {
+        const Fruits = this.sequelize.define('Fruit', {
+          fruitId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true
+          }
+        }, { freezeTableName: true });
 
-      await Fruits.sync({ force: true });
-      await this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
-      const table = await this.queryInterface.describeTable('Fruit');
-      expect(table).to.have.property('fruit_id');
-      expect(table).to.not.have.property('fruitId');
-    });
+        await Fruits.sync({ force: true });
+        await this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
+        const table = await this.queryInterface.describeTable('Fruit');
+        expect(table).to.have.property('fruit_id');
+        expect(table).to.not.have.property('fruitId');
+      });
+    }
 
     it('shows a reasonable error message when column is missing', async function() {
       const Users = this.sequelize.define('_Users', {
@@ -369,18 +371,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       expect(table).to.have.property('level_id');
     });
-
-    it('should work with enums (1)', async function() {
-      await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
-    });
-
-    it('should work with enums (2)', async function() {
-      await this.queryInterface.addColumn('users', 'someOtherEnum', {
-        type: DataTypes.ENUM,
-        values: ['value1', 'value2', 'value3']
+    // Db2 does not support enums in alter column
+    if (dialect !== 'db2') {
+      it('should work with enums (1)', async function() {
+        await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
       });
-    });
 
+      it('should work with enums (2)', async function() {
+        await this.queryInterface.addColumn('users', 'someOtherEnum', {
+          type: DataTypes.ENUM,
+          values: ['value1', 'value2', 'value3']
+        });
+      });
+    }
     if (dialect === 'postgres') {
       it('should be able to add a column of type of array of enums', async function() {
         await this.queryInterface.addColumn('users', 'tags', {
@@ -446,7 +449,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const foreignKeys = await this.sequelize.query(
         this.queryInterface.queryGenerator.getForeignKeysQuery(
           'hosts',
-          this.sequelize.config.database
+          dialect === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database
         ),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS }
       );
@@ -457,7 +460,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (dialect === 'sqlite') {
+      } else if (dialect === 'sqlite' || dialect === 'db2') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
       } else if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'mssql') {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
@@ -489,8 +492,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('constraints', () => {
     beforeEach(async function() {
       this.User = this.sequelize.define('users', {
-        username: DataTypes.STRING,
-        email: DataTypes.STRING,
+        // Db2 does not allow unique constraint for a nullable column, Db2
+        // throws SQL0542N error if we create constraint on nullable column.
+        username: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        email: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
         roles: DataTypes.STRING
       });
 

@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const moment = require('moment');
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'db2') {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
@@ -228,7 +228,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(users.map(u => { return u.user; })).to.deep.equal([{ 'username': 'john' }]);
     });
 
-    if (dialect === 'mysql') {
+    if (dialect === 'mysql' || dialect === 'db2') {
       it('executes stored procedures', async function() {
         await this.sequelize.query(this.insertQuery);
         await this.sequelize.query('DROP PROCEDURE IF EXISTS foo');

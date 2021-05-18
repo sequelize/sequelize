@@ -126,7 +126,7 @@ All tests are located in the `test` folder (which contains the
 lovely [Mocha](https://mochajs.org/) tests).
 
 ```sh
-$ npm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-postgres-native
+$ npm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-postgres- || test-db2
 
 $ # alternatively you can pass database credentials with $variables when testing
 $ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password npm test

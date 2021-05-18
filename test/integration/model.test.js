@@ -389,7 +389,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       }];
 
-      if (dialect !== 'mssql') {
+      if (dialect !== 'mssql' && dialect !== 'db2') {
         indices.push({
           type: 'FULLTEXT',
           fields: ['fieldC'],
@@ -429,6 +429,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(idx2.fields).to.deep.equal([
           { attribute: 'fieldC', length: undefined, order: undefined }
+        ]);
+      } else if (dialect === 'db2') {
+        idx1 = args[1];
+
+        expect(idx1.fields).to.deep.equal([
+          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+          { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined }
         ]);
       } else if (dialect === 'mssql') {
         idx1 = args[0];
@@ -480,7 +487,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(idx1.name).to.equal('a_b_uniq');
       expect(idx1.unique).to.be.ok;
 
-      if (dialect !== 'mssql') {
+      if (dialect !== 'mssql' && dialect !== 'db2') {
         expect(idx2.name).to.equal('models_field_c');
         expect(idx2.unique).not.to.be.ok;
       }
@@ -1543,13 +1550,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true });
+      let sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
+      let result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true });
+      sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
+      result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      const [users] = await this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
+      sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
+      const [users] = await this.sequelize.query(sql, { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
     });
@@ -1722,7 +1732,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.have.lengthOf(2);
     });
 
-    if (dialect !== 'mssql') {
+    if (dialect !== 'mssql' && dialect !== 'db2') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
@@ -2006,6 +2016,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const expectedLengths = {
         mssql: 2,
         postgres: 2,
+        db2: 3,
         mariadb: 3,
         mysql: 1,
         sqlite: 1
@@ -2058,7 +2069,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.not.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'db2'].includes(dialect)) {
             test++;
             expect(sql).to.not.contain('special');
           }
@@ -2077,7 +2088,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'db2'].includes(dialect)) {
             test++;
             expect(sql).to.contain('special');
           }
@@ -2103,7 +2114,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
 
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+      if (['postgres', 'mssql', 'db2', 'mariadb'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
       }
@@ -2115,7 +2126,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         force: true,
         logging: _.after(2, _.once(sql => {
           test = true;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
           } else if (dialect === 'mssql') {
             expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
@@ -2137,7 +2148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserPublicSync.create({ age: 3 }, {
         logging: UserPublic => {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
             expect(UserPublic).to.include('INSERT INTO "UserPublics"');
           } else if (dialect === 'sqlite') {
@@ -2159,7 +2170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
         logging(UserSpecial) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
           } else if (dialect === 'sqlite') {
             expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
@@ -2176,7 +2187,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserSpecial.update({ age: 5 }, {
         logging(user) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(user).to.include('UPDATE "special"."UserSpecials"');
           } else if (dialect === 'mssql') {
             expect(user).to.include('UPDATE [special].[UserSpecials]');
@@ -2219,6 +2230,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
+        } else if (dialect === 'db2') {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'sqlite') {
@@ -2243,6 +2256,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
+        } else if (dialect === 'db2') {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
@@ -2288,6 +2303,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/);
         } else if (dialect === 'mssql') {
           expect(err.message).to.match(/Could not create constraint/);
+        } else if (dialect === 'db2') {
+          expect(err.message).to.match(/ is an undefined name/);
         } else {
           throw new Error('Undefined dialect!');
         }

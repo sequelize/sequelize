@@ -4,6 +4,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('./support'),
+  dialect   = Support.getTestDialect(),
   Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
@@ -364,7 +365,11 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
       // And when the model is not passed at all
-      await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      if (dialect === 'db2') {
+        await expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      } else {
+        await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      }
     });
 
     it('adds parent and sql properties', async function() {

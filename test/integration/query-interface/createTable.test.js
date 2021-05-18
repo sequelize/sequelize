@@ -25,7 +25,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         }
       });
-
+      // Db2 does not support VALUES(), so must have one value.
+      const values = dialect === 'db2' ? { name: 'abc' } : {};
+      const response = await this.queryInterface.insert(null, 'TableWithPK', values, { raw: true, returning: true, plain: true });
+      expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
+          
       const result = await this.queryInterface.describeTable('TableWithPK');
 
       if (dialect === 'mssql' || dialect === 'mysql' || dialect === 'mariadb') {
@@ -75,9 +79,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
           break;
+
         case 'mariadb':
         case 'mysql':
-        // name + email
+        case 'db2':
+          // name + email
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
           expect(indexes[1].fields[1].attribute).to.equal('email');

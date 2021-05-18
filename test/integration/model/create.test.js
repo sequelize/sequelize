@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
+      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -1186,10 +1186,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(test).to.be.true;
     });
 
-    it('should only store the values passed in the whitelist', async function() {
-      const data = { username: 'Peter', secretValue: '42' };
+    it('should only store the values passed in the whitelist', async function() {      
+      // A unique column do not accept NULL in Db2. Unique column must have value in insert statement.
+      const data = dialect === 'db2' ? { username: 'Peter', secretValue: '42', uniqueName: 'name' } : { username: 'Peter', secretValue: '42' };
+      const fields = dialect === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };
 
-      const user = await this.User.create(data, { fields: ['username'] });
+      const user = await this.User.create(data, fields);
       const _user = await this.User.findByPk(user.id);
       expect(_user.username).to.equal(data.username);
       expect(_user.secretValue).not.to.equal(data.secretValue);

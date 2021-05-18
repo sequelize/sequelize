@@ -23,6 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         if (current.dialect.name !== 'mssql') {
+          //const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function() {
             const users = await this.User.findAll({
               order: this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)
@@ -85,11 +86,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function() {
-          await this.User.findAll({
-            order: [
-              ['id', this.sequelize.literal('ASC, name DESC')]
-            ]
-          });
+          if (current.dialect.name === 'db2') {
+            await this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, "name" DESC')]
+              ]
+            });
+          } else {
+            await this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, name DESC')]
+              ]
+            });		
+          }
         });
 
         it('should not throw with include when last order argument is a field', async function() {
