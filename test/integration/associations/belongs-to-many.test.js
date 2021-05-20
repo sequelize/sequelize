@@ -1291,7 +1291,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       const result = await article.hasLabels([label]);
-      await expect(result).to.be.false;
+      expect(result).to.be.false;
     });
   });
 

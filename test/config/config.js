@@ -77,7 +77,7 @@ module.exports = {
     database: process.env.SEQ_DB2_DB || process.env.SEQ_DB   || process.env.IBM_DB_DBNAME || 'SEQUEL',
     username: process.env.SEQ_DB2_USER || process.env.SEQ_USER || process.env.IBM_DB_UID || 'NEWTON',
     password: process.env.SEQ_DB2_PW   || process.env.SEQ_PW   || process.env.IBM_DB_PWD || 'A2m8test',
-    host: process.env.DB2_PORT_50000_TCP_ADDR || process.env.SEQ_DB2_HOST || process.env.SEQ_HOST || process.env.IBM_DB_HOSTNAME || 'waldevdbclnxtst06.dev.rocketsoftware.com',
+    host: process.env.DB2_PORT_50000_TCP_ADDR || process.env.SEQ_DB2_HOST || process.env.SEQ_HOST || process.env.IBM_DB_HOSTNAME || 'dlndevdbctdev01.dev.rocketsoftware.com',
     port: process.env.DB2_PORT_50000_TCP_PORT || process.env.SEQ_DB2_PORT || process.env.SEQ_PORT || process.env.IBM_DB_PORT || 60000,
     dialectOptions: {
       requestTimeout: 60000
