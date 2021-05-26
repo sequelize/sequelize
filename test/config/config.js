@@ -12,10 +12,6 @@ module.exports = {
     idle: env.SEQ_POOL_IDLE || 30000
   },
 
-  rand() {
-    return parseInt(Math.random() * 999, 10);
-  },
-
   mssql: {
     host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
     username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',

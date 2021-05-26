@@ -4,14 +4,13 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types'),
-  config = require('../../../config/config');
+  DataTypes = require('../../../../lib/data-types');
 
 if (dialect !== 'mariadb') return;
 describe('[MariaDB Specific] DAOFactory', () => {
   describe('constructor', () => {
     it('handles extended attributes (unique)', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         username: { type: DataTypes.STRING, unique: true }
       }, { timestamps: false });
 
@@ -24,7 +23,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('handles extended attributes (default)', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         username: { type: DataTypes.STRING, defaultValue: 'foo' }
       }, { timestamps: false });
       expect(
@@ -36,7 +35,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('handles extended attributes (null)', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         username: { type: DataTypes.STRING, allowNull: false }
       }, { timestamps: false });
       expect(
@@ -48,7 +47,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('handles extended attributes (primaryKey)', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         username: { type: DataTypes.STRING, primaryKey: true }
       }, { timestamps: false });
       expect(
@@ -58,8 +57,8 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('adds timestamps', function() {
-      const User1 = this.sequelize.define(`User${config.rand()}`, {});
-      const User2 = this.sequelize.define(`User${config.rand()}`, {},
+      const User1 = this.sequelize.define(`User${Support.rand()}`, {});
+      const User2 = this.sequelize.define(`User${Support.rand()}`, {},
         { timestamps: true });
 
       expect(
@@ -79,7 +78,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('adds deletedAt if paranoid', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {},
+      const User = this.sequelize.define(`User${Support.rand()}`, {},
         { paranoid: true });
       expect(
         this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
@@ -92,7 +91,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('underscores timestamps if underscored', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {},
+      const User = this.sequelize.define(`User${Support.rand()}`, {},
         { paranoid: true, underscored: true });
       expect(
         this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
@@ -105,13 +104,13 @@ describe('[MariaDB Specific] DAOFactory', () => {
     });
 
     it('omits text fields with defaultValues', function() {
-      const User = this.sequelize.define(`User${config.rand()}`,
+      const User = this.sequelize.define(`User${Support.rand()}`,
         { name: { type: DataTypes.TEXT, defaultValue: 'helloworld' } });
       expect(User.rawAttributes.name.type.toString()).to.equal('TEXT');
     });
 
     it('omits blobs fields with defaultValues', function() {
-      const User = this.sequelize.define(`User${config.rand()}`,
+      const User = this.sequelize.define(`User${Support.rand()}`,
         { name: { type: DataTypes.STRING.BINARY, defaultValue: 'helloworld' } });
       expect(User.rawAttributes.name.type.toString()).to.equal(
         'VARCHAR(255) BINARY');
@@ -120,7 +119,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
 
   describe('primaryKeys', () => {
     it('determines the correct primaryKeys', function() {
-      const User = this.sequelize.define(`User${config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         foo: { type: DataTypes.STRING, primaryKey: true },
         bar: DataTypes.STRING
       });
