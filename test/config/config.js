@@ -3,15 +3,6 @@
 const { env } = process;
 
 module.exports = {
-  username: env.SEQ_USER || 'root',
-  password: env.SEQ_PW || null,
-  database: env.SEQ_DB || 'sequelize_test',
-  host: env.SEQ_HOST || '127.0.0.1',
-  pool: {
-    max: env.SEQ_POOL_MAX || 5,
-    idle: env.SEQ_POOL_IDLE || 30000
-  },
-
   mssql: {
     host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
     username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',
@@ -30,7 +21,6 @@ module.exports = {
     }
   },
 
-  //make idle time small so that tests exit promptly
   mysql: {
     database: env.SEQ_MYSQL_DB || env.SEQ_DB || 'sequelize_test',
     username: env.SEQ_MYSQL_USER || env.SEQ_USER || 'root',
