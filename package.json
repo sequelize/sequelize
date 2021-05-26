@@ -182,7 +182,7 @@
     "----------------------------------------- tests (ci) ----------------------------------------------": "",
     "teaser": "node scripts/teaser",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
-    "test-unit": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
+    "test-unit": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.test.js\"",
     "test-integration": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
     "----------------------------------------- tests (local) -------------------------------------------": "",
     "test-unit-mariadb": "cross-env DIALECT=mariadb npm run test-unit",
