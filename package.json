@@ -117,10 +117,15 @@
     "sqlite",
     "postgresql",
     "postgres",
+    "pg",
     "mssql",
+    "sql",
+    "sqlserver",
     "orm",
     "nodejs",
-    "object relational mapper"
+    "object relational mapper",
+    "database",
+    "db"
   ],
   "commitlint": {
     "extends": [
