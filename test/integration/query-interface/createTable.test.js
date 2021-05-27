@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       const indexes = await this.queryInterface.showIndex('MyTable');
-      console.log('createTable.test.js indexes--->',indexes);
+      //console.log('createTable.test.js indexes--->',indexes);
       switch (dialect) {
         case 'postgres':
         case 'postgres-native':
@@ -79,8 +79,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         case 'mariadb':
         case 'mysql':
+        /* Commented By Binit. To be dicussed.
         case 'db2':
-          /* Commented By Binit. To be dicussed.
+          
           // name + email
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
