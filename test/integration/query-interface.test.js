@@ -48,7 +48,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup();
-      await this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id');
+      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : 'CREATE VIEW V_Fail AS SELECT 1 Id';
+      await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup();
       if (tableNames[0] && tableNames[0].tableName) {
