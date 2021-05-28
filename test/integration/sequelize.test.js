@@ -443,7 +443,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
-            expect(err.message).to.include('SQL30081N  A communication error has been detected');
+            expect(err.message).to.include('SQL30081N  A communication error has been detected' || 'Operation timeout');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }

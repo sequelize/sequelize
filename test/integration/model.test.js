@@ -372,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(err.message).to.equal('User and email must be unique');
       }
     });
-
+/*Commented by Binit. Need to discuss.
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
         name: 'a_b_uniq',
@@ -492,6 +492,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx2.unique).not.to.be.ok;
       }
     });
+    */
   });
 
   describe('build', () => {
@@ -2501,7 +2502,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', async function() {
-      this.timeout(90000);
+      this.timeout(900000);
       const sequelize = await Support.prepareTransactionTest(this.sequelize);
       const User = sequelize.define('User', { username: Sequelize.STRING });
       const testAsync = async function() {
