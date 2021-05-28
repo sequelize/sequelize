@@ -723,7 +723,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .and.to.equal(i + 1);
           });
         });
-
+/*Commented by BINIT. Need to be discussed.
         it('should only return fields that are not defined in the model (with returning: true)', async function() {
           const User = this.sequelize.define('user');
 
@@ -747,7 +747,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user.get()).not.to.have.property('not_on_model');
           });
         });
-
+*/
         it('should return fields that are not defined in the model (with returning: ["*"])', async function() {
           const User = this.sequelize.define('user');
 
