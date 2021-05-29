@@ -4,7 +4,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  config = require('../../../config/config'),
   DataTypes = require('../../../../lib/data-types');
 
 if (dialect.match(/^postgres/)) {
@@ -45,8 +44,8 @@ if (dialect.match(/^postgres/)) {
       describe('addDAO / getModel', () => {
         beforeEach(async function() {
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
-          this.User = this.sequelize.define(`User${config.rand()}`, { name: DataTypes.STRING });
-          this.Task = this.sequelize.define(`Task${config.rand()}`, { name: DataTypes.STRING });
+          this.User = this.sequelize.define(`User${Support.rand()}`, { name: DataTypes.STRING });
+          this.Task = this.sequelize.define(`Task${Support.rand()}`, { name: DataTypes.STRING });
           this.users = null;
           this.tasks = null;
 
@@ -79,12 +78,12 @@ if (dialect.match(/^postgres/)) {
 
       describe('removeDAO', () => {
         it('should correctly remove associated objects', async function() {
-          const users = [], 
+          const users = [],
             tasks = [];
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
-          this.User = this.sequelize.define(`User${config.rand()}`, { name: DataTypes.STRING });
-          this.Task = this.sequelize.define(`Task${config.rand()}`, { name: DataTypes.STRING });
+          this.User = this.sequelize.define(`User${Support.rand()}`, { name: DataTypes.STRING });
+          this.Task = this.sequelize.define(`Task${Support.rand()}`, { name: DataTypes.STRING });
           this.users = null;
           this.tasks = null;
 

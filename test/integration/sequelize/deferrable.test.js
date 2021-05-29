@@ -3,9 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  Sequelize = require('../../../index'),
-  config = require('../../config/config')
-  ;
+  Sequelize = require('../../../index');
 
 if (!Support.sequelize.dialect.supports.deferrableConstraints) {
   return;
@@ -19,9 +17,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           this.run = async function(deferrable, options) {
             options = options || {};
 
-            const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
+            const taskTableName      = options.taskTableName || `tasks_${Support.rand()}`;
             const transactionOptions = { deferrable: Sequelize.Deferrable.SET_DEFERRED, ...options };
-            const userTableName      = `users_${config.rand()}`;
+            const userTableName      = `users_${Support.rand()}`;
 
             const { Task, User } = await defineModels({ sequelize: this.sequelize, userTableName, deferrable, taskTableName });
 
@@ -58,7 +56,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
 
           it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function() {
-            const taskTableName = `tasks_${config.rand()}`;
+            const taskTableName = `tasks_${Support.rand()}`;
 
             const task = await this
               .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
