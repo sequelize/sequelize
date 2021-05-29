@@ -118,6 +118,15 @@ UserModel.findOrCreate({
  * Test for primaryKeyAttributes.
  */
 class TestModel extends Model {};
+TestModel.init({
+  id: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    primaryKey: true,
+    autoIncrement: true,
+  }
+}, {
+  sequelize: sequelize
+})
 TestModel.primaryKeyAttributes;
 
 /**
@@ -185,5 +194,5 @@ expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unref
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
-expectTypeOf(MyModel.primaryKeyAttribute).toEqualTypeOf<keyof MyModel>()
-expectTypeOf(MyModel.primaryKeyAttributes).toEqualTypeOf<Array<keyof MyModel>>()
+expectTypeOf(TestModel.primaryKeyAttribute).toEqualTypeOf<keyof TestModel>()
+expectTypeOf(TestModel.primaryKeyAttributes).toEqualTypeOf<Array<keyof TestModel>>()
