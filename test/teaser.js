@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict';
 
 if (!process.env.DIALECT) {
   throw new Error('Environment variable DIALECT is undefined');

@@ -8,7 +8,6 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   DataTypes = require('../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  config = require('../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize,
@@ -1372,7 +1371,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should allow us to find IDs using capital letters', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
