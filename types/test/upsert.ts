@@ -66,7 +66,7 @@ sequelize.transaction(async (trx) => {
   const res4: [TestModel, boolean | null] = await TestModel.upsert(
     {},
     {
-      where: {
+      conflictWhere: {
         testEnum: null,
       },
       conflictFields: ['testId'],
