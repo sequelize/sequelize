@@ -5,7 +5,7 @@ async () => {
     const user = await User.findOne({ where: { firstName: 'John' } });
     expectTypeOf(user).toEqualTypeOf<User | null>()
 
-    // @ts-expect-error
+    // @ts-expect-error blah is not an attribute of User
     User.findOne({ where: { blah: 'blah2' } });
 
     const rawUser = await User.findOne({
