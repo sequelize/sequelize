@@ -724,11 +724,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
               const dbValues = await Model.findAll({
                 order: ['columnA'],
-                attributes: ['columnA', 'columnB'],
-                raw: true
+                attributes: ['columnA', 'columnB']
               });
 
-              expect(dbValues).to.deep.equal(expectedValues);
+              expect(
+                dbValues.map(v => v.get({ plain: true }))
+              ).to.deep.equal(expectedValues);
             });
 
             it('picks up partial index on deletedAt = NULL if multiple index fields are specified', async function() {
@@ -789,11 +790,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
               const dbValues = await Model.findAll({
                 order: ['columnA'],
-                attributes: ['columnA', 'columnB', 'columnC'],
-                raw: true
+                attributes: ['columnA', 'columnB', 'columnC']
               });
 
-              expect(dbValues).to.deep.equal(expectedValues);
+              expect(
+                dbValues.map(v => v.get({ plain: true }))
+              ).to.deep.equal(expectedValues);
             });
 
             it('Uses the where clause of the query with on conflict w/ an index that has only 1 field.', async function() {
@@ -847,11 +849,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               );
 
               const dbValues = await Model.findAll({
-                attributes: ['columnA', 'columnB', 'isUnique'],
-                raw: true
+                attributes: ['columnA', 'columnB', 'isUnique']
               });
 
-              expect(dbValues).to.deep.contain.members(
+              expect(
+                dbValues.map(v => v.get({ plain: true }))
+              ).to.deep.contain.members(
                 initialValues
                   .map(v => ({
                     columnA: v.columnA,
