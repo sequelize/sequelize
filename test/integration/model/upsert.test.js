@@ -600,189 +600,194 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       if (current.dialect.supports.inserts.onConflictWhere) {
-        it('Automatically picks up deletedAt null when name is specified as a conflictKey', async function() {
-          const Model = this.sequelize.define('deleted_at_null_test', {
-            name: { type: DataTypes.STRING },
-            data: { type: DataTypes.STRING },
-            deletedAt: { type: DataTypes.DATE }
-          }, {
-            paranoid: true,
-            deletedAt: 'deletedAt',
-            indexes: [{
-              fields: ['name'],
-              unique: true,
-              where: { deletedAt: null }
-            }]
+        describe('conflictWhere & conflictFields', () => {
+          it('Automatically picks up deletedAt null when "name" is a member of conflictFields', async function() {
+            const Model = this.sequelize.define('deleted_at_null_test', {
+              name: { type: DataTypes.STRING },
+              data: { type: DataTypes.STRING },
+              deletedAt: { type: DataTypes.DATE }
+            }, {
+              paranoid: true,
+              deletedAt: 'deletedAt',
+              indexes: [{
+                fields: ['name'],
+                unique: true,
+                where: { deletedAt: null }
+              }]
+            });
+
+            await Model.sync({ force: true });
+
+            const userInfo = {
+              name: 'some name idk',
+              data: 'old data'
+            };
+            const deletedUserInfo = { ...userInfo, data: 'deleted data' };
+
+            await Model.create(deletedUserInfo).then(user => user.destroy());
+
+            await Model.upsert(userInfo, { conflictFields: ['name'] });
+
+            const updatedUserInfo = { ...userInfo, data: 'new data' };
+
+            await Model.upsert(updatedUserInfo, { conflictFields: ['name'] });
+
+            const userDBValues = await Model.findOne({
+              where: { name: userInfo.name }
+            });
+
+            expect(userDBValues.data).to.be.equal(userDBValues.data);
+
+            const deletedUserDBValues = await Model.findOne({
+              where: {
+                name: userInfo.name
+              },
+              paranoid: false
+            });
+
+            expect(deletedUserDBValues.data).to.deep.equal(deletedUserInfo.data);
           });
 
-          await Model.sync({ force: true });
+          it("doesn't add a where clause for deletedAt in a partial unique index on multiple fields if not all index fields are specified", async function() {
+            const Model = this.sequelize.define('deleted_at_null_test_2', {
+              name: { type: DataTypes.STRING },
+              identifier: { type: DataTypes.INTEGER },
+              data: { type: DataTypes.STRING },
+              deletedAt: { type: DataTypes.DATE }
+            }, {
+              paranoid: true,
+              deletedAt: 'deletedAt',
+              indexes: [{
+                fields: ['name', 'identifier'],
+                unique: true,
+                where: { deletedAt: null }
+              }]
+            });
 
-          const userInfo = {
-            name: 'some name idk',
-            data: 'old data'
-          };
-          const deletedUserInfo = { ...userInfo, data: 'deleted data' };
+            await Model.sync({ force: true });
 
-          await Model.create(deletedUserInfo).then(user => user.destroy());
+            const userInfo = {
+              name: 'abcdef',
+              data: 'old blob',
+              identifier: 1234
+            };
 
-          await Model.upsert(userInfo, { conflictFields: ['name'] });
+            const deletedUserInfo = { ...userInfo, data: 'deleted data' };
 
-          const updatedUserInfo = { ...userInfo, data: 'new data' };
+            await Model.create(deletedUserInfo).then(user => user.destroy());
 
-          await Model.upsert(updatedUserInfo, { conflictFields: ['name'] });
 
-          const userDBValues = await Model.findOne({
-            where: { name: userInfo.name }
+            try {
+              await Model.upsert(userInfo, { conflictFields: ['name'] });
+            } catch (err) {
+              expect(err).to.be.instanceOf(Sequelize.DatabaseError);
+            }
           });
 
-          expect(userDBValues.data).to.be.equal(userDBValues.data);
+          it('Automatically picks up deletedAt null w/ multiple fields in a unique index', async function() {
+            const Model = this.sequelize.define('deleted_at_null_test_2', {
+              name: { type: DataTypes.STRING },
+              identifier: { type: DataTypes.INTEGER },
+              data: { type: DataTypes.STRING },
+              deletedAt: { type: DataTypes.DATE }
+            }, {
+              paranoid: true,
+              deletedAt: 'deletedAt',
+              indexes: [{
+                fields: ['name', 'identifier'],
+                unique: true,
+                where: { deletedAt: null }
+              }]
+            });
 
-          const deletedUserDBValues = await Model.findOne({
-            where: {
-              name: userInfo.name
-            },
-            paranoid: false
+            await Model.sync({ force: true });
+
+            const userInfo = {
+              name: 'abcdef',
+              data: 'old blob',
+              identifier: 1234
+            };
+
+            const deletedUserInfo = { ...userInfo, data: 'deleted data' };
+
+            await Model.create(deletedUserInfo).then(user => user.destroy());
+
+            await Model.upsert(userInfo, { conflictFields: ['name', 'identifier'] });
+
+            const updatedUserInfo = { ...userInfo, data: 'new data' };
+
+            await Model.upsert(updatedUserInfo, { conflictFields: ['name', 'identifier'] });
+
+            const userDBValues = await Model.findOne({
+              where: { name: userInfo.name }
+            });
+
+            expect(userDBValues.data).to.be.equal(userDBValues.data);
+
+            const deletedUserDBValues = await Model.findOne({
+              where: {
+                name: userInfo.name
+              },
+              paranoid: false
+            });
+
+            expect(deletedUserDBValues).to.be.ok;
+            expect(deletedUserDBValues.data).to.deep.equal(deletedUserInfo.data);
           });
 
-          expect(deletedUserDBValues.data).to.be.equal(deletedUserInfo.data);
-        });
+          it('Automatically picks up deletedAt null when username is specified as a conflictKey', async function() {
+            const Model = this.sequelize.define('is_unique_index_test', {
+              name: { type: DataTypes.STRING },
+              data: { type: DataTypes.STRING },
+              isUnique: { type: DataTypes.BOOLEAN }
+            }, {
+              indexes: [{
+                fields: ['name'],
+                unique: true,
+                where: { isUnique: true }
+              }]
+            });
 
-        it("doesn't add a where clause for deletedAt in a partial unique index on multiple fields if not all index fields are specified", async function() {
-          const Model = this.sequelize.define('deleted_at_null_test_2', {
-            name: { type: DataTypes.STRING },
-            identifier: { type: DataTypes.INTEGER },
-            data: { type: DataTypes.STRING },
-            deletedAt: { type: DataTypes.DATE }
-          }, {
-            paranoid: true,
-            deletedAt: 'deletedAt',
-            indexes: [{
-              fields: ['name', 'identifier'],
-              unique: true,
-              where: { deletedAt: null }
-            }]
+            await Model.sync({ force: true });
+
+            const userInfo = {
+              name: 'notDeleted',
+              data: 'old data',
+              isUnique: true
+            };
+            const nonUniqueUserInfo = {
+              ...userInfo,
+              data: 'non-unique data',
+              isUnique: false
+            };
+
+            await Model.create(nonUniqueUserInfo);
+
+            await Model.upsert(userInfo, { conflictFields: ['name'], conflictWhere: { isUnique: true } });
+
+            const updatedUserInfo = { ...userInfo, data: 'new data' };
+
+            await Model.upsert(updatedUserInfo, {
+              conflictFields: ['name'],
+              conflictWhere: { isUnique: true }
+            });
+
+            const userDBValues = await Model.findOne({
+              where: { name: userInfo.name, isUnique: true }
+            });
+
+            expect(!!userDBValues).to.be.true;
+            expect(userDBValues.data).to.be.equal(userDBValues.data);
+
+            const nonUniqueUserDBValues = await Model.findOne({
+              where: { name: userInfo.name, isUnique: false }
+            });
+            expect(!!nonUniqueUserDBValues).to.be.true;
+
+            expect(nonUniqueUserDBValues.data).to.deep.equal(
+              nonUniqueUserInfo.data
+            );
           });
-
-          await Model.sync({ force: true });
-
-          const userInfo = {
-            name: 'abcdef',
-            data: 'old blob',
-            identifier: 1234
-          };
-
-          const deletedUserInfo = { ...userInfo, data: 'deleted data' };
-
-          await Model.create(deletedUserInfo).then(user => user.destroy());
-
-          expect(
-            Model.upsert(userInfo, { conflictFields: ['name'] })
-          ).to.eventually.be.rejectedWith(Sequelize.SequelizeDatabaseError);
-        });
-
-        it('Automatically picks up deletedAt null w/ multiple fields in a unique index', async function() {
-          const Model = this.sequelize.define('deleted_at_null_test_2', {
-            name: { type: DataTypes.STRING },
-            identifier: { type: DataTypes.INTEGER },
-            data: { type: DataTypes.STRING },
-            deletedAt: { type: DataTypes.DATE }
-          }, {
-            paranoid: true,
-            deletedAt: 'deletedAt',
-            indexes: [{
-              fields: ['name', 'identifier'],
-              unique: true,
-              where: { deletedAt: null }
-            }]
-          });
-
-          await Model.sync({ force: true });
-
-          const userInfo = {
-            name: 'abcdef',
-            data: 'old blob',
-            identifier: 1234
-          };
-
-          const deletedUserInfo = { ...userInfo, data: 'deleted data' };
-
-          await Model.create(deletedUserInfo).then(user => user.destroy());
-
-          await Model.upsert(userInfo, { conflictFields: ['name', 'identifier'] });
-
-          const updatedUserInfo = { ...userInfo, data: 'new data' };
-
-          await Model.upsert(updatedUserInfo, { conflictFields: ['name', 'identifier'] });
-
-          const userDBValues = await Model.findOne({
-            where: { name: userInfo.name }
-          });
-
-          expect(userDBValues.data).to.be.equal(userDBValues.data);
-
-          const deletedUserDBValues = await Model.findOne({
-            where: {
-              name: userInfo.name
-            },
-            paranoid: false
-          });
-
-          expect(deletedUserDBValues).to.be.ok;
-          expect(deletedUserDBValues.data).to.be.equal(deletedUserInfo.data);
-        });
-
-        it('Automatically picks up deletedAt null when username is specified as a conflictKey', async function() {
-          const Model = this.sequelize.define('is_unique_index_test', {
-            name: { type: DataTypes.STRING },
-            data: { type: DataTypes.STRING },
-            isUnique: { type: DataTypes.BOOLEAN }
-          }, {
-            indexes: [{
-              fields: ['name'],
-              unique: true,
-              where: { isUnique: true }
-            }]
-          });
-
-          await Model.sync({ force: true });
-
-          const userInfo = {
-            name: 'notDeleted',
-            data: 'old data',
-            isUnique: true
-          };
-          const nonUniqueUserInfo = {
-            ...userInfo,
-            data: 'non-unique data',
-            isUnique: false
-          };
-
-          await Model.create(nonUniqueUserInfo);
-
-          await Model.upsert(userInfo, { conflictFields: ['name'], conflictWhere: { isUnique: true } });
-
-          const updatedUserInfo = { ...userInfo, data: 'new data' };
-
-          await Model.upsert(updatedUserInfo, {
-            conflictFields: ['name'],
-            conflictWhere: { isUnique: true }
-          });
-
-          const userDBValues = await Model.findOne({
-            where: { name: userInfo.name, isUnique: true }
-          });
-
-          expect(!!userDBValues).to.be.true;
-          expect(userDBValues.data).to.be.equal(userDBValues.data);
-
-          const nonUniqueUserDBValues = await Model.findOne({
-            where: { name: userInfo.name, isUnique: false }
-          });
-          expect(!!nonUniqueUserDBValues).to.be.true;
-
-          expect(nonUniqueUserDBValues.data).to.be.equal(
-            nonUniqueUserInfo.data
-          );
         });
       }
     });
