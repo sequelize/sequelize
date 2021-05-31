@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.username).to.equal('doe');
         expect(user.updatedAt).to.be.afterTime(user.createdAt);
       });
-/*
+
       it('works with upsert on a composite key', async function() {
         const [, created0] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
@@ -97,8 +97,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.clock.tick(1000);
         const [, created] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
-        if (dialect === 'sqlite' || dialect === 'postgres' || dialect === 'db2') {
+        if (dialect === 'sqlite' || dialect === 'postgres') {
           expect(created).to.be.null;
+        } else if(dialect === 'db2'){
+          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -383,13 +385,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(created0).to.be.null;
         } else if (dialect === 'db2'){
           expect(created0).to.be.undefined;
-        }else {
+        } else {
           expect(created0).to.be.ok;
         }
         clock.tick(1000);
         const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-        if (dialect === 'sqlite' || dialect === 'postgres' || dialect === 'db2') {
+        if (dialect === 'sqlite' || dialect === 'postgres') {
           expect(created).to.be.null;
+        }  else if (dialect === 'db2'){
+          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -425,8 +429,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(created0).to.be.ok;
         }
         const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-        if (dialect === 'sqlite' || dialect === 'postgres' || dialect === 'db2') {
+        if (dialect === 'sqlite' || dialect === 'postgres') {
           expect(created).to.be.null;
+        }  else if (dialect === 'db2'){
+          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -639,7 +645,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       }
-      */
     });
   }
 });
