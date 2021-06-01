@@ -241,8 +241,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
       });
-//Commented By Binit as timeout happening. Need to be looked.
-/*
+      //Commented By Binit as timeout happening. Need to be looked.
+      /*
       it('should not deadlock with concurrency duplicate entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -740,7 +740,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // Timestamps should have milliseconds. However, there is a small chance that
       // it really is 0 for one of them, by coincidence. So we check twice with two
       // users created almost at the same time.
-      if(dialect === 'db2'){
+      if (dialect === 'db2') {
         expect([
           user1.created_time.getMilliseconds(),
           user2.created_time.getMilliseconds()
@@ -749,7 +749,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           user1.updated_time.getMilliseconds(),
           user2.updated_time.getMilliseconds()
         ]).not.to.equal([0, 0]);
-      }else{
+      } else {
         expect([
           user1.created_time.getMilliseconds(),
           user2.created_time.getMilliseconds()
@@ -1138,8 +1138,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
     });
-//Commented By Binit as timeout happening. Need to be looked.
-/*
+    //Commented By Binit as timeout happening. Need to be looked.
+    /*
     it('sets a 64 bit int in bigint', async function() {
       const User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT

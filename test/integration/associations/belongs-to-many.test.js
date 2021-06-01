@@ -296,7 +296,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }), User.findAll({
         include: [Group]
       })]);
-	  //Changed by Binit. Confirm from Bimal.
+      //Changed by Binit. Confirm from Bimal.
       expect(user.Groups.length).to.be.equal(1);
       expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
       expect(user.Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(user.userSecondId);
@@ -368,8 +368,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }), Group.findAll({
         include: [User]
       })]);
-//Changed by Binit from to.be.equal to to.deep.equal for Buffer compare.
-//Need to add db2 condition for the same. referred to issue: https://github.com/chaijs/chai/issues/102
+      //Changed by Binit from to.be.equal to to.deep.equal for Buffer compare.
+      //Need to add db2 condition for the same. referred to issue: https://github.com/chaijs/chai/issues/102
       expect(users.length).to.be.equal(2);
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);

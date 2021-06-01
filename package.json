@@ -173,7 +173,7 @@
     "tag": "latest"
   },
   "scripts": {
-    "lint": "eslint --fix lib",
+    "lint": "eslint --fix test",
     "lint-docs": "markdownlint docs",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",

@@ -195,7 +195,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('add parameters in log sql when use bind value', async function() {
           let logSql;
           let typeCast = dialect === 'postgres' ? '::text' : '';
-          if(dialect === 'db2'){
+          if (dialect === 'db2') {
             typeCast = '::VARCHAR';
           }
           await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s });
