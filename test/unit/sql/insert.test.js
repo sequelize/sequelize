@@ -1,5 +1,4 @@
 'use strict';
-const moment = require('moment');
 const Support   = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
@@ -123,32 +122,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
     });
   });
-
-  describe('time', () => {
-    it('formats time datatype correctly when inserting', () => {
-      const User = Support.sequelize.define('user', {
-        username: {
-          type: DataTypes.TIME,
-          field: 'user_time'
-        }
-      }, {
-        timestamps: false
-      });
-  
-      expectsql(sql.insertQuery(User.tableName, { user_time: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes),
-        {
-          query: {
-            postgres: 'INSERT INTO "users" ("user_time") VALUES ($1);',
-            mssql: 'INSERT INTO [users] ([user_time]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`user_time`) VALUES ($1);'
-          },
-          bind: {
-            default: [moment(new Date(Date.UTC(2015, 0, 20, 1, 2, 3))).format('HH:mm:ss')]
-          }
-        });
-    });
-  });
-
 
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {

@@ -203,6 +203,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect(type.validate(new Date())).to.equal(true);
         });
       });
+
+      describe('validate time', () => {
+        it('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.TIME();
+
+          expect(() => {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid date');
+        });
+
+        it('should return `true` if `value` is a date', () => {
+          const type = DataTypes.DATE();
+
+          expect(type.validate(new Date())).to.equal(true);
+        });
+      });
     });
 
     if (current.dialect.supports.HSTORE) {
