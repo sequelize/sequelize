@@ -296,12 +296,19 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }), User.findAll({
         include: [Group]
       })]);
-      //Changed by Binit. Confirm from Bimal.
       expect(user.Groups.length).to.be.equal(1);
       expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
-      expect(user.Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(user.userSecondId);
+	  if(dialect === 'db2'){
+		expect(user.Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(user.userSecondId);
+	  }else{
+		expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.equal(user.userSecondId);
+	  }
       expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
-      expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(user.Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(user.Groups[0].groupSecondId);
+	  }else{
+		expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.be.equal(user.Groups[0].groupSecondId);
+	  }
       expect(users.length).to.be.equal(1);
       expect(users[0].toJSON()).to.be.eql(user.toJSON());
     });
@@ -368,31 +375,61 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }), Group.findAll({
         include: [User]
       })]);
-      //Changed by Binit from to.be.equal to to.deep.equal for Buffer compare.
       //Need to add db2 condition for the same. referred to issue: https://github.com/chaijs/chai/issues/102
       expect(users.length).to.be.equal(2);
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[0].userSecondId);
+      }
       expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.equal(users[0].Groups[0].groupSecondId);
+	  }      
       expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[1].userSecondId);
+	  }      
       expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
-
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.equal(users[1].Groups[0].groupSecondId);
+	  }      
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.be.equal(groups[0].groupSecondId);
+	  }
       expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[0].Users[0].userSecondId);
+	  }
       expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.be.equal(groups[1].groupSecondId);
+	  }
       expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[1].Users[0].userSecondId);
+	  }
     });
 
     it('supports non primary key attributes for joins (targetKey only)', async function() {
@@ -456,25 +493,56 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[0].userSecondId);
+	  }
       expect(users[0].Groups[0].usergroups.GroupId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.GroupId).to.deep.equal(users[0].Groups[0].id);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.GroupId).to.deep.equal(users[0].Groups[0].id);
+	  }else{
+		expect(users[0].Groups[0].usergroups.GroupId).to.be.equal(users[0].Groups[0].id);  
+	  }
       expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[1].userSecondId);  
+	  }
       expect(users[1].Groups[0].usergroups.GroupId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.GroupId).to.deep.equal(users[1].Groups[0].id);
-
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.GroupId).to.deep.equal(users[1].Groups[0].id);
+	  }else{
+		expect(users[1].Groups[0].usergroups.GroupId).to.be.equal(users[1].Groups[0].id);
+	  }
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].usergroups.GroupId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.GroupId).to.deep.equal(groups[0].id);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.GroupId).to.deep.equal(groups[0].id);
+	  }else{
+		expect(groups[0].Users[0].usergroups.GroupId).to.be.equal(groups[0].id);  
+	  }
       expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[0].Users[0].userSecondId);
+	  }
       expect(groups[1].Users[0].usergroups.GroupId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.GroupId).to.deep.equal(groups[1].id);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.GroupId).to.deep.equal(groups[1].id);
+	  }else{
+		expect(groups[1].Users[0].usergroups.GroupId).to.be.equal(groups[1].id);
+	  }
       expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[1].Users[0].userSecondId);
+	  }
     });
 
     it('supports non primary key attributes for joins (sourceKey and targetKey)', async function() {
@@ -544,25 +612,56 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[0].userSecondId);
+	  }
       expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.equal(users[0].Groups[0].groupSecondId);
+	  }
       expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.equal(users[1].userSecondId);
+	  }
       expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
-
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  }else{
+		  expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.equal(users[1].Groups[0].groupSecondId);
+	  }
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.be.equal(groups[0].groupSecondId);  
+	  }      
       expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[0].Users[0].userSecondId);
+	  }      
       expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.be.equal(groups[1].groupSecondId); 
+	  }
       expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.ok;
-      expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.equal(groups[1].Users[0].userSecondId);
+	  }
     });
 
     it('supports non primary key attributes for joins (custom through model)', async function() {
@@ -643,25 +742,56 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
-      expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.be.equal(users[0].userSecondId);
+	  }
       expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
-      expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  }else{
+		expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.be.equal(users[0].Groups[0].groupSecondId);
+	  }
       expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
-      expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.be.equal(users[1].userSecondId);
+	  }
       expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
-      expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
-
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  }else{
+		expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.be.equal(users[1].Groups[0].groupSecondId);
+	  }
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
-      expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+	  }else{
+		expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.be.equal(groups[0].groupSecondId);
+	  }
       expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
-      expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.be.equal(groups[0].Users[0].userSecondId);
+	  }
       expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
-      expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+	  }else{
+		expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.be.equal(groups[1].groupSecondId);
+	  }
       expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
-      expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.be.equal(groups[1].Users[0].userSecondId);  
+	  }
     });
 
     it('supports non primary key attributes for joins for getting associations (sourceKey/targetKey)', async function() {
@@ -799,25 +929,57 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].usergroups.userId2).to.be.ok;
-      expect(users[0].Groups[0].usergroups.userId2).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.userId2).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.userId2).to.be.equal(users[0].userSecondId);
+	  }
       expect(users[0].Groups[0].usergroups.groupId2).to.be.ok;
-      expect(users[0].Groups[0].usergroups.groupId2).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].usergroups.groupId2).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  }else{
+		expect(users[0].Groups[0].usergroups.groupId2).to.be.equal(users[0].Groups[0].groupSecondId);
+	  }
       expect(users[1].Groups[0].usergroups.userId2).to.be.ok;
-      expect(users[1].Groups[0].usergroups.userId2).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.userId2).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.userId2).to.be.equal(users[1].userSecondId);
+	  }
       expect(users[1].Groups[0].usergroups.groupId2).to.be.ok;
-      expect(users[1].Groups[0].usergroups.groupId2).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].usergroups.groupId2).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  }else{
+		expect(users[1].Groups[0].usergroups.groupId2).to.be.equal(users[1].Groups[0].groupSecondId);
+	  }
 
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].usergroups.groupId2).to.be.ok;
-      expect(groups[0].Users[0].usergroups.groupId2).to.deep.equal(groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.groupId2).to.deep.equal(groups[0].groupSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.groupId2).to.be.equal(groups[0].groupSecondId);
+	  }
       expect(groups[0].Users[0].usergroups.userId2).to.be.ok;
-      expect(groups[0].Users[0].usergroups.userId2).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].usergroups.userId2).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].usergroups.userId2).to.be.equal(groups[0].Users[0].userSecondId);
+	  }
       expect(groups[1].Users[0].usergroups.groupId2).to.be.ok;
-      expect(groups[1].Users[0].usergroups.groupId2).to.deep.equal(groups[1].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.groupId2).to.deep.equal(groups[1].groupSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.groupId2).to.be.equal(groups[1].groupSecondId);
+	  }
       expect(groups[1].Users[0].usergroups.userId2).to.be.ok;
-      expect(groups[1].Users[0].usergroups.userId2).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].usergroups.userId2).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].usergroups.userId2).to.be.equal(groups[1].Users[0].userSecondId);
+	  }
     });
 
     it('supports non primary key attributes for joins (custom foreignKey, custom through model)', async function() {
@@ -908,25 +1070,57 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users[0].Groups.length).to.be.equal(1);
       expect(users[1].Groups.length).to.be.equal(1);
       expect(users[0].Groups[0].User_has_Group.userId2).to.be.ok;
-      expect(users[0].Groups[0].User_has_Group.userId2).to.deep.equal(users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].User_has_Group.userId2).to.deep.equal(users[0].userSecondId);
+	  }else{
+		expect(users[0].Groups[0].User_has_Group.userId2).to.be.equal(users[0].userSecondId);
+	  }
       expect(users[0].Groups[0].User_has_Group.groupId2).to.be.ok;
-      expect(users[0].Groups[0].User_has_Group.groupId2).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[0].Groups[0].User_has_Group.groupId2).to.deep.equal(users[0].Groups[0].groupSecondId);
+	  }else{
+		expect(users[0].Groups[0].User_has_Group.groupId2).to.be.equal(users[0].Groups[0].groupSecondId);
+	  }
       expect(users[1].Groups[0].User_has_Group.userId2).to.be.ok;
-      expect(users[1].Groups[0].User_has_Group.userId2).to.deep.equal(users[1].userSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].User_has_Group.userId2).to.deep.equal(users[1].userSecondId);
+	  }else{
+		expect(users[1].Groups[0].User_has_Group.userId2).to.be.equal(users[1].userSecondId);
+	  }
       expect(users[1].Groups[0].User_has_Group.groupId2).to.be.ok;
-      expect(users[1].Groups[0].User_has_Group.groupId2).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(users[1].Groups[0].User_has_Group.groupId2).to.deep.equal(users[1].Groups[0].groupSecondId);
+	  }else{
+		expect(users[1].Groups[0].User_has_Group.groupId2).to.be.equal(users[1].Groups[0].groupSecondId);
+	  }
 
       expect(groups.length).to.be.equal(2);
       expect(groups[0].Users.length).to.be.equal(1);
       expect(groups[1].Users.length).to.be.equal(1);
       expect(groups[0].Users[0].User_has_Group.groupId2).to.be.ok;
-      expect(groups[0].Users[0].User_has_Group.groupId2).to.deep.equal(groups[0].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].User_has_Group.groupId2).to.deep.equal(groups[0].groupSecondId);
+	  }else{
+		expect(groups[0].Users[0].User_has_Group.groupId2).to.be.equal(groups[0].groupSecondId);
+	  }
       expect(groups[0].Users[0].User_has_Group.userId2).to.be.ok;
-      expect(groups[0].Users[0].User_has_Group.userId2).to.deep.equal(groups[0].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[0].Users[0].User_has_Group.userId2).to.deep.equal(groups[0].Users[0].userSecondId);
+	  }else{
+		expect(groups[0].Users[0].User_has_Group.userId2).to.be.equal(groups[0].Users[0].userSecondId);
+	  }
       expect(groups[1].Users[0].User_has_Group.groupId2).to.be.ok;
-      expect(groups[1].Users[0].User_has_Group.groupId2).to.deep.equal(groups[1].groupSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].User_has_Group.groupId2).to.deep.equal(groups[1].groupSecondId);
+	  }else{
+		expect(groups[1].Users[0].User_has_Group.groupId2).to.be.equal(groups[1].groupSecondId);
+	  }
       expect(groups[1].Users[0].User_has_Group.userId2).to.be.ok;
-      expect(groups[1].Users[0].User_has_Group.userId2).to.deep.equal(groups[1].Users[0].userSecondId);
+	  if(dialect === 'db2'){
+		expect(groups[1].Users[0].User_has_Group.userId2).to.deep.equal(groups[1].Users[0].userSecondId);
+	  }else{
+		expect(groups[1].Users[0].User_has_Group.userId2).to.be.equal(groups[1].Users[0].userSecondId);
+	  }
     });
 
     it('supports primary key attributes with different field names where parent include is required', async function() {
