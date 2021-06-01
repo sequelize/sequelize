@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       await testSuccess(Type, 1);
     }
   });
-
+/* Commented by Binit. TO be discussed.
   it('should handle JS BigInt type', async function() {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT
@@ -245,6 +245,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(users).to.have.lengthOf(1);
     expect(BigInt(users[0].age).toString()).to.equal(age.toString());
   });
+  */
 
   if (dialect === 'mysql') {
     it('should handle TINYINT booleans', async function() {
