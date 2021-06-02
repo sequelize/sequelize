@@ -46,6 +46,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     });
 
     it('when we don\'t have the correct login information', async () => {
+      const willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
+      
       if (dialect === 'mssql') {
         // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
@@ -57,11 +59,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } 
-      /* Commented by Binit. TO be discussed.
+
       else if (dialect === 'db2') {
-          await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'SQL30081N');
-        } 
-      */
+        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      } 
+      
       else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
