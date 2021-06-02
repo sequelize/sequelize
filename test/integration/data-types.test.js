@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       await testSuccess(Type, 1);
     }
   });
-/* Commented by Binit. TO be discussed.
+  /* Commented by Binit. TO be discussed.
   it('should handle JS BigInt type', async function() {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT

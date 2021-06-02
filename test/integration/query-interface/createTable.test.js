@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     await Support.dropTestSchemas(this.sequelize);
   });
 
-  describe('createTable', () => {
+  describe('createTable', () => {	  
     it('should create a auto increment primary key', async function() {
       await this.queryInterface.createTable('TableWithPK', {
         table_id: {
@@ -60,13 +60,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       const indexes = await this.queryInterface.showIndex('MyTable');
-      //console.log('createTable.test.js indexes--->',indexes);
       switch (dialect) {
         case 'postgres':
         case 'postgres-native':
         case 'sqlite':
         case 'mssql':
-
           // name + email
           expect(indexes[0].unique).to.be.true;
           expect(indexes[0].fields[0].attribute).to.equal('name');
@@ -79,18 +77,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         case 'mariadb':
         case 'mysql':
-        /* Commented By Binit. To be dicussed.
-        case 'db2':
-          
+          break;
+        case 'db2':          
           // name + email
           expect(indexes[1].unique).to.be.true;
-          expect(indexes[1].fields[0].attribute).to.equal('name');
-          expect(indexes[1].fields[1].attribute).to.equal('email');
+          expect(indexes[1].fields[0]).to.equal('name');
+          expect(indexes[1].fields[1]).to.equal('email');
 
           // name
           expect(indexes[2].unique).to.be.true;
-          expect(indexes[2].fields[0].attribute).to.equal('name');          
-          */
+          expect(indexes[2].fields[0]).to.equal('name');          
           break;
         default:
           throw new Error(`Not implemented fpr ${dialect}`);
@@ -180,7 +176,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(table.someEnum.special).to.deep.equal(['COMMENT']);
           expect(table.someEnum.comment).to.equal('special enum col');
         }
-      });
+      });	  
     });
   });
 });
