@@ -203,6 +203,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect(type.validate(new Date())).to.equal(true);
         });
       });
+    });
+
+    describe('TIME', () => {
+      testsql('TIME', DataTypes.TIME, {
+        postgres: 'TIME',
+        mssql: 'TIME(0)',
+        mariadb: 'TIME',
+        mysql: 'TIME',
+        sqlite: 'TEXT'
+      });
 
       describe('validate time', () => {
         it('should throw an error if `value` is invalid', () => {
@@ -214,12 +224,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('should return `true` if `value` is a date', () => {
-          const type = DataTypes.DATE();
+          const type = DataTypes.TIME();
 
           expect(type.validate(new Date())).to.equal(true);
         });
+
+        it('should return `true` if `value` is a time', () => {
+          const type = DataTypes.TIME();
+
+          expect(type.validate('12:30:30')).to.equal(true);
+        });
+
       });
     });
+    
 
     if (current.dialect.supports.HSTORE) {
       describe('HSTORE', () => {
