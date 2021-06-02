@@ -372,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(err.message).to.equal('User and email must be unique');
       }
     });
-    /*Commented by Binit. Need to discuss.
+    
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
         name: 'a_b_uniq',
@@ -492,7 +492,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx2.unique).not.to.be.ok;
       }
     });
-    */
   });
 
   describe('build', () => {
