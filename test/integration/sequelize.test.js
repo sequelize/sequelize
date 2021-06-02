@@ -1,6 +1,6 @@
 'use strict';
 
-const { expect } = require('chai');
+const { expect, assert } = require('chai');
 const Support = require('./support');
 const DataTypes = require('../../lib/data-types');
 const dialect = Support.getTestDialect();
@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
-      /*Commented by BINIT. Need to be discussed.
+
       it('fails with incorrect database credentials (1)', async function() {
         this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
 
@@ -443,13 +443,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
-            expect(err.message).to.include('SQL30081N  A communication error has been detected' || 'Operation timeout');
+            expect(err.message).to.include('Operation timeout');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied*./);
           }
         }
       });
-      */
+
       it('fails with incorrect database credentials (2)', async function() {
         const sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
@@ -473,7 +473,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
 
-      /*Commented by BINIT. Need to be discussed.
       it('fails with incorrect database credentials (4)', async function() {
         const sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect,
@@ -486,7 +485,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
-*/
+
       it('returns an error correctly if unable to sync a foreign key referenced model', async function() {
         this.sequelize.define('Application', {
           authorID: {
