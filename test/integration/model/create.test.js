@@ -266,8 +266,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
       }); 
-*/
+      */
     }
+	
     it('should support special characters in defaults', async function() {
       const User = this.sequelize.define('user', {
         objectId: {
@@ -1137,9 +1138,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           activity_date: { type: Sequelize.DATe }
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-    });
-    //Commented By Binit as timeout happening. Need to be looked.
-    /*
+    });	
+    
     it('sets a 64 bit int in bigint', async function() {
       const User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT
@@ -1149,7 +1149,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const user = await User.create({ big: '9223372036854775807' });
       expect(user.big).to.be.equal('9223372036854775807');
     });
-*/
+	
     it('sets auto increment fields', async function() {
       const User = this.sequelize.define('UserWithAutoIncrementField', {
         userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
