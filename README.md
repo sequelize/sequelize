@@ -1,10 +1,5 @@
 # Sequelize
 
-[![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
-[![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
-<!-- [![codecov](https://badgen.net/codecov/c/github/sequelize/sequelize/main?icon=codecov)](https://codecov.io/gh/sequelize/sequelize) -->
-[![npm downloads](https://badgen.net/npm/dm/sequelize)](https://www.npmjs.com/package/sequelize)
-[![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 `sequelize-snowflake` is a fork of the Sequelize ORM for nodejs. The purpose of this project is to add support for Snowflake ❄️ and merge back upstream.
