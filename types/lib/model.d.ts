@@ -1914,10 +1914,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * without
    * profiles will be counted
    */
+   public static findAndCountAll<M extends Model>(
+    this: ModelStatic<M>,
+    options?: FindAndCountOptions<M['_attributes']> & {group: undefined}
+  ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']>
-  ): Promise<{ rows: M[]; count: number }>;
+    options?: FindAndCountOptions<M['_attributes']> & {group: GroupOption}
+  ): Promise<{ rows: M[]; count: number[] }>;
 
   /**
    * Find the maximum value of field
