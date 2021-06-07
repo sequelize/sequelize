@@ -1471,7 +1471,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await expect(result).to.be.true;
       });
     }
-    /* Commented by Binit. TO be discussed.
+    
     it('answer false for labels that have not been assigned', async function() {
       const [article, label] = await Promise.all([
         this.Article.create({
@@ -1485,7 +1485,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const result = await article.hasLabels([label]);
       expect(result).to.be.false;
     });
-	*/
   });
 
   describe('countAssociations', () => {

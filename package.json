@@ -70,7 +70,7 @@
     "expect-type": "^0.11.0",
     "fs-jetpack": "^4.1.0",
     "husky": "^4.2.5",
-    "ibm_db": "^2.7.1",
+    "ibm_db": "^2.7.3",
     "js-combinatorics": "^0.5.5",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^10.2.6",
@@ -174,7 +174,7 @@
     "tag": "latest"
   },
   "scripts": {
-    "lint": "eslint test",
+    "lint": "eslint lib",
     "lint-docs": "markdownlint docs",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
@@ -191,7 +191,7 @@
     "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-all": "npm run test-unit-db2 && npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
-    "test-integration": "mocha --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 1800000 --reporter spec \"test/integration/data-types.test.js\"",
+    "test-integration": "mocha --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 1800000 --reporter spec \"test/integration/associations/has-many.test.js\"",
     "test-integration-mariadb": "cross-env DIALECT=mariadb npm run test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
     "test-integration-db2": "cross-env DIALECT=db2 npm run test-integration",
