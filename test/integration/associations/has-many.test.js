@@ -512,8 +512,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           order: [[this.Category, 'date', 'DESC']]
         });
 
-        expect(result.Category).to.be.instanceOf(Array);
-        expect(result.Category.length).to.be.eql(1);
+        expect(result.length).to.be.eql(1);
+        expect(result[0].Category).to.be.instanceOf(Array);
+        expect(result[0].Category.length).to.be.eql(1);
       });
 
       it('does not have any labels assigned to it initially', async function() {
