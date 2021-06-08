@@ -494,7 +494,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
       }
 
-      it('uses custom tableName in hasMany association', async () => {
+      it('uses custom tableName in hasMany association', async function() {
         await this.Article.create({
           title: 'Article',
           Category: [
