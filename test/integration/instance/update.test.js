@@ -6,7 +6,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -79,7 +78,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     it('should update fields that are not specified on create', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -102,7 +101,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should succeed in updating when values are unchanged (without timestamps)', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -130,7 +129,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should update timestamps with milliseconds', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING,
@@ -184,7 +183,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -214,7 +213,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should update attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -245,7 +244,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -277,7 +276,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -311,7 +310,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should not set attributes that are not specified by fields', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -358,7 +357,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('doesn\'t update primary keys or timestamps', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+      const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         identifier: { type: DataTypes.STRING, primaryKey: true }
