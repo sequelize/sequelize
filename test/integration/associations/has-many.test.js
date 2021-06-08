@@ -441,7 +441,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           text: DataTypes.STRING
         });
 
+        this.Category = this.sequelize.define('Category',
+          {
+            date: DataTypes.DATE
+          },
+          {
+            tableName: 'Category'
+          }
+        );
+
         this.Article.hasMany(this.Label);
+        this.Article.hasMany(this.Category);
 
         return this.sequelize.sync({ force: true });
       });
@@ -483,6 +493,28 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           await t.rollback();
         });
       }
+
+      it('uses custom tableName in hasMany association', async () => {
+        await this.Article.create({
+          title: 'Article',
+          Category: [
+            {
+              date: new Date()
+            }
+          ]
+        },
+        {
+          include: [this.Category]
+        });
+
+        const result = await this.Article.findAll({
+          include: [this.Category],
+          order: [[this.Category, 'date', 'DESC']]
+        });
+
+        expect(result.Category).to.be.instanceOf(Array);
+        expect(result.Category.length).to.be.eql(1);
+      });
 
       it('does not have any labels assigned to it initially', async function() {
         const [article, label1, label2] = await Promise.all([
