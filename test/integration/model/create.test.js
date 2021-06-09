@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql'].includes(current.dialect.name)) {
+    if (!['sqlite', 'mssql', 'db2'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -241,8 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
       });
-      //Commented By Binit as timeout happening. Need to be looked.
-      /*
+      
       it('should not deadlock with concurrency duplicate entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -265,8 +264,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
         }));
-      }); 
-      */
+      });
     }
 	
     it('should support special characters in defaults', async function() {
