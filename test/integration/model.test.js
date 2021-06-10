@@ -431,7 +431,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { attribute: 'fieldC', length: undefined, order: undefined }
         ]);
       } else if (dialect === 'db2') {
-        idx1 = args[1];
+        idx1 = args[2];
 
         expect(idx1.fields).to.deep.equal([
           { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
