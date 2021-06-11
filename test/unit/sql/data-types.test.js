@@ -214,7 +214,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'TIME'
       });
 
-      describe('validate time', () => {
+      describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.TIME();
 
