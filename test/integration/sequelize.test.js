@@ -363,7 +363,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('truncate', () => {
     it('truncates all models', async function() {
-      const Project = this.sequelize.define(`project${config.rand()}`, {
+      const Project = this.sequelize.define(`project${Support.rand()}`, {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -386,8 +386,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('sync', () => {
     it('synchronizes all models', async function() {
-      const Project = this.sequelize.define(`project${config.rand()}`, { title: DataTypes.STRING });
-      const Task = this.sequelize.define(`task${config.rand()}`, { title: DataTypes.STRING });
+      const Project = this.sequelize.define(`project${Support.rand()}`, { title: DataTypes.STRING });
+      const Task = this.sequelize.define(`task${Support.rand()}`, { title: DataTypes.STRING });
 
       await Project.sync({ force: true });
       await Task.sync({ force: true });
