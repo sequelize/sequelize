@@ -2501,7 +2501,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', async function() {
-      this.timeout(900000);
+      this.timeout(90000);
       const sequelize = await Support.prepareTransactionTest(this.sequelize);
       const User = sequelize.define('User', { username: Sequelize.STRING });
       const testAsync = async function() {

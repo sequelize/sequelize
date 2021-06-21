@@ -1,7 +1,6 @@
 {
   "extends": "eslint:recommended",
   "rules": {
-	"linebreak-style":0,
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
     "jsdoc/check-param-names": "error",
@@ -60,8 +59,7 @@
         "avoidEscape": true
       }
     ],
-    //"linebreak-style": "error",
-	"linebreak-style": ["error","windows"],
+    "linebreak-style": "error",
     "camelcase": "error",
     "comma-dangle": "error",
 
