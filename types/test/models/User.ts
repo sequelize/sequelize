@@ -110,6 +110,13 @@ User.addHook('beforeFind', 'test', (options: FindOptions<UserAttributes>) => {
   return undefined;
 });
 
+User.addHook('afterDestroy', async (instance, options) => {
+  await instance.sequelize.transaction(options, () => {
+    // allow for transactions without destructuring
+    return Promise.resolve();
+  });
+});
+
 // Model#addScope
 User.addScope('withoutFirstName', {
   where: {
