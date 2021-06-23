@@ -1,25 +1,23 @@
-#!/usr/bin/env bash
-#Stop in case it is up.
 ./stop.sh
 export DIALECT=db2
 
-#mkdir -p Docker
-docker login
-if [ ! "$(docker ps -q -f name=db2server)" ]; then
-    if [ "$(docker ps -aq -f status=exited -f name=db2server)" ]; 
+sudo mkdir -p Docker
+sudo docker login
+if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
+    if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ]; 
 	then
-        # cleanup
-        docker rm -f db2server
-		rm -rf C://Personal//database/Docker
+        	# cleanup
+        	sudo docker rm -f db2server
+		sudo rm -rf /Docker
 	fi
-	docker pull ibmcom/db2
-	docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v C://Personal//database/Docker:/database ibmcom/db2
+	sudo docker pull ibmcom/db2
+	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database ibmcom/db2
 	count=1
 	while true
 	do
-	  if (docker logs db2server | grep 'Setup has completed')
+	  if (sudo docker logs db2server | grep 'Setup has completed')
 	  then	  
-		winpty docker exec -ti db2server bash -c "su db2inst1 & disown"
+		sudo docker exec -ti db2server bash -c "su db2inst1 & disown"
 		node check.js
 		cd ../../
 		npm run test-db2

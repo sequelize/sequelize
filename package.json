@@ -183,7 +183,7 @@
     "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "----------------------------------------- tests ---------------------------------------------------": "",
     "test-unit": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.test.js\"",
-    "test-integration": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/model/sync.test.js\"",
+    "test-integration": "mocha --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
     "teaser": "node test/teaser.js",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
