@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#Stop in case it is up.
+./stop.sh
+export DIALECT=db2
+
+#mkdir -p Docker
+docker login
+if [ ! "$(docker ps -q -f name=db2server)" ]; then
+    if [ "$(docker ps -aq -f status=exited -f name=db2server)" ]; 
+	then
+        # cleanup
+        docker rm -f db2server
+		rm -rf C://Personal//database/Docker
+	fi
+	docker pull ibmcom/db2
+	docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v C://Personal//database/Docker:/database ibmcom/db2
+	count=1
+	while true
+	do
+	  if (docker logs db2server | grep 'Setup has completed')
+	  then	  
+		winpty docker exec -ti db2server bash -c "su db2inst1 & disown"
+		node check.js
+		cd ../../
+		npm run test-db2
+		break
+	  fi
+	  if ($count -gt 30); then
+		echo "Error: Db2 docker setup has not completed in 10 minutes."
+		break
+	  fi
+
+	  sleep 20
+	  let "count=count+1"
+	done
+fi
