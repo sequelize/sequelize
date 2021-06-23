@@ -13,6 +13,10 @@ Please note this is an issue tracker, not a support forum.
 For general questions, please use StackOverflow.
 -->
 
+## Issue Creation Checklist
+
+[ ] I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
+
 ## Issue Description
 
 A clear and concise description of what is this issue about.
@@ -23,11 +27,8 @@ If applicable, you can add some code. In this case, an SSCCE/MCVE/reprex is much
 Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-example to learn more about SSCCE/MCVE/reprex.
 -->
 
-### StackOverflow / Slack attempts
-
-If you have tried asking on StackOverflow about this, add a link to that here.
-
 ### Additional context
+
 Add any other context or screenshots about the issue here.
 
 ## Issue Template Checklist
