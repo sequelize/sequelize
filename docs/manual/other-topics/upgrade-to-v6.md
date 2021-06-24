@@ -74,7 +74,7 @@ Signature for this method has been changed to `Promise<Model,boolean | null>`. F
 - SQLite - Implemented with ON CONFLICT DO UPDATE
 - MSSQL - Implemented with MERGE statement
 
-_<ins>Note for Postgres users:</ins>_ If upsert payload contains PK field, then PK will be used as the conflict target. Otherwise first unique constraint will be selected as the conflict key.
+_<ins>Note for Postgres and SQLite users:</ins>_ If the upsert payload contains a primary key field, then it will be used as the conflict target. Otherwise the first unique constraint will be selected as the conflict target. Also, since v6.7.0, you can provide a where condition with the new `conflictWhere` option.
 
 ### QueryInterface
 

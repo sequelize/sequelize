@@ -665,6 +665,50 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    if (current.dialect.supports.inserts.onConflictDoUpdateWhere) {
+      describe('conflictWhere', () => {
+        it('should support the conflictWhere option', async function() {
+          const data = [
+            { uniqueName: 'Peter', secretValue: '12', intVal: 12 },
+            { uniqueName: 'Paul', secretValue: '23', intVal: 23 }
+          ];
+
+          await this.User.bulkCreate(data, {
+            fields: ['uniqueName', 'secretValue', 'intVal'],
+            updateOnDuplicate: ['secretValue', 'intVal']
+          });
+          const new_data = [
+            { uniqueName: 'Peter', secretValue: '43', intVal: 43 },
+            { uniqueName: 'Paul', secretValue: '24', intVal: 24 },
+            { uniqueName: 'Michael', secretValue: '26', intVal: 26 }
+          ];
+          await this.User.bulkCreate(new_data, {
+            fields: ['uniqueName', 'secretValue', 'intVal'],
+            updateOnDuplicate: ['secretValue', 'intVal'],
+            conflictWhere: {
+              intVal: 23
+            }
+          });
+          const users = await this.User.findAll({ order: ['id'] });
+          expect(users.length).to.equal(3);
+          // Peter is unchanged because the record already existed and was excluded from the UPDATE WHERE int_val=23
+          expect(users[0].uniqueName).to.equal('Peter');
+          expect(users[0].secretValue).to.equal('12');
+          expect(users[0].intVal).to.equal(12);
+
+          // Paul is updated because int_val=23 at time of update
+          expect(users[1].uniqueName).to.equal('Paul');
+          expect(users[1].secretValue).to.equal('24');
+          expect(users[1].intVal).to.equal(24);
+
+          // Michael is inserted (where doesn't apply since because Michael was inserted not updated)
+          expect(users[2].uniqueName).to.equal('Michael');
+          expect(users[2].secretValue).to.equal('26');
+          expect(users[2].intVal).to.equal(26);
+        });
+      });
+    }
+
     if (current.dialect.supports.returnValues) {
       describe('return values', () => {
         it('should make the auto incremented values available on the returned instances', async function() {

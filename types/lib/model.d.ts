@@ -770,6 +770,13 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | (keyof TAttributes)[];
+
+  /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query (in the same format as the where option for a finder such as `findByPk`).
+   * (note: updateOnDuplicate must be present for this to be used.)
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
 }
 
 /**
