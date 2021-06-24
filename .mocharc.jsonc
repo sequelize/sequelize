@@ -1,0 +1,6 @@
+{
+  "exit": true,
+  "check-leaks": true,
+  "timeout": 30000,
+  "reporter": "spec"
+}
