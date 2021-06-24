@@ -1,5 +1,8 @@
-import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
+import { expectTypeOf } from "expect-type";
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize } from 'sequelize';
+import { ModelDefined } from '../lib/model';
 
+expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {
   public num!: number;
   public static associations: {
@@ -12,10 +15,9 @@ class MyModel extends Model {
 
 class OtherModel extends Model {}
 
-const assoc: Association = MyModel.associations.other;
-
 const Instance: MyModel = new MyModel({ int: 10 });
-const num: number = Instance.get('num');
+
+expectTypeOf(Instance.get('num')).toEqualTypeOf<number>();
 
 MyModel.findOne({
   include: [
@@ -102,7 +104,7 @@ UserModel.findCreateFind({
  * Tests for findOrCreate() type.
  */
 
- UserModel.findOrCreate({
+UserModel.findOrCreate({
   fields: [ "jane.doe" ],
   where: {
     username: "jane.doe"
@@ -122,13 +124,13 @@ TestModel.primaryKeyAttributes;
  * Test for joinTableAttributes on BelongsToManyGetAssociationsMixin
  */
 class SomeModel extends Model {
-    public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
+  public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
 }
 
-const someInstance = new SomeModel()
+const someInstance = new SomeModel();
 someInstance.getOthers({
-    joinTableAttributes: { include: [ 'id' ] }
-})
+  joinTableAttributes: { include: ['id'] }
+});
 
 /**
  * Test for through options in creating a BelongsToMany association
@@ -142,11 +144,44 @@ Film.belongsToMany(Actor, {
     model: 'FilmActors',
     paranoid: true
   }
-})
+});
 
 Actor.belongsToMany(Film, {
   through: {
     model: 'FilmActors',
     paranoid: true
   }
-})
+});
+
+interface ModelAttributes {
+  id: number;
+  name: string;
+}
+
+interface CreationAttributes extends Optional<ModelAttributes, 'id'> {}
+
+const ModelWithAttributes: ModelDefined<
+  ModelAttributes,
+  CreationAttributes
+> = sequelize.define('efs', {
+  name: DataTypes.STRING
+});
+
+const modelWithAttributes = ModelWithAttributes.build();
+
+/**
+ * Tests for set() type
+ */
+expectTypeOf(modelWithAttributes.set).toBeFunction();
+expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<ModelAttributes>>();
+
+/**
+ * Tests for previous() type
+ */
+expectTypeOf(modelWithAttributes.previous).toBeFunction();
+expectTypeOf(modelWithAttributes.previous).toBeCallableWith('name');
+expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof ModelAttributes>();
+expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unreferencedAttribute'>();
+expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
+expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
+expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();

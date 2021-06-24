@@ -1,32 +1,34 @@
-import { INTEGER, IntegerDataType, TINYINT } from 'sequelize';
-import { SmallIntegerDataType, SMALLINT, MEDIUMINT, MediumIntegerDataType, BigIntDataType, BIGINT } from '../lib/data-types';
+import { expectTypeOf } from 'expect-type';
+import { DataTypes } from 'sequelize';
 
-let tinyint: IntegerDataType;
-tinyint = TINYINT();
-tinyint = new TINYINT();
-tinyint = TINYINT.UNSIGNED.ZEROFILL();
-tinyint = new TINYINT.UNSIGNED.ZEROFILL();
+const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER } = DataTypes;
 
-let smallint: SmallIntegerDataType;
-smallint = SMALLINT();
-smallint = new SMALLINT();
-smallint = SMALLINT.UNSIGNED.ZEROFILL();
-smallint = new SMALLINT.UNSIGNED.ZEROFILL();
+// TINYINT
+expectTypeOf(TINYINT()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
+expectTypeOf(new TINYINT()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
+expectTypeOf(TINYINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
+expectTypeOf(new TINYINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
 
-let mediumint: MediumIntegerDataType;
-mediumint = MEDIUMINT();
-mediumint = new MEDIUMINT();
-mediumint = MEDIUMINT.UNSIGNED.ZEROFILL();
-mediumint = new MEDIUMINT.UNSIGNED.ZEROFILL();
+// SMALLINT
+expectTypeOf(SMALLINT()).toEqualTypeOf<DataTypes.SmallIntegerDataType>();
+expectTypeOf(new SMALLINT()).toEqualTypeOf<DataTypes.SmallIntegerDataType>();
+expectTypeOf(SMALLINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.SmallIntegerDataType>();
+expectTypeOf(new SMALLINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.SmallIntegerDataType>();
 
-let int: IntegerDataType;
-int = INTEGER();
-int = new INTEGER();
-int = INTEGER.UNSIGNED.ZEROFILL();
-int = new INTEGER.UNSIGNED.ZEROFILL();
+// MEDIUMINT
+expectTypeOf(MEDIUMINT()).toEqualTypeOf<DataTypes.MediumIntegerDataType>();
+expectTypeOf(new MEDIUMINT()).toEqualTypeOf<DataTypes.MediumIntegerDataType>();
+expectTypeOf(MEDIUMINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.MediumIntegerDataType>();
+expectTypeOf(new MEDIUMINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.MediumIntegerDataType>();
 
-let bigint: BigIntDataType;
-bigint = BIGINT();
-bigint = new BIGINT();
-bigint = BIGINT.UNSIGNED.ZEROFILL();
-bigint = new BIGINT.UNSIGNED.ZEROFILL();
+// BIGINT
+expectTypeOf(BIGINT()).toEqualTypeOf<DataTypes.BigIntDataType>();
+expectTypeOf(new BIGINT()).toEqualTypeOf<DataTypes.BigIntDataType>();
+expectTypeOf(BIGINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.BigIntDataType>();
+expectTypeOf(new BIGINT.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.BigIntDataType>();
+
+// INTEGER
+expectTypeOf(INTEGER()).toEqualTypeOf<DataTypes.IntegerDataType>();
+expectTypeOf(new INTEGER()).toEqualTypeOf<DataTypes.IntegerDataType>();
+expectTypeOf(INTEGER.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.IntegerDataType>();
+expectTypeOf(new INTEGER.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.IntegerDataType>();

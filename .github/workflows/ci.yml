@@ -1,0 +1,193 @@
+name: CI
+on: [push, pull_request]
+
+env:
+  SEQ_DB: sequelize_test
+  SEQ_USER: sequelize_test
+  SEQ_PW: sequelize_test
+
+jobs:
+  lint:
+    name: Lint code and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm install
+      - run: npm run lint
+      - run: npm run lint-docs
+  test-typings:
+    strategy:
+      fail-fast: false
+      matrix:
+        ts-version: ['3.9', '4.0', '4.1']
+    name: TS Typings (${{ matrix.ts-version }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm install
+      - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
+      - run: npm run test-typings
+  test-sqlite:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 12]
+    name: SQLite (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: sqlite
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - name: Unit Tests
+        run: npm run test-unit
+      - name: Integration Tests
+        run: npm run test-integration
+  test-postgres:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 12]
+        postgres-version: [9.5, 10] # Does not work with 12
+        minify-aliases: [true, false]
+        native: [true, false]
+    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: sushantdhiman/postgres:${{ matrix.postgres-version }}
+        env:
+          POSTGRES_USER: sequelize_test
+          POSTGRES_DB: sequelize_test
+          POSTGRES_PASSWORD: sequelize_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      SEQ_PORT: 5432
+      DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
+      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
+    steps:
+      - run: PGPASSWORD=sequelize_test psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm install pg-native
+        if: matrix.native
+      - name: Unit Tests
+        run: npm run test-unit
+        if: ${{ !matrix.minify-aliases }}
+      - name: Integration Tests
+        run: npm run test-integration
+  test-mysql-mariadb:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: MySQL 5.7
+            image: mysql:5.7
+            dialect: mysql
+            node-version: 10
+          - name: MySQL 5.7
+            image: mysql:5.7
+            dialect: mysql
+            node-version: 12
+          - name: MariaDB 10.3
+            image: mariadb:10.3
+            dialect: mariadb
+            node-version: 10
+          - name: MariaDB 10.3
+            image: mariadb:10.3
+            dialect: mariadb
+            node-version: 12
+    name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_DATABASE: sequelize_test
+          MYSQL_USER: sequelize_test
+          MYSQL_PASSWORD: sequelize_test
+          MYSQL_ROOT_PASSWORD: sequelize_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin -usequelize_test -psequelize_test status" --health-interval 10s --health-timeout 5s --health-retries 5 --tmpfs /var/lib/mysql:rw
+    env:
+      SEQ_PORT: 3306
+      DIALECT: ${{ matrix.dialect }}
+    steps:
+      - run: mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - name: Unit Tests
+        run: npm run test-unit
+      - name: Integration Tests
+        run: npm run test-integration
+  test-mssql:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 12]
+        mssql-version: [2017, 2019]
+    name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Password12!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
+          --health-start-period 10s
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DIALECT: mssql
+      SEQ_USER: SA
+      SEQ_PW: Password12!
+      SEQ_PORT: 1433
+    steps:
+      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - name: Unit Tests
+        run: npm run test-unit
+      - name: Integration Tests
+        run: npm run test-integration
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm install
+      - run: npx semantic-release

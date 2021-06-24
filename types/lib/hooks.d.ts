@@ -1,3 +1,4 @@
+import { ModelType } from '../index';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -41,7 +42,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
   ): HookReturn;
   beforeBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): HookReturn;
-  afterBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): HookReturn;
+  afterBulkCreate(instances: readonly M[], options: BulkCreateOptions<TAttributes>): HookReturn;
   beforeBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
   afterBulkDestroy(options: DestroyOptions<TAttributes>): HookReturn;
   beforeBulkRestore(options: RestoreOptions<TAttributes>): HookReturn;
@@ -52,7 +53,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeCount(options: CountOptions<TAttributes>): HookReturn;
   beforeFindAfterExpandIncludeAll(options: FindOptions<TAttributes>): HookReturn;
   beforeFindAfterOptions(options: FindOptions<TAttributes>): HookReturn;
-  afterFind(instancesOrInstance: M[] | M | null, options: FindOptions<TAttributes>): HookReturn;
+  afterFind(instancesOrInstance: readonly M[] | M | null, options: FindOptions<TAttributes>): HookReturn;
   beforeSync(options: SyncOptions): HookReturn;
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
@@ -65,7 +66,7 @@ export interface SequelizeHooks<
   TCreationAttributes = TAttributes
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
-  afterDefine(model: typeof Model): void;
+  afterDefine(model: ModelType): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
   beforeConnect(config: Config): HookReturn;

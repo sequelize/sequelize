@@ -1,46 +1,61 @@
-import {Model, SaveOptions, Sequelize, FindOptions} from "sequelize"
+import { expectTypeOf } from "expect-type";
+import { SemiDeepWritable } from "./type-helpers/deep-writable";
+import { Model, SaveOptions, Sequelize, FindOptions, ModelCtor, ModelType, ModelDefined, ModelStatic } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
 
-/*
- * covers types/lib/sequelize.d.ts
- */
+{
+  class TestModel extends Model {}
 
-Sequelize.beforeSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterFind((t: TestModel[] | TestModel | null, options: FindOptions) => {});
-Sequelize.afterFind('namedAfterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
+  const hooks: Partial<ModelHooks> = {
+    beforeSave(m, options) {
+      expectTypeOf(m).toEqualTypeOf<TestModel>();
+      expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+    },
+    afterSave(m, options) {
+      expectTypeOf(m).toEqualTypeOf<TestModel>();
+      expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+    },
+    afterFind(m, options) {
+      expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
+      expectTypeOf(options).toEqualTypeOf<FindOptions>();
+    }
+  };
 
-/*
- * covers types/lib/hooks.d.ts
- */
+  const sequelize = new Sequelize('uri', { hooks });
+  TestModel.init({}, { sequelize, hooks });
 
-export const sequelize = new Sequelize('uri', {
-  hooks: {
-    beforeSave (m: Model, options: SaveOptions) {},
-    afterSave (m: Model, options: SaveOptions) {},
-    afterFind (m: Model[] | Model | null, options: FindOptions) {},
-  }
-});
+  TestModel.addHook('beforeSave', hooks.beforeSave!);
+  TestModel.addHook('afterSave', hooks.afterSave!);
+  TestModel.addHook('afterFind', hooks.afterFind!);
 
-class TestModel extends Model {
+  TestModel.beforeSave(hooks.beforeSave!);
+  TestModel.afterSave(hooks.afterSave!);
+  TestModel.afterFind(hooks.afterFind!);
+
+  Sequelize.beforeSave(hooks.beforeSave!);
+  Sequelize.afterSave(hooks.afterSave!);
+  Sequelize.afterFind(hooks.afterFind!);
+  Sequelize.afterFind('namedAfterFind', hooks.afterFind!);
 }
 
-const hooks: Partial<ModelHooks> = {
-  beforeSave(t: TestModel, options: SaveOptions) { },
-  afterSave(t: TestModel, options: SaveOptions) { },
-  afterFind(t: TestModel | TestModel[] | null, options: FindOptions) { },
-};
+// #12959
+{
+  const hooks: ModelHooks = 0 as any;
 
-TestModel.init({}, {sequelize, hooks })
-
-TestModel.addHook('beforeSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => { });
-
-/*
- * covers types/lib/model.d.ts
- */
-
-TestModel.beforeSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterFind((t: TestModel | TestModel[] | null, options: FindOptions) => { });
+  hooks.beforeValidate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeCreate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeDestroy = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeRestore = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeUpdate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeSave = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeBulkCreate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeBulkDestroy = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeBulkRestore = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeBulkUpdate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeFind = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeCount = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeFindAfterExpandIncludeAll = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeFindAfterOptions = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeBulkSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+}

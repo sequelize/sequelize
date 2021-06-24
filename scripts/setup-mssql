@@ -1,1 +1,0 @@
-docker exec mssql /bin/bash -c '/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U "sa" -d "master" -P '"'$SEQ_MSSQL_PW'"' -Q "DROP DATABASE ['$SEQ_MSSQL_DB']; CREATE DATABASE ['$SEQ_MSSQL_DB']; ALTER DATABASE ['$SEQ_MSSQL_DB'] SET READ_COMMITTED_SNAPSHOT ON;"'
