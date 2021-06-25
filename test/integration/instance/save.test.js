@@ -5,7 +5,6 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  config = require('../../config/config'),
   sinon = require('sinon'),
   current = Support.sequelize;
 
@@ -131,7 +130,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -161,7 +160,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should update attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -192,7 +191,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -224,7 +223,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -366,7 +365,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should not throw ER_EMPTY_QUERY if changed only virtual fields', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: {
             type: DataTypes.VIRTUAL,

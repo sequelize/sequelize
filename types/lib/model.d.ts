@@ -724,7 +724,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean;
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * Run validations before the row is inserted
@@ -1627,10 +1627,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    * @return Return the initialized model
    */
-  public static init<M extends Model>(
-    this: ModelStatic<M>,
+  public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
+    this: MS,
     attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
-  ): Model;
+  ): MS;
 
   /**
    * Remove attribute from model definition
@@ -2090,7 +2090,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static update<M extends Model>(
     this: ModelStatic<M>,
-    values: Partial<M['_attributes']>,
+    values: {
+        [key in keyof M['_attributes']]?: M['_attributes'][key] | Fn | Col | Literal;
+    },
     options: UpdateOptions<M['_attributes']>
   ): Promise<[number, M[]]>;
 
@@ -2747,8 +2749,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public update<K extends keyof this>(key: K, value: this[K], options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
-  public update(keys: object, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K] | Col | Fn | Literal, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update(
+    keys: {
+        [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
+    },
+    options?: InstanceUpdateOptions<TModelAttributes>
+  ): Promise<this>;
 
   /**
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
