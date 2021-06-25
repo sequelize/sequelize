@@ -668,9 +668,14 @@ export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging,
   fields?: (keyof TAttributes)[];
 
   /**
-   * On Duplicate
+   * dialect specific ON CONFLICT DO NOTHING / INSERT IGNORE
    */
-  onDuplicate?: string;
+  ignoreDuplicates?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * If false, validations won't be run.
@@ -749,7 +754,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   individualHooks?: boolean;
 
   /**
-   * Ignore duplicate values for primary keys? (not supported by postgres)
+   * Ignore duplicate values for primary keys?
    *
    * @default false
    */
@@ -1967,16 +1972,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Builds a new model instance and calls save on it.
    */
-  public static create<M extends Model>(
+  public static create<
+    M extends Model,
+    O extends CreateOptions<M['_attributes']> = CreateOptions<M['_attributes']>
+  >(
     this: ModelStatic<M>,
     values?: M['_creationAttributes'],
-    options?: CreateOptions<M['_attributes']>
-  ): Promise<M>;
-  public static create<M extends Model>(
-    this: ModelStatic<M>,
-    values: M['_creationAttributes'],
-    options: CreateOptions<M['_attributes']> & { returning: false }
-  ): Promise<void>;
+    options?: O
+  ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
