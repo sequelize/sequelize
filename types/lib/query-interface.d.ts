@@ -239,7 +239,7 @@ export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   type: 'foreign key';
   references?: {
-    table: string;
+    table: TableName;
     field: string;
   };
   onDelete: string;
@@ -335,7 +335,7 @@ export class QueryInterface {
    * @param options       Table options.
    */
   public createTable<M extends Model>(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attributes: ModelAttributes<M, M['_creationAttributes']>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
@@ -346,7 +346,7 @@ export class QueryInterface {
    * @param tableName Table name.
    * @param options   Query options, particularly "force".
    */
-  public dropTable(tableName: string, options?: QueryInterfaceDropTableOptions): Promise<void>;
+  public dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
 
   /**
    * Drops all tables.
@@ -365,7 +365,7 @@ export class QueryInterface {
   /**
    * Renames a table
    */
-  public renameTable(before: string, after: string, options?: QueryInterfaceOptions): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Returns all tables
@@ -376,7 +376,7 @@ export class QueryInterface {
    * Describe a table
    */
   public describeTable(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     options?: string | { schema?: string; schemaDelimiter?: string } & Logging
   ): Promise<ColumnsDescription>;
 
@@ -384,7 +384,7 @@ export class QueryInterface {
    * Adds a new column to a table
    */
   public addColumn(
-    table: string | { schema?: string; tableName?: string },
+    table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
     options?: QueryInterfaceOptions
@@ -394,7 +394,7 @@ export class QueryInterface {
    * Removes a column from a table
    */
   public removeColumn(
-    table: string | { schema?: string; tableName?: string },
+    table: TableName,
     attribute: string,
     options?: QueryInterfaceOptions
   ): Promise<void>;
@@ -403,7 +403,7 @@ export class QueryInterface {
    * Changes a column
    */
   public changeColumn(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
     options?: QueryInterfaceOptions
@@ -413,7 +413,7 @@ export class QueryInterface {
    * Renames a column
    */
   public renameColumn(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
     options?: QueryInterfaceOptions
@@ -423,13 +423,13 @@ export class QueryInterface {
    * Adds a new index to a table
    */
   public addIndex(
-    tableName: string,
+    tableName: TableName,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   public addIndex(
-    tableName: string,
+    tableName: TableName,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -437,21 +437,21 @@ export class QueryInterface {
   /**
    * Removes an index of a table
    */
-  public removeIndex(tableName: string, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
-  public removeIndex(tableName: string, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
+  public removeIndex(tableName: TableName, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
+  public removeIndex(tableName: TableName, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
 
   /**
    * Adds constraints to a table
    */
   public addConstraint(
-    tableName: string,
+    tableName: TableName,
     options?: AddConstraintOptions & QueryInterfaceOptions
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: string, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Shows the index of a table
@@ -471,7 +471,7 @@ export class QueryInterface {
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: string, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryInterfaceOptions): Promise<object>;
 
   /**
    * Inserts a new record
