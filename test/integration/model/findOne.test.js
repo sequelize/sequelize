@@ -7,7 +7,6 @@ const chai = require('chai'),
   Support = require('../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types'),
-  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -248,7 +247,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should allow us to find IDs using capital letters', async function() {
-        const User = this.sequelize.define(`User${config.rand()}`, {
+        const User = this.sequelize.define(`User${Support.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
@@ -271,6 +270,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const user = await User.findOne({ where: { username: 'LONGusername' } });
           expect(user).to.exist;
           expect(user.username).to.equal('longUserNAME');
+        });
+      }
+
+      if (dialect === 'postgres') {
+        it('should allow case-sensitive find on TSVECTOR type', async function() {
+          const User = this.sequelize.define('UserWithCaseInsensitiveName', {
+            username: Sequelize.TSVECTOR
+          });
+
+          await User.sync({ force: true });
+          await User.create({ username: 'longUserNAME' });
+          const user = await User.findOne({
+            where: { username: 'longUserNAME' }
+          });
+          expect(user).to.exist;
+          expect(user.username).to.equal("'longUserNAME'");
         });
       }
     });

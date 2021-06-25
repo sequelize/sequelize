@@ -4,19 +4,24 @@ about: Suggest an idea for this project
 title: ''
 labels: ''
 assignees: ''
+
 ---
 
 <!--
 If you don't follow the issue template, your issue may be closed.
 Please note this is an issue tracker, not a support forum.
-For general questions, please use StackOverflow or Slack.
+For general questions, please use StackOverflow.
 -->
+
+## Issue Creation Checklist
+
+[ ] I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
 
 ## Feature Description
 
 ### Is your feature request related to a problem? Please describe.
 
-A clear and concise description of what the problem is. Example: I'm always frustrated when [...]
+A clear and concise description of what the problem is. Example: I'm always frustrated when ...
 
 ### Describe the solution you'd like
 
@@ -44,8 +49,8 @@ Add any other context or screenshots about the feature request here.
 
 ### Is this feature dialect-specific?
 
-- [ ] No. This issue is relevant to Sequelize as a whole.
-- [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
+- [ ] No. This feature is relevant to Sequelize as a whole.
+- [ ] Yes. This feature only applies to the following dialect(s): XXX, YYY, ZZZ
 
 ### Would you be willing to implement this feature by submitting a Pull Request?
 

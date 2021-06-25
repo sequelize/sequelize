@@ -13,17 +13,19 @@ Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
+Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help.
+
 ### v6 Release
 
 You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
 
 ## Note: Looking for maintainers!
 
-Due to various personal reasons, a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy recently. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+Recently, a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
 
-We are looking for more core maintainers who are interested in finishing the current TypeScript migration, extending the documentation for v6, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
+We are looking for more core maintainers who are interested in improving/fixing our TypeScript typings, improving the documentation, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
 
-If that sounds interesting to you, please reach out to us on [Slack](https://sequelize.slack.com/). We are looking forward to meet you!
+If that sounds interesting to you, please reach out to us on [our Slack channel](https://sequelize.slack.com/) by sending a direct message to *Pedro A P B*. If you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
 
 ## Installation
 

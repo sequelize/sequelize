@@ -605,23 +605,5 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
-
-    if (Support.getTestDialect() === 'sqlite') {
-      it('binds array parameters for upsert are replaced. $$ unescapes only once', async function() {
-        let logSql;
-        await this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: [1, 2], logging(s) { logSql = s; } });
-        // sqlite.exec does not return a result
-        expect(logSql).to.not.include('$one');
-        expect(logSql).to.include('\'$$\'');
-      });
-
-      it('binds named parameters for upsert are replaced. $$ unescapes only once', async function() {
-        let logSql;
-        await this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
-        // sqlite.exec does not return a result
-        expect(logSql).to.not.include('$one');
-        expect(logSql).to.include('\'$$\'');
-      });
-    }
   });
 });
