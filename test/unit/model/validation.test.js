@@ -6,8 +6,7 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Op = Sequelize.Op,
   Support = require('../support'),
-  current = Support.sequelize,
-  config = require('../../config/config');
+  current = Support.sequelize;
 
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
@@ -188,7 +187,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           validations[validator] = validatorDetails.spec || {};
           validations[validator].msg = message;
 
-          const UserFail = this.sequelize.define(`User${config.rand()}`, {
+          const UserFail = this.sequelize.define(`User${Support.rand()}`, {
             name: {
               type: Sequelize.STRING,
               validate: validations
@@ -219,7 +218,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             validations[validator] = true;
           }
 
-          const UserSuccess = this.sequelize.define(`User${config.rand()}`, {
+          const UserSuccess = this.sequelize.define(`User${Support.rand()}`, {
             name: {
               type: Sequelize.STRING,
               validate: validations

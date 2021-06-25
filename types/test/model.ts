@@ -52,7 +52,7 @@ MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({
+const model: typeof MyModel = MyModel.init({
   virtual: {
     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
     get() {
@@ -184,3 +184,4 @@ expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof Mode
 expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unreferencedAttribute'>();
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
+expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
