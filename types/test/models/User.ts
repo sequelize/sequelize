@@ -111,10 +111,8 @@ User.addHook('beforeFind', 'test', (options: FindOptions<UserAttributes>) => {
 });
 
 User.addHook('afterDestroy', async (instance, options) => {
-  await instance.sequelize.transaction(options, () => {
-    // allow for transactions without destructuring
-    return Promise.resolve();
-  });
+  // `options` from `afterDestroy` should be passable to `sequelize.transaction`
+  await instance.sequelize.transaction(options, async () => undefined);
 });
 
 // Model#addScope
