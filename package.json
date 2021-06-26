@@ -85,6 +85,7 @@
     "pg-hstore": "^2.x",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.3.0",
+    "semantic-release-fail-on-major-bump": "^1.0.0",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
     "sqlite3": "^4.2.0",
@@ -161,6 +162,9 @@
     }
   },
   "release": {
+    "plugins": [
+      "semantic-release-fail-on-major-bump"
+    ],
     "branches": [
       "v6"
     ],
