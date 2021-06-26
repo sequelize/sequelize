@@ -73,6 +73,7 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     env:
+      SEQ_PORT: 5432
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
@@ -124,6 +125,7 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin -usequelize_test -psequelize_test status" --health-interval 10s --health-timeout 5s --health-retries 5 --tmpfs /var/lib/mysql:rw
     env:
+      SEQ_PORT: 3306
       DIALECT: ${{ matrix.dialect }}
     steps:
       - run: mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
@@ -153,7 +155,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -l 30 -Q \"SELECT 1\" || exit 1"
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
           --health-start-period 10s
           --health-interval 10s
           --health-timeout 5s
@@ -162,6 +164,7 @@ jobs:
       DIALECT: mssql
       SEQ_USER: SA
       SEQ_PW: Password12!
+      SEQ_PORT: 1433
     steps:
       - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
       - uses: actions/checkout@v2
@@ -187,4 +190,4 @@ jobs:
         with:
           node-version: 12.x
       - run: npm install
-      - run: npm run semantic-release
+      - run: npx semantic-release
