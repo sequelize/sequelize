@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [12]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [12]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
@@ -98,17 +98,9 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
-            node-version: 10
-          - name: MySQL 5.7
-            image: mysql:5.7
-            dialect: mysql
             node-version: 12
-          - name: MariaDB 10.3
-            image: mariadb:10.3
-            dialect: mariadb
-            node-version: 10
-          - name: MariaDB 10.3
-            image: mariadb:10.3
+          - name: MariaDB latest
+            image: mariadb:latest
             dialect: mariadb
             node-version: 12
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
@@ -142,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [12]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -176,18 +168,18 @@ jobs:
         run: npm run test-unit
       - name: Integration Tests
         run: npm run test-integration
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - run: npm install
-      - run: npx semantic-release
+  # release:
+  #   name: Release
+  #   runs-on: ubuntu-latest
+  #   needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
+  #   env:
+  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 12.x
+  #     - run: npm install
+  #     - run: npx semantic-release
