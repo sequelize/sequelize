@@ -42,14 +42,14 @@
     "sequelize-pool": "^6.0.0",
     "toposort-class": "^1.0.1",
     "uuid": "^8.1.0",
-    "validator": "^10.11.0",
+    "validator": "^13.6.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-angular": "^11.0.0",
     "@types/node": "^12.12.42",
-    "@types/validator": "^10.11.0",
+    "@types/validator": "^13.1.4",
     "acorn": "^8.0.4",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
