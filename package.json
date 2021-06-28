@@ -191,7 +191,7 @@
     "----------------------------------------- tests ---------------------------------------------------": "",
     "test-unit": "mocha \"test/unit/**/*.test.js\"",
     "test-integration": "mocha \"test/integration/**/*.test.js\"",
-    "test-sf": "mocha --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/connector-manager.test.js\"",
+    "test-sf": "mocha \"test/integration/**/smoke.test.js\"",
     "teaser": "node test/teaser.js",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
