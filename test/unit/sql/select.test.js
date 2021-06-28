@@ -508,6 +508,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }
       }, User), {
         postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
+        snowflake: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X\'313233\');',
         mariadb: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
         mysql: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
         sqlite: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
@@ -521,6 +522,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]
         }), {
           default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
+          snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
           mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];'
         });
       });
