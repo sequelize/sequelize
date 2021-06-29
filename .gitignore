@@ -15,3 +15,5 @@ test/binary/tmp/*
 .vscode/
 esdoc
 node_modules
+Sequelize.test.js.result.txt
+UNIX_Test_Result.txt
