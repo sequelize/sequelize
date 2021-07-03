@@ -73,7 +73,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
         mariadb: 'TINYTEXT',
-        mysql: 'TINYTEXT'
+        mysql: 'TINYTEXT',
+        snowflake: 'TEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
@@ -146,7 +147,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)'
+        sqlite: 'TINYINT(1)',
+        snowflake: 'BOOLEAN'
       });
 
       describe('validate', () => {
@@ -177,7 +179,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME',
         mysql: 'DATETIME',
-        sqlite: 'DATETIME'
+        sqlite: 'DATETIME',
+        snowflake: 'TIMESTAMP'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
@@ -185,7 +188,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
-        sqlite: 'DATETIME'
+        sqlite: 'DATETIME',
+        snowflake: 'TIMESTAMP'
       });
 
       describe('validate', () => {
@@ -231,7 +235,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'CHAR(36)',
         mariadb: 'CHAR(36) BINARY',
         mysql: 'CHAR(36) BINARY',
-        sqlite: 'UUID'
+        sqlite: 'UUID',
+        snowflake: 'VARCHAR(36)'
       });
 
       describe('validate', () => {
@@ -1436,7 +1441,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.GEOMETRY) {
       describe('GEOMETRY', () => {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
-          default: 'GEOMETRY'
+          default: 'GEOMETRY',
+          snowflake: 'GEOGRAPHY'
         });
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
