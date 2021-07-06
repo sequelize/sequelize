@@ -3,11 +3,6 @@
   "description": "Multi dialect ORM for Node.JS",
   "version": "0.0.0-development",
   "maintainers": [
-    "Sascha Depold <sascha@depold.com>",
-    "Jan Aagaard Meier <janzeh@gmail.com>",
-    "Daniel Durante <me@danieldurante.com>",
-    "Mick Hansen <mick.kasper.hansen@gmail.com>",
-    "Sushant Dhiman <sushantdhiman@outlook.com>",
     "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
   ],
   "repository": {
