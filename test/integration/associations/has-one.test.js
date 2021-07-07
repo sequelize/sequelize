@@ -354,6 +354,24 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       expect(task.UserXYZ).to.exist;
     });
+
+    it('should support custom primary key field name in sub queries', async function() {
+      const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }),
+        Task = this.sequelize.define('TaskXYZ', { id: {
+          field: 'Id',
+          type: Sequelize.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        }, title: Sequelize.STRING, status: Sequelize.STRING });
+
+      Task.hasOne(User);
+
+      await Task.sync({ force: true });
+      await User.sync({ force: true });
+
+      const task0 = await Task.create({ title: 'task', status: 'inactive', User: { username: 'foo', gender: 'male' } }, { include: User });
+      await expect(task0.reload({ subQuery: true })).to.not.eventually.be.rejected;
+    });
   });
 
   describe('foreign key constraints', () => {
