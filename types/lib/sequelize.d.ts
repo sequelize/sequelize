@@ -1165,9 +1165,9 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TCreationAttributes = M['_attributes']>(
+  public define<M extends Model, TAttributes = M['_attributes']>(
     modelName: string,
-    attributes: ModelAttributes<M, TCreationAttributes>,
+    attributes: ModelAttributes<M, TAttributes>,
     options?: ModelOptions
   ): ModelCtor<M>;
 
