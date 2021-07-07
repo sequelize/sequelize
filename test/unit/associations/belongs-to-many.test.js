@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
       await user.setTasks([task1, task2]);
       await user.setTasks(null);
-      expect(this.findAll).to.have.been.calledTwice;
+      expect(this.findAll).to.have.been.calledOnce;
       expect(this.destroy).to.have.been.calledOnce;
     });
   });
