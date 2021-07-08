@@ -409,7 +409,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fieldD: Sequelize.STRING
       }, {
         indexes: indices,
-        engine: 'MyISAM'
+        engine: 'InnoDB'
       });
 
       await this.sequelize.sync();
@@ -467,9 +467,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx1.type).to.equal('BTREE');
         expect(idx2.type).to.equal('FULLTEXT');
 
+        let expectedOrder = 'ASC';
+        if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '8.0.0')) {
+          expectedOrder = 'DESC';
+        }
+
         expect(idx1.fields).to.deep.equal([
           { attribute: 'fieldB', length: undefined, order: 'ASC' },
-          { attribute: 'fieldA', length: 5, order: 'ASC' }
+          { attribute: 'fieldA', length: 5, order: expectedOrder }
         ]);
 
         expect(idx2.fields).to.deep.equal([
@@ -2273,8 +2278,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       } catch (err) {
         if (dialect === 'mysql') {
-          // MySQL 5.7 or above doesn't support POINT EMPTY
-          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
+          if (semver.gte(current.options.databaseVersion, '8.0.0')) {
+            expect(err.message).to.match(/Failed to open the referenced table/);
+          } else if (semver.gte(current.options.databaseVersion, '5.6.0')) {
+            // MySQL 5.7 or above doesn't support POINT EMPTY
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
             expect(err.message).to.match(/Can't create table/);

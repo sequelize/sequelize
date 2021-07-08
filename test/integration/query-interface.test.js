@@ -90,7 +90,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           tableNames = tableNames.map(v => v.tableName);
         }
         tableNames.sort();
-        expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
+        expect(tableNames).to.include('my_test_table1');
+        expect(tableNames).to.include('my_test_table2');
       });
     }
   });
