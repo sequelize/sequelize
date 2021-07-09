@@ -226,7 +226,10 @@ The options to be applied in this case are the same from the One-To-One case. Fo
 Team.hasMany(Player, {
   foreignKey: 'clubId'
 });
-Player.belongsTo(Team);
+Player.belongsTo(Team, {
+  foreignKey: 'clubId',
+  onDelete: 'RESTRICT'
+});
 ```
 
 Like One-To-One relationships, `ON DELETE` defaults to `SET NULL` and `ON UPDATE` defaults to `CASCADE`.
