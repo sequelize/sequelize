@@ -372,6 +372,11 @@ export const JSON: AbstractDataTypeConstructor;
 export const JSONB: AbstractDataTypeConstructor;
 
 /**
+ * A text search column. Only available in postgres.
+ */
+export const TSVECTOR: AbstractDataTypeConstructor;
+
+/**
  * A default value of the current timestamp
  */
 export const NOW: AbstractDataTypeConstructor;
@@ -602,7 +607,7 @@ export const INET: AbstractDataTypeConstructor;
 export const MACADDR: AbstractDataTypeConstructor;
 
 /**
- * Case incenstive text
+ * Case insensitive text
  */
 export const CITEXT: AbstractDataTypeConstructor;
 
