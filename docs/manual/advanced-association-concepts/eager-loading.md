@@ -422,7 +422,9 @@ If you don't want anything from the junction table, you can explicitly provide a
 Foo.findOne({
   include: {
     model: Bar,
-    attributes: []
+    through: {
+      attributes: []
+    }
   }
 });
 ```
