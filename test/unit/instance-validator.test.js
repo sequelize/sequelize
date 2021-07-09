@@ -78,6 +78,88 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       await expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
     });
+
+    describe('when value is null', () => {
+      it('runs custom validators only if allowNull is not false', async () => {
+        const User = Support.sequelize.define('user', {
+          allowNullDefault: {
+            type: Support.Sequelize.STRING,
+            validate: {
+              custom() {
+                throw new Error('allowNullDefault error');
+              }
+            }
+          },
+          allowNullTrue: {
+            type: Support.Sequelize.STRING,
+            allowNull: true,
+            validate: {
+              custom() {
+                throw new Error('allowNullTrue error');
+              }
+            }
+          },
+          allowNullFalse: {
+            type: Support.Sequelize.STRING,
+            allowNull: false,
+            validate: {
+              custom() {
+                throw new Error('allowNullFalse error'); // Not executed
+              }
+            }
+          }
+        });
+
+        const instanceValidator = new InstanceValidator(User.build());
+        const err = await expect(instanceValidator.validate()).to.be.rejected;
+        expect(err.errors.length).to.equal(3);
+
+        expect(err.errors[0]).to.include({
+          message: 'allowNullDefault error',
+          path: 'allowNullDefault',
+          type: 'Validation error'
+        });
+        expect(err.errors[1]).to.include({
+          message: 'allowNullTrue error',
+          path: 'allowNullTrue',
+          type: 'Validation error'
+        });
+        expect(err.errors[2]).to.include({
+          message: 'user.allowNullFalse cannot be null',
+          path: 'allowNullFalse',
+          type: 'notNull Violation'
+        });
+      });
+
+      it('does not run buiilt in validations', async () => {
+        const User = Support.sequelize.define('user', {
+          allowNullDefault: {
+            type: Support.Sequelize.STRING,
+            validate: { isEmail: true }
+          },
+          allowNullTrue: {
+            type: Support.Sequelize.STRING,
+            allowNull: true,
+            validate: { isEmail: true }
+          },
+          allowNullFalse: {
+            type: Support.Sequelize.STRING,
+            allowNull: false,
+            validate: { isEmail: true }
+          }
+        });
+
+        const instanceValidator = new InstanceValidator(User.build());
+        const err = await expect(instanceValidator.validate()).to.be.rejected;
+        expect(err.errors.length).to.equal(1);
+
+        expect(err.errors[0]).to.include({
+          message: 'user.allowNullFalse cannot be null',
+          path: 'allowNullFalse',
+          type: 'notNull Violation'
+        });
+      });
+    });
   });
 
   describe('_validateAndRunHooks', () => {
