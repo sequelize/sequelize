@@ -10,6 +10,7 @@ import {
   Poolable,
   ModelCtor, ModelStatic, ModelType
 } from './model';
+import { QueryGenerator } from './query-generator'
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
@@ -285,10 +286,8 @@ export interface ColumnsDescription {
 export class QueryInterface {
   /**
    * Returns the dialect-specific sql generator.
-   *
-   * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public queryGenerator: unknown;
+  public queryGenerator: QueryGenerator;
 
   /**
    * Returns the current sequelize instance.
