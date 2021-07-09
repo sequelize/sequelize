@@ -1,5 +1,4 @@
 'use strict';
-
 const Support   = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,

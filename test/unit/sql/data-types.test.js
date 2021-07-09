@@ -205,6 +205,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('TIME', () => {
+      testsql('TIME', DataTypes.TIME, {
+        postgres: 'TIME',
+        mssql: 'TIME',
+        mariadb: 'TIME',
+        mysql: 'TIME',
+        sqlite: 'TIME'
+      });
+
+      describe('validate', () => {
+        it('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.TIME();
+
+          expect(() => {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid date');
+        });
+
+        it('should return `true` if `value` is a date', () => {
+          const type = DataTypes.TIME();
+
+          expect(type.validate(new Date())).to.equal(true);
+        });
+
+        it('should return `true` if `value` is a time', () => {
+          const type = DataTypes.TIME();
+
+          expect(type.validate('12:30:30')).to.equal(true);
+        });
+
+      });
+    });
+    
+
     if (current.dialect.supports.HSTORE) {
       describe('HSTORE', () => {
         describe('validate', () => {
