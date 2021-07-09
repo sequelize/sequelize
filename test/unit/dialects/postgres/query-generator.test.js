@@ -721,6 +721,18 @@ if (dialect.startsWith('postgres')) {
             bind: []
           },
           needsSequelize: true
+        }, {
+          arguments: [
+            { schema: 'mySchema', tableName: 'myTable' },
+            { name: 'foo' },
+            {},
+            sequelize => ({ updateOnDuplicate: ['name'], upsertKeys: ['other_column', sequelize.fn('FOO', sequelize.literal('<literal>'), sequelize.col('bar')), "foo';DROP TABLE mySchema.myTable;"], returning: ['id'] })
+          ],
+          expectation: {
+            query: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ($1) ON CONFLICT (\"other_column\",FOO(<literal>, \"bar\"),\"foo';DROP TABLE mySchema.myTable;\") DO UPDATE SET \"name\"=EXCLUDED.\"name\" RETURNING \"id\";",
+            bind: ['foo']
+          },
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
@@ -863,6 +875,14 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT (\"name\") DO UPDATE SET \"name\"=EXCLUDED.\"name\";"
+        }, {
+          arguments: [
+            { schema: 'mySchema', tableName: 'myTable' },
+            [{ name: 'foo-1' }, { name: 'foo-2' }],
+            sequelize => ({ updateOnDuplicate: ['name'], upsertKeys: ['other_column', sequelize.fn('FOO', sequelize.literal('<literal>'), sequelize.col('bar')), "foo';DROP TABLE mySchema.myTable;"] })
+          ],
+          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo-1'),('foo-2') ON CONFLICT (\"other_column\",FOO(<literal>, \"bar\"),\"foo';DROP TABLE mySchema.myTable;\") DO UPDATE SET \"name\"=EXCLUDED.\"name\";",
+          needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
@@ -1254,6 +1274,7 @@ if (dialect.startsWith('postgres')) {
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') test.arguments[1] = test.arguments[1](this.sequelize);
               if (typeof test.arguments[2] === 'function') test.arguments[2] = test.arguments[2](this.sequelize);
+              if (typeof test.arguments[3] === 'function') test.arguments[3] = test.arguments[3](this.sequelize);
             }
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
