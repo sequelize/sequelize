@@ -459,22 +459,24 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
 }
 
 type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as: string } | string
-type OrderItemColumn = string | Col | Fn | Literal
+type OrderItemColumn = string | Col | Fn | Literal | Where
+type OrderOptions = 'ASC' | 'DESC' | 'ASC NULLS FIRST' | 'ASC NULLS LAST' | 'DESC NULLS FIRST' | 'DESC NULLS LAST' | 'NULLS FIRST' | 'NULLS LAST'
 export type OrderItem =
   | string
   | Fn
   | Col
   | Literal
-  | [OrderItemColumn, string]
+  | Where
+  | [OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = Fn | Col | Literal | OrderItem[];
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, OrderOptions]
+export type Order = Fn | Col | Literal | Where | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
@@ -1821,7 +1823,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>): Promise<M[]>;
+    options?: FindOptions<M['_attributes']> & { raw?: false }): Promise<M[]>;
+  public static findAll<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options?: FindOptions<M['_attributes']> & { raw: true }): Promise<R[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1830,25 +1835,43 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'>
+    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'> & { raw?: false }
   ): Promise<M>;
+  public static findByPk<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'> & { raw: true }
+  ): Promise<R>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<M['_attributes']>, 'where'>
+    options?: Omit<FindOptions<M['_attributes']>, 'where'> & { raw?: false }
   ): Promise<M | null>;
+  public static findByPk<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    identifier?: Identifier,
+    options?: Omit<FindOptions<M['_attributes']>, 'where'> & { raw: true }
+  ): Promise<R | null>;
 
   /**
    * Search for a single instance. Returns the first instance found, or null if none can be found.
    */
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<M['_attributes']>
+    options: NonNullFindOptions<M['_attributes']> & { raw?: false }
   ): Promise<M>;
+  public static findOne<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options: NonNullFindOptions<M['_attributes']> & { raw: true }
+  ): Promise<R>;
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>
+    options?: FindOptions<M['_attributes']> & { raw?: false }
   ): Promise<M | null>;
+  public static findOne<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options?: FindOptions<M['_attributes']> & { raw: true }
+  ): Promise<R | null>;
 
   /**
    * Run an aggregation method on the specified field
