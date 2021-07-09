@@ -240,16 +240,20 @@ await User.findAll({
 });
 ```
 
-## The `afterCommit` hook
+## The `afterCommit`/`afterRollback` hook
 
-A `transaction` object allows tracking if and when it is committed.
+A `transaction` object allows tracking if and when it is committed/rolled back.
 
-An `afterCommit` hook can be added to both managed and unmanaged transaction objects:
+An `afterCommit`/`afterRollback` hook can be added to both managed and unmanaged transaction objects:
 
 ```js
 // Managed transaction:
 await sequelize.transaction(async (t) => {
   t.afterCommit(() => {
+    // Your logic
+  });
+
+  t.afterRollback(() => {
     // Your logic
   });
 });
@@ -260,19 +264,26 @@ t.afterCommit(() => {
   // Your logic
 });
 await t.commit();
+
+const t = await sequelize.transaction();
+t.afterRollback(() => {
+  // Your logic
+});
+await t.rollback();
 ```
 
-The callback passed to `afterCommit` can be `async`. In this case:
+The callback passed to `afterCommit`/`afterRollback` can be `async`. In this case:
 
 * For a managed transaction: the `sequelize.transaction` call will wait for it before settling;
-* For an unmanaged transaction: the `t.commit` call will wait for it before settling.
+* For an unmanaged transaction: the `t.commit`/`t.rollback` call will wait for it before settling.
 
 Notes:
 
 * The `afterCommit` hook is not raised if the transaction is rolled back;
+* The `afterRollback` hook is not raised if the transaction is committed;
 * The `afterCommit` hook does not modify the return value of the transaction (unlike most hooks)
 
-You can use the `afterCommit` hook in conjunction with model hooks to know when a instance is saved and available outside of a transaction
+You can use the `afterCommit`/`afterRollback` hook in conjunction with model hooks to know when a instance is saved and available outside of a transaction
 
 ```js
 User.afterSave((instance, options) => {
@@ -280,6 +291,7 @@ User.afterSave((instance, options) => {
     // Save done within a transaction, wait until transaction is committed to
     // notify listeners the instance has been saved
     options.transaction.afterCommit(() => /* Notify */)
+    options.transaction.afterRollback(() => /* Notify error? */)
     return;
   }
   // Save done outside a transaction, safe for callers to fetch the updated model

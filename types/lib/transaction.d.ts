@@ -27,6 +27,11 @@ export class Transaction {
   public afterCommit(fn: (transaction: this) => void | Promise<void>): void;
 
   /**
+   * Adds hook that is run after a transaction is rolled back
+   */
+  public afterRollback(fn: (transaction: this) => void | Promise<void>): void;
+
+  /**
    * Returns possible options for row locking
    */
   static get LOCK(): LOCK;
