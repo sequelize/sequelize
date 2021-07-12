@@ -129,13 +129,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 * `npm run setup-mysql`
 * `npm run setup-postgres`
 * `npm run setup-mssql`
-<<<<<<< HEAD
-<<<<<<< HEAD
 * `npm run start-db2`
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
 
 *Note:* if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -170,13 +164,7 @@ Then, if you want to run tests for another dialect, assuming you've set it up as
 * `npm run test-mariadb`
 * `npm run test-postgres`
 * `npm run test-mssql`
-<<<<<<< HEAD
-<<<<<<< HEAD
 * `npm run test-db2`
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
 
 There are also the `test-unit-*` and `test-integration-*` sets of npm scripts (for example, `test-integration-postgres`).
 
@@ -187,15 +175,7 @@ While you're developing, you may want to execute only a single test (or a few), 
 Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `npm run setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended)):
 
 ```
-<<<<<<< HEAD
-<<<<<<< HEAD
 DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha && DIALECT=db2 npx mocha
-=======
-DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
-=======
-DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
 ```
 
 
@@ -210,13 +190,7 @@ Run it for the dialect of your choice using one of the following commands:
 * `npm run sscce-postgres`
 * `npm run sscce-sqlite`
 * `npm run sscce-mssql`
-<<<<<<< HEAD
-<<<<<<< HEAD
 * `npm run sscce-db2`
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
-=======
->>>>>>> 5fa695fd4f81faeae3528bf4aae519dfd1e5b1ae
 
 _Note:_ First, you need to set up (once) the database instance for corresponding dialect, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended).
 
