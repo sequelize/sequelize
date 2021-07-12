@@ -2,12 +2,11 @@
 export DIALECT=db2
 
 sudo mkdir -p Docker
-sudo docker login
 if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ]; 
 	then
-        	# cleanup
-        	sudo docker rm -f db2server
+    # cleanup
+    sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
 	sudo docker pull ibmcom/db2
@@ -19,16 +18,14 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	  then	  
 		sudo docker exec -ti db2server bash -c "su db2inst1 & disown"
 		node check.js
-		cd ../../
-		npm run test-db2
 		break
 	  fi
 	  if ($count -gt 30); then
 		echo "Error: Db2 docker setup has not completed in 10 minutes."
 		break
 	  fi
-
 	  sleep 20
 	  let "count=count+1"
 	done
+  echo "Local DB2-11.5 instance is ready for Sequelize tests."
 fi
