@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql'].includes(current.dialect.name)) {
+    if (!['sqlite', 'mssql', 'db2'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
       });
-
+      
       it('should not deadlock with concurrency duplicate entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
       });
     }
-
+	
     it('should support special characters in defaults', async function() {
       const User = this.sequelize.define('user', {
         objectId: {
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
+      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -739,14 +739,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // Timestamps should have milliseconds. However, there is a small chance that
       // it really is 0 for one of them, by coincidence. So we check twice with two
       // users created almost at the same time.
-      expect([
-        user1.created_time.getMilliseconds(),
-        user2.created_time.getMilliseconds()
-      ]).not.to.deep.equal([0, 0]);
-      expect([
-        user1.updated_time.getMilliseconds(),
-        user2.updated_time.getMilliseconds()
-      ]).not.to.deep.equal([0, 0]);
+      if (dialect === 'db2') {
+        expect([
+          user1.created_time.getMilliseconds(),
+          user2.created_time.getMilliseconds()
+        ]).not.to.equal([0, 0]);
+        expect([
+          user1.updated_time.getMilliseconds(),
+          user2.updated_time.getMilliseconds()
+        ]).not.to.equal([0, 0]);
+      } else {
+        expect([
+          user1.created_time.getMilliseconds(),
+          user2.created_time.getMilliseconds()
+        ]).not.to.deep.equal([0, 0]);
+        expect([
+          user1.updated_time.getMilliseconds(),
+          user2.updated_time.getMilliseconds()
+        ]).not.to.deep.equal([0, 0]);
+      }
     });
 
     it('works with custom timestamps and underscored', async function() {
@@ -1125,8 +1136,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           activity_date: { type: Sequelize.DATe }
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-    });
-
+    });	
+    
     it('sets a 64 bit int in bigint', async function() {
       const User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT
@@ -1136,7 +1147,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const user = await User.create({ big: '9223372036854775807' });
       expect(user.big).to.be.equal('9223372036854775807');
     });
-
+	
     it('sets auto increment fields', async function() {
       const User = this.sequelize.define('UserWithAutoIncrementField', {
         userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
@@ -1186,10 +1197,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(test).to.be.true;
     });
 
-    it('should only store the values passed in the whitelist', async function() {
-      const data = { username: 'Peter', secretValue: '42' };
+    it('should only store the values passed in the whitelist', async function() {      
+      // A unique column do not accept NULL in Db2. Unique column must have value in insert statement.
+      const data = dialect === 'db2' ? { username: 'Peter', secretValue: '42', uniqueName: 'name' } : { username: 'Peter', secretValue: '42' };
+      const fields = dialect === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };
 
-      const user = await this.User.create(data, { fields: ['username'] });
+      const user = await this.User.create(data, fields);
       const _user = await this.User.findByPk(user.id);
       expect(_user.username).to.equal(data.username);
       expect(_user.secretValue).not.to.equal(data.secretValue);

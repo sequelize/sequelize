@@ -152,6 +152,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           if (dialect === 'postgres') {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
+          } else if (dialect === 'db2') {
+            expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
           } else { // mysql, sqlite
@@ -782,7 +784,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .and.to.equal(i + 1);
           });
         });
-
+        
         it('should only return fields that are not defined in the model (with returning: true)', async function() {
           const User = this.sequelize.define('user');
 

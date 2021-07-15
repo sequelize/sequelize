@@ -1102,7 +1102,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       // NOTE: mssql does not support changing an autoincrement primary key
-      if (dialect !== 'mssql') {
+      if (dialect !== 'mssql' && dialect !== 'db2') {
         it('can cascade updates', async function() {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -1372,7 +1372,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       return this.sequelize.sync({ force: true });
     });
-
+    
     it('should use sourceKey', async function() {
       const User = this.User,
         Task = this.Task;
@@ -1510,7 +1510,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       return this.sequelize.sync({ force: true });
     });
-
+    
     it('should use the specified sourceKey instead of the primary key', async function() {
       await this.User.create({ username: 'John', email: 'john@example.com' });
 

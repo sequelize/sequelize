@@ -463,6 +463,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
             [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
           ];
+        } else if (dialect === 'db2') {
+          findAttributes = [
+            Sequelize.literal('1 AS "someProperty"'),
+            [Sequelize.literal('1'), 'someProperty2']
+          ];
         } else {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),

@@ -8,3 +8,4 @@
 | MariaDB | [10.3](https://mariadb.com/kb/en/changes-improvements-in-mariadb-103/) |
 | Microsoft SQL Server | `12.0.2000` |
 | SQLite | [3.0](https://www.sqlite.org/version3.html) |
+| db2 | [11.5](https://www.ibm.com/in-en/products/db2-database) |
