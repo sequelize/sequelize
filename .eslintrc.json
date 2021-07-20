@@ -3,6 +3,7 @@
   "rules": {
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
+
     "jsdoc/check-param-names": "error",
     "jsdoc/check-tag-names": "error",
     "jsdoc/check-types": "error",
