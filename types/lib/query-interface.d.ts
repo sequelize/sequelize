@@ -80,6 +80,11 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
    * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
    */
   fieldMap?: FieldMap;
+  
+  /**
+   *  query include sqlUuid. pattern is /^[A-Z0-9-]{5,20}$/.
+   */
+  sqlUuid?: string;  
 }
 
 export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
