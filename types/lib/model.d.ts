@@ -700,7 +700,7 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes>
 {
   /**
    * The fields to insert / update. Defaults to all fields
