@@ -15,6 +15,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     await this.sequelize.sync({ force: true });
     const user0 = await User.create({ id: 1 });
     expect(user0.getAssignments).to.be.ok;
+    
     const task0 = await Task.create({ id: 1, userId: 1 });
     expect(task0.getOwner).to.be.ok;
 
