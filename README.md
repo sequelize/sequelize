@@ -38,6 +38,7 @@ $ npm i mysql2
 $ npm i mariadb
 $ npm i sqlite3
 $ npm i tedious # Microsoft SQL Server
+$ npm i ibm_db #DB2
 ```
 
 ## Documentation
