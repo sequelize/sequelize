@@ -33,6 +33,26 @@ jobs:
       - run: npm install
       - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
       - run: npm run test-typings
+  test-db2:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 12]
+    name: DB2 (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: db2
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm run start-db2
+      - name: Unit Tests
+        run: npm run test-unit
+      - name: Integration Tests
+        run: npm run test-integration
   test-sqlite:
     strategy:
       fail-fast: false
