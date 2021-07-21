@@ -9,13 +9,13 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
-	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database ibmcom/db2
+	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database sha256:e304e217603b80b31c989574081b2badf210b4466c7f74cf32087ee0a1ba6e04
 	count=1
 	while true
 	do
 	  if (sudo docker logs db2server | grep 'Setup has completed')
 	  then	  
-		sudo docker exec -ti db2server bash -c "su db2inst1 & disown"
+		winpty docker exec -ti db2server bash -c "su db2inst1 & disown"
 		node check.js
 		break
 	  fi
