@@ -15,7 +15,7 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	do
 	  if (sudo docker logs db2server | grep 'Setup has completed')
 	  then	  
-		winpty docker exec -ti db2server bash -c "su db2inst1 & disown"
+		sudo docker exec -ti db2server bash -c "su db2inst1 & disown"
 		node check.js
 		break
 	  fi
