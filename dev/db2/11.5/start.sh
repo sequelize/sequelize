@@ -1,4 +1,4 @@
-cd dev/db2
+cd dev/db2/11.5
 ./stop.sh
 export DIALECT=db2
 
