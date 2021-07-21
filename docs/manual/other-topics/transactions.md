@@ -272,7 +272,7 @@ Notes:
 * The `afterCommit` hook is not raised if the transaction is rolled back;
 * The `afterCommit` hook does not modify the return value of the transaction (unlike most hooks)
 
-You can use the `afterCommit` hook in conjunction with model hooks to know when a instance is saved and available outside of a transaction
+You can use the `afterCommit` hook in conjunction with model hooks to know when an instance is saved and available outside of a transaction
 
 ```js
 User.afterSave((instance, options) => {
