@@ -594,6 +594,30 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         ).to.be.rejected;
       });
     });
+
+    if (dialect === 'postgres') {
+      describe('ensureEnum', () => {
+        it('should be able to handle new enums no matter the order', async function() {
+          await this.sequelize.define('Test', {
+            enumOne: DataTypes.ENUM('a', 'b', 'c')
+          });
+          await this.sequelize.sync();
+
+          await this.sequelize.define('Test', {
+            enumOne: DataTypes.ENUM('a', 'b', 'c'),
+            enumTwo: DataTypes.ENUM('d', 'e', 'f')
+          });
+          await this.sequelize.sync();
+
+          await this.sequelize.define('Test', {
+            enumOne: DataTypes.ENUM('a', 'b', 'c'),
+            enumThree: DataTypes.ENUM('g', 'h', 'i'),
+            enumTwo: DataTypes.ENUM('d', 'e', 'f')
+          });
+          await this.sequelize.sync();
+        });
+      });
+    }
   });
 
   describe('drop should work', () => {
