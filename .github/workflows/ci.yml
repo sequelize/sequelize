@@ -45,6 +45,7 @@ jobs:
       SEQ_DB: testdb
       SEQ_USER: db2inst1
       SEQ_PW: password
+      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
