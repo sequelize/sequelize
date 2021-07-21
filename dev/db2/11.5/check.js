@@ -1,6 +1,6 @@
 'use strict';
 
-const sequelize = require('../../test/support').createSequelizeInstance();
+const sequelize = require('../../../test/support').createSequelizeInstance();
 
 (async () => {
   await sequelize.authenticate();
