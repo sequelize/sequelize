@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DIALECT: db2
+      SEQ_DB: testdb
+      SEQ_USER: db2inst1
+      SEQ_PW: password
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
