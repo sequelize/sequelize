@@ -24,7 +24,7 @@ import { ModelHooks } from "../lib/hooks";
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
     afterUpsert(m, options) {
-      expectTypeOf(m).toEqualTypeOf<TestModel>();
+      expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
   };
