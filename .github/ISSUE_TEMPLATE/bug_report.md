@@ -10,12 +10,17 @@ assignees: ''
 <!--
 If you don't follow the issue template, your issue may be closed.
 Please note this is an issue tracker, not a support forum.
-For general questions, please use StackOverflow or Slack.
+For general questions, please use StackOverflow:
+https://stackoverflow.com/questions/tagged/sequelize.js
 -->
 
-## Issue Description
+## Issue Creation Checklist
 
-### What are you doing?
+[ ] I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
+
+## Bug Description
+
+### SSCCE
 
 <!--
 We have a repository dedicated to make it easy for you to create an SSCCE.
@@ -26,13 +31,34 @@ Please consider using it, everyone wins!
 **Here is the link to the SSCCE for this issue:** LINK-HERE <!-- add a link to the SSCCE -->
 
 <!--
-If you don't want to use the SSCCE repository, you can also post a MINIMAL, SELF-CONTAINED code that reproduces the issue. It must be runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.
-Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-example to learn more about SSCCE/MCVE/reprex.
+Instead of using that repository, you can also clone the Sequelize repository and overwrite the `sscce.js` file in the root folder, run it locally and then provide the code here:
 -->
 
 ```js
 // You can delete this code block if you have included a link to your SSCCE above!
-// MINIMAL, SELF-CONTAINED code here (SSCCE/MCVE/reprex)
+const { createSequelizeInstance } = require('./dev/sscce-helpers');
+const { Model, DataTypes } = require('.');
+
+const sequelize = createSequelizeInstance({ benchmark: true });
+
+class User extends Model {}
+User.init({
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE
+}, { sequelize, modelName: 'user' });
+
+(async () => {
+  await sequelize.sync({ force: true });
+
+  const jane = await User.create({
+    username: 'janedoe',
+    birthday: new Date(1980, 6, 20)
+  });
+
+  console.log('\nJane:', jane.toJSON());
+
+  await sequelize.close();
+})();
 ```
 
 ### What do you expect to happen?
@@ -53,16 +79,15 @@ Output here
 
 ### Additional context
 
-Add any other context or screenshots about the feature request here.
+Add any other context and details here.
 
 ### Environment
 
 - Sequelize version: XXX <!-- run `npm list sequelize` to obtain this -->
 - Node.js version: XXX <!-- run `node -v` to obtain this -->
-- Operating System: XXX
-- If TypeScript related: TypeScript version: XXX
+- If TypeScript related: TypeScript version: XXX <!-- run `npm list typescript` to obtain this -->
 
-## Issue Template Checklist
+## Bug Report Checklist
 
 <!-- Please answer the questions below. If you don't, your issue may be closed. -->
 

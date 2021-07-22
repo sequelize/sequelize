@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Model, ModelCtor, WhereOptions } from './model';
+import { Model, ModelCtor, ModelType, WhereOptions } from './model';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 
@@ -40,9 +40,9 @@ export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping
   options: T, model: ModelCtor<M>
 ): T;
 
-export function mapWhereFieldNames(attributes: object, model: typeof Model): object;
+export function mapWhereFieldNames(attributes: object, model: ModelType): object;
 /** Used to map field names in values */
-export function mapValueFieldNames(dataValues: object, fields: string[], model: typeof Model): object;
+export function mapValueFieldNames(dataValues: object, fields: string[], model: ModelType): object;
 
 export function isColString(value: string): boolean;
 export function canTreatArrayAsAnd(arr: unknown[]): boolean;

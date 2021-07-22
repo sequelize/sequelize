@@ -8,13 +8,14 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor, ModelStatic
+  ModelCtor, ModelStatic, ModelType
 } from './model';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
+import { Deferrable } from './deferrable';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -216,6 +217,7 @@ export interface BaseConstraintOptions {
 
 export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
   type: 'unique';
+  deferrable?: Deferrable;
 }
 
 export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
@@ -230,16 +232,18 @@ export interface AddCheckConstraintOptions extends BaseConstraintOptions {
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
+  deferrable?: Deferrable;
 }
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   type: 'foreign key';
   references?: {
-    table: string;
+    table: TableName;
     field: string;
   };
   onDelete: string;
   onUpdate: string;
+  deferrable?: Deferrable;
 }
 
 export type AddConstraintOptions =
@@ -284,7 +288,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public QueryGenerator: unknown;
+  public queryGenerator: unknown;
 
   /**
    * Returns the current sequelize instance.
@@ -332,7 +336,7 @@ export class QueryInterface {
    * @param options       Table options.
    */
   public createTable<M extends Model>(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attributes: ModelAttributes<M, M['_creationAttributes']>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
@@ -343,7 +347,7 @@ export class QueryInterface {
    * @param tableName Table name.
    * @param options   Query options, particularly "force".
    */
-  public dropTable(tableName: string, options?: QueryInterfaceDropTableOptions): Promise<void>;
+  public dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
 
   /**
    * Drops all tables.
@@ -362,7 +366,7 @@ export class QueryInterface {
   /**
    * Renames a table
    */
-  public renameTable(before: string, after: string, options?: QueryInterfaceOptions): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Returns all tables
@@ -373,7 +377,7 @@ export class QueryInterface {
    * Describe a table
    */
   public describeTable(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     options?: string | { schema?: string; schemaDelimiter?: string } & Logging
   ): Promise<ColumnsDescription>;
 
@@ -381,7 +385,7 @@ export class QueryInterface {
    * Adds a new column to a table
    */
   public addColumn(
-    table: string | { schema?: string; tableName?: string },
+    table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
     options?: QueryInterfaceOptions
@@ -391,7 +395,7 @@ export class QueryInterface {
    * Removes a column from a table
    */
   public removeColumn(
-    table: string | { schema?: string; tableName?: string },
+    table: TableName,
     attribute: string,
     options?: QueryInterfaceOptions
   ): Promise<void>;
@@ -400,7 +404,7 @@ export class QueryInterface {
    * Changes a column
    */
   public changeColumn(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
     options?: QueryInterfaceOptions
@@ -410,7 +414,7 @@ export class QueryInterface {
    * Renames a column
    */
   public renameColumn(
-    tableName: string | { schema?: string; tableName?: string },
+    tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
     options?: QueryInterfaceOptions
@@ -420,13 +424,13 @@ export class QueryInterface {
    * Adds a new index to a table
    */
   public addIndex(
-    tableName: string,
+    tableName: TableName,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   public addIndex(
-    tableName: string,
+    tableName: TableName,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -434,21 +438,21 @@ export class QueryInterface {
   /**
    * Removes an index of a table
    */
-  public removeIndex(tableName: string, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
-  public removeIndex(tableName: string, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
+  public removeIndex(tableName: TableName, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
+  public removeIndex(tableName: TableName, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
 
   /**
    * Adds constraints to a table
    */
   public addConstraint(
-    tableName: string,
+    tableName: TableName,
     options?: AddConstraintOptions & QueryInterfaceOptions
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: string, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Shows the index of a table
@@ -468,7 +472,7 @@ export class QueryInterface {
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: string, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryInterfaceOptions): Promise<object>;
 
   /**
    * Inserts a new record
@@ -483,7 +487,7 @@ export class QueryInterface {
     insertValues: object,
     updateValues: object,
     where: object,
-    model: typeof Model,
+    model: ModelType,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -536,13 +540,13 @@ export class QueryInterface {
     tableName: TableName,
     identifier: WhereOptions<any>,
     options?: QueryOptions,
-    model?: typeof Model
+    model?: ModelType
   ): Promise<object>;
 
   /**
    * Returns selected rows
    */
-  public select(model: typeof Model | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: ModelType | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -562,7 +566,7 @@ export class QueryInterface {
     tableName: TableName,
     options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
-    model?: typeof Model
+    model?: ModelType
   ): Promise<string[]>;
 
   /**
