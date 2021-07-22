@@ -1,5 +1,5 @@
 import { expectTypeOf } from "expect-type";
-import { Model, SaveOptions, Sequelize, FindOptions } from "sequelize";
+import { Model, SaveOptions, Sequelize, FindOptions, UpsertOptions } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
 
 class TestModel extends Model {}
@@ -20,7 +20,15 @@ const hooks: Partial<ModelHooks> = {
   afterFind(m, options) {
     expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
     expectTypeOf(options).toEqualTypeOf<FindOptions>();
-  }
+  },
+  beforeUpsert(m, options) {
+    expectTypeOf(m).toEqualTypeOf<TestModel>();
+    expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+  },
+  afterUpsert(m, options) {
+    expectTypeOf(m).toEqualTypeOf<TestModel>();
+    expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+  },
 };
 
 export const sequelize = new Sequelize('uri', { hooks });
@@ -29,6 +37,8 @@ TestModel.init({}, { sequelize, hooks });
 TestModel.addHook('beforeSave', hooks.beforeSave!);
 TestModel.addHook('afterSave', hooks.afterSave!);
 TestModel.addHook('afterFind', hooks.afterFind!);
+TestModel.addHook('beforeUpsert', hooks.beforeUpsert!);
+TestModel.addHook('afterUpsert', hooks.afterUpsert!);
 
 /*
  * covers types/lib/model.d.ts
