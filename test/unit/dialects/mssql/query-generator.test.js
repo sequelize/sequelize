@@ -353,5 +353,99 @@ if (current.dialect.name === 'mssql') {
         });
       });
     });
+
+    describe('selectQuery', () => {
+      [
+        {
+          arguments: ['myTable', { where: { id: 2 } }],
+          expectation: { query: 'SELECT * FROM [myTable] WHERE [myTable].[id] = $1;', bind: [2] },
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', { where: { name: 'foo' } }],
+          expectation: { query: "SELECT * FROM [myTable] WHERE [myTable].[name] = $1;", bind: ['foo'] },
+          context: QueryGenerator
+        },
+        {
+          arguments: ['myTable', { where: 2 }],
+          expectation: { query: 'SELECT * FROM [myTable] WHERE [myTable].[id] = $1;', bind: [2] },
+          context: QueryGenerator
+        },
+        {
+          arguments: ['myTable', { limit: 10 }, { name: 'Test', primaryKeyField: 'test' }],
+          expectation: { query: 'SELECT * FROM [myTable] AS [Test] ORDER BY [Test].[test] OFFSET $1 ROWS FETCH NEXT $2 ROWS ONLY;', bind: [0, 10] },
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', { limit: 10, offset: 2 }, { name: 'Test', primaryKeyField: 'test' }],
+          expectation: { query: 'SELECT * FROM [myTable] AS [Test] ORDER BY [Test].[test] OFFSET $1 ROWS FETCH NEXT $2 ROWS ONLY;', bind: [2, 10] },
+          context: QueryGenerator
+        }, {
+          title: 'uses default limit if only offset is specified',
+          arguments: ['myTable', { offset: 2 }, { name: 'Test', primaryKeyField: 'test' }],
+          expectation: { query: 'SELECT * FROM [myTable] AS [Test] ORDER BY [Test].[test] OFFSET $1 ROWS;', bind: [2] },
+          context: QueryGenerator
+        }, {
+          title: 'uses limit 0',
+          arguments: ['myTable', { limit: 0 }],
+          expectation: { query: 'SELECT * FROM [myTable];', bind: [] },
+          context: QueryGenerator
+        }, {
+          title: 'uses offset 0',
+          arguments: ['myTable', { offset: 0 }],
+          expectation: { query: 'SELECT * FROM [myTable];', bind: [] },
+          context: QueryGenerator
+        }, {
+          title: 'multiple where arguments',
+          arguments: ['myTable', { where: { boat: 'canoe', weather: 'cold' } }],
+          expectation: { query: "SELECT * FROM [myTable] WHERE [myTable].[boat] = $1 AND [myTable].[weather] = $2;", bind: ['canoe', 'cold'] },
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (object)',
+          arguments: ['myTable', { where: {} }],
+          expectation: { query: 'SELECT * FROM [myTable];', bind: [] },
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (string)',
+          arguments: ['myTable', { where: [''] }],
+          expectation: { query: 'SELECT * FROM [myTable] WHERE 1=1;', bind: [] },
+          context: QueryGenerator
+        }, {
+          title: 'no where arguments (null)',
+          arguments: ['myTable', { where: null }],
+          expectation: { query: 'SELECT * FROM [myTable];', bind: [] },
+          context: QueryGenerator
+        }, {
+          title: 'buffer as where argument',
+          arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
+          expectation: { query: "SELECT * FROM [myTable] WHERE [myTable].[field] = $1;", bind: [Buffer.from('Sequelize')] },
+          context: QueryGenerator
+        }, {
+          title: 'use IS NOT if ne === null',
+          arguments: ['myTable', { where: { field: { [Op.ne]: null } } }],
+          expectation: { query: 'SELECT * FROM [myTable] WHERE [myTable].[field] IS NOT NULL;', bind: [] },
+          context: QueryGenerator
+        },
+      ].forEach(test => {
+            const query = test.expectation.query || test.expectation;
+            const title = test.title || `MSSQL correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
+            it(title, function() {
+              if (test.needsSequelize) {
+                if (typeof test.arguments[1] === 'function') test.arguments[1] = test.arguments[1](this.sequelize);
+                if (typeof test.arguments[2] === 'function') test.arguments[2] = test.arguments[2](this.sequelize);
+              }
+  
+              // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+              this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
+
+              expectsql(this.queryGenerator.selectQuery(...test.arguments), {
+                query: {
+                  mssql: test.expectation.query
+                },
+                bind: {
+                  mssql: test.expectation.bind
+                }
+              });
+            });
+          });
+    });
   });
 }

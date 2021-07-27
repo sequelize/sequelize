@@ -7,6 +7,7 @@ const chai = require('chai'),
   Support = require('../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types'),
+  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -99,9 +100,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.UserPrimary.findOne({
           where: { 'specialkey': 'awesome' },
-          logging(sql) {
+          logging(sql, queryObject) {
             test = true;
-            expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = N?'awesome'/);
+            if (dialect === 'mssql') {
+              expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = @0/);
+              expect(queryObject.bind[0]).to.equal('awesome');
+            } else {
+              expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = N?'awesome'/);
+            }
           }
         });
 
@@ -247,7 +253,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should allow us to find IDs using capital letters', async function() {
-        const User = this.sequelize.define(`User${Support.rand()}`, {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
@@ -915,7 +921,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by findByPk', async function() {
-        await expect(this.User.findByPk(4732322332323333232344334354234, {
+        await expect(this.User.findByPk(9007199254740990, {
           rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
