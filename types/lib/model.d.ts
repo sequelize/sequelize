@@ -730,6 +730,13 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+
+  /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query (in the same format as the where option for a finder such as `findByPk`).
+   * (note: updateOnDuplicate must be present for this to be used.)
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictWhere?: WhereOptions<TAttributes>;
 }
 
 /**

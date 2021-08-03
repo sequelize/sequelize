@@ -42,4 +42,11 @@ sequelize.transaction(async trx => {
     transaction: trx,
     validate: true,
   });
+
+  const res4: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
+    conflictWhere: {
+      foo: "abc",
+      bar: "def"
+    }
+  });
 })
