@@ -26,7 +26,7 @@ export interface UserAttributes {
  */
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'username' | 'lastName' | 'groupId'> {}
 
-export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+export class User extends Model<UserAttributes, UserCreationAttributes> {
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
@@ -147,3 +147,8 @@ User.scope([
 
 const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });
 instance.isSoftDeleted()
+
+// Typed models are able to be assigned to generic ModelCtor
+function actOnGenericModel(model: ModelCtor<any>) {}
+actOnGenericModel(User);
+actOnGenericModel(UserGroup);
