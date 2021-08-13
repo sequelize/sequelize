@@ -26,7 +26,7 @@ export interface UserAttributes {
  */
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'username' | 'lastName' | 'groupId'> {}
 
-export class User extends Model<UserAttributes, UserCreationAttributes> {
+export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
