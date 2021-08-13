@@ -454,6 +454,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users[2].uniqueName).to.equal('Michael');
           expect(users[2].secretValue).to.equal('26');
         });
+        
+        it('should update all fields by default without the updateOnDuplicate option', async function() {
+          const data = [
+            { uniqueName: 'Peter', secretValue: '42' },
+            { uniqueName: 'Paul', secretValue: '23' }
+          ];
+
+          await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
+          const new_data = [
+            { uniqueName: 'Peter', secretValue: '43' },
+            { uniqueName: 'Paul', secretValue: '24' },
+            { uniqueName: 'Michael', secretValue: '26' }
+          ];
+          await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'] });
+          const users = await this.User.findAll({ order: ['id'] });
+          expect(users.length).to.equal(3);
+          expect(users[0].uniqueName).to.equal('Peter');
+          expect(users[0].secretValue).to.equal('43');
+          expect(users[1].uniqueName).to.equal('Paul');
+          expect(users[1].secretValue).to.equal('24');
+          expect(users[2].uniqueName).to.equal('Michael');
+          expect(users[2].secretValue).to.equal('26');
+        });
 
         describe('should support the updateOnDuplicate option with primary keys', () => {
           it('when the primary key column names and model field names are the same', async function() {
