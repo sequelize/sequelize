@@ -762,7 +762,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 
   /**
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
-   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5). By default, all fields are updated.
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
    */
   updateOnDuplicate?: (keyof TAttributes)[];
 
