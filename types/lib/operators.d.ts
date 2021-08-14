@@ -467,6 +467,18 @@ declare const Op: {
    * ```
    */
   readonly values: unique symbol;
-};
+  /**
+   * Operator @@ (PG only)
+   *
+   * ```js
+   * [Op.tsmatch]: Sequelize.fn('to_tsquery', 'fat & hat')
+   * ```
+   * In SQL
+   * ```sql
+   * @@ to_tsquery('fat & hat')
+   * ```
+   */
+   readonly match: unique symbol;
+  };
 
 export = Op;

@@ -547,6 +547,11 @@ export interface ArrayDataTypeOptions<T extends AbstractDataTypeConstructor | Ab
   type: T;
 }
 
+ /**
+ * Full text search vector. Only available in postgres.
+ */
+export const TSVECTOR: AbstractDataTypeConstructor;
+
 /**
  * A geometry datatype represents two dimensional spacial objects.
  */

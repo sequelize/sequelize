@@ -307,6 +307,13 @@ export interface WhereOperators {
    */
   [Op.noExtendRight]?: Rangable;
 
+  /**
+   * PG only
+   *
+   * Match in the context of full text search
+   */
+  [Op.match]?: Literal;
+
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
