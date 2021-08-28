@@ -520,7 +520,7 @@ export class QueryInterface {
     values: object,
     identifier: WhereOptions<any>,
     options?: QueryOptions,
-    attributes?: object,
+    attributes?: object
   ): Promise<object>;
 
   /**
