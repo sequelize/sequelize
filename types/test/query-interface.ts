@@ -65,9 +65,9 @@ async function test() {
 
   await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
-  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {}, {});
 
-  await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
+  await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {}, {});
 
   await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
 
