@@ -12,43 +12,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
-  afterEach(function() {
-    return Support.dropTestSchemas(this.sequelize);
+  afterEach(async function() {
+    await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('dropEnum', () => {
-    beforeEach(function() {
-      return this.queryInterface.createTable('menus',  {
-        structuretype: {
-          type: DataTypes.ENUM('menus', 'submenu', 'routine'),
-          allowNull: true
-        },
-        sequence: {
-          type: DataTypes.INTEGER,
-          allowNull: true
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: true
-        }
+    beforeEach(async function() {
+      await this.queryInterface.createTable('menus',  {
+        structuretype: DataTypes.ENUM('menus', 'submenu', 'routine'),
+        sequence: DataTypes.INTEGER,
+        name: DataTypes.STRING
       });
     });
 
     if (dialect === 'postgres') {
-      it('should be able to drop the specified enum', function() {
-        return this.queryInterface.removeColumn('menus', 'structuretype').then(() => {
-          return this.queryInterface.pgListEnums('menus');
-        }).then(enumList => {
-          expect(enumList).to.have.lengthOf(1);
-          expect(enumList[0]).to.have.property('enum_name').and.to.equal('enum_menus_structuretype');
-        }).then(() => {
-          return this.queryInterface.dropEnum('enum_menus_structuretype');
-        }).then(() => {
-          return this.queryInterface.pgListEnums('menus');
-        }).then(enumList => {
-          expect(enumList).to.be.an('array');
-          expect(enumList).to.have.lengthOf(0);
-        });
+      it('should be able to drop the specified enum', async function() {
+        await this.queryInterface.removeColumn('menus', 'structuretype');
+        const enumList0 = await this.queryInterface.pgListEnums('menus');
+        expect(enumList0).to.have.lengthOf(1);
+        expect(enumList0[0]).to.have.property('enum_name').and.to.equal('enum_menus_structuretype');
+        await this.queryInterface.dropEnum('enum_menus_structuretype');
+        const enumList = await this.queryInterface.pgListEnums('menus');
+        expect(enumList).to.be.an('array');
+        expect(enumList).to.have.lengthOf(0);
       });
     }
   });

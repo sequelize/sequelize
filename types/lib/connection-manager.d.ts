@@ -1,5 +1,3 @@
-import { Promise } from './promise';
-
 export interface GetConnectionOptions {
   /**
    * Set which replica to use. Available options are `read` and `write`

@@ -34,24 +34,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', function() {
+    it('should use transaction from cls if available', async function() {
       const options = {
         where: {
           name: 'John'
         }
       };
 
-      return this.User.findOrCreate(options)
-        .then(() => {
-          expect.fail('expected to fail');
-        })
-        .catch(/abort/, () => {
-          expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
-        });
-
+      try {
+        await this.User.findOrCreate(options);
+        expect.fail('expected to fail');
+      } catch (err) {
+        if (!/abort/.test(err.message)) throw err;
+        expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
+      }
     });
 
-    it('should not use transaction from cls if provided as argument', function() {
+    it('should not use transaction from cls if provided as argument', async function() {
       const options = {
         where: {
           name: 'John'
@@ -59,13 +58,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         transaction: { id: 123 }
       };
 
-      return this.User.findOrCreate(options)
-        .then(() => {
-          expect.fail('expected to fail');
-        })
-        .catch(/abort/, () => {
-          expect(this.clsStub.called).to.equal(false);
-        });
+      try {
+        await this.User.findOrCreate(options);
+        expect.fail('expected to fail');
+      } catch (err) {
+        if (!/abort/.test(err.message)) throw err;
+        expect(this.clsStub.called).to.equal(false);
+      }
     });
   });
 });

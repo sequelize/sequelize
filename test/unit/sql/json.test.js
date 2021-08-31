@@ -6,7 +6,7 @@ const Support = require('../support'),
   expectsql = Support.expectsql,
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
-  sql = current.dialect.QueryGenerator;
+  sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 if (current.dialect.supports.JSON) {

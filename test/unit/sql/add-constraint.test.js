@@ -3,7 +3,7 @@
 const Support = require('../support');
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
-const sql = current.dialect.QueryGenerator;
+const sql = current.dialect.queryGenerator;
 const Op = Support.Sequelize.Op;
 const expect = require('chai').expect;
 const sinon = require('sinon');
@@ -155,6 +155,25 @@ if (current.dialect.supports.constraints.addConstraint) {
           }), {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);'
           });
+        });
+
+        it('supports composite keys', () => {
+          expectsql(
+            sql.addConstraintQuery('myTable', {
+              type: 'foreign key',
+              fields: ['myColumn', 'anotherColumn'],
+              references: {
+                table: 'myOtherTable',
+                fields: ['id1', 'id2']
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            }),
+            {
+              default:
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;'
+            }
+          );
         });
 
         it('uses onDelete, onUpdate', () => {

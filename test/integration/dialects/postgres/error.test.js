@@ -11,18 +11,18 @@ const chai      = require('chai'),
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
     const constraintName = 'overlap_period';
-    beforeEach(function() {
+    beforeEach(async function() {
       this.Booking = this.sequelize.define('Booking', {
         roomNo: DataTypes.INTEGER,
         period: DataTypes.RANGE(DataTypes.DATE)
       });
-      return this.Booking
-        .sync({ force: true })
-        .then(() => {
-          return this.sequelize.query(
-            `ALTER TABLE "${this.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`
-          );
-        });
+
+      await this.Booking
+        .sync({ force: true });
+
+      await this.sequelize.query(
+        `ALTER TABLE "${this.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`
+      );
     });
 
     it('should contain error specific properties', () => {
@@ -40,23 +40,22 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    it('should throw ExclusionConstraintError when "period" value overlaps existing', function() {
+    it('should throw ExclusionConstraintError when "period" value overlaps existing', async function() {
       const Booking = this.Booking;
 
-      return Booking
+      await Booking
         .create({
           roomNo: 1,
           guestName: 'Incognito Visitor',
           period: [new Date(2015, 0, 1), new Date(2015, 0, 3)]
-        })
-        .then(() => {
-          return expect(Booking
-            .create({
-              roomNo: 1,
-              guestName: 'Frequent Visitor',
-              period: [new Date(2015, 0, 2), new Date(2015, 0, 5)]
-            })).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
         });
+
+      await expect(Booking
+        .create({
+          roomNo: 1,
+          guestName: 'Frequent Visitor',
+          period: [new Date(2015, 0, 2), new Date(2015, 0, 5)]
+        })).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
     });
 
   });

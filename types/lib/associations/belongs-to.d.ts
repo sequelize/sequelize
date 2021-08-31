@@ -1,6 +1,5 @@
 import { DataType } from '../data-types';
 import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
-import { Promise } from '../promise';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 // type ModelCtor<M extends Model> = InstanceType<typeof M>;
@@ -31,7 +30,7 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
  * The options for the getAssociation mixin of the belongsTo association.
  * @see BelongsToGetAssociationMixin
  */
-export interface BelongsToGetAssociationMixinOptions extends FindOptions {
+export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -62,7 +61,7 @@ export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssoci
  * The options for the setAssociation mixin of the belongsTo association.
  * @see BelongsToSetAssociationMixin
  */
-export interface BelongsToSetAssociationMixinOptions extends SaveOptions {
+export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
   /**
    * Skip saving this after setting the foreign key if false.
    */
@@ -96,7 +95,8 @@ export type BelongsToSetAssociationMixin<TModel, TPrimaryKey> = (
  * The options for the createAssociation mixin of the belongsTo association.
  * @see BelongsToCreateAssociationMixin
  */
-export interface BelongsToCreateAssociationMixinOptions extends CreateOptions, BelongsToSetAssociationMixinOptions {}
+export interface BelongsToCreateAssociationMixinOptions
+  extends CreateOptions<any>, BelongsToSetAssociationMixinOptions {}
 
 /**
  * The createAssociation mixin applied to models with belongsTo.

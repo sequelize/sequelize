@@ -8,7 +8,6 @@ import {
   ModelCtor,
   Transactionable,
 } from '../model';
-import { Promise } from '../promise';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
 /**
@@ -37,7 +36,7 @@ export class HasMany<S extends Model = Model, T extends Model = Model> extends A
  * The options for the getAssociations mixin of the hasMany association.
  * @see HasManyGetAssociationsMixin
  */
-export interface HasManyGetAssociationsMixinOptions extends FindOptions {
+export interface HasManyGetAssociationsMixinOptions extends FindOptions<any> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -75,7 +74,7 @@ export type HasManyGetAssociationsMixin<TModel> = (options?: HasManyGetAssociati
  * The options for the setAssociations mixin of the hasMany association.
  * @see HasManySetAssociationsMixin
  */
-export interface HasManySetAssociationsMixinOptions extends FindOptions, InstanceUpdateOptions {}
+export interface HasManySetAssociationsMixinOptions extends FindOptions<any>, InstanceUpdateOptions<any> {}
 
 /**
  * The setAssociations mixin applied to models with hasMany.
@@ -111,7 +110,7 @@ export type HasManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
  * The options for the addAssociations mixin of the hasMany association.
  * @see HasManyAddAssociationsMixin
  */
-export interface HasManyAddAssociationsMixinOptions extends InstanceUpdateOptions {}
+export interface HasManyAddAssociationsMixinOptions extends InstanceUpdateOptions<any> {}
 
 /**
  * The addAssociations mixin applied to models with hasMany.
@@ -147,7 +146,7 @@ export type HasManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
  * The options for the addAssociation mixin of the hasMany association.
  * @see HasManyAddAssociationMixin
  */
-export interface HasManyAddAssociationMixinOptions extends InstanceUpdateOptions {}
+export interface HasManyAddAssociationMixinOptions extends InstanceUpdateOptions<any> {}
 
 /**
  * The addAssociation mixin applied to models with hasMany.
@@ -183,7 +182,7 @@ export type HasManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
  * The options for the createAssociation mixin of the hasMany association.
  * @see HasManyCreateAssociationMixin
  */
-export interface HasManyCreateAssociationMixinOptions extends CreateOptions {}
+export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any> {}
 
 /**
  * The createAssociation mixin applied to models with hasMany.
@@ -219,7 +218,7 @@ export type HasManyCreateAssociationMixin<TModel> = (
  * The options for the removeAssociation mixin of the hasMany association.
  * @see HasManyRemoveAssociationMixin
  */
-export interface HasManyRemoveAssociationMixinOptions extends InstanceUpdateOptions {}
+export interface HasManyRemoveAssociationMixinOptions extends InstanceUpdateOptions<any> {}
 
 /**
  * The removeAssociation mixin applied to models with hasMany.
@@ -255,7 +254,7 @@ export type HasManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
  * The options for the removeAssociations mixin of the hasMany association.
  * @see HasManyRemoveAssociationsMixin
  */
-export interface HasManyRemoveAssociationsMixinOptions extends InstanceUpdateOptions {}
+export interface HasManyRemoveAssociationsMixinOptions extends InstanceUpdateOptions<any> {}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -363,7 +362,7 @@ export type HasManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
  * The options for the countAssociations mixin of the hasMany association.
  * @see HasManyCountAssociationsMixin
  */
-export interface HasManyCountAssociationsMixinOptions extends Transactionable, Filterable {
+export interface HasManyCountAssociationsMixinOptions extends Transactionable, Filterable<any> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */

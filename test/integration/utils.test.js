@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
       beforeEach(function() {
-        this.queryGenerator = this.sequelize.getQueryInterface().QueryGenerator;
+        this.queryGenerator = this.sequelize.getQueryInterface().queryGenerator;
       });
 
       it('successfully parses a complex nested condition hash', function() {
@@ -138,33 +138,33 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('Sequelize.fn', () => {
     let Airplane;
 
-    beforeEach(function() {
+    beforeEach(async function() {
       Airplane = this.sequelize.define('Airplane', {
         wings: DataTypes.INTEGER,
         engines: DataTypes.INTEGER
       });
 
-      return Airplane.sync({ force: true }).then(() => {
-        return Airplane.bulkCreate([
-          {
-            wings: 2,
-            engines: 0
-          }, {
-            wings: 4,
-            engines: 1
-          }, {
-            wings: 2,
-            engines: 2
-          }
-        ]);
-      });
+      await Airplane.sync({ force: true });
+
+      await Airplane.bulkCreate([
+        {
+          wings: 2,
+          engines: 0
+        }, {
+          wings: 4,
+          engines: 1
+        }, {
+          wings: 2,
+          engines: 2
+        }
+      ]);
     });
 
     if (Support.getTestDialect() !== 'mssql') {
-      it('accepts condition object (with cast)', function() {
+      it('accepts condition object (with cast)', async function() {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
-        return Airplane.findAll({
+        const [airplane] = await Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
             [Sequelize.fn('SUM', Sequelize.cast({
@@ -179,18 +179,18 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }, type)), 'count-engines-wings']
           ]
-        }).then(([airplane]) => {
-          // TODO: `parseInt` should not be needed, see #10533
-          expect(parseInt(airplane.get('count'), 10)).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
+
+        // TODO: `parseInt` should not be needed, see #10533
+        expect(parseInt(airplane.get('count'), 10)).to.equal(3);
+        expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+        expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
       });
     }
 
     if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
-      it('accepts condition object (auto casting)', function() {
-        return Airplane.findAll({
+      it('accepts condition object (auto casting)', async function() {
+        const [airplane] = await Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
             [Sequelize.fn('SUM', {
@@ -205,12 +205,12 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }), 'count-engines-wings']
           ]
-        }).then(([airplane]) => {
-          // TODO: `parseInt` should not be needed, see #10533
-          expect(airplane.get('count')).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
+
+        // TODO: `parseInt` should not be needed, see #10533
+        expect(airplane.get('count')).to.equal(3);
+        expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+        expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
       });
     }
   });

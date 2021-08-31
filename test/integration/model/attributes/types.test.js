@@ -2,7 +2,6 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect();
@@ -11,7 +10,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('types', () => {
       describe('VIRTUAL', () => {
-        beforeEach(function() {
+        beforeEach(async function() {
           this.User = this.sequelize.define('user', {
             storage: Sequelize.STRING,
             field1: {
@@ -49,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(sql).to.not.include('field2');
           };
 
-          return this.sequelize.sync({ force: true });
+          await this.sequelize.sync({ force: true });
         });
 
         it('should not be ignored in dataValues get', function() {
@@ -61,14 +60,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.get()).to.deep.equal({ storage: 'field1_value', field1: 'field1_value', virtualWithDefault: 'cake', field2: 42, id: null });
         });
 
-        it('should be ignored in table creation', function() {
-          return this.sequelize.getQueryInterface().describeTable(this.User.tableName).then(fields => {
-            expect(Object.keys(fields).length).to.equal(2);
-          });
+        it('should be ignored in table creation', async function() {
+          const fields = await this.sequelize.getQueryInterface().describeTable(this.User.tableName);
+          expect(Object.keys(fields).length).to.equal(2);
         });
 
-        it('should be ignored in find, findAll and includes', function() {
-          return Promise.all([
+        it('should be ignored in find, findAll and includes', async function() {
+          await Promise.all([
             this.User.findOne({
               logging: this.sqlAssert
             }),
@@ -90,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         });
 
-        it('should allow me to store selected values', function() {
+        it('should allow me to store selected values', async function() {
           const Post = this.sequelize.define('Post', {
             text: Sequelize.TEXT,
             someBoolean: {
@@ -98,98 +96,94 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
-          }).then(() => {
-            let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
-            if (dialect === 'mssql') {
-              boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
-            }
+          await this.sequelize.sync({ force: true });
+          await Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
+          let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
+          if (dialect === 'mssql') {
+            boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+          }
 
-            return Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
-          }).then(post => {
-            expect(post.get('someBoolean')).to.be.ok;
-            expect(post.get().someBoolean).to.be.ok;
-          });
+          const post = await Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
+          expect(post.get('someBoolean')).to.be.ok;
+          expect(post.get().someBoolean).to.be.ok;
         });
 
-        it('should be ignored in create and update', function() {
-          return this.User.create({
+        it('should be ignored in create and update', async function() {
+          const user0 = await this.User.create({
             field1: 'something'
-          }).then(user => {
-            // We already verified that the virtual is not added to the table definition,
-            // so if this succeeds, were good
-
-            expect(user.virtualWithDefault).to.equal('cake');
-            expect(user.storage).to.equal('something');
-            return user.update({
-              field1: 'something else'
-            }, {
-              fields: ['storage']
-            });
-          }).then(user => {
-            expect(user.virtualWithDefault).to.equal('cake');
-            expect(user.storage).to.equal('something else');
           });
+
+          // We already verified that the virtual is not added to the table definition,
+          // so if this succeeds, were good
+
+          expect(user0.virtualWithDefault).to.equal('cake');
+          expect(user0.storage).to.equal('something');
+
+          const user = await user0.update({
+            field1: 'something else'
+          }, {
+            fields: ['storage']
+          });
+
+          expect(user.virtualWithDefault).to.equal('cake');
+          expect(user.storage).to.equal('something else');
         });
 
-        it('should be ignored in bulkCreate and and bulkUpdate', function() {
-          return this.User.bulkCreate([{
+        it('should be ignored in bulkCreate and and bulkUpdate', async function() {
+          await this.User.bulkCreate([{
             field1: 'something'
           }], {
             logging: this.sqlAssert
-          }).then(() => {
-            return this.User.findAll();
-          }).then(users => {
-            expect(users[0].storage).to.equal('something');
           });
+
+          const users = await this.User.findAll();
+          expect(users[0].storage).to.equal('something');
         });
 
-        it('should be able to exclude with attributes', function() {
-          return this.User.bulkCreate([{
+        it('should be able to exclude with attributes', async function() {
+          await this.User.bulkCreate([{
             field1: 'something'
           }], {
             logging: this.sqlAssert
-          }).then(() => {
-            return this.User.findAll({
-              logging: this.sqlAssert
-            });
-          }).then(users => {
-            const user = users[0].get();
-
-            expect(user.storage).to.equal('something');
-            expect(user).to.include.all.keys(['field1', 'field2']);
-
-            return this.User.findAll({
-              attributes: {
-                exclude: ['field1']
-              },
-              logging: this.sqlAssert
-            });
-          }).then(users => {
-            const user = users[0].get();
-
-            expect(user.storage).to.equal('something');
-            expect(user).not.to.include.all.keys(['field1']);
-            expect(user).to.include.all.keys(['field2']);
           });
+
+          const users0 = await this.User.findAll({
+            logging: this.sqlAssert
+          });
+
+          const user0 = users0[0].get();
+
+          expect(user0.storage).to.equal('something');
+          expect(user0).to.include.all.keys(['field1', 'field2']);
+
+          const users = await this.User.findAll({
+            attributes: {
+              exclude: ['field1']
+            },
+            logging: this.sqlAssert
+          });
+
+          const user = users[0].get();
+
+          expect(user.storage).to.equal('something');
+          expect(user).not.to.include.all.keys(['field1']);
+          expect(user).to.include.all.keys(['field2']);
         });
 
-        it('should be able to include model with virtual attributes', function() {
-          return this.User.create({}).then(user => {
-            return user.createTask();
-          }).then(() => {
-            return this.Task.findAll({
-              include: [{
-                attributes: ['field2', 'id'],
-                model: this.User
-              }]
-            });
-          }).then(tasks => {
-            const user = tasks[0].user.get();
+        it('should be able to include model with virtual attributes', async function() {
+          const user0 = await this.User.create({});
+          await user0.createTask();
 
-            expect(user.field2).to.equal(42);
+          const tasks = await this.Task.findAll({
+            include: [{
+              attributes: ['field2', 'id'],
+              model: this.User
+            }]
           });
+
+          const user = tasks[0].user.get();
+
+          expect(user.field2).to.equal(42);
         });
       });
     });

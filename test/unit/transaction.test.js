@@ -33,7 +33,7 @@ describe('Transaction', () => {
     this.stubConnection.restore();
   });
 
-  it('should run auto commit query only when needed', function() {
+  it('should run auto commit query only when needed', async function() {
     const expectations = {
       all: [
         'START TRANSACTION;'
@@ -45,13 +45,13 @@ describe('Transaction', () => {
         'BEGIN TRANSACTION;'
       ]
     };
-    return current.transaction(() => {
+
+    await current.transaction(async () => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Sequelize.Promise.resolve();
     });
   });
 
-  it('should set isolation level correctly', function() {
+  it('should set isolation level correctly', async function() {
     const expectations = {
       all: [
         'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
@@ -69,9 +69,9 @@ describe('Transaction', () => {
         'BEGIN TRANSACTION;'
       ]
     };
-    return current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, () => {
+
+    await current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Sequelize.Promise.resolve();
     });
   });
 });

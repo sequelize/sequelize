@@ -179,5 +179,18 @@ describe('Sequelize', () => {
       expect(dialectOptions.application_name).to.equal('client');
       expect(dialectOptions.ssl).to.equal('true');
     });
+
+    it('should handle JSON options', () => {
+      const sequelizeWithOptions = new Sequelize('mysql://example.com:9821/dbname?options={"encrypt":true}&anotherOption=1');
+      expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.be.true;
+      expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
+    });
+    
+    it('should use query string host if specified', () => {
+      const sequelize = new Sequelize('mysql://localhost:9821/dbname?host=example.com');
+
+      const options = sequelize.options;
+      expect(options.host).to.equal('example.com');
+    });
   });
 });

@@ -19,7 +19,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
       console.log.restore();
     });
 
-    it('check iterable', () => {
+    it('check iterable', async () => {
       const validWarning = [];
       const invalidWarning = {};
       const warnings = [validWarning, undefined, invalidWarning];
@@ -28,10 +28,9 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
       const stub = sinon.stub(query, 'run');
       stub.onFirstCall().resolves(warnings);
 
-      return query.logWarnings('dummy-results').then(results => {
-        expect('dummy-results').to.equal(results);
-        expect(true).to.equal(console.log.calledOnce);
-      });
+      const results = await query.logWarnings('dummy-results');
+      expect('dummy-results').to.equal(results);
+      expect(true).to.equal(console.log.calledOnce);
     });
   });
 });

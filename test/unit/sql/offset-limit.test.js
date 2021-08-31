@@ -4,7 +4,7 @@ const Support   = require('../support'),
   util = require('util'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  sql       = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -83,6 +83,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       mariadb: " LIMIT '\\';DELETE FROM user', 10",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
+    });
+
+    testsql({
+      limit: 10,
+      order: [], // When the order is an empty array, one is automagically prepended
+      model: { primaryKeyField: 'id', name: 'tableRef' }
+    }, {
+      default: ' LIMIT 10',
+      mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
     });
   });
 });

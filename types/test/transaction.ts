@@ -8,7 +8,7 @@ async function trans() {
         transaction.afterCommit(() => console.log('transaction complete'));
         User.create(
             {
-                data: 123,
+                firstName: 'John',
             },
             {
                 transaction,
@@ -77,4 +77,10 @@ async function nestedTransact() {
     transaction: await sequelize.transaction(),
   });
   await tr.commit();
+}
+
+async function excludeFromTransaction() {
+  await sequelize.transaction(async t =>
+    await sequelize.query('SELECT 1', { transaction: null })
+  );
 }

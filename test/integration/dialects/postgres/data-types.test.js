@@ -6,6 +6,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
 
+
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE/DATEONLY Validate and Stringify', () => {
@@ -71,7 +72,7 @@ if (dialect === 'postgres') {
 
     describe('DATE SQL', () => {
       // create dummy user
-      it('should be able to create and update records with Infinity/-Infinity', function() {
+      it('should be able to create and update records with Infinity/-Infinity', async function() {
         this.sequelize.options.typeValidation = true;
 
         const date = new Date();
@@ -96,69 +97,68 @@ if (dialect === 'postgres') {
           timestamps: true
         });
 
-        return User.sync({
+        await User.sync({
           force: true
-        }).then(() => {
-          return User.create({
-            username: 'bob',
-            anotherTime: Infinity
-          }, {
-            validate: true
-          });
-        }).then(user => {
-          expect(user.username).to.equal('bob');
-          expect(user.beforeTime).to.equal(-Infinity);
-          expect(user.sometime).to.be.withinTime(date, new Date());
-          expect(user.anotherTime).to.equal(Infinity);
-          expect(user.afterTime).to.equal(Infinity);
-
-          return user.update({
-            sometime: Infinity
-          }, {
-            returning: true
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal(Infinity);
-
-          return user.update({
-            sometime: Infinity
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal(Infinity);
-
-          return user.update({
-            sometime: this.sequelize.fn('NOW')
-          }, {
-            returning: true
-          });
-        }).then(user => {
-          expect(user.sometime).to.be.withinTime(date, new Date());
-
-          // find
-          return User.findAll();
-        }).then(users => {
-          expect(users[0].beforeTime).to.equal(-Infinity);
-          expect(users[0].sometime).to.not.equal(Infinity);
-          expect(users[0].afterTime).to.equal(Infinity);
-
-          return users[0].update({
-            sometime: date
-          });
-        }).then(user => {
-          expect(user.sometime).to.equalTime(date);
-
-          return user.update({
-            sometime: date
-          });
-        }).then(user => {
-          expect(user.sometime).to.equalTime(date);
         });
+
+        const user4 = await User.create({
+          username: 'bob',
+          anotherTime: Infinity
+        }, {
+          validate: true
+        });
+
+        expect(user4.username).to.equal('bob');
+        expect(user4.beforeTime).to.equal(-Infinity);
+        expect(user4.sometime).to.be.withinTime(date, new Date());
+        expect(user4.anotherTime).to.equal(Infinity);
+        expect(user4.afterTime).to.equal(Infinity);
+
+        const user3 = await user4.update({
+          sometime: Infinity
+        }, {
+          returning: true
+        });
+
+        expect(user3.sometime).to.equal(Infinity);
+
+        const user2 = await user3.update({
+          sometime: Infinity
+        });
+
+        expect(user2.sometime).to.equal(Infinity);
+
+        const user1 = await user2.update({
+          sometime: this.sequelize.fn('NOW')
+        }, {
+          returning: true
+        });
+
+        expect(user1.sometime).to.be.withinTime(date, new Date());
+
+        // find
+        const users = await User.findAll();
+        expect(users[0].beforeTime).to.equal(-Infinity);
+        expect(users[0].sometime).to.not.equal(Infinity);
+        expect(users[0].afterTime).to.equal(Infinity);
+
+        const user0 = await users[0].update({
+          sometime: date
+        });
+
+        expect(user0.sometime).to.equalTime(date);
+
+        const user = await user0.update({
+          sometime: date
+        });
+
+        expect(user.sometime).to.equalTime(date);
       });
     });
 
     describe('DATEONLY SQL', () => {
       // create dummy user
-      it('should be able to create and update records with Infinity/-Infinity', function() {
+      it('should be able to create and update records with Infinity/-Infinity', async function() {
         this.sequelize.options.typeValidation = true;
 
         const date = new Date();
@@ -183,64 +183,63 @@ if (dialect === 'postgres') {
           timestamps: true
         });
 
-        return User.sync({
+        await User.sync({
           force: true
-        }).then(() => {
-          return User.create({
-            username: 'bob',
-            anotherTime: Infinity
-          }, {
-            validate: true
-          });
-        }).then(user => {
-          expect(user.username).to.equal('bob');
-          expect(user.beforeTime).to.equal(-Infinity);
-          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
-          expect(user.anotherTime).to.equal(Infinity);
-          expect(user.afterTime).to.equal(Infinity);
-
-          return user.update({
-            sometime: Infinity
-          }, {
-            returning: true
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal(Infinity);
-
-          return user.update({
-            sometime: Infinity
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal(Infinity);
-
-          return user.update({
-            sometime: this.sequelize.fn('NOW')
-          }, {
-            returning: true
-          });
-        }).then(user => {
-          expect(user.sometime).to.not.equal(Infinity);
-          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
-
-          // find
-          return User.findAll();
-        }).then(users => {
-          expect(users[0].beforeTime).to.equal(-Infinity);
-          expect(users[0].sometime).to.not.equal(Infinity);
-          expect(users[0].afterTime).to.equal(Infinity);
-
-          return users[0].update({
-            sometime: '1969-07-20'
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal('1969-07-20');
-
-          return user.update({
-            sometime: '1969-07-20'
-          });
-        }).then(user => {
-          expect(user.sometime).to.equal('1969-07-20');
         });
+
+        const user4 = await User.create({
+          username: 'bob',
+          anotherTime: Infinity
+        }, {
+          validate: true
+        });
+
+        expect(user4.username).to.equal('bob');
+        expect(user4.beforeTime).to.equal(-Infinity);
+        expect(new Date(user4.sometime)).to.be.withinDate(date, new Date());
+        expect(user4.anotherTime).to.equal(Infinity);
+        expect(user4.afterTime).to.equal(Infinity);
+
+        const user3 = await user4.update({
+          sometime: Infinity
+        }, {
+          returning: true
+        });
+
+        expect(user3.sometime).to.equal(Infinity);
+
+        const user2 = await user3.update({
+          sometime: Infinity
+        });
+
+        expect(user2.sometime).to.equal(Infinity);
+
+        const user1 = await user2.update({
+          sometime: this.sequelize.fn('NOW')
+        }, {
+          returning: true
+        });
+
+        expect(user1.sometime).to.not.equal(Infinity);
+        expect(new Date(user1.sometime)).to.be.withinDate(date, new Date());
+
+        // find
+        const users = await User.findAll();
+        expect(users[0].beforeTime).to.equal(-Infinity);
+        expect(users[0].sometime).to.not.equal(Infinity);
+        expect(users[0].afterTime).to.equal(Infinity);
+
+        const user0 = await users[0].update({
+          sometime: '1969-07-20'
+        });
+
+        expect(user0.sometime).to.equal('1969-07-20');
+
+        const user = await user0.update({
+          sometime: '1969-07-20'
+        });
+
+        expect(user.sometime).to.equal('1969-07-20');
       });
     });
 

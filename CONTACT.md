@@ -5,12 +5,6 @@ You can use the information below to contact maintainers directly. We will try t
 
 ### Via Email
 
+- **Pedro Augusto de Paula Barbosa** papb1996@gmail.com
 - **Jan Aagaard Meier** janzeh@gmail.com
-- **Sushant Dhiman** sushantdhiman@outlook.com
-
-### Via Slack
-
-Maintainer's usernames for [Sequelize Slack Channel](https://sequelize.slack.com)
-
-- **Jan Aagaard Meier** @janmeier
-- **Sushant Dhiman** @sushantdhiman
+- **Sascha Depold** sascha@depold.com
