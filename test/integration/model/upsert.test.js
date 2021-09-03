@@ -620,7 +620,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           );
 
-          beforeEach(async () => Users.sync({ force: true }));
+          beforeEach(() => Users.sync({ force: true }));
 
           it('should insert with no other rows', async () => {
             const [newRow] = await Users.upsert(
