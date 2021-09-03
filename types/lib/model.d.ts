@@ -732,8 +732,8 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   validate?: boolean;
 
   /**
-   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query (in the same format as the where option for a finder such as `findByPk`).
-   * (note: updateOnDuplicate must be present for this to be used.)
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
    conflictWhere?: WhereOptions<TAttributes>;
