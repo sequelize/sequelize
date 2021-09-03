@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User
           ), {
-            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\\\';DROP TABLE mySchema.myTable;\' FETCH FIRST 10 ROWS ONLY',
+            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH FIRST 10 ROWS ONLY',
             postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mariadb: "DELETE FROM `public`.`test_users` WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
             sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",

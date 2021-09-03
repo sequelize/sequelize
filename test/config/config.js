@@ -62,11 +62,7 @@ module.exports = {
   ibmi: {
     odbcConnectionString: 'DSN=SEQUELIZE',
     schema: 'SEQUELIZE',
-    database: env.SEQ_PG_DB || env.SEQ_DB || 'SEQUELIZE',
-    username: env.SEQ_PG_USER || env.SEQ_USER || 'sdfsdf',
-    password: env.SEQ_PG_PW || env.SEQ_PW || 'sdfsdf',
-    host: env.POSTGRES_PORT_5432_TCP_ADDR || env.SEQ_PG_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.POSTGRES_PORT_5432_TCP_PORT || env.SEQ_PG_PORT || env.SEQ_PORT || 5432,
+    database: 'SEQUELIZE',
     pool: {
       max: env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5,
       idle: env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000

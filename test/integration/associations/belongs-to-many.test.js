@@ -1223,7 +1223,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('hasAssociations with binary key', () => {
     beforeEach(function() {
-      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' || dialect === 'ibmi' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -1263,6 +1263,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       const result = await article.hasLabels([label]);
+      console.log(result);
       await expect(result).to.be.true;
     });
 

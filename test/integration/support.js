@@ -7,7 +7,7 @@ const { setTimeout, clearTimeout } = global;
 const pTimeout = require('p-timeout');
 const Support = require('../support');
 
-const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 10000;
+const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 100000;
 
 let runningQueries = new Set();
 

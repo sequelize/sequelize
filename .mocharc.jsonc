@@ -10,6 +10,6 @@
   // "grep": ["some test title here"],
   "exit": true,
   "check-leaks": true,
-  "timeout": 30000,
+  "timeout": 120000,
   "reporter": "spec"
 }
