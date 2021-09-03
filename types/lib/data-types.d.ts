@@ -606,5 +606,7 @@ export const MACADDR: AbstractDataTypeConstructor;
  */
 export const CITEXT: AbstractDataTypeConstructor;
 
+export const TSVECTOR: AbstractDataTypeConstructor;
+
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;
