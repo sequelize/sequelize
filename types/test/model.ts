@@ -44,6 +44,8 @@ MyModel.findOne({ include: OtherModel });
 
 MyModel.count({ include: OtherModel });
 
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
+
 MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
