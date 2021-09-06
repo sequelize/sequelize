@@ -244,6 +244,18 @@ declare const Op: {
    */
   readonly lte: unique symbol;
   /**
+   * Operator @@
+   *
+   * ```js
+   * [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')`
+   * ```
+   * In SQL
+   * ```sql
+   * @@ to_tsquery('fat & rat')
+   * ```
+   */
+  readonly match: unique symbol;
+  /**
    * Operator !=
    *
    * ```js
