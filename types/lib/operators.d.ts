@@ -256,15 +256,13 @@ declare const Op: {
    */
   readonly match: unique symbol;
   /**
-   * Operator !=
+   * Operator @@
    *
    * ```js
-   * [Op.ne]: 20
+   * [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')`
    * ```
    * In SQL
-   * ```sql
-   * != 20
-   * ```
+   * `@@ to_tsquery('fat & rat')`
    */
   readonly ne: unique symbol;
   /**
