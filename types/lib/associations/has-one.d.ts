@@ -56,6 +56,26 @@ export interface HasOneGetAssociationMixinOptions extends FindOptions<any> {
 export type HasOneGetAssociationMixin<TModel> = (options?: HasOneGetAssociationMixinOptions) => Promise<TModel>;
 
 /**
+ * The getAssociation mixin applied to models with nullable hasOne.
+ * An example of usage is as follows:
+ *
+ * ```js
+ *
+ * User.hasOne(Role);
+ *
+ * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
+ *  getRole: Sequelize.HasOneGetAssociationMixin<RoleInstance>;
+ *  // setRole...
+ *  // createRole...
+ * }
+ * ```
+ *
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+ * @see Instance
+ */
+export type HasOneGetNullableAssociationMixin<TModel> = (options?: HasOneGetAssociationMixinOptions) => Promise<TModel | null>;
+
+/**
  * The options for the setAssociation mixin of the hasOne association.
  * @see HasOneSetAssociationMixin
  */

@@ -58,6 +58,26 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
 export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
 
 /**
+ * The getAssociation mixin applied to models with nullable belongsTo.
+ * An example of usage is as follows:
+ *
+ * ```js
+ *
+ * User.belongsTo(Role);
+ *
+ * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
+ *  getRole: Sequelize.BelongsToGetAssociationMixin<RoleInstance>;
+ *  // setRole...
+ *  // createRole...
+ * }
+ * ```
+ *
+ * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
+ * @see Instance
+ */
+export type BelongsToGetNullableAssociationMixin<TModel> = (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel | null>;
+
+/**
  * The options for the setAssociation mixin of the belongsTo association.
  * @see BelongsToSetAssociationMixin
  */
