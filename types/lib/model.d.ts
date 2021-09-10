@@ -939,7 +939,7 @@ export interface InstanceRestoreOptions extends Logging, Transactionable { }
 /**
  * Options used for Instance.destroy method
  */
-export interface InstanceDestroyOptions extends Logging, Transactionable {
+export interface InstanceDestroyOptions extends Logging, Transactionable, Hookable {
   /**
    * If set to true, paranoid models will actually be deleted
    */
