@@ -1922,7 +1922,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options?: FindAndCountOptions<M['_attributes']>
-  ): Promise<{ rows: M[]; count: number }>;
+  ): Promise<{ rows: M[]; count: number | number[] }>;
 
   /**
    * Find the maximum value of field
