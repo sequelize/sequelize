@@ -161,6 +161,9 @@ export interface WhereOperators {
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
   [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
 
+  /** Example: `[Op.is]: null,` becomes `IS NULL` */
+  [Op.is]?: null;
+
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: Rangable;
 
