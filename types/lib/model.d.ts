@@ -983,6 +983,13 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
+  
+  /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * @default false
+   */
+  omitNull?: boolean;
 }
 
 /**
