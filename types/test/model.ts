@@ -52,7 +52,7 @@ MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({
+const model: typeof MyModel = MyModel.init({
   virtual: {
     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
     get() {

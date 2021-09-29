@@ -1,0 +1,18 @@
+services:
+  mssql-2019:
+    container_name: sequelize-mssql-2019
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: Password12!
+    ports:
+      - 22019:1433
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "Password12!", "-l", "30", "-Q", "SELECT 1"]
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-mssql-2019-network
