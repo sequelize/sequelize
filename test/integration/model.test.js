@@ -1720,6 +1720,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         group: ['data']
       });
       expect(count).to.have.lengthOf(2);
+      expect(count).to.deep.equal([{ data: 'B', count: 1 }, { data: 'A', count: 2 }]);
     });
 
     if (dialect !== 'mssql') {
