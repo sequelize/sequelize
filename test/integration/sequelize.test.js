@@ -153,23 +153,24 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(err).to.be.instanceof(Sequelize.Error);
           }
         });
-
-        it('triggers the error event when using replication', async () => {
-          try {
-            await new Sequelize('sequelize', null, null, {
-              dialect,
-              replication: {
-                read: {
-                  host: 'localhost',
-                  username: 'omg',
-                  password: 'lol'
+        if (dialect != 'db2') {
+          it('triggers the error event when using replication', async () => {
+            try {
+              await new Sequelize('sequelize', null, null, {
+                dialect,
+                replication: {
+                  read: {
+                    host: 'localhost',
+                    username: 'omg',
+                    password: 'lol'
+                  }
                 }
-              }
-            }).authenticate();
-          } catch (err) {
-            expect(err).to.not.be.null;
-          }
-        });
+              }).authenticate();
+            } catch (err) {
+              expect(err).to.not.be.null;
+            }
+          });
+        }
       });
     });
 
