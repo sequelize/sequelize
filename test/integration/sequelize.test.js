@@ -415,7 +415,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
-    if (dialect !== 'sqlite') {
+    if (dialect !== 'sqlite' && dialect !== 'db2') {
       it('fails for incorrect connection even when no models are defined', async function() {
         const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
