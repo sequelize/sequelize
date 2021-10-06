@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.7]
+        node-version: [10, 12]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -46,6 +46,7 @@ jobs:
       SEQ_USER: db2inst1
       SEQ_PW: password
       SEQ_TEST_CLEANUP_TIMEOUT: 1200000
+      SEQ_PORT: 50000
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -53,10 +54,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm install
       - run: npm run start-db2
-      - name: Unit Tests
-        run: npm run test-unit
-      - name: Integration Tests
-        run: npm run test-integration
+      - name: Tests
+        run: npm run test-db2
   test-sqlite:
     strategy:
       fail-fast: false
