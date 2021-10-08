@@ -430,8 +430,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         try {
           await User2.sync();
+          console.log('sync worked!');
           expect.fail();
         } catch (err) {
+          console.log(err.message);
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             assert([
               'fe_sendauth: no password supplied',
