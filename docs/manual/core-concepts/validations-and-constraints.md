@@ -46,7 +46,7 @@ Our code example above defines a unique constraint on the `username` field:
 } /* ... */
 ```
 
-When this model is synchronized (by calling `sequelize.sync` for example), the `username` field will be created in the table as `` `name` TEXT UNIQUE``, and an attempt to insert an username that already exists there will throw a `SequelizeUniqueConstraintError`.
+When this model is synchronized (by calling `sequelize.sync` for example), the `username` field will be created in the table as `` `username` TEXT UNIQUE``, and an attempt to insert an username that already exists there will throw a `SequelizeUniqueConstraintError`.
 
 ## Allowing/disallowing null values
 
