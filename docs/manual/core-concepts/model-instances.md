@@ -88,6 +88,7 @@ await jane.save();
 ```
 
 You can update several fields at once with the [`set`](../class/lib/model.js~Model.html#instance-method-set) method:
+
 ```
 const jane = await User.create({ name: "Jane" });
 
@@ -101,6 +102,7 @@ await jane.save();
 ```
 
 Note that the `save()` here will also persist any other changes that have been made on this instance, not just those in the previous `set` call. If you want to update a specific set of fields, you can use [`update`](../class/lib/model.js~Model.html#instance-method-update):
+
 ```
 const jane = await User.create({ name: "Jane" });
 jane.favoriteColor = "blue"
