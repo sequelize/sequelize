@@ -38,7 +38,7 @@ const sequelize = new Sequelize({
   storage: 'path/to/database.sqlite'
 });
 
-// Option 2: Passing parameters separately (other dialects)
+// Option 3: Passing parameters separately (other dialects)
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
