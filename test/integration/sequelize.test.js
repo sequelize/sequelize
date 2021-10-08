@@ -429,15 +429,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
         try {
-          console.log('TRYYYYYYYYY');
           await User2.sync();
-          console.log('sync worked!');
           expect.fail();
         } catch (err) {
-          console.log(dialect);
-          console.log('!!!!!error case!!!!!');
-          console.log(err.message);
-
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             assert([
               'fe_sendauth: no password supplied',
