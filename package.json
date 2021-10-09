@@ -3,11 +3,6 @@
   "description": "Multi dialect ORM for Node.JS",
   "version": "0.0.0-development",
   "maintainers": [
-    "Sascha Depold <sascha@depold.com>",
-    "Jan Aagaard Meier <janzeh@gmail.com>",
-    "Daniel Durante <me@danieldurante.com>",
-    "Mick Hansen <mick.kasper.hansen@gmail.com>",
-    "Sushant Dhiman <sushantdhiman@outlook.com>",
     "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
   ],
   "repository": {
@@ -42,14 +37,14 @@
     "sequelize-pool": "^6.0.0",
     "toposort-class": "^1.0.1",
     "uuid": "^8.1.0",
-    "validator": "^10.11.0",
+    "validator": "^13.6.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-angular": "^11.0.0",
     "@types/node": "^12.12.42",
-    "@types/validator": "^10.11.0",
+    "@types/validator": "^13.1.4",
     "acorn": "^8.0.4",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -85,6 +80,7 @@
     "pg-hstore": "^2.x",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.3.0",
+    "semantic-release-fail-on-major-bump": "^1.0.0",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
     "sqlite3": "^4.2.0",
@@ -161,12 +157,15 @@
     }
   },
   "release": {
-    "branches": [
-      "v6"
-    ],
-    "verifyConditions": [
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "semantic-release-fail-on-major-bump",
+      "@semantic-release/release-notes-generator",
       "@semantic-release/npm",
       "@semantic-release/github"
+    ],
+    "branches": [
+      "v6"
     ]
   },
   "publishConfig": {
