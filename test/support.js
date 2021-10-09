@@ -240,6 +240,10 @@ const Support = {
     }
   },
 
+  rand() {
+    return Math.floor(Math.random() * 10e5);
+  },
+
   isDeepEqualToOneOf(actual, expectedOptions) {
     return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
   }

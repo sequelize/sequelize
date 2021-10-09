@@ -149,7 +149,7 @@ export interface TransactionOptions extends Logging {
   /**
    * Parent transaction.
    */
-  transaction?: Transaction;
+  transaction?: Transaction | null;
 }
 
 export default Transaction;

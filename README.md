@@ -13,6 +13,8 @@ Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
+Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help.
+
 ### v6 Release
 
 You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
