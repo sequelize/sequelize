@@ -131,7 +131,7 @@ export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[];
 }
 
-export type Rangable = readonly [number, number] | readonly [Date, Date] | Literal;
+export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
