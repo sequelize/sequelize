@@ -223,7 +223,7 @@ Now, to consider a Many-to-Many polymorphic association, instead of considering 
 
 The setup for this goes as follows:
 
-* Define the juncion model explicitly, specifying the two foreign keys as `tagId` and `taggableId` (this way it is a junction model for a Many-to-Many relationship between `Tag` and the abstract concept of *taggable*);
+* Define the junction model explicitly, specifying the two foreign keys as `tagId` and `taggableId` (this way it is a junction model for a Many-to-Many relationship between `Tag` and the abstract concept of *taggable*);
 * Define a string field called `taggableType` in the junction model;
 * Define the `belongsToMany` associations between the two models and `Tag`:
   * Disabling constraints (i.e. using `{ constraints: false }`), since the same foreign key is referencing multiple tables;

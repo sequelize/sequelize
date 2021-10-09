@@ -1352,6 +1352,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(count.length).to.equal(1);
+      expect(count).to.deep.equal([{ userId: 1, count: 1 }]);
       expect(rows[0].tasks[0].jobs.length).to.equal(2);
     });
   });

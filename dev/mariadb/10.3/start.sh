@@ -11,6 +11,6 @@ docker-compose -p sequelize-mariadb-103 up -d
 docker exec sequelize-mariadb-103 \
   mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
 
-node check.js
+DIALECT=mariadb node check.js
 
 echo "Local MariaDB-10.3 instance is ready for Sequelize tests."
