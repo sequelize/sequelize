@@ -16,6 +16,7 @@ import Model, {
   UpdateOptions,
 } from './model';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
+import { DeepWriteable } from './utils';
 
 export type HookReturn = Promise<void> | void;
 
@@ -72,7 +73,7 @@ export interface SequelizeHooks<
   afterDefine(model: ModelType): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
-  beforeConnect(config: Config): HookReturn;
+  beforeConnect(config: DeepWriteable<Config>): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
   beforeDisconnect(connection: unknown): HookReturn;
   afterDisconnect(connection: unknown): HookReturn;
