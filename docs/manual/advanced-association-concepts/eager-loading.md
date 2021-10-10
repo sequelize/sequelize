@@ -378,7 +378,7 @@ await sequelize.sync();
 const foo = await Foo.create({ name: 'foo' });
 const bar = await Bar.create({ name: 'bar' });
 await foo.addBar(bar);
-const fetchedFoo = Foo.findOne({ include: Bar });
+const fetchedFoo = await Foo.findOne({ include: Bar });
 console.log(JSON.stringify(fetchedFoo, null, 2));
 ```
 
