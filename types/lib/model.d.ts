@@ -131,7 +131,7 @@ export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[];
 }
 
-export type Rangable = readonly [number, number] | readonly [Date, Date] | Literal;
+export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
@@ -983,6 +983,13 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
+  
+  /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * @default false
+   */
+  omitNull?: boolean;
 }
 
 /**
@@ -1919,6 +1926,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * without
    * profiles will be counted
    */
+  public static findAndCountAll<M extends Model>(
+    this: ModelStatic<M>,
+    options?: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
+  ): Promise<{ rows: M[]; count: number[] }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options?: FindAndCountOptions<M['_attributes']>
