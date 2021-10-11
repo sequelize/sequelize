@@ -144,6 +144,13 @@ export interface WhereOperators {
    *
    * _PG only_
    */
+  
+   /** Example: `[Op.eq]: 6,` becomes `= 6` */
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+
+  /** Example: `[Op.is]: true,` becomes `IS TRUE` */
+  [Op.is]?: null | boolean | string | number | Literal | WhereOperators;
+  
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
