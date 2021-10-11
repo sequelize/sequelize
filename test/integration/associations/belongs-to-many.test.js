@@ -1566,6 +1566,65 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(commentTags).to.have.length(2);
     });
 
+    it('removing association via set associations with scope', async function() {
+      const ItemTag = this.sequelize.define('ItemTag', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          tag_id: { type: DataTypes.INTEGER, unique: false },
+          taggable: { type: DataTypes.STRING },
+          taggable_id: { type: DataTypes.INTEGER, unique: false }
+        }),
+        Tag = this.sequelize.define('Tag', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING
+        }),
+        Comment = this.sequelize.define('Comment', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING
+        }),
+        Post = this.sequelize.define('Post', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING
+        });
+
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+        foreignKey: 'taggable_id'
+      });
+
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id'
+      });
+
+      await this.sequelize.sync({ force: true });
+
+      const [post, comment, tag, secondTag] = await Promise.all([
+        Post.create({ id: 1, name: 'post1' }),
+        // won't even work if id != 1 because of foreign key which shouldn't be here
+        // one foreign key for 2 different models, also needs fix
+        Comment.create({ id: 1, name: 'comment1' }), 
+        Tag.create({ name: 'tag1' }),
+        Tag.create({ name: 'tag2' })
+      ]);
+
+      this.post = post;
+      this.comment = comment;
+      this.tag = tag;
+      this.secondTag = secondTag;
+      await this.post.setTags([this.tag, this.secondTag]);
+      await this.comment.setTags([this.tag, this.secondTag]);
+
+      await this.post.removeTags([this.tag]);
+
+      const [postTags, commentTags] = await Promise.all([
+        this.post.getTags(),
+        this.comment.getTags()
+      ]);
+
+      expect(postTags).to.have.length(1);
+      expect(commentTags).to.have.length(2);
+    });
+
     it('should catch EmptyResultError when rejectOnEmpty is set', async function() {
       const User = this.sequelize.define(
         'User',
