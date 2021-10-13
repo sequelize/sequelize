@@ -201,7 +201,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: Rangable;
+  [Op.overlap]?: readonly (string | number | Literal)[] | Literal | Rangable;
 
   /**
    * PG array contains operator
@@ -986,7 +986,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
-  
+
   /**
    * A flag that defines if null values should be passed as values or not.
    *
