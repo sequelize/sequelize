@@ -498,7 +498,7 @@ export class QueryInterface {
     tableName: TableName,
     records: object[],
     options?: QueryOptions,
-    attributes?: object
+    attributes?: ModelAttributes
   ): Promise<object | number>;
 
   /**
@@ -520,7 +520,7 @@ export class QueryInterface {
     values: object,
     identifier: WhereOptions<any>,
     options?: QueryOptions,
-    attributes?: object
+    attributes?: ModelAttributes
   ): Promise<object>;
 
   /**
