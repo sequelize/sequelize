@@ -1,7 +1,9 @@
 import { expectTypeOf } from "expect-type";
 import { SemiDeepWritable } from "./type-helpers/deep-writable";
-import { Model, SaveOptions, Sequelize, FindOptions, ModelCtor, ModelType, ModelDefined, ModelStatic } from "sequelize";
+import { Model, SaveOptions, Sequelize, FindOptions, ModelCtor, ModelType, ModelDefined, ModelStatic, UpsertOptions } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
+import { DeepWriteable } from '../lib/utils';
+import { Config } from '../lib/sequelize';
 
 {
   class TestModel extends Model {}
@@ -18,7 +20,15 @@ import { ModelHooks } from "../lib/hooks";
     afterFind(m, options) {
       expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
       expectTypeOf(options).toEqualTypeOf<FindOptions>();
-    }
+    },
+    beforeUpsert(m, options) {
+      expectTypeOf(m).toEqualTypeOf<TestModel>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    afterUpsert(m, options) {
+      expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
   };
 
   const sequelize = new Sequelize('uri', { hooks });
@@ -27,6 +37,8 @@ import { ModelHooks } from "../lib/hooks";
   TestModel.addHook('beforeSave', hooks.beforeSave!);
   TestModel.addHook('afterSave', hooks.afterSave!);
   TestModel.addHook('afterFind', hooks.afterFind!);
+  TestModel.addHook('beforeUpsert', hooks.beforeUpsert!);
+  TestModel.addHook('afterUpsert', hooks.afterUpsert!);
 
   TestModel.beforeSave(hooks.beforeSave!);
   TestModel.afterSave(hooks.afterSave!);
@@ -58,4 +70,11 @@ import { ModelHooks } from "../lib/hooks";
   hooks.beforeFindAfterOptions = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeBulkSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeUpsert = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+}
+
+{
+  Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<DeepWriteable<Config>>());
+  Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<DeepWriteable<Config>>());
+  Sequelize.addHook('beforeConnect', (...args) => { expectTypeOf(args).toEqualTypeOf<[DeepWriteable<Config>]>(); })
 }

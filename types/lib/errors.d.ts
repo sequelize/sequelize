@@ -157,6 +157,16 @@ export class ExclusionConstraintError extends DatabaseError {
 }
 
 /**
+ * Thrown when constraint name is not found in the database
+ */
+export class UnknownConstraintError extends DatabaseError {
+  public constraint: string;
+  public fields: { [field: string]: string };
+  public table: string;
+  constructor(options: { parent?: Error; message?: string; constraint?: string; fields?: string[]; table?: string });
+}
+
+/**
  * Thrown when attempting to update a stale model instance
  */
 export class OptimisticLockError extends BaseError {
