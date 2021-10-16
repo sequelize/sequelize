@@ -161,7 +161,7 @@ Multiple checks can be passed:
 ```js
 Post.findAll({
   where: {
-    authorId: 12
+    authorId: 12,
     status: 'active'
   }
 });
@@ -355,10 +355,10 @@ The above will generate:
 SELECT *
 FROM `Projects`
 WHERE (
-  `Projects`.`name` = 'a project'
+  `Projects`.`name` = 'Some Project'
   AND NOT (
     `Projects`.`id` IN (1,2,3)
-    OR
+    AND
     `Projects`.`description` LIKE 'Hello%'
   )
 )
