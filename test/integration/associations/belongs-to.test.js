@@ -818,12 +818,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           }
         });
 
-        console.log('user table name: ');
-        console.log(User.getTableName());
-
-        console.log('task.rawattributes.uid.references.model: ');
-        console.log(Task.rawAttributes.uid.references.model);
-
         expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
         expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());

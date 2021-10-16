@@ -101,6 +101,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
           if (dialect === 'mssql') {
             boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+          } else if (dialect === 'ibmi')
+          {
+            boolQuery = '1 AS "someBoolean"';
           }
 
           const post = await Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });

@@ -104,9 +104,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should change a column if it exists in the model but is different in the database', async function() {
+      const ageType = dialect === 'ibmi' ? Sequelize.CHAR : Sequelize.INTEGER;
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
-        age: Sequelize.INTEGER
+        age: ageType
       });
       await this.sequelize.sync();
 
@@ -118,7 +119,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ alter: true });
       const data = await testSync.describe();
       expect(data).to.have.ownProperty('age');
-      expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
+      expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
     });
 
     it('should not alter table if data type does not change', async function() {

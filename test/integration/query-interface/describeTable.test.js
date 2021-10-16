@@ -79,6 +79,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'ibmi':
+          assertVal = 'VARCHAR';
+          break;
       }
       expect(username.type).to.equal(assertVal);
       expect(username.allowNull).to.be.true;
@@ -104,6 +107,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           break;
         case 'mssql':
           assertVal = 'BIT';
+          break;
+        case 'ibmi':
+          assertVal = 'SMALLINT';
           break;
       }
       expect(isAdmin.type).to.equal(assertVal);

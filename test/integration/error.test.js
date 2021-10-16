@@ -4,6 +4,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('./support'),
+  dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
@@ -323,33 +324,37 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     });
 
-    it('Supports newlines in keys', async function() {
-      const spy = sinon.spy(),
-        User = this.sequelize.define('user', {
-          name: {
-            type: Sequelize.STRING,
-            unique: 'unique \n unique'
-          }
-        });
-
-      await this.sequelize.sync({ force: true });
-      await User.create({ name: 'jan' });
-
-      try {
+    // IBM i doesn't support newlines in identifiers
+    if (dialect !== 'ibmi')
+    {
+      it('Supports newlines in keys', async function() {
+        const spy = sinon.spy(),
+          User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              unique: 'unique \n unique'
+            }
+          });
+  
+        await this.sequelize.sync({ force: true });
         await User.create({ name: 'jan' });
-      } catch (err) {
-        if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
-        await spy(err);
-      }
-
-      expect(spy).to.have.been.calledOnce;
-    });
+  
+        try {
+          await User.create({ name: 'jan' });
+        } catch (err) {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
+          await spy(err);
+        }
+  
+        expect(spy).to.have.been.calledOnce;
+      });
+    }
 
     it('Works when unique keys are not defined in sequelize', async function() {
       let User = this.sequelize.define('user', {
         name: {
           type: Sequelize.STRING,
-          unique: 'unique \n unique'
+          unique: 'hiddenUniqueKey'
         }
       }, { timestamps: false });
 
@@ -364,7 +369,8 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
       // And when the model is not passed at all
-      await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      const sql = dialect === 'ibmi' ? 'INSERT INTO "users" ("name") VALUES (\'jan\')' : 'INSERT INTO users (name) VALUES (\'jan\')'
+      await expect(this.sequelize.query(sql)).to.be.rejectedWith(Sequelize.UniqueConstraintError);
     });
 
     it('adds parent and sql properties', async function() {

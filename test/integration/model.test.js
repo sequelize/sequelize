@@ -317,61 +317,64 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('allows us to customize the error message for unique constraint', async function() {
-      const User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
-        email: { type: Sequelize.STRING, unique: 'user_and_email' }
+    if (dialect !== 'ibmi')
+    {
+      it('allows us to customize the error message for unique constraint', async function() {
+        const User = this.sequelize.define('UserWithUniqueUsername', {
+          username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
+          email: { type: Sequelize.STRING, unique: 'user_and_email' }
+        });
+  
+        await User.sync({ force: true });
+  
+        try {
+          await Promise.all([
+            User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
+            User.create({ username: 'tobi', email: 'tobi@tobi.me' })
+          ]);
+        } catch (err) {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
+          expect(err.message).to.equal('User and email must be unique');
+        }
       });
-
-      await User.sync({ force: true });
-
-      try {
-        await Promise.all([
-          User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-          User.create({ username: 'tobi', email: 'tobi@tobi.me' })
-        ]);
-      } catch (err) {
-        if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
-        expect(err.message).to.equal('User and email must be unique');
-      }
-    });
-
-    // If you use migrations to create unique indexes that have explicit names and/or contain fields
-    // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-    it('allows us to map the customized error message with unique constraint name', async function() {
-      // Fake migration style index creation with explicit index definition
-      let User = this.sequelize.define('UserWithUniqueUsername', {
-        user_id: { type: Sequelize.INTEGER },
-        email: { type: Sequelize.STRING }
-      }, {
-        indexes: [
-          {
-            name: 'user_and_email_index',
-            msg: 'User and email must be unique',
-            unique: true,
-            method: 'BTREE',
-            fields: ['user_id', { attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }]
-          }]
+  
+      // If you use migrations to create unique indexes that have explicit names and/or contain fields
+      // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
+      it('allows us to map the customized error message with unique constraint name', async function() {
+        // Fake migration style index creation with explicit index definition
+        let User = this.sequelize.define('UserWithUniqueUsername', {
+          user_id: { type: Sequelize.INTEGER },
+          email: { type: Sequelize.STRING }
+        }, {
+          indexes: [
+            {
+              name: 'user_and_email_index',
+              msg: 'User and email must be unique',
+              unique: true,
+              method: 'BTREE',
+              fields: ['user_id', { attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }]
+            }]
+        });
+  
+        await User.sync({ force: true });
+  
+        // Redefine the model to use the index in database and override error message
+        User = this.sequelize.define('UserWithUniqueUsername', {
+          user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' } },
+          email: { type: Sequelize.STRING, unique: 'user_and_email_index' }
+        });
+  
+        try {
+          await Promise.all([
+            User.create({ user_id: 1, email: 'tobi@tobi.me' }),
+            User.create({ user_id: 1, email: 'tobi@tobi.me' })
+          ]);
+        } catch (err) {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
+          expect(err.message).to.equal('User and email must be unique');
+        }
       });
-
-      await User.sync({ force: true });
-
-      // Redefine the model to use the index in database and override error message
-      User = this.sequelize.define('UserWithUniqueUsername', {
-        user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' } },
-        email: { type: Sequelize.STRING, unique: 'user_and_email_index' }
-      });
-
-      try {
-        await Promise.all([
-          User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-          User.create({ user_id: 1, email: 'tobi@tobi.me' })
-        ]);
-      } catch (err) {
-        if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
-        expect(err.message).to.equal('User and email must be unique');
-      }
-    });
+    }
 
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
@@ -414,7 +417,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
+      const args = await this.sequelize.queryInterface.showIndex(Model.getTableName());
       let primary, idx1, idx2, idx3;
 
       if (dialect === 'sqlite') {
@@ -455,6 +458,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(idx3.fields).to.deep.equal([
           { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined }
+        ]);
+      } else if (dialect === 'ibmi') {
+        primary = args[1];
+        idx1 = args[0];
+        idx2 = args[2];
+        idx3 = args[3];
+
+        expect(primary.primary).to.be.ok;
+
+        expect(idx1.fields).to.deep.equal([
+          { attribute: 'fieldA', length: undefined, order: undefined },
+          { attribute: 'fieldB', length: undefined, order: undefined },
+        ]);
+
+        expect(idx2.fields).to.deep.equal([
+          { attribute: 'fieldC', length: undefined, order: undefined }
         ]);
       } else {
         // And finally mysql returns the primary first, and then the rest in the order they were defined
@@ -905,7 +924,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fields: ['secretValue'],
         logging(sql) {
           test = true;
-          if (dialect === 'mssql') {
+          if (dialect === 'mssql' || dialect === 'ibmi') {
             expect(sql).to.not.contain('createdAt');
           } else {
             expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]=(\$1|\?),[`"]+updatedAt[`"]+=(\$2|\?)\s+WHERE [`"]+id[`"]+\s=\s(\$3|\?)/);
@@ -1543,13 +1562,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true });
+      let result = await this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'', { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true });
+      result = await this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'', { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      const [users] = await this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
+      const [users] = await this.sequelize.query('SELECT * FROM "paranoidusers"', { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
     });
@@ -1722,7 +1741,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.have.lengthOf(2);
     });
 
-    if (dialect !== 'mssql') {
+    if (dialect !== 'mssql' && dialect !== 'ibmi') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
@@ -2008,7 +2027,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         postgres: 2,
         mariadb: 3,
         mysql: 1,
-        sqlite: 1
+        sqlite: 1,
+        ibmi: 3
       };
       expect(schemas).to.have.length(expectedLengths[dialect]);
     });
@@ -2058,7 +2078,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.not.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
             test++;
             expect(sql).to.not.contain('special');
           }
@@ -2077,7 +2097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
             test++;
             expect(sql).to.contain('special');
           }
@@ -2103,7 +2123,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
 
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+      if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
       }
@@ -2115,7 +2135,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         force: true,
         logging: _.after(2, _.once(sql => {
           test = true;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'ibmi') {
             expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
           } else if (dialect === 'mssql') {
             expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
@@ -2137,7 +2157,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserPublicSync.create({ age: 3 }, {
         logging: UserPublic => {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'ibmi') {
             expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
             expect(UserPublic).to.include('INSERT INTO "UserPublics"');
           } else if (dialect === 'sqlite') {
@@ -2159,7 +2179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
         logging(UserSpecial) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'ibmi') {
             expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
           } else if (dialect === 'sqlite') {
             expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
@@ -2176,7 +2196,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserSpecial.update({ age: 5 }, {
         logging(user) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' | dialect === 'ibmi') {
             expect(user).to.include('UPDATE "special"."UserSpecials"');
           } else if (dialect === 'mssql') {
             expect(user).to.include('UPDATE [special].[UserSpecials]');
@@ -2288,6 +2308,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/);
         } else if (dialect === 'mssql') {
           expect(err.message).to.match(/Could not create constraint/);
+        } else if (dialect === 'ibmi') {
+          expect(err.message).to.match(/[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./);
         } else {
           //throw new Error('Undefined dialect!');
         }

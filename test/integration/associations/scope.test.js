@@ -7,6 +7,10 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Op = Sequelize.Op;
 
+const {
+  setTimeout,
+} = require('timers/promises');
+
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
     beforeEach(function() {

@@ -20,6 +20,7 @@ function assertSameConnection(newConnection, oldConnection) {
       break;
 
     case 'mssql':
+    case 'ibmi':
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
@@ -40,6 +41,7 @@ function assertNewConnection(newConnection, oldConnection) {
       break;
 
     case 'mssql':
+    case 'ibmi':
       expect(newConnection.dummyId).to.not.be.ok;
       expect(oldConnection.dummyId).to.be.ok;
       break;
@@ -50,7 +52,7 @@ function assertNewConnection(newConnection, oldConnection) {
 }
 
 function attachMSSQLUniqueId(connection) {
-  if (dialect === 'mssql') {
+  if (dialect === 'mssql' || dialect === 'ibmi') {
     connection.dummyId = Math.random();
   }
 
@@ -72,7 +74,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should obtain new connection when old connection is abruptly closed', async () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
-        if (dialect === 'mssql') {
+        if (dialect === 'mssql' || dialect === 'ibmi') {
           connection = attachMSSQLUniqueId(connection);
         }
         connection.emit('error', { code: 'ECONNRESET' });
@@ -98,7 +100,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should obtain new connection when released connection dies inside pool', async () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
-        if (dialect === 'mssql') {
+        if (dialect === 'mssql' || dialect === 'ibmi') {
           attachMSSQLUniqueId(connection).close();
         } else if (dialect === 'postgres') {
           connection.end();

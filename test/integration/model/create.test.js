@@ -157,7 +157,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       } catch (error) {
         expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        expect(error.errors[0].path).to.be.a('string', 'username');
+        if (dialect !== 'ibmi') {
+          expect(error.errors[0].path).to.be.a('string', 'username');
+        }
       }
     });
 
@@ -1042,7 +1044,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await User.sync({ force: true });
           const tableName = User.getTableName();
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower(username)))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (err) {

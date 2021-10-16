@@ -61,7 +61,6 @@ module.exports = {
 
   ibmi: {
     odbcConnectionString: 'DSN=SEQUELIZE',
-    schema: 'SEQUELIZE',
     database: 'SEQUELIZE',
     pool: {
       max: env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5,

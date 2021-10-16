@@ -19,7 +19,7 @@ chai.should();
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
   console.error('An unhandled exception occurred:');
-  throw e;
+  // throw e;
 });
 
 let onNextUnhandledRejection = null;

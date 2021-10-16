@@ -130,7 +130,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       describe('with invalid credentials', () => {
         beforeEach(function() {
-          this.sequelizeWithInvalidCredentials = new Sequelize('localhost', 'wtf', 'lol', this.sequelize.options);
+          if (this.sequelize.getDialect() === 'ibmi') {
+            const badOptions = {
+              odbcConnectionString: `${this.sequelize.options.odbcConnectionString}UID=wtf;PWD=lol;`
+            };
+            this.sequelizeWithInvalidCredentials = new Sequelize({ ...this.sequelize.options, ...badOptions });
+          } else {
+            this.sequelizeWithInvalidCredentials = new Sequelize('localhost', 'wtf', 'lol', this.sequelize.options);
+          }
         });
 
         it('triggers the error event', async function() {
@@ -424,7 +431,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function() {
-        this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        if (dialect === 'ibmi') {
+          const badOptions = {
+            odbcConnectionString: `${this.sequelize.options.odbcConnectionString};UID=omg;PWD=bar;`
+          };
+          this.sequelizeWithInvalidCredentials = new Sequelize({ ...this.sequelize.options, ...badOptions });
+        } else {
+          this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        }
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
@@ -441,6 +455,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ].includes(err.message.trim()));
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
+          } else if (dialect === 'ibmi') {
+            expect(err.message).to.equal('[odbc] Error connecting to the database');
+            expect(err.original.odbcErrors[0].message).to.include('Communication link failure');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }

@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             schema: SCHEMA_TWO,
             indexes: [
               {
-                name: 'test_slug_idx',
+                name: 'test_slug_idx2',
                 fields: ['name']
               }
             ]

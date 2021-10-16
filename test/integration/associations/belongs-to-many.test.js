@@ -1263,7 +1263,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       const result = await article.hasLabels([label]);
-      console.log(result);
       await expect(result).to.be.true;
     });
 

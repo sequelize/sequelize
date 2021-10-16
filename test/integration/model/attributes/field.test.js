@@ -245,6 +245,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('increment should work', async function() {
         await this.Comment.destroy({ truncate: true });
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
+        console.log(comment1);
         const comment0 = await comment1.increment('likes');
         const comment = await comment0.reload();
         expect(comment.likes).to.be.equal(24);
@@ -462,6 +463,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           findAttributes = [
             Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
             [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
+          ];
+        } else if (dialect === 'ibmi') {
+          findAttributes = [
+            Sequelize.literal('1 AS "someProperty"'),
+            [Sequelize.literal('1'), 'someProperty2']
           ];
         } else {
           findAttributes = [
