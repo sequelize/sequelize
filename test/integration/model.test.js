@@ -1739,6 +1739,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         group: ['data']
       });
       expect(count).to.have.lengthOf(2);
+
+      // The order of count varies across dialects; Hence find element by identified first.
+      expect(count.find(i => i.data === 'A')).to.deep.equal({ data: 'A', count: 2 });
+      expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
     if (dialect !== 'mssql' && dialect !== 'ibmi') {
