@@ -58,11 +58,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('save should work (#13421)', async function() {
       expect(await this.Participation.count()).to.equal(1);
-      const p = await this.Participation.findOne({ where: { userId: 1, campaignId: 1 } });
+      const p = await this.Participation.findAll({ where: { userId: 1, campaignId: 1 } });
 
       p.comment = 'Updated campaign';
 
-      expect(await p.save()).not.to.throw;
+      expect(() => p.save()).not.to.throw;
     });
   });
 });
