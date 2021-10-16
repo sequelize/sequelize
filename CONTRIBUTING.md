@@ -125,10 +125,10 @@ If you're happy to run tests only against an SQLite database, you can skip this 
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-* `npm run setup-mariadb`
-* `npm run setup-mysql`
-* `npm run setup-postgres`
-* `npm run setup-mssql`
+* `npm run start-mariadb`
+* `npm run start-mysql`
+* `npm run start-postgres`
+* `npm run start-mssql`
 
 *Note:* if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 

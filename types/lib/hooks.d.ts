@@ -6,6 +6,7 @@ import Model, {
   CreateOptions,
   DestroyOptions,
   RestoreOptions,
+  UpsertOptions,
   FindOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
@@ -15,6 +16,7 @@ import Model, {
   UpdateOptions,
 } from './model';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
+import { DeepWriteable } from './utils';
 
 export type HookReturn = Promise<void> | void;
 
@@ -33,6 +35,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
+  afterUpsert(attributes: [ M,  boolean | null ], options: UpsertOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
@@ -69,7 +73,7 @@ export interface SequelizeHooks<
   afterDefine(model: ModelType): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
-  beforeConnect(config: Config): HookReturn;
+  beforeConnect(config: DeepWriteable<Config>): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
   beforeDisconnect(connection: unknown): HookReturn;
   afterDisconnect(connection: unknown): HookReturn;
