@@ -36,15 +36,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('showAllTables', () => {
     it('should not contain views', async function() {
       async function cleanup(sequelize) {
-        // NOTE: The syntax "DROP VIEW [IF EXISTS]"" is not part of the standard
-        // and might not be available on all RDBMSs. Therefore "DROP VIEW" is
-        // the compatible option, which can throw an error in case the VIEW does
-        // not exist. In case of error, it is ignored.
-        try {
-          await sequelize.query('DROP VIEW IF EXISTS V_Fail');
-        } catch (error) {
-          // Ignore error.
-        }
+        await sequelize.query('DROP VIEW IF EXISTS V_Fail');
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
