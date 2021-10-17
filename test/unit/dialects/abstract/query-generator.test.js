@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Op = require('../../../../lib/operators'),
+  Op = require('sequelize/lib/operators'),
   getAbstractQueryGenerator = require('../../support').getAbstractQueryGenerator;
 
 describe('QueryGenerator', () => {

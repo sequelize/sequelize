@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist/lib",
+    "strict": true,
+    "baseUrl": "./",
+    "rootDirs": ["./lib"],
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "checkJs": false,
+    "removeComments": false
+  },
+  "include": ["./lib/**/*.ts"]
+}

@@ -2,12 +2,12 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const Sequelize = require('../../index');
+const Sequelize = require('sequelize');
 const config = require('../config/config');
-const Transaction = require('../../lib/transaction');
+const Transaction = require('sequelize/lib/transaction');
 const sinon = require('sinon');
 const current = Support.sequelize;
 

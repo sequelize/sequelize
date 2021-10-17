@@ -3,9 +3,9 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
-const Utils = require('../../lib/utils');
-const { logger } = require('../../lib/utils/logger');
+const DataTypes = require('sequelize/lib/data-types');
+const Utils = require('sequelize/lib/utils');
+const { logger } = require('sequelize/lib/utils/logger');
 const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {

@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   _ = require('lodash'),
   promiseProps = require('p-props');
 
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'Designers' },
           { name: 'Managers' }
         ]);
-        const groups = await Group.findAll(); 
+        const groups = await Group.findAll();
         await Company.bulkCreate([
           { name: 'Sequelize' },
           { name: 'Coca Cola' },
@@ -851,8 +851,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany not required', async function() {
-      const Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }), 
-        Street = this.sequelize.define('Street', { 'active': DataTypes.BOOLEAN }), 
+      const Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }),
+        Street = this.sequelize.define('Street', { 'active': DataTypes.BOOLEAN }),
         User = this.sequelize.define('User', { 'username': DataTypes.STRING });
 
       // Associate

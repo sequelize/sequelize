@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  UniqueConstraintError = require('../../../lib/errors').UniqueConstraintError,
+  UniqueConstraintError = require('sequelize/lib/errors').UniqueConstraintError,
   current = Support.sequelize,
   sinon = require('sinon');
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
   sinon = require('sinon'),
@@ -10,7 +10,7 @@ const chai = require('chai'),
   current = Support.sequelize,
   Op = Sequelize.Op,
   uuid = require('uuid'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   semver = require('semver');
 

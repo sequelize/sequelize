@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
-  errors = require('../../lib/errors'),
+  errors = require('sequelize/lib/errors'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
