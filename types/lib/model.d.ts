@@ -738,7 +738,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
