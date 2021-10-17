@@ -438,7 +438,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               'role "bar" does not exist',
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"'
-            ].includes(err.message.trim()));
+            ].some(fragment => err.message.includes(fragment)));
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else {
