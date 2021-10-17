@@ -42,11 +42,23 @@ MyModel.findOne({ include: ['OtherModelAlias'] });
 
 MyModel.findOne({ include: OtherModel });
 
+MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
+MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.num'] }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number[]>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
 MyModel.count({ include: OtherModel });
+
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
