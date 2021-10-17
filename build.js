@@ -55,7 +55,7 @@ async function main() {
       env: {
         // binaries installed from modules have symlinks in
         // <pkg root>/node_modules/.bin.
-        PATH: `${process.env.PATH ?? ''}:${path.join(
+        PATH: `${process.env.PATH || ''}:${path.join(
           rootDir,
           'node_modules/.bin'
         )}`
