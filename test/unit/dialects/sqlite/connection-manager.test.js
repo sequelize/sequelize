@@ -8,11 +8,12 @@ const chai = require('chai'),
   sinon = require('sinon');
 
 if (dialect === 'sqlite') {
-  describe('connectionManager', () => {
+  describe('[SQLITE Specific] ConnectionManager', () => {
     describe('getConnection', () => {
-      it('Should respect storage=\'\'', () => {
+      it('should forward empty string storage to SQLite connector to create temporary disk-based database', () => {
         // storage='' means anonymous disk-based database
         const sequelize = new Sequelize('', '', '', { dialect: 'sqlite', storage: '' });
+
         sinon.stub(sequelize.connectionManager, 'lib').value({
           Database: function FakeDatabase(_s, _m, cb) {
             cb();
@@ -20,6 +21,7 @@ if (dialect === 'sqlite') {
           }
         });
         sinon.stub(sequelize.connectionManager, 'connections').value({ default: { run: () => {} } });
+        
         const options = {};
         sequelize.dialect.connectionManager.getConnection(options);
         expect(options.storage).to.be.equal('');
