@@ -45,7 +45,7 @@ describe('Promise', () => {
         return currentId();
       }).then(asyncIds => {
         for (let i = 0; i < asyncIds.length; ++i) {
-          expect(asyncIds[i]).to.not.equal(true);
+          expect(tree.has(asyncIds[i])).to.equal(true);
         }
       }));
     });
