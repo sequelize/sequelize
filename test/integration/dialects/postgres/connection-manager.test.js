@@ -39,6 +39,14 @@ if (dialect.match(/^postgres/)) {
       // `notice` is Postgres's default
       expect(result[0].client_min_messages).to.equal('notice');
     });
+    
+    it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
+      const sequelize = Support.createSequelizeInstance({
+        dialectOptions: { query_timeout: 100 }
+      });
+      const error = await sequelize.query('select pg_sleep(2)').catch(e => e);
+      expect(error.message).to.equal('Query read timeout');
+    });
   });
 
   describe('Dynamic OIDs', () => {
