@@ -367,7 +367,8 @@ User.addHook('afterCreate', async (user, options) => {
 await sequelize.transaction(async t => {
   await User.create({
     username: 'someguy',
-    mood: 'happy',
+    mood: 'happy'
+  }, {
     transaction: t
   });
 });

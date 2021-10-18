@@ -58,7 +58,7 @@ MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
