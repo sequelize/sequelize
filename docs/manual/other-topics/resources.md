@@ -60,3 +60,4 @@
 * [sequelize-deep-update](https://www.npmjs.com/package/sequelize-deep-update) - Update a sequelize instance and its included associated instances with new properties.
 * [sequelize-noupdate-attributes](https://www.npmjs.com/package/sequelize-noupdate-attributes) - Adds no update/readonly attributes support to models.
 * [sequelize-joi](https://www.npmjs.com/package/sequelize-joi) - Allows specifying [Joi](https://github.com/hapijs/joi) validation schema for JSONB model attributes in Sequelize.
+* [sqlcommenter-sequelize](https://github.com/google/sqlcommenter/tree/master/nodejs/sqlcommenter-nodejs/packages/sqlcommenter-sequelize) A [sqlcommenter](https://google.github.io/sqlcommenter/) plugin with [support for Sequelize](https://google.github.io/sqlcommenter/node/sequelize/) to augment SQL statements with comments that can be used later to correlate application code with SQL statements.
