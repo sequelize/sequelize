@@ -36,7 +36,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('showAllTables', () => {
     it('should not contain views', async function() {
       async function cleanup(sequelize) {
-        await sequelize.query('DROP VIEW IF EXISTS V_Fail');
+        if (dialect === 'db2') {
+          await sequelize.query('DROP VIEW V_Fail');
+        } else {
+          await sequelize.query('DROP VIEW IF EXISTS V_Fail');
+        }
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
