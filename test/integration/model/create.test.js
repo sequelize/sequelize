@@ -573,16 +573,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const [
           [instance1, created1],
           [instance2, created2],
-          [instance3, created3],
+          [instance3, created3]
         ] = await Promise.all([
-          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
-          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
-          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
+          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
         ]);
 
-        expect([instance1.id, created1]).to.deep.equal([1, true])
-        expect([instance2.id, created2]).to.deep.equal([1, false])
-        expect([instance3.id, created3]).to.deep.equal([1, false])
+        // All instances are the same
+        expect(instance1.id).to.equal(1);
+        expect(instance2.id).to.equal(1);
+        expect(instance3.id).to.equal(1);
+        // Only one of the createdN values is true
+        expect(!!(created1 ^ created2 ^ created3)).to.be.true;
       });
 
       if (current.dialect.supports.transactions) {
@@ -591,7 +594,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const [
             [instance1, created1],
             [instance2, created2],
-            [instance3, created3],
+            [instance3, created3]
           ] = await Promise.all([
             this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
             this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
@@ -600,9 +603,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await t.commit();
 
-          expect([instance1.id, created1]).to.deep.equal([1, true])
-          expect([instance2.id, created2]).to.deep.equal([1, false])
-          expect([instance3.id, created3]).to.deep.equal([1, false])
+          // All instances are the same
+          expect(instance1.id).to.equal(1);
+          expect(instance2.id).to.equal(1);
+          expect(instance3.id).to.equal(1);
+          // Only one of the createdN values is true
+          expect(!!(created1 ^ created2 ^ created3)).to.be.true;
         });
       }
     }
