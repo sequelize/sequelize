@@ -570,35 +570,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findCreateFind', () => {
     if (dialect !== 'sqlite') {
       it('should work with multiple concurrent calls', async function() {
-        const [first, second, third] = await Promise.all([
-          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-          this.User.findCreateFind({ where: { uniqueName: 'winner' } })
+        const [
+          [instance1, created1],
+          [instance2, created2],
+          [instance3, created3],
+        ] = await Promise.all([
+          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
+          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
+          this.User.findCreateFind({ where: { uniqueName: "winner" } }),
         ]);
 
-        const firstInstance = first[0],
-          firstCreated = first[1],
-          secondInstance = second[0],
-          secondCreated = second[1],
-          thirdInstance = third[0],
-          thirdCreated = third[1];
-
-        expect([firstCreated, secondCreated, thirdCreated].filter(value => {
-          return value;
-        }).length).to.equal(1);
-
-        expect(firstInstance).to.be.ok;
-        expect(secondInstance).to.be.ok;
-        expect(thirdInstance).to.be.ok;
-
-        expect(firstInstance.id).to.equal(secondInstance.id);
-        expect(secondInstance.id).to.equal(thirdInstance.id);
+        expect([instance1.id, created1]).to.deep.equal([1, true])
+        expect([instance2.id, created2]).to.deep.equal([1, false])
+        expect([instance3.id, created3]).to.deep.equal([1, false])
       });
 
       if (current.dialect.supports.transactions) {
         it('should work with multiple concurrent calls within a transaction', async function() {
           const t = await this.sequelize.transaction();
-          const [first, second, third] = await Promise.all([
+          const [
+            [instance1, created1],
+            [instance2, created2],
+            [instance3, created3],
+          ] = await Promise.all([
             this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
             this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
             this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } })
@@ -606,23 +600,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await t.commit();
 
-          const firstInstance = first[0],
-            firstCreated = first[1],
-            secondInstance = second[0],
-            secondCreated = second[1],
-            thirdInstance = third[0],
-            thirdCreated = third[1];
-
-          expect([firstCreated, secondCreated, thirdCreated].filter(value => {
-            return value;
-          }).length).to.equal(1);
-
-          expect(firstInstance).to.be.ok;
-          expect(secondInstance).to.be.ok;
-          expect(thirdInstance).to.be.ok;
-
-          expect(firstInstance.id).to.equal(secondInstance.id);
-          expect(secondInstance.id).to.equal(thirdInstance.id);
+          expect([instance1.id, created1]).to.deep.equal([1, true])
+          expect([instance2.id, created2]).to.deep.equal([1, false])
+          expect([instance3.id, created3]).to.deep.equal([1, false])
         });
       }
     }
