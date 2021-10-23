@@ -577,7 +577,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ] = await Promise.all([
           this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
           this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-          this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+          this.User.findCreateFind({ where: { uniqueName: 'winner' } })
         ]);
 
         // All instances are the same
