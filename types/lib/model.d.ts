@@ -738,7 +738,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -1997,7 +1997,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,

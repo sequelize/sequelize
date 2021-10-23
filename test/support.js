@@ -113,7 +113,7 @@ const Support = {
       sequelizeOptions.native = true;
     }
 
-    if (config.storage) {
+    if (config.storage || config.storage === '') {
       sequelizeOptions.storage = config.storage;
     }
 
