@@ -11,7 +11,7 @@
 
     "jsdoc/check-param-names": "error",
     "jsdoc/check-tag-names": "error",
-    "jsdoc/check-types": "error",
+    "jsdoc/check-types": "off",
     "jsdoc/newline-after-description": "error",
     "jsdoc/no-undefined-types": "off",
     "jsdoc/require-description-complete-sentence": "off",
@@ -20,9 +20,9 @@
     "jsdoc/require-param": "error",
     "jsdoc/require-param-description": "off",
     "jsdoc/require-param-name": "error",
-    "jsdoc/require-param-type": "error",
+    "jsdoc/require-param-type": "off",
     "jsdoc/require-returns-description": "off",
-    "jsdoc/require-returns-type": "error",
+    "jsdoc/require-returns-type": "off",
     "jsdoc/valid-types": "error",
 
     // style
@@ -39,11 +39,14 @@
       }
     ],
     "semi": ["error", "always"],
-    "space-before-function-paren": ["error", {
-      "named": "never",
-      "anonymous": "never",
-      "asyncArrow": "always"
-    }],
+    "space-before-function-paren": [
+      "error",
+      {
+        "named": "never",
+        "anonymous": "never",
+        "asyncArrow": "always"
+      }
+    ],
     "space-before-blocks": "error",
     "space-infix-ops": "error",
     "no-multi-spaces": "error",
@@ -107,7 +110,10 @@
       "rules": {
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/no-this-alias": "off"
+        "@typescript-eslint/no-this-alias": "off",
+        "jsdoc/require-param-type": "error",
+        "jsdoc/check-types": "error",
+        "jsdoc/require-returns-type": "error"
       }
     }
   ],

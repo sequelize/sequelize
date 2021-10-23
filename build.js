@@ -4,9 +4,12 @@ const glob = require('fast-glob');
 const { promisify } = require('util');
 const { build } = require('esbuild');
 const fs = require('fs');
-const copyFiles = require('copyfiles');
+const copyFiles = promisify( require('copyfiles'));
 const path = require('path');
-const { exec } = require('child_process');
+const exec = promisify(require('child_process').exec);
+
+const rmdir = promisify(fs.rmdir);
+const stat = promisify(fs.stat);
 
 // if this script is moved, this will need to be adjusted
 const rootDir = __dirname;
@@ -14,13 +17,13 @@ const outdir = path.join(rootDir, 'dist');
 
 const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 
-async function rmBuildDir() {
+async function rmDistDir() {
   try {
-    await promisify(fs.stat)(outdir);
+    await stat(outdir);
     if (nodeMajorVersion >= 12) {
-      await promisify(fs.rmdir)(outdir, { recursive: true });
+      await rmdir(outdir, { recursive: true });
     } else {
-      await promisify(fs.rmdir)(outdir);
+      await rmdir(outdir);
     }
   } catch {
     /* no-op */
@@ -35,12 +38,12 @@ async function main() {
     // Find all .js and .ts files from lib/
     glob('./lib/**/*.[tj]s', { onlyFiles: true, absolute: false }),
     // Delete dist/ for a full rebuild.
-    rmBuildDir()
+    rmDistDir()
   ]);
 
   // copy .d.ts files prior to generating them from the .ts files
   // so the .ts files in lib/ will take priority..
-  await promisify(copyFiles)(
+  await copyFiles(
     // The last path in the list is the output directory
     declarationFiles.concat(outdir),
     { up: 1 }
@@ -66,7 +69,7 @@ async function main() {
       keepNames: true
     }),
 
-    promisify(exec)('tsc', {
+    exec('tsc', {
       env: {
         // binaries installed from modules have symlinks in
         // <pkg root>/node_modules/.bin.
@@ -81,3 +84,4 @@ async function main() {
 }
 
 main().catch(console.error).finally(process.exit);
+

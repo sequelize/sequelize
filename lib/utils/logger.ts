@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * @file Sequelize module for debug and deprecation messages.
  * It require a `context` for which messages will be printed.
@@ -10,44 +8,58 @@
 import nodeDebug from 'debug';
 import util from 'util';
 
+/**
+ * The configuration for sequelize's logging interface.
+ *
+ * @access package
+ */
 export interface LoggerConfig {
   /**
-   * @default `sequelize`
+   * The context which the logger should log in.
+   *
+   * @default 'sequelize'
    */
   context?: string;
-  /**
-   * @default `true`
-   */
-  debug?: boolean;
 }
 
 export class Logger {
-  protected config: {
-    context: string;
-    debug: boolean;
-  };
+  protected config: LoggerConfig;
 
-  constructor(
-    { context = 'sequelize', debug = true, ...rest }: LoggerConfig = {
-      context: 'sequelize',
-      debug: true
-    }
-  ) {
+  constructor({
+    context = 'sequelize',
+    ...rest
+  }: Partial<LoggerConfig> = {}) {
     this.config = {
       context,
-      debug,
       ...rest
     };
   }
 
+  /**
+   * Logs a warning in the logger's context.
+   *
+   * @param message The message of the warning.
+   */
   warn(message: string): void {
     console.warn(`(${this.config.context}) Warning: ${message}`);
   }
 
+  /**
+   * Ueses node's util.inspect to stringify a value.
+   *
+   * @param value The value which should be inspected.
+   * @returns The string of the inspected value.
+   */
   inspect(value: unknown): string {
     return util.inspect(value, false, 3);
   }
 
+  /**
+   * Gets a debugger for a context.
+   *
+   * @param name The name of the context.
+   * @returns A debugger interace which can be used to debug.
+   */
   debugContext(name: string): nodeDebug.Debugger {
     return nodeDebug(`${this.config.context}:${name}`);
   }
