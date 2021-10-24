@@ -1113,13 +1113,13 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
-
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  
   /**
    * don't allow specific substrings
    */
@@ -2001,7 +2001,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
