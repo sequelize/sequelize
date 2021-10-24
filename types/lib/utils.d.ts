@@ -3,6 +3,8 @@ import { Model, ModelCtor, ModelType, WhereOptions } from './model';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 
+export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
+
 export interface Inflector {
   singularize(str: string): string;
   pluralize(str: string): string;
