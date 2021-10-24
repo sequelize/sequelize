@@ -44,7 +44,7 @@ Project.init({
           }
         }
       }
-    }
+    },
     sequelize,
     modelName: 'project'
   }
