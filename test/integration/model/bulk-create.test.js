@@ -638,6 +638,67 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(people[1].name).to.equal('Bob');
           });
 
+          it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function() {
+            const Person = this.sequelize.define(
+              'Person',
+              {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  autoIncrement: true,
+                  primaryKey: true,
+                  field: 'id'
+                },
+                systemId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  field: 'system_id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                }
+              },
+              {
+                indexes: [
+                  {
+                    unique: true,
+                    fields: ['system_id', 'system']
+                  }
+                ]
+              }
+            );
+
+            await Person.sync({ force: true });
+            const inserts = [{ systemId: 1, system: 'system1', name: 'Alice' }];
+            const people0 = await Person.bulkCreate(inserts);
+            expect(people0.length).to.equal(1);
+            expect(people0[0].systemId).to.equal(1);
+            expect(people0[0].system).to.equal('system1');
+            expect(people0[0].name).to.equal('Alice');
+
+            const updates = [
+              { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+              { systemId: 1, system: 'system2', name: 'Bob' }
+            ];
+
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['systemId', 'system', 'name']
+            });
+            expect(people.length).to.equal(2);
+            expect(people[0].systemId).to.equal(1);
+            expect(people[0].system).to.equal('system1');
+            expect(people[0].name).to.equal('CHANGED NAME');
+            expect(people[1].systemId).to.equal(1);
+            expect(people[1].system).to.equal('system2');
+            expect(people[1].name).to.equal('Bob');
+          });
         });
 
 
