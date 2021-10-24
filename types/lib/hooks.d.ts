@@ -6,6 +6,7 @@ import Model, {
   CreateOptions,
   DestroyOptions,
   RestoreOptions,
+  UpsertOptions,
   FindOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
@@ -34,6 +35,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
+  afterUpsert(attributes: [ M,  boolean | null ], options: UpsertOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
