@@ -15,4 +15,3 @@ test/binary/tmp/*
 .vscode/
 esdoc
 node_modules
-test.txt

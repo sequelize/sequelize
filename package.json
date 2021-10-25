@@ -1,7 +1,7 @@
 {
   "name": "sequelize-ibmi",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "maintainers": [
     "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
   ],
@@ -74,7 +74,7 @@
     "mysql2": "^2.1.0",
     "nth-check": ">=2.0.1",
     "nyc": "^15.0.0",
-    "odbc": "^2.4.0",
+    "odbc": "^2.4.1",
     "p-map": "^4.0.0",
     "p-props": "^4.0.0",
     "p-settle": "^4.1.1",
