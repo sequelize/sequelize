@@ -26,7 +26,7 @@ import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
-import { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
 
 /**
@@ -666,8 +666,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeConnect(name: string, fn: (options: Config) => void): void;
-  public static beforeConnect(fn: (options: Config) => void): void;
+  public static beforeConnect(name: string, fn: (options: DeepWriteable<Config>) => void): void;
+  public static beforeConnect(fn: (options: DeepWriteable<Config>) => void): void;
 
   /**
    * A hook that is run after a connection is established
