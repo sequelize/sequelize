@@ -35,23 +35,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('showAllTables', () => {
     it('should not contain views', async function() {
-      async function cleanup(that) {
-        // NOTE: The syntax "DROP VIEW [IF EXISTS]"" is not part of the standard
-        // and might not be available on all RDBMSs. Therefore "DROP VIEW" is
-        // the compatible option, which can throw an error in case the VIEW does
-        // not exist. In case of error, it is ignored.
-        try {
-          await that.sequelize.query('DROP VIEW IF EXISTS V_Fail');
-        } catch (error) {
-          console.log(error);
-          // Ignore error.
-        }
+      async function cleanup(sequelize) {
+        await sequelize.query('DROP VIEW IF EXISTS V_Fail');
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
-      await cleanup(this);
+      await cleanup(this.sequelize);
       await this.sequelize.query(`CREATE VIEW V_Fail AS SELECT 1 Id${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`);
       let tableNames = await this.queryInterface.showAllTables();
-      await cleanup(this);
+      await cleanup(this.sequelize);
       if (tableNames[0] && tableNames[0].tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
