@@ -3,6 +3,7 @@
   "description": "Multi dialect ORM for Node.JS",
   "version": "1.0.0",
   "maintainers": [
+    "Mark Irish <mirish@ibm.com>",
     "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
   ],
   "repository": {
