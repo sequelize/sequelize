@@ -113,7 +113,7 @@ const Support = {
       sequelizeOptions.native = true;
     }
 
-    if (config.storage) {
+    if (config.storage || config.storage === '') {
       sequelizeOptions.storage = config.storage;
     }
 
@@ -238,6 +238,10 @@ const Support = {
       const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
       expect(query.bind).to.deep.equal(bind);
     }
+  },
+
+  rand() {
+    return Math.floor(Math.random() * 10e5);
   },
 
   isDeepEqualToOneOf(actual, expectedOptions) {
