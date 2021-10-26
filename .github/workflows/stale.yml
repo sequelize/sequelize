@@ -1,0 +1,19 @@
+name: "Stale issue handler"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@main
+        id: stale
+        with:
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open 7 days with no activity. Remove stale label or comment or this will be closed in 5 days"
+          days-before-stale: 7
+          days-before-close: 5
+      - name: Print outputs
+        run: echo ${{ join(steps.stale.outputs.*, ',') }}
