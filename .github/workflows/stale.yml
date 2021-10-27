@@ -15,7 +15,6 @@ jobs:
           stale-issue-message: 'This issue has been automatically marked as stale because it has been open for 7 days without activity. It will be closed if no further activity occurs. If this is still an issue, just leave a comment or remove the "stale" label. 🙂'
           days-before-stale: 7
           days-before-close: 5
-          exempt-issue-labels: 'stale'
-          exempt-pr-labels: 'stale'
+          operations-per-run: 1000
       - name: Print outputs
         run: echo ${{ join(steps.stale.outputs.*, ',') }}
