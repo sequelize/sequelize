@@ -733,6 +733,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+
+  /**
+   * Fields to use as the unique keys (on duplicate key update)? (only supported by MySQL, MariaDB,
+   * SQLite >= 3.24.0 & Postgres >= 9.5). By default, unique keys and/or primary keys are used.
+   */
+  upsertKeys?: (keyof TAttributes)[];
 }
 
 /**
@@ -768,6 +774,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5). By default, all fields are updated.
    */
   updateOnDuplicate?: (keyof TAttributes)[];
+
+  /**
+   * Fields to use as the unique keys (on duplicate key update)? (only supported by MySQL, MariaDB,
+   * SQLite >= 3.24.0 & Postgres >= 9.5). By default, unique keys and/or primary keys are used.
+   */
+  upsertKeys?: (keyof TAttributes)[];
 
   /**
    * Include options. See `find` for details
@@ -986,7 +998,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
-  
+
   /**
    * A flag that defines if null values should be passed as values or not.
    *
@@ -1115,7 +1127,7 @@ export interface ModelValidateOptions {
    * check the value is one of these
    */
   isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
-  
+
   /**
    * don't allow specific substrings
    */

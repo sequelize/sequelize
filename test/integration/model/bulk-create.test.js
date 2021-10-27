@@ -540,6 +540,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(people[1].name).to.equal('Bob');
           });
 
+          it('when the primary key column names and model field names are different and have unique constraints with custom upsertKeys', async function() {
+            const Person = this.sequelize.define('Person', {
+              emailAddress: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                unique: true,
+                field: 'email_address'
+              },
+              licenseNumber: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'licenseNumber',
+                unique: true
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            await Person.sync({ force: true });
+            const inserts = [
+              { emailAddress: 'a@example.com', licenseNumber: '1', name: 'Alice' }
+            ];
+            const people0 = await Person.bulkCreate(inserts);
+            expect(people0.length).to.equal(1);
+            expect(people0[0].emailAddress).to.equal('a@example.com');
+            expect(people0[0].name).to.equal('Alice');
+            expect(people0[0].licenseNumber).to.equal('1');
+
+            const updates = [
+              { emailAddress: 'a@example.com', licenseNumber: '2', name: 'CHANGED NAME' },
+              { emailAddress: 'b@example.com', licenseNumber: '3', name: 'Bob' }
+            ];
+
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['emailAddress', 'name'],
+              upsertKeys: ['emailAddress']
+            });
+            expect(people.length).to.equal(2);
+            expect(people[0].emailAddress).to.equal('a@example.com');
+            expect(people[0].licenseNumber).to.equal('1');
+            expect(people[0].name).to.equal('CHANGED NAME');
+            expect(people[1].emailAddress).to.equal('b@example.com');
+            expect(people[1].name).to.equal('Bob');
+            expect(people[1].licenseNumber).to.equal('3');
+          });
+
           it('when the composite primary key column names and model field names are different', async function() {
             const Person = this.sequelize.define('Person', {
               systemId: {

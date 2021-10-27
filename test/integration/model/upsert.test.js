@@ -103,6 +103,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.updatedAt).to.be.afterTime(user.createdAt);
       });
 
+      it('works with upsert with custom upsertKeys', async function() {
+        const [, created0] = await this.User.upsert({
+          foo: 'baz',
+          bar: 19,
+          username: 'john'
+        }, { upsertKeys: ['foo', 'bar'] });
+        if (dialect === 'sqlite' || dialect === 'postgres') {
+          expect(created0).to.be.null;
+        } else {
+          expect(created0).to.be.true;
+        }
+
+        this.clock.tick(1000);
+        const [, created] = await this.User.upsert({
+          foo: 'baz',
+          bar: 19,
+          username: 'doe'
+        }, { upsertKeys: ['foo', 'bar'] });
+        if (dialect === 'sqlite' || dialect === 'postgres') {
+          expect(created).to.be.null;
+        } else {
+          expect(created).to.be.false;
+        }
+
+        const user = await this.User.findOne({ where: { foo: 'baz', bar: 19 } });
+        expect(user.createdAt).to.be.ok;
+        expect(user.username).to.equal('doe');
+        expect(user.updatedAt).to.be.afterTime(user.createdAt);
+      });
+
       it('should work with UUIDs wth default values', async function() {
         const User = this.sequelize.define('User', {
           id: {
