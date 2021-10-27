@@ -324,12 +324,12 @@ DataTypes.DATEONLY   // DATE without time
 
 ### UUIDs
 
-For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `Sequelize.UUIDV1` or `Sequelize.UUIDV4` as the default value:
+For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `DataTypes.UUIDV1` or `DataTypes.UUIDV4` as the default value:
 
 ```js
 {
   type: DataTypes.UUID,
-  defaultValue: Sequelize.UUIDV4 // Or Sequelize.UUIDV1
+  defaultValue: DataTypes.UUIDV4 // Or DataTypes.UUIDV1
 }
 ```
 
