@@ -161,7 +161,7 @@ Multiple checks can be passed:
 ```js
 Post.findAll({
   where: {
-    authorId: 12
+    authorId: 12,
     status: 'active'
   }
 });
@@ -698,4 +698,15 @@ await User.min('age'); // 5
 await User.min('age', { where: { age: { [Op.gt]: 5 } } }); // 10
 await User.sum('age'); // 55
 await User.sum('age', { where: { age: { [Op.gt]: 5 } } }); // 50
+```
+
+### `increment`, `decrement`
+
+Sequelize also provides the `increment` convenience method.
+
+Let's assume we have a user, whose age is 10.
+
+```js
+await User.increment({age: 5}, { where: { id: 1 } }) // Will increase age to 15
+await User.increment({age: -5}, { where: { id: 1 } }) // Will decrease age to 5
 ```
