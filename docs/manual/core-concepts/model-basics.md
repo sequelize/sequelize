@@ -51,7 +51,7 @@ console.log(User === sequelize.models.User); // true
 
 ```js
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
+const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
 
