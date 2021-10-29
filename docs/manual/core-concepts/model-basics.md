@@ -71,7 +71,7 @@ User.init({
   modelName: 'User' // We need to choose the model name
 });
 
-// he defined model is the class itself
+// the defined model is the class itself
 console.log(User === sequelize.models.User); // true
 ```
 
