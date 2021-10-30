@@ -4,7 +4,7 @@
 
 |        Engine        |                                 Minimum supported version                                 |
 | :------------------: | :---------------------------------------------------------------------------------------: |
-|      PostgreSQL      |                  [9.6.0](https://www.postgresql.org/docs/9.6/index.html)                  |
+|      PostgreSQL      |                  [9.5.0](https://www.postgresql.org/docs/9.5/index.html)                  |
 |        MySQL         |                     [5.7.0](https://dev.mysql.com/doc/refman/5.7/en/)                     |
 |       MariaDB        |         [10.3.0](https://mariadb.com/kb/en/changes-improvements-in-mariadb-103/)          |
 | Microsoft SQL Server | [SQL Server 2014 Express](https://www.microsoft.com/en-US/download/details.aspx?id=42299) |
