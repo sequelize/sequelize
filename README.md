@@ -7,8 +7,6 @@
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-<!-- [![codecov](https://badgen.net/codecov/c/github/sequelize/sequelize/main?icon=codecov)](https://codecov.io/gh/sequelize/sequelize) -->
-
 Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
 Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10 and above.
@@ -19,7 +17,7 @@ Would you like to contribute? Read [our contribution guidelines](https://github.
 
 ### v6 Release
 
-You can find the detailed changelogs [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
+You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
 
 ## Note: Looking for maintainers!
 
