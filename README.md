@@ -25,7 +25,7 @@ Recently, a bigger part of the former core maintainers (thanks to all your hard 
 
 We are looking for more core maintainers who are interested in improving/fixing our TypeScript typings, improving the documentation, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
 
-If that sounds interesting to you, please reach out to us on [our Slack channel](https://sequelize.slack.com/) by sending a direct message to _Pedro A P B_. If you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
+If that sounds interesting to you, please reach out to us on [our Slack channel](https://sequelize.slack.com/) by sending a direct message to _sdepold_. If you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
 
 ## Installation
 
