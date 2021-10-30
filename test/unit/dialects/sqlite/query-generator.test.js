@@ -627,6 +627,13 @@ if (dialect === 'sqlite') {
             'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
             'DROP TABLE `myTable_backup`;'
         }
+      ],
+      getForeignKeysQuery: [
+        {
+          title: 'Property quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_list(`myTable`)'
+        }
       ]
     };
 
