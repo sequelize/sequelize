@@ -54,7 +54,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return 'SHOW SERVER_VERSION';
   }
 
-  createTableQuery(tableName, attributes, options) {
+  createTableQuery(tableName, attributes, options, types = {}) {
     options = { ...options };
 
     //Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
@@ -79,7 +79,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
         attributes[attr] = attributes[attr].substring(0, i);
       }
 
-      const dataType = this.dataTypeMapping(tableName, attr, attributes[attr]);
+      const dataType = this.dataTypeMapping(tableName, attr, attributes[attr], types[attr]);
       attrStr.push(`${quotedAttr} ${dataType}`);
     }
 
@@ -257,7 +257,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       key
     });
     const dataType = attribute.type || attribute;
-    const definition = this.dataTypeMapping(table, key, dbDataType);
+    const definition = this.dataTypeMapping(table, key, dbDataType, dataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
 
@@ -278,11 +278,13 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
   }
 
-  changeColumnQuery(tableName, attributes) {
+  changeColumnQuery(tableName, attributes, types = {}) {
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
+      const attribute = attributes[attributeName];
+      const type = types[attributeName];
+      let definition = this.dataTypeMapping(tableName, attributeName, attribute, type);
       let attrSql = '';
 
       if (definition.includes('NOT NULL')) {
@@ -304,9 +306,17 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
 
       if (attributes[attributeName].startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attributeName, { schema: false }));
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        attrSql += this.pgEnum(tableName, attributeName, type || attribute);
+        definition = definition.replace(
+          /^ENUM\(.+\)/,
+          this.pgEnumName(tableName, attributeName, { schema: false }, type)
+        );
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(
+          tableName,
+          attributeName,
+          null,
+          type
+        )})`;
       }
 
       if (definition.match(/UNIQUE;*$/)) {
@@ -756,11 +766,15 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, attr, options) {
+  pgEnumName(tableName, attr, options, type) {
     options = options || {};
+    const enumType = type ? type.type || type : null;
 
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr), '"');
+    let enumName = Utils.addTicks(
+      enumType && enumType.name ? enumType.name : Utils.generateEnumName(tableDetails.tableName, attr),
+      '"'
+    );
 
     // pgListEnums requires the enum name only, without the schema
     if (options.schema !== false && tableDetails.schema) {
@@ -770,12 +784,14 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return enumName;
   }
 
-  pgListEnums(tableName, attrName, options) {
+  pgListEnums(tableName, attrName, options, type) {
+    options = options || {};
+
     let enumName = '';
     const tableDetails = this.extractTableDetails(tableName, options);
 
     if (tableDetails.tableName && attrName) {
-      enumName = ` AND t.typname=${this.pgEnumName(tableDetails.tableName, attrName, { schema: false }).replace(
+      enumName = ` AND t.typname=${this.pgEnumName(tableDetails.tableName, attrName, { schema: false }, type).replace(
         /"/g,
         "'"
       )}`;
@@ -790,24 +806,25 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   pgEnum(tableName, attr, dataType, options) {
-    const enumName = this.pgEnumName(tableName, attr, options);
     let values;
+    const type = dataType && dataType.type ? dataType.type : dataType;
+    const enumName = this.pgEnumName(tableName, attr, options, type);
 
-    if (dataType.values) {
-      values = `ENUM(${dataType.values.map(value => this.escape(value)).join(', ')})`;
+    if (type.values) {
+      values = `ENUM(${type.values.map(value => this.escape(value)).join(', ')})`;
     } else {
-      values = dataType.toString().match(/^ENUM\(.+\)/)[0];
+      values = type.toString().match(/^ENUM\(.+\)/)[0];
     }
 
     let sql = `CREATE TYPE ${enumName} AS ${values};`;
     if (!!options && options.force === true) {
-      sql = this.pgEnumDrop(tableName, attr) + sql;
+      sql = this.pgEnumDrop(tableName, attr, enumName) + sql;
     }
     return sql;
   }
 
-  pgEnumAdd(tableName, attr, value, options) {
-    const enumName = this.pgEnumName(tableName, attr);
+  pgEnumAdd(tableName, attr, value, options, type) {
+    const enumName = this.pgEnumName(tableName, attr, null, type);
     let sql = `ALTER TYPE ${enumName} ADD VALUE `;
 
     if (semver.gte(this.sequelize.options.databaseVersion, '9.3.0')) {
@@ -847,7 +864,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return matches.slice(0, -1);
   }
 
-  dataTypeMapping(tableName, attr, dataType) {
+  dataTypeMapping(tableName, attr, dataType, type) {
     if (dataType.includes('PRIMARY KEY')) {
       dataType = dataType.replace('PRIMARY KEY', '');
     }
@@ -866,7 +883,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (dataType.startsWith('ENUM(')) {
-      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
+      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr, null, type));
     }
 
     return dataType;

@@ -27,6 +27,47 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }
       });
 
+      const NamedEnumUser = current.define('user', {
+        mood: {
+          type: DataTypes.ENUM({
+            name: 'mood',
+            values: ['happy', 'sad']
+          })
+        }
+      });
+
+      const NamedEnumUserWithSchema = current.define(
+        'user',
+        {
+          mood: {
+            type: DataTypes.ENUM({
+              name: 'mood',
+              values: ['happy', 'sad']
+            })
+          }
+        },
+        {
+          schema: 'foo'
+        }
+      );
+
+      const ArrayOfNamedEnumUser = current.define(
+        'user',
+        {
+          mood: {
+            type: DataTypes.ARRAY(
+              DataTypes.ENUM({
+                name: 'mood',
+                values: ['happy', 'sad']
+              })
+            )
+          }
+        },
+        {
+          schema: 'foo'
+        }
+      );
+
       describe('pgEnumName', () => {
         it('does not add schema when options: { schema: false }', () => {
           expect(sql.pgEnumName(PublicUser.getTableName(), 'mood', { schema: false })).to.equal('"enum_users_mood"');
@@ -38,12 +79,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('properly quotes both the schema and the enum name', () => {
-          expect(sql.pgEnumName(PublicUser.getTableName(), 'mood', PublicUser.rawAttributes.mood.type)).to.equal(
+          expect(sql.pgEnumName(PublicUser.getTableName(), 'mood', null, PublicUser.rawAttributes.mood.type)).to.equal(
             '"public"."enum_users_mood"'
           );
-          expect(sql.pgEnumName(FooUser.getTableName(), 'theirMood', FooUser.rawAttributes.mood.type)).to.equal(
+          expect(sql.pgEnumName(FooUser.getTableName(), 'theirMood', null, FooUser.rawAttributes.mood.type)).to.equal(
             '"foo"."enum_users_theirMood"'
           );
+        });
+
+        it('uses the name property when provided', () => {
+          expect(
+            sql.pgEnumName(NamedEnumUser.getTableName(), 'mood', null, NamedEnumUser.rawAttributes.mood.type)
+          ).to.equal('"public"."mood"');
         });
       });
 
@@ -58,6 +105,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expectsql(sql.pgEnum(PublicUser.getTableName(), 'theirMood', PublicUser.rawAttributes.mood.type), {
             postgres: 'CREATE TYPE "public"."enum_users_theirMood" AS ENUM(\'happy\', \'sad\');'
           });
+        });
+
+        it('uses named enum', () => {
+          expectsql(sql.pgEnum(NamedEnumUser.getTableName(), 'mood', NamedEnumUser.rawAttributes.mood.type), {
+            postgres: 'CREATE TYPE "public"."mood" AS ENUM(\'happy\', \'sad\');'
+          });
+        });
+
+        it('uses named enum and schema when provided', () => {
+          expectsql(
+            sql.pgEnum(NamedEnumUserWithSchema.getTableName(), 'mood', NamedEnumUserWithSchema.rawAttributes.mood.type),
+            {
+              postgres: 'CREATE TYPE "foo"."mood" AS ENUM(\'happy\', \'sad\');'
+            }
+          );
+        });
+
+        it('uses array of named enums when provided', () => {
+          expectsql(
+            sql.pgEnum(ArrayOfNamedEnumUser.getTableName(), 'mood', ArrayOfNamedEnumUser.rawAttributes.mood.type),
+            {
+              postgres: 'CREATE TYPE "foo"."mood" AS ENUM(\'happy\', \'sad\');'
+            }
+          );
         });
       });
 
@@ -85,6 +156,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           );
         });
+
+        it('can add a named enum', () => {
+          expectsql(
+            sql.pgEnumAdd(
+              PublicUser.getTableName(),
+              'mood',
+              'neutral',
+              { after: 'happy' },
+              PublicUser.rawAttributes.mood.type
+            ),
+            {
+              postgres: 'ALTER TYPE "public"."enum_users_mood" ADD VALUE \'neutral\' AFTER \'happy\''
+            }
+          );
+        });
       });
 
       describe('pgListEnums', () => {
@@ -100,6 +186,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres:
               "SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' GROUP BY 1"
           });
+        });
+
+        it('uses named enum', () => {
+          expectsql(
+            sql.pgListEnums(NamedEnumUser.getTableName(), 'mood', null, NamedEnumUser.rawAttributes.mood.type),
+            {
+              postgres:
+                "SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname='mood' GROUP BY 1"
+            }
+          );
+        });
+
+        it('uses named enum and schema when provided', () => {
+          expectsql(
+            sql.pgListEnums(
+              NamedEnumUserWithSchema.getTableName(),
+              'mood',
+              null,
+              NamedEnumUserWithSchema.rawAttributes.mood.type
+            ),
+            {
+              postgres:
+                "SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'foo' AND t.typname='mood' GROUP BY 1"
+            }
+          );
         });
       });
     }
