@@ -103,6 +103,14 @@ jobs:
             image: mysql:5.7
             dialect: mysql
             node-version: 12
+          - name: MySQL 8.0
+            image: mysql:8.0
+            dialect: mysql
+            node-version: 10
+          - name: MySQL 8.0
+            image: mysql:8.0
+            dialect: mysql
+            node-version: 12
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
