@@ -205,6 +205,7 @@
     "----------------------------------------- local test dbs ------------------------------------------": "",
     "start-mariadb": "bash dev/mariadb/10.3/start.sh",
     "start-mysql": "bash dev/mysql/5.7/start.sh",
+    "start-mysql-8": "bash dev/mysql/8.0/start.sh",
     "start-postgres": "bash dev/postgres/10/start.sh",
     "start-mssql": "bash dev/mssql/2019/start.sh",
     "stop-mariadb": "bash dev/mariadb/10.3/stop.sh",
