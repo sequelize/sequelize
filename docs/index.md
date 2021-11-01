@@ -49,6 +49,6 @@ To learn more about how to use Sequelize, read the tutorials available in the le
 
 ## Supporting the project
 
-Do you like Sequelize and would like to give back to the engineering team behind it? 
+Do you like Sequelize and would like to give back to the engineering team behind it?
 
 We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
