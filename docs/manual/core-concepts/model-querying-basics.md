@@ -139,7 +139,7 @@ Post.findAll({
     authorId: 2
   }
 });
-// SELECT * FROM post WHERE authorId = 2
+// SELECT * FROM post WHERE authorId = 2;
 ```
 
 Observe that no operator (from `Op`) was explicitly passed, so Sequelize assumed an equality comparison by default. The above code is equivalent to:
@@ -153,7 +153,7 @@ Post.findAll({
     }
   }
 });
-// SELECT * FROM post WHERE authorId = 2
+// SELECT * FROM post WHERE authorId = 2;
 ```
 
 Multiple checks can be passed:
