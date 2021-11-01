@@ -302,17 +302,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         clock.restore();
       });
 
-      it('falls back to a noop (e.g. ON CONFLICT DO NOTHING) if no update values are found in the upsert data', async function() {
-        const clock = sinon.useFakeTimers();
+      it('falls back to a noop if no update values are found in the upsert data', async function() {
+
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING,
+          baz: {
+            type: DataTypes.STRING,
+            field: 'zab',
+            defaultValue: 'BAZ_DEFAULT_VALUE'
+          }
+        }, {
+          // note, timestamps: false is important here because this test is attempting to see what happens
+          // if there are NO updatable fields (including timestamp values).
+          timestamps: false
+        });
+
+        await User.sync({ force: true });
         // notice how the data does not actually have the update fields.
-        await this.User.upsert({ id: 42, username: 'jack' }, { fields: ['baz'] });
-        clock.tick(5000);
-        await this.User.upsert({ id: 42, username: 'jill' }, { fields: ['baz'] });
-        const user = await this.User.findByPk(42);
+        await User.upsert({ id: 42, username: 'jack' }, { fields: ['baz'] });
+        await User.upsert({ id: 42, username: 'jill' }, { fields: ['baz'] });
+        const user = await User.findByPk(42);
         // just making sure the user exists, i.e. the insert happened.
         expect(user).to.be.ok;
         expect(user.username).to.equal('jack');  // second upsert should not have updated username.
-        clock.restore();
       });
 
       it('does not update using default values', async function() {
