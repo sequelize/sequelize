@@ -19,13 +19,11 @@ Would you like to contribute? Read [our contribution guidelines](https://github.
 
 You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
 
-## Note: Looking for maintainers!
+## Supporting the project
 
-Recently, a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+Do you like Sequelize and would like to give back to the engineering team behind it?
 
-We are looking for more core maintainers who are interested in improving/fixing our TypeScript typings, improving the documentation, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
-
-If that sounds interesting to you, please reach out to us on [our Slack channel](https://sequelize.slack.com/) by sending a direct message to _sdepold_. If you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
+We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
 
 ## Installation
 
