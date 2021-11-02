@@ -25,5 +25,6 @@ _Please make sure to review and check all of these items:_
 
 ### Todos
 
-- [ ] <!-- feat [...]. -->
-- [ ] <!-- test [...]. -->
+- [ ] <!-- e.g. #1 feature: Extend the type script definition -->
+- [ ] <!-- e.g. #2 test: Does this also work with MySQL 8? -->
+- [ ] <!-- ... -->
