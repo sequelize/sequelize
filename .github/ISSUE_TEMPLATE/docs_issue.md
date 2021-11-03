@@ -1,10 +1,9 @@
 ---
 name: Docs issue
 about: Documentation is unclear, or otherwise insufficient/misleading
-title: ''
-labels: 'type: docs'
-assignees: ''
-
+title: ""
+labels: "type: docs"
+assignees: ""
 ---
 
 <!--
