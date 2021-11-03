@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Create a bug report to help us improve
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 <!--
@@ -36,26 +35,29 @@ Instead of using that repository, you can also clone the Sequelize repository an
 
 ```js
 // You can delete this code block if you have included a link to your SSCCE above!
-const { createSequelizeInstance } = require('./dev/sscce-helpers');
-const { Model, DataTypes } = require('.');
+const { createSequelizeInstance } = require("./dev/sscce-helpers");
+const { Model, DataTypes } = require(".");
 
 const sequelize = createSequelizeInstance({ benchmark: true });
 
 class User extends Model {}
-User.init({
-  username: DataTypes.STRING,
-  birthday: DataTypes.DATE
-}, { sequelize, modelName: 'user' });
+User.init(
+  {
+    username: DataTypes.STRING,
+    birthday: DataTypes.DATE,
+  },
+  { sequelize, modelName: "user" }
+);
 
 (async () => {
   await sequelize.sync({ force: true });
 
   const jane = await User.create({
-    username: 'janedoe',
-    birthday: new Date(1980, 6, 20)
+    username: "janedoe",
+    birthday: new Date(1980, 6, 20),
   });
 
-  console.log('\nJane:', jane.toJSON());
+  console.log("\nJane:", jane.toJSON());
 
   await sequelize.close();
 })();
