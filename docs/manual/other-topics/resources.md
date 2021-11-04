@@ -21,6 +21,10 @@
 
 * [sequelize-autoload](https://github.com/boxsnake-nodejs/sequelize-autoload) - An autoloader for Sequelize, inspired by [PSR-0](https://www.php-fig.org/psr/psr-0/) and [PSR-4](https://www.php-fig.org/psr/psr-4/).
 
+### Bcrypt
+
+* [sequelize-bcrypt](https://github.com/mattiamalonni/sequelize-bcrypt) - Utility to integrate bcrypt into sequelize models
+
 ### Caching
 
 * [sequelize-transparent-cache](https://github.com/DanielHreben/sequelize-transparent-cache)
