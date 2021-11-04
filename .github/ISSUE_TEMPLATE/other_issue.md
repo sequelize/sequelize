@@ -1,10 +1,9 @@
 ---
 name: Other
 about: Open an issue that does not fall directly into the other categories
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 <!--

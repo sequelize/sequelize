@@ -144,6 +144,10 @@ export interface WhereOperators {
    *
    * _PG only_
    */
+
+   /** Example: `[Op.eq]: 6,` becomes `= 6` */
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
@@ -986,7 +990,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
-  
+
   /**
    * A flag that defines if null values should be passed as values or not.
    *
