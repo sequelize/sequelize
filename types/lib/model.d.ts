@@ -381,6 +381,13 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
    */
   as?: string;
+
+  /** 
+   * If true, only non-deleted records will be returned from the join table. 
+   * If false, both deleted and non-deleted records will be returned.
+   * Only applies if through model is paranoid.
+   */
+  paranoid?: boolean;
 }
 
 /**
