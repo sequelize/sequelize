@@ -241,13 +241,13 @@ sequelize.define('User', {
 });
 ```
 
-Some special values, such as `Sequelize.NOW`, are also accepted:
+Some special values, such as `DataTypes.NOW`, are also accepted:
 
 ```js
 sequelize.define('Foo', {
   bar: {
     type: DataTypes.DATETIME,
-    defaultValue: Sequelize.NOW
+    defaultValue: DataTypes.NOW
     // This way, the current date/time will be used to populate this column (at the moment of insertion)
   }
 });
