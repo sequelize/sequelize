@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   test-typings:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-sqlite:
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -82,8 +82,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile
-      - run: yarn install --frozen-lockfile pg-native
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add pg-native
         if: matrix.native
       - name: Unit Tests
         run: yarn test-unit
@@ -141,7 +141,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -179,7 +179,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -205,5 +205,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
