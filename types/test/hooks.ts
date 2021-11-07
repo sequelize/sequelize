@@ -29,6 +29,14 @@ import { Config } from '../lib/sequelize';
       expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
+    beforeQuery(options, query) {
+      expectTypeOf(options).toEqualTypeOf<QueryOptions>();
+      expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
+    },
+    afterQuery(options, query) {
+      expectTypeOf(options).toEqualTypeOf<QueryOptions>();
+      expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
+    },
   };
 
   const sequelize = new Sequelize('uri', { hooks });
@@ -70,6 +78,7 @@ import { Config } from '../lib/sequelize';
   hooks.beforeFindAfterOptions = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeBulkSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeQuery = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeUpsert = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
 }
 
