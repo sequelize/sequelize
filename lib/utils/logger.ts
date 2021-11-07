@@ -25,10 +25,7 @@ export interface LoggerConfig {
 export class Logger {
   protected config: LoggerConfig;
 
-  constructor({
-    context = 'sequelize',
-    ...rest
-  }: Partial<LoggerConfig> = {}) {
+  constructor({ context = 'sequelize', ...rest }: Partial<LoggerConfig> = {}) {
     this.config = {
       context,
       ...rest
@@ -51,7 +48,10 @@ export class Logger {
    * @returns The string of the inspected value.
    */
   inspect(value: unknown): string {
-    return util.inspect(value, false, 3);
+    return util.inspect(value, {
+      showHidden: false,
+      depth: 3
+    });
   }
 
   /**

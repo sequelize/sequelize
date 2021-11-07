@@ -258,23 +258,4 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
   });
-
-  describe('Logger', () => {
-    it('debug', () => {
-      expect(logger.debugContext).to.be.a('function');
-      logger.debugContext('test debug');
-    });
-
-    it('warn', () => {
-      expect(logger.warn).to.be.a('function');
-      logger.warn('test warning');
-    });
-
-    it('debugContext',  () => {
-      expect(logger.debugContext).to.be.a('function');
-      const testLogger = logger.debugContext('test');
-
-      expect(testLogger).to.be.a('function');
-    });
-  });
 });
