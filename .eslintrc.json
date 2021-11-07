@@ -6,6 +6,7 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
+    "@typescript-eslint/no-loss-of-precision": "off",
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
 
