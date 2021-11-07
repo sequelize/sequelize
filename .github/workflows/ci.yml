@@ -15,9 +15,9 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
-      - run: npm run lint
-      - run: npm run lint-docs
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn lint
+      - run: yarn lint-docs
   test-typings:
     strategy:
       fail-fast: false
@@ -30,9 +30,9 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
-      - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
-      - run: npm run test-typings
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
+      - run: yarn test-typings
   test-sqlite:
     strategy:
       fail-fast: false
@@ -47,11 +47,11 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-postgres:
     strategy:
       fail-fast: false
@@ -82,14 +82,14 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm install pg-native
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
         if: ${{ !matrix.minify-aliases }}
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-mysql-mariadb:
     strategy:
       fail-fast: false
@@ -141,11 +141,11 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-mssql:
     strategy:
       fail-fast: false
@@ -179,11 +179,11 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -205,5 +205,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
