@@ -1,9 +1,10 @@
 import { expectTypeOf } from "expect-type";
-import { SemiDeepWritable } from "./type-helpers/deep-writable";
-import { Model, SaveOptions, Sequelize, FindOptions, ModelCtor, ModelType, ModelDefined, ModelStatic, UpsertOptions } from "sequelize";
+import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
-import { DeepWriteable } from '../lib/utils';
+import { AbstractQuery } from "../lib/query";
 import { Config } from '../lib/sequelize';
+import { DeepWriteable } from '../lib/utils';
+import { SemiDeepWritable } from "./type-helpers/deep-writable";
 
 {
   class TestModel extends Model {}
