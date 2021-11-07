@@ -44,6 +44,7 @@ expectTypeOf({
 }).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 expectTypeOf({
+  [Op.eq]: 6, // = 6
   [Op.gt]: 6, // > 6
   [Op.gte]: 6, // >= 6
   [Op.lt]: 10, // < 10
