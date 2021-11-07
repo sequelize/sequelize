@@ -119,6 +119,14 @@ jobs:
             image: mariadb:10.3
             dialect: mariadb
             node-version: 12
+          - name: MariaDB 10.5
+            image: mariadb:10.5
+            dialect: mariadb
+            node-version: 10
+          - name: MariaDB 10.5
+            image: mariadb:10.5
+            dialect: mariadb
+            node-version: 12
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     services:
