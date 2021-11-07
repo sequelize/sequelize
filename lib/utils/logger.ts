@@ -42,7 +42,7 @@ export class Logger {
   }
 
   /**
-   * Ueses node's util.inspect to stringify a value.
+   * Uses node's util.inspect to stringify a value.
    *
    * @param value The value which should be inspected.
    * @returns The string of the inspected value.

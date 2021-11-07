@@ -7,7 +7,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "sourceRoot": "",
-    "outDir": "./dist/lib",
+    "outDir": "./dist/",
     "strict": true,
     "baseUrl": "./",
     "rootDir": "./",
