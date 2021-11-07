@@ -2,14 +2,14 @@
 
 We are happy to see that you might be interested in contributing to Sequelize! There is no need to ask for permission to contribute. For example, anyone can open issues and propose changes to the source code (via Pull Requests). Here are some ways people can contribute:
 
-* Opening well-written bug reports (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
-* Opening well-written feature requests (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
-* Proposing improvements to the documentation (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
-* Opening Pull Requests to fix bugs or make other improvements
-* Reviewing (i.e. commenting on) open Pull Requests, to help their creators improve it if needed and allow maintainers to take less time looking into them
-* Helping to clarify issues opened by others, commenting and asking for clarification
-* Answering [questions tagged with `sequelize.js` on StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js)
-* Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/))
+- Opening well-written bug reports (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
+- Opening well-written feature requests (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
+- Proposing improvements to the documentation (via [New Issue](https://github.com/sequelize/sequelize/issues/new/choose))
+- Opening Pull Requests to fix bugs or make other improvements
+- Reviewing (i.e. commenting on) open Pull Requests, to help their creators improve it if needed and allow maintainers to take less time looking into them
+- Helping to clarify issues opened by others, commenting and asking for clarification
+- Answering [questions tagged with `sequelize.js` on StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js)
+- Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/))
 
 Sequelize is strongly moved by contributions from people like you. All maintainers also work on their free time here.
 
@@ -35,28 +35,27 @@ You can also create and execute your SSCCE locally: see [Section 5](https://gith
 
 We're more than happy to accept feature requests! Before we get into how you can bring these to our attention, let's talk about our process for evaluating feature requests:
 
-- A feature request can have three states - *approved*, *pending* and *rejected*.
-  - *Approved* feature requests are accepted by maintainers as a valuable addition to Sequelize, and are ready to be worked on by anyone.
-  - *Rejected* feature requests were considered not applicable to be a part of the Sequelize ORM. This can change, so feel free to comment on a rejected feature request providing a good reasoning and clarification on why it should be reconsidered.
-  - *Pending* feature requests are waiting to be looked at by maintainers. They may or may not need clarification. Contributors can still submit pull requests implementing a pending feature request, if they want, at their own risk of having the feature request rejected (and the pull request closed without being merged).
-
+- A feature request can have three states - _approved_, _pending_ and _rejected_.
+  - _Approved_ feature requests are accepted by maintainers as a valuable addition to Sequelize, and are ready to be worked on by anyone.
+  - _Rejected_ feature requests were considered not applicable to be a part of the Sequelize ORM. This can change, so feel free to comment on a rejected feature request providing a good reasoning and clarification on why it should be reconsidered.
+  - _Pending_ feature requests are waiting to be looked at by maintainers. They may or may not need clarification. Contributors can still submit pull requests implementing a pending feature request, if they want, at their own risk of having the feature request rejected (and the pull request closed without being merged).
 
 Please be sure to communicate the following:
 
-  1. What problem your feature request aims to solve OR what aspect of the Sequelize workflow it aims to improve.
+1. What problem your feature request aims to solve OR what aspect of the Sequelize workflow it aims to improve.
 
-  2. Under what conditions are you anticipating this feature to be most beneficial?
+2. Under what conditions are you anticipating this feature to be most beneficial?
 
-  3. Why does it make sense that Sequelize should integrate this feature?
+3. Why does it make sense that Sequelize should integrate this feature?
 
-  4. See our [Feature Request template](https://github.com/sequelize/sequelize/blob/main/.github/ISSUE_TEMPLATE/feature_request.md) for more details on what to include. Please be sure to follow this template.
+4. See our [Feature Request template](https://github.com/sequelize/sequelize/blob/main/.github/ISSUE_TEMPLATE/feature_request.md) for more details on what to include. Please be sure to follow this template.
 
-  If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
+If we don't approve your feature request, we'll provide you with our reasoning before closing it out. Some common reasons for denial may include (but are not limited to):
 
-  - Something too similar to already exists within Sequelize
-  - This feature seems out of scope of what Sequelize exists to accomplish
+- Something too similar to already exists within Sequelize
+- This feature seems out of scope of what Sequelize exists to accomplish
 
-  We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
+We don't want to deny feature requests that could potentially make our users lives easier, so please be sure to clearly communicate your goals within your request!
 
 ### Opening an issue to request improvements to the documentation
 
@@ -70,7 +69,7 @@ Anyone can open a Pull Request, there is no need to ask for permission. Maintain
 
 The target of the Pull Request should be the `main` branch (or in rare cases the `v5` branch, if previously agreed with a maintainer).
 
-Please check the *allow edits from maintainers* box when opening it. Thank you in advance for any pull requests that you open!
+Please check the _allow edits from maintainers_ box when opening it. Thank you in advance for any pull requests that you open!
 
 If you started to work on something but didn't finish it yet, you can open a draft pull request if you want (by choosing the "draft" option). Maintainers will know that it's not ready to be reviewed yet.
 
@@ -80,13 +79,12 @@ If your pull request implements a new feature, it's better if the feature was al
 
 Once you open a pull request, our automated checks will run (they take a few minutes). Make sure they are all passing. If they're not, make new commits to your branch fixing that, and the pull request will pick them up automatically and rerun our automated checks.
 
-Note: if you believe a test failed but is completely unrelated to your changes, it could be a rare situation of a *flaky test* that is not your fault, and if it's indeed the case, and everything else passed, a maintainer will ignore the *flaky test* and merge your pull request, so don't worry.
+Note: if you believe a test failed but is completely unrelated to your changes, it could be a rare situation of a _flaky test_ that is not your fault, and if it's indeed the case, and everything else passed, a maintainer will ignore the _flaky test_ and merge your pull request, so don't worry.
 
 A pull request that fixes a bug or implements a new feature must add at least one automated test that:
 
 - Passes
 - Would not pass if executed without your implementation
-
 
 ## How to prepare a development environment for Sequelize
 
@@ -94,24 +92,24 @@ A pull request that fixes a bug or implements a new feature must add at least on
 
 Most operating systems provide all the needed tools (including Windows, Linux and MacOS):
 
-* Mandatory:
+- Mandatory:
 
-  * [Node.js](http://nodejs.org)
-  * [Git](https://git-scm.com/)
+  - [Node.js](http://nodejs.org)
+  - [Git](https://git-scm.com/)
 
-* Optional (recommended):
+- Optional (recommended):
 
-  * [Docker](https://docs.docker.com/get-docker/)
-    * It is not mandatory because you can easily locally run tests against SQLite without it.
-    * It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
-  * [Visual Studio Code](https://code.visualstudio.com/)
-    * [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
-      * Also run `npm install --global editorconfig` to make sure this extension will work properly
-    * [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+  - [Docker](https://docs.docker.com/get-docker/)
+    - It is not mandatory because you can easily locally run tests against SQLite without it.
+    - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
+  - [Visual Studio Code](https://code.visualstudio.com/)
+    - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+      - Also run `npm install --global editorconfig` to make sure this extension will work properly
+    - [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 
 ### 1. Clone the repository
 
-Clone the repository (if you haven't already) via `git clone https://github.com/sequelize/sequelize`. If you plan on submitting a pull request, you can create a fork by clicking the *fork* button and clone it instead with `git clone https://github.com/your-github-username/sequelize`, or add your fork as an upstream on the already cloned repo with `git remote add upstream https://github.com/your-github-username/sequelize`.
+Clone the repository (if you haven't already) via `git clone https://github.com/sequelize/sequelize`. If you plan on submitting a pull request, you can create a fork by clicking the _fork_ button and clone it instead with `git clone https://github.com/your-github-username/sequelize`, or add your fork as an upstream on the already cloned repo with `git remote add upstream https://github.com/your-github-username/sequelize`.
 
 ### 2. Install the Node.js dependencies
 
@@ -121,16 +119,16 @@ Run `npm install` (or `yarn install`) within the cloned repository folder.
 
 If you're happy to run tests only against an SQLite database, you can skip this section.
 
-#### 3a. With Docker (recommended)
+#### 3.1. With Docker (recommended)
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-* `npm run setup-mariadb`
-* `npm run setup-mysql`
-* `npm run setup-postgres`
-* `npm run setup-mssql`
+- `npm run start-mariadb`
+- `npm run start-mysql`
+- `npm run start-postgres`
+- `npm run start-mssql`
 
-*Note:* if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
+_Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
 Each of these commands will start a Docker container with the corresponding database, ready to run Sequelize tests (or an SSCCE).
 
@@ -142,12 +140,9 @@ You can also easily start a local [pgadmin4](https://www.pgadmin.org/docs/pgadmi
 docker run -d --name pgadmin4 -p 8888:80 -e 'PGADMIN_DEFAULT_EMAIL=test@example.com' -e 'PGADMIN_DEFAULT_PASSWORD=sequelize_test' dpage/pgadmin4
 ```
 
-#### 3b. Without Docker
+#### 3.2. Without Docker
 
 You will have to manually install and configure each of database engines you want. Check the `dev/dialect-name` folder within this repository and look carefully at how it is defined via Docker and via the auxiliary bash script, and mimic that exactly (except for the database name, username, password, host and port, that you can customize via the `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT` environment variables, respectively).
-
-
-
 
 ### 4. Running tests
 
@@ -159,10 +154,10 @@ npm run test-sqlite
 
 Then, if you want to run tests for another dialect, assuming you've set it up as written on section 3, run the corresponding command:
 
-* `npm run test-mysql`
-* `npm run test-mariadb`
-* `npm run test-postgres`
-* `npm run test-mssql`
+- `npm run test-mysql`
+- `npm run test-mariadb`
+- `npm run test-postgres`
+- `npm run test-mssql`
 
 There are also the `test-unit-*` and `test-integration-*` sets of npm scripts (for example, `test-integration-postgres`).
 
@@ -176,25 +171,25 @@ Hint: if you're creating a new test, you can execute only that test locally agai
 DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha
 ```
 
-
 ### 5. Running an SSCCE
 
-You can modify the `sscce.js` file (at the root of the repository) to create an [SSCCE](http://www.sscce.org/).
+What is SSCCE? [find out here](http://www.sscce.org/).
+
+You can modify the `sscce.js` file (at the root of the repository) to create an SSCCE.
 
 Run it for the dialect of your choice using one of the following commands:
 
-* `npm run sscce-mariadb`
-* `npm run sscce-mysql`
-* `npm run sscce-postgres`
-* `npm run sscce-sqlite`
-* `npm run sscce-mssql`
+- `npm run sscce-mariadb`
+- `npm run sscce-mysql`
+- `npm run sscce-postgres`
+- `npm run sscce-sqlite`
+- `npm run sscce-mssql`
 
 _Note:_ First, you need to set up (once) the database instance for corresponding dialect, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended).
 
 #### 5.1. Debugging an SSCCE with Visual Studio Code
 
 If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which npm script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.js` or any other Sequelize source code).
-
 
 ### 6. Commit your modifications
 
