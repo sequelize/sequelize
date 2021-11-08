@@ -114,6 +114,6 @@ export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociatio
  * @see Instance
  */
 export type HasOneCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+  values?: object,
   options?: HasOneCreateAssociationMixinOptions
 ) => Promise<TModel>;

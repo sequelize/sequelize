@@ -117,7 +117,7 @@ export interface BelongsToCreateAssociationMixinOptions
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+  values?: object,
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
