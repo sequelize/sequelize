@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   test-typings:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-db2:
