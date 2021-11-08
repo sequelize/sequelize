@@ -72,7 +72,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Unit Tests
@@ -174,7 +174,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -212,7 +212,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -238,5 +238,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: npx semantic-release
