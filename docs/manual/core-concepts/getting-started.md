@@ -38,7 +38,7 @@ const sequelize = new Sequelize({
   storage: 'path/to/database.sqlite'
 });
 
-// Option 2: Passing parameters separately (other dialects)
+// Option 3: Passing parameters separately (other dialects)
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
@@ -83,7 +83,7 @@ To experiment with the other dialects, which are harder to setup locally, you ca
 
 ## New databases versus existing databases
 
-If you are starting a project from scratch, and your database does not exist yet, Sequelize can be used since the beginning in order to automate the creation of every table in your database.
+If you are starting a project from scratch, and your database is still empty, Sequelize can be used since the beginning in order to automate the creation of every table in your database.
 
 Also, if you want to use Sequelize to connect to a database that is already filled with tables and data, that works as well! Sequelize has got you covered in both cases.
 

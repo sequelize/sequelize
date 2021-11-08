@@ -4,7 +4,7 @@ import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { QueryOptions, IndexesOptions } from './query-interface';
+import { QueryOptions, IndexesOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { Transaction, LOCK } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
@@ -131,7 +131,7 @@ export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[];
 }
 
-export type Rangable = readonly [number, number] | readonly [Date, Date] | Literal;
+export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
@@ -144,6 +144,10 @@ export interface WhereOperators {
    *
    * _PG only_
    */
+
+   /** Example: `[Op.eq]: 6,` becomes `= 6` */
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
@@ -160,6 +164,9 @@ export interface WhereOperators {
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
   [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
+
+  /** Example: `[Op.is]: null,` becomes `IS NULL` */
+  [Op.is]?: null;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: Rangable;
@@ -374,6 +381,13 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
    */
   as?: string;
+
+  /** 
+   * If true, only non-deleted records will be returned from the join table. 
+   * If false, both deleted and non-deleted records will be returned.
+   * Only applies if through model is paranoid.
+   */
+  paranoid?: boolean;
 }
 
 /**
@@ -668,9 +682,14 @@ export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging,
   fields?: (keyof TAttributes)[];
 
   /**
-   * On Duplicate
+   * dialect specific ON CONFLICT DO NOTHING / INSERT IGNORE
    */
-  onDuplicate?: string;
+  ignoreDuplicates?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * If false, validations won't be run.
@@ -719,7 +738,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean;
+  returning?: boolean | (keyof TAttributes)[];
 
   /**
    * Run validations before the row is inserted
@@ -730,7 +749,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -749,7 +768,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   individualHooks?: boolean;
 
   /**
-   * Ignore duplicate values for primary keys? (not supported by postgres)
+   * Ignore duplicate values for primary keys?
    *
    * @default false
    */
@@ -978,6 +997,13 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
+
+  /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * @default false
+   */
+  omitNull?: boolean;
 }
 
 /**
@@ -1094,13 +1120,13 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
-
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  
   /**
    * don't allow specific substrings
    */
@@ -1232,7 +1258,7 @@ export interface ModelAttributeColumnReferencesOptions {
   /**
    * If this column references another table, provide it here as a Model, or a string
    */
-  model?: string | ModelType;
+  model?: TableName | ModelType;
 
   /**
    * The column of the foreign table that this column references
@@ -1622,10 +1648,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    * @return Return the initialized model
    */
-  public static init<M extends Model>(
-    this: ModelStatic<M>,
+  public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
+    this: MS,
     attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
-  ): Model;
+  ): MS;
 
   /**
    * Remove attribute from model definition
@@ -1916,6 +1942,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
+    options?: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
+  ): Promise<{ rows: M[]; count: number[] }>;
+  public static findAndCountAll<M extends Model>(
+    this: ModelStatic<M>,
     options?: FindAndCountOptions<M['_attributes']>
   ): Promise<{ rows: M[]; count: number }>;
 
@@ -1967,20 +1997,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Builds a new model instance and calls save on it.
    */
-  public static create<M extends Model>(
+  public static create<
+    M extends Model,
+    O extends CreateOptions<M['_attributes']> = CreateOptions<M['_attributes']>
+  >(
     this: ModelStatic<M>,
     values?: M['_creationAttributes'],
-    options?: CreateOptions<M['_attributes']>
-  ): Promise<M>;
-  public static create<M extends Model>(
-    this: ModelStatic<M>,
-    values: M['_creationAttributes'],
-    options: CreateOptions<M['_attributes']> & { returning: false }
-  ): Promise<void>;
+    options?: O
+  ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
@@ -2087,7 +2115,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static update<M extends Model>(
     this: ModelStatic<M>,
-    values: Partial<M['_attributes']>,
+    values: {
+        [key in keyof M['_attributes']]?: M['_attributes'][key] | Fn | Col | Literal;
+    },
     options: UpdateOptions<M['_attributes']>
   ): Promise<[number, M[]]>;
 
@@ -2744,8 +2774,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public update<K extends keyof this>(key: K, value: this[K], options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
-  public update(keys: object, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K] | Col | Fn | Literal, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
+  public update(
+    keys: {
+        [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
+    },
+    options?: InstanceUpdateOptions<TModelAttributes>
+  ): Promise<this>;
 
   /**
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will

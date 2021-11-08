@@ -444,12 +444,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User
       }, User), {
-        default: `SELECT [user].[id_user], [user].[id], [projects].[id] AS [projects.id], [projects].[title] AS [projects.title], [projects].[createdAt] AS [projects.createdAt], [projects].[updatedAt] AS [projects.updatedAt], [projects->project_user].[user_id] AS [projects.project_user.userId], [projects->project_user].[project_id] AS [projects.project_user.projectId] FROM [User] AS [user] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN ( [project_users] AS [projects->project_user] INNER JOIN [projects] AS [projects] ON [projects].[id] = [projects->project_user].[project_id]) ON [user].[id_user] = [projects->project_user].[user_id];`,
-        sqlite: `SELECT \`user\`.\`id_user\`, \`user\`.\`id\`, \`projects\`.\`id\` AS \`projects.id\`, \`projects\`.\`title\` AS \`projects.title\`, \`projects\`.\`createdAt\` AS \`projects.createdAt\`, \`projects\`.\`updatedAt\` AS \`projects.updatedAt\`, \`projects->project_user\`.\`user_id\` AS \`projects.project_user.userId\`, \`projects->project_user\`.\`project_id\` AS \`projects.project_user.projectId\` FROM \`User\` AS \`user\` ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN \`project_users\` AS \`projects->project_user\` ON \`user\`.\`id_user\` = \`projects->project_user\`.\`user_id\` LEFT OUTER JOIN \`projects\` AS \`projects\` ON \`projects\`.\`id\` = \`projects->project_user\`.\`project_id\`;`
+        default: `SELECT [user].[id_user], [user].[id], [projects].[id] AS [projects.id], [projects].[title] AS [projects.title], [projects].[createdAt] AS [projects.createdAt], [projects].[updatedAt] AS [projects.updatedAt], [projects->project_user].[user_id] AS [projects.project_user.userId], [projects->project_user].[project_id] AS [projects.project_user.projectId] FROM [User] AS [user] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN ( [project_users] AS [projects->project_user] INNER JOIN [projects] AS [projects] ON [projects].[id] = [projects->project_user].[project_id]) ON [user].[id_user] = [projects->project_user].[user_id];`
       });
     });
 
-    it('include (subQuery alias)', () => {
+    describe('include (subQuery alias)', () => {
       const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -466,29 +465,107 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'postaliasname' });
 
-      expectsql(sql.selectQuery('User', {
-        table: User.getTableName(),
-        model: User,
-        attributes: ['name', 'age'],
+      it('w/o filters', () => {
+        expectsql(sql.selectQuery('User', {
+          table: User.getTableName(),
+          model: User,
+          attributes: ['name', 'age'],
+          include: Model._validateIncludedElements({
+            include: [{
+              attributes: ['title'],
+              association: User.Posts,
+              subQuery: true,
+              required: true
+            }],
+            as: 'User'
+          }).include,
+          subQuery: true
+        }, User), {
+          default: 'SELECT [User].* FROM ' +
+            '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
+            'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
+            `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`
+        });
+      });
+
+      it('w/ nested column filter', () => {
+        expectsql(sql.selectQuery('User', {
+          table: User.getTableName(),
+          model: User,
+          attributes: ['name', 'age'],
+          where: { '$postaliasname.title$': 'test' },
+          include: Model._validateIncludedElements({
+            include: [{
+              attributes: ['title'],
+              association: User.Posts,
+              subQuery: true,
+              required: true
+            }],
+            as: 'User'
+          }).include,
+          subQuery: true
+        }, User), {
+          default: 'SELECT [User].* FROM ' +
+            '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
+            'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
+            `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`
+        });
+      });
+    });
+
+    it('include w/ subQuery + nested filter + paging', () => {
+      const User = Support.sequelize.define('User', {
+        scopeId: DataTypes.INTEGER
+      });
+
+      const Company = Support.sequelize.define('Company', {
+        name: DataTypes.STRING,
+        public: DataTypes.BOOLEAN,
+        scopeId: DataTypes.INTEGER
+      });
+
+      const Profession = Support.sequelize.define('Profession', {
+        name: DataTypes.STRING,
+        scopeId: DataTypes.INTEGER
+      });
+
+      User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
+      User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
+      Company.Users = Company.hasMany(User, { as: 'Users', foreignKey: 'companyId' });
+      Profession.Users = Profession.hasMany(User, { as: 'Users', foreignKey: 'professionId' });
+
+      expectsql(sql.selectQuery('Company', {
+        table: Company.getTableName(),
+        model: Company,
+        attributes: ['name', 'public'],
+        where: { '$Users.Profession.name$': 'test', [Op.and]: { scopeId: [42] } },
         include: Model._validateIncludedElements({
           include: [{
-            attributes: ['title'],
-            association: User.Posts,
+            association: Company.Users,
+            attributes: [],
+            include: [{
+              association: User.Profession,
+              attributes: [],
+              required: true
+            }],
             subQuery: true,
             required: true
           }],
-          as: 'User'
+          model: Company
         }).include,
+        limit: 5,
+        offset: 0,
         subQuery: true
-      }, User), {
-        default: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
-          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
-          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) LIMIT 1 ) IS NOT NULL) AS [User] ' +
-          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
-        mssql: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
-          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
-          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
-          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];'
+      }, Company), {
+        default: 'SELECT [Company].* FROM (' +
+        'SELECT [Company].[name], [Company].[public], [Company].[id] AS [id] FROM [Company] AS [Company] ' +
+        'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
+        'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] ' +
+        `WHERE ([Company].[scopeId] IN (42)) AND [Users->Profession].[name] = ${sql.escape('test')} AND ( ` +
+        'SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
+        'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] ' +
+        `WHERE ([Users].[companyId] = [Company].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} ` +
+        `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company)}) AS [Company];`
       });
     });
 

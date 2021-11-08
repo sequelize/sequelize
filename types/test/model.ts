@@ -31,6 +31,10 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
+  include: [ { through: { paranoid: true } } ]
+});
+
+MyModel.findOne({
   include: [
     { model: OtherModel, paranoid: true }
   ]
@@ -42,17 +46,29 @@ MyModel.findOne({ include: ['OtherModelAlias'] });
 
 MyModel.findOne({ include: OtherModel });
 
+MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
+MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.num'] }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number[]>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
 MyModel.count({ include: OtherModel });
+
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({
+const model: typeof MyModel = MyModel.init({
   virtual: {
     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
     get() {

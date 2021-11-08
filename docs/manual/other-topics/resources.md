@@ -21,6 +21,10 @@
 
 * [sequelize-autoload](https://github.com/boxsnake-nodejs/sequelize-autoload) - An autoloader for Sequelize, inspired by [PSR-0](https://www.php-fig.org/psr/psr-0/) and [PSR-4](https://www.php-fig.org/psr/psr-4/).
 
+### Bcrypt
+
+* [sequelize-bcrypt](https://github.com/mattiamalonni/sequelize-bcrypt) - Utility to integrate bcrypt into sequelize models
+
 ### Caching
 
 * [sequelize-transparent-cache](https://github.com/DanielHreben/sequelize-transparent-cache)
@@ -43,6 +47,10 @@
 
 * [sequelize-temporal](https://github.com/bonaval/sequelize-temporal) - Temporal tables (aka historical records)
 
+### Joi
+
+* [sequelize-joi](https://github.com/mattiamalonni/sequelize-joi) - Allows specifying [Joi](https://github.com/sideway/joi) validation schema for model attributes in Sequelize.
+
 ### Migrations
 
 * [umzug](https://github.com/sequelize/umzug)
@@ -59,4 +67,4 @@
 
 * [sequelize-deep-update](https://www.npmjs.com/package/sequelize-deep-update) - Update a sequelize instance and its included associated instances with new properties.
 * [sequelize-noupdate-attributes](https://www.npmjs.com/package/sequelize-noupdate-attributes) - Adds no update/readonly attributes support to models.
-* [sequelize-joi](https://www.npmjs.com/package/sequelize-joi) - Allows specifying [Joi](https://github.com/hapijs/joi) validation schema for JSONB model attributes in Sequelize.
+* [sqlcommenter-sequelize](https://github.com/google/sqlcommenter/tree/master/nodejs/sqlcommenter-nodejs/packages/sqlcommenter-sequelize) A [sqlcommenter](https://google.github.io/sqlcommenter/) plugin with [support for Sequelize](https://google.github.io/sqlcommenter/node/sequelize/) to augment SQL statements with comments that can be used later to correlate application code with SQL statements.
