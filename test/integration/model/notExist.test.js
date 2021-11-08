@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('max', () => {
-    it('should type exist', async function() {
+    it('type A to C should exist', async function() {
       await expect(this.Order.sum('sequence', { where: { type: 'A' } })).to.eventually.be.equal(10);
       await expect(this.Order.max('sequence', { where: { type: 'A' } })).to.eventually.be.equal(4);
       await expect(this.Order.min('sequence', { where: { type: 'A' } })).to.eventually.be.equal(1);
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await expect(this.Order.min('amount', { where: { type: 'C' } })).to.eventually.be.equal(0);
     });
 
-    it('should type not exist', async function() {
+    it('type D should not exist', async function() {
       await expect(this.Order.sum('sequence', { where: { type: 'D' } })).to.eventually.be.null;
       await expect(this.Order.max('sequence', { where: { type: 'D' } })).to.eventually.be.null;
       await expect(this.Order.min('sequence', { where: { type: 'D' } })).to.eventually.be.null;
