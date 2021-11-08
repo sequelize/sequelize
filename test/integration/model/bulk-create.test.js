@@ -64,6 +64,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await transaction.rollback();
       });
     }
+    
+    it('should not alter options', async function() {
+      const User = this.sequelize.define('User');
+      await User.sync({ force: true });
+      const options = { anOption: 1 };
+      await User.bulkCreate([{  }], options);
+      expect(options).to.eql({ anOption: 1 });
+    });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function() {
       const User = this.sequelize.define('user', {

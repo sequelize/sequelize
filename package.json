@@ -38,7 +38,7 @@
     "sequelize-pool": "^6.0.0",
     "toposort-class": "^1.0.1",
     "uuid": "^8.1.0",
-    "validator": "^13.6.0",
+    "validator": "^13.7.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
@@ -180,7 +180,7 @@
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
-    "lint": "eslint lib test --quiet",
+    "lint": "eslint lib test --quiet --fix",
     "lint-docs": "markdownlint docs",
     "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
@@ -198,6 +198,7 @@
     "----------------------------------------- local test dbs ------------------------------------------": "",
     "start-mariadb": "bash dev/mariadb/10.3/start.sh",
     "start-mysql": "bash dev/mysql/5.7/start.sh",
+    "start-mysql-8": "bash dev/mysql/8.0/start.sh",
     "start-postgres": "bash dev/postgres/10/start.sh",
     "start-mssql": "bash dev/mssql/2019/start.sh",
     "start-db2": "bash dev/db2/11.5/start.sh",

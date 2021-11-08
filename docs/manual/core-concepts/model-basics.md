@@ -51,7 +51,7 @@ console.log(User === sequelize.models.User); // true
 
 ```js
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
+const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
 
@@ -241,13 +241,13 @@ sequelize.define('User', {
 });
 ```
 
-Some special values, such as `Sequelize.NOW`, are also accepted:
+Some special values, such as `DataTypes.NOW`, are also accepted:
 
 ```js
 sequelize.define('Foo', {
   bar: {
     type: DataTypes.DATETIME,
-    defaultValue: Sequelize.NOW
+    defaultValue: DataTypes.NOW
     // This way, the current date/time will be used to populate this column (at the moment of insertion)
   }
 });
@@ -324,12 +324,12 @@ DataTypes.DATEONLY   // DATE without time
 
 ### UUIDs
 
-For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `Sequelize.UUIDV1` or `Sequelize.UUIDV4` as the default value:
+For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `DataTypes.UUIDV1` or `DataTypes.UUIDV4` as the default value:
 
 ```js
 {
   type: DataTypes.UUID,
-  defaultValue: Sequelize.UUIDV4 // Or Sequelize.UUIDV1
+  defaultValue: DataTypes.UUIDV4 // Or DataTypes.UUIDV1
 }
 ```
 
