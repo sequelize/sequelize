@@ -1,9 +1,10 @@
 import { expectTypeOf } from "expect-type";
-import { SemiDeepWritable } from "./type-helpers/deep-writable";
-import { Model, SaveOptions, Sequelize, FindOptions, ModelCtor, ModelType, ModelDefined, ModelStatic, UpsertOptions } from "sequelize";
+import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
-import { DeepWriteable } from '../lib/utils';
+import { AbstractQuery } from "../lib/query";
 import { Config } from '../lib/sequelize';
+import { DeepWriteable } from '../lib/utils';
+import { SemiDeepWritable } from "./type-helpers/deep-writable";
 
 {
   class TestModel extends Model {}
@@ -28,6 +29,14 @@ import { Config } from '../lib/sequelize';
     afterUpsert(m, options) {
       expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    beforeQuery(options, query) {
+      expectTypeOf(options).toEqualTypeOf<QueryOptions>();
+      expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
+    },
+    afterQuery(options, query) {
+      expectTypeOf(options).toEqualTypeOf<QueryOptions>();
+      expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
     },
   };
 
@@ -70,6 +79,7 @@ import { Config } from '../lib/sequelize';
   hooks.beforeFindAfterOptions = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeBulkSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
+  hooks.beforeQuery = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
   hooks.beforeUpsert = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>() };
 }
 
