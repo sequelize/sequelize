@@ -284,6 +284,62 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
       });
 
+      it('should not add single column unique constraints from multi-column constraint when adding or modifying columns', async function() {
+        await this.queryInterface.createTable({
+          tableName: 'Foos'
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+          },
+          name: {
+            allowNull: false,
+            unique: false,
+            type: DataTypes.STRING
+          },
+          email: {
+            allowNull: false,
+            unique: false,
+            type: DataTypes.STRING
+          }
+        }, {
+          uniqueKeys: [
+            {
+              customIndex: 'IX_name_email',
+              fields: ['name', 'email']
+            }
+          ]
+        });
+
+        await this.queryInterface.addColumn('Foos', 'phone', {
+          type: DataTypes.STRING,
+          defaultValue: null,
+          allowNull: true
+        });
+
+        let table = await this.queryInterface.describeTable({
+          tableName: 'Foos'
+        });
+        expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+        expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+        expect(table.email.unique).to.equal(false, '(1) email column should not be unique');
+        expect(table.name.unique).to.equal(false, '(1) name column should not be unique');
+
+        await this.queryInterface.changeColumn('Foos', 'email', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+
+        table = await this.queryInterface.describeTable({
+          tableName: 'Foos'
+        });
+        expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
+        expect(table.email.unique).to.equal(false, '(2) email column should not be unique');
+        expect(table.name.unique).to.equal(false, '(2) name column should not be unique');
+      });
+
       it('should add unique constraints to 2 columns and keep allowNull', async function() {
         await this.queryInterface.createTable({
           tableName: 'Foos'
