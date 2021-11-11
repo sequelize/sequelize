@@ -22,12 +22,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       { sequence: 3, amount: 5, type: 'A' },
       { sequence: 4, amount: 1, type: 'A' },
       { sequence: 1, amount: 2, type: 'B' },
-      { sequence: 2, amount: 6, type: 'B' }
+      { sequence: 2, amount: 6, type: 'B' },
+      { sequence: 0, amount: 0, type: 'C' }
     ]);
   });
 
   describe('max', () => {
-    it('should type exist', async function() {
+    it('type A to C should exist', async function() {
       await expect(this.Order.sum('sequence', { where: { type: 'A' } })).to.eventually.be.equal(10);
       await expect(this.Order.max('sequence', { where: { type: 'A' } })).to.eventually.be.equal(4);
       await expect(this.Order.min('sequence', { where: { type: 'A' } })).to.eventually.be.equal(1);
@@ -41,18 +42,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await expect(this.Order.sum('amount', { where: { type: 'B' } })).to.eventually.be.equal(8);
       await expect(this.Order.max('amount', { where: { type: 'B' } })).to.eventually.be.equal(6);
       await expect(this.Order.min('amount', { where: { type: 'B' } })).to.eventually.be.equal(2);
-    });
 
-    it('should type not exist', async function() {
-      // DataTypes.INTEGER or DataTypes.BIGINT: previous version should use `.to.eventually.be.NaN`
       await expect(this.Order.sum('sequence', { where: { type: 'C' } })).to.eventually.be.equal(0);
       await expect(this.Order.max('sequence', { where: { type: 'C' } })).to.eventually.be.equal(0);
       await expect(this.Order.min('sequence', { where: { type: 'C' } })).to.eventually.be.equal(0);
-
-      // DataTypes.DECIMAL or DataTypes.FLOAT: previous and PR#13422 both use `to.eventually.be.equal(0)`
       await expect(this.Order.sum('amount', { where: { type: 'C' } })).to.eventually.be.equal(0);
       await expect(this.Order.max('amount', { where: { type: 'C' } })).to.eventually.be.equal(0);
       await expect(this.Order.min('amount', { where: { type: 'C' } })).to.eventually.be.equal(0);
+    });
+
+    it('type D should not exist', async function() {
+      await expect(this.Order.sum('sequence', { where: { type: 'D' } })).to.eventually.be.null;
+      await expect(this.Order.max('sequence', { where: { type: 'D' } })).to.eventually.be.null;
+      await expect(this.Order.min('sequence', { where: { type: 'D' } })).to.eventually.be.null;
+      await expect(this.Order.sum('amount', { where: { type: 'D' } })).to.eventually.be.null;
+      await expect(this.Order.max('amount', { where: { type: 'D' } })).to.eventually.be.null;
+      await expect(this.Order.min('amount', { where: { type: 'D' } })).to.eventually.be.null;
     });
   });
 });
