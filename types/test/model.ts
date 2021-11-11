@@ -31,6 +31,10 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
+  include: [ { through: { paranoid: true } } ]
+});
+
+MyModel.findOne({
   include: [
     { model: OtherModel, paranoid: true }
   ]
