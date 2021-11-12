@@ -1367,13 +1367,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
 }
 
 /**
- * Interface for Attributes provided for a column
+ * Interface for Attributes provided for all columns in a model
  */
-export type ModelAttributes<M extends Model = Model, TCreationAttributes = any> = {
+export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
   /**
    * The description of a database column
    */
-  [name in keyof TCreationAttributes]: DataType | ModelAttributeColumnOptions<M>;
+  [name in keyof TAttributes]: DataType | ModelAttributeColumnOptions<M>;
 }
 
 /**
