@@ -41,6 +41,25 @@ describe('QueryGenerator', () => {
 
       expect(() => QG.whereItemQuery('test', { $in: [4] }))
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
+
+      // simulate transaction passed into where query argument
+      class Sequelize {
+        constructor() {
+          this.config = {
+            password: 'password'
+          };
+        }
+      }
+
+      class Transaction {
+        constructor() {
+          this.sequelize = new Sequelize();
+        }
+      }
+
+      expect(() => QG.whereItemQuery('test', new Transaction())).to.throw(
+        'Invalid value Transaction { sequelize: Sequelize { config: [Object] } }'
+      );
     });
 
     it('should parse set aliases strings as operators', function() {
@@ -114,4 +133,3 @@ describe('QueryGenerator', () => {
     });
   });
 });
-
