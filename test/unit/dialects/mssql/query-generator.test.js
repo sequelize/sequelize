@@ -188,12 +188,12 @@ if (current.dialect.name === 'mssql') {
 
       // With offset
       expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, myOtherName.* FROM (SELECT DISTINCT myOtherName.* FROM myTable AS myOtherName) AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
+        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
       });
 
       // With both limit and offset
       expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, myOtherName.* FROM (SELECT DISTINCT myOtherName.* FROM myTable AS myOtherName) AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
+        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
       });
 
       // With limit, offset, include, and where
