@@ -44,12 +44,14 @@ expectTypeOf({
 }).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 expectTypeOf({
+  [Op.eq]: 6, // = 6
   [Op.gt]: 6, // > 6
   [Op.gte]: 6, // >= 6
   [Op.lt]: 10, // < 10
   [Op.lte]: 10, // <= 10
   [Op.ne]: 20, // != 20
   [Op.not]: true, // IS NOT TRUE
+  [Op.is]: null, // IS NULL
   [Op.between]: [6, 10], // BETWEEN 6 AND 10
   [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
   [Op.in]: [1, 2], // IN [1, 2]
@@ -227,7 +229,7 @@ MyModel.findAll({
       [Op.lt]: 10, // id < 10
       [Op.lte]: 10, // id <= 10
       [Op.ne]: 20, // id != 20
-      [Op.between]: [6, 10] || [new Date(), new Date()], // BETWEEN 6 AND 10
+      [Op.between]: [6, 10] || [new Date(), new Date()] || ["2020-01-01", "2020-12-31"], // BETWEEN 6 AND 10
       [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
       [Op.in]: [1, 2], // IN [1, 2]
       [Op.notIn]: [1, 2], // NOT IN [1, 2]

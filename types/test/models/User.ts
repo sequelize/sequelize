@@ -110,6 +110,11 @@ User.addHook('beforeFind', 'test', (options: FindOptions<UserAttributes>) => {
   return undefined;
 });
 
+User.addHook('afterDestroy', async (instance, options) => {
+  // `options` from `afterDestroy` should be passable to `sequelize.transaction`
+  await instance.sequelize.transaction(options, async () => undefined);
+});
+
 // Model#addScope
 User.addScope('withoutFirstName', {
   where: {

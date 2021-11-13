@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'Designers' },
           { name: 'Managers' }
         ]);
-        const groups = await Group.findAll(); 
+        const groups = await Group.findAll();
         await Company.bulkCreate([
           { name: 'Sequelize' },
           { name: 'Coca Cola' },
@@ -851,8 +851,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany not required', async function() {
-      const Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }), 
-        Street = this.sequelize.define('Street', { 'active': DataTypes.BOOLEAN }), 
+      const Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }),
+        Street = this.sequelize.define('Street', { 'active': DataTypes.BOOLEAN }),
         User = this.sequelize.define('User', { 'username': DataTypes.STRING });
 
       // Associate
@@ -1920,7 +1920,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(parseInt(post['comments.commentCount'], 10)).to.equal(3);
     });
 
-    it('Should return posts with nested include with inner join with a m:n association', async function() {
+    it('should return posts with nested include with inner join with a m:n association', async function() {
       const User = this.sequelize.define('User', {
         username: {
           type: DataTypes.STRING,
@@ -2082,6 +2082,52 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         expect(product.User).to.satisfy( User => User === null || User instanceof this.models.User );
         expect(product.Prices).to.be.an('array');
       }
+    });
+
+    it('should allow through model to be paranoid', async function() {
+      const User = this.sequelize.define('user', { name: DataTypes.STRING }, { timestamps: false });
+      const Customer = this.sequelize.define('customer', { name: DataTypes.STRING }, { timestamps: false });
+      const UserCustomer = this.sequelize.define(
+        'user_customer',
+        {},
+        { paranoid: true, createdAt: false, updatedAt: false }
+      );
+      User.belongsToMany(Customer, { through: UserCustomer });
+
+      await this.sequelize.sync({ force: true });
+
+      const [user, customer1, customer2] = await Promise.all([
+        User.create({ name: 'User 1' }),
+        Customer.create({ name: 'Customer 1' }),
+        Customer.create({ name: 'Customer 2' })
+      ]);
+      await user.setCustomers([customer1]);
+      await user.setCustomers([customer2]);
+
+      const users = await User.findAll({ include: Customer });
+
+      expect(users).to.be.an('array');
+      expect(users).to.be.lengthOf(1);
+      const customers = users[0].customers;
+
+      expect(customers).to.be.an('array');
+      expect(customers).to.be.lengthOf(1);
+
+      const user_customer = customers[0].user_customer;
+
+      expect(user_customer.deletedAt).not.to.exist;
+
+      const userCustomers = await UserCustomer.findAll({
+        paranoid: false
+      });
+
+      expect(userCustomers).to.be.an('array');
+      expect(userCustomers).to.be.lengthOf(2);
+
+      const [nonDeletedUserCustomers, deletedUserCustomers] = _.partition(userCustomers, userCustomer => !userCustomer.deletedAt);
+
+      expect(nonDeletedUserCustomers).to.be.lengthOf(1);
+      expect(deletedUserCustomers).to.be.lengthOf(1);
     });
   });
 });
