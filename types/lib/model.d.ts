@@ -2149,6 +2149,33 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<M>;
 
   /**
+   * Decrements a single field.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    field: keyof M['_attributes'],
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by the same value.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    fields: (keyof M['_attributes'])[],
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by different values.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    fields: { [key in keyof M['_attributes']]?: number },
+    options: IncrementDecrementOptions<M['_attributes']>
+  ): Promise<M>;
+              
+  /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
    */
