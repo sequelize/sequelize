@@ -132,6 +132,8 @@ _Note:_ if you're using Windows, make sure you run these from Git Bash (or anoth
 
 Each of these commands will start a Docker container with the corresponding database, ready to run Sequelize tests (or an SSCCE).
 
+You can run `npm run stop-X` to stop the servers once you're done.
+
 ##### Hint for Postgres
 
 You can also easily start a local [pgadmin4](https://www.pgadmin.org/docs/pgadmin4/latest/) instance at `localhost:8888` to inspect the contents of the test Postgres database as follows:
