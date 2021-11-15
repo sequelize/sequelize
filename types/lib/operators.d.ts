@@ -256,13 +256,15 @@ declare const Op: {
    */
   readonly match: unique symbol;
   /**
-   * Operator @@
+   * Operator !=
    *
    * ```js
-   * [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')`
+   * [Op.ne]: 20
    * ```
    * In SQL
-   * `@@ to_tsquery('fat & rat')`
+   * ```sql
+   * != 20
+   * ```
    */
   readonly ne: unique symbol;
   /**
@@ -398,7 +400,7 @@ declare const Op: {
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder 
+   * Internal placeholder
    *
    * ```js
    * [Op.placeholder]: true
@@ -467,7 +469,7 @@ declare const Op: {
   readonly substring: unique symbol;
   /**
    * Operator VALUES
-   * 
+   *
    * ```js
    * [Op.values]: [4, 5, 6]
    * ```
