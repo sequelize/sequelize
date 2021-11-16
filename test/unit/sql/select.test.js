@@ -826,6 +826,42 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    it('attributes with dot notation', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
+        'status.label': DataTypes.STRING
+      },
+      {
+        freezeTableName: true
+      });
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING,
+        'status.label': DataTypes.STRING
+      },
+      {
+        freezeTableName: true
+      });
+
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['name', 'age', 'status.label'],
+        include: Model._validateIncludedElements({
+          include: [{
+            attributes: ['title', 'status.label'],
+            association: User.Posts
+          }],
+          model: User
+        }).include,
+        model: User,
+        dotnotation: true
+      }, User), {
+        default: 'SELECT [User].[name], [User].[age], [User].[status.label], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS `Posts.status.label` FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        postgres: 'SELECT "User".name, "User".age, "User".[status.label], Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts.[status.label] AS `Posts.status.label` FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;'
+      });
+    });
+
   });
 
   describe('raw query', () => {
