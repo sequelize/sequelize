@@ -69,6 +69,10 @@ Sequelize will use the default connection port for each dialect (for example, fo
 
 **Note:** _If your database doesn't exist yet, you can just call `db:create` command. With proper access it will create that database for you._
 
+#### ESM Configuration
+
+ESM configuration files are supported for Node versions that support ESM natively, either via passing `--config config/config.mjs`, or by setting the `type` to `module` in your `package.json`.
+
 ## Creating the first Model (and Migration)
 
 Once you have properly configured CLI config file you are ready to create your first migration. It's as simple as executing a simple command.
