@@ -159,6 +159,9 @@ export interface WhereOperators {
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
   [Op.lte]?: number | string | Date | Literal;
 
+  /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  [Op.match]?: Fn;
+
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
   [Op.ne]?: null | string | number | Literal | WhereOperators;
 
