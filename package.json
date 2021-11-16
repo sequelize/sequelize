@@ -32,6 +32,7 @@
     "lodash": "^4.17.20",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
+    "pg-connection-string": "^2.5.0",
     "retry-as-promised": "^3.2.0",
     "semver": "^7.3.2",
     "sequelize-pool": "^6.0.0",

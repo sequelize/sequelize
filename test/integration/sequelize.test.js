@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
 
     if (dialect === 'postgres') {
-      const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}`;
+      const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
         // postgres://...
@@ -70,6 +70,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         // postgresql://...
         new Sequelize(connectionUri);
       });
+      it('should work with options in the connection string (postgresql protocol)', async () => {
+        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgresql', options: '-c%20search_path%3dtest_schema' });
+        const sequelize = new Sequelize(connectionUri);
+        const result = await sequelize.query('SHOW search_path');
+        expect(result[0].search_path).to.equal('test_schema');
+      });
+
     }
   });
 
