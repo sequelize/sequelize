@@ -201,3 +201,23 @@ expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unref
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
+
+/**
+ * Tests for toJson() type
+ */
+interface FilmToJson {
+  id: number;
+  name?: string;
+}
+class FilmModelToJson extends Model<FilmToJson> implements FilmToJson {
+  id!: number;
+  name?: string;
+}
+const film = FilmModelToJson.build();
+
+const result = film.toJSON();
+expectTypeOf(result).toEqualTypeOf<FilmToJson>()
+
+type FilmNoNameToJson = Omit<FilmToJson, 'name'>
+const resultDerived = film.toJSON<FilmNoNameToJson>();
+expectTypeOf(resultDerived).toEqualTypeOf<FilmNoNameToJson>()

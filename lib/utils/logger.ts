@@ -50,7 +50,7 @@ export class Logger {
   inspect(value: unknown): string {
     return util.inspect(value, {
       showHidden: false,
-      depth: 3
+      depth: 1
     });
   }
 
