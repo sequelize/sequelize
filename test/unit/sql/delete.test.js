@@ -1,7 +1,7 @@
 'use strict';
 
 const Support   = require('../support'),
-  QueryTypes = require('../../../lib/query-types'),
+  QueryTypes = require('sequelize/lib/query-types'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,

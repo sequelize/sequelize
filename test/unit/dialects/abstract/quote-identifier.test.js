@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  QuoteHelper = require('../../../../lib/dialects/abstract/query-generator/helpers/quote');
+  QuoteHelper = require('sequelize/lib/dialects/abstract/query-generator/helpers/quote');
 
 describe('QuoteIdentifier', () => {
   it('unknown dialect', () => {

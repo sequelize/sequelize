@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
-  Transaction = require('../../lib/transaction'),
+  Transaction = require('sequelize/lib/transaction'),
   current = Support.sequelize,
   delay = require('delay');
 

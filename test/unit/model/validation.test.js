@@ -3,7 +3,7 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   Support = require('../support'),
   current = Support.sequelize;

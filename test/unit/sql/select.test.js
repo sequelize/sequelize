@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Model = require('../../../lib/model'),
+  DataTypes = require('sequelize/lib/data-types'),
+  Model = require('sequelize/lib/model'),
   util = require('util'),
   chai = require('chai'),
   expect = chai.expect,

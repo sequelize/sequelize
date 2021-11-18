@@ -1,5 +1,5 @@
 import { Config, Sequelize, Model, QueryTypes, ModelCtor } from 'sequelize';
-import { Fn } from '../lib/utils';
+import { Fn } from 'sequelize/lib/utils';
 
 Sequelize.useCLS({
 });

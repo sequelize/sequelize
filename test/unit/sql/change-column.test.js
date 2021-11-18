@@ -2,7 +2,7 @@
 
 const sinon = require('sinon'),
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   expectsql = Support.expectsql,
   current = Support.sequelize;
 

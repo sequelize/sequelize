@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const Query = require(path.resolve('./lib/dialects/mysql/query.js'));
+const Query = require('sequelize/lib/dialects/mysql/query.js');
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
 const sinon = require('sinon');
