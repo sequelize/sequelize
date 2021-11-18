@@ -47,6 +47,13 @@ if (dialect.match(/^postgres/)) {
       const error = await sequelize.query('select pg_sleep(2)').catch(e => e);
       expect(error.message).to.equal('Query read timeout');
     });
+
+    it('should allow overriding session variables through the `options` param', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
+      const result = await sequelize.query('SHOW search_path');
+      expect(result[0].search_path).to.equal('abc');
+    });
+
   });
 
   describe('Dynamic OIDs', () => {
