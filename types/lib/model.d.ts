@@ -4,9 +4,9 @@ import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { QueryOptions, IndexesOptions, TableName } from './query-interface';
+import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Transaction, LOCK } from './transaction';
+import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import Op = require('./operators');
 
@@ -144,6 +144,10 @@ export interface WhereOperators {
    *
    * _PG only_
    */
+
+   /** Example: `[Op.eq]: 6,` becomes `= 6` */
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
@@ -154,6 +158,9 @@ export interface WhereOperators {
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
   [Op.lte]?: number | string | Date | Literal;
+
+  /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  [Op.match]?: Fn;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
   [Op.ne]?: null | string | number | Literal | WhereOperators;
@@ -377,6 +384,13 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
    */
   as?: string;
+
+  /** 
+   * If true, only non-deleted records will be returned from the join table. 
+   * If false, both deleted and non-deleted records will be returned.
+   * Only applies if through model is paranoid.
+   */
+  paranoid?: boolean;
 }
 
 /**
@@ -986,7 +1000,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
-  
+
   /**
    * A flag that defines if null values should be passed as values or not.
    *
@@ -1356,13 +1370,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
 }
 
 /**
- * Interface for Attributes provided for a column
+ * Interface for Attributes provided for all columns in a model
  */
-export type ModelAttributes<M extends Model = Model, TCreationAttributes = any> = {
+export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
   /**
    * The description of a database column
    */
-  [name in keyof TCreationAttributes]: DataType | ModelAttributeColumnOptions<M>;
+  [name in keyof TAttributes]: DataType | ModelAttributeColumnOptions<M>;
 }
 
 /**
@@ -2138,6 +2152,33 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<M>;
 
   /**
+   * Decrements a single field.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    field: keyof M['_attributes'],
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by the same value.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    fields: (keyof M['_attributes'])[],
+    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by different values.
+   */
+  public static decrement<M extends Model>(
+    this: ModelStatic<M>,
+    fields: { [key in keyof M['_attributes']]?: number },
+    options: IncrementDecrementOptions<M['_attributes']>
+  ): Promise<M>;
+              
+  /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
    */
@@ -2846,7 +2887,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all
    * values gotten from the DB, and apply all custom getters.
    */
-  public toJSON(): object;
+  public toJSON<T extends TModelAttributes>(): T;
 
   /**
    * Helper method to determine if a instance is "soft deleted". This is

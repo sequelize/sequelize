@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
@@ -82,7 +82,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           tableNames = tableNames.map(v => v.tableName);
         }
         tableNames.sort();
-        expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
+
+        expect(tableNames).to.include('my_test_table1');
+        expect(tableNames).to.include('my_test_table2');
       });
     }
   });

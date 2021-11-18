@@ -4,7 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 const dialect = Support.getTestDialect();
-const DataTypes = require('../../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {

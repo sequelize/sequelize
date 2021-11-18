@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -298,6 +298,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.upsert({ id: 42, username: 'doe' });
         const user = await this.User.findByPk(42);
         expect(user.updatedAt).to.be.gt(originalUpdatedAt);
+        expect(user.createdAt).to.deep.equal(originalCreatedAt);
+        clock.restore();
+      });
+
+      it('does not overwrite createdAt when supplied as an explicit insert value when using fields', async function() {
+        const clock = sinon.useFakeTimers();
+        const originalCreatedAt = new Date('2010-01-01T12:00:00.000Z');
+        await this.User.upsert({ id: 42, username: 'john', createdAt: originalCreatedAt }, { fields: ['id', 'username'] });
+        const user = await this.User.findByPk(42);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
         clock.restore();
       });

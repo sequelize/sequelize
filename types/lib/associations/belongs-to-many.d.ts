@@ -303,8 +303,8 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
-export type BelongsToManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
+  values?: Model['_creationAttributes'],
   options?: BelongsToManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

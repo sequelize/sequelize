@@ -1,6 +1,6 @@
 import { expectTypeOf } from "expect-type";
 import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn } from 'sequelize';
-import Transaction from '../lib/transaction';
+import Transaction from 'sequelize/lib/transaction';
 
 class MyModel extends Model {
   public hi!: number;
@@ -44,6 +44,7 @@ expectTypeOf({
 }).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 expectTypeOf({
+  [Op.eq]: 6, // = 6
   [Op.gt]: 6, // > 6
   [Op.gte]: 6, // >= 6
   [Op.lt]: 10, // < 10

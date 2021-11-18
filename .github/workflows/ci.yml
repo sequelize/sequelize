@@ -15,14 +15,14 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
-      - run: npm run lint
-      - run: npm run lint-docs
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn lint
+      - run: yarn lint-docs
   test-typings:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ['3.9', '4.0', '4.1']
+        ts-version: ["3.9", "4.0", "4.1"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
@@ -30,9 +30,9 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
-      - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
-      - run: npm run test-typings
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
+      - run: yarn test-typings
   test-sqlite:
     strategy:
       fail-fast: false
@@ -47,11 +47,11 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-postgres:
     strategy:
       fail-fast: false
@@ -82,14 +82,14 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm install pg-native
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
         if: ${{ !matrix.minify-aliases }}
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-mysql-mariadb:
     strategy:
       fail-fast: false
@@ -103,12 +103,28 @@ jobs:
             image: mysql:5.7
             dialect: mysql
             node-version: 12
+          - name: MySQL 8.0
+            image: mysql:8.0
+            dialect: mysql
+            node-version: 10
+          - name: MySQL 8.0
+            image: mysql:8.0
+            dialect: mysql
+            node-version: 12
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
             node-version: 10
           - name: MariaDB 10.3
             image: mariadb:10.3
+            dialect: mariadb
+            node-version: 12
+          - name: MariaDB 10.5
+            image: mariadb:10.5
+            dialect: mariadb
+            node-version: 10
+          - name: MariaDB 10.5
+            image: mariadb:10.5
             dialect: mariadb
             node-version: 12
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
@@ -133,11 +149,11 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   test-mssql:
     strategy:
       fail-fast: false
@@ -171,15 +187,23 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
-        run: npm run test-unit
+        run: yarn test-unit
       - name: Integration Tests
-        run: npm run test-integration
+        run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
+    needs:
+      [
+        lint,
+        test-typings,
+        test-sqlite,
+        test-postgres,
+        test-mysql-mariadb,
+        test-mssql,
+      ]
     if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -189,5 +213,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: npm install
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
