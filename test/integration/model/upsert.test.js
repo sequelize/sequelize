@@ -312,13 +312,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('falls back to a noop if no update values are found in the upsert data', async function() {
-
         const User = this.sequelize.define('user', {
           username: DataTypes.STRING,
-          baz: {
+          email: {
             type: DataTypes.STRING,
-            field: 'zab',
-            defaultValue: 'BAZ_DEFAULT_VALUE'
+            field: 'email_address',
+            defaultValue: 'xxx@yyy.zzz'
           }
         }, {
           // note, timestamps: false is important here because this test is attempting to see what happens
@@ -328,8 +327,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
         // notice how the data does not actually have the update fields.
-        await User.upsert({ id: 42, username: 'jack' }, { fields: ['baz'] });
-        await User.upsert({ id: 42, username: 'jill' }, { fields: ['baz'] });
+        await User.upsert({ id: 42, username: 'jack' }, { fields: ['email'] });
+        await User.upsert({ id: 42, username: 'jill' }, { fields: ['email'] });
         const user = await User.findByPk(42);
         // just making sure the user exists, i.e. the insert happened.
         expect(user).to.be.ok;
