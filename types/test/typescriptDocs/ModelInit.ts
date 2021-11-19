@@ -51,6 +51,7 @@ interface ProjectAttributes {
   id: number;
   ownerId: number;
   name: string;
+  description?: string;
 }
 
 interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
@@ -105,6 +106,10 @@ Project.init(
     name: {
       type: new DataTypes.STRING(128),
       allowNull: false,
+    },
+    description: {
+      type: new DataTypes.STRING(128),
+      allowNull: true,
     },
   },
   {
