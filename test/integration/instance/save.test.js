@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   sinon = require('sinon'),
   current = Support.sequelize;
 

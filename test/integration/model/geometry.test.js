@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   semver = require('semver');
 
@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await User.findOne({ where: { username: props.username } });
         expect(user.geometry).to.be.deep.eql(point2);
       });
-      
+
       it('works with crs field', async function() {
         const User = this.User;
         const point = { type: 'Point', coordinates: [39.807222, -76.984722],
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             properties: {
               name: 'EPSG:4326'
             }
-          } 
+          }
         };
 
         const newUser = await User.create({ username: 'username', geometry: point });
@@ -203,7 +203,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           properties: {
             name: 'EPSG:4326'
           }
-        } 
+        }
         };
 
         const newUser = await User.create({ username: 'username', geometry: point });
