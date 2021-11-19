@@ -426,6 +426,7 @@ export class Sequelize extends Hooks {
    * @param args All further arguments will be passed as arguments to the function
    */
   public static fn: typeof fn;
+  public fn: typeof fn;
 
   /**
    * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -434,6 +435,7 @@ export class Sequelize extends Hooks {
    * @param col The name of the column
    */
   public static col: typeof col;
+  public col: typeof col;
 
   /**
    * Creates a object representing a call to the cast function.
@@ -442,6 +444,7 @@ export class Sequelize extends Hooks {
    * @param type The type to cast it to
    */
   public static cast: typeof cast;
+  public cast: typeof cast;
 
   /**
    * Creates a object representing a literal, i.e. something that will not be escaped.
@@ -449,6 +452,7 @@ export class Sequelize extends Hooks {
    * @param val
    */
   public static literal: typeof literal;
+  public literal: typeof literal;
 
   /**
    * An AND query
@@ -456,6 +460,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by AND
    */
   public static and: typeof and;
+  public and: typeof and;
 
   /**
    * An OR query
@@ -463,6 +468,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by OR
    */
   public static or: typeof or;
+  public or: typeof or;
 
   /**
    * Creates an object representing nested where conditions for postgres's json data-type.
@@ -473,6 +479,7 @@ export class Sequelize extends Hooks {
    *   '<value>'".
    */
   public static json: typeof json;
+  public json: typeof json;
 
   /**
    * A way of specifying attr = condition.
@@ -493,6 +500,7 @@ export class Sequelize extends Hooks {
    *   etc.)
    */
   public static where: typeof where;
+  public where: typeof where;
 
   /**
    * A hook that is run before validation
