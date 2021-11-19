@@ -185,7 +185,11 @@
       "@semantic-release/github"
     ],
     "branches": [
-      "v6"
+      "v6",
+      {
+        "name": "v6-alpha",
+        "prerelease": "alpha"
+      }
     ]
   },
   "publishConfig": {
