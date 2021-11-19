@@ -87,6 +87,31 @@ await jane.save();
 // Now the name was updated to "Ada" in the database!
 ```
 
+You can update several fields at once with the [`set`](../class/lib/model.js~Model.html#instance-method-set) method:
+
+```js
+const jane = await User.create({ name: "Jane" });
+
+jane.set({
+  name: "Ada",
+  favoriteColor: "blue"
+});
+// As above, the database still has "Jane" and "green"
+await jane.save();
+// The database now has "Ada" and "blue" for name and favorite color
+```
+
+Note that the `save()` here will also persist any other changes that have been made on this instance, not just those in the previous `set` call. If you want to update a specific set of fields, you can use [`update`](../class/lib/model.js~Model.html#instance-method-update):
+
+```js
+const jane = await User.create({ name: "Jane" });
+jane.favoriteColor = "blue"
+await jane.update({ name: "Ada" })
+// The database now has "Ada" for name, but still has the default "green" for favorite color
+await jane.save()
+// Now the database has "Ada" for name and "blue" for favorite color
+```
+
 ## Deleting an instance
 
 You can delete an instance by calling [`destroy`](../class/lib/model.js~Model.html#instance-method-destroy):

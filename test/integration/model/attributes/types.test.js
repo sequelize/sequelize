@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect();

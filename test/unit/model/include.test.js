@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support   = require('../support'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {

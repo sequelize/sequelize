@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
@@ -18,8 +18,8 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
 
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
       replication: {
-        write: Support.getConnectionOptions(),
-        read: [Support.getConnectionOptions()]
+        write: Support.getConnectionOptionsWithoutPool(),
+        read: [Support.getConnectionOptionsWithoutPool()]
       }
     });
 

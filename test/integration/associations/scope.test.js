@@ -3,8 +3,8 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
+  DataTypes = require('sequelize/lib/data-types'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('associations'), () => {
@@ -19,6 +19,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         commentable: Sequelize.STRING,
         commentable_id: Sequelize.INTEGER,
         isMain: {
+          field: 'is_main',
           type: Sequelize.BOOLEAN,
           defaultValue: false
         }
@@ -297,6 +298,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         for (const comment of post.coloredComments) {
           expect(comment.type).to.match(/blue|green/);
         }
+      });
+      it('should not mutate scope when running SELECT query (#12868)', async function() {
+        await this.sequelize.sync({ force: true });
+        await this.Post.findOne({ where: {}, include: [{ association: this.Post.associations.mainComment, attributes: ['id'], required: true, where: {} }] });
+        expect(this.Post.associations.mainComment.scope.isMain).to.equal(true);
       });
     });
 

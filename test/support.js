@@ -2,12 +2,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const { isDeepStrictEqual } = require('util');
 const _ = require('lodash');
-const Sequelize = require('../index');
+
+const Sequelize = require('sequelize');
 const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
-const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
+const distDir = path.resolve(__dirname, '../dist');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
@@ -112,18 +115,17 @@ const Support = {
       sequelizeOptions.native = true;
     }
 
-    if (config.storage) {
+    if (config.storage || config.storage === '') {
       sequelizeOptions.storage = config.storage;
     }
 
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
-  getConnectionOptions() {
-    const config = Config[this.getTestDialect()];
-
+  getConnectionOptionsWithoutPool() {
+    // Do not break existing config object - shallow clone before `delete config.pool`
+    const config = { ...Config[this.getTestDialect()] };
     delete config.pool;
-
     return config;
   },
 
@@ -164,7 +166,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(`${__dirname}/../lib/dialects`)
+    return fs.readdirSync(path.join(distDir, 'lib/dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -207,6 +209,10 @@ const Support = {
     return `[${dialect.toUpperCase()}] ${moduleName}`;
   },
 
+  getPoolMax() {
+    return Config[this.getTestDialect()].pool.max;
+  },
+
   expectsql(query, assertions) {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
@@ -234,6 +240,14 @@ const Support = {
       const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
       expect(query.bind).to.deep.equal(bind);
     }
+  },
+
+  rand() {
+    return Math.floor(Math.random() * 10e5);
+  },
+
+  isDeepEqualToOneOf(actual, expectedOptions) {
+    return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
   }
 };
 

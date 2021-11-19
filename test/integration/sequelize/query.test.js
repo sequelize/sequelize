@@ -7,6 +7,7 @@ const DataTypes = Support.Sequelize.DataTypes;
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const moment = require('moment');
+const { DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = Support.Sequelize;
 
 const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
@@ -28,11 +29,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     beforeEach(async function() {
       this.User = this.sequelize.define('User', {
         username: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           unique: true
         },
         emailAddress: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           field: 'email_address'
         }
       });
@@ -288,6 +289,91 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(users[0].username).to.be.equal('john');
       expect(users[0].email).to.be.equal('john@gmail.com');
     });
+
+    // Only run stacktrace tests on Node 12+, since only Node 12+ supports
+    // async stacktraces
+    const nodeVersionMatch = process.version.match(/^v([0-9]+)/);
+    let nodeMajorVersion = 0;
+    if (nodeVersionMatch && nodeVersionMatch[1]) {
+      nodeMajorVersion = parseInt(nodeVersionMatch[1], 10);
+    }
+
+    if (nodeMajorVersion >= 12) {
+      describe('stacktraces', () => {
+        beforeEach(async function() {
+          this.UserVisit = this.sequelize.define('UserVisit', {
+            userId: {
+              type: DataTypes.STRING,
+              field: 'user_id'
+            },
+            visitedAt: {
+              type: DataTypes.DATE,
+              field: 'visited_at'
+            }
+          }, {
+            indexes: [
+              { name: 'user_id', fields: ['user_id'] }
+            ]
+          });
+
+          this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
+          this.UserVisit.belongsTo(this.User, { foreignKey: 'user_id', targetKey: 'id' });
+
+          await this.UserVisit.sync({ force: true });
+        });
+
+        it('emits full stacktraces for generic database error', async function() {
+          let error = null;
+          try {
+            await this.sequelize.query(`select * from ${qq(this.User.tableName)} where ${qq('unknown_column')} = 1`);
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(DatabaseError);
+          expect(error.stack).to.contain('query.test');
+        });
+
+        it('emits full stacktraces for unique constraint error', async function() {
+          const query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+            qq('createdAt')  }, ${qq('updatedAt')
+          }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+
+          // Insert 1 row
+          await this.sequelize.query(query);
+
+          let error = null;
+          try {
+            // Try inserting a duplicate row
+            await this.sequelize.query(query);
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(UniqueConstraintError);
+          expect(error.stack).to.contain('query.test');
+        });
+
+        it('emits full stacktraces for constraint validation error', async function() {
+          let error = null;
+          try {
+            // Try inserting a row that has a really high userId to any existing username
+            await this.sequelize.query(
+              `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+                'createdAt'
+              )}, ${qq(
+                'updatedAt'
+              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`
+            );
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          expect(error.stack).to.contain('query.test');
+        });
+      });
+    }
 
     describe('rejections', () => {
       it('reject if `values` and `options.replacements` are both passed', async function() {
@@ -603,24 +689,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('supports WITH queries', async function() {
         await expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').then(obj => obj[0]))
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
-      });
-    }
-
-    if (Support.getTestDialect() === 'sqlite') {
-      it('binds array parameters for upsert are replaced. $$ unescapes only once', async function() {
-        let logSql;
-        await this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: [1, 2], logging(s) { logSql = s; } });
-        // sqlite.exec does not return a result
-        expect(logSql).to.not.include('$one');
-        expect(logSql).to.include('\'$$\'');
-      });
-
-      it('binds named parameters for upsert are replaced. $$ unescapes only once', async function() {
-        let logSql;
-        await this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
-        // sqlite.exec does not return a result
-        expect(logSql).to.not.include('$one');
-        expect(logSql).to.include('\'$$\'');
       });
     }
   });

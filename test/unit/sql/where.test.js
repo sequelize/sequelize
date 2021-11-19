@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  QueryTypes = require('../../../lib/query-types'),
+  DataTypes = require('sequelize/lib/data-types'),
+  QueryTypes = require('sequelize/lib/query-types'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,
@@ -1262,6 +1262,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql([current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
       current.where(current.fn('lower', current.col('name')), null)], {
       default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
+    });
+
+    testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
+      default: '[hours] BETWEEN 0 AND 5'
+    });
+
+    testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
+      default: '[hours] NOT BETWEEN 0 AND 5'
     });
   });
 });

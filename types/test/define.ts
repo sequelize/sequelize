@@ -27,7 +27,7 @@ const User = sequelize.define<UserModel>(
 );
 
 async function test() {
-  expectTypeOf<UserModel>().toMatchTypeOf(new User());
+  expectTypeOf<UserModel>().toMatchTypeOf(User.build());
 
   const user = await User.findOne();
   expectTypeOf(user).toEqualTypeOf<UserModel | null>();
@@ -60,7 +60,7 @@ UntypedUser.customStaticMethod = () => {};
 async function testUntyped() {
   UntypedUser.customStaticMethod();
 
-  expectTypeOf<UntypedUserModel>().toMatchTypeOf(new UntypedUser());
+  expectTypeOf<UntypedUserModel>().toMatchTypeOf(UntypedUser.build());
 
   const user = await UntypedUser.findOne();
   expectTypeOf(user).toEqualTypeOf<UntypedUserModel | null>();

@@ -2,8 +2,8 @@
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
 [![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
-<!-- [![codecov](https://badgen.net/codecov/c/github/sequelize/sequelize/main?icon=codecov)](https://codecov.io/gh/sequelize/sequelize) -->
 [![npm downloads](https://badgen.net/npm/dm/sequelize)](https://www.npmjs.com/package/sequelize)
+[![sponsor](https://img.shields.io/opencollective/all/sequelize?label=sponsors)](https://opencollective.com/sequelize)
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
@@ -13,17 +13,17 @@ Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
+Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help.
+
 ### v6 Release
 
 You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
 
-## Note: Looking for maintainers!
+## Supporting the project
 
-Due to various personal reasons, a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy recently. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+Do you like Sequelize and would like to give back to the engineering team behind it?
 
-We are looking for more core maintainers who are interested in finishing the current TypeScript migration, extending the documentation for v6, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
-
-If that sounds interesting to you, please reach out to us on [Slack](https://sequelize.slack.com/). We are looking forward to meet you!
+We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
 
 ## Installation
 
@@ -67,3 +67,4 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 
 - [English](https://sequelize.org/master) (OFFICIAL)
 - [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+

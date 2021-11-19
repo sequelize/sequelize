@@ -1,5 +1,6 @@
 import { expectTypeOf } from "expect-type";
-import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize } from 'sequelize';
+import { ModelDefined } from 'sequelize/lib/model';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {
@@ -30,6 +31,10 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
+  include: [ { through: { paranoid: true } } ]
+});
+
+MyModel.findOne({
   include: [
     { model: OtherModel, paranoid: true }
   ]
@@ -41,17 +46,29 @@ MyModel.findOne({ include: ['OtherModelAlias'] });
 
 MyModel.findOne({ include: OtherModel });
 
+MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
+MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.num'] }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number[]>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
 MyModel.count({ include: OtherModel });
+
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({
+const model: typeof MyModel = MyModel.init({
   virtual: {
     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
     get() {
@@ -151,3 +168,56 @@ Actor.belongsToMany(Film, {
     paranoid: true
   }
 });
+
+interface ModelAttributes {
+  id: number;
+  name: string;
+}
+
+interface CreationAttributes extends Optional<ModelAttributes, 'id'> {}
+
+const ModelWithAttributes: ModelDefined<
+  ModelAttributes,
+  CreationAttributes
+> = sequelize.define('efs', {
+  name: DataTypes.STRING
+});
+
+const modelWithAttributes = ModelWithAttributes.build();
+
+/**
+ * Tests for set() type
+ */
+expectTypeOf(modelWithAttributes.set).toBeFunction();
+expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<ModelAttributes>>();
+
+/**
+ * Tests for previous() type
+ */
+expectTypeOf(modelWithAttributes.previous).toBeFunction();
+expectTypeOf(modelWithAttributes.previous).toBeCallableWith('name');
+expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof ModelAttributes>();
+expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unreferencedAttribute'>();
+expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
+expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
+expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
+
+/**
+ * Tests for toJson() type
+ */
+interface FilmToJson {
+  id: number;
+  name?: string;
+}
+class FilmModelToJson extends Model<FilmToJson> implements FilmToJson {
+  id!: number;
+  name?: string;
+}
+const film = FilmModelToJson.build();
+
+const result = film.toJSON();
+expectTypeOf(result).toEqualTypeOf<FilmToJson>()
+
+type FilmNoNameToJson = Omit<FilmToJson, 'name'>
+const resultDerived = film.toJSON<FilmNoNameToJson>();
+expectTypeOf(resultDerived).toEqualTypeOf<FilmNoNameToJson>()

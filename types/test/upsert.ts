@@ -1,15 +1,18 @@
 import {Model} from "sequelize"
 import {sequelize} from './connection';
 
-class TestModel extends Model {
+class TestModel extends Model<{ foo: string; bar: string }, {}> {
 }
 
-TestModel.init({}, {sequelize})
+TestModel.init({
+    foo: '<foo>',
+    bar: '<bar>',
+}, {sequelize})
 
 sequelize.transaction(async trx => {
   const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
-    fields: ['testField'],
+    fields: ['foo'],
     hooks: true,
     logging: true,
     returning: true,
@@ -20,7 +23,7 @@ sequelize.transaction(async trx => {
 
   const res2: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
-    fields: ['testField'],
+    fields: ['foo'],
     hooks: true,
     logging: true,
     returning: false,
@@ -31,9 +34,10 @@ sequelize.transaction(async trx => {
 
   const res3: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
-    fields: ['testField'],
+    fields: ['foo'],
     hooks: true,
     logging: true,
+    returning: ['foo'],
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,

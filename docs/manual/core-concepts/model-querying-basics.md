@@ -18,7 +18,7 @@ console.log("Jane's auto-generated ID:", jane.id);
 
 The [`Model.create()`](../class/lib/model.js~Model.html#static-method-create) method is a shorthand for building an unsaved instance with [`Model.build()`](../class/lib/model.js~Model.html#static-method-build) and saving the instance with [`instance.save()`](../class/lib/model.js~Model.html#instance-method-save).
 
-It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username and an address but not an admin flag:
+It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username but not an admin flag (i.e., `isAdmin`):
 
 ```js
 const user = await User.create({
@@ -139,7 +139,7 @@ Post.findAll({
     authorId: 2
   }
 });
-// SELECT * FROM post WHERE authorId = 2
+// SELECT * FROM post WHERE authorId = 2;
 ```
 
 Observe that no operator (from `Op`) was explicitly passed, so Sequelize assumed an equality comparison by default. The above code is equivalent to:
@@ -153,7 +153,7 @@ Post.findAll({
     }
   }
 });
-// SELECT * FROM post WHERE authorId = 2
+// SELECT * FROM post WHERE authorId = 2;
 ```
 
 Multiple checks can be passed:
@@ -161,7 +161,7 @@ Multiple checks can be passed:
 ```js
 Post.findAll({
   where: {
-    authorId: 12
+    authorId: 12,
     status: 'active'
   }
 });
@@ -355,10 +355,10 @@ The above will generate:
 SELECT *
 FROM `Projects`
 WHERE (
-  `Projects`.`name` = 'a project'
+  `Projects`.`name` = 'Some Project'
   AND NOT (
     `Projects`.`id` IN (1,2,3)
-    OR
+    AND
     `Projects`.`description` LIKE 'Hello%'
   )
 )
@@ -698,4 +698,15 @@ await User.min('age'); // 5
 await User.min('age', { where: { age: { [Op.gt]: 5 } } }); // 10
 await User.sum('age'); // 55
 await User.sum('age', { where: { age: { [Op.gt]: 5 } } }); // 50
+```
+
+### `increment`, `decrement`
+
+Sequelize also provides the `increment` convenience method.
+
+Let's assume we have a user, whose age is 10.
+
+```js
+await User.increment({age: 5}, { where: { id: 1 } }) // Will increase age to 15
+await User.increment({age: -5}, { where: { id: 1 } }) // Will decrease age to 5
 ```

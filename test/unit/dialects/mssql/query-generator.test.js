@@ -3,10 +3,10 @@
 const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const DataTypes = require('../../../../lib/data-types');
-const Op = require('../../../../lib/operators');
-const TableHints = require('../../../../lib/table-hints');
-const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
+const DataTypes = require('sequelize/lib/data-types');
+const Op = require('sequelize/lib/operators');
+const TableHints = require('sequelize/lib/table-hints');
+const QueryGenerator = require('sequelize/lib/dialects/mssql/query-generator');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -194,6 +194,42 @@ if (current.dialect.name === 'mssql') {
       // With both limit and offset
       expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
+      });
+
+      // With limit, offset, include, and where
+      const foo = this.sequelize.define('Foo', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'id',
+          primaryKey: true
+        }
+      }, {
+        tableName: 'Foos'
+      });
+      const bar = this.sequelize.define('Bar', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'id',
+          primaryKey: true
+        }
+      }, {
+        tableName: 'Bars'
+      });
+      foo.Bar = foo.belongsTo(bar, { foreignKey: 'barId' });
+      let options = { limit: 10, offset: 10,
+        include: [
+          {
+            model: bar,
+            association: foo.Bar,
+            as: 'Bars',
+            required: true
+          }
+        ]
+      };
+      foo._conformIncludes(options);
+      options = foo._validateIncludedElements(options);
+      expectsql(modifiedGen.selectFromTableFragment(options, foo, ['[Foo].[id]', '[Foo].[barId]'], foo.tableName, 'Foo', '[Bar].[id] = 12'), {
+        mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bar] ON [Foo].[barId] = [Bar].[id] WHERE [Bar].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo'
       });
     });
 
