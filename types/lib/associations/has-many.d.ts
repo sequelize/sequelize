@@ -6,7 +6,7 @@ import {
   InstanceUpdateOptions,
   Model,
   ModelCtor,
-  Transactionable,
+  Transactionable
 } from '../model';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
@@ -210,7 +210,7 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any>
  * @see Instance
  */
 export type HasManyCreateAssociationMixin<TModel extends Model> = (
-  values?: Model['_creationAttributes'],
+  values?: TModel['_creationAttributes'],
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
