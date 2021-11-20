@@ -9,8 +9,7 @@ import {
   Model,
   ModelCtor,
   ModelType,
-  Transactionable,
-  WhereOptions,
+  Transactionable
 } from '../model';
 import { Association, AssociationScope, ForeignKeyOptions, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
@@ -304,7 +303,7 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  * @see Instance
  */
 export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
-  values?: Model['_creationAttributes'],
+  values?: TModel['_creationAttributes'],
   options?: BelongsToManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
