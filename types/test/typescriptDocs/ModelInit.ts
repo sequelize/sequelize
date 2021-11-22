@@ -2,17 +2,9 @@
  * Keep this file in sync with the code in the "Usage" section in typescript.md
  */
 import {
-  Sequelize,
-  Model,
-  ModelDefined,
-  DataTypes,
-  HasManyGetAssociationsMixin,
-  HasManyAddAssociationMixin,
-  HasManyHasAssociationMixin,
-  Association,
-  HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin,
-  Optional,
+  Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
+  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
+  ModelDefined, Optional, Sequelize
 } from "sequelize";
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
@@ -59,6 +51,7 @@ interface ProjectAttributes {
   id: number;
   ownerId: number;
   name: string;
+  description?: string;
 }
 
 interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
@@ -113,6 +106,10 @@ Project.init(
     name: {
       type: new DataTypes.STRING(128),
       allowNull: false,
+    },
+    description: {
+      type: new DataTypes.STRING(128),
+      allowNull: true,
     },
   },
   {
@@ -204,6 +201,7 @@ async function doStuffWithUser() {
 
   const project = await newUser.createProject({
     name: "first!",
+    ownerId: 123,
   });
 
   const ourUser = await User.findByPk(1, {

@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
