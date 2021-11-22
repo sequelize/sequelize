@@ -5,9 +5,9 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
-  Op = require('../../../../lib/operators'),
-  IndexHints = require('../../../../lib/index-hints'),
-  QueryGenerator = require('../../../../lib/dialects/mariadb/query-generator');
+  Op = require('sequelize/lib/operators'),
+  IndexHints = require('sequelize/lib/index-hints'),
+  QueryGenerator = require('sequelize/lib/dialects/mariadb/query-generator');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {

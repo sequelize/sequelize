@@ -378,7 +378,7 @@ await sequelize.sync();
 const foo = await Foo.create({ name: 'foo' });
 const bar = await Bar.create({ name: 'bar' });
 await foo.addBar(bar);
-const fetchedFoo = Foo.findOne({ include: Bar });
+const fetchedFoo = await Foo.findOne({ include: Bar });
 console.log(JSON.stringify(fetchedFoo, null, 2));
 ```
 
@@ -416,13 +416,15 @@ Foo.findAll({
 });
 ```
 
-If you don't want anything from the junction table, you can explicitly provide an empty array to the `attributes` option, and in this case nothing will be fetched and the extra property will not even be created:
+If you don't want anything from the junction table, you can explicitly provide an empty array to the `attributes` option inside the `through` option of the `include` option, and in this case nothing will be fetched and the extra property will not even be created:
 
 ```js
 Foo.findOne({
   include: {
     model: Bar,
-    attributes: []
+    through: {
+      attributes: []
+    }
   }
 });
 ```

@@ -244,6 +244,18 @@ declare const Op: {
    */
   readonly lte: unique symbol;
   /**
+   * Operator @@
+   *
+   * ```js
+   * [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')`
+   * ```
+   * In SQL
+   * ```sql
+   * @@ to_tsquery('fat & rat')
+   * ```
+   */
+  readonly match: unique symbol;
+  /**
    * Operator !=
    *
    * ```js
@@ -388,7 +400,7 @@ declare const Op: {
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder 
+   * Internal placeholder
    *
    * ```js
    * [Op.placeholder]: true
@@ -457,7 +469,7 @@ declare const Op: {
   readonly substring: unique symbol;
   /**
    * Operator VALUES
-   * 
+   *
    * ```js
    * [Op.values]: [4, 5, 6]
    * ```

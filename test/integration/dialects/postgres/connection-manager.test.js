@@ -4,7 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', () => {
@@ -39,6 +39,21 @@ if (dialect.match(/^postgres/)) {
       // `notice` is Postgres's default
       expect(result[0].client_min_messages).to.equal('notice');
     });
+
+    it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
+      const sequelize = Support.createSequelizeInstance({
+        dialectOptions: { query_timeout: 100 }
+      });
+      const error = await sequelize.query('select pg_sleep(2)').catch(e => e);
+      expect(error.message).to.equal('Query read timeout');
+    });
+
+    it('should allow overriding session variables through the `options` param', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
+      const result = await sequelize.query('SHOW search_path');
+      expect(result[0].search_path).to.equal('abc');
+    });
+
   });
 
   describe('Dynamic OIDs', () => {
