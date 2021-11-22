@@ -67,3 +67,4 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 
 - [English](https://sequelize.org/master) (OFFICIAL)
 - [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+
