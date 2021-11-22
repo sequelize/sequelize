@@ -3,9 +3,9 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
-const Utils = require('../../lib/utils');
-const { logger } = require('../../lib/utils/logger');
+const DataTypes = require('sequelize/lib/data-types');
+const Utils = require('sequelize/lib/utils');
+const { logger } = require('sequelize/lib/utils/logger');
 const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
@@ -256,25 +256,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         default: 'SUM(CAST(([foo] = \'foo\' OR [bar] = \'bar\') AS INT))',
         mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))'
       });
-    });
-  });
-
-  describe('Logger', () => {
-    it('debug', () => {
-      expect(logger.debugContext).to.be.a('function');
-      logger.debugContext('test debug');
-    });
-
-    it('warn', () => {
-      expect(logger.warn).to.be.a('function');
-      logger.warn('test warning');
-    });
-
-    it('debugContext',  () => {
-      expect(logger.debugContext).to.be.a('function');
-      const testLogger = logger.debugContext('test');
-
-      expect(testLogger).to.be.a('function');
     });
   });
 });

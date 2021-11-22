@@ -112,6 +112,8 @@ export const TEXT: TextDataTypeConstructor;
 
 interface TextDataTypeConstructor extends AbstractDataTypeConstructor {
   new (length?: TextLength): TextDataType;
+  new (options?: TextDataTypeOptions): TextDataType;
+  (length?: TextLength): TextDataType;
   (options?: TextDataTypeOptions): TextDataType;
 }
 

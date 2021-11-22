@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   sinon = require('sinon'),
   current = Support.sequelize;
 
@@ -28,6 +28,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
+      cNumber: { type: DataTypes.INTEGER, field: 'CNumberColumn' },
       aDate: { type: DataTypes.DATE },
 
       validateTest: {
@@ -57,7 +58,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('increment', () => {
     beforeEach(async function() {
-      await this.User.create({ id: 1, aNumber: 0, bNumber: 0 });
+      await this.User.create({ id: 1, aNumber: 0, bNumber: 0, cNumber: 0 });
     });
 
     if (current.dialect.supports.transactions) {
@@ -148,6 +149,27 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(1);
       expect(user3.bNumber).to.be.equal(2);
+    });
+
+    it('single value should work when field name is different from database column name', async function() {
+      const user = await this.User.findByPk(1);
+      await user.increment('cNumber');
+      const user2 = await this.User.findByPk(1);
+      expect(user2.cNumber).to.be.equal(1);
+    });
+
+    it('array should work when field name is different from database column name', async function() {
+      const user = await this.User.findByPk(1);
+      await user.increment(['cNumber']);
+      const user2 = await this.User.findByPk(1);
+      expect(user2.cNumber).to.be.equal(1);
+    });
+
+    it('key value should work when field name is different from database column name', async function() {
+      const user = await this.User.findByPk(1);
+      await user.increment({ cNumber: 1 });
+      const user2 = await this.User.findByPk(1);
+      expect(user2.cNumber).to.be.equal(1);
     });
 
     it('with timestamps set to true', async function() {
