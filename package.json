@@ -53,7 +53,7 @@
     "@types/node": "^12.12.42",
     "@types/sinon": "^10.0.6",
     "@types/validator": "^13.1.4",
-    "@typescript-eslint/eslint-plugin": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.3.0",
     "acorn": "^8.0.4",
     "axios": ">=0.21.2",
