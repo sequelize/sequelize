@@ -4,6 +4,14 @@ export default Pkg;
 
 // export * from './lib/sequelize';
 export const Sequelize = Pkg.Sequelize;
+export const fn = Pkg.fn;
+export const col = Pkg.col;
+export const cast = Pkg.cast;
+export const literal = Pkg.literal;
+export const and = Pkg.and;
+export const or = Pkg.or;
+export const json = Pkg.json;
+export const where = Pkg.where;
 
 // export * from './lib/query-interface';
 export const QueryInterface = Pkg.QueryInterface;
@@ -73,4 +81,4 @@ export const DataTypes = Pkg.DataTypes;
 export const Deferrable = Pkg.Deferrable;
 
 // export { Validator as validator } from './lib/utils/validator-extras';
-export const Validator = Pkg.Validator;
+export const validator = Pkg.Validator;
