@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  { EmptyResultError, UniqueConstraintError } = require('../../../lib/errors'),
+  { EmptyResultError, UniqueConstraintError } = require('sequelize/lib/errors'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon');

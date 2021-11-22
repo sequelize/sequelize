@@ -8,8 +8,8 @@ import {
   HasManyCreateAssociationMixin,
   HasManyGetAssociationsMixin,
   HasManyHasAssociationMixin
-} from '../../lib/associations';
-import QueryTypes = require("../../lib/query-types");
+} from 'sequelize/lib/associations';
+import QueryTypes = require("sequelize/lib/query-types");
 
 class User extends Model {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.

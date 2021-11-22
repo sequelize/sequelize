@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  deprecations = require('../../../../lib/utils/deprecations'),
+  deprecations = require('sequelize/lib/utils/deprecations'),
   Support = require('../../support'),
   sinon = require('sinon'),
   Config = require('../../../config/config'),
-  ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
+  ConnectionManager = require('sequelize/lib/dialects/abstract/connection-manager'),
   Pool = require('sequelize-pool').Pool;
 
 const baseConf = Config[Support.getTestDialect()];
