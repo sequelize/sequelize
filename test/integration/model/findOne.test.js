@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {

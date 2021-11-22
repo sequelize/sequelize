@@ -13,19 +13,22 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "homepage": "https://sequelize.org/",
-  "main": "index.js",
-  "types": "types",
+  "main": "./dist/index.js",
+  "types": "./dist",
   "engines": {
     "node": ">=10.0.0"
   },
   "files": [
+    "dist",
     "lib",
+    "index.js",
     "types/index.d.ts",
     "types/lib",
     "types/type-helpers"
   ],
   "license": "MIT",
   "dependencies": {
+    "@types/debug": "^4.1.7",
     "debug": "^4.1.1",
     "dottie": "^2.0.0",
     "ibm_db": "^2.8.0",
@@ -33,6 +36,7 @@
     "lodash": "^4.17.20",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
+    "pg-connection-string": "^2.5.0",
     "retry-as-promised": "^3.2.0",
     "semver": "^7.3.2",
     "sequelize-pool": "^6.0.0",
@@ -44,8 +48,13 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-angular": "^11.0.0",
+    "@types/chai": "^4.2.22",
+    "@types/mocha": "^9.0.0",
     "@types/node": "^12.12.42",
+    "@types/sinon": "^10.0.6",
     "@types/validator": "^13.1.4",
+    "@typescript-eslint/eslint-plugin": "^5.3.0",
+    "@typescript-eslint/parser": "^5.3.0",
     "acorn": "^8.0.4",
     "axios": ">=0.21.2",
     "chai": "^4.x",
@@ -53,8 +62,10 @@
     "chai-datetime": "^1.6.0",
     "cheerio": "^1.0.0-rc.3",
     "cls-hooked": "^4.2.2",
+    "copyfiles": "^2.4.1",
     "cross-env": "^7.0.2",
     "delay": "^4.3.0",
+    "esbuild": "^0.13.12",
     "esdoc": "^1.1.0",
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
     "esdoc-inject-style-plugin": "^1.0.0",
@@ -63,6 +74,7 @@
     "eslint-plugin-jsdoc": "^20.4.0",
     "eslint-plugin-mocha": "^6.2.2",
     "expect-type": "^0.11.0",
+    "fast-glob": "^3.2.7",
     "fs-jetpack": "^4.1.0",
     "husky": "^4.2.5",
     "js-combinatorics": "^0.5.5",
@@ -72,7 +84,9 @@
     "markdownlint-cli": "^0.26.0",
     "marked": "^1.1.0",
     "mocha": "^7.1.2",
+    "module-alias": "^2.2.2",
     "mysql2": "^2.1.0",
+    "node-hook": "^1.0.0",
     "nth-check": ">=2.0.1",
     "nyc": "^15.0.0",
     "p-map": "^4.0.0",
@@ -88,6 +102,7 @@
     "semver-regex": ">=3.1.3",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
+    "source-map-support": "^0.5.20",
     "sqlite3": "^4.2.0",
     "tar": ">=4.4.18",
     "tedious": "8.3.0",
@@ -155,7 +170,7 @@
     }
   },
   "lint-staged": {
-    "*.js": "eslint"
+    "*!(d).[tj]s": "eslint"
   },
   "husky": {
     "hooks": {
@@ -172,7 +187,11 @@
       "@semantic-release/github"
     ],
     "branches": [
-      "v6"
+      "v6",
+      {
+        "name": "v6-alpha",
+        "prerelease": "alpha"
+      }
     ]
   },
   "publishConfig": {
@@ -182,18 +201,19 @@
     "----------------------------------------- static analysis -----------------------------------------": "",
     "lint": "eslint lib test --quiet --fix",
     "lint-docs": "markdownlint docs",
-    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json",
+    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json && tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
     "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "----------------------------------------- tests ---------------------------------------------------": "",
-    "test-unit": "mocha \"test/unit/**/*.test.js\"",
-    "test-integration": "mocha \"test/integration/**/*.test.js\"",
+    "mocha": "mocha -r ./test/requireHook",
+    "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
+    "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "teaser": "node test/teaser.js",
-    "test": "npm run teaser && npm run test-unit && npm run test-integration",
+    "test": "npm run prepare && npm run test-typings && npm run teaser && npm run test-unit && npm run test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
-    "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
-    "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
+    "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly yarn mocha \"test/integration/**/*.test.[tj]s\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
+    "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly yarn mocha \"test/unit/**/*.test.[tj]s\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
     "----------------------------------------- local test dbs ------------------------------------------": "",
     "start-mariadb": "bash dev/mariadb/10.3/start.sh",
@@ -243,6 +263,7 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite node sscce.js",
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "sscce-db2": "cross-env DIALECT=db2 node sscce.js",
+    "prepare": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""
   }
 }

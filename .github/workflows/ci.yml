@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["3.9", "4.0", "4.1"]
+        ts-version: ["3.9", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
@@ -230,7 +230,7 @@ jobs:
         test-mysql-mariadb,
         test-mssql,
       ]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-alpha')
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

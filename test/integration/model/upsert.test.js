@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -340,6 +340,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findByPk(42);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
         clock.restore();
+      });
+
+      it('falls back to a noop if no update values are found in the upsert data', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING,
+          email: {
+            type: DataTypes.STRING,
+            field: 'email_address',
+            defaultValue: 'xxx@yyy.zzz'
+          }
+        }, {
+          // note, timestamps: false is important here because this test is attempting to see what happens
+          // if there are NO updatable fields (including timestamp values).
+          timestamps: false
+        });
+
+        await User.sync({ force: true });
+        // notice how the data does not actually have the update fields.
+        await User.upsert({ id: 42, username: 'jack' }, { fields: ['email'] });
+        await User.upsert({ id: 42, username: 'jill' }, { fields: ['email'] });
+        const user = await User.findByPk(42);
+        // just making sure the user exists, i.e. the insert happened.
+        expect(user).to.be.ok;
+        expect(user.username).to.equal('jack');  // second upsert should not have updated username.
       });
 
       it('does not update using default values', async function() {
