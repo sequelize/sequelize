@@ -13,7 +13,7 @@ class MyModel extends Model {
   }
 }
 
-class OtherModel extends Model { }
+class OtherModel extends Model {}
 
 const Instance: MyModel = new MyModel({ int: 10 });
 
@@ -31,7 +31,7 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
-  include: [{ through: { paranoid: true } }]
+  include: [ { through: { paranoid: true } } ]
 });
 
 MyModel.findOne({
@@ -64,7 +64,7 @@ MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
-MyModel.update({}, { where: { foo: 'bar' }, paranoid: false });
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
@@ -89,7 +89,7 @@ const model: typeof MyModel = MyModel.init({
   sequelize,
   tableName: 'my_model',
   getterMethods: {
-    multiply: function () {
+    multiply: function() {
       return this.num * 2;
     }
   }
@@ -98,7 +98,7 @@ const model: typeof MyModel = MyModel.init({
 /**
  * Tests for findCreateFind() type.
  */
-class UserModel extends Model { }
+class UserModel extends Model {}
 
 UserModel.init({
   username: { type: DataTypes.STRING, allowNull: false },
@@ -121,7 +121,7 @@ UserModel.findCreateFind({
  */
 
 UserModel.findOrCreate({
-  fields: ["jane.doe"],
+  fields: [ "jane.doe" ],
   where: {
     username: "jane.doe"
   },
@@ -133,7 +133,7 @@ UserModel.findOrCreate({
 /**
  * Test for primaryKeyAttributes.
  */
-class TestModel extends Model { };
+class TestModel extends Model {};
 TestModel.primaryKeyAttributes;
 
 /**
@@ -151,9 +151,9 @@ someInstance.getOthers({
 /**
  * Test for through options in creating a BelongsToMany association
  */
-class Film extends Model { }
+class Film extends Model {}
 
-class Actor extends Model { }
+class Actor extends Model {}
 
 Film.belongsToMany(Actor, {
   through: {
@@ -174,7 +174,7 @@ interface ModelAttributes {
   name: string;
 }
 
-interface CreationAttributes extends Optional<ModelAttributes, 'id'> { }
+interface CreationAttributes extends Optional<ModelAttributes, 'id'> {}
 
 const ModelWithAttributes: ModelDefined<
   ModelAttributes,
@@ -205,7 +205,6 @@ expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttri
 /**
  * Tests for toJson() type
  */
-
 interface FilmToJson {
   id: number;
   name?: string;
