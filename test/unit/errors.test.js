@@ -47,7 +47,7 @@ describe('errors', () => {
       expect(err).to.exist;
       const stackParts = err.stack.split('\n');
 
-      const fullErrorName = `Sequelize${errorName}`;
+      const fullErrorName = `Sequelize${errorName}: `;
       expect(stackParts[0]).to.equal(fullErrorName);
       expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
