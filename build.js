@@ -20,8 +20,8 @@ async function rmDistDir() {
   try {
     await stat(outdir);
     if (nodeMajorVersion >= 14) {
-      await rm(outdir, { recursive: true });
       const rm = promisify(fs.rm);
+      await rm(outdir, { recursive: true });
     } else {
       const rmdir = promisify(fs.rmdir);
       if (nodeMajorVersion >= 12) {
