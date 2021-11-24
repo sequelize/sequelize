@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   Support   = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
