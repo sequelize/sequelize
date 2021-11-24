@@ -412,7 +412,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
           await this.sequelize.dropSchema('work');
           const schemas = await this.sequelize.showAllSchemas();
-          if (dialect === 'postgres' || dialect === 'mssql' || schemas === 'mariadb') {
+          if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
             expect(schemas).to.be.empty;
           }
         });
