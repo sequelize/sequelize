@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 16.x
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn docs
   test-typings:
