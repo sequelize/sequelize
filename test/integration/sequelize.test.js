@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'db2') {
+  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {

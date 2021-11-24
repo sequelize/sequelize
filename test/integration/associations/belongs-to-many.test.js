@@ -11,17 +11,6 @@ const chai = require('chai'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 
-// Db2 returns UUID as buffer and expect fails to compare buffer
-// This function takes care of this comparision issue.
-/*
-function tobeequal(a, b) {
-  if (dialect === 'db2') {
-    expect(a.equals(b), true);
-  } else {
-    expect(a).to.be.equal(b);
-  }
-}
-*/
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
     beforeEach(async function() {

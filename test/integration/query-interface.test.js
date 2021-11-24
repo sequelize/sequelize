@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'db2') {
+      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
