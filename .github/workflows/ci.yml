@@ -208,6 +208,7 @@ jobs:
     needs:
       [
         lint,
+        docs,
         test-typings,
         test-sqlite,
         test-postgres,
