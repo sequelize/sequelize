@@ -730,6 +730,13 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+
+  /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictWhere?: WhereOptions<TAttributes>;
 }
 
 /**
@@ -983,7 +990,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default true
    */
   validate?: boolean;
-  
+
   /**
    * A flag that defines if null values should be passed as values or not.
    *
