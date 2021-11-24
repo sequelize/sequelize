@@ -34,7 +34,75 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           bind: ['triggertest']
         });
+    });
 
+    it('adds conflictWhere clause to generated queries', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name',
+          primaryKey: true
+        },
+        password: {
+          type: DataTypes.STRING,
+          field: 'pass_word'
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          field: 'updated_at'
+        }
+      }, {
+        timestamps: true
+      });
+
+      const upsertKeys = User.primaryKeyAttributes.map(attr => User.rawAttributes[attr].field || attr);
+
+      expectsql(
+        sql.insertQuery(
+          User.tableName,
+          { user_name: 'testuser', pass_word: '12345' },
+          User.fieldRawAttributesMap,
+          {
+            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+            conflictWhere: {
+              user_name: 'test where value'
+            },
+            upsertKeys
+          }
+        ),
+        {
+          default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2);',
+          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES ($1,$2) ON CONFLICT ("user_name") WHERE "user_name" = \'test where value\' DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+          mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES ($1,$2);',
+          mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+          mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+          sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON CONFLICT (`user_name`) WHERE `user_name` = \'test where value\' DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
+        }
+      );
+    });
+
+    it('allow insert primary key with 0', () => {
+      const M = Support.sequelize.define('m', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      });
+
+      expectsql(sql.insertQuery(M.tableName, { id: 0 }, M.rawAttributes),
+        {
+          query: {
+            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($1); SET IDENTITY_INSERT [ms] OFF;',
+            postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
+            default: 'INSERT INTO `ms` (`id`) VALUES ($1);'
+          },
+          bind: [0]
+        });
     });
   });
 
@@ -159,6 +227,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
+        });
+    });
+
+    it('allow bulk insert primary key with 0', () => {
+      const M = Support.sequelize.define('m', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      });
+
+      expectsql(sql.bulkInsertQuery(M.tableName, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+        {
+          query: {
+            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL);; SET IDENTITY_INSERT [ms] OFF;',
+            postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
+            default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);'
+          }
         });
     });
   });

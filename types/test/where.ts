@@ -50,6 +50,7 @@ expectTypeOf({
   [Op.lte]: 10, // <= 10
   [Op.ne]: 20, // != 20
   [Op.not]: true, // IS NOT TRUE
+  [Op.is]: null, // IS NULL
   [Op.between]: [6, 10], // BETWEEN 6 AND 10
   [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
   [Op.in]: [1, 2], // IN [1, 2]

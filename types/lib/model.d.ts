@@ -161,6 +161,9 @@ export interface WhereOperators {
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
   [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
 
+  /** Example: `[Op.is]: null,` becomes `IS NULL` */
+  [Op.is]?: null;
+
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: Rangable;
 
@@ -742,7 +745,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -1113,13 +1116,13 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly string[]> | { msg: string; args: ReadonlyArray<readonly string[]> };
-
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  
   /**
    * don't allow specific substrings
    */
@@ -2001,7 +2004,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,

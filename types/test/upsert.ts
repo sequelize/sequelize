@@ -49,5 +49,4 @@ sequelize.transaction(async trx => {
       bar: "def"
     }
   });
-
 })

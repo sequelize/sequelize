@@ -598,6 +598,168 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       }
+
+
+      if (current.dialect.supports.inserts.onConflictWhere) {
+        describe('conflictWhere', () => {
+          const Users = current.define(
+            'users',
+            {
+              name: DataTypes.STRING,
+              bio: DataTypes.STRING,
+              isUnique: DataTypes.BOOLEAN
+            },
+            {
+              indexes: [
+                {
+                  unique: true,
+                  fields: ['name'],
+                  where: { isUnique: true }
+                }
+              ]
+            }
+          );
+
+          beforeEach(() => Users.sync({ force: true }));
+
+          it('should insert with no other rows', async () => {
+            const [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: true
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+          });
+
+          it('should update with another unique user', async () => {
+            let [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: true,
+                bio: 'before'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+            expect(newRow.bio).to.eq('before');
+
+            [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: true,
+                bio: 'after'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+            expect(newRow.bio).to.eq('after');
+
+            const rowCount = await Users.count();
+
+            expect(rowCount).to.eq(1);
+          });
+
+          it('allows both unique and non-unique users with the same name', async () => {
+            let [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: true,
+                bio: 'first'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+            expect(newRow.bio).to.eq('first');
+
+            [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: false,
+                bio: 'second'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+            expect(newRow.bio).to.eq('second');
+
+            const rowCount = await Users.count();
+
+            expect(rowCount).to.eq(2);
+          });
+
+          it('allows for multiple unique users with different names', async () => {
+            let [newRow] = await Users.upsert(
+              {
+                name: 'John',
+                isUnique: true,
+                bio: 'first'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('John');
+            expect(newRow.bio).to.eq('first');
+
+            [newRow] = await Users.upsert(
+              {
+                name: 'Bob',
+                isUnique: false,
+                bio: 'second'
+              },
+              {
+                conflictWhere: {
+                  isUnique: true
+                }
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.name).to.eq('Bob');
+            expect(newRow.bio).to.eq('second');
+
+            const rowCount = await Users.count();
+
+            expect(rowCount).to.eq(2);
+          });
+        });
+      }
     });
   }
 });
