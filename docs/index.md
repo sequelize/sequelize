@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/sequelize/sequelize/blob/main/docs/images/logo.png" />
+  <img src="images/logo.png" />
 </p>
 
 <p align="center">
