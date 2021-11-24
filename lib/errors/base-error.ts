@@ -1,4 +1,6 @@
-'use strict';
+interface ErrorOptions {
+  stack?: string;
+}
 
 /**
  * Sequelize provides a host of custom error classes, to allow you to do easier debugging. All of these errors are exposed on the sequelize object and the sequelize constructor.
@@ -8,10 +10,11 @@
  * The Base Error all Sequelize Errors inherit from.
  */
 class BaseError extends Error {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = 'SequelizeBaseError';
   }
 }
 
-module.exports = BaseError;
+export default BaseError;
+export { ErrorOptions };

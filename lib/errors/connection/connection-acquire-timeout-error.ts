@@ -1,15 +1,13 @@
-'use strict';
-
-const ConnectionError = require('./../connection-error');
+import ConnectionError from '../connection-error';
 
 /**
  * Thrown when connection is not acquired due to timeout
  */
 class ConnectionAcquireTimeoutError extends ConnectionError {
-  constructor(parent) {
+  constructor(parent: Error) {
     super(parent);
     this.name = 'SequelizeConnectionAcquireTimeoutError';
   }
 }
 
-module.exports = ConnectionAcquireTimeoutError;
+export default ConnectionAcquireTimeoutError;
