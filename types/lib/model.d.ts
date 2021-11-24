@@ -2888,6 +2888,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * values gotten from the DB, and apply all custom getters.
    */
   public toJSON<T extends TModelAttributes>(): T;
+  public toJSON(): object;
 
   /**
    * Helper method to determine if a instance is "soft deleted". This is
