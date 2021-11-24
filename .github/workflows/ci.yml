@@ -18,6 +18,16 @@ jobs:
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
+  docs:
+    name: Generate docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn docs
   test-typings:
     strategy:
       fail-fast: false
