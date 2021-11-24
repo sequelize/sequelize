@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/sequelize/sequelize/blob/main/docs/images/logo.png" />
+</p>
+
 # Sequelize
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
