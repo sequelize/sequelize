@@ -1,9 +1,11 @@
-<div>
-  <div class="center logo">
-    ![logo](manual/asset/logo-small.png)
-  </div>
-  <div class="center sequelize">Sequelize</div>
-</div>
+<p align="center">
+  <img src="https://github.com/sequelize/sequelize/blob/main/docs/images/logo.png" />
+</p>
+
+<p align="center">
+  Sequelize
+</p>
+
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
 [![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
