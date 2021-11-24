@@ -9,6 +9,7 @@ const path = require('path');
 const exec = promisify(require('child_process').exec);
 
 const rm = promisify(fs.rm);
+const rmdir = promisify(fs.rmdir);
 const stat = promisify(fs.stat);
 
 // if this script is moved, this will need to be adjusted
@@ -20,10 +21,12 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 async function rmDistDir() {
   try {
     await stat(outdir);
-    if (nodeMajorVersion >= 12) {
+    if (nodeMajorVersion >= 14) {
       await rm(outdir, { recursive: true });
+    } else if (nodeMajorVersion >= 12) {
+      await rmdir(outdir, { recursive: true });
     } else {
-      await rm(outdir);
+      await rmdir(outdir);
     }
   } catch {
     /* no-op */
