@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
