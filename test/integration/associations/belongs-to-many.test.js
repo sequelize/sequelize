@@ -193,7 +193,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(project.ProjectUsers.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('acme');
       }
     });
@@ -1416,7 +1416,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('hasAssociations with binary key', () => {
     beforeEach(function() {
-      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' || dialect === 'db2' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      const keyDataType = ['mysql', 'mariadb', 'db2'].includes(dialect) ? 'BINARY(255)' : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -3114,7 +3114,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'db2') {
+      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 
@@ -3131,7 +3131,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'db2') {
+      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 

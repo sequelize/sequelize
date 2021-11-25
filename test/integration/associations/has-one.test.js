@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(associatedUser.id).not.to.equal(fakeUser.id);
       await this.sequelize.dropSchema('admin');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('admin');
       }
     });
