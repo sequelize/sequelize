@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   docs:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn docs
   test-typings:
     strategy:
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-db2:
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Install Local DB2 Copy
         run: npm run start-db2
       - name: Unit Tests
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -118,7 +118,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Unit Tests
@@ -185,7 +185,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -223,7 +223,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -250,5 +250,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --ignore-engines
       - run: npx semantic-release
