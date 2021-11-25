@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         schema: 'archive'
       });
 
-      if (dialect === 'postgres' || dialect === 'postgres-native') {
+      if (['postgres', 'postgres-native'].includes(dialect)) {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'users'
       });
 
-      if (dialect === 'postgres' || dialect === 'postgres-native') {
+      if (['postgres', 'postgres-native'].includes(dialect)) {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');

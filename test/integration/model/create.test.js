@@ -840,7 +840,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('is possible to use casting when creating an instance', async function() {
-      const type = dialect === 'mysql' || dialect === 'mariadb' ? 'signed' : 'integer';
+      const type = ['mysql', 'mariadb'].includes(dialect) ? 'signed' : 'integer';
       let match = false;
 
       const user = await this.User.create({
@@ -861,7 +861,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer'),
         match = false;
 
-      if (dialect === 'mysql' || dialect === 'mariadb') {
+      if (['mysql', 'mariadb'].includes(dialect)) {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed');
       }
 
@@ -869,7 +869,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         intVal: type
       }, {
         logging(sql) {
-          if (dialect === 'mysql' || dialect === 'mariadb') {
+          if (['mysql', 'mariadb'].includes(dialect)) {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
@@ -1020,7 +1020,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (dialect === 'postgres' || dialect === 'sqlite') {
+    if (['postgres', 'sqlite'].includes(dialect)) {
       it("doesn't allow case-insensitive duplicated records using CITEXT", async function() {
         const User = this.sequelize.define('UserWithUniqueCITEXT', {
           username: { type: Sequelize.CITEXT, unique: true }
