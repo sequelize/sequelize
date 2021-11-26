@@ -59,6 +59,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
+        oracle: 'WHERE "yolo"."User"."id" = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
@@ -92,6 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: "WHERE [name] = 'here is a null char: \\0'",
       mssql: "WHERE [name] = N'here is a null char: \0'",
+      oracle: 'WHERE "name" = \'here is a null char: \0\'',
       sqlite: "WHERE `name` = 'here is a null char: \0'"
     });
   });
@@ -115,6 +117,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
       postgres: '"deleted" IS NULL',
+      oracle: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
     });
 
@@ -152,6 +155,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: "`field` = X'53657175656c697a65'",
         mariadb: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
+        oracle: '"field" = X\'53657175656c697a65\'',
         mssql: '[field] = 0x53657175656c697a65'
       });
     });
@@ -162,6 +166,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
+        oracle: '"deleted" IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -495,6 +500,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
         mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        oracle: "\"date\" BETWEEN TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM') AND TO_TIMESTAMP_TZ('2013-01-11 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')",
         mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
       });
 

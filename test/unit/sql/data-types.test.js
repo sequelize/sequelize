@@ -25,31 +25,36 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('STRING', () => {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
-        mssql: 'NVARCHAR(255)'
+        mssql: 'NVARCHAR(255)',
+        oracle: 'NVARCHAR2(255)'
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(1234)'
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(255)'
       });
 
       describe('validate', () => {
@@ -146,7 +151,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)'
+        sqlite: 'TINYINT(1)',
+        //oracle: 'SMALLINT'
       });
 
       describe('validate', () => {
@@ -329,7 +335,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('NOW', () => {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
-        mssql: 'GETDATE()'
+        mssql: 'GETDATE()',
+        oracle: "SELECT SYSDATE FROM DUAL;"
       });
     });
 
@@ -802,61 +809,70 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('BIGINT', () => {
       testsql('BIGINT', DataTypes.BIGINT, {
-        default: 'BIGINT'
+        default: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
         default: 'BIGINT UNSIGNED',
         postgres: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
         default: 'BIGINT UNSIGNED ZEROFILL',
         postgres: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
         default: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
         default: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
         default: 'BIGINT(11) ZEROFILL',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        mssql: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       describe('validate', () => {
@@ -975,76 +991,89 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('DOUBLE PRECISION', () => {
       testsql('DOUBLE', DataTypes.DOUBLE, {
-        default: 'DOUBLE PRECISION'
+        default: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
         default: 'DOUBLE PRECISION UNSIGNED',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11)', DataTypes.DOUBLE(11), {
         default: 'DOUBLE PRECISION(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11).UNSIGNED', DataTypes.DOUBLE(11).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE({ length: 11 }).UNSIGNED', DataTypes.DOUBLE({ length: 11 }).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11).ZEROFILL', DataTypes.DOUBLE(11).ZEROFILL, {
         default: 'DOUBLE PRECISION(11) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
         default: 'DOUBLE PRECISION(11,12)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
-        postgres: 'DOUBLE PRECISION'
+        postgres: 'DOUBLE PRECISION',
+        oracle: 'NUMBER(15,5)'
       });
     });
 
@@ -1165,51 +1194,61 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.NUMERIC) {
       testsql('NUMERIC', DataTypes.NUMERIC, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
-        default: 'DECIMAL(15,5)'
+        default: 'DECIMAL(15,5)',
+        oracle: 'NUMBER'
       });
     }
 
     describe('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
         mariadb: 'DECIMAL UNSIGNED',
         mysql: 'DECIMAL UNSIGNED',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
         mariadb: 'DECIMAL UNSIGNED ZEROFILL',
         mysql: 'DECIMAL UNSIGNED ZEROFILL',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
         mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       describe('validate', () => {
