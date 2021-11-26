@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    if (dialect === 'mysql' || dialect === 'mariadb') {
+    if (['mysql', 'mariadb'].includes(dialect)) {
       it('should show all tables in all databases', async function() {
         await this.queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await this.sequelize.query('CREATE DATABASE my_test_db');
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('my_test_table_new');
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
       } else if (dialect === 'sqlite') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'mssql') {
+      } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
@@ -593,7 +593,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
 
         // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
-        const expectedConstraintName = dialect === 'mysql' || dialect === 'mariadb' ? 'PRIMARY' : 'users_username_pk';
+        const expectedConstraintName = ['mysql', 'mariadb'].includes(dialect) ? 'PRIMARY' : 'users_username_pk';
 
         expect(constraints).to.include(expectedConstraintName);
         await this.queryInterface.removeConstraint('users', expectedConstraintName);
