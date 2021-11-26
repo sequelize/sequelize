@@ -16,7 +16,6 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	  if (sudo docker logs db2server | grep 'Setup has completed')
 	  then	  
 		sudo docker exec db2server bash -c "su db2inst1 & disown"
-		node check.js
 		break
 	  fi
 	  if ($count -gt 30); then
