@@ -94,7 +94,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
 - Mandatory:
 
-  - [Node.js](http://nodejs.org)
+  - [Node.js](http://nodejs.org) (^12.22.0 || ^14.17.0 || >=16.0.0, or >10 with using the `--ignore-engines` on Yarn)
   - [Git](https://git-scm.com/)
 
 - Optional (recommended):
