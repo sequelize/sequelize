@@ -26,7 +26,11 @@ if (dialect !== 'sqlite') {
         now = 'GETDATE()';
       }
 
-      const query = `SELECT ${now} as now`;
+      let query = `SELECT ${now} as now`;
+
+      if (dialect === 'oracle') {
+        query = 'SELECT CURRENT_DATE AS now FROM DUAL';
+      }
 
       const [now1, now2] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),

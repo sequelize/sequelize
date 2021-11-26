@@ -157,7 +157,11 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('supports composite keys', () => {
+
+        it('supports composite keys', function() {
+          if (current.dialect.name === 'oracle') {
+            this.skip();
+          }
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'foreign key',
@@ -176,7 +180,10 @@ if (current.dialect.supports.constraints.addConstraint) {
           );
         });
 
-        it('uses onDelete, onUpdate', () => {
+        it('uses onDelete, onUpdate', function() {
+          if (current.dialect.name === 'oracle') {
+            this.skip();
+          }
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
             fields: ['myColumn'],
