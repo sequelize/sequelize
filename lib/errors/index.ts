@@ -2,7 +2,6 @@ export { default as BaseError } from './base-error';
 
 export { default as DatabaseError } from './database-error';
 export { default as AggregateError } from './aggregate-error';
-export { AsyncQueueError } from '../dialects/mssql/async-queue';
 export { default as AssociationError } from './association-error';
 export { default as BulkRecordError } from './bulk-record-error';
 export { default as ConnectionError } from './connection-error';
