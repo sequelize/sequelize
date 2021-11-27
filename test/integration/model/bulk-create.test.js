@@ -310,7 +310,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const expectedValidationError = 'Validation len on code failed';
         const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
 
-        expect(error).to.be.instanceof(AggregateError);
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
         const { errors } = error;

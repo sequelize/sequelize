@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationErrorItem.Origins is valid', () => {
-      const ORIGINS = Sequelize.ValidationErrorItem.Origins;
+      const ORIGINS = Sequelize.ValidationErrorItemOrigin;
 
       expect(ORIGINS).to.have.property('CORE', 'CORE');
       expect(ORIGINS).to.have.property('DB', 'DB');
