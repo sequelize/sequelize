@@ -12,10 +12,10 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (['postgres', 'mssql'].includes(dialect)) {
     return `"${str}"`;
   }
-  if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
+  if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
     return `\`${str}\``;
   }
   return str;
@@ -360,7 +360,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.include('photos');
@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (err) {
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
+          if (['postgres', 'postgres-native'].includes(dialect)) {
             assert([
               'fe_sendauth: no password supplied',
               'role "bar" does not exist',
