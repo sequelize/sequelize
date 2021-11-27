@@ -1,12 +1,12 @@
 import BaseError, { ErrorOptions } from './base-error';
-import type Model from '../../lib/model';
+import type { Model } from '../../types/lib/model';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class
  * that maps current `type` strings (as given to ValidationErrorItem.constructor()) to
  * our new `origin` values.
  */
-export enum ValidationErrorItemType {
+enum ValidationErrorItemType {
   'notnull violation' = 'CORE',
   'string violation' = 'CORE',
   'unique violation' = 'DB',
@@ -16,7 +16,7 @@ export enum ValidationErrorItemType {
 /**
  * An enum that defines valid ValidationErrorItem `origin` values
  */
-export enum ValidationErrorItemOrigin {
+enum ValidationErrorItemOrigin {
   /**
    * specifies errors that originate from the sequelize "core"
    */
@@ -277,4 +277,8 @@ class ValidationErrorItem {
 }
 
 export default ValidationError;
-export { ValidationErrorItem };
+export {
+  ValidationErrorItem,
+  ValidationErrorItemType,
+  ValidationErrorItemOrigin
+};

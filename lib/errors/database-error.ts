@@ -1,27 +1,30 @@
-import BaseError, { ErrorOptions } from './base-error';
+import BaseError, { CommonErrorProperties, ErrorOptions } from './base-error';
 
-interface IDatabaseError extends Error {
-  /**
-   * The SQL that triggered the error
-   */
-  sql?: string;
+interface DatabaseErrorParent
+  extends Error,
+    Pick<CommonErrorProperties, 'sql'> {
+  /** The parameters for the sql that triggered the error */
+  readonly parameters?: object;
+}
 
-  /**
-   * The parameters for the sql that triggered the error
-   */
-  parameters?: object;
+interface DatabaseErrorSubclassOptions extends ErrorOptions {
+  parent?: DatabaseErrorParent;
+  message?: string;
 }
 
 /**
  * A base class for all database related errors.
  */
-class DatabaseError extends BaseError implements IDatabaseError {
+class DatabaseError
+  extends BaseError
+  implements DatabaseErrorParent, CommonErrorProperties
+{
   parent: Error;
   original: Error;
-  sql?: string;
-  parameters?: object;
+  sql: string;
+  parameters: object;
 
-  constructor(parent: IDatabaseError, options: ErrorOptions = {}) {
+  constructor(parent: DatabaseErrorParent, options: ErrorOptions = {}) {
     super(parent.message);
     this.name = 'SequelizeDatabaseError';
 
@@ -29,7 +32,7 @@ class DatabaseError extends BaseError implements IDatabaseError {
     this.original = parent;
 
     this.sql = parent.sql;
-    this.parameters = parent.parameters;
+    this.parameters = parent.parameters ?? {};
 
     if (options.stack) {
       this.stack = options.stack;
@@ -37,4 +40,5 @@ class DatabaseError extends BaseError implements IDatabaseError {
   }
 }
 
-module.exports = DatabaseError;
+export default DatabaseError;
+export { DatabaseErrorSubclassOptions, DatabaseErrorParent };

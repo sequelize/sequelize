@@ -10,4 +10,4 @@ class ConnectionRefusedError extends ConnectionError {
   }
 }
 
-module.exports = ConnectionRefusedError;
+export default ConnectionRefusedError;

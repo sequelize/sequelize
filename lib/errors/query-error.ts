@@ -1,15 +1,13 @@
-'use strict';
-
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * Thrown when a query is passed invalid options (see message for details)
  */
 class QueryError extends BaseError {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = 'SequelizeQueryError';
   }
 }
 
-module.exports = QueryError;
+export default QueryError;

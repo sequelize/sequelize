@@ -1,6 +1,5 @@
-'use strict';
-
-const BaseError = require('./base-error');
+import BaseError from './base-error';
+import type { Model } from '../../types/lib/model';
 
 /**
  * Thrown when bulk operation fails, it represent per record level error.
@@ -10,7 +9,10 @@ const BaseError = require('./base-error');
  * @param {object} record  DAO instance that error belongs to
  */
 class BulkRecordError extends BaseError {
-  constructor(error, record) {
+  errors: Error;
+  record: Model;
+
+  constructor(error: Error, record: Model) {
     super(error.message);
     this.name = 'SequelizeBulkRecordError';
     this.errors = error;
@@ -18,4 +20,4 @@ class BulkRecordError extends BaseError {
   }
 }
 
-module.exports = BulkRecordError;
+export default BulkRecordError;
