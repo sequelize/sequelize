@@ -146,18 +146,18 @@ export interface WhereOperators {
    */
 
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
 
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date | Literal;
+  [Op.gte]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date | Literal;
+  [Op.lt]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date | Literal;
+  [Op.lte]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
   [Op.match]?: Fn;
@@ -225,7 +225,7 @@ export interface WhereOperators {
   [Op.contained]?: readonly (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date | Literal;
+  [Op.gt]?: number | string | Date | Literal | Col;
 
   /**
    * PG only
