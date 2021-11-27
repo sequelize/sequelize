@@ -109,7 +109,7 @@ class ValidationErrorItem {
   /**
    * The type/origin of the validation error
    */
-  type: ValidationErrorItemType | null;
+  type: keyof typeof ValidationErrorItemType | null;
 
   /**
    * The field that triggered the validation error
@@ -121,7 +121,7 @@ class ValidationErrorItem {
    */
   value: string | null;
 
-  origin: ValidationErrorItemOrigin | null;
+  origin: keyof typeof ValidationErrorItemOrigin | null;
 
   /**
    * The DAO instance that caused the validation error
@@ -210,14 +210,14 @@ class ValidationErrorItem {
 
     if (type) {
       if (this.isValidationErrorItemOrigin(type)) {
-        this.origin = ValidationErrorItemOrigin[type];
+        this.origin = type;
       } else {
         const lowercaseType = this.normalizeString(type);
         const realType = ValidationErrorItemType[lowercaseType];
 
         if (realType && ValidationErrorItemOrigin[realType]) {
-          this.origin = ValidationErrorItemOrigin[realType];
-          this.type = ValidationErrorItemType[type];
+          this.origin = realType;
+          this.type = type;
         }
       }
     }
@@ -259,13 +259,12 @@ class ValidationErrorItem {
     const useTANS = useTypeAsNS === undefined || !!useTypeAsNS;
     const NSSep = NSSeparator === undefined ? '.' : NSSeparator;
 
+    const type = this.origin;
     const key = this.validatorKey || this.validatorName;
-    const useNS = useTANS && this.origin;
+    const useNS = useTANS && type && ValidationErrorItemOrigin[type];
 
     if (useNS && (typeof NSSep !== 'string' || !NSSep.length)) {
-      throw new Error(
-        'Invalid namespace separator given, must be a non-empty string'
-      );
+      throw new Error('Invalid namespace separator given, must be a non-empty string');
     }
 
     if (!(typeof key === 'string' && key.length)) {
