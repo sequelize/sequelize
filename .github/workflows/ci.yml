@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12, 14, 16]
+        node-version: [10, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -66,7 +66,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12, 14, 16]
+        node-version: [10, 16]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
@@ -112,27 +112,11 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
-            node-version: 12
-          - name: MySQL 5.7
-            image: mysql:5.7
-            dialect: mysql
-            node-version: 14
-          - name: MySQL 5.7
-            image: mysql:5.7
-            dialect: mysql
             node-version: 16
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
             node-version: 10
-          - name: MySQL 8.0
-            image: mysql:8.0
-            dialect: mysql
-            node-version: 12
-          - name: MySQL 8.0
-            image: mysql:8.0
-            dialect: mysql
-            node-version: 14
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
@@ -144,27 +128,11 @@ jobs:
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
-            node-version: 12
-          - name: MariaDB 10.3
-            image: mariadb:10.3
-            dialect: mariadb
-            node-version: 14
-          - name: MariaDB 10.3
-            image: mariadb:10.3
-            dialect: mariadb
             node-version: 16
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
             node-version: 10
-          - name: MariaDB 10.5
-            image: mariadb:10.5
-            dialect: mariadb
-            node-version: 12
-          - name: MariaDB 10.5
-            image: mariadb:10.5
-            dialect: mariadb
-            node-version: 14
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
@@ -200,7 +168,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12, 14, 16]
+        node-version: [10, 16]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
