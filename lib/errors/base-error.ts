@@ -1,8 +1,8 @@
-interface ErrorOptions {
+export interface ErrorOptions {
   stack?: string;
 }
 
-interface CommonErrorProperties {
+export interface CommonErrorProperties {
   /** The database specific error which triggered this one */
   readonly parent: Error;
 
@@ -28,4 +28,3 @@ class BaseError extends Error {
 }
 
 export default BaseError;
-export { ErrorOptions, CommonErrorProperties };

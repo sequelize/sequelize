@@ -1,13 +1,13 @@
 import BaseError, { CommonErrorProperties, ErrorOptions } from './base-error';
 
-interface DatabaseErrorParent
+export interface DatabaseErrorParent
   extends Error,
     Pick<CommonErrorProperties, 'sql'> {
   /** The parameters for the sql that triggered the error */
   readonly parameters?: object;
 }
 
-interface DatabaseErrorSubclassOptions extends ErrorOptions {
+export interface DatabaseErrorSubclassOptions extends ErrorOptions {
   parent?: DatabaseErrorParent;
   message?: string;
 }
@@ -41,4 +41,3 @@ class DatabaseError
 }
 
 export default DatabaseError;
-export { DatabaseErrorSubclassOptions, DatabaseErrorParent };

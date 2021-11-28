@@ -1,6 +1,6 @@
 import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
 
-enum RelationshipType {
+export enum RelationshipType {
   parent = 'parent',
   child = 'child',
 }
@@ -43,4 +43,3 @@ class ForeignKeyConstraintError extends DatabaseError {
 }
 
 export default ForeignKeyConstraintError;
-export { RelationshipType };

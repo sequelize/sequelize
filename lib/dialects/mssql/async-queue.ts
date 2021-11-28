@@ -3,7 +3,7 @@ import { BaseError, ConnectionError } from '../../errors';
 /**
  * Thrown when a connection to a database is closed while an operation is in progress
  */
-class AsyncQueueError extends BaseError {
+export class AsyncQueueError extends BaseError {
   constructor(message: string) {
     super(message);
     this.name = 'SequelizeAsyncQueueError';
@@ -57,4 +57,3 @@ class AsyncQueue {
 }
 
 export default AsyncQueue;
-export { AsyncQueueError };

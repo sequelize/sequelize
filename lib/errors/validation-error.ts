@@ -6,7 +6,7 @@ import type { Model } from '../../types/lib/model';
  * that maps current `type` strings (as given to ValidationErrorItem.constructor()) to
  * our new `origin` values.
  */
-enum ValidationErrorItemType {
+export enum ValidationErrorItemType {
   'notnull violation' = 'CORE',
   'string violation' = 'CORE',
   'unique violation' = 'DB',
@@ -16,7 +16,7 @@ enum ValidationErrorItemType {
 /**
  * An enum that defines valid ValidationErrorItem `origin` values
  */
-enum ValidationErrorItemOrigin {
+export enum ValidationErrorItemOrigin {
   /**
    * specifies errors that originate from the sequelize "core"
    */
@@ -34,73 +34,10 @@ enum ValidationErrorItemOrigin {
 }
 
 /**
- * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
- * which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
- *
- * @param {string} message Error message
- * @param {Array} [errors] Array of ValidationErrorItem objects describing the validation errors
- *
- * @property errors {ValidationErrorItem[]}
- */
-class ValidationError extends BaseError {
-  errors: ValidationErrorItem[];
-
-  constructor(
-    message: string,
-    errors: ValidationErrorItem[],
-    options: ErrorOptions = {}
-  ) {
-    super(message);
-    this.name = 'SequelizeValidationError';
-    this.message = 'Validation Error';
-    /**
-     *
-     * @type {ValidationErrorItem[]}
-     */
-    this.errors = errors || [];
-
-    // Use provided error message if available...
-    if (message) {
-      this.message = message;
-
-      // ... otherwise create a concatenated message out of existing errors.
-    } else if (this.errors.length > 0 && this.errors[0].message) {
-      this.message = this.errors
-        .map(
-          (err: ValidationErrorItem) =>
-            `${err.type || err.origin}: ${err.message}`
-        )
-        .join(',\n');
-    }
-
-    // Allow overriding the stack if the original stacktrace is uninformative
-    if (options.stack) {
-      this.stack = options.stack;
-    }
-  }
-
-  /**
-   * Gets all validation error items for the path / field specified.
-   *
-   * @param {string} path The path to be checked for error items
-   *
-   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
-   */
-  get(path: string): ValidationErrorItem[] {
-    return this.errors.reduce<ValidationErrorItem[]>((reduced, error) => {
-      if (error.path === path) {
-        reduced.push(error);
-      }
-      return reduced;
-    }, []);
-  }
-}
-
-/**
  * Validation Error Item
  * Instances of this class are included in the `ValidationError.errors` property.
  */
-class ValidationErrorItem {
+export class ValidationErrorItem {
   /**
    * An error message
    */
@@ -275,9 +212,67 @@ class ValidationErrorItem {
   }
 }
 
+/**
+ * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
+ * which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
+ *
+ * @param {string} message Error message
+ * @param {Array} [errors] Array of ValidationErrorItem objects describing the validation errors
+ *
+ * @property errors {ValidationErrorItem[]}
+ */
+class ValidationError extends BaseError {
+  errors: ValidationErrorItem[];
+
+  constructor(
+    message: string,
+    errors: ValidationErrorItem[],
+    options: ErrorOptions = {}
+  ) {
+    super(message);
+    this.name = 'SequelizeValidationError';
+    this.message = 'Validation Error';
+    /**
+     *
+     * @type {ValidationErrorItem[]}
+     */
+    this.errors = errors || [];
+
+    // Use provided error message if available...
+    if (message) {
+      this.message = message;
+
+      // ... otherwise create a concatenated message out of existing errors.
+    } else if (this.errors.length > 0 && this.errors[0].message) {
+      this.message = this.errors
+        .map(
+          (err: ValidationErrorItem) =>
+            `${err.type || err.origin}: ${err.message}`
+        )
+        .join(',\n');
+    }
+
+    // Allow overriding the stack if the original stacktrace is uninformative
+    if (options.stack) {
+      this.stack = options.stack;
+    }
+  }
+
+  /**
+   * Gets all validation error items for the path / field specified.
+   *
+   * @param {string} path The path to be checked for error items
+   *
+   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
+   */
+  get(path: string): ValidationErrorItem[] {
+    return this.errors.reduce<ValidationErrorItem[]>((reduced, error) => {
+      if (error.path === path) {
+        reduced.push(error);
+      }
+      return reduced;
+    }, []);
+  }
+}
+
 export default ValidationError;
-export {
-  ValidationErrorItem,
-  ValidationErrorItemType,
-  ValidationErrorItemOrigin
-};
