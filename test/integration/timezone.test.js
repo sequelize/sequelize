@@ -37,7 +37,7 @@ if (dialect !== 'sqlite') {
       expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
     });
 
-    if (dialect === 'mysql' || dialect === 'mariadb') {
+    if (['mysql', 'mariadb'].includes(dialect)) {
       it('handles existing timestamps', async function() {
         const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithTimezone.define('user', {});

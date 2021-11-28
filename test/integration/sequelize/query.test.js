@@ -10,10 +10,10 @@ const moment = require('moment');
 const { DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = Support.Sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (['postgres', 'mssql'].includes(dialect)) {
     return `"${str}"`;
   }
-  if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
+  if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
     return `\`${str}\``;
   }
   return str;
@@ -549,7 +549,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
         expect(logSql).to.include('$2');
       } else if (dialect === 'mssql') {
@@ -561,14 +561,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('dot separated attributes when doing a raw query without nest', async function() {
-      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+      const tickChar = ['postgres', 'mssql'].includes(dialect) ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
       await expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function() {
-      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+      const tickChar = ['postgres', 'mssql'].includes(dialect) ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
@@ -605,7 +605,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
       }
     });
@@ -646,7 +646,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar`, { raw: true, bind: [1], logging(s) { logSql = s;} });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
       }
     });
@@ -663,7 +663,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(result[0]).to.deep.equal([{ foo$bar: 1 }]);
     });
 
-    if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+    if (['postgres', 'sqlite', 'mssql'].includes(dialect)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function() {
         const result = await this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: ['"string"'] } });
         expect(result[0]).to.deep.equal([{ foo: '"string"' }]);

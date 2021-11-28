@@ -1,8 +1,6 @@
-<div>
-  <div class="center logo">
-    ![logo](manual/asset/logo-small.png)
-  </div>
-  <div class="center sequelize">Sequelize</div>
+<div class="logo">
+  <img src="./manual/asset/logo.png" />
+  <div class="sequelize"><h1>Sequelize</h1></div>
 </div>
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
