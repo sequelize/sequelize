@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user).to.be.ok;
       await this.sequelize.dropSchema('archive');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('archive');
       }
     });

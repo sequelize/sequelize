@@ -14,7 +14,7 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   semver = require('semver'),
   pMap = require('p-map');
-  
+
 describe(Support.getTestDialectTeaser('Model'), () => {
   let isMySQL8;
 
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (!isMySQL8) {
           return;
         }
-  
+
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -407,7 +407,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           indexes: indices,
           engine: 'MyISAM'
         });
-  
+
         try {
           await this.sequelize.sync();
           expect.fail();
@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (!isMySQL8) {
           return;
         }
-  
+
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -2298,7 +2298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
@@ -2322,7 +2322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);

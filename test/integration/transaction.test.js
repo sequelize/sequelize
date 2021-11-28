@@ -421,7 +421,7 @@ if (current.dialect.supports.transactions) {
       }
     });
 
-    if (dialect === 'mysql' || dialect === 'mariadb') {
+    if (['mysql', 'mariadb'].includes(dialect)) {
       describe('deadlock handling', () => {
         // Create the `Task` table and ensure it's initialized with 2 rows
         const getAndInitializeTaskModel = async sequelize => {
