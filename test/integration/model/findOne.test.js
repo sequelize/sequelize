@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.ID).to.equal(1);
       });
 
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         it('should allow case-insensitive find on CITEXT type', async function() {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: Sequelize.CITEXT

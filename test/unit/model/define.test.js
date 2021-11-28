@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   sinon = require('sinon'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+        if (['postgres', 'sqlite', 'mssql'].includes(dialect)) {
           expect(true).to.equal(console.warn.calledOnce);
           expect(console.warn.args[0][0]).to.contain("does not support 'TINYINT'");
         } else {

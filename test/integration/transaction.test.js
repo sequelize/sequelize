@@ -4,7 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
 const dialect = Support.getTestDialect();
-const { Sequelize, QueryTypes, DataTypes, Transaction } = require('../../index');
+const { Sequelize, QueryTypes, DataTypes, Transaction } = require('sequelize');
 const sinon = require('sinon');
 const current = Support.sequelize;
 const delay = require('delay');
@@ -421,7 +421,7 @@ if (current.dialect.supports.transactions) {
       }
     });
 
-    if (dialect === 'mysql' || dialect === 'mariadb') {
+    if (['mysql', 'mariadb'].includes(dialect)) {
       describe('deadlock handling', () => {
         // Create the `Task` table and ensure it's initialized with 2 rows
         const getAndInitializeTaskModel = async sequelize => {

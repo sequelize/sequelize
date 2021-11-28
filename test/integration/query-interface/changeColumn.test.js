@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         schema: 'archive'
       });
 
-      if (dialect === 'postgres' || dialect === 'postgres-native') {
+      if (['postgres', 'postgres-native'].includes(dialect)) {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'users'
       });
 
-      if (dialect === 'postgres' || dialect === 'postgres-native') {
+      if (['postgres', 'postgres-native'].includes(dialect)) {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else {
         expect(table.currency.type).to.equal('FLOAT');

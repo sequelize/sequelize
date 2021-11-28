@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function() {
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('sum', () => {
 
     it('should sum without rows', async function() {
-      await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.equal(0);
+      await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.null;
     });
 
     it('should sum when is 0', async function() {
