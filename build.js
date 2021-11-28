@@ -61,12 +61,7 @@ async function main() {
       outdir,
       entryPoints: filesToCompile
         .concat('./index.js')
-        .map(file => path.resolve(file)),
-
-      // minify the compiled code
-      minify: true,
-      // Keep `constructor.name` the same (used for associations)
-      keepNames: true
+        .map(file => path.resolve(file))
     }),
 
     exec('tsc', {
