@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'db2') {
             expect(err.message).to.include('SQLSTATE=08004');
           } else {
-            expect(err.message.toString()).to.match(/.*Access denied*./);
+            expect(err.message.toString()).to.match(/.*Access denied.*/);
           }
         }
       });

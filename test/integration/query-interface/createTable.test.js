@@ -77,7 +77,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         case 'mariadb':
         case 'mysql':
-          break;
         case 'db2':          
           // name + email
           expect(indexes[1].unique).to.be.true;
