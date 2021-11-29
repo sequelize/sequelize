@@ -747,6 +747,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictFields?: (keyof TAttributes)[];
 }
 
 /**
@@ -792,11 +797,6 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | (keyof TAttributes)[];
-  /**
-   * Optional override for the conflict fields in the ON CONFLICT part of the query.
-   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
-  */
-   conflictFields?: (keyof TAttributes)[]
 }
 
 /**
