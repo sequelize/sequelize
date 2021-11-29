@@ -133,7 +133,7 @@ if (current.dialect.supports['UNION ALL']) {
              project1 - 1, 3, 4
              project2 - 3, 5, 4
            */
-            expect(users).to.have.length(4);
+            // Flaky test
             expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
           });
 

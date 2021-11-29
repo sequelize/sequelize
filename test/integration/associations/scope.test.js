@@ -357,19 +357,25 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.postC.getTags()
             ]);
 
-            expect(postACategories.length).to.equal(1);
-            expect(postATags.length).to.equal(1);
-            expect(postBCategories.length).to.equal(1);
-            expect(postBTags.length).to.equal(1);
-            expect(postCCategories.length).to.equal(1);
-            expect(postCTags.length).to.equal(1);
+            // Flaky test: randomly one of the value on B will be 0 sometimes, for
+            // now no solution. Not reproducible at local or cloud with logging enabled
+            expect([
+              postACategories.length,
+              postATags.length,
+              postBCategories.length,
+              postBTags.length,
+              postCCategories.length,
+              postCTags.length
+            ]).to.eql([1, 1, 1, 1, 1, 1]);
 
-            expect(postACategories[0].get('type')).to.equal('category');
-            expect(postATags[0].get('type')).to.equal('tag');
-            expect(postBCategories[0].get('type')).to.equal('category');
-            expect(postBTags[0].get('type')).to.equal('tag');
-            expect(postCCategories[0].get('type')).to.equal('category');
-            expect(postCTags[0].get('type')).to.equal('tag');
+            expect([
+              postACategories[0].get('type'),
+              postATags[0].get('type'),
+              postBCategories[0].get('type'),
+              postBTags[0].get('type'),
+              postCCategories[0].get('type'),
+              postCTags[0].get('type')
+            ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
 
             const [postA, postB, postC] = await Promise.all([this.Post.findOne({
               where: {
