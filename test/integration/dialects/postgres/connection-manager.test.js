@@ -28,13 +28,13 @@ if (dialect.match(/^postgres/)) {
     });
 
     it('should allow overriding client_min_messages', async () => {
-      const sequelize = Support.createSequelizeInstance({ clientMinMessages: 'ERROR' });
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { clientMinMessages: 'ERROR' } });
       const result = await sequelize.query('SHOW client_min_messages');
       expect(result[0].client_min_messages).to.equal('error');
     });
 
-    it('should not set client_min_messages if clientMinMessages is false', async () => {
-      const sequelize = Support.createSequelizeInstance({ clientMinMessages: false });
+    it('should not set client_min_messages if clientMinMessages is ignore', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { clientMinMessages: 'IGNORE' } });
       const result = await sequelize.query('SHOW client_min_messages');
       // `notice` is Postgres's default
       expect(result[0].client_min_messages).to.equal('notice');
