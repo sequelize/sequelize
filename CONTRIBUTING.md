@@ -115,6 +115,10 @@ Clone the repository (if you haven't already) via `git clone https://github.com/
 
 Run `npm install` (or `yarn install`) within the cloned repository folder.
 
+#### 2.1 Adding and updating dependencies
+
+[Yarn v1](https://classic.yarnpkg.com/en/) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn v1. Depending on the Node version used, you might encounter a `Found incompatible module` error. To solve that, you can pass the `--ignore-engines` flag.
+
 ### 3. Prepare local databases to run tests
 
 If you're happy to run tests only against an SQLite database, you can skip this section.
