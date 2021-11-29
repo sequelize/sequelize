@@ -248,7 +248,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
-        with
+        with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --ignore-engines
       - run: npx semantic-release
