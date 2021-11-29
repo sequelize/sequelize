@@ -322,7 +322,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           });
 
           it('should create, find and include associations with scope values', async function() {
-            await this.sequelize.sync({ force: true });
             await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
             await this.PostTag.sync({ force: true });
 
