@@ -73,8 +73,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
         mariadb: 'TINYTEXT',
-        mysql: 'TINYTEXT',
-        snowflake: 'TEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
