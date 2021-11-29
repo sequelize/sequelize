@@ -362,6 +362,17 @@ export interface Options extends Logging {
   standardConformingStrings?: boolean;
 
   /**
+   * The PostgreSQL `client_min_messages` session parameter.
+   * Set to `false` to not override the database's default.
+   *
+   * Deprecated in v7, please use option.dialectOption.clientMinMessages instead
+   *
+   * @deprecated
+   * @default 'warning'
+   */
+  clientMinMessages?: string | boolean;
+
+  /**
    * Sets global permanent hooks.
    */
   hooks?: Partial<SequelizeHooks<Model, any, any>>;
