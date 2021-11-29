@@ -256,5 +256,6 @@
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "prepare": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""
-  }
+  },
+  "support": true
 }
