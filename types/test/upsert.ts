@@ -41,5 +41,6 @@ sequelize.transaction(async trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
+    conflictFields: ['foo', 'bar']
   });
 })
