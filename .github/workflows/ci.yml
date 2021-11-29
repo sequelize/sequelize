@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
-      - run: yarn install --ignore-engines
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   docs:
@@ -25,8 +25,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
-      - run: yarn install --ignore-engines
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn docs
   test-typings:
     strategy:
@@ -39,8 +39,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
-      - run: yarn install --ignore-engines
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-db2:
@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [10, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -92,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [10, 16]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
@@ -138,7 +138,7 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
-            node-version: 12
+            node-version: 16
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
@@ -146,7 +146,7 @@ jobs:
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
-            node-version: 12
+            node-version: 16
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
@@ -154,7 +154,7 @@ jobs:
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
-            node-version: 12
+            node-version: 16
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
@@ -162,7 +162,7 @@ jobs:
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
-            node-version: 12
+            node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     services:
@@ -194,7 +194,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 12]
+        node-version: [10, 16]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -248,7 +248,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - run: yarn install --ignore-engines
+        with
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release

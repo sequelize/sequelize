@@ -118,7 +118,7 @@
     "mysql2": {
       "optional": true
     },
-	"ibm_db": {
+    "ibm_db": {
       "optional": true
     },
     "mariadb": {
@@ -140,7 +140,7 @@
     "pg",
     "mssql",
     "db2",
-	"ibm_db",
+    "ibm_db",
     "sql",
     "sqlserver",
     "orm",
