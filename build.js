@@ -8,7 +8,6 @@ const copyFiles = promisify( require('copyfiles'));
 const path = require('path');
 const exec = promisify(require('child_process').exec);
 
-const rmdir = promisify(fs.rmdir);
 const stat = promisify(fs.stat);
 
 // if this script is moved, this will need to be adjusted
@@ -20,11 +19,16 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 async function rmDistDir() {
   try {
     await stat(outdir);
-    if (nodeMajorVersion >= 12) {
-      await rmdir(outdir, { recursive: true });
+    if (nodeMajorVersion >= 14) {
+      const rm = promisify(fs.rm);
+      await rm(outdir, { recursive: true });
     } else {
-      await rmdir(outdir);
-    }
+      const rmdir = promisify(fs.rmdir);
+      if (nodeMajorVersion >= 12) {
+        await rmdir(outdir, { recursive: true });
+      } else {
+        await rmdir(outdir);
+      }}
   } catch {
     /* no-op */
   }
@@ -61,12 +65,7 @@ async function main() {
       outdir,
       entryPoints: filesToCompile
         .concat('./index.js')
-        .map(file => path.resolve(file)),
-
-      // minify the compiled code
-      minify: true,
-      // Keep `constructor.name` the same (used for associations)
-      keepNames: true
+        .map(file => path.resolve(file))
     }),
 
     exec('tsc', {

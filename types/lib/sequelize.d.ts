@@ -365,6 +365,9 @@ export interface Options extends Logging {
    * The PostgreSQL `client_min_messages` session parameter.
    * Set to `false` to not override the database's default.
    *
+   * Deprecated in v7, please use option.dialectOption.clientMinMessages instead
+   *
+   * @deprecated
    * @default 'warning'
    */
   clientMinMessages?: string | boolean;
@@ -390,6 +393,11 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * If defined the connection will use the provided schema instead of the default ("public").
+   */
+  schema?: string;
 }
 
 export interface QueryOptionsTransactionRequired { }

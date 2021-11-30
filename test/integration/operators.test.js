@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
       });
     });
 
-    if (dialect === 'mysql' || dialect === 'postgres') {
+    if (['mysql', 'postgres'].includes(dialect)) {
       describe('case sensitive', () => {
         it('should work with a regexp where', async function() {
           await this.User.create({ name: 'Foobar' });

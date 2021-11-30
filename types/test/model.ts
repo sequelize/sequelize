@@ -215,9 +215,22 @@ class FilmModelToJson extends Model<FilmToJson> implements FilmToJson {
 }
 const film = FilmModelToJson.build();
 
+class FilmModelExtendToJson extends Model<FilmToJson> implements FilmToJson {
+  id!: number;
+  name?: string;
+
+  public toJSON() {
+    return { id: this.id }
+  }
+}
+const filmOverrideToJson = FilmModelExtendToJson.build();
+
 const result = film.toJSON();
 expectTypeOf(result).toEqualTypeOf<FilmToJson>()
 
 type FilmNoNameToJson = Omit<FilmToJson, 'name'>
 const resultDerived = film.toJSON<FilmNoNameToJson>();
 expectTypeOf(resultDerived).toEqualTypeOf<FilmNoNameToJson>()
+
+const resultOverrideToJson = filmOverrideToJson.toJSON();
+expectTypeOf(resultOverrideToJson).toEqualTypeOf<FilmNoNameToJson>();
