@@ -14,4 +14,4 @@ test/binary/tmp/*
 .vscode/
 esdoc
 node_modules
-dist/*
+dist
