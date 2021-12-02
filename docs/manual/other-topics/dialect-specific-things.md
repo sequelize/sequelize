@@ -75,6 +75,25 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+The default `client_min_messages` config in sequelize is `WARNING`.
+
+### Redshift
+
+Most configuration is same as PostgreSQL above.
+
+Redshift doesn't support `client_min_messages`, 'ignore' is needed to skip the configuration:
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'postgres',
+  dialectOptions: {
+    // Your pg options here
+    // ...
+    clientMinMessages: 'ignore' // case insensitive
+  }
+});
+```
+
 ### MSSQL
 
 The underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package (version 6.0.0 or above).
