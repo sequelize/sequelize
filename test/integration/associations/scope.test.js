@@ -341,10 +341,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             await Promise.all([
               postA0.addCategory(categoryA),
-              postB0.setCategories([categoryB]),
-              postC0.createCategory(),
               postA0.createTag(),
+              postB0.setCategories([categoryB]),
               postB0.addTag(tagA),
+              postC0.createCategory(),
               postC0.setTags([tagB])
             ]);
 
