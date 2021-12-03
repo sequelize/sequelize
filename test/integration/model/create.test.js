@@ -569,7 +569,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('findCreateFind', () => {
     if (dialect !== 'sqlite') {
-      it('should work with multiple concurrent calls', async function() {
+      it('[Flaky] should work with multiple concurrent calls', async function() {
         const [
           [instance1, created1],
           [instance2, created2],

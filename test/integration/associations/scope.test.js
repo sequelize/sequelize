@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
-          it('should create, find and include associations with scope values', async function() {
+          it('[Flaky] should create, find and include associations with scope values', async function() {
             await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
             await this.PostTag.sync({ force: true });
 
