@@ -864,7 +864,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         dotNotation: true
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [User].[status.label], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS [Posts.status.label] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
-        postgres: 'SELECT "User".name, "User".age, "User"."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;'
+        postgres: 'SELECT "User".name, "User".age, "User"."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
+        snowflake: 'SELECT User.name, User.age, User."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;'
       });
     });
 
