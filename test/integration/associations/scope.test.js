@@ -348,12 +348,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               postC0.setTags([tagB])
             ]);
 
-            const [postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags] = await Promise.all([
+            const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
               this.postA.getCategories(),
-              this.postA.getTags(),
               this.postB.getCategories(),
-              this.postB.getTags(),
               this.postC.getCategories(),
+              this.postA.getTags(),
+              this.postB.getTags(),
               this.postC.getTags()
             ]);
 
