@@ -148,7 +148,7 @@ const sequelize = new Sequelize('database', null, null, {
   dialect: 'snowflake',
   dialectOptions: {
     // put your snowflake account here
-    account: "myAccount.us-east-1"
+    account: 'myAccount.us-east-1'
   },
   // same as other dialect
   username: 'myUserName',
@@ -156,6 +156,7 @@ const sequelize = new Sequelize('database', null, null, {
   database: 'myDatabaseName'
 })
 ```
+
 **NOTE** There is no test sandbox provided so the snowflake integration test is not part of the pipeline. Also it is difficult for core team to triage and debug. This dialect needs to be maintained by the snowflake user/community for now.
 
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
