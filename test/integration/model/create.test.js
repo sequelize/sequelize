@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
       });
-      
+
       it('should not deadlock with concurrency duplicate entries and no outer transaction', async function() {
         const User = this.sequelize.define('User', {
           email: {
@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
       });
     }
-	
+
     it('should support special characters in defaults', async function() {
       const User = this.sequelize.define('user', {
         objectId: {
@@ -1157,8 +1157,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           activity_date: { type: Sequelize.DATe }
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-    });	
-    
+    });
+
     it('sets a 64 bit int in bigint', async function() {
       const User = this.sequelize.define('UserWithBigIntFields', {
         big: Sequelize.BIGINT

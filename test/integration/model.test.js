@@ -450,7 +450,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
         name: 'a_b_uniq',

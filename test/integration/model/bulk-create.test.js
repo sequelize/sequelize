@@ -792,7 +792,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .and.to.equal(i + 1);
           });
         });
-        
+
         it('should only return fields that are not defined in the model (with returning: true)', async function() {
           const User = this.sequelize.define('user');
 
