@@ -180,8 +180,8 @@
     "branches": [
       "v6",
       {
-        "name": "v6-alpha",
-        "prerelease": "alpha"
+        "name": "v6-beta",
+        "prerelease": "beta"
       }
     ]
   },
