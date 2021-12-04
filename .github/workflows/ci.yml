@@ -228,6 +228,25 @@ jobs:
         run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
+  test-snowflake:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 16]
+    name: SNOWFLAKE (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: snowflake
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Unit Tests
+        run: yarn test-unit
+      # - name: Integration Tests
+      #   run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest

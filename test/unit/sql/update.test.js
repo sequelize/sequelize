@@ -56,6 +56,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
             postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$1 WHERE "id" = $2);',
+            snowflake: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2',
             default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
           },
           bind: {
@@ -83,6 +84,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
           sqlite: 'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
           db2: 'SELECT * FROM FINAL TABLE (UPDATE (SELECT * FROM "Users" WHERE "username" = $2 FETCH NEXT 1 ROWS ONLY) SET "username"=$1);',
+          snowflake: 'UPDATE "Users" SET "username"=$1 WHERE "username" = $2 LIMIT 1',
           default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2'
         },
         bind: {
