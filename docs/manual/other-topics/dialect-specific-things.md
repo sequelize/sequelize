@@ -141,7 +141,7 @@ const sequelize = new Sequelize('database', null, null, {
 
 The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
 
-In order to connect with a domain account, use the following format:
+In order to connect with an account, use the following format:
 
 ```js
 const sequelize = new Sequelize('database', null, null, {
