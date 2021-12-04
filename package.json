@@ -180,8 +180,8 @@
     "branches": [
       "v6",
       {
-        "name": "v6-alpha",
-        "prerelease": "alpha"
+        "name": "v6-beta",
+        "prerelease": "beta"
       }
     ]
   },
@@ -235,6 +235,7 @@
     "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
     "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
     "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
+    "test-integration-snowflake": "cross-env DIALECT=snowflake npm run test-integration",
     "test-mariadb": "cross-env DIALECT=mariadb npm test",
     "test-mysql": "cross-env DIALECT=mysql npm test",
     "test-sqlite": "cross-env DIALECT=sqlite npm test",
