@@ -1,6 +1,7 @@
 # Database Engine Support
 
 ## v6
+
 |        Engine        |                                 Minimum supported version                                 |
 | :------------------: | :---------------------------------------------------------------------------------------: |
 |      PostgreSQL      |                  [9.5.0](https://www.postgresql.org/docs/9.5/index.html)                  |
