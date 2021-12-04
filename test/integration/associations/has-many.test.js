@@ -1372,7 +1372,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       this.Task = Task;
 
       return this.sequelize.sync({ force: true });
-    });    
+    });
 
     it('should use sourceKey', async function() {
       const User = this.User,

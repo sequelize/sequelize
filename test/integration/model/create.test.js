@@ -1168,7 +1168,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const user = await User.create({ big: '9223372036854775807' });
       expect(user.big).to.be.equal('9223372036854775807');
     });
-	
+
     it('sets auto increment fields', async function() {
       const User = this.sequelize.define('UserWithAutoIncrementField', {
         userid: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false }
