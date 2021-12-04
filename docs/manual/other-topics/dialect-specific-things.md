@@ -137,6 +137,27 @@ const sequelize = new Sequelize('database', null, null, {
 })
 ```
 
+### Snowflake (Experiment)
+
+The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
+
+You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
+
+```js
+const sequelize = new Sequelize('database', null, null, {
+  dialect: 'snowflake',
+  dialectOptions: {
+    // put your snowflake account here
+    account: "myAccount.us-east-1"
+  },
+  // same as other dialect
+  username: 'myUserName',
+  password: 'myPassword',
+  database: 'myDatabaseName'
+})
+```
+**NOTE** There is no test sandbox provided so the snowflake integration test is not part of the pipeline. Also it is difficult for core team to triage and debug. This dialect needs to be maintained by the snowflake user/community for now.
+
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
 
 If you are working with the PostgreSQL `TIMESTAMP WITHOUT TIME ZONE` and you need to parse it to a different timezone, please use the pg library's own parser:
