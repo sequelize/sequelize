@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     await Support.dropTestSchemas(this.sequelize);
   });
 
-  describe('createTable', () => {	  
+  describe('createTable', () => {
     it('should create a auto increment primary key', async function() {
       await this.queryInterface.createTable('TableWithPK', {
         table_id: {
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         }
       });
-          
+
       const result = await this.queryInterface.describeTable('TableWithPK');
 
       if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
@@ -65,6 +65,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'postgres-native':
         case 'sqlite':
         case 'mssql':
+
           // name + email
           expect(indexes[0].unique).to.be.true;
           expect(indexes[0].fields[0].attribute).to.equal('name');
@@ -74,7 +75,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
           break;
-
         case 'mariadb':
         case 'mysql':
         case 'db2':          
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           // name
           expect(indexes[2].unique).to.be.true;
-          expect(indexes[2].fields[0].attribute).to.equal('name');          
+          expect(indexes[2].fields[0].attribute).to.equal('name');
           break;
         default:
           throw new Error(`Not implemented fpr ${dialect}`);
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(table.someEnum.special).to.deep.equal(['COMMENT']);
           expect(table.someEnum.comment).to.equal('special enum col');
         }
-      });	  
+      });
     });
   });
 });

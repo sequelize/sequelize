@@ -285,6 +285,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }), User.findAll({
         include: [Group]
       })]);
+
       expect(user.Groups.length).to.be.equal(1);
       expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
       if (dialect === 'db2') {

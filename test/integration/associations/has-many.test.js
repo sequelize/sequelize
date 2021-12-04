@@ -1372,8 +1372,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       this.Task = Task;
 
       return this.sequelize.sync({ force: true });
-    });
-    
+    });    
     it('should use sourceKey', async function() {
       const User = this.User,
         Task = this.Task;
@@ -1511,7 +1510,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       return this.sequelize.sync({ force: true });
     });
-    
     it('should use the specified sourceKey instead of the primary key', async function() {
       await this.User.create({ username: 'John', email: 'john@example.com' });
 
