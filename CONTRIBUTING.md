@@ -94,7 +94,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
 - Mandatory:
 
-  - [Node.js](http://nodejs.org)
+  - [Node.js](http://nodejs.org), it is preferred to use the current LTS version of Node
   - [Git](https://git-scm.com/)
 
 - Optional (recommended):
@@ -117,7 +117,7 @@ Run `npm install` (or `yarn install`) within the cloned repository folder.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v1](https://classic.yarnpkg.com/en/) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn v1. Depending on the Node version used, you might encounter a `Found incompatible module` error. To solve that, you can pass the `--ignore-engines` flag.
+[Yarn v1](https://classic.yarnpkg.com/en/) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn v1. Depending on the Node version used, you might encounter a `Found incompatible module` error. To solve that, you can pass the `--ignore-engines` flag. This is not needed if you use Node `^14.17.0 || >=16.0.0`.
 
 ### 3. Prepare local databases to run tests
 

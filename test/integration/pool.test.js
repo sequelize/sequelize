@@ -49,6 +49,7 @@ function assertNewConnection(newConnection, oldConnection) {
       break;
 
     case 'mssql':
+      // Flaky test
       expect(newConnection.dummyId).to.not.be.ok;
       expect(oldConnection.dummyId).to.be.ok;
       break;

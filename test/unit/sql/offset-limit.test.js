@@ -52,6 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ]
     }, {
       default: ' LIMIT 20, 10',
+      snowflake: ' LIMIT 10 OFFSET 20',
       postgres: ' LIMIT 10 OFFSET 20',
       db2: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY'
@@ -65,6 +66,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: " LIMIT ''';DELETE FROM user'",
       mariadb: " LIMIT '\\';DELETE FROM user'",
+      snowflake: " LIMIT ''';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user'",
       db2: " FETCH NEXT ''';DELETE FROM user' ROWS ONLY",
       mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
@@ -80,6 +82,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       sqlite: " LIMIT ''';DELETE FROM user', 10",
       postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
       mariadb: " LIMIT '\\';DELETE FROM user', 10",
+      snowflake: " LIMIT 10 OFFSET ''';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       db2: ' FETCH NEXT 10 ROWS ONLY',
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
