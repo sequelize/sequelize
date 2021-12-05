@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes   = require('../../../lib/data-types'),
+  DataTypes   = require('sequelize/lib/data-types'),
   util        = require('util'),
   expectsql   = Support.expectsql,
   current     = Support.sequelize,
@@ -39,7 +39,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
       postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-      mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];'
+      mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
+      snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";'
     });
 
     testsql({
@@ -48,7 +49,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User`;',
       postgres: 'SELECT * FROM "Users" AS "User";',
-      mssql: 'SELECT * FROM [Users] AS [User];'
+      mssql: 'SELECT * FROM [Users] AS [User];',
+      snowflake: 'SELECT * FROM "Users" AS "User";'
     });
   });
 });

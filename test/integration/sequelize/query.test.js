@@ -7,12 +7,13 @@ const DataTypes = Support.Sequelize.DataTypes;
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const moment = require('moment');
+const { DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = Support.Sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (['postgres', 'mssql'].includes(dialect)) {
     return `"${str}"`;
   }
-  if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
+  if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
     return `\`${str}\``;
   }
   return str;
@@ -28,11 +29,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     beforeEach(async function() {
       this.User = this.sequelize.define('User', {
         username: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           unique: true
         },
         emailAddress: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           field: 'email_address'
         }
       });
@@ -289,6 +290,91 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(users[0].email).to.be.equal('john@gmail.com');
     });
 
+    // Only run stacktrace tests on Node 12+, since only Node 12+ supports
+    // async stacktraces
+    const nodeVersionMatch = process.version.match(/^v([0-9]+)/);
+    let nodeMajorVersion = 0;
+    if (nodeVersionMatch && nodeVersionMatch[1]) {
+      nodeMajorVersion = parseInt(nodeVersionMatch[1], 10);
+    }
+
+    if (nodeMajorVersion >= 12) {
+      describe('stacktraces', () => {
+        beforeEach(async function() {
+          this.UserVisit = this.sequelize.define('UserVisit', {
+            userId: {
+              type: DataTypes.STRING,
+              field: 'user_id'
+            },
+            visitedAt: {
+              type: DataTypes.DATE,
+              field: 'visited_at'
+            }
+          }, {
+            indexes: [
+              { name: 'user_id', fields: ['user_id'] }
+            ]
+          });
+
+          this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
+          this.UserVisit.belongsTo(this.User, { foreignKey: 'user_id', targetKey: 'id' });
+
+          await this.UserVisit.sync({ force: true });
+        });
+
+        it('emits full stacktraces for generic database error', async function() {
+          let error = null;
+          try {
+            await this.sequelize.query(`select * from ${qq(this.User.tableName)} where ${qq('unknown_column')} = 1`);
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(DatabaseError);
+          expect(error.stack).to.contain('query.test');
+        });
+
+        it('emits full stacktraces for unique constraint error', async function() {
+          const query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+            qq('createdAt')  }, ${qq('updatedAt')
+          }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+
+          // Insert 1 row
+          await this.sequelize.query(query);
+
+          let error = null;
+          try {
+            // Try inserting a duplicate row
+            await this.sequelize.query(query);
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(UniqueConstraintError);
+          expect(error.stack).to.contain('query.test');
+        });
+
+        it('emits full stacktraces for constraint validation error', async function() {
+          let error = null;
+          try {
+            // Try inserting a row that has a really high userId to any existing username
+            await this.sequelize.query(
+              `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+                'createdAt'
+              )}, ${qq(
+                'updatedAt'
+              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`
+            );
+          } catch (err) {
+            error = err;
+          }
+
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          expect(error.stack).to.contain('query.test');
+        });
+      });
+    }
+
     describe('rejections', () => {
       it('reject if `values` and `options.replacements` are both passed', async function() {
         await this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })
@@ -463,7 +549,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
         expect(logSql).to.include('$2');
       } else if (dialect === 'mssql') {
@@ -475,14 +561,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('dot separated attributes when doing a raw query without nest', async function() {
-      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+      const tickChar = ['postgres', 'mssql'].includes(dialect) ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
       await expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function() {
-      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+      const tickChar = ['postgres', 'mssql'].includes(dialect) ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
@@ -519,7 +605,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
       }
     });
@@ -560,7 +646,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar`, { raw: true, bind: [1], logging(s) { logSql = s;} });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         expect(logSql).to.include('$1');
       }
     });
@@ -577,7 +663,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(result[0]).to.deep.equal([{ foo$bar: 1 }]);
     });
 
-    if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+    if (['postgres', 'sqlite', 'mssql'].includes(dialect)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function() {
         const result = await this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: ['"string"'] } });
         expect(result[0]).to.deep.equal([{ foo: '"string"' }]);

@@ -5,7 +5,7 @@ const chai  = require('chai'),
   sinon = require('sinon'),
   _         = require('lodash'),
   Support   = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasOne'), () => {

@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       const result = await this.queryInterface.describeTable('TableWithPK');
 
-      if (dialect === 'mssql' || dialect === 'mysql' || dialect === 'mariadb') {
+      if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
       } else if (dialect === 'postgres') {
         expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');

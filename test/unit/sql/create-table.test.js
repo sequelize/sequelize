@@ -1,13 +1,16 @@
 'use strict';
 
 const Support   = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   sql       = current.dialect.queryGenerator,
   _         = require('lodash');
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
+  if (current.dialect.name === 'snowflake') {
+    return;
+  }
   describe('createTable', () => {
     const FooUser = current.define('user', {
       mood: DataTypes.ENUM('happy', 'sad')

@@ -3,12 +3,12 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
-  DataTypes = require('../../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
-  Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+  Op = require('sequelize/lib/operators'),
+  QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {
@@ -626,6 +626,13 @@ if (dialect === 'sqlite') {
             'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
             'DROP TABLE `myTable_backup`;'
+        }
+      ],
+      getForeignKeysQuery: [
+        {
+          title: 'Property quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_list(`myTable`)'
         }
       ]
     };

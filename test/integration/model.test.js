@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
-  errors = require('../../lib/errors'),
+  errors = require('sequelize/lib/errors'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
@@ -16,6 +16,8 @@ const chai = require('chai'),
   pMap = require('p-map');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  let isMySQL8;
+
   before(function() {
     this.clock = sinon.useFakeTimers();
   });
@@ -25,6 +27,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function() {
+    isMySQL8 = dialect === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
+
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -373,6 +377,79 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
+    describe('descending indices (MySQL 8 specific)', ()=>{
+      it('complains about missing support for descending indexes', async function() {
+        if (!isMySQL8) {
+          return;
+        }
+
+        const indices = [{
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          fields: [
+            'fieldB',
+            {
+              attribute: 'fieldA',
+              collate: 'en_US',
+              order: 'DESC',
+              length: 5
+            }
+          ]
+        }];
+
+        this.sequelize.define('model', {
+          fieldA: Sequelize.STRING,
+          fieldB: Sequelize.INTEGER,
+          fieldC: Sequelize.STRING,
+          fieldD: Sequelize.STRING
+        }, {
+          indexes: indices,
+          engine: 'MyISAM'
+        });
+
+        try {
+          await this.sequelize.sync();
+          expect.fail();
+        } catch (e) {
+          expect(e.message).to.equal('The storage engine for the table doesn\'t support descending indexes');
+        }
+      });
+
+      it('works fine with InnoDB', async function() {
+        if (!isMySQL8) {
+          return;
+        }
+
+        const indices = [{
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          fields: [
+            'fieldB',
+            {
+              attribute: 'fieldA',
+              collate: 'en_US',
+              order: 'DESC',
+              length: 5
+            }
+          ]
+        }];
+
+        this.sequelize.define('model', {
+          fieldA: Sequelize.STRING,
+          fieldB: Sequelize.INTEGER,
+          fieldC: Sequelize.STRING,
+          fieldD: Sequelize.STRING
+        }, {
+          indexes: indices,
+          engine: 'InnoDB'
+        });
+
+        await this.sequelize.sync();
+      });
+    });
+
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
         name: 'a_b_uniq',
@@ -383,7 +460,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: 'DESC',
+            order: isMySQL8 ? 'ASC' : 'DESC',
             length: 5
           }
         ]
@@ -2221,7 +2298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
@@ -2245,7 +2322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
@@ -2277,8 +2354,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       } catch (err) {
         if (dialect === 'mysql') {
-          // MySQL 5.7 or above doesn't support POINT EMPTY
-          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
+          if (isMySQL8) {
+            expect(err.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+          } else if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
             expect(err.message).to.match(/Can't create table/);

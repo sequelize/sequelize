@@ -3,8 +3,8 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
+  DataTypes = require('sequelize/lib/data-types'),
+  Sequelize = require('sequelize'),
   _ = require('lodash'),
   sinon = require('sinon'),
   Op = Sequelize.Op,
@@ -193,7 +193,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(project.ProjectUsers.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('acme');
       }
     });
@@ -1223,7 +1223,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('hasAssociations with binary key', () => {
     beforeEach(function() {
-      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      const keyDataType = ['mysql', 'mariadb'].includes(dialect) ? 'BINARY(255)' : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -2919,7 +2919,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 
@@ -2936,7 +2936,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 

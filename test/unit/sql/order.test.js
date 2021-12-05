@@ -4,8 +4,8 @@ const util = require('util');
 const chai = require('chai');
 const expect = chai.expect;
 const Support   = require('../support');
-const DataTypes = require('../../../lib/data-types');
-const Model = require('../../../lib/model');
+const DataTypes = require('sequelize/lib/data-types');
+const Model = require('sequelize/lib/model');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
@@ -355,6 +355,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
+      snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'
     });
 

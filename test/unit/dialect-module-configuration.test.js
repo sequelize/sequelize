@@ -31,6 +31,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         case 'mariadb': dialectPath = path.join(dialectPath, 'mariadb'); break;
         case 'mssql': dialectPath = path.join(dialectPath, 'tedious'); break;
         case 'sqlite': dialectPath = path.join(dialectPath, 'sqlite3'); break;
+        case 'snowflake': dialectPath = path.join(dialectPath, 'snowflake-sdk'); break;
         default: throw Error('Unsupported dialect');
       }
 
