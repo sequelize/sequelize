@@ -5,6 +5,12 @@
   "maintainers": [
     "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
   ],
+  "funding": [
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/sequelize"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/sequelize/sequelize.git"
