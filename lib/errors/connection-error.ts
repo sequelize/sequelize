@@ -1,22 +1,19 @@
-'use strict';
-
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * A base class for all connection related errors.
  */
 class ConnectionError extends BaseError {
-  constructor(parent) {
+  /** The connection specific error which triggered this one */
+  parent: Error;
+  original: Error;
+
+  constructor(parent: Error) {
     super(parent ? parent.message : '');
     this.name = 'SequelizeConnectionError';
-    /**
-     * The connection specific error which triggered this one
-     *
-     * @type {Error}
-     */
     this.parent = parent;
     this.original = parent;
   }
 }
 
-module.exports = ConnectionError;
+export default ConnectionError;

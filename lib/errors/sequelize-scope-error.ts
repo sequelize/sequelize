@@ -1,15 +1,13 @@
-'use strict';
-
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * Scope Error. Thrown when the sequelize cannot query the specified scope.
  */
 class SequelizeScopeError extends BaseError {
-  constructor(parent) {
-    super(parent);
+  constructor(message: string) {
+    super(message);
     this.name = 'SequelizeScopeError';
   }
 }
 
-module.exports = SequelizeScopeError;
+export default SequelizeScopeError;
