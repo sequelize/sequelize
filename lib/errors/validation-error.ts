@@ -39,6 +39,16 @@ export enum ValidationErrorItemOrigin {
  */
 export class ValidationErrorItem {
   /**
+   * @deprecated Will be removed in v7
+   */
+  static TypeStringMap = ValidationErrorItemType;
+
+  /**
+   * @deprecated Will be removed in v7
+   */
+  static Origins = ValidationErrorItemOrigin;
+
+  /**
    * An error message
    */
   message: string;
@@ -83,14 +93,14 @@ export class ValidationErrorItem {
   /**
    * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
    *
-   * @param {string} [message] An error message
-   * @param {string} [type] The type/origin of the validation error
-   * @param {string} [path] The field that triggered the validation error
-   * @param {string} [value] The value that generated the error
-   * @param {Model} [instance] the DAO instance that caused the validation error
-   * @param {string} [validatorKey] a validation "key", used for identification
-   * @param {string} [fnName] property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
-   * @param {Array} [fnArgs] parameters used with the BUILT-IN validator function, if applicable
+   * @param message An error message
+   * @param type The type/origin of the validation error
+   * @param path The field that triggered the validation error
+   * @param value The value that generated the error
+   * @param instance the DAO instance that caused the validation error
+   * @param validatorKey a validation "key", used for identification
+   * @param fnName property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
+   * @param fnArgs parameters used with the BUILT-IN validator function, if applicable
    */
   constructor(
     message: string,
@@ -108,41 +118,16 @@ export class ValidationErrorItem {
     this.type = null;
     this.path = path || null;
 
-    /**
-     * The value that generated the error
-     *
-     * @type {string | null}
-     */
     this.value = value !== undefined ? value : null;
 
     this.origin = null;
 
-    /**
-     * The DAO instance that caused the validation error
-     *
-     * @type {Model | null}
-     */
     this.instance = instance || null;
 
-    /**
-     * A validation "key", used for identification
-     *
-     * @type {string | null}
-     */
     this.validatorKey = validatorKey || null;
 
-    /**
-     * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
-     *
-     * @type {string | null}
-     */
     this.validatorName = fnName || null;
 
-    /**
-     * Parameters used with the BUILT-IN validator function, if applicable
-     *
-     * @type {Array}
-     */
     this.validatorArgs = fnArgs || [];
 
     if (type) {
@@ -183,14 +168,11 @@ export class ValidationErrorItem {
    *
    * Note: the string will be empty if the instance has neither a valid `validatorKey` property nor a valid `validatorName` property
    *
-   * @param   {boolean} [useTypeAsNS=true]      controls whether the returned value is "namespace",
-   *                                            this parameter is ignored if the validator's `type` is not one of ValidationErrorItem.Origins
-   * @param   {string}  [NSSeparator='.']       a separator string for concatenating the namespace, must be not be empty,
-   *                                            defaults to "." (fullstop). only used and validated if useTypeAsNS is TRUE.
-   * @throws  {Error}                           thrown if NSSeparator is found to be invalid.
-   * @returns  {string}
-   *
-   * @private
+   * @param useTypeAsNS controls whether the returned value is "namespace",
+   *                    this parameter is ignored if the validator's `type` is not one of ValidationErrorItem.Origins
+   * @param NSSeparator a separator string for concatenating the namespace, must be not be empty,
+   *                    defaults to "." (fullstop). only used and validated if useTypeAsNS is TRUE.
+   * @throws {Error}    thrown if NSSeparator is found to be invalid.
    */
   getValidatorKey(useTypeAsNS: boolean, NSSeparator: string): string {
     const useTANS = useTypeAsNS === undefined || !!useTypeAsNS;
@@ -216,10 +198,8 @@ export class ValidationErrorItem {
  * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
  * which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
  *
- * @param {string} message Error message
- * @param {Array} [errors] Array of ValidationErrorItem objects describing the validation errors
- *
- * @property errors {ValidationErrorItem[]}
+ * @param message Error message
+ * @param errors Array of ValidationErrorItem objects describing the validation errors
  */
 class ValidationError extends BaseError {
   errors: ValidationErrorItem[];
@@ -232,10 +212,6 @@ class ValidationError extends BaseError {
     super(message);
     this.name = 'SequelizeValidationError';
     this.message = 'Validation Error';
-    /**
-     *
-     * @type {ValidationErrorItem[]}
-     */
     this.errors = errors || [];
 
     // Use provided error message if available...

@@ -20,8 +20,8 @@ export interface CommonErrorProperties {
  * This means that errors can be accessed using `Sequelize.ValidationError`
  * The Base Error all Sequelize Errors inherit from.
  */
-class BaseError extends Error {
-  constructor(message: string) {
+abstract class BaseError extends Error {
+  constructor(message?: string) {
     super(message);
     this.name = 'SequelizeBaseError';
   }

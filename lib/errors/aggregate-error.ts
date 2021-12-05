@@ -3,15 +3,13 @@ import BaseError from './base-error';
 /**
  * A wrapper for multiple Errors
  *
- * @param {Error[]} [errors] Array of errors
- *
- * @property errors {Error[]}
+ * @param errors Array of errors
  */
 class AggregateError extends BaseError {
   errors: Array<AggregateError | Error>;
 
   constructor(errors: Array<AggregateError | Error>) {
-    super('');
+    super();
     this.errors = errors;
     this.name = 'AggregateError';
   }

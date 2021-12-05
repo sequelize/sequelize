@@ -27,17 +27,7 @@ class OptimisticLockError extends BaseError {
 
     super(options.message);
     this.name = 'SequelizeOptimisticLockError';
-    /**
-     * The name of the model on which the update was attempted
-     *
-     * @type {string}
-     */
     this.modelName = options.modelName;
-    /**
-     * The values of the attempted update
-     *
-     * @type {object}
-     */
     this.values = options.values;
     this.where = options.where;
   }
