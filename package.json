@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
+  "description": "An easy-to-use and promise-based multi SQL dialects ORM tool for Node.js",
+  "version": "6.12.0-beta.1",
   "funding": [
     {
       "type": "opencollective",
