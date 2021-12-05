@@ -8,6 +8,9 @@ const Support   = require('../support'),
   _         = require('lodash');
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
+  if (current.dialect.name === 'snowflake') {
+    return;
+  }
   describe('createTable', () => {
     const FooUser = current.define('user', {
       mood: DataTypes.ENUM('happy', 'sad')
