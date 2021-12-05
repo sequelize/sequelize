@@ -32,3 +32,5 @@ export { default as TimeoutError } from './database/timeout-error';
 export { default as UnknownConstraintError } from './database/unknown-constraint-error';
 
 export { default as UniqueConstraintError } from './validation/unique-constraint-error';
+
+export { AsyncQueueError } from '../dialects/mssql/async-queue';
