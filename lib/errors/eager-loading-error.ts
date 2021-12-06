@@ -1,15 +1,13 @@
-'use strict';
-
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * Thrown when an include statement is improperly constructed (see message for details)
  */
 class EagerLoadingError extends BaseError {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = 'SequelizeEagerLoadingError';
   }
 }
 
-module.exports = EagerLoadingError;
+export default EagerLoadingError;
