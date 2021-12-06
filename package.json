@@ -1,9 +1,12 @@
 {
   "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
+  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift and Snowflake’s Data Cloud. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
   "version": "0.0.0-development",
-  "maintainers": [
-    "Pedro Augusto de Paula Barbosa <papb1996@gmail.com>"
+  "funding": [
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/sequelize"
+    }
   ],
   "repository": {
     "type": "git",
@@ -252,5 +255,6 @@
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "prepare": "node ./build.js && husky install",
     "---------------------------------------------------------------------------------------------------": ""
-  }
+  },
+  "support": true
 }
