@@ -1220,7 +1220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should only store the values passed in the whitelist', async function() {      
       // A unique column do not accept NULL in Db2. Unique column must have value in insert statement.
-      const data = dialect === 'db2' ? { username: 'Peter', secretValue: '42', uniqueName: 'name' } : { username: 'Peter', secretValue: '42' };
+      const data = { username: 'Peter', secretValue: '42', uniqueName: 'name' };
       const fields = dialect === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };
 
       const user = await this.User.create(data, fields);
