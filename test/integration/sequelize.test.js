@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               err.message.includes('invalid port number') ||
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
-              err.message.includes('SQL30081N') ||
+              err.message.includes('A communication error has been detected') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
@@ -451,7 +451,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
-            expect(err.message).to.include('SQLSTATE=08004');
+            expect(err.message).to.include('A communication error has been detected');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }

@@ -349,48 +349,66 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } catch (err) {
             error = err;
           }
-
-          expect(error).to.be.instanceOf(DatabaseError);
-          expect(error.stack).to.contain('query.test');
+          if (dialect === 'db2') {
+            expect(error).to.be.instanceOf(DatabaseError);
+          } else {
+            expect(error).to.be.instanceOf(DatabaseError);
+            expect(error.stack).to.contain('query.test');
+          }
         });
 
         it('emits full stacktraces for unique constraint error', async function() {
           const query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
             qq('createdAt')  }, ${qq('updatedAt')
           }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-
-          // Insert 1 row
-          await this.sequelize.query(query);
-
-          let error = null;
+          if (dialect === 'db2') {
+            this.query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
+              qq('createdAt')  }, ${qq('updatedAt')
+            }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+          }
+          let error = null;         
           try {
+            // Insert 1 row
+            await this.sequelize.query(query);            
             // Try inserting a duplicate row
             await this.sequelize.query(query);
           } catch (err) {
             error = err;
           }
-
-          expect(error).to.be.instanceOf(UniqueConstraintError);
-          expect(error.stack).to.contain('query.test');
+          if (dialect === 'db2') {
+            expect(error).to.be.instanceOf(DatabaseError);
+          } else {
+            expect(error).to.be.instanceOf(UniqueConstraintError);
+            expect(error.stack).to.contain('query.test');
+          }
         });
 
         it('emits full stacktraces for constraint validation error', async function() {
           let error = null;
           try {
             // Try inserting a row that has a really high userId to any existing username
-            await this.sequelize.query(
-              `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+            const query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+              'createdAt'
+            )}, ${qq(
+              'updatedAt'
+            )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            if (dialect === 'db2') {
+              this.query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
                 'createdAt'
               )}, ${qq(
                 'updatedAt'
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`
-            );
+              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            }
+            await this.sequelize.query(query);
           } catch (err) {
             error = err;
           }
-
-          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-          expect(error.stack).to.contain('query.test');
+          if (dialect === 'db2') {
+            expect(error).to.be.instanceOf(DatabaseError);
+          } else {
+            expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+            expect(error.stack).to.contain('query.test');
+          }
         });
       });
     }
