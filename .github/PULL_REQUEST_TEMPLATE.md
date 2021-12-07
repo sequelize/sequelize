@@ -16,6 +16,7 @@ _Please make sure to review and check all of these items:_
 - [ ] Did you update the typescript typings accordingly (if applicable)?
 - [ ] Does the description below contain a link to an existing issue (Closes #[issue]) or a description of the issue you are solving?
 - [ ] Did you follow the commit message conventions explained in [CONTRIBUTING.md](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)?
+- [ ] Did your change primarily focussed on the TypeScript code base?
 
 <!-- NOTE: these things are not required to open a PR and can be done afterwards / while the PR is open. -->
 
