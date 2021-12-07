@@ -23,12 +23,15 @@ describe('ESM module', () => {
     // The typings do not reflect this as some properties of the Sequelize class are not declared as exported in types/index.d.ts.
     // This array lists the properties that are present on the class, but should not be exported in the esm export file nor in types/index.d.ts.
     const ignoredCjsKeys = [
+      // cannot be exported - not a valid identifier
+      'DOUBLE PRECISION', // DataTypes['DOUBLE PRECISION']
+
+      // make no sense to export
       'length',
       'prototype',
       'useCLS',
       '_clsRun',
       'name',
-      'DOUBLE PRECISION',
       'version',
       'options',
       'postgres',
@@ -93,13 +96,21 @@ describe('ESM module', () => {
       expect(cjsKeys).to.include(key, `Sequelize static property ${JSON.stringify(key)} is marked as ignored for ESM export but does not exist. Remove it from ignore list.`);
     }
 
+    const missingEsmKeys = [];
     for (const key of cjsKeys) {
       if (ignoredCjsKeys.includes(key)) {
         continue;
       }
 
-      expect(esmKeys).to.include(key, `esm entry point is missing export ${JSON.stringify(key)}`);
+      if (!esmKeys.includes(key)) {
+        missingEsmKeys.push(key);
+      }
     }
+
+    expect(missingEsmKeys.length).to.eq(0,
+      `esm entry point is missing exports: ${missingEsmKeys.map(v => JSON.stringify(v)).join(', ')}.
+Either add these exports to "index.mjs" (and "types/index.d.ts"), or mark them as ignored in "esm-named-exports.test.js"
+      `);
 
     for (const key of esmKeys) {
       expect(sequelizeEsm[key]).not.to.eq(undefined, `esm is exporting undefined under key ${JSON.stringify(key)}`);
