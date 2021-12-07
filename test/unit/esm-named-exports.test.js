@@ -15,8 +15,19 @@ describe('ESM module', () => {
     const sequelizeCjs = require('sequelize');
 
     const esmKeys = Object.keys(sequelizeEsm);
-    const cjsKeys = Object.keys(sequelizeCjs);
+
+    // include non-enumerables as "Sequelize.{and, or, ...}" are non-enumerable
+    const cjsKeys = Object.getOwnPropertyNames(sequelizeCjs);
+
+    // require('sequelize') returns the Sequelize class
+    // The typings do not reflect this as some properties of the Sequelize class are not declared as exported in types/index.d.ts.
+    // This array lists the properties that are present on the class, but should not be exported in the esm export file nor in types/index.d.ts.
     const ignoredCjsKeys = [
+      'length',
+      'prototype',
+      'useCLS',
+      '_clsRun',
+      'name',
       'DOUBLE PRECISION',
       'version',
       'options',
