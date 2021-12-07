@@ -8,7 +8,6 @@ const copyFiles = promisify( require('copyfiles'));
 const path = require('path');
 const exec = promisify(require('child_process').exec);
 
-const rmdir = promisify(fs.rmdir);
 const stat = promisify(fs.stat);
 const copyFile = promisify(fs.copyFile);
 
@@ -21,11 +20,16 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 async function rmDistDir() {
   try {
     await stat(outdir);
-    if (nodeMajorVersion >= 12) {
-      await rmdir(outdir, { recursive: true });
+    if (nodeMajorVersion >= 14) {
+      const rm = promisify(fs.rm);
+      await rm(outdir, { recursive: true });
     } else {
-      await rmdir(outdir);
-    }
+      const rmdir = promisify(fs.rmdir);
+      if (nodeMajorVersion >= 12) {
+        await rmdir(outdir, { recursive: true });
+      } else {
+        await rmdir(outdir);
+      }}
   } catch {
     /* no-op */
   }

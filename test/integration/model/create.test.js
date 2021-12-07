@@ -569,7 +569,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('findCreateFind', () => {
     if (dialect !== 'sqlite') {
-      it('should work with multiple concurrent calls', async function() {
+      it('[Flaky] should work with multiple concurrent calls', async function() {
         const [
           [instance1, created1],
           [instance2, created2],
@@ -581,9 +581,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         // All instances are the same
-        expect(instance1.id).to.equal(1);
-        expect(instance2.id).to.equal(1);
-        expect(instance3.id).to.equal(1);
+        // Flaky test: sometimes the id is 2, not 1. Here whe just need to assert
+        // all the id1 === id2 === id3
+        expect(instance1.id).to.equal(instance2.id);
+        expect(instance2.id).to.equal(instance3.id);
+
         // Only one of the createdN values is true
         expect(!!(created1 ^ created2 ^ created3)).to.be.true;
       });

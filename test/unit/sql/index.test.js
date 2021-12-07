@@ -9,6 +9,9 @@ const Support = require('../support'),
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
+  if (current.dialect.name === 'snowflake') {
+    return;
+  }
   describe('addIndex', () => {
     it('naming', () => {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
@@ -155,19 +158,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('show indexes', () => {
         expectsql(sql.showIndexesQuery('table'), {
           postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, ' +
-          'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
-          'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a ' +
-          'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
-          't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
+            'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
+            'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a ' +
+            'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
+            't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
         });
 
         expectsql(sql.showIndexesQuery({ tableName: 'table', schema: 'schema' }), {
           postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, ' +
-          'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
-          'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s ' +
-          'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
-          't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' ' +
-          'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
+            'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
+            'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s ' +
+            'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
+            't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' ' +
+            'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
         });
       });
     }
