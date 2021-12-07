@@ -234,7 +234,7 @@ jobs:
         test-mysql-mariadb,
         test-mssql,
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta' || github.ref == 'refs/heads/v7')
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
