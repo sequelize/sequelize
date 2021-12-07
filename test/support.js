@@ -246,6 +246,10 @@ const Support = {
 
   isDeepEqualToOneOf(actual, expectedOptions) {
     return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
+  },
+
+  addDualInSelect() { 
+    return this.getTestDialect() === 'oracle'? ' FROM DUAL': '';
   }
 };
 
