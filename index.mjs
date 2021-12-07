@@ -1,4 +1,4 @@
-import Pkg from './dist/index.js';
+import Pkg from './index.js';
 
 export default Pkg;
 
