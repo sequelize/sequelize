@@ -59,7 +59,7 @@ async function main() {
       // Adds source mapping
       sourcemap: true,
       // The compiled code should be usable in node v10
-      target: 'node10',
+      target: 'node12',
       // The source code's format is commonjs.
       format: 'cjs',
 
