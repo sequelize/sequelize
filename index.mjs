@@ -120,3 +120,6 @@ export const Deferrable = Pkg.Deferrable;
 
 // export { Validator as validator } from './lib/utils/validator-extras';
 export const Validator = Pkg.Validator;
+
+export const ValidationErrorItemOrigin = Pkg.ValidationErrorItemOrigin;
+export const ValidationErrorItemType = Pkg.ValidationErrorItemType;
