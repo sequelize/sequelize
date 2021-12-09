@@ -259,6 +259,8 @@ jobs:
         test-postgres,
         test-mysql-mariadb,
         test-mssql,
+        test-snowflake,
+        test-db2
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
     env:
