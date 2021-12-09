@@ -116,7 +116,7 @@ You can have many hooks with same name. Calling `.removeHook()` will remove all 
 
 ## Global / universal hooks
 
-Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
+Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in many ways, which have slightly different semantics:
 
 ### Default Hooks (on Sequelize constructor options)
 
