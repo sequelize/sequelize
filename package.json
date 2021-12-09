@@ -185,6 +185,10 @@
       {
         "name": "v6-beta",
         "prerelease": "beta"
+      },
+      {
+        "name": "v7",
+        "prerelease": "alpha"
       }
     ]
   },
