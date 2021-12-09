@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   docs:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn docs
   test-typings:
     strategy:
@@ -40,8 +40,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-db2:
     strategy:
@@ -269,5 +269,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
