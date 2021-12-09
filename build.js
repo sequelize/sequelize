@@ -59,7 +59,7 @@ async function main() {
       // Adds source mapping
       sourcemap: true,
       // The compiled code should be usable in node v12.22
-      target: 'node12',
+      target: 'node12.22',
       // The source code's format is commonjs.
       format: 'cjs',
 
