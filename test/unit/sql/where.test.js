@@ -58,6 +58,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
+        db2: 'WHERE "yolo"."User"."id" = 1',
         snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1'
@@ -94,6 +95,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: "WHERE [name] = 'here is a null char: \\0'",
       snowflake: 'WHERE "name" = \'here is a null char: \0\'',
       mssql: "WHERE [name] = N'here is a null char: \0'",
+      db2: "WHERE \"name\" = 'here is a null char: \0'",
       sqlite: "WHERE `name` = 'here is a null char: \0'"
     });
   });
@@ -116,6 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
+      db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
       snowflake: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
@@ -155,6 +158,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: "`field` = X'53657175656c697a65'",
         mariadb: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
+        db2: '"field" = BLOB(\'Sequelize\')',
         snowflake: '"field" = X\'53657175656c697a65\'',
         mssql: '[field] = 0x53657175656c697a65'
       });
@@ -499,6 +503,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
         mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        db2: "\"date\" BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
         snowflake: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
         mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
       });

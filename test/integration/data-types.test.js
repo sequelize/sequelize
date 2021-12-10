@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // mssql has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql') {
+    if (dialect === 'mssql' || dialect === 'db2') {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -377,7 +377,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);

@@ -101,7 +101,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
   - [Docker](https://docs.docker.com/get-docker/)
     - It is not mandatory because you can easily locally run tests against SQLite without it.
-    - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
+    - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres,Db2 and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
   - [Visual Studio Code](https://code.visualstudio.com/)
     - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
       - Also run `npm install --global editorconfig` to make sure this extension will work properly
@@ -131,6 +131,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `npm run start-mysql`
 - `npm run start-postgres`
 - `npm run start-mssql`
+- `npm run start-db2`
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -164,6 +165,7 @@ Then, if you want to run tests for another dialect, assuming you've set it up as
 - `npm run test-mariadb`
 - `npm run test-postgres`
 - `npm run test-mssql`
+- `npm run test-db2`
 
 There are also the `test-unit-*` and `test-integration-*` sets of npm scripts (for example, `test-integration-postgres`).
 
@@ -174,7 +176,7 @@ While you're developing, you may want to execute only a single test (or a few), 
 Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `npm run setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended)):
 
 ```
-DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha
+DIALECT=mariadb npx mocha && DIALECT=mysql npx mocha && DIALECT=postgres npx mocha && DIALECT=sqlite npx mocha && DIALECT=mssql npx mocha && DIALECT=db2 npx mocha
 ```
 
 ### 5. Running an SSCCE
@@ -190,6 +192,7 @@ Run it for the dialect of your choice using one of the following commands:
 - `npm run sscce-postgres`
 - `npm run sscce-sqlite`
 - `npm run sscce-mssql`
+- `npm run sscce-db2`
 
 _Note:_ First, you need to set up (once) the database instance for corresponding dialect, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended).
 
