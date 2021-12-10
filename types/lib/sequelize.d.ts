@@ -407,7 +407,7 @@ export interface QueryOptionsTransactionRequired { }
  * import sequelize:
  *
  * ```js
- * const Sequelize = require('sequelize');
+ * const Sequelize = require('@sequelize/core');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -1374,7 +1374,7 @@ export class Sequelize extends Hooks {
    * ```js
    * const cls = require('cls-hooked');
    * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('sequelize');
+   * const Sequelize = require('@sequelize/core');
    * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
