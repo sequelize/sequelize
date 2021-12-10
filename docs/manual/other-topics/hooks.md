@@ -116,7 +116,24 @@ You can have many hooks with same name. Calling `.removeHook()` will remove all 
 
 ## Global / universal hooks
 
-Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in many ways, which have slightly different semantics:
+Global hooks are hooks which are run for all models. Are especially useful for plugins and they can define behaviours that you want for all your models, for example to allow customization on timestamps using `sequelize.define` on your models:
+
+```js
+{
+    tableName: 'users',
+    hooks : {
+        beforeCreate : (record, options) => {
+            record.dataValues.createdAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+            record.dataValues.updatedAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+        },
+        beforeUpdate : (record, options) => {
+            record.dataValues.updatedAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+        }
+    }
+}
+```
+
+They can be defined in many ways, which have slightly different semantics:
 
 ### Default Hooks (on Sequelize constructor options)
 
