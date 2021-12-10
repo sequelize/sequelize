@@ -160,6 +160,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           if (dialect === 'postgres') {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
+          } else if (dialect === 'db2') {
+            expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
           } else { // mysql, sqlite

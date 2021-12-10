@@ -9,3 +9,4 @@
 |       MariaDB        |         [10.1.44](https://mariadb.com/kb/en/changes-improvements-in-mariadb-101/)         |
 | Microsoft SQL Server | [SQL Server 2014 Express](https://www.microsoft.com/en-US/download/details.aspx?id=42299) |
 |        SQLite        |                       [3.8.0](https://www.sqlite.org/version3.html)                       |
+|         db2          |                 [11.5](https://www.ibm.com/in-en/products/db2-database)                   |
