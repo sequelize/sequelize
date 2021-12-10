@@ -194,7 +194,7 @@ The `tableHint` option can be used to define a table hint. The hint must be a va
 Table hints override the default behavior of MSSQL query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
 ```js
-const { TableHints } = require('@sequelize/core');
+const { TableHints } = require('sequelize');
 Project.findAll({
   // adding the table hint NOLOCK
   tableHint: TableHints.NOLOCK
@@ -209,7 +209,7 @@ The `indexHints` option can be used to define index hints. The hint type must be
 Index hints [override the default behavior of the MySQL query optimizer](https://dev.mysql.com/doc/refman/5.7/en/index-hints.html).
 
 ```js
-const { IndexHints } = require("@sequelize/core");
+const { IndexHints } = require("sequelize");
 Project.findAll({
   indexHints: [
     { type: IndexHints.USE, values: ['index_project_on_name'] }

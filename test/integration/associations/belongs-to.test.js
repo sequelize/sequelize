@@ -5,7 +5,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
-  Sequelize = require('@sequelize/core'),
+  Sequelize = require('sequelize'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 

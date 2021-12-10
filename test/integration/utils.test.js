@@ -5,7 +5,7 @@ const chai = require('chai'),
   Utils = require('sequelize/lib/utils'),
   Support = require('./support'),
   DataTypes = require('sequelize/lib/data-types'),
-  Sequelize = require('@sequelize/core'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {

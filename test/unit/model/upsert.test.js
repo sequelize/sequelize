@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('@sequelize/core'),
+  Sequelize = require('sequelize'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),

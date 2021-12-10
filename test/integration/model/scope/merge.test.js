@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('@sequelize/core'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../../support'),
   combinatorics = require('js-combinatorics');

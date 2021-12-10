@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('@sequelize/core'),
+  Sequelize = require('sequelize'),
   AggregateError = require('sequelize/lib/errors/aggregate-error'),
   Op = Sequelize.Op,
   expect = chai.expect,
