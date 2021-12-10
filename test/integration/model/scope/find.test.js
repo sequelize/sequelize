@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('sequelize'),
+  Sequelize = require('@sequelize/core'),
   expect = chai.expect,
   Op = Sequelize.Op,
   Support = require('../../support');

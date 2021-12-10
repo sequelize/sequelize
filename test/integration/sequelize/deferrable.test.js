@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  Sequelize = require('sequelize');
+  Sequelize = require('@sequelize/core');
 
 if (!Support.sequelize.dialect.supports.deferrableConstraints) {
   return;
