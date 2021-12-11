@@ -7,7 +7,7 @@ const chai = require('chai'),
   _ = require('lodash'),
   Op = require('sequelize/lib/operators'),
   IndexHints = require('sequelize/lib/index-hints'),
-  QueryGenerator = require('sequelize/lib/dialects/mysql/query-generator');
+  QueryGenerator = require('sequelize/lib/dialects/snowflake/query-generator');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] QueryGenerator', () => {
@@ -147,7 +147,7 @@ if (dialect === 'snowflake') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],
-          expectation: { id: 'INTEGER auto_increment PRIMARY KEY' }
+          expectation: { id: 'INTEGER AUTOINCREMENT PRIMARY KEY' }
         },
         {
           arguments: [{ id: { type: 'INTEGER', defaultValue: 0 } }],
@@ -206,7 +206,7 @@ if (dialect === 'snowflake') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
-          expectation: { id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' }
+          expectation: { id: 'INTEGER NOT NULL AUTOINCREMENT DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' }
         },
 
         // Variants when quoteIdentifiers is false
@@ -232,7 +232,7 @@ if (dialect === 'snowflake') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
-          expectation: { id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT' },
+          expectation: { id: 'INTEGER NOT NULL AUTOINCREMENT DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } }
         }
       ],
@@ -240,112 +240,102 @@ if (dialect === 'snowflake') {
       createTableQuery: [
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));'
         },
         {
           arguments: ['myTable', { data: 'BLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB);'
         },
         {
           arguments: ['myTable', { data: 'LONGBLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" LONGBLOB) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" LONGBLOB);'
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ENGINE=MyISAM;'
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) DEFAULT CHARSET=latin1;'
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255)) DEFAULT CHARSET=latin1;'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ROW_FORMAT=default;'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id")) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name")) ENGINE=InnoDB;'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name"));'
         },
-        {
-          arguments: ['myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1000001 }],
-          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER auto_increment , PRIMARY KEY ("id")) ENGINE=InnoDB AUTO_INCREMENT=1000001;'
-        },
-
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ENGINE=InnoDB;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255));',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { data: 'BLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (data BLOB) ENGINE=InnoDB;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (data BLOB);',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { data: 'LONGBLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (data LONGBLOB) ENGINE=InnoDB;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (data LONGBLOB);',
           context: { options: { quoteIdentifiers: false } }
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ENGINE=MyISAM;',
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255));',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) DEFAULT CHARSET=latin1;',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title ENUM("A", "B", "C"), name VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title ENUM("A", "B", "C"), name VARCHAR(255)) DEFAULT CHARSET=latin1;',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255)) ROW_FORMAT=default;',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), id INTEGER , PRIMARY KEY (id)) ENGINE=InnoDB;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), id INTEGER , PRIMARY KEY (id));',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), otherId INTEGER, FOREIGN KEY (otherId) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), otherId INTEGER, FOREIGN KEY (otherId) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), UNIQUE uniq_myTable_title_name (title, name)) ENGINE=InnoDB;',
-          context: { options: { quoteIdentifiers: false } }
-        },
-        {
-          arguments: ['myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1000001 }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (id INTEGER auto_increment , PRIMARY KEY (id)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), UNIQUE uniq_myTable_title_name (title, name));',
           context: { options: { quoteIdentifiers: false } }
         }
       ],
@@ -532,12 +522,12 @@ if (dialect === 'snowflake') {
           context: QueryGenerator
         }, {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 2, 10;',
+          expectation: 'SELECT * FROM "myTable" LIMIT 10 OFFSET 2;',
           context: QueryGenerator
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 2, 10000000000000;',
+          expectation: 'SELECT * FROM "myTable" LIMIT NULL OFFSET 2;',
           context: QueryGenerator
         }, {
           title: 'uses limit 0',
@@ -547,7 +537,7 @@ if (dialect === 'snowflake') {
         }, {
           title: 'uses offset 0',
           arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 0, 10000000000000;',
+          expectation: 'SELECT * FROM "myTable";',
           context: QueryGenerator
         }, {
           title: 'multiple where arguments',
@@ -808,12 +798,12 @@ if (dialect === 'snowflake') {
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT 2, 10;',
+          expectation: 'SELECT * FROM myTable LIMIT 10 OFFSET 2;',
           context: { options: { quoteIdentifiers: false } }
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT 2, 10000000000000;',
+          expectation: 'SELECT * FROM myTable LIMIT NULL OFFSET 2;',
           context: { options: { quoteIdentifiers: false } }
         }, {
           title: 'uses limit 0',
@@ -823,7 +813,7 @@ if (dialect === 'snowflake') {
         }, {
           title: 'uses offset 0',
           arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM myTable LIMIT 0, 10000000000000;',
+          expectation: 'SELECT * FROM myTable;',
           context: { options: { quoteIdentifiers: false } }
         }, {
           title: 'multiple where arguments',
