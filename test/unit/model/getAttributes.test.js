@@ -7,6 +7,10 @@ const current = Support.sequelize;
 const _ = require('lodash');
 const DataTypes = require('sequelize/lib/data-types');
 
+function assertDataType(property, dataType) {
+  expect(property.type.constructor.key).to.equal(dataType.key);
+}
+
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('getAttributes', () => {
     it('should return attributes with getAttributes()', () => {
@@ -20,8 +24,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Object.keys(attributes)).to.eql(['id', 'username']);
 
       // Type must be casted or it will cause circular references errors
-      expect(attributes.id.type.toString()).to.equal('INTEGER');
-      expect(attributes.username.type.toString()).to.equal('VARCHAR(255)');
+      assertDataType(attributes.id, DataTypes.INTEGER);
+      assertDataType(attributes.username, DataTypes.STRING);
 
       expect(attributes.id).to.include({
         Model,
@@ -51,8 +55,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ]);
 
       // Type must be casted or it will cause circular references errors
-      expect(attributes.createdAt.type.toString()).to.equal('DATETIME');
-      expect(attributes.updatedAt.type.toString()).to.equal('DATETIME');
+      assertDataType(attributes.createdAt, DataTypes.DATE);
+      assertDataType(attributes.updatedAt, DataTypes.DATE);
 
       expect(attributes.createdAt).to.include({
         allowNull: false,
@@ -89,7 +93,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const attributes = Model.getAttributes();
 
       expect(Object.keys(attributes)).to.include.members(['virtual']);
-      expect(attributes.virtual.type.toString()).to.equal('VIRTUAL');
+      assertDataType(attributes.virtual, DataTypes.VIRTUAL);
       expect(attributes.virtual).to.include({
         Model,
         fieldName: 'virtual',
