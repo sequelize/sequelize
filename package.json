@@ -207,7 +207,6 @@
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ./test/registerEsbuild",
     "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
-    "test-jesse": "DIALECT=snowflake yarn mocha \"test/unit/dialects/snowflake/query-generator.test.js\"",
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "teaser": "node test/teaser.js",
     "test": "npm run prepare && npm run test-typings && npm run teaser && npm run test-unit && npm run test-integration",
