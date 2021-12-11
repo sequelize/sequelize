@@ -116,6 +116,8 @@ UserModel.findCreateFind({
   }
 })
 
+UserModel.getAttributes();
+
 /**
  * Tests for findOrCreate() type.
  */

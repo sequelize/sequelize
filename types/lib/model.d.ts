@@ -1602,8 +1602,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The attributes of the model
    */
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
 
+  /**
+   * Returns the attributes of the model
+   */
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
 
   /**
    * Reference to the sequelize instance the model was initialized with
