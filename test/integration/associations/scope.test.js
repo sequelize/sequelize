@@ -321,9 +321,9 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
-          it('[Flaky] should create, find and include associations with scope values', async function() {
+          it.only('[Flaky] should create, find and include associations with scope values', async function() {
             await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
-            await this.PostTag.sync({ force: true });
+            await this.PostTag.sync({ force: true }); // We'll need to do this in a separate step since post/tag might not be available just yet
 
             const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
               this.Post.create(),
