@@ -1602,8 +1602,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The attributes of the model
    */
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
-  
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
 
 
   /**
