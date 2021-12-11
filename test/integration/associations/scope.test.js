@@ -7,7 +7,7 @@ const chai = require('chai'),
   Sequelize = require('sequelize'),
   Op = Sequelize.Op;
 
-describe(Support.getTestDialectTeaser('associations'), () => {
+describe.only(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
     beforeEach(function() {
       this.Post = this.sequelize.define('post', {});
@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
     });
 
     if (Support.getTestDialect() !== 'sqlite') {
-      describe.only('N:M', () => {
+      describe('N:M', () => {
         describe('on the target', () => {
           beforeEach(function() {
             this.Post = this.sequelize.define('post', {});
