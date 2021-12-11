@@ -385,8 +385,8 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    */
   as?: string;
 
-  /** 
-   * If true, only non-deleted records will be returned from the join table. 
+  /**
+   * If true, only non-deleted records will be returned from the join table.
    * If false, both deleted and non-deleted records will be returned.
    * Only applies if through model is paranoid.
    */
@@ -747,6 +747,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictFields?: (keyof TAttributes)[];
 }
 
 /**
@@ -1129,7 +1134,7 @@ export interface ModelValidateOptions {
    * check the value is one of these
    */
   isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
-  
+
   /**
    * don't allow specific substrings
    */
@@ -2182,7 +2187,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     fields: { [key in keyof M['_attributes']]?: number },
     options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
-              
+
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
