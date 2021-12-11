@@ -10,13 +10,12 @@ const chai = require('chai'),
   describe(Support.getTestDialectTeaser('Model'), () => {
     describe('getAttributes', () => {
       it('should return attributes with getAttributes()', () => {
-        const Model = current.define('User', {}, {
-          createdAt: 'createdAt',
-          updatedAt: 'updatedAt',
-          timestamps: true
+        const Model = current.define('User', {
+            username:DataTypes.STRING,
+        }, {
+          timestamps: false
         });  
-        expect(Model.getAttributes()).to.haveOwnProperty('createdAt');
-        expect(Model.getAttributes()).to.haveOwnProperty('updatedAt');
+        expect(Model.getAttributes()).to.haveOwnProperty('username');        
       }); 
     });
   });
