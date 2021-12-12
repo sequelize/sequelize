@@ -1,6 +1,3 @@
-/**
- * object that holds all operator symbols
- */
 interface OpTypes {
   /**
    * Operator -|- (PG range is adjacent to operator)
