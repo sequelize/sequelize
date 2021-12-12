@@ -1,1 +1,1 @@
-export type Falsy = 0 | '' | null | undefined | false;
+export type Falsy = false | 0 | -0 | 0n | '' | null | undefined | void;
