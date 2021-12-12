@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Op = require('sequelize/lib/operators'),
   getAbstractQueryGenerator = require('../../support').getAbstractQueryGenerator;
+const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -130,6 +131,14 @@ describe('QueryGenerator', () => {
       const QG = getAbstractQueryGenerator(this.sequelize);
       const value = this.sequelize.fn('UPPER', 'test');
       expect(() => QG.format(value)).to.throw(Error);
+    });
+  });
+
+  describe('queryIdentifier', () => {
+    it('should throw an error if call base quoteIdentifier', function() {
+      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
+      expect(() => QG.quoteIdentifier('test', true))
+        .to.throw(`quoteIdentifier for Dialect "${this.sequelize.dialect.name}" is not implemented`);
     });
   });
 });
