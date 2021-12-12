@@ -69,7 +69,7 @@
         "avoidEscape": true
       }
     ],
-    "linebreak-style": ["error", "windows"],
+    "linebreak-style": ["error"],
     "camelcase": "error",
     "comma-dangle": "error",
 
