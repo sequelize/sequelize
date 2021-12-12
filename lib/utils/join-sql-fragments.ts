@@ -1,4 +1,4 @@
-import { SQLFragment, TruthySQLFragment } from 'lib/generic/sql-fragment';
+import { SQLFragment, TruthySQLFragment } from '../generic/sql-fragment';
 
 function doesNotWantLeadingSpace(str: string): boolean {
   return /^[;,)]/.test(str);
