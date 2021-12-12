@@ -14,7 +14,7 @@ interface Invokeable<Args extends Array<any>, Instance> {
  * @returns {Proxy} Wrapped class instance.
  * @private
  */
-function classToInvokable<Args extends Array<any>, Instance extends object>(
+export function classToInvokable<Args extends Array<any>, Instance extends object>(
   Class: new (...args: Args) => Instance,
 ): Invokeable<Args, Instance> {
   return new Proxy<Invokeable<Args, Instance>>(Class as any, {
