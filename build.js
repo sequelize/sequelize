@@ -9,6 +9,7 @@ const path = require('path');
 const exec = promisify(require('child_process').exec);
 
 const stat = promisify(fs.stat);
+const copyFile = promisify(fs.copyFile);
 
 // if this script is moved, this will need to be adjusted
 const rootDir = __dirname;
@@ -67,6 +68,9 @@ async function main() {
         .concat('./index.js')
         .map(file => path.resolve(file))
     }),
+
+    // not passed to "build" because we need this file to stay as ESM instead of CJS
+    copyFile('./index.mjs', path.resolve(outdir, './index.mjs')),
 
     exec('tsc', {
       env: {
