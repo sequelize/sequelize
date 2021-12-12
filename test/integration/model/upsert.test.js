@@ -678,6 +678,89 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       }
+
+      if (current.dialect.supports.inserts.conflictFields) {
+        describe('conflictFields', () => {
+          // An Abstract joiner table.  Unique constraint deliberately removed
+          // to ensure that `conflictFields` is actually respected, not inferred.
+          const Memberships = current.define('memberships', {
+            user_id: DataTypes.INTEGER,
+            group_id: DataTypes.INTEGER,
+            permissions: DataTypes.ENUM('admin', 'member')
+          });
+
+          beforeEach(async () => {
+            await Memberships.sync({ force: true });
+
+            await current.queryInterface.addConstraint('memberships', {
+              type: 'UNIQUE',
+              fields: ['user_id', 'group_id']
+            });
+          });
+
+          it('should insert with no other rows', async () => {
+            const [newRow] = await Memberships.upsert(
+              {
+                user_id: 1,
+                group_id: 1,
+                permissions: 'member'
+              },
+              {
+                conflictFields: ['user_id', 'group_id']
+              }
+            );
+
+            expect(newRow).to.not.eq(null);
+            expect(newRow.permissions).to.eq('member');
+          });
+
+          it('should use conflictFields as upsertKeys', async () => {
+            const [originalMembership] = await Memberships.upsert(
+              {
+                user_id: 1,
+                group_id: 1,
+                permissions: 'member'
+              },
+              {
+                conflictFields: ['user_id', 'group_id']
+              }
+            );
+
+            expect(originalMembership).to.not.eq(null);
+            expect(originalMembership.permissions).to.eq('member');
+
+            const [updatedMembership] = await Memberships.upsert(
+              {
+                user_id: 1,
+                group_id: 1,
+                permissions: 'admin'
+              },
+              {
+                conflictFields: ['user_id', 'group_id']
+              }
+            );
+
+            expect(updatedMembership).to.not.eq(null);
+            expect(updatedMembership.permissions).to.eq('admin');
+            expect(updatedMembership.id).to.eq(originalMembership.id);
+
+            const [otherMembership] = await Memberships.upsert(
+              {
+                user_id: 2,
+                group_id: 1,
+                permissions: 'member'
+              },
+              {
+                conflictFields: ['user_id', 'group_id']
+              }
+            );
+
+            expect(otherMembership).to.not.eq(null);
+            expect(otherMembership.permissions).to.eq('member');
+            expect(otherMembership.id).to.not.eq(originalMembership.id);
+          });
+        });
+      }
     });
   }
 });
