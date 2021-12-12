@@ -113,7 +113,7 @@ export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociatio
  * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
-export type HasOneCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type HasOneCreateAssociationMixin<TModel extends Model> = (
+  values?: TModel['_creationAttributes'],
   options?: HasOneCreateAssociationMixinOptions
 ) => Promise<TModel>;

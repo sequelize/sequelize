@@ -146,18 +146,18 @@ export interface WhereOperators {
    */
 
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators;
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
 
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date | Literal;
+  [Op.gte]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date | Literal;
+  [Op.lt]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date | Literal;
+  [Op.lte]?: number | string | Date | Literal | Col;
 
   /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
   [Op.match]?: Fn;
@@ -225,7 +225,7 @@ export interface WhereOperators {
   [Op.contained]?: readonly (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date | Literal;
+  [Op.gt]?: number | string | Date | Literal | Col;
 
   /**
    * PG only
@@ -385,8 +385,8 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    */
   as?: string;
 
-  /** 
-   * If true, only non-deleted records will be returned from the join table. 
+  /**
+   * If true, only non-deleted records will be returned from the join table.
    * If false, both deleted and non-deleted records will be returned.
    * Only applies if through model is paranoid.
    */
@@ -747,6 +747,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictFields?: (keyof TAttributes)[];
 }
 
 /**
@@ -1129,7 +1134,7 @@ export interface ModelValidateOptions {
    * check the value is one of these
    */
   isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
-  
+
   /**
    * don't allow specific substrings
    */
@@ -1602,6 +1607,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The attributes of the model
    */
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+
+  /**
+   * Returns the attributes of the model
+   */
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -2177,7 +2187,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     fields: { [key in keyof M['_attributes']]?: number },
     options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
-              
+
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
@@ -2888,6 +2898,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * values gotten from the DB, and apply all custom getters.
    */
   public toJSON<T extends TModelAttributes>(): T;
+  public toJSON(): object;
 
   /**
    * Helper method to determine if a instance is "soft deleted". This is

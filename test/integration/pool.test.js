@@ -19,6 +19,10 @@ function assertSameConnection(newConnection, oldConnection) {
       expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
       break;
 
+    case 'db2':
+      expect(newConnection.connected).to.equal(oldConnection.connected).and.to.be.ok;
+      break;
+
     case 'mssql':
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
@@ -39,7 +43,13 @@ function assertNewConnection(newConnection, oldConnection) {
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
       break;
 
+    case 'db2':
+      expect(newConnection.connected).to.be.ok;
+      expect(oldConnection.connected).to.not.be.ok;
+      break;
+
     case 'mssql':
+      // Flaky test
       expect(newConnection.dummyId).to.not.be.ok;
       expect(oldConnection.dummyId).to.be.ok;
       break;
@@ -75,7 +85,11 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         if (dialect === 'mssql') {
           connection = attachMSSQLUniqueId(connection);
         }
-        connection.emit('error', { code: 'ECONNRESET' });
+        if (dialect === 'db2') {
+          sequelize.connectionManager.pool.destroy(connection);
+        } else {
+          connection.emit('error', { code: 'ECONNRESET' });
+        }
       }
 
       const sequelize = Support.createSequelizeInstance({
@@ -102,6 +116,8 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
           attachMSSQLUniqueId(connection).close();
         } else if (dialect === 'postgres') {
           connection.end();
+        } else if (dialect === 'db2') {
+          connection.closeSync();
         } else {
           connection.close();
         }
@@ -152,7 +168,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(secondConnection);
     });
 
-    it('should get new connection beyond idle range', async () => {
+    it('[MSSQL Flaky] should get new connection beyond idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 }
       });

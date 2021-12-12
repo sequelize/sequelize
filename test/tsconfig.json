@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "sequelize/*": ["../dist/*"]
+    },
+    "types": ["node", "mocha", "sinon", "chai"],
+
+    "emitDeclarationOnly": false,
+    "noEmit": true
+  },
+  "include": ["./**/*"],
+}
