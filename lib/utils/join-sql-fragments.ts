@@ -1,3 +1,5 @@
+import { SQLFragment, TruthySQLFragment } from 'lib/generic/sql-fragment';
+
 function doesNotWantLeadingSpace(str: string): boolean {
   return /^[;,)]/.test(str);
 }
@@ -41,7 +43,7 @@ function singleSpaceJoinHelper(parts: string[]): string {
  *
  * Certain elements do not get leading/trailing spaces.
  *
- * @param {any[]} array The array to be joined. Falsy values are skipped. If an
+ * @param {SQLFragment[]} array The array to be joined. Falsy values are skipped. If an
  * element is another array, this function will be called recursively on that array.
  * Otherwise, if a non-string, non-falsy value is present, a TypeError will be thrown.
  *
@@ -49,44 +51,51 @@ function singleSpaceJoinHelper(parts: string[]): string {
  *
  * @private
  */
-export function joinSQLFragments(array: any[]): string {
+export function joinSQLFragments(array: SQLFragment[]): string {
   if (array.length === 0) return '';
 
-  // Skip falsy fragments
-  array = array.filter(x => x);
+  const truthyArray: TruthySQLFragment[] = array.filter(
+    (x): x is string | SQLFragment[] => !!x
+  );
+  const flattenedArray: string[] = truthyArray.map(
+    (fragment: TruthySQLFragment) => {
+      if (Array.isArray(fragment)) {
+        return joinSQLFragments(fragment);
+      }
 
-  // Resolve recursive calls
-  array = array.map(fragment => {
-    if (Array.isArray(fragment)) {
-      return joinSQLFragments(fragment);
+      return fragment;
     }
-    return fragment;
-  });
+  );
 
   // Ensure strings
-  for (const fragment of array) {
+  for (const fragment of flattenedArray) {
     if (fragment && typeof fragment !== 'string') {
-      const error: JoinSQLFragmentsError = new TypeError(
+      throw new JoinSQLFragmentsError(
+        flattenedArray,
+        fragment,
         `Tried to construct a SQL string with a non-string, non-falsy fragment (${fragment}).`
       );
-
-      error.args = array;
-      error.fragment = fragment;
-
-      throw error;
     }
   }
 
   // Trim fragments
-  array = array.map(x => x.trim());
+  const trimmedArray = flattenedArray.map(x => x.trim());
 
   // Skip full-whitespace fragments (empty after the above trim)
-  array = array.filter(x => x !== '');
+  const nonEmptyStringArray = trimmedArray.filter(x => x !== '');
 
-  return singleSpaceJoinHelper(array);
+  return singleSpaceJoinHelper(nonEmptyStringArray);
 }
 
-type JoinSQLFragmentsError = TypeError & {
-  args?: any[];
-  fragment?: any;
-};
+export class JoinSQLFragmentsError extends TypeError {
+  args: SQLFragment[];
+  fragment: any; // iirc this error is only used when we get an invalid fragment.
+
+  constructor(args: SQLFragment[], fragment: any, message: string) {
+    super(message);
+    
+    this.args = args;
+    this.fragment = fragment;
+    this.name = 'JoinSQLFragmentsError';
+  }
+}
