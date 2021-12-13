@@ -4,7 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] sqlite_master raw queries', () => {

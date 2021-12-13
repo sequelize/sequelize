@@ -1,6 +1,6 @@
 import { expectTypeOf } from "expect-type";
 import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn } from 'sequelize';
-import Transaction from '../lib/transaction';
+import Transaction from 'sequelize/lib/transaction';
 
 class MyModel extends Model {
   public hi!: number;
@@ -44,10 +44,16 @@ expectTypeOf({
 }).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 expectTypeOf({
+  [Op.eq]: 6, // = 6
+  [Op.eq]: Sequelize.col('SOME_COL'), // = <column>
   [Op.gt]: 6, // > 6
+  [Op.gt]: Sequelize.col('SOME_COL'), // > <column>
   [Op.gte]: 6, // >= 6
+  [Op.gte]: Sequelize.col('SOME_COL'), // >= <column>
   [Op.lt]: 10, // < 10
+  [Op.lt]: Sequelize.col('SOME_COL'), // < <column>
   [Op.lte]: 10, // <= 10
+  [Op.lte]: Sequelize.col('SOME_COL'), // <= <column>
   [Op.ne]: 20, // != 20
   [Op.not]: true, // IS NOT TRUE
   [Op.is]: null, // IS NULL
@@ -221,12 +227,18 @@ MyModel.findAll({
   where: {
     id: {
       // casting here to check a missing operator is not accepted as field name
+      [Op.eq]: 6, // id = 6
+      [Op.eq]: Sequelize.col('SOME_COL'), // id = <column>
       [Op.and]: { a: 5 }, // AND (a = 5)
       [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
       [Op.gt]: 6, // id > 6
+      [Op.gt]: Sequelize.col('SOME_COL'), // id > <column>
       [Op.gte]: 6, // id >= 6
+      [Op.gte]: Sequelize.col('SOME_COL'), // id >= <column>
       [Op.lt]: 10, // id < 10
+      [Op.lt]: Sequelize.col('SOME_COL'), // id < <column>
       [Op.lte]: 10, // id <= 10
+      [Op.lte]: Sequelize.col('SOME_COL'), // id <= <column>
       [Op.ne]: 20, // id != 20
       [Op.between]: [6, 10] || [new Date(), new Date()] || ["2020-01-01", "2020-12-31"], // BETWEEN 6 AND 10
       [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
