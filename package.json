@@ -18,6 +18,11 @@
   "homepage": "https://sequelize.org/",
   "main": "./dist/index.js",
   "types": "./dist",
+  "type": "commonjs",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js"
+  },
   "engines": {
     "node": ">=10.0.0"
   },
@@ -266,7 +271,8 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite node sscce.js",
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "sscce-db2": "cross-env DIALECT=db2 node sscce.js",
-    "prepare": "node ./build.js && husky install",
+    "prepare": "npm run build && husky install",
+    "build": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""
   },
   "support": true
