@@ -16,7 +16,7 @@ export * from './lib/errors';
 export { BaseError as Error } from './lib/errors';
 export { useInflection } from './lib/utils';
 export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
-export { Validator as validator } from './lib/utils/validator-extras';
+export { Validator } from './lib/utils/validator-extras';
 
 /**
  * Type helper for making certain fields of an object optional. This is helpful
