@@ -385,8 +385,8 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    */
   as?: string;
 
-  /** 
-   * If true, only non-deleted records will be returned from the join table. 
+  /**
+   * If true, only non-deleted records will be returned from the join table.
    * If false, both deleted and non-deleted records will be returned.
    * Only applies if through model is paranoid.
    */
@@ -1129,7 +1129,7 @@ export interface ModelValidateOptions {
    * check the value is one of these
    */
   isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
-  
+
   /**
    * don't allow specific substrings
    */
@@ -1945,7 +1945,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']>
+    options?: Omit<FindAndCountOptions<M['_attributes']>, 'group'>
   ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
@@ -2177,7 +2177,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     fields: { [key in keyof M['_attributes']]?: number },
     options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
-              
+
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
