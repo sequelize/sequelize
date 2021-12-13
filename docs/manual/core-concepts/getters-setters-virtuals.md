@@ -2,7 +2,7 @@
 
 Sequelize allows you to define custom getters and setters for the attributes of your models.
 
-Sequelize also allows you to specify the so-called *virtual attributes*, which are attributes on the Sequelize Model that doesn't really exist in the underlying SQL table, but instead are populated automatically by Sequelize. They are very useful to create custom attributes which is also could simplify your code, for example.
+Sequelize also allows you to specify the so-called *virtual attributes*, which are attributes on the Sequelize Model that doesn't really exist in the underlying SQL table, but instead are populated automatically by Sequelize. They are very useful to create custom attributes which also could simplify your code, for example.
 
 ## Getters
 
