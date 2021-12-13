@@ -748,6 +748,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictFields?: (keyof TAttributes)[];
 }
 
 /**
@@ -1603,6 +1608,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The attributes of the model
    */
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+
+  /**
+   * Returns the attributes of the model
+   */
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
 
   /**
    * Reference to the sequelize instance the model was initialized with

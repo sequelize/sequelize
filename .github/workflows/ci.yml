@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn lint-docs
   docs:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --frozen-lockfile
       - run: yarn docs
   test-typings:
     strategy:
@@ -40,9 +40,37 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
+      - run: yarn install --frozen-lockfile
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
+  test-db2:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 16]
+    name: DB2 (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: db2
+      SEQ_DB: testdb
+      SEQ_USER: db2inst1
+      SEQ_PW: password
+      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
+      SEQ_PORT: 50000
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install Local DB2 Copy
+        run: yarn start-db2
+      - name: Unit Tests
+        run: yarn test-unit
+        continue-on-error: true
+      - name: Integration Tests
+        run: yarn test-integration
+        continue-on-error: true
   test-sqlite:
     strategy:
       fail-fast: false
@@ -202,6 +230,25 @@ jobs:
         run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
+  test-snowflake:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 16]
+    name: SNOWFLAKE (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: snowflake
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Unit Tests
+        run: yarn test-unit
+      # - name: Integration Tests
+      #   run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -215,7 +262,7 @@ jobs:
         test-mysql-mariadb,
         test-mssql,
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-alpha')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -224,5 +271,5 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn install --frozen-lockfile
       - run: npx semantic-release

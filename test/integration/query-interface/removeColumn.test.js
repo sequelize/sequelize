@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
 
-      it('should be able to remove a column with a default value', async function() {
+      it('[Flaky] should be able to remove a column with a default value', async function() {
         await this.queryInterface.removeColumn({
           tableName: 'users',
           schema: 'archive'
