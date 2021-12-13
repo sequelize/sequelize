@@ -9,6 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import Op = require('./operators');
+import { SetRequired } from '../type-helpers/set-required'
 
 export interface Logging {
   /**
@@ -1949,7 +1950,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
+    options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
   ): Promise<{ rows: M[]; count: number[] }>;
 
   /**
