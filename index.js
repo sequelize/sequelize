@@ -1,8 +1,10 @@
 'use strict';
 
 /**
-  * The entry point.
+  * A Sequelize module that contains the sequelize entry point.
   *
-  * @module Sequelize
+  * @module sequelize
   */
+
+/** Exports the sequelize entry point. */
 module.exports = require('./lib/sequelize');
