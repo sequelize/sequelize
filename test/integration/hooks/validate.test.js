@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(async function() {

@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
-  Transaction = require('../../lib/transaction'),
+  Transaction = require('sequelize/lib/transaction'),
   current = Support.sequelize,
   delay = require('delay');
 
@@ -36,7 +36,8 @@ if (current.dialect.supports.transactions) {
         expect(called).to.be.ok;
       });
 
-      if (Support.getTestDialect() !== 'sqlite') {
+      if (Support.getTestDialect() !== 'sqlite' &&
+          Support.getTestDialect() !== 'db2') {
         it('works for long running transactions', async function() {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           this.sequelize = sequelize;

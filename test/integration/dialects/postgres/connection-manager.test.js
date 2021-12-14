@@ -4,7 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', () => {
@@ -27,19 +27,32 @@ if (dialect.match(/^postgres/)) {
       expect(result[0].client_min_messages).to.equal('warning');
     });
 
-    it('should allow overriding client_min_messages', async () => {
+    it('should allow overriding client_min_messages (deprecated in v7)', async () => {
       const sequelize = Support.createSequelizeInstance({ clientMinMessages: 'ERROR' });
       const result = await sequelize.query('SHOW client_min_messages');
       expect(result[0].client_min_messages).to.equal('error');
     });
 
-    it('should not set client_min_messages if clientMinMessages is false', async () => {
+    it('should not set client_min_messages if clientMinMessages is false (deprecated in v7)', async () => {
       const sequelize = Support.createSequelizeInstance({ clientMinMessages: false });
       const result = await sequelize.query('SHOW client_min_messages');
       // `notice` is Postgres's default
       expect(result[0].client_min_messages).to.equal('notice');
     });
-    
+
+    it('should allow overriding client_min_messages', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { clientMinMessages: 'ERROR' } });
+      const result = await sequelize.query('SHOW client_min_messages');
+      expect(result[0].client_min_messages).to.equal('error');
+    });
+
+    it('should not set client_min_messages if clientMinMessages is ignore', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { clientMinMessages: 'IGNORE' } });
+      const result = await sequelize.query('SHOW client_min_messages');
+      // `notice` is Postgres's default
+      expect(result[0].client_min_messages).to.equal('notice');
+    });
+
     it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
       const sequelize = Support.createSequelizeInstance({
         dialectOptions: { query_timeout: 100 }
@@ -47,6 +60,13 @@ if (dialect.match(/^postgres/)) {
       const error = await sequelize.query('select pg_sleep(2)').catch(e => e);
       expect(error.message).to.equal('Query read timeout');
     });
+
+    it('should allow overriding session variables through the `options` param', async () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
+      const result = await sequelize.query('SHOW search_path');
+      expect(result[0].search_path).to.equal('abc');
+    });
+
   });
 
   describe('Dynamic OIDs', () => {

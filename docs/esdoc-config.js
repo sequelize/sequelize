@@ -7,7 +7,7 @@ checkManuals();
 module.exports = {
   source: './lib',
   destination: './esdoc',
-  includes: ['\\.js$'],
+  includes: ['\\.[tj]s$'],
   plugins: [
     {
       name: 'esdoc-ecmascript-proposal-plugin',
@@ -51,6 +51,9 @@ module.exports = {
           files: getDeclaredManuals()
         }
       }
+    },
+    {
+      name: './esdoc-ts'
     }
   ]
 };
