@@ -271,7 +271,8 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite node sscce.js",
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "sscce-db2": "cross-env DIALECT=db2 node sscce.js",
-    "prepare": "node ./build.js && husky install",
+    "prepare": "npm run build && husky install",
+    "build": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""
   },
   "support": true
