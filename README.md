@@ -66,6 +66,7 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 - [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 - [Plugins](https://sequelize.org/master/manual/resources.html)
+- [For YugabyteDB](https://github.com/yugabyte/sequelize-yugabytedb)
 
 ### Translations
 
