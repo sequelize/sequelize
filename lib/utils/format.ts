@@ -33,11 +33,11 @@ export function mapFinderOptions(
   } // seems to be the wrong model somehow?
 ) {
   if (options.attributes && Array.isArray(options.attributes)) {
-    options.attributes = Model as any._injectDependentVirtualAttributes(
+    options.attributes = (Model as any)._injectDependentVirtualAttributes(
       options.attributes
     );
     options.attributes = options.attributes?.filter(
-      v => !Model as any._virtualAttributes.has(v)
+      v => !(Model as any)._virtualAttributes.has(v)
     );
   }
 
