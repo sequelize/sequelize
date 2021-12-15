@@ -156,7 +156,7 @@ const user = await User.create({ firstName: 'John', lastName: 'Doe' });
 console.log(user.fullName); // 'John Doe'
 ```
 
-## Deprecated soon: `getterMethods` and `setterMethods`
+## Deprecated in Sequelize v7: `getterMethods` and `setterMethods`
 
 Sequelize also provides the `getterMethods` and `setterMethods` options in the model definition to specify things that look like, but aren't exactly the same as, virtual attributes. This usage is discouraged and likely to be **deprecated** in the future (in favor of using virtual attributes directly).
 
