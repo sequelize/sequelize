@@ -15,7 +15,7 @@ interface Invokeable<Args extends Array<any>, Instance> {
  * @private
  */
 export function classToInvokable<Args extends Array<any>, Instance extends object>(
-  Class: new (...args: Args) => Instance,
+  Class: new (...args: Args) => Instance
 ): Invokeable<Args, Instance> {
   return new Proxy<Invokeable<Args, Instance>>(Class as any, {
     apply(_target, _thisArg, args: Args) {
@@ -23,6 +23,6 @@ export function classToInvokable<Args extends Array<any>, Instance extends objec
     },
     construct(_target, args: Args) {
       return new Class(...args);
-    },
+    }
   });
 }
