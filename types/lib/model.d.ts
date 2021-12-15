@@ -2691,6 +2691,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
+  public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+  public static _virtualAttributes: Set<string>;
+
   /**
    * Returns true if this instance has not yet been persisted to the database
    */

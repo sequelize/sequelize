@@ -60,7 +60,7 @@ type NameIndexIndex = {
   fields: { name: string; attribute: string }[];
   name: string;
 };
-type NameIndexTableName = { tableName: string } | string;
+type NameIndexTableName = string | { tableName: string };
 
 /**
  *
@@ -76,7 +76,9 @@ export function nameIndex(
   index: NameIndexIndex,
   tableName: NameIndexTableName
 ) {
-  if (tableName.tableName) tableName = tableName.tableName;
+  if (typeof tableName !== 'string' && tableName.tableName) {
+    tableName = tableName.tableName;
+  }
 
   if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
     const fields = index.fields.map(field =>

@@ -9,10 +9,10 @@ import _ from 'lodash';
 export class SequelizeMethod {}
 
 export class Fn extends SequelizeMethod {
-  private fn: Function;
-  private args: any[];
+  private fn: string;
+  private args: unknown[];
 
-  constructor(fn: Function, args: any[]) {
+  constructor(fn: string, args: unknown[]) {
     super();
     this.fn = fn;
     this.args = args;
@@ -66,10 +66,14 @@ export class Json extends SequelizeMethod {
     value: string
   ) {
     super();
-    if (_.isObject(conditionsOrPath)) {
+
+    const isPathString = typeof conditionsOrPath === 'string';
+
+    if (!isPathString && _.isObject(conditionsOrPath)) {
       this.conditions = conditionsOrPath;
-    } else {
+    } else if (isPathString) {
       this.path = conditionsOrPath;
+
       if (value) {
         this.value = value;
       }

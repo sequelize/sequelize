@@ -137,14 +137,13 @@ export function defaults(
 
       getComplexKeys(source).forEach((key: string | symbol) => {
         const value = object[key];
+        const objectPrototype: { [key: string | symbol]: any } =
+          Object.prototype;
 
         if (
           value === undefined ||
-          _.eq(
-            value,
-            Object.prototype as { [key: string | symbol]: any }[key]
-          ) &&
-            !Object.prototype.hasOwnProperty.call(object, key)
+          _.eq(value, objectPrototype[key]) &&
+            !objectPrototype.hasOwnProperty.call(object, key)
         ) {
           object[key] = source[key];
         }

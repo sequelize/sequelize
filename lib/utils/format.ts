@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import { Model, ModelAttributeColumnOptions } from 'types';
-import DataTypes from '../data-types';
+import { Model, ModelCtor } from 'types';
 import operators from '../operators';
 import SqlString from '../sql-string';
 import { cloneDeep } from './object';
 
+const DataTypes = require('../data-types');
 const operatorsSet = new Set(Object.values(operators));
 
 export function format(arr: string[], dialect: string) {
@@ -28,16 +28,14 @@ export type FinderOptions = {
 /* Expand and normalize finder options */
 export function mapFinderOptions(
   options: FinderOptions,
-  Model: Model & {
-    rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
-  } // seems to be the wrong model somehow?
+  Model: ModelCtor<Model>
 ) {
   if (options.attributes && Array.isArray(options.attributes)) {
-    options.attributes = (Model as any)._injectDependentVirtualAttributes(
+    options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes
     );
     options.attributes = options.attributes?.filter(
-      v => !(Model as any)._virtualAttributes.has(v)
+      v => !Model._virtualAttributes.has(v)
     );
   }
 
@@ -49,9 +47,7 @@ export function mapFinderOptions(
 /* Used to map field names in attributes and where conditions */
 export function mapOptionFieldNames(
   options: FinderOptions,
-  Model: Model & {
-    rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
-  } // seems to be the wrong model somehow?
+  Model: ModelCtor<Model>
 ) {
   if (Array.isArray(options.attributes)) {
     options.attributes = options.attributes.map(attr => {
@@ -59,7 +55,7 @@ export function mapOptionFieldNames(
       if (typeof attr !== 'string') return attr;
       // Map attributes to aliased syntax attributes
       if (
-        Model as any.rawAttributes[attr] &&
+        Model.rawAttributes[attr] &&
         attr !== Model.rawAttributes[attr].field
       ) {
         return [Model.rawAttributes[attr].field, attr];
@@ -75,12 +71,7 @@ export function mapOptionFieldNames(
   return options;
 }
 
-export function mapWhereFieldNames(
-  attributes: any[],
-  Model: Model & {
-    rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
-  } // seems to be the wrong model somehow?
-) {
+export function mapWhereFieldNames(attributes: any[], Model: ModelCtor<Model>) {
   if (attributes) {
     attributes = cloneDeep(attributes);
     getComplexKeys(attributes).forEach((attribute: any) => {
@@ -207,6 +198,9 @@ export function removeNullValuesFromHash(
  * @returns {string}
  * @private
  */
-export function generateEnumName(tableName: string, columnName: string): string {
+export function generateEnumName(
+  tableName: string,
+  columnName: string
+): string {
   return `enum_${tableName}_${columnName}`;
 }

@@ -1,6 +1,8 @@
 import _ from 'lodash';
-import DataTypes from '../data-types';
 import { getOperators } from './format';
+import { Where } from '../../types/lib/utils';
+
+const DataTypes = require('../../lib/data-types');
 
 export function isPrimitive(val: any) {
   const type = typeof val;

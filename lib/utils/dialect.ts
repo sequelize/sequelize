@@ -1,5 +1,7 @@
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import DataTypes from '../data-types';
+import _ from 'lodash';
+
+const DataTypes = require('../data-types');
 
 const dialects = new Set([
   'mariadb',
