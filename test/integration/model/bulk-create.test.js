@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../index'),
-  AggregateError = require('../../../lib/errors/aggregate-error'),
+  Sequelize = require('sequelize'),
+  AggregateError = require('sequelize/lib/errors/aggregate-error'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -64,6 +64,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await transaction.rollback();
       });
     }
+    
+    it('should not alter options', async function() {
+      const User = this.sequelize.define('User');
+      await User.sync({ force: true });
+      const options = { anOption: 1 };
+      await User.bulkCreate([{  }], options);
+      expect(options).to.eql({ anOption: 1 });
+    });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function() {
       const User = this.sequelize.define('user', {
@@ -152,6 +160,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           if (dialect === 'postgres') {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
+          } else if (dialect === 'db2') {
+            expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
           } else { // mysql, sqlite
@@ -302,7 +312,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const expectedValidationError = 'Validation len on code failed';
         const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
 
-        expect(error).to.be.instanceof(AggregateError);
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
         const { errors } = error;

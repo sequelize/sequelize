@@ -6,9 +6,9 @@ const chai = require('chai'),
   stub = sinon.stub,
   _ = require('lodash'),
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  HasMany = require('../../../lib/associations/has-many'),
-  Op = require('../../../lib/operators'),
+  DataTypes = require('sequelize/lib/data-types'),
+  HasMany = require('sequelize/lib/associations/has-many'),
+  Op = require('sequelize/lib/operators'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {

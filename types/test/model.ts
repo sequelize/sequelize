@@ -1,6 +1,6 @@
 import { expectTypeOf } from "expect-type";
 import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize } from 'sequelize';
-import { ModelDefined } from '../lib/model';
+import { ModelDefined } from 'sequelize/lib/model';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {
@@ -31,6 +31,10 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
+  include: [ { through: { paranoid: true } } ]
+});
+
+MyModel.findOne({
   include: [
     { model: OtherModel, paranoid: true }
   ]
@@ -42,11 +46,23 @@ MyModel.findOne({ include: ['OtherModelAlias'] });
 
 MyModel.findOne({ include: OtherModel });
 
+MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
+MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.num'] }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<number[]>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
 MyModel.count({ include: OtherModel });
+
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
@@ -99,6 +115,8 @@ UserModel.findCreateFind({
     beta_user: true
   }
 })
+
+UserModel.getAttributes();
 
 /**
  * Tests for findOrCreate() type.
@@ -185,3 +203,36 @@ expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unref
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
+
+/**
+ * Tests for toJson() type
+ */
+interface FilmToJson {
+  id: number;
+  name?: string;
+}
+class FilmModelToJson extends Model<FilmToJson> implements FilmToJson {
+  id!: number;
+  name?: string;
+}
+const film = FilmModelToJson.build();
+
+class FilmModelExtendToJson extends Model<FilmToJson> implements FilmToJson {
+  id!: number;
+  name?: string;
+
+  public toJSON() {
+    return { id: this.id }
+  }
+}
+const filmOverrideToJson = FilmModelExtendToJson.build();
+
+const result = film.toJSON();
+expectTypeOf(result).toEqualTypeOf<FilmToJson>()
+
+type FilmNoNameToJson = Omit<FilmToJson, 'name'>
+const resultDerived = film.toJSON<FilmNoNameToJson>();
+expectTypeOf(resultDerived).toEqualTypeOf<FilmNoNameToJson>()
+
+const resultOverrideToJson = filmOverrideToJson.toJSON();
+expectTypeOf(resultOverrideToJson).toEqualTypeOf<FilmNoNameToJson>();

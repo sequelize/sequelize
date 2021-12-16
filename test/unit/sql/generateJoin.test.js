@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../lib/sequelize'),
+  DataTypes = require('sequelize/lib/data-types'),
+  Sequelize = require('sequelize/lib/sequelize'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,

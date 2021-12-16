@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(id.primaryKey).to.be.true;
 
-      if (['mysql', 'mssql'].includes(dialect)) {
+      if (['mysql', 'mssql', 'db2'].includes(dialect)) {
         expect(id.autoIncrement).to.be.true;
       }
 
@@ -78,6 +78,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           break;
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
+          break;
+        case 'db2':
+          assertVal = 'VARCHAR';
           break;
       }
       expect(username.type).to.equal(assertVal);
@@ -100,6 +103,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       assertVal = 'TINYINT(1)';
       switch (dialect) {
         case 'postgres':
+        case 'db2':
           assertVal = 'BOOLEAN';
           break;
         case 'mssql':
@@ -123,7 +127,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }

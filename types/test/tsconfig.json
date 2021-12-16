@@ -6,8 +6,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "sequelize": ["../"],
-      "sequelize/*": ["../"]
+      "sequelize": ["../../dist/"],
+      "sequelize/*": ["../../dist/*"]
     },
     "lib": ["es2016"]
   },

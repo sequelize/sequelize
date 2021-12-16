@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support   = require('../support'),
   current   = Support.sequelize,
   _ = require('lodash'),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('removeAttribute', () => {

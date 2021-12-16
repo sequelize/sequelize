@@ -75,6 +75,25 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+The default `client_min_messages` config in sequelize is `WARNING`.
+
+### Redshift
+
+Most configuration is same as PostgreSQL above.
+
+Redshift doesn't support `client_min_messages`, 'ignore' is needed to skip the configuration:
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'postgres',
+  dialectOptions: {
+    // Your pg options here
+    // ...
+    clientMinMessages: 'ignore' // case insensitive
+  }
+});
+```
+
 ### MSSQL
 
 The underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package (version 6.0.0 or above).
@@ -116,6 +135,39 @@ const sequelize = new Sequelize('database', null, null, {
     }
   }
 })
+```
+
+### Snowflake (Experiment)
+
+The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
+
+In order to connect with an account, use the following format:
+
+```js
+const sequelize = new Sequelize('database', null, null, {
+  dialect: 'snowflake',
+  dialectOptions: {
+    // put your snowflake account here,
+    account: 'myAccount',  // my-app.us-east-1
+
+    // below option should be optional
+    role: 'myRole',
+    warehouse: 'myWarehouse',
+    schema: 'mySchema'
+  },
+  // same as other dialect
+  username: 'myUserName',
+  password: 'myPassword',
+  database: 'myDatabaseName'
+})
+```
+
+**NOTE** There is no test sandbox provided so the snowflake integration test is not part of the pipeline. Also it is difficult for core team to triage and debug. This dialect needs to be maintained by the snowflake user/community for now.
+
+For running integration test:
+
+```sh
+SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse npm run test-integration-snowflake
 ```
 
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
