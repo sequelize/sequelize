@@ -8,8 +8,8 @@ import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
-import Op = require('./operators');
 import { SetRequired } from '../type-helpers/set-required'
+import * as Op from '../../lib/operators';
 
 export interface Logging {
   /**
