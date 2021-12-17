@@ -9,13 +9,20 @@ const sinon = require('sinon');
 const moment = require('moment');
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql' || (dialect === 'oracle' && str.includes('.'))) {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
     return `\`${str}\``;
   }
   return str;
+};
+
+const dateLiteral = str => {
+  if (dialect === 'oracle') {
+    return `to_date('${str}','YYYY-MM-DD HH24:MI:SS')`;
+  }
+  return `'${str}'`
 };
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
@@ -39,7 +46,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
         qq('createdAt')  }, ${qq('updatedAt')
-      }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+      }) VALUES ('john', 'john@gmail.com',${dateLiteral('2012-01-01 10:10:10')},${dateLiteral('2012-01-01 10:10:10')})`;
 
       await this.User.sync({ force: true });
     });
@@ -89,8 +96,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('properly bind parameters on extra retries', async function() {
         const payload = {
           username: 'test',
-          createdAt: '2010-10-10 00:00:00',
-          updatedAt: '2010-10-10 00:00:00'
+          createdAt: new Date('2010-10-10 00:00:00'),
+          updatedAt: new Date('2010-10-10 00:00:00')
         };
 
         const spy = sinon.spy();

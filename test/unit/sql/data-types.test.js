@@ -71,6 +71,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
@@ -78,6 +79,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -85,6 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -92,6 +95,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
         mariadb: 'MEDIUMTEXT',
+        oracle: 'CLOB',
         mysql: 'MEDIUMTEXT'
       });
 
@@ -99,6 +103,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
         mariadb: 'LONGTEXT',
+        oracle: 'CLOB',
         mysql: 'LONGTEXT'
       });
 
@@ -183,6 +188,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME',
         mysql: 'DATETIME',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         sqlite: 'DATETIME'
       });
 
@@ -191,6 +197,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         sqlite: 'DATETIME'
       });
 

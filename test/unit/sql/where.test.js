@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         ], {
           default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))",
-          oracle: `(roleName = 'NEW' OR (roleName = 'CLIENT' AND "type" = 'CLIENT'))`,
+          oracle: `(roleName = 'NEW' OR (roleName = 'CLIENT' AND type = 'CLIENT'))`,
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
@@ -280,7 +280,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         it("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
-            oracle: `(group_id = 1 OR (user_id = 2 AND "role" = 'admin'))`,
+            oracle: `(group_id = 1 OR (user_id = 2 AND role = 'admin'))`,
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
-          oracle:`((group_id = 1 OR user_id = 2) AND "shared" = 1)`,
+          oracle:`((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -349,7 +349,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         it('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
-            oracle: `("shared" = 1 AND (group_id = 1 OR user_id = 2))`,
+            oracle: `(shared = 1 AND (group_id = 1 OR user_id = 2))`,
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
@@ -363,7 +363,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
-          oracle: `NOT ((group_id = 1 OR user_id = 2) AND "shared" = 1)`,
+          oracle: `NOT ((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -407,14 +407,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         { 'ownerId': { [Op.col]: 'user.id' } },
         { 'ownerId': { [Op.col]: 'organization.id' } }
       ], {
-        oracle: `(ownerId = "user".id OR ownerId = "organization".id)`,
+        oracle: `(ownerId = "user".id OR ownerId = organization.id)`,
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
 
       testsql('$organization.id$', {
         [Op.col]: 'user.organizationId'
       }, {
-        oracle: `"organization".id = "user".organizationId`,
+        oracle: `organization.id = "user".organizationId`,
         default: '[organization].[id] = [user].[organizationId]'
       });
 
