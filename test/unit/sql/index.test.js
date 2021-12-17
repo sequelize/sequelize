@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: `CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)`,
+          oracle: `CREATE INDEX schema_table_column1_column2 ON schema."table" (column1, column2)`,
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
         });
 
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table'
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: `CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)`,
+          oracle: `CREATE INDEX schema_table_column1_column2 ON schema."table" (column1, column2)`,
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
         });
 
@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: `CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)`,
+          oracle: `CREATE INDEX schema_table_column1_column2 ON schema."table" (column1, column2)`,
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
         });
       }

@@ -3,6 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
+  dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -23,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
 
   describe('findOrBuild', () => {
-    it('initialize with includes', async function() {
+    (dialect !== 'oracle' ? it : it.skip)('initialize with includes', async function() {
       const [, user2] = await this.User.bulkCreate([
         { username: 'Mello', age: 10 },
         { username: 'Mello', age: 20 }

@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       await this.sequelize.createSchema('account');
     });
 
-    it('should support an include with multiple different association types', async function() {
+    (dialect !== 'oracle' ? it : it.skip)('should support an include with multiple different association types', async function() {
       await this.sequelize.dropSchema('account');
       await this.sequelize.createSchema('account');
       const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),

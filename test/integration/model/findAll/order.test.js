@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql') {
+        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'oracle') {
           it('should work with order: literal()', async function() {
             const users = await this.User.findAll({
               order: this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)
