@@ -8,7 +8,8 @@ import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
-import Op = require('./operators');
+import { SetRequired } from '../type-helpers/set-required'
+import * as Op from '../../lib/operators';
 
 export interface Logging {
   /**
@@ -784,7 +785,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 
   /**
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
-   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5). By default, all fields are updated.
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
    */
   updateOnDuplicate?: (keyof TAttributes)[];
 
@@ -1955,12 +1956,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
-  ): Promise<{ rows: M[]; count: number[] }>;
+    options?: Omit<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']>
-  ): Promise<{ rows: M[]; count: number }>;
+    options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: number[] }>;
 
   /**
    * Find the maximum value of field
