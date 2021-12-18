@@ -40,7 +40,8 @@
       }
     ],
     "semi": ["error", "always"],
-    "space-before-function-paren": [
+    "space-before-function-paren": "off",
+    "@typescript-eslint/space-before-function-paren": [
       "error",
       {
         "named": "never",
@@ -60,7 +61,7 @@
         "SwitchCase": 1
       }
     ],
-    "no-extra-parens": "error",
+    "@typescript-eslint/no-extra-parens": "error",
     "curly": "off",
     "quotes": [
       "error",
@@ -87,7 +88,9 @@
     "no-loop-func": "warn",
     "object-shorthand": "error",
     "one-var-declaration-per-line": "error",
-    "no-shadow": "warn",
+    "@typescript-eslint/no-shadow": "warn",
+    "no-shadow": "off",
+
     "prefer-template": "error",
     "no-else-return": ["error", { "allowElseIf": false }],
     "no-lonely-if": "error",
@@ -114,7 +117,20 @@
         "@typescript-eslint/no-this-alias": "off",
         "jsdoc/require-param-type": "error",
         "jsdoc/check-types": "error",
-        "jsdoc/require-returns-type": "error"
+        "jsdoc/require-returns-type": "error",
+        "@typescript-eslint/no-shadow": "off",
+        "no-shadow": "warn",
+        "@typescript-eslint/no-extra-parens": "off",
+        "no-extra-parens": "error",
+        "@typescript-eslint/space-before-function-paren": "off",
+        "space-before-function-paren": [
+          "off",
+          {
+            "named": "never",
+            "anonymous": "never",
+            "asyncArrow": "always"
+          }
+        ]
       }
     }
   ],
