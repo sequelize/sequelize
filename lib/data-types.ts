@@ -14,6 +14,7 @@ import mysqlDataTypes from './dialects/mysql/data-types';
 import mariadbDataTypes from './dialects/mariadb/data-types';
 import sqliteDataTypes from './dialects/sqlite/data-types';
 import mssqlDataTypes from './dialects/mssql/data-types';
+import snowflakeDataTypes from './dialects/snowflake/data-types';
 
 const warnings: Record<string, boolean> = {};
 
@@ -108,7 +109,10 @@ class STRING extends ABSTRACT {
     this._length = options.length || 255;
   }
   toSql() {
-    return joinSQLFragments([`VARCHAR(${this._length})`, this._binary && 'BINARY']);
+    return joinSQLFragments([
+      `VARCHAR(${this._length})`,
+      this._binary && 'BINARY'
+    ]);
   }
   validate(value: string) {
     if (Object.prototype.toString.call(value) !== '[object String]') {
@@ -143,7 +147,10 @@ class CHAR extends STRING {
     super(typeof length === 'object' && length || { length, binary });
   }
   toSql() {
-    return joinSQLFragments([`CHAR(${this._length})`, this._binary && 'BINARY']);
+    return joinSQLFragments([
+      `CHAR(${this._length})`,
+      this._binary && 'BINARY'
+    ]);
   }
 }
 
@@ -318,22 +325,26 @@ class INTEGER extends NUMBER {
 /**
  * A 8 bit integer
  */
-class TINYINT extends INTEGER {}
+class TINYINT extends INTEGER {
+}
 
 /**
  * A 16 bit integer
  */
-class SMALLINT extends INTEGER {}
+class SMALLINT extends INTEGER {
+}
 
 /**
  * A 24 bit integer
  */
-class MEDIUMINT extends INTEGER {}
+class MEDIUMINT extends INTEGER {
+}
 
 /**
  * A 64 bit integer
  */
-class BIGINT extends INTEGER {}
+class BIGINT extends INTEGER {
+}
 
 interface FloatOptions {
   length: string | number;
@@ -523,12 +534,9 @@ class DATE extends ABSTRACT<Date> {
     return value;
   }
   _isChanged(value: Date, originalValue: Date) {
-    if (
-      originalValue &&
-      !!value &&
+    if (originalValue && !!value &&
       (value === originalValue ||
-        value instanceof Date && originalValue instanceof Date && value.getTime() === originalValue.getTime())
-    ) {
+        value instanceof Date && originalValue instanceof Date && value.getTime() === originalValue.getTime())) {
       return false;
     }
     // not changed when set to same empty value
@@ -632,7 +640,7 @@ class BLOB extends ABSTRACT {
     super();
     const options = typeof length === 'object' && length || { length };
     this.options = options;
-    this._length = options.length;
+    this._length = options.length || '';
   }
   toSql() {
     switch (this._length.toLowerCase()) {
@@ -656,7 +664,8 @@ class BLOB extends ABSTRACT {
     if (!Buffer.isBuffer(value)) {
       if (Array.isArray(value)) {
         value = Buffer.from(value);
-      } else {
+      }
+      else {
         value = Buffer.from(value.toString());
       }
     }
@@ -670,7 +679,8 @@ class BLOB extends ABSTRACT {
     if (!Buffer.isBuffer(value)) {
       if (Array.isArray(value)) {
         value = Buffer.from(value);
-      } else {
+      }
+      else {
         value = Buffer.from(value.toString());
       }
     }
@@ -907,9 +917,9 @@ interface GeometryOptions {
  * GeoJSON is accepted as input and returned as output.
  *
  * In PostGIS, the GeoJSON is parsed using the PostGIS function `ST_GeomFromGeoJSON`.
- * In MySQL it is parsed using the function `GeomFromText`.
+ * In MySQL it is parsed using the function `ST_GeomFromText`.
  *
- * Therefore, one can just follow the [GeoJSON spec](http://geojson.org/geojson-spec.html) for handling geometry objects.  See the following examples:
+ * Therefore, one can just follow the [GeoJSON spec](https://tools.ietf.org/html/rfc7946) for handling geometry objects.  See the following examples:
  *
  * @example <caption>Defining a Geometry type attribute</caption>
  * DataTypes.GEOMETRY
@@ -917,7 +927,7 @@ interface GeometryOptions {
  * DataTypes.GEOMETRY('POINT', 4326)
  *
  * @example <caption>Create a new point</caption>
- * const point = { type: 'Point', coordinates: [39.807222,-76.984722]};
+ * const point = { type: 'Point', coordinates: [-76.984722, 39.807222]}; // GeoJson format: [lng, lat]
  *
  * User.create({username: 'username', geometry: point });
  *
@@ -937,7 +947,7 @@ interface GeometryOptions {
  * @example <caption>Create a new point with a custom SRID</caption>
  * const point = {
  *   type: 'Point',
- *   coordinates: [39.807222,-76.984722],
+ *   coordinates: [-76.984722, 39.807222]; // GeoJson format: [lng, lat]
  *   crs: { type: 'name', properties: { name: 'EPSG:4326'} }
  * };
  *
@@ -965,10 +975,10 @@ class GEOMETRY extends ABSTRACT<object> {
     this.srid = options.srid;
   }
   _stringify(value: object, options: StringifyOptions) {
-    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value: object, options: BindParamOptions) {
-    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 
@@ -1017,10 +1027,10 @@ class GEOGRAPHY extends ABSTRACT<object> {
     this.srid = options.srid;
   }
   _stringify(value: object, options: StringifyOptions) {
-    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value: object, options: BindParamOptions) {
-    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 
@@ -1062,6 +1072,21 @@ class MACADDR extends ABSTRACT {
   validate(value: string) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new sequelizeErrors.ValidationError(util.format('%j is not a valid MACADDR', value));
+    }
+    return true;
+  }
+}
+
+/**
+ * The TSVECTOR type stores text search vectors.
+ *
+ * Only available for Postgres
+ *
+ */
+class TSVECTOR extends ABSTRACT {
+  validate(value: string) {
+    if (typeof value !== 'string') {
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid string', value));
     }
     return true;
   }
@@ -1150,7 +1175,8 @@ const DataTypes = module.exports = {
   CIDR,
   INET,
   MACADDR,
-  CITEXT
+  CITEXT,
+  TSVECTOR
 };
 
 _.each(DataTypes, (dataType, name) => {
@@ -1167,7 +1193,8 @@ const dialectMap = {
   mysql: mysqlDataTypes(DataTypes),
   mariadb: mariadbDataTypes(DataTypes),
   sqlite: sqliteDataTypes(DataTypes),
-  mssql: mssqlDataTypes(DataTypes)
+  mssql: mssqlDataTypes(DataTypes),
+  snowflake: snowflakeDataTypes(DataTypes)
 };
 
 const dialectList = Object.values(dialectMap);
