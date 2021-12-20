@@ -521,4 +521,4 @@ const Op: OpTypes = {
   match: Symbol.for('match')
 } as OpTypes;
 
-export = Op;
+export default Op;

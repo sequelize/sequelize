@@ -9,7 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import { SetRequired } from '../type-helpers/set-required'
-import * as Op from '../../lib/operators';
+import Op from '../../lib/operators';
 
 export interface Logging {
   /**
@@ -1612,7 +1612,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the attributes of the model
    */
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
