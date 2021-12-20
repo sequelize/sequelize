@@ -1138,7 +1138,8 @@ class TSVECTOR extends ABSTRACT {
  * })
  * ```
  */
-const DataTypes = module.exports = {
+
+export const DataTypes = {
   ABSTRACT,
   STRING,
   CHAR,
