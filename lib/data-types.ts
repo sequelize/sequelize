@@ -14,6 +14,7 @@ import mysqlDataTypes from './dialects/mysql/data-types';
 import mariadbDataTypes from './dialects/mariadb/data-types';
 import sqliteDataTypes from './dialects/sqlite/data-types';
 import mssqlDataTypes from './dialects/mssql/data-types';
+import db2DataTypes from './dialects/db2/data-types';
 import snowflakeDataTypes from './dialects/snowflake/data-types';
 
 const warnings: Record<string, boolean> = {};
@@ -1194,6 +1195,7 @@ const dialectMap = {
   mariadb: mariadbDataTypes(DataTypes),
   sqlite: sqliteDataTypes(DataTypes),
   mssql: mssqlDataTypes(DataTypes),
+  db2: db2DataTypes(DataTypes),
   snowflake: snowflakeDataTypes(DataTypes)
 };
 
