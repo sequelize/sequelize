@@ -24,6 +24,8 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./lib/*": "./dist/lib/*.js",
+    "./lib/errors": "./dist/lib/errors/index.js",
     "./*": "./*"
   },
   "engines": {

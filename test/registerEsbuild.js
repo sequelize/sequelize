@@ -5,9 +5,17 @@ const esbuild = require('esbuild');
 const moduleAlias = require('module-alias');
 const sourceMapSupport = require('source-map-support');
 
-const distDir = path.join(__dirname, '../dist');
-// make imports from `sequelize/` go to `../dist/`
-moduleAlias.addAlias('sequelize', distDir);
+const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
+
+// for node >= 12, we use the package.json "export" property to
+//  map imports to dist
+//  so "sequelize/lib/errors" is actually mapped to "sequelize/dist/errors/index.js"
+//  (see package.json).
+if (nodeMajorVersion < 12) {
+  const distDir = path.join(__dirname, '../dist');
+  // make imports from `sequelize/` go to `../dist/`
+  moduleAlias.addAlias('sequelize', distDir);
+}
 
 const maps = {};
 
