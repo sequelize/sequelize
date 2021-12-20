@@ -9,7 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import { SetRequired } from '../type-helpers/set-required'
-import * as Op from '../../lib/operators';
+import Op = require('../../lib/operators');
 
 export interface Logging {
   /**
