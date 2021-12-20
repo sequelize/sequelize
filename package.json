@@ -56,6 +56,7 @@
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-angular": "^15.0.0",
     "@types/chai": "^4.2.22",
+    "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.11",
     "@types/sinon": "^10.0.6",

@@ -206,7 +206,7 @@ class ValidationError extends BaseError {
 
   constructor(
     message: string,
-    errors: ValidationErrorItem[],
+    errors?: ValidationErrorItem[],
     options: ErrorOptions = {}
   ) {
     super(message);
