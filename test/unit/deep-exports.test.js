@@ -10,12 +10,21 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 
 describe('exports', () => {
   it('exposes /package.json', async () => {
-    // await import('sequelize/package.json');
+    // TODO: uncomment test once https://nodejs.org/api/esm.html#json-modules are stable
+    // if (nodeMajorVersion >= 16) {
+    //   await import('sequelize/package.json', {
+    //     assert: { type: 'json' }
+    //   });
+    // }
+
     require('sequelize/package.json');
   });
 
   it('exposes lib files', async () => {
-    await import('sequelize/lib/model');
+    if (nodeMajorVersion >= 12) {
+      await import('sequelize/lib/model');
+    }
+
     require('sequelize/lib/model');
   });
 });
