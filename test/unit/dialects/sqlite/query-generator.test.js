@@ -7,7 +7,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
-  Op = require('sequelize/lib/operators'),
+  Op = require('sequelize/lib/operators').default,
   QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {

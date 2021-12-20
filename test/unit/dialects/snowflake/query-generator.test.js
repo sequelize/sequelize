@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
-  Op = require('sequelize/lib/operators'),
+  Op = require('sequelize/lib/operators').default,
   IndexHints = require('sequelize/lib/index-hints'),
   QueryGenerator = require('sequelize/lib/dialects/snowflake/query-generator');
 
@@ -345,7 +345,7 @@ if (dialect === 'snowflake') {
           arguments: ['myTable'],
           expectation: 'DROP TABLE IF EXISTS "myTable";'
         },
-        
+
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable'],

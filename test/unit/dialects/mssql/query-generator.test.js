@@ -4,7 +4,7 @@ const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const DataTypes = require('sequelize/lib/data-types');
-const Op = require('sequelize/lib/operators');
+const Op = require('sequelize/lib/operators').default;
 const TableHints = require('sequelize/lib/table-hints');
 const QueryGenerator = require('sequelize/lib/dialects/mssql/query-generator');
 
