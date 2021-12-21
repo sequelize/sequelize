@@ -466,8 +466,9 @@ if (dialect.match(/^postgres/)) {
         });
 
         it('should be able to insert a new record even with an array of enums in a schema', async function() {
+          const schema = 'special_schema';
+          this.sequelize.createSchema(schema);
           const User = this.sequelize.define('UserEnums', {
-            schema: 'specialSchema',
             name: DataTypes.STRING,
             type: DataTypes.ENUM('A', 'B', 'C'),
             owners: DataTypes.ARRAY(DataTypes.STRING),
@@ -480,6 +481,8 @@ if (dialect.match(/^postgres/)) {
               ])),
               field: 'special_permissions'
             }
+          }, {
+            schema
           });
 
           await User.sync({ force: true });
