@@ -20,8 +20,13 @@
   "types": "./dist",
   "type": "commonjs",
   "exports": {
-    "import": "./dist/index.mjs",
-    "require": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./lib/*": "./dist/lib/*.js",
+    "./lib/errors": "./dist/lib/errors/index.js",
+    "./*": "./*"
   },
   "engines": {
     "node": ">=10.0.0"
