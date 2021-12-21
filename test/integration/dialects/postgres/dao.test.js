@@ -465,6 +465,35 @@ if (dialect.match(/^postgres/)) {
           expect(user.length).to.equal(1);
         });
 
+        it('should be able to insert a new record even with an array of enums in a schema', async function() {
+          const User = this.sequelize.define('UserEnums', {
+            schema: 'specialSchema',
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            specialPermissions: {
+              type: DataTypes.ARRAY(DataTypes.ENUM([
+                'access',
+                'write',
+                'check',
+                'delete'
+              ])),
+              field: 'special_permissions'
+            }
+          });
+
+          await User.sync({ force: true });
+
+          const user = await User.bulkCreate([{
+            name: 'file.exe',
+            type: 'C',
+            owners: ['userA', 'userB'],
+            specialPermissions: ['access', 'write']
+          }]);
+
+          expect(user.length).to.equal(1);
+        });
+
         it('should fail when trying to insert foreign element on ARRAY(ENUM)', async function() {
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
