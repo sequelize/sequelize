@@ -3,7 +3,8 @@
 const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
-  getAbstractQueryGenerator = require('../../support').getAbstractQueryGenerator;
+  Support = require('../../support'),
+  getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -111,6 +112,46 @@ describe('QueryGenerator', () => {
       const QG = getAbstractQueryGenerator(this.sequelize);
       const value = this.sequelize.fn('UPPER', 'test');
       expect(() => QG.format(value)).to.throw(Error);
+    });
+  });
+
+  describe('jsonPathExtractionQuery', () => {
+    const expectQueryGenerator = (query, assertions) => {
+      const expectation = assertions[Support.sequelize.dialect.name];
+      if (!expectation) {
+        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
+      }
+      expect(query).to.equal(expectation);
+    };
+
+    it('Should handle isJson parameter true', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      expectQueryGenerator(QG.jsonPathExtractionQuery('profile', 'id', true), {
+        postgres: '(profile#>\'{id}\')',
+        sqlite: 'json_extract(profile,\'$.id\')',
+        mariadb: 'json_unquote(json_extract(profile,\'$.id\'))',
+        mysql: "json_unquote(json_extract(profile,'$.\\\"id\\\"'))"
+      });
+    });
+
+    it('Should use default handling if isJson is false', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      expectQueryGenerator(QG.jsonPathExtractionQuery('profile', 'id', false), {
+        postgres: '(profile#>>\'{id}\')',
+        sqlite: 'json_extract(profile,\'$.id\')',
+        mariadb: 'json_unquote(json_extract(profile,\'$.id\'))',
+        mysql: "json_unquote(json_extract(profile,'$.\\\"id\\\"'))"
+      });
+    });
+
+    it('Should use default handling if isJson is not passed', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      expectQueryGenerator(QG.jsonPathExtractionQuery('profile', 'id'), {
+        postgres: '(profile#>>\'{id}\')',
+        sqlite: 'json_extract(profile,\'$.id\')',
+        mariadb: 'json_unquote(json_extract(profile,\'$.id\'))',
+        mysql: "json_unquote(json_extract(profile,'$.\\\"id\\\"'))"
+      });
     });
   });
 });
