@@ -2,7 +2,7 @@
 
 Sequelize allows you to define custom getters and setters for the attributes of your models.
 
-Sequelize also allows you to specify the so-called *virtual attributes*, which are attributes on the Sequelize Model that doesn't really exist in the underlying SQL table, but instead are populated automatically by Sequelize. They are very useful for simplifying code, for example.
+Sequelize also allows you to specify the so-called *virtual attributes*, which are attributes on the Sequelize Model that doesn't really exist in the underlying SQL table, but instead are populated automatically by Sequelize. They are very useful to create custom attributes which also could simplify your code, for example.
 
 ## Getters
 
@@ -156,9 +156,9 @@ const user = await User.create({ firstName: 'John', lastName: 'Doe' });
 console.log(user.fullName); // 'John Doe'
 ```
 
-## `getterMethods` and `setterMethods`
+## Deprecated in Sequelize v7: `getterMethods` and `setterMethods`
 
-Sequelize also provides the `getterMethods` and `setterMethods` options in the model definition to specify things that look like, but aren't exactly the same as, virtual attributes. This usage is discouraged and likely to be deprecated in the future (in favor of using virtual attributes directly).
+Sequelize also provides the `getterMethods` and `setterMethods` options in the model definition to specify things that look like, but aren't exactly the same as, virtual attributes. This usage is discouraged and likely to be **deprecated** in the future (in favor of using virtual attributes directly).
 
 Example:
 

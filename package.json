@@ -20,8 +20,13 @@
   "types": "./dist",
   "type": "commonjs",
   "exports": {
-    "import": "./dist/index.mjs",
-    "require": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./lib/*": "./dist/lib/*.js",
+    "./lib/errors": "./dist/lib/errors/index.js",
+    "./*": "./*"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -107,7 +112,7 @@
     "sinon-chai": "^3.7.0",
     "snowflake-sdk": "^1.6.1",
     "source-map-support": "^0.5.21",
-    "sqlite3": "^5.0.2",
+    "sqlite3": "npm:@vscode/sqlite3@^5.0.7",
     "tedious": "8.3.0",
     "typescript": "^4.5.2"
   },
