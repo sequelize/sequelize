@@ -174,7 +174,6 @@ describe('QueryGenerator', () => {
       });
     });
   });
-});
 
   describe('queryIdentifier', () => {
     it('should throw an error if call base quoteIdentifier', function() {
