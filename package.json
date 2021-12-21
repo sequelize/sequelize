@@ -20,8 +20,13 @@
   "types": "./dist",
   "type": "commonjs",
   "exports": {
-    "import": "./dist/index.mjs",
-    "require": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./lib/*": "./dist/lib/*.js",
+    "./lib/errors": "./dist/lib/errors/index.js",
+    "./*": "./*"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -44,7 +49,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^4.0.0",
+    "retry-as-promised": "^5.0.0",
     "semver": "^7.3.5",
     "sequelize-pool": "^7.1.0",
     "toposort-class": "^1.0.1",
