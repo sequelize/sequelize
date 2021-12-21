@@ -145,7 +145,7 @@ describe('Sequelize', () => {
 
       if (dialect === 'mysql') {
         port = 3306;
-      } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+      } else if (['postgres', 'postgres-native'].includes(dialect)) {
         port = 5432;
       } else {
         // sqlite has no concept of ports when connecting
@@ -185,7 +185,7 @@ describe('Sequelize', () => {
       expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.be.true;
       expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
     });
-    
+
     it('should use query string host if specified', () => {
       const sequelize = new Sequelize('mysql://localhost:9821/dbname?host=example.com');
 

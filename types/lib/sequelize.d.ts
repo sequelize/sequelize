@@ -26,7 +26,7 @@ import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
-import { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
 
 /**
@@ -365,6 +365,9 @@ export interface Options extends Logging {
    * The PostgreSQL `client_min_messages` session parameter.
    * Set to `false` to not override the database's default.
    *
+   * Deprecated in v7, please use the sequelize option "dialectOptions.clientMinMessages" instead
+   *
+   * @deprecated
    * @default 'warning'
    */
   clientMinMessages?: string | boolean;
@@ -390,6 +393,11 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * If defined the connection will use the provided schema instead of the default ("public").
+   */
+  schema?: string;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -426,6 +434,7 @@ export class Sequelize extends Hooks {
    * @param args All further arguments will be passed as arguments to the function
    */
   public static fn: typeof fn;
+  public fn: typeof fn;
 
   /**
    * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -434,6 +443,7 @@ export class Sequelize extends Hooks {
    * @param col The name of the column
    */
   public static col: typeof col;
+  public col: typeof col;
 
   /**
    * Creates a object representing a call to the cast function.
@@ -442,6 +452,7 @@ export class Sequelize extends Hooks {
    * @param type The type to cast it to
    */
   public static cast: typeof cast;
+  public cast: typeof cast;
 
   /**
    * Creates a object representing a literal, i.e. something that will not be escaped.
@@ -449,6 +460,7 @@ export class Sequelize extends Hooks {
    * @param val
    */
   public static literal: typeof literal;
+  public literal: typeof literal;
 
   /**
    * An AND query
@@ -456,6 +468,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by AND
    */
   public static and: typeof and;
+  public and: typeof and;
 
   /**
    * An OR query
@@ -463,6 +476,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by OR
    */
   public static or: typeof or;
+  public or: typeof or;
 
   /**
    * Creates an object representing nested where conditions for postgres's json data-type.
@@ -473,6 +487,7 @@ export class Sequelize extends Hooks {
    *   '<value>'".
    */
   public static json: typeof json;
+  public json: typeof json;
 
   /**
    * A way of specifying attr = condition.
@@ -493,6 +508,7 @@ export class Sequelize extends Hooks {
    *   etc.)
    */
   public static where: typeof where;
+  public where: typeof where;
 
   /**
    * A hook that is run before validation
@@ -666,8 +682,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeConnect(name: string, fn: (options: Config) => void): void;
-  public static beforeConnect(fn: (options: Config) => void): void;
+  public static beforeConnect(name: string, fn: (options: DeepWriteable<Config>) => void): void;
+  public static beforeConnect(fn: (options: DeepWriteable<Config>) => void): void;
 
   /**
    * A hook that is run after a connection is established
@@ -1165,9 +1181,9 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TCreationAttributes = M['_attributes']>(
+  public define<M extends Model, TAttributes = M['_attributes']>(
     modelName: string,
-    attributes: ModelAttributes<M, TCreationAttributes>,
+    attributes: ModelAttributes<M, TAttributes>,
     options?: ModelOptions
   ): ModelCtor<M>;
 

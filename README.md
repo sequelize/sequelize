@@ -1,13 +1,16 @@
-# Sequelize
+<p align="center">
+  <img src="docs/images/logo-small.png" width="100" />
+  <h1 align="center">Sequelize</h1>
+</p>
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
 [![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
-<!-- [![codecov](https://badgen.net/codecov/c/github/sequelize/sequelize/main?icon=codecov)](https://codecov.io/gh/sequelize/sequelize) -->
 [![npm downloads](https://badgen.net/npm/dm/sequelize)](https://www.npmjs.com/package/sequelize)
+[![sponsor](https://img.shields.io/opencollective/all/sequelize?label=sponsors)](https://opencollective.com/sequelize)
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
+Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite), [DB2](https://en.wikipedia.org/wiki/IBM_Db2_Family) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
 Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10 and above.
 
@@ -19,13 +22,11 @@ Would you like to contribute? Read [our contribution guidelines](https://github.
 
 You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
 
-## Note: Looking for maintainers!
+## Supporting the project
 
-Recently, a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+Do you like Sequelize and would like to give back to the engineering team behind it?
 
-We are looking for more core maintainers who are interested in improving/fixing our TypeScript typings, improving the documentation, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
-
-If that sounds interesting to you, please reach out to us on [our Slack channel](https://sequelize.slack.com/) by sending a direct message to *Pedro A P B*. If you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
+We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
 
 ## Installation
 
@@ -38,6 +39,7 @@ $ npm i mysql2
 $ npm i mariadb
 $ npm i sqlite3
 $ npm i tedious # Microsoft SQL Server
+$ npm i ibm_db #DB2
 ```
 
 ## Documentation
@@ -64,8 +66,10 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 - [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 - [Plugins](https://sequelize.org/master/manual/resources.html)
+- [For YugabyteDB](https://github.com/yugabyte/sequelize-yugabytedb)
 
 ### Translations
 
 - [English](https://sequelize.org/master) (OFFICIAL)
 - [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+

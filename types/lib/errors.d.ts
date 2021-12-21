@@ -33,6 +33,38 @@ export class ValidationError extends BaseError {
   public get(path: string): ValidationErrorItem[];
 }
 
+/**
+ * An enum that is used internally by the `ValidationErrorItem` class
+ * that maps current `type` strings (as given to ValidationErrorItem.constructor()) to
+ * our new `origin` values.
+ */
+export enum ValidationErrorItemType {
+  'notnull violation' = 'CORE',
+  'string violation' = 'CORE',
+  'unique violation' = 'DB',
+  'validation error' = 'FUNCTION',
+}
+
+/**
+ * An enum that defines valid ValidationErrorItem `origin` values
+ */
+export enum ValidationErrorItemOrigin {
+  /**
+   * specifies errors that originate from the sequelize "core"
+   */
+  CORE = 'CORE',
+
+  /**
+   * specifies validation errors that originate from the storage engine
+   */
+  DB = 'DB',
+
+  /**
+   * specifies validation errors that originate from validator functions (both built-in and custom) defined for a given attribute
+   */
+  FUNCTION = 'FUNCTION',
+}
+
 export class ValidationErrorItem {
   /** An error message */
   public readonly message: string;
@@ -150,6 +182,16 @@ export class ForeignKeyConstraintError extends DatabaseError {
  * Thrown when an exclusion constraint is violated in the database
  */
 export class ExclusionConstraintError extends DatabaseError {
+  public constraint: string;
+  public fields: { [field: string]: string };
+  public table: string;
+  constructor(options: { parent?: Error; message?: string; constraint?: string; fields?: string[]; table?: string });
+}
+
+/**
+ * Thrown when constraint name is not found in the database
+ */
+export class UnknownConstraintError extends DatabaseError {
   public constraint: string;
   public fields: { [field: string]: string };
   public table: string;
