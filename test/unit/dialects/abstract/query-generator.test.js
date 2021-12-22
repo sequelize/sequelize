@@ -144,7 +144,7 @@ describe('QueryGenerator', () => {
       return expectation(query);
     };
 
-    it('Should handle isJson parameter true', function() {
+    it('should handle isJson parameter true', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', true), {
         postgres: query => expect(query()).to.equal('(profile#>\'{id}\')'),
@@ -157,7 +157,7 @@ describe('QueryGenerator', () => {
       });
     });
 
-    it('Should use default handling if isJson is false', function() {
+    it('should use default handling if isJson is false', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', false), {
         postgres: query => expect(query()).to.equal('(profile#>>\'{id}\')'),
