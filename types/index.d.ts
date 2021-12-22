@@ -1,6 +1,6 @@
 import DataTypes = require("./lib/data-types");
 import Deferrable = require("./lib/deferrable");
-import Op = require("../lib/operators");
+import Op from "../lib/operators";
 import QueryTypes = require("./lib/query-types");
 import TableHints = require("./lib/table-hints");
 import IndexHints = require("./lib/index-hints");
