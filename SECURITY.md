@@ -6,8 +6,8 @@ The following table describes the versions of this project that are currently su
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 6.x   | :heavy_check_mark:   |
-| 5.x   | :heavy_check_mark:   |
+| 6.x     | :heavy_check_mark: |
+| 5.x     | :heavy_check_mark: |
 
 ## Responsible disclosure policy
 

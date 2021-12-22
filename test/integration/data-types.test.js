@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
   sinon = require('sinon'),
@@ -10,7 +10,7 @@ const chai = require('chai'),
   current = Support.sequelize,
   Op = Sequelize.Op,
   uuid = require('uuid'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   semver = require('semver');
 
@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // mssql has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql') {
+    if (dialect === 'mssql' || dialect === 'db2') {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -377,7 +377,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);
@@ -429,10 +429,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
         //This case throw unhandled exception
         const users = await User.findAll();
-        if (dialect === 'mysql' || dialect === 'mariadb') {
+        if (['mysql', 'mariadb'].includes(dialect)) {
           // MySQL will return NULL, because they lack EMPTY geometry data support.
           expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+        } else if (['postgres', 'postgres-native'].includes(dialect)) {
           //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
           expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
         } else {
@@ -462,7 +462,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'sqlite') {
+  if (['postgres', 'sqlite'].includes(dialect)) {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', async function() {
       const Model = this.sequelize.define('model', {
@@ -487,7 +487,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql') {
+  if (['postgres', 'mysql'].includes(dialect)) {
     it('should parse DECIMAL as string', async function() {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
@@ -526,7 +526,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+  if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
     it('should parse BIGINT as string', async function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT

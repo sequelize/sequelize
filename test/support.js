@@ -4,11 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const { isDeepStrictEqual } = require('util');
 const _ = require('lodash');
-const Sequelize = require('../index');
+
+const Sequelize = require('sequelize');
 const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
-const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
+const distDir = path.resolve(__dirname, '../dist');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
@@ -113,7 +115,7 @@ const Support = {
       sequelizeOptions.native = true;
     }
 
-    if (config.storage) {
+    if (config.storage || config.storage === '') {
       sequelizeOptions.storage = config.storage;
     }
 
@@ -164,7 +166,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(`${__dirname}/../lib/dialects`)
+    return fs.readdirSync(path.join(distDir, 'lib/dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 

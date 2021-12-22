@@ -5,9 +5,9 @@ const expect = chai.expect;
 const Support = require('../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
-const DataTypes = require('../../../lib/data-types');
-const { Logger } = require('../../../lib/utils/logger');
-const sequelizeErrors = require('../../../lib/errors');
+const DataTypes = require('sequelize/lib/data-types');
+const { Logger } = require('sequelize/lib/utils/logger');
+const sequelizeErrors = require('sequelize/lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
