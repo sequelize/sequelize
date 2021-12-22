@@ -521,4 +521,9 @@ const Op: OpTypes = {
   match: Symbol.for('match')
 } as OpTypes;
 
-export = Op;
+export default Op;
+
+// https://github.com/sequelize/sequelize/issues/13791
+// remove me in v7: kept for backward compatibility as `export default Op` is
+// transpiled to `module.exports.default` instead of `module.exports`
+module.exports = Op;
