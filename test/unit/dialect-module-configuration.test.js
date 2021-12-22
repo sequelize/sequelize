@@ -4,7 +4,9 @@ const chai = require('chai'),
   expect = chai.expect,
   path = require('path'),
   Support = require(`${__dirname}/support`),
+  DataTypes = require('sequelize/lib/data-types'),
   Sequelize = Support.Sequelize,
+  registerDialect = Support.Sequelize.registerDialect,
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
@@ -52,6 +54,32 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           dialectModulePath: '/foo/bar/baz'
         });
       }).to.throw('Unable to find dialect at /foo/bar/baz');
+    });
+
+    it('initialization fails for unsupported dalect', () => {
+      registerDialect( {
+        getDialectName: () => 'supportedDialect'
+      });
+      DataTypes.supportedDialect = DataTypes.mysql;
+
+      expect(() => {
+        new Sequelize('dbname', 'root', 'pass', {
+          port: 999,
+          dialect: 'unsupportedDialect'
+        });
+      }).to.throw('The dialect unsupportedDialect is not supported. Supported dialects: mysql, db2, mssql, sqlite, mariadb, postgres, snowflake, supportedDialect.');    
+    });
+
+    // NOTE: disable this test before we refactor data-types
+    xit('initialization success for supported dalect', () => {
+      registerDialect( {
+        getDialectName: () => 'supportedDialect'
+      });
+
+      new Sequelize('dbname', 'root', 'pass', {
+        port: 999,
+        dialect: 'supportedDialect'
+      });
     });
   });
 });

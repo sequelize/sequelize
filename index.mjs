@@ -4,6 +4,8 @@ export default Pkg;
 
 // export * from './lib/sequelize';
 export const Sequelize = Pkg.Sequelize;
+export const registerDialect = Pkg.registerDialect;
+
 export const fn = Pkg.fn;
 export const col = Pkg.col;
 export const cast = Pkg.cast;
