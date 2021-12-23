@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [12, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
