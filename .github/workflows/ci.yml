@@ -11,9 +11,13 @@ jobs:
     name: Tweet release
     runs-on: ubuntu-latest
     steps:
+      - id: sequelize
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: sequelize/sequelize
       - uses: ethomson/send-tweet-action@v1
         with:
-          status: "Hi, this is a test!"
+          status: "We have just released ${{ steps.sequelize.outputs.release }} of Sequelize. Find the details here: https://github.com/sequelize/sequelize/releases/tag/${{ steps.sequelize.outputs.release }}"
           consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
           consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
           access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
