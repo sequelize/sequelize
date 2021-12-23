@@ -17,7 +17,7 @@ export class ValidationError extends BaseError {
   public readonly  errors: ValidationErrorItem[];
 
   /**
-   * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors`
+   * Thrown when the sequelize validation has failed. The error contains an `errors`
    * property, which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
    *
    * @param message Error message
@@ -28,7 +28,9 @@ export class ValidationError extends BaseError {
   /**
    * Gets all validation error items for the path / field specified.
    *
-   * @param path The path to be checked for error items
+   * @param {string} path The path to be checked for error items
+   *
+   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
    */
   public get(path: string): ValidationErrorItem[];
 }

@@ -34,8 +34,18 @@ export enum ValidationErrorItemOrigin {
 }
 
 /**
- * Validation Error Item
  * Instances of this class are included in the `ValidationError.errors` property.
+ * 
+ * | parameter | description |
+ * | --- | --- |
+ * | message | An error message |
+ * | type | The type/origin of the validation error |
+ * | path | The field that triggered the validation error |
+ * | value | The value that generated the error |
+ * | instance | the DAO instance that caused the validation error |
+ * | validatorKey |a validation "key", used for identification |
+ * | fnName | property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable |
+ * | fnArgs | parameters used with the BUILT-IN validator function, if applicable |
  */
 export class ValidationErrorItem {
   /**
@@ -195,11 +205,13 @@ export class ValidationErrorItem {
 }
 
 /**
- * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
- * which is an array with 1 or more ValidationErrorItems, one for each validation that failed.
+ * Thrown when the sequelize validation has failed. The error contains an `errors` property,
+ * which is an array with 1 or more [ValidationErrorItem](/esdoc/class/lib/errors/validation-error.ts~ValidationErrorItem.html), one for each validation that failed.
  *
- * @param message Error message
- * @param errors Array of ValidationErrorItem objects describing the validation errors
+ * | parameter | description |
+ * | --- | --- |
+ * | message | An error message |
+ * | errors | An array of ValidationErrorItem objects describing the validation errors |
  */
 class ValidationError extends BaseError {
   errors: ValidationErrorItem[];
