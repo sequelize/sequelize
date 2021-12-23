@@ -191,7 +191,6 @@
   "release": {
     "plugins": [
       "@semantic-release/commit-analyzer",
-      "semantic-release-fail-on-major-bump",
       "@semantic-release/release-notes-generator",
       "@semantic-release/npm",
       "@semantic-release/github"
