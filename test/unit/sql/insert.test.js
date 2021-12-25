@@ -30,7 +30,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
+            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'            
           },
           bind: ['triggertest']
         });
@@ -98,7 +100,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($1); SET IDENTITY_INSERT [ms] OFF;',
+            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
+            snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);'
           },
           bind: [0]
@@ -124,12 +128,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
+            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
+            snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
             sqlite: ['2015-01-20 00:00:00.000 +00:00'],
+            db2: ['2015-01-20 01:00:00'],
             mysql: ['2015-01-20 01:00:00'],
+            snowflake: ['2015-01-20 01:00:00'],
             mariadb: ['2015-01-20 01:00:00.000'],
             default: ['2015-01-20 01:00:00.000 +01:00']
           }
@@ -153,6 +161,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
+            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
+            snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
@@ -160,6 +170,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: ['2015-01-20 01:02:03.089 +00:00'],
             mariadb: ['2015-01-20 02:02:03.089'],
             mysql: ['2015-01-20 02:02:03.089'],
+            db2: ['2015-01-20 02:02:03.089'],
+            snowflake: ['2015-01-20 02:02:03.089'],
             default: ['2015-01-20 02:02:03.089 +01:00']
           }
         });
@@ -181,6 +193,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
@@ -222,8 +236,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+          snowflake: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
+          db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           sqlite: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
@@ -244,6 +260,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL);; SET IDENTITY_INSERT [ms] OFF;',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
+            db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+            snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);'
           }
         });

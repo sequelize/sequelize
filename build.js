@@ -8,8 +8,8 @@ const copyFiles = promisify( require('copyfiles'));
 const path = require('path');
 const exec = promisify(require('child_process').exec);
 
-const rmdir = promisify(fs.rmdir);
 const stat = promisify(fs.stat);
+const copyFile = promisify(fs.copyFile);
 
 // if this script is moved, this will need to be adjusted
 const rootDir = __dirname;
@@ -20,11 +20,16 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 async function rmDistDir() {
   try {
     await stat(outdir);
-    if (nodeMajorVersion >= 12) {
-      await rmdir(outdir, { recursive: true });
+    if (nodeMajorVersion >= 14) {
+      const rm = promisify(fs.rm);
+      await rm(outdir, { recursive: true });
     } else {
-      await rmdir(outdir);
-    }
+      const rmdir = promisify(fs.rmdir);
+      if (nodeMajorVersion >= 12) {
+        await rmdir(outdir, { recursive: true });
+      } else {
+        await rmdir(outdir);
+      }}
   } catch {
     /* no-op */
   }
@@ -63,6 +68,9 @@ async function main() {
         .concat('./index.js')
         .map(file => path.resolve(file))
     }),
+
+    // not passed to "build" because we need this file to stay as ESM instead of CJS
+    copyFile('./index.mjs', path.resolve(outdir, './index.mjs')),
 
     exec('tsc', {
       env: {
