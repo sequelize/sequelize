@@ -18,9 +18,12 @@ New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.or
 
 Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help.
 
-### v6 Release
+### Major version changelog
 
-You can find the detailed changelog [here](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md).
+Please find upgrade information to major versions here:
+
+- [Upgrade from v5 to v6](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v6.md)
+- [Upgrade from v6 to v7](https://github.com/sequelize/sequelize/blob/main/docs/manual/other-topics/upgrade-to-v7.md)
 
 ## Supporting the project
 
