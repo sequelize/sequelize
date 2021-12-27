@@ -18,7 +18,7 @@ jobs:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - uses: sequelize/proxy-release-to-open-collective#main
+      - uses: sequelize/proxy-release-to-open-collective@main
         with:
           releaseId: ${{ github.event.release.id }}
           projectSlug: sequelize/sequelize
