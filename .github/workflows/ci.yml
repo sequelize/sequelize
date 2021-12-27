@@ -262,7 +262,7 @@ jobs:
         test-mysql-mariadb,
         test-mssql,
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -273,19 +273,3 @@ jobs:
           node-version: 16.x
       - run: yarn install --frozen-lockfile
       - run: npx semantic-release
-  tweet:
-    name: Tweet release
-    runs-on: ubuntu-latest
-    needs: release
-    steps:
-      - id: sequelize
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: sequelize/sequelize
-      - uses: ethomson/send-tweet-action@v1
-        with:
-          status: "We have just released ${{ steps.sequelize.outputs.release }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.sequelize.outputs.release }}"
-          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
