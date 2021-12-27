@@ -3,40 +3,26 @@ on:
   release:
     types: [published]
 jobs:
-  tweet:
-    name: Tweet release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ethomson/send-tweet-action@v1
-        with:
-          status: "We have just released ${{ github.event.release.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ github.event.release.name }}"
-          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+  # tweet:
+  #   name: Tweet release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: ethomson/send-tweet-action@v1
+  #       with:
+  #         status: "We have just released ${{ github.event.release.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ github.event.release.name }}"
+  #         consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+  #         consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+  #         access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+  #         access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
   notify-opencollective:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - id: post-to-open-collective
-        uses: fjogeleit/http-request-action@master
+      - uses: sequelize/proxy-release-to-open-collective#main
         with:
-          url: "https://api.opencollective.com/graphql/v2"
-          method: "POST"
-          customHeaders: |
-            { "Api-Key": "${{ secrets.OPEN_COLLECTIVE_KEY }}" }
-          escapeData: true
-          data: |
-            {
-              "query": "mutation {
-                createUpdate(update: { 
-                  title: \"Release of Sequelize ${{ github.event.release.name }}\", 
-                  html: \"On GitHub: ${{ github.event.release.html_url }}\n\n${{ github.event.release.body }}\", 
-                  account: {slug: \"sequelize\"} 
-                }) {
-                  id
-                  title
-                }
-              }",
-              "variables":{}
-            }
+          releaseId: ${{ github.event.release.id }}
+          projectSlug: sequelize/sequelize
+          ocSlug: sequelize
+          ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }} 
+
