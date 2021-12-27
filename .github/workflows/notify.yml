@@ -1,9 +1,7 @@
 name: Notify release channels
-on: [push, pull_request]
-
-# on:
-  # release:
-  #   types: [published]
+on:
+  release:
+    types: [published]
 jobs:
   # tweet:
   #   name: Tweet release
@@ -20,35 +18,25 @@ jobs:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - id: sequelize
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: sequelize/sequelize
       - id: post-to-open-collective
         uses: fjogeleit/http-request-action@master
         with:
-          url: "https://api.opencollective.com/graphql/v2/${{ secrets.OPEN_COLLECTIVE_KEY }}"
+          url: "https://api.opencollective.com/graphql/v2"
           method: "POST"
+          customHeaders: |
+            { "Api-Key": "${{ secrets.OPEN_COLLECTIVE_KEY }}" }
+          escapeData: true
           data: |
-            mutation {
-              createUpdate(update: { title: "Release of Sequelize ${{ steps.sequelize.outputs.release }}", html: "test from github actions", account: {slug: "sequelize"} }) {
-                id
-                title
-                html
-              }
+            {
+              "query": "mutation {
+                createUpdate(update: { 
+                  title: \"Release of Sequelize ${{ github.event.release.name }}\", 
+                  html: \"On GitHub: ${{ github.event.release.html_url }}\n\n${{ github.event.release.body }}\", 
+                  account: {slug: \"sequelize\"} 
+                }) {
+                  id
+                  title
+                }
+              }",
+              "variables":{}
             }
-
-
-
-
-# - run: echo "Name: ${{ github.event.release.name }} Description: ${{ github.event.release.body }}"      - id: sequelize
-      #   uses: pozetroninc/github-action-get-latest-release@master
-      #   with:
-      #     repository: sequelize/sequelize
-      # - uses: ethomson/send-tweet-action@v1
-      #   with:
-      #     status: "We have just released ${{ steps.sequelize.outputs.release }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.sequelize.outputs.release }}"
-      #     consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
-      #     consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
-      #     access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-      #     access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
