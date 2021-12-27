@@ -18,10 +18,6 @@ jobs:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: npm install
       - uses: sequelize/proxy-release-to-open-collective@main
         with:
           releaseId: ${{ github.event.release.id }}
