@@ -8,7 +8,7 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor, ModelStatic, ModelType
+  ModelStatic,
 } from './model';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -487,7 +487,7 @@ export class QueryInterface {
     insertValues: object,
     updateValues: object,
     where: object,
-    model: ModelType,
+    model: ModelStatic<any>,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -540,13 +540,13 @@ export class QueryInterface {
     tableName: TableName,
     identifier: WhereOptions<any>,
     options?: QueryOptions,
-    model?: ModelType
+    model?: ModelStatic<any>
   ): Promise<object>;
 
   /**
    * Returns selected rows
    */
-  public select(model: ModelType | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: ModelStatic<any> | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -566,7 +566,7 @@ export class QueryInterface {
     tableName: TableName,
     options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
-    model?: ModelType
+    model?: ModelStatic<any>
   ): Promise<string[]>;
 
   /**

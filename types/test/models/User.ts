@@ -134,11 +134,25 @@ User.addScope(
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
 import { UserGroup } from './UserGroup';
+import { UserPost } from "./UserPost";
+
+// associate with a class-based model
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
+// associate with a sequelize.define model
+User.hasMany(UserPost, { as: 'posts', foreignKey: 'userId' });
+UserPost.belongsTo(User, {
+  foreignKey: 'userId',
+  targetKey: 'id',
+  as: 'user',
+});
 
 // associations refer to their Model
 const userType: ModelCtor<User> = User.associations.group.source;
 const groupType: ModelCtor<UserGroup> = User.associations.group.target;
+
+// should associate correctly with both sequelize.define and class-based models
+User.findOne({ include: [{ model: UserGroup }]});
+User.findOne({ include: [{ model: UserPost }]});
 
 User.scope([
   'custom2',

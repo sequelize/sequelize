@@ -1,7 +1,7 @@
 import { IncludeOptions } from '..';
 import { Connection } from './connection-manager';
 import {
-  Model, ModelType
+  Model, ModelStatic
 } from './model';
 import { Sequelize } from './sequelize';
 import QueryTypes = require('./query-types');
@@ -16,7 +16,7 @@ export interface AbstractQueryGroupJoinDataOptions {
 
 export interface AbstractQueryOptions {
   instance?: Model;
-  model?: ModelType;
+  model?: ModelStatic<any>;
   type?: QueryTypes;
 
   fieldMap?: boolean;
@@ -82,10 +82,10 @@ export class AbstractQuery {
   /**
    * Model type definition.
    *
-   * @type {ModelType}
+   * @type {ModelStatic<any>}
    * @memberof AbstractQuery
    */
-  public model: ModelType;
+  public model: ModelStatic<any>;
 
   /**
    * Returns the current sequelize instance.

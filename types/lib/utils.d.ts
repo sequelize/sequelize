@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Model, ModelCtor, ModelType, WhereOptions } from './model';
+import { Model, ModelStatic, WhereOptions } from './model';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 
@@ -34,17 +34,17 @@ export interface OptionsForMapping<TAttributes> {
 /** Expand and normalize finder options */
 export function mapFinderOptions<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
   options: T,
-  model: ModelCtor<M>
+  model: ModelStatic<M>
 ): T;
 
 /* Used to map field names in attributes and where conditions */
 export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
-  options: T, model: ModelCtor<M>
+  options: T, model: ModelStatic<M>
 ): T;
 
-export function mapWhereFieldNames(attributes: object, model: ModelType): object;
+export function mapWhereFieldNames(attributes: object, model: ModelStatic<any>): object;
 /** Used to map field names in values */
-export function mapValueFieldNames(dataValues: object, fields: string[], model: ModelType): object;
+export function mapValueFieldNames(dataValues: object, fields: string[], model: ModelStatic<any>): object;
 
 export function isColString(value: string): boolean;
 export function canTreatArrayAsAnd(arr: unknown[]): boolean;
