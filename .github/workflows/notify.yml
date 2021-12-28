@@ -1,10 +1,5 @@
 name: Notify release channels
-on:
-  repository_dispatch:
-    inputs:
-      release-id:
-        description: 'GitHub Release ID'
-        required: true
+on: repository_dispatch
 jobs:
   # tweet:
   #   name: Tweet release
@@ -23,7 +18,7 @@ jobs:
     steps:
       - uses: sequelize/proxy-release-to-open-collective@main
         with:
-          releaseId: ${{ github.event.inputs.release-id }}
+          releaseId: ${{ github.event.client_payload.release-id }}
           projectSlug: sequelize/sequelize
           ocSlug: sequelize
           ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
