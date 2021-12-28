@@ -10,7 +10,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          releaseId: ${{ github.event.inputs.release-id }}
+          releaseId: ${{ github.event.client_payload.release-id }}
       - uses: ethomson/send-tweet-action@v1
         with:
           status: "We have just released ${{ steps.releaseInfo.outputs.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.releaseInfo.outputs.name }}"
@@ -24,7 +24,7 @@ jobs:
   #   steps:
   #     - uses: sequelize/proxy-release-to-open-collective@main
   #       with:
-  #         releaseId: ${{ github.event.inputs.release-id }}
+  #         releaseId: ${{ github.event.client_payload.release-id }}
   #         projectSlug: sequelize/sequelize
   #         ocSlug: sequelize
   #         ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
