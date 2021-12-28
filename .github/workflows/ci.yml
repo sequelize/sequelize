@@ -273,3 +273,9 @@ jobs:
           node-version: 16.x
       - run: yarn install --frozen-lockfile
       - run: npx semantic-release
+      - id: sequelize
+        uses: sdepold/github-action-get-latest-release@master
+        with:
+          repository: sequelize/sequelize
+      - run: |
+          curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": ${{ steps.sequelize.outputs.id }}}}'
