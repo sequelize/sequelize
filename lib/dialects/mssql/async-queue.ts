@@ -1,4 +1,5 @@
-import { BaseError, ConnectionError } from '../../errors';
+import BaseError from '../../errors/base-error';
+import ConnectionError from '../../errors/connection-error';
 
 /**
  * Thrown when a connection to a database is closed while an operation is in progress
