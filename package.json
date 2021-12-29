@@ -200,12 +200,12 @@
       {
         "name": "v6-beta",
         "channel": "beta",
-        "prerelease": true
+        "prerelease": "beta"
       },
       {
         "name": "v7",
         "channel": "alpha",
-        "prerelease": true
+        "prerelease": "alpha"
       }
     ]
   },
