@@ -199,11 +199,13 @@
       "v6",
       {
         "name": "v6-beta",
-        "prerelease": "beta"
+        "channel": "beta",
+        "prerelease": true
       },
       {
         "name": "v7",
-        "prerelease": "alpha"
+        "channel": "alpha",
+        "prerelease": true
       }
     ]
   },
