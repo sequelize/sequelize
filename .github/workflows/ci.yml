@@ -1,5 +1,11 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - v6
+      - v7
+  pull_request:
 
 env:
   SEQ_DB: sequelize_test
