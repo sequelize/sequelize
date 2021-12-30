@@ -130,33 +130,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Foo.addScope('limitedBazs', this.scopes.limitedBazs);
         this.Foo.addScope('excludeBazName', this.scopes.excludeBazName);
 
-        // From; https://stackoverflow.com/questions/9960908/permutations-in-javascript/20871714#20871714
-        const permutator = inputArr => {
-          const result = [];
-
-          const permute = (arr, m = []) => {
-            if (arr.length === 0) {
-              result.push(m);
-            } else {
-              for (let i = 0; i < arr.length; i++) {
-                const curr = arr.slice();
-                const next = curr.splice(i, 1);
-                permute(curr.slice(), m.concat(next));
-              }
-            }
-          };
-
-          permute(inputArr);
-
-          return result;
-        };
-
-        this.scopePermutations = permutator([
-          'includeEverything',
-          'limitedBars',
-          'limitedBazs',
-          'excludeBazName'
-        ]);
+        this.scopePermutations = [
+          ['includeEverything', 'limitedBars', 'limitedBazs', 'excludeBazName'],
+          ['includeEverything', 'limitedBars', 'excludeBazName', 'limitedBazs'],
+          ['includeEverything', 'limitedBazs', 'limitedBars', 'excludeBazName'],
+          ['includeEverything', 'limitedBazs', 'excludeBazName', 'limitedBars'],
+          ['includeEverything', 'excludeBazName', 'limitedBars', 'limitedBazs'],
+          ['includeEverything', 'excludeBazName', 'limitedBazs', 'limitedBars'],
+          ['limitedBars', 'includeEverything', 'limitedBazs', 'excludeBazName'],
+          ['limitedBars', 'includeEverything', 'excludeBazName', 'limitedBazs'],
+          ['limitedBars', 'limitedBazs', 'includeEverything', 'excludeBazName'],
+          ['limitedBars', 'limitedBazs', 'excludeBazName', 'includeEverything'],
+          ['limitedBars', 'excludeBazName', 'includeEverything', 'limitedBazs'],
+          ['limitedBars', 'excludeBazName', 'limitedBazs', 'includeEverything'],
+          ['limitedBazs', 'includeEverything', 'limitedBars', 'excludeBazName'],
+          ['limitedBazs', 'includeEverything', 'excludeBazName', 'limitedBars'],
+          ['limitedBazs', 'limitedBars', 'includeEverything', 'excludeBazName'],
+          ['limitedBazs', 'limitedBars', 'excludeBazName', 'includeEverything'],
+          ['limitedBazs', 'excludeBazName', 'includeEverything', 'limitedBars'],
+          ['limitedBazs', 'excludeBazName', 'limitedBars', 'includeEverything'],
+          ['excludeBazName', 'includeEverything', 'limitedBars', 'limitedBazs'],
+          ['excludeBazName', 'includeEverything', 'limitedBazs', 'limitedBars'],
+          ['excludeBazName', 'limitedBars', 'includeEverything', 'limitedBazs'],
+          ['excludeBazName', 'limitedBars', 'limitedBazs', 'includeEverything'],
+          ['excludeBazName', 'limitedBazs', 'includeEverything', 'limitedBars'],
+          ['excludeBazName', 'limitedBazs', 'limitedBars', 'includeEverything']
+        ];
 
         await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });
