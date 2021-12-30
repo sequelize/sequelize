@@ -3,8 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('sequelize'),
   expect = chai.expect,
-  Support = require('../../support'),
-  combinatorics = require('js-combinatorics');
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -131,12 +130,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Foo.addScope('limitedBazs', this.scopes.limitedBazs);
         this.Foo.addScope('excludeBazName', this.scopes.excludeBazName);
 
-        this.scopePermutations = combinatorics.permutation([
+        // From; https://stackoverflow.com/questions/9960908/permutations-in-javascript/20871714#20871714
+        const permutator = inputArr => {
+          const result = [];
+
+          const permute = (arr, m = []) => {
+            if (arr.length === 0) {
+              result.push(m);
+            } else {
+              for (let i = 0; i < arr.length; i++) {
+                const curr = arr.slice();
+                const next = curr.splice(i, 1);
+                permute(curr.slice(), m.concat(next));
+              }
+            }
+          };
+
+          permute(inputArr);
+
+          return result;
+        };
+
+        this.scopePermutations = permutator([
           'includeEverything',
           'limitedBars',
           'limitedBazs',
           'excludeBazName'
-        ]).toArray();
+        ]);
 
         await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });

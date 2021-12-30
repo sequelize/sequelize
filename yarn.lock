@@ -4757,11 +4757,6 @@ jmespath@0.15.0:
   resolved "https://registry.yarnpkg.com/jmespath/-/jmespath-0.15.0.tgz#a3f222a9aae9f966f5d27c796510e28091764217"
   integrity sha1-o/Iiqarp+Wb10nx5ZRDigJF2Qhc=
 
-js-combinatorics@0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/js-combinatorics/-/js-combinatorics-0.6.1.tgz#d26e9a7aaac03a463611d18309fa9010ff903eff"
-  integrity sha512-VDPHc5J++qdzvngxUhOnUGwegFB9vlNzyWTD6oXKCd9qvw8NAsZdFaWK44W91U0GtBR9R0yppMgzNwTJQYymqg==
-
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
