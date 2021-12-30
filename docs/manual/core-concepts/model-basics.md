@@ -123,7 +123,7 @@ user.id; // 1
 In TypeScript, you can add typing information without adding an actual public class field by using the `declare` keyword:
 
 ```typescript
-// Invalid
+// Valid
 class User extends Model {
   declare id: number; // this is ok! The 'declare' keyword ensures this field will not be emitted by TypeScript.
 }
