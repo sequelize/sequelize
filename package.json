@@ -88,7 +88,6 @@
     "fast-glob": "3.2.7",
     "fs-jetpack": "4.3.0",
     "husky": "7.0.4",
-    "js-combinatorics": "0.6.1",
     "lcov-result-merger": "3.1.0",
     "lint-staged": "12.1.4",
     "mariadb": "2.5.5",
@@ -199,10 +198,12 @@
       "v6",
       {
         "name": "v6-beta",
+        "channel": "beta",
         "prerelease": "beta"
       },
       {
         "name": "v7",
+        "channel": "alpha",
         "prerelease": "alpha"
       }
     ]
