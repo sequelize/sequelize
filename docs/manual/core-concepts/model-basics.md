@@ -101,6 +101,7 @@ User.init({
 const user = new User({ id: 1 });
 user.id; // undefined
 ```
+
 ```typescript
 // Valid
 class User extends Model {
