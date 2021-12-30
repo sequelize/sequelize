@@ -21,6 +21,7 @@ jobs:
   docs:
     name: Generate docs
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -35,6 +36,7 @@ jobs:
         ts-version: ["3.9", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -50,6 +52,7 @@ jobs:
         node-version: [12, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    needs: test-typings
     env:
       DIALECT: db2
       SEQ_DB: testdb
@@ -78,6 +81,7 @@ jobs:
         node-version: [12, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    needs: test-typings
     env:
       DIALECT: sqlite
     steps:
@@ -100,6 +104,7 @@ jobs:
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
+    needs: test-typings
     services:
       postgres:
         image: sushantdhiman/postgres:${{ matrix.postgres-version }}
@@ -167,6 +172,7 @@ jobs:
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    needs: test-typings
     services:
       mysql:
         image: ${{ matrix.image }}
@@ -200,6 +206,7 @@ jobs:
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    needs: test-typings
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
@@ -237,6 +244,7 @@ jobs:
         node-version: [12, 16]
     name: SNOWFLAKE (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    needs: test-typings
     env:
       DIALECT: snowflake
     steps:
@@ -254,9 +262,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
-        lint,
         docs,
-        test-typings,
         test-sqlite,
         test-postgres,
         test-mysql-mariadb,
