@@ -365,6 +365,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await this.UserVisit.sync({ force: true });
         });
 
+        it('emits raw errors if requested', async function () {
+          const sql = 'SELECT 1 FROM NotFoundTable';
+
+          await expect(this.sequelize.query(sql, { rawErrors: false }))
+            .to.eventually.be.rejectedWith(DatabaseError);
+
+          await expect(this.sequelize.query(sql, { rawErrors: true }))
+            .to.eventually.be.rejected
+            .and.not.be.an.instanceOf(DatabaseError);
+        });
+
         it('emits full stacktraces for generic database error', async function () {
           let error = null;
           try {
