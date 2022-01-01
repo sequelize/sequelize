@@ -197,13 +197,7 @@
     "branches": [
       "v6",
       {
-        "name": "v6-beta",
-        "channel": "beta",
-        "prerelease": "beta"
-      },
-      {
         "name": "v7",
-        "channel": "alpha",
         "prerelease": "alpha"
       }
     ]
