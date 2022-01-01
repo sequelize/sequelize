@@ -81,14 +81,13 @@
     "esdoc-ecmascript-proposal-plugin": "1.0.0",
     "esdoc-inject-style-plugin": "1.0.0",
     "esdoc-standard-plugin": "1.0.0",
-    "eslint": "8.5.0",
-    "eslint-plugin-jsdoc": "37.4.2",
-    "eslint-plugin-mocha": "9.0.0",
+    "eslint": "8.6.0",
+    "eslint-plugin-jsdoc": "37.5.0",
+    "eslint-plugin-mocha": "10.0.3",
     "expect-type": "0.12.0",
     "fast-glob": "3.2.7",
     "fs-jetpack": "4.3.0",
     "husky": "7.0.4",
-    "js-combinatorics": "0.6.1",
     "lcov-result-merger": "3.1.0",
     "lint-staged": "12.1.4",
     "mariadb": "2.5.5",
@@ -197,10 +196,6 @@
     ],
     "branches": [
       "v6",
-      {
-        "name": "v6-beta",
-        "prerelease": "beta"
-      },
       {
         "name": "v7",
         "prerelease": "alpha"

@@ -1191,7 +1191,7 @@ acorn-walk@^8.1.1:
   resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.2.0.tgz#741210f2e2426454508853a2f44d0ab83b7f69c1"
   integrity sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==
 
-acorn@8.7.0, acorn@^8.4.1:
+acorn@8.7.0, acorn@^8.4.1, acorn@^8.7.0:
   version "8.7.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.7.0.tgz#90951fde0f8f09df93549481e5fc141445b791cf"
   integrity sha512-V/LGr1APy+PXIwKebEWrkZPwoeoF+w1jiOBUmuxuiUIaOHtob8Qc9BTrYo7VuI5fR8tqsy+buA2WFooR5olqvQ==
@@ -3244,10 +3244,10 @@ esdoc@1.1.0:
     minimist "1.2.0"
     taffydb "2.7.3"
 
-eslint-plugin-jsdoc@37.4.2:
-  version "37.4.2"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-37.4.2.tgz#971ed6118722e00b60652dbb804e7eb78edd88a9"
-  integrity sha512-hKTIu5m0PxD21ZXdFVFpknEyp9aMvDMzamR+1bkcRHK9MDIYgroRGBQCeHupvcZ5TyGU0EfE+ed0FhLhkbekfQ==
+eslint-plugin-jsdoc@37.5.0:
+  version "37.5.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-37.5.0.tgz#f94a96cebbc24e5e7d206ae611521b06211e261b"
+  integrity sha512-7PGMEXIwsnFww0KHxDcKZV5fPDS3vVOe5kJWQ7ES8r9RuEfcBTChQGbCOoGAR0zZ/POwmuFEEBakfoScvou/Rw==
   dependencies:
     "@es-joy/jsdoccomment" "0.14.1"
     comment-parser "1.3.0"
@@ -3259,10 +3259,10 @@ eslint-plugin-jsdoc@37.4.2:
     semver "^7.3.5"
     spdx-expression-parse "^3.0.1"
 
-eslint-plugin-mocha@9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-mocha/-/eslint-plugin-mocha-9.0.0.tgz#b4457d066941eecb070dc06ed301c527d9c61b60"
-  integrity sha512-d7knAcQj1jPCzZf3caeBIn3BnW6ikcvfz0kSqQpwPYcVGLoJV5sz0l0OJB2LR8I7dvTDbqq1oV6ylhSgzA10zg==
+eslint-plugin-mocha@10.0.3:
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-mocha/-/eslint-plugin-mocha-10.0.3.tgz#a4ecf2351828e852156316b7e936e7336fc0ff5e"
+  integrity sha512-9mM7PZGxfejpjey+MrG0Cu3Lc8MyA5E2s7eUCdHXgS4SY/H9zLuwa7wVAjnEaoDjbBilA+0bPEB+iMO7lBUPcg==
   dependencies:
     eslint-utils "^3.0.0"
     ramda "^0.27.1"
@@ -3300,10 +3300,10 @@ eslint-visitor-keys@^3.0.0, eslint-visitor-keys@^3.1.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.1.0.tgz#eee4acea891814cda67a7d8812d9647dd0179af2"
   integrity sha512-yWJFpu4DtjsWKkt5GeNBBuZMlNcYVs6vRCLoCVEJrTjaSB6LC98gFipNK/erM2Heg/E8mIK+hXG/pJMLK+eRZA==
 
-eslint@8.5.0:
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.5.0.tgz#ddd2c1afd8f412036f87ae2a063d2aa296d3175f"
-  integrity sha512-tVGSkgNbOfiHyVte8bCM8OmX+xG9PzVG/B4UCF60zx7j61WIVY/AqJECDgpLD4DbbESD0e174gOg3ZlrX15GDg==
+eslint@8.6.0:
+  version "8.6.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.6.0.tgz#4318c6a31c5584838c1a2e940c478190f58d558e"
+  integrity sha512-UvxdOJ7mXFlw7iuHZA4jmzPaUqIw54mZrv+XPYKNbKdLR0et4rf60lIZUU9kiNtnzzMzGWxMV+tQ7uG7JG8DPw==
   dependencies:
     "@eslint/eslintrc" "^1.0.5"
     "@humanwhocodes/config-array" "^0.9.2"
@@ -3317,7 +3317,7 @@ eslint@8.5.0:
     eslint-scope "^7.1.0"
     eslint-utils "^3.0.0"
     eslint-visitor-keys "^3.1.0"
-    espree "^9.2.0"
+    espree "^9.3.0"
     esquery "^1.4.0"
     esutils "^2.0.2"
     fast-deep-equal "^3.1.3"
@@ -3350,6 +3350,15 @@ espree@^9.2.0:
   integrity sha512-oP3utRkynpZWF/F2x/HZJ+AGtnIclaR7z1pYPxy7NYM2fSO6LgK/Rkny8anRSPK/VwEA1eqm2squui0T7ZMOBg==
   dependencies:
     acorn "^8.6.0"
+    acorn-jsx "^5.3.1"
+    eslint-visitor-keys "^3.1.0"
+
+espree@^9.3.0:
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/espree/-/espree-9.3.0.tgz#c1240d79183b72aaee6ccfa5a90bc9111df085a8"
+  integrity sha512-d/5nCsb0JcqsSEeQzFZ8DH1RmxPcglRWh24EFTlUEmCKoehXGdpsx0RkHDubqUI8LSAIKMQp4r9SzQ3n+sm4HQ==
+  dependencies:
+    acorn "^8.7.0"
     acorn-jsx "^5.3.1"
     eslint-visitor-keys "^3.1.0"
 
@@ -4756,11 +4765,6 @@ jmespath@0.15.0:
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/jmespath/-/jmespath-0.15.0.tgz#a3f222a9aae9f966f5d27c796510e28091764217"
   integrity sha1-o/Iiqarp+Wb10nx5ZRDigJF2Qhc=
-
-js-combinatorics@0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/js-combinatorics/-/js-combinatorics-0.6.1.tgz#d26e9a7aaac03a463611d18309fa9010ff903eff"
-  integrity sha512-VDPHc5J++qdzvngxUhOnUGwegFB9vlNzyWTD6oXKCd9qvw8NAsZdFaWK44W91U0GtBR9R0yppMgzNwTJQYymqg==
 
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
