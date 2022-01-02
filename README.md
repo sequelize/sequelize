@@ -45,6 +45,12 @@ npm i tedious # Microsoft SQL Server
 npm i ibm_db # DB2
 ```
 
+## Documentation
+
+- [Latest Version Documentation](https://sequelize.org/v7)
+- [All Documentation Versions](https://sequelize.org)
+- [Contributing](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
+
 ## Responsible disclosure
 
 If you have security issues to report, please refer to our [Responsible Disclosure Policy](https://github.com/sequelize/sequelize/blob/main/SECURITY.md) for more details.
@@ -54,7 +60,7 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
 - [Slack Inviter](http://sequelize-slack.herokuapp.com/)
-- [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### Tools
 
