@@ -33,7 +33,7 @@ export class UserGroup extends Model {
     public setUsers!: HasManySetAssociationsMixin<User, number>;
     public addUser!: HasManyAddAssociationMixin<User, number>;
     public addUsers!: HasManyAddAssociationsMixin<User, number>;
-    public createUser!: HasManyCreateAssociationMixin<User>;
+    public createUser!: HasManyCreateAssociationMixin<User, 'groupId'>;
     public countUsers!: HasManyCountAssociationsMixin;
     public hasUser!: HasManyHasAssociationMixin<User, number>;
     public removeUser!: HasManyRemoveAssociationMixin<User, number>;
