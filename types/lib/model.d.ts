@@ -1907,7 +1907,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<M['_attributes']>
-  ): Promise<{ [key: string]: number }>;
+  ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
 
   /**
    * Count the number of records matching the provided where clause.
