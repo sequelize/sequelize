@@ -387,6 +387,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(10);
       });
 
+      it('should be able to find a row using greater than or equal to logic with moment dates', async function() {
+        const users = await this.User.findAll({
+          where: {
+            theDate: {
+              [Op.gte]: moment('2013-01-09')
+            }
+          }
+        });
+
+        expect(users[0].username).to.equal('boo2');
+        expect(users[0].intVal).to.equal(10);
+      });
+
       it('should be able to find a row using greater than or equal to', async function() {
         const user = await this.User.findOne({
           where: {
