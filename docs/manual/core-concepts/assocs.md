@@ -611,7 +611,7 @@ The same ones from `Foo.hasMany(Bar)`:
 * `fooInstance.removeBars()`
 * `fooInstance.createBar()`
 
-For belongsToMany relationships, by default `getBars()` will return all fields from the join table. Due to details in the implementation, setting the `attributes` option for the join table as in the `find` methods will *not* work for `getBars()`, instead there is a special option `joinTableAttributes` that can be used similarly to setting `attributes` in the through table. As an example, given Foo belongsToMany Bar, the following will both output results without join table fields:
+For belongsToMany relationships, by default `getBars()` will return all fields from the join table. Due to how the associations are created, setting the `attributes` option for the join table as you would when eager loading with `find` methods will *not* work in `getBars()`. Instead there is a special option `joinTableAttributes` that can be used similarly to setting `attributes` in the through table. As an example, given Foo belongsToMany Bar, the following will both output results without join table fields:
 ```
 const foo = Foo.findByPk(id, {
   include: [{
