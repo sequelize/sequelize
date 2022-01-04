@@ -28,7 +28,7 @@ class User extends Model {
   public addProject!: HasManyAddAssociationMixin<Project, number>;
   public hasProject!: HasManyHasAssociationMixin<Project, number>;
   public countProjects!: HasManyCountAssociationsMixin;
-  public createProject!: HasManyCreateAssociationMixin<Project>;
+  public createProject!: HasManyCreateAssociationMixin<Project, 'ownerId'>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
