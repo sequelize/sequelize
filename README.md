@@ -47,7 +47,7 @@ npm i ibm_db # DB2
 
 ## Documentation
 
-- [Latest Version Documentation](https://sequelize.org/v7)
+- [Latest Version Documentation (v7)](https://sequelize.org/v7)
 - [All Documentation Versions](https://sequelize.org)
 - [Contributing](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
 
