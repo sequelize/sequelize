@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
           this.User = this.sequelize.define('User', {
             id: {
-              type: DataTypes.INTEGER,
+              type: DataTypes.BIGINT,
               primaryKey: true,
               autoIncrement: true
             },
@@ -191,6 +191,43 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
           expect(createSql).to.match(/; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/);
           expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
+        });
+
+        it('supports bigint', async function() {
+          // this test was added because while most of the time `bigint`s are stringified,
+          // they're not always. For instance, if the PK is a bigint, calling .save()
+          // will pass the PK as a bigint instead of a string as a parameter.
+          // This is fine, as bigints should be supported natively,
+          // but AbstractQuery#_logQuery used JSON.stringify on parameters,
+          // which does not support serializing bigints (https://github.com/tc39/proposal-bigint/issues/24)
+          // This test was added to ensure bigints don't cause a crash
+          // when `logQueryParameters` is true.
+
+          expect(this.sequelize.options.logQueryParameters).to.equal(true, '"logQueryParameters" must be true for this test');
+
+          let createSql, updateSql;
+
+          const user = await this.User.create({
+            // this is beyond Number.MAX_SAFE_INTEGER
+            id: 9007199254740999n
+          }, {
+            logging: s => {
+              createSql = s;
+            }
+          });
+
+          user.username = 'Test';
+
+          expect(typeof user.id).to.equal('bigint');
+
+          await user.save({
+            logging: s => {
+              updateSql = s;
+            }
+          });
+
+          expect(createSql).to.match(/; ("9007199254740999"|{"(\$1|0)":"9007199254740999"})/);
+          expect(updateSql).to.match(/; ("Test", "9007199254740999"|{"(\$1|0)":"Test","(\$2|1)":"9007199254740999"})/);
         });
 
         it('add parameters in log sql when use bind value', async function() {
@@ -366,10 +403,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               qq('createdAt')  }, ${qq('updatedAt')
             }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           }
-          let error = null;         
+          let error = null;
           try {
             // Insert 1 row
-            await this.sequelize.query(query);            
+            await this.sequelize.query(query);
             // Try inserting a duplicate row
             await this.sequelize.query(query);
           } catch (err) {
