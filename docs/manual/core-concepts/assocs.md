@@ -611,6 +611,20 @@ The same ones from `Foo.hasMany(Bar)`:
 * `fooInstance.removeBars()`
 * `fooInstance.createBar()`
 
+For belongsToMany relationships, by default `getBars()` will return all fields from the join table. Due to details in the implementation, setting the `attributes` option for the join table as in the `find` methods will *not* work for `getBars()`, instead there is a special option `joinTableAttributes` that can be used similarly to setting `attributes` in the through table. As an example, given Foo belongsToMany Bar, the following will both output results without join table fields:
+```
+const foo = Foo.findByPk(id, {
+  include: [{
+    model: Bar,
+    through: { attributes: [] }
+  }]
+})
+console.log(foo.bars)
+
+const foo = Foo.findByPk(id)
+console.log(foo.getBars({ joinTableAttributes: [] }))
+```
+
 ### Note: Method names
 
 As shown in the examples above, the names Sequelize gives to these special methods are formed by a prefix (e.g. `get`, `add`, `set`) concatenated with the model name (with the first letter in uppercase). When necessary, the plural is used, such as in `fooInstance.setBars()`. Again, irregular plurals are also handled automatically by Sequelize. For example, `Person` becomes `People` and `Hypothesis` becomes `Hypotheses`.
