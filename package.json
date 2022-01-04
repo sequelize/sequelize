@@ -198,6 +198,7 @@
       "v6",
       {
         "name": "v7",
+        "channel": "alpha",
         "prerelease": "alpha"
       }
     ]
