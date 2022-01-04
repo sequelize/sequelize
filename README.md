@@ -33,22 +33,22 @@ We have recently created an [OpenCollective based money pool](https://opencollec
 
 ## Installation
 
-```sh
-$ npm i sequelize # This will install v6
+```bash
+npm i sequelize # This will install latest version of Sequelize
 
-# And one of the following:
-$ npm i pg pg-hstore # Postgres
-$ npm i mysql2
-$ npm i mariadb
-$ npm i sqlite3
-$ npm i tedious # Microsoft SQL Server
-$ npm i ibm_db #DB2
+# Libraries used for supported dialects are :
+npm i pg pg-hstore # PostgreSQL
+npm i mysql2 # MySQL
+npm i mariadb # MariaDB
+npm i sqlite3 # SQLite
+npm i tedious # Microsoft SQL Server
+npm i ibm_db # DB2
 ```
 
 ## Documentation
 
-- [v6 Documentation](https://sequelize.org/master)
-- [v5/v4/v3 Documentation](https://sequelize.org)
+- [Latest Version Documentation (v7)](https://sequelize.org/v7)
+- [All Documentation Versions](https://sequelize.org)
 - [Contributing](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
 
 ## Responsible disclosure
@@ -58,6 +58,7 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 ## Resources
 
 - [Changelog](https://github.com/sequelize/sequelize/releases)
+- [Discussions](https://github.com/sequelize/sequelize/discussions)
 - [Slack Inviter](http://sequelize-slack.herokuapp.com/)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
