@@ -36,7 +36,7 @@ class User extends Model<UserAttributes, UserCreationAttributes>
   declare addProject: HasManyAddAssociationMixin<Project, number>;
   declare hasProject: HasManyHasAssociationMixin<Project, number>;
   declare countProjects: HasManyCountAssociationsMixin;
-  declare createProject: HasManyCreateAssociationMixin<Project>;
+  declare createProject: HasManyCreateAssociationMixin<Project, 'ownerId'>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
@@ -201,7 +201,6 @@ async function doStuffWithUser() {
 
   const project = await newUser.createProject({
     name: "first!",
-    ownerId: 123,
   });
 
   const ourUser = await User.findByPk(1, {
