@@ -1612,7 +1612,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the attributes of the model
    */
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -1907,7 +1907,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<M['_attributes']>
-  ): Promise<{ [key: string]: number }>;
+  ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
 
   /**
    * Count the number of records matching the provided where clause.
@@ -2911,15 +2911,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
+/** @deprecated use ModelStatic */
 export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
-// Do not switch the order of `typeof Model` and `{ new(): M }`. For
-// instances created by `sequelize.define` to typecheck well, `typeof Model`
-// must come first for unknown reasons.
-export type ModelCtor<M extends Model> = typeof Model & { new(): M };
+type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
 
-export type ModelDefined<S, T> = ModelCtor<Model<S, T>>;
+/** @deprecated use ModelStatic */
+export type ModelCtor<M extends Model> = ModelStatic<M>;
 
-export type ModelStatic<M extends Model> = { new(): M };
+export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+
+// remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
+export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
 
 export default Model;
