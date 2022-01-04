@@ -198,13 +198,12 @@
       "v6",
       {
         "name": "v7",
-        "channel": "alpha",
-        "prerelease": "alpha2"
+        "prerelease": "alpha"
       }
     ]
   },
   "publishConfig": {
-    "tag": "latest"
+    "tag": "alpha"
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
