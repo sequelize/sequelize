@@ -11,15 +11,15 @@ const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // 'projects' is excluded as it's not an attribute, it's an association.
 class User extends Model<AttributesOf<User, 'projects'>> {
-  // can be undefined during creation when using `autoIncrement`
+  // id can be undefined during creation when using `autoIncrement`
   declare id?: number;
   declare name: string;
   declare preferredName: string | null; // for nullable fields
 
   // timestamps!
-  // can be undefined during creation
+  // createdAt can be undefined during creation
   declare readonly createdAt?: Date;
-  // can be undefined during creation
+  // updatedAt can be undefined during creation
   declare readonly updatedAt?: Date;
 
   // Since TS cannot determine model association at compile time
@@ -48,9 +48,9 @@ class Project extends Model<AttributesOf<Project>> {
   declare ownerId: number;
   declare name: string;
 
-  // can be undefined during creation
+  // createdAt can be undefined during creation
   declare readonly createdAt?: Date;
-  // can be undefined during creation
+  // updatedAt can be undefined during creation
   declare readonly updatedAt?: Date;
 }
 
@@ -58,9 +58,9 @@ class Address extends Model<AttributesOf<Address>> {
   declare userId: number;
   declare address: string;
 
-  // can be undefined during creation
+  // createdAt can be undefined during creation
   declare readonly createdAt?: Date;
-  // can be undefined during creation
+  // updatedAt can be undefined during creation
   declare readonly updatedAt?: Date;
 }
 
