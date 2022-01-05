@@ -18,12 +18,9 @@ Example of a minimal TypeScript project with strict type-checking for attributes
 **Important**: You must use `declare` on your class properties typings to ensure TypeScript does not emit those class properties.
 See [Caveat with Public Class Fields](./model-basics.html#caveat-with-public-class-fields)
 
-**NOTE:** Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
+<!-- NOTE for maintainers: Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly. -->
 
 ```typescript
-/**
- * Keep this file in sync with the code in the "Usage" section in typescript.md
- */
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
@@ -247,8 +244,8 @@ async function doStuffWithUser() {
 
 The typings for Sequelize v5 allowed you to define models without specifying types for the attributes. This is still possible for backwards compatibility and for cases where you feel strict typing for attributes isn't worth it.
 
-**NOTE:** Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure
-it typechecks correctly.
+<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure
+it typechecks correctly. -->
 
 ```ts
 import { Sequelize, Model, DataTypes } from "sequelize";
@@ -301,8 +298,6 @@ async function doStuffWithUserModel() {
 `AttributeOf` is a utility type you can use to automatically extract attributes from your class definition.
 It's an alternative solution designed to reduce the boilerplate of the above solution.
 
-Here is the same example as above, but using `AttributeOf`.
-
 Some caveats of this solution:
 
 - it's not possible to use `AttributesOf` for `CreationAttributes`.
@@ -313,12 +308,11 @@ Some caveats of this solution:
   If one of your attributes shares the same name as one of the properties of `Model`, change its name.
   Doing this is likely to cause issues anyway.
 
-**NOTE:** Keep the following code in sync with `/types/test/typescriptDocs/ModelInitWithAttributesOf.ts` to ensure it typechecks correctly.
+Here is the same example as above, but using `AttributeOf`.
+
+<!-- NOTE for maintainers: Keep the following code in sync with `/types/test/typescriptDocs/ModelInitWithAttributesOf.ts` to ensure it typechecks correctly. -->
 
 ```typescript
-/**
- * Keep this file in sync with the code in the "Using with `AttributesOf`" section in typescript.md
- */
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
@@ -519,8 +513,8 @@ async function doStuffWithUser() {
 
 In Sequelize versions before v5, the default way of defining a model involved using `sequelize.define`. It's still possible to define models with that, and you can also add typings to these models using interfaces.
 
-**NOTE:** Keep the following code in sync with `typescriptDocs/Define.ts` to ensure
-it typechecks correctly.
+<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure
+it typechecks correctly. -->
 
 ```ts
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
@@ -561,8 +555,8 @@ async function doStuff() {
 
 If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
 
-**NOTE:** Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure
-it typechecks correctly.
+<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure
+it typechecks correctly. -->
 
 ```ts
 import { Sequelize, Model, DataTypes } from "sequelize";

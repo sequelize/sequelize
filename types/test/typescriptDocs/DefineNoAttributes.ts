@@ -1,6 +1,8 @@
 /**
  * Keep this file in sync with the code in the "Usage of `sequelize.define`"
- * that doesn't have attribute types in typescript.md
+ * that doesn't have attribute types in /docs/manual/other-topics/typescript.md
+ *
+ * Don't include this comment in the md file.
  */
 import { Sequelize, Model, DataTypes } from 'sequelize';
 
