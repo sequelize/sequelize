@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
           this.User = this.sequelize.define('User', {
             id: {
-              type: DataTypes.BIGINT,
+              type: DataTypes.INTEGER,
               primaryKey: true,
               autoIncrement: true
             },
