@@ -2926,3 +2926,41 @@ export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
 
 export default Model;
+
+/**
+ * Utility type to extract Attributes of a given Model.
+ *
+ * It returns all instance properties defined in the Model, except:
+ * - those inherited from Model (intermediate inheritance works),
+ * - the ones whose type is a function,
+ * - the ones manually excluded using the second parameter.
+ *
+ * It cannot detect whether something is a getter or not, you should use the `Excluded`
+ * parameter to exclude getter & setters from the attribute list.
+ *
+ * @example
+ * // listed attributes will be 'id' & 'firstName'.
+ * class User extends Model<AttributesOf<User>> {
+ *   id: number;
+ *   firstName: string;
+ * }
+ *
+ * @example
+ * // listed attributes will be 'id' & 'firstName'.
+ * // we're excluding the `name` & `test` getters using the second argument.
+ * class User extends Model<AttributesOf<User, 'name' | 'test'>> {
+ *   id: number;
+ *   firstName: string;
+ *
+ *   get name() { return this.firstName; }
+ *   get test() { return ''; }
+ * }
+ */
+export type AttributesOf<M extends Model, Excluded extends string = ''> = {
+  [Key in keyof M as
+    M[Key] extends Fn ? never
+    : Key extends keyof Model ? never
+    : Key extends Excluded ? never
+    : Key
+  ]: M[Key]
+};
