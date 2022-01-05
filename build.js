@@ -9,6 +9,7 @@ const path = require('path');
 const exec = promisify(require('child_process').exec);
 
 const stat = promisify(fs.stat);
+const copyFile = promisify(fs.copyFile);
 
 // if this script is moved, this will need to be adjusted
 const rootDir = __dirname;
@@ -57,8 +58,8 @@ async function main() {
     build({
       // Adds source mapping
       sourcemap: true,
-      // The compiled code should be usable in node v10
-      target: 'node10',
+      // The compiled code should be usable in node v12.22
+      target: 'node12.22',
       // The source code's format is commonjs.
       format: 'cjs',
 
@@ -67,6 +68,9 @@ async function main() {
         .concat('./index.js')
         .map(file => path.resolve(file))
     }),
+
+    // not passed to "build" because we need this file to stay as ESM instead of CJS
+    copyFile('./index.mjs', path.resolve(outdir, './index.mjs')),
 
     exec('tsc', {
       env: {

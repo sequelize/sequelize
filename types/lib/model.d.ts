@@ -8,7 +8,8 @@ import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
-import Op = require('./operators');
+import { SetRequired } from '../type-helpers/set-required'
+import Op from '../../lib/operators';
 
 export interface Logging {
   /**
@@ -385,8 +386,8 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
    */
   as?: string;
 
-  /** 
-   * If true, only non-deleted records will be returned from the join table. 
+  /**
+   * If true, only non-deleted records will be returned from the join table.
    * If false, both deleted and non-deleted records will be returned.
    * Only applies if through model is paranoid.
    */
@@ -747,6 +748,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Run validations before the row is inserted
    */
   validate?: boolean;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictFields?: (keyof TAttributes)[];
 }
 
 /**
@@ -779,7 +785,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 
   /**
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
-   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5). By default, all fields are updated.
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
    */
   updateOnDuplicate?: (keyof TAttributes)[];
 
@@ -1129,7 +1135,7 @@ export interface ModelValidateOptions {
    * check the value is one of these
    */
   isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
-  
+
   /**
    * don't allow specific substrings
    */
@@ -1604,6 +1610,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
+   * Returns the attributes of the model
+   */
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
+
+  /**
    * Reference to the sequelize instance the model was initialized with
    */
   public static readonly sequelize?: Sequelize;
@@ -1896,7 +1907,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<M['_attributes']>
-  ): Promise<{ [key: string]: number }>;
+  ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
 
   /**
    * Count the number of records matching the provided where clause.
@@ -1945,12 +1956,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
-  ): Promise<{ rows: M[]; count: number[] }>;
+    options?: Omit<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']>
-  ): Promise<{ rows: M[]; count: number }>;
+    options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: number[] }>;
 
   /**
    * Find the maximum value of field
@@ -2177,7 +2188,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     fields: { [key in keyof M['_attributes']]?: number },
     options: IncrementDecrementOptions<M['_attributes']>
   ): Promise<M>;
-              
+
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
@@ -2900,15 +2911,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
+/** @deprecated use ModelStatic */
 export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
-// Do not switch the order of `typeof Model` and `{ new(): M }`. For
-// instances created by `sequelize.define` to typecheck well, `typeof Model`
-// must come first for unknown reasons.
-export type ModelCtor<M extends Model> = typeof Model & { new(): M };
+type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
 
-export type ModelDefined<S, T> = ModelCtor<Model<S, T>>;
+/** @deprecated use ModelStatic */
+export type ModelCtor<M extends Model> = ModelStatic<M>;
 
-export type ModelStatic<M extends Model> = { new(): M };
+export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+
+// remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
+export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
 
 export default Model;

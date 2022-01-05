@@ -3,8 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('sequelize'),
   expect = chai.expect,
-  Support = require('../../support'),
-  combinatorics = require('js-combinatorics');
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -131,17 +130,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Foo.addScope('limitedBazs', this.scopes.limitedBazs);
         this.Foo.addScope('excludeBazName', this.scopes.excludeBazName);
 
-        this.scopePermutations = combinatorics.permutation([
-          'includeEverything',
-          'limitedBars',
-          'limitedBazs',
-          'excludeBazName'
-        ]).toArray();
+        this.scopePermutations = [
+          ['includeEverything', 'limitedBars', 'limitedBazs', 'excludeBazName'],
+          ['includeEverything', 'limitedBars', 'excludeBazName', 'limitedBazs'],
+          ['includeEverything', 'limitedBazs', 'limitedBars', 'excludeBazName'],
+          ['includeEverything', 'limitedBazs', 'excludeBazName', 'limitedBars'],
+          ['includeEverything', 'excludeBazName', 'limitedBars', 'limitedBazs'],
+          ['includeEverything', 'excludeBazName', 'limitedBazs', 'limitedBars'],
+          ['limitedBars', 'includeEverything', 'limitedBazs', 'excludeBazName'],
+          ['limitedBars', 'includeEverything', 'excludeBazName', 'limitedBazs'],
+          ['limitedBars', 'limitedBazs', 'includeEverything', 'excludeBazName'],
+          ['limitedBars', 'limitedBazs', 'excludeBazName', 'includeEverything'],
+          ['limitedBars', 'excludeBazName', 'includeEverything', 'limitedBazs'],
+          ['limitedBars', 'excludeBazName', 'limitedBazs', 'includeEverything'],
+          ['limitedBazs', 'includeEverything', 'limitedBars', 'excludeBazName'],
+          ['limitedBazs', 'includeEverything', 'excludeBazName', 'limitedBars'],
+          ['limitedBazs', 'limitedBars', 'includeEverything', 'excludeBazName'],
+          ['limitedBazs', 'limitedBars', 'excludeBazName', 'includeEverything'],
+          ['limitedBazs', 'excludeBazName', 'includeEverything', 'limitedBars'],
+          ['limitedBazs', 'excludeBazName', 'limitedBars', 'includeEverything'],
+          ['excludeBazName', 'includeEverything', 'limitedBars', 'limitedBazs'],
+          ['excludeBazName', 'includeEverything', 'limitedBazs', 'limitedBars'],
+          ['excludeBazName', 'limitedBars', 'includeEverything', 'limitedBazs'],
+          ['excludeBazName', 'limitedBars', 'limitedBazs', 'includeEverything'],
+          ['excludeBazName', 'limitedBazs', 'includeEverything', 'limitedBars'],
+          ['excludeBazName', 'limitedBazs', 'limitedBars', 'includeEverything']
+        ];
 
         await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });
 
-      it('should merge complex scopes correctly regardless of their order', async function() {
+      it('[Flaky] should merge complex scopes correctly regardless of their order', async function() {
+        // flaky test - sometimes it gets to:
+        // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
+        // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
         const results = await Promise.all(this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()));
         const first = results.shift().toJSON();
         for (const result of results) {
@@ -161,10 +183,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      it('should merge complex scopes with findOne options correctly regardless of their order', async function() {
+      it('[Flaky] should merge complex scopes with findOne options correctly regardless of their order', async function() {
         const results = await Promise.all(this.scopePermutations.map(([a, b, c, d]) => this.Foo.scope(a, b, c).findOne(this.scopes[d])));
         const first = results.shift().toJSON();
         for (const result of results) {
+          // flaky test - sometimes it gets to:
+          // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
+          // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
           expect(result.toJSON()).to.deep.equal(first);
         }
       });

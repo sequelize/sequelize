@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const Query = require('sequelize/lib/dialects/abstract/query.js');
+const Query = require('sequelize/lib/dialects/abstract/query');
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
 const { stub, match } = require('sinon');
@@ -507,6 +507,34 @@ describe('[ABSTRACT]', () => {
 
       expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
       expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
+    });
+
+    it('supports logging bigints', function() {
+      // this test was added because while most of the time `bigint`s are stringified,
+      // they're not always. For instance, if the PK is a bigint, calling .save()
+      // will pass the PK as a bigint instead of a string as a parameter.
+      // This is fine, as bigints should be supported natively,
+      // but AbstractQuery#_logQuery used JSON.stringify on parameters,
+      // which does not support serializing bigints (https://github.com/tc39/proposal-bigint/issues/24)
+      // This test was added to ensure bigints don't cause a crash
+      // when `logQueryParameters` is true.
+
+      const sequelizeStub = {
+        ...this.sequelizeStub,
+        options: {
+          ...this.sequelizeStub.options,
+          logQueryParameters: true
+        }
+      };
+
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, sequelizeStub, {});
+      const complete = qry._logQuery('SELECT 1', debugStub, [1n]);
+
+      complete();
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1; "1"');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1; "1"');
     });
   });
 });
