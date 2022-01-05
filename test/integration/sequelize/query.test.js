@@ -366,10 +366,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               qq('createdAt')  }, ${qq('updatedAt')
             }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           }
-          let error = null;         
+          let error = null;
           try {
             // Insert 1 row
-            await this.sequelize.query(query);            
+            await this.sequelize.query(query);
             // Try inserting a duplicate row
             await this.sequelize.query(query);
           } catch (err) {
