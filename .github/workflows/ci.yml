@@ -261,8 +261,6 @@ jobs:
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
-      # - name: Integration Tests
-      #   run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest

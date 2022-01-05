@@ -6,10 +6,34 @@
  * Thank you!
  */
 
-import { Model, Sequelize, ModelCtor, ModelType, ModelDefined, ModelStatic } from "sequelize";
+import {
+  Model,
+  Sequelize,
+  ModelCtor,
+  ModelDefined,
+  ModelStatic,
+} from 'sequelize';
 
-type Builtin = string | number | boolean | bigint | symbol | undefined | null | Function | Date | Error | RegExp;
-type SequelizeBasic = Builtin | Sequelize | Model | ModelCtor<Model> | ModelType | ModelDefined<any, any> | ModelStatic<Model>;
+type Builtin =
+  | string
+  | number
+  | boolean
+  | bigint
+  | symbol
+  | undefined
+  | null
+  | Function
+  | Date
+  | Error
+  | RegExp;
+
+type SequelizeBasic =
+  | Builtin
+  | Sequelize
+  | Model
+  | ModelCtor<Model>
+  | ModelDefined<any, any>
+  | ModelStatic<Model>;
 
 // type ToMutableArrayIfNeeded<T> = T extends readonly any[]
 //   ? { -readonly [K in keyof T]: ToMutableArrayIfNeeded<T[K]> }

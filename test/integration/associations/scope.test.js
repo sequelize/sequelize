@@ -5,7 +5,9 @@ const chai = require('chai'),
   Support = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
   Sequelize = require('sequelize'),
-  Op = Sequelize.Op;
+  current = Support.sequelize,
+  Op = Sequelize.Op,
+  semver = require('semver');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
@@ -321,102 +323,104 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
-          it('[Flaky] should create, find and include associations with scope values', async function() {
-            await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
-            await this.PostTag.sync({ force: true });
+          if (!(Support.getTestDialect() === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0'))) {
+            it('should create, find and include associations with scope values', async function() {
+              await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
+              await this.PostTag.sync({ force: true });
 
-            const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
-              this.Post.create(),
-              this.Post.create(),
-              this.Post.create(),
-              this.Tag.create({ type: 'category' }),
-              this.Tag.create({ type: 'category' }),
-              this.Tag.create({ type: 'tag' }),
-              this.Tag.create({ type: 'tag' })
-            ]);
+              const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
+                this.Post.create(),
+                this.Post.create(),
+                this.Post.create(),
+                this.Tag.create({ type: 'category' }),
+                this.Tag.create({ type: 'category' }),
+                this.Tag.create({ type: 'tag' }),
+                this.Tag.create({ type: 'tag' })
+              ]);
 
-            this.postA = postA0;
-            this.postB = postB0;
-            this.postC = postC0;
+              this.postA = postA0;
+              this.postB = postB0;
+              this.postC = postC0;
 
-            await Promise.all([
-              postA0.addCategory(categoryA),
-              postA0.createTag(),
-              postB0.setCategories([categoryB]),
-              postB0.addTag(tagA),
-              postC0.createCategory(),
-              postC0.setTags([tagB])
-            ]);
+              await Promise.all([
+                postA0.addCategory(categoryA),
+                postA0.createTag(),
+                postB0.setCategories([categoryB]),
+                postB0.addTag(tagA),
+                postC0.createCategory(),
+                postC0.setTags([tagB])
+              ]);
 
-            const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
-              this.postA.getCategories(),
-              this.postB.getCategories(),
-              this.postC.getCategories(),
-              this.postA.getTags(),
-              this.postB.getTags(),
-              this.postC.getTags()
-            ]);
+              const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
+                this.postA.getCategories(),
+                this.postB.getCategories(),
+                this.postC.getCategories(),
+                this.postA.getTags(),
+                this.postB.getTags(),
+                this.postC.getTags()
+              ]);
 
-            // Flaky test: randomly one of the value on B will be 0 sometimes, for
-            // now no solution. Not reproducible at local or cloud with logging enabled
-            expect([
-              postACategories.length,
-              postATags.length,
-              postBCategories.length,
-              postBTags.length,
-              postCCategories.length,
-              postCTags.length
-            ]).to.eql([1, 1, 1, 1, 1, 1]);
+              // Flaky test on MySQL8: randomly some values will be 0 sometimes, for
+              // now no solution. Not reproducible at local or cloud with logging enabled
+              expect([
+                postACategories.length,
+                postATags.length,
+                postBCategories.length,
+                postBTags.length,
+                postCCategories.length,
+                postCTags.length
+              ]).to.eql([1, 1, 1, 1, 1, 1]);
 
-            expect([
-              postACategories[0].get('type'),
-              postATags[0].get('type'),
-              postBCategories[0].get('type'),
-              postBTags[0].get('type'),
-              postCCategories[0].get('type'),
-              postCTags[0].get('type')
-            ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
+              expect([
+                postACategories[0].get('type'),
+                postATags[0].get('type'),
+                postBCategories[0].get('type'),
+                postBTags[0].get('type'),
+                postCCategories[0].get('type'),
+                postCTags[0].get('type')
+              ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
 
-            const [postA, postB, postC] = await Promise.all([this.Post.findOne({
-              where: {
-                id: this.postA.get('id')
-              },
-              include: [
-                { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
-            }), this.Post.findOne({
-              where: {
-                id: this.postB.get('id')
-              },
-              include: [
-                { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
-            }), this.Post.findOne({
-              where: {
-                id: this.postC.get('id')
-              },
-              include: [
-                { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
-            })]);
+              const [postA, postB, postC] = await Promise.all([this.Post.findOne({
+                where: {
+                  id: this.postA.get('id')
+                },
+                include: [
+                  { model: this.Tag, as: 'tags' },
+                  { model: this.Tag, as: 'categories' }
+                ]
+              }), this.Post.findOne({
+                where: {
+                  id: this.postB.get('id')
+                },
+                include: [
+                  { model: this.Tag, as: 'tags' },
+                  { model: this.Tag, as: 'categories' }
+                ]
+              }), this.Post.findOne({
+                where: {
+                  id: this.postC.get('id')
+                },
+                include: [
+                  { model: this.Tag, as: 'tags' },
+                  { model: this.Tag, as: 'categories' }
+                ]
+              })]);
 
-            expect(postA.get('categories').length).to.equal(1);
-            expect(postA.get('tags').length).to.equal(1);
-            expect(postB.get('categories').length).to.equal(1);
-            expect(postB.get('tags').length).to.equal(1);
-            expect(postC.get('categories').length).to.equal(1);
-            expect(postC.get('tags').length).to.equal(1);
+              expect(postA.get('categories').length).to.equal(1);
+              expect(postA.get('tags').length).to.equal(1);
+              expect(postB.get('categories').length).to.equal(1);
+              expect(postB.get('tags').length).to.equal(1);
+              expect(postC.get('categories').length).to.equal(1);
+              expect(postC.get('tags').length).to.equal(1);
 
-            expect(postA.get('categories')[0].get('type')).to.equal('category');
-            expect(postA.get('tags')[0].get('type')).to.equal('tag');
-            expect(postB.get('categories')[0].get('type')).to.equal('category');
-            expect(postB.get('tags')[0].get('type')).to.equal('tag');
-            expect(postC.get('categories')[0].get('type')).to.equal('category');
-            expect(postC.get('tags')[0].get('type')).to.equal('tag');
-          });
+              expect(postA.get('categories')[0].get('type')).to.equal('category');
+              expect(postA.get('tags')[0].get('type')).to.equal('tag');
+              expect(postB.get('categories')[0].get('type')).to.equal('category');
+              expect(postB.get('tags')[0].get('type')).to.equal('tag');
+              expect(postC.get('categories')[0].get('type')).to.equal('category');
+              expect(postC.get('tags')[0].get('type')).to.equal('tag');
+            });
+          }
         });
 
         describe('on the through model', () => {
