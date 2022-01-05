@@ -1285,6 +1285,13 @@ export interface ModelAttributeColumnReferencesOptions {
    * PostgreSQL only
    */
   deferrable?: Deferrable;
+
+  /**
+   * Mark the foreign key being added as NOT VALID to skip validation check and avoid locks on writes
+   *
+   * PostgreSQL only
+   */
+  notValid?: boolean;
 }
 
 /**

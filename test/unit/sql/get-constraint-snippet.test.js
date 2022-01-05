@@ -137,6 +137,23 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
+      it('uses notValid', () => {
+        expectsql(sql.getConstraintSnippet('myTable', {
+          type: 'foreign key',
+          fields: ['myColumn'],
+          references: {
+            table: 'myOtherTable',
+            field: 'id',
+            notValid: true,
+          },
+          onUpdate: 'cascade',
+          onDelete: 'cascade',
+        }), {
+          postgres: 'CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON UPDATE CASCADE ON DELETE CASCADE NOT VALID',
+          default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+        });
+      });
+
       it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {
           type: 'foreign key',

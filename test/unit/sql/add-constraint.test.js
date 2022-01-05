@@ -159,6 +159,22 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
+        it('not valid', () => {
+          expectsql(sql.addConstraintQuery('myTable', {
+            name: 'foreignkey_mytable_mycolumn',
+            type: 'foreign key',
+            fields: ['myColumn'],
+            references: {
+              table: 'myOtherTable',
+              field: 'id',
+              notValid: true,
+            },
+          }), {
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);',
+            postgres: 'ALTER TABLE "myTable" ADD CONSTRAINT "foreignkey_mytable_mycolumn" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") NOT VALID;',
+          });
+        });
+
         it('supports composite keys', () => {
           expectsql(
             sql.addConstraintQuery('myTable', {
@@ -192,6 +208,24 @@ if (current.dialect.supports.constraints.addConstraint) {
           }), {
             db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
+          });
+        });
+
+        it('uses onDelete, onUpdate with notValid', () => {
+          expectsql(sql.addConstraintQuery('myTable', {
+            type: 'foreign key',
+            fields: ['myColumn'],
+            references: {
+              table: 'myOtherTable',
+              field: 'id',
+              notValid: true,
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          }), {
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
+            db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
+            postgres: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;',
           });
         });
 

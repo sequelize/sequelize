@@ -71,6 +71,28 @@ if (current.dialect.name !== 'sqlite') {
         });
       });
 
+      it('properly generate alter queries for foreign keys and marks that as NOT VALID for postgres', () => {
+        return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
+          type: DataTypes.INTEGER,
+          references: {
+            model: 'level',
+            key: 'id',
+            notValid: true,
+          },
+          onUpdate: 'cascade',
+          onDelete: 'cascade',
+        }).then(sql => {
+          expectsql(sql, {
+            mssql: 'ALTER TABLE [users] ADD FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',
+            db2: 'ALTER TABLE "users" ADD CONSTRAINT "level_id_foreign_idx" FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE;',
+            mariadb: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+            mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+            postgres: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE NOT VALID;',
+            snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
+          });
+        });
+      });
+
     });
   });
 }

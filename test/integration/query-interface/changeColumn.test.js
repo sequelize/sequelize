@@ -181,6 +181,47 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(newForeignKeys).to.be.an('array');
           expect(newForeignKeys).to.have.lengthOf(1);
           expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+
+          if (dialect === 'postgres') {
+            const updatedForeignKeys = await this.sequelize.query(
+              this.queryInterface.queryGenerator.getForeignKeysQuery('users', this.sequelize.config.database),
+              { type: this.sequelize.QueryTypes.FOREIGNKEYS },
+            );
+            expect(Object.keys(updatedForeignKeys[0])).to.have.length(8);
+            expect(updatedForeignKeys[0].condef).to.equal('FOREIGN KEY (level_id) REFERENCES level(id) ON UPDATE CASCADE ON DELETE CASCADE');
+          }
+        });
+
+        it('able to change column to foreign key with notValid', async function () {
+          const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
+          expect(foreignKeys).to.be.an('array');
+          expect(foreignKeys).to.be.empty;
+
+          await this.queryInterface.changeColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'level',
+              key: 'id',
+              notValid: true,
+            },
+            notValid: true,
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          });
+
+          const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
+          expect(newForeignKeys).to.be.an('array');
+          expect(newForeignKeys).to.have.lengthOf(1);
+          expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+
+          if (dialect === 'postgres') {
+            const updatedForeignKeys = await this.sequelize.query(
+              this.queryInterface.queryGenerator.getForeignKeysQuery('users', this.sequelize.config.database),
+              { type: this.sequelize.QueryTypes.FOREIGNKEYS },
+            );
+            expect(Object.keys(updatedForeignKeys[0])).to.have.length(8);
+            expect(updatedForeignKeys[0].condef).to.equal('FOREIGN KEY (level_id) REFERENCES level(id) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID');
+          }
         });
 
         it('able to change column property without affecting other properties', async function () {

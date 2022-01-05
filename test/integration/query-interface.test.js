@@ -650,6 +650,56 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         let constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('posts_username_users_fk');
+
+        if (dialect === 'postgres') {
+          const foreignKeys = await this.sequelize.query(
+            this.queryInterface.queryGenerator.getForeignKeysQuery('posts', this.sequelize.config.database),
+            { type: this.sequelize.QueryTypes.FOREIGNKEYS },
+          );
+          expect(Object.keys(foreignKeys[0])).to.have.length(8);
+          expect(foreignKeys[0].condef).to.equal('FOREIGN KEY (username) REFERENCES users(username) ON UPDATE CASCADE ON DELETE CASCADE');
+        }
+
+        await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+        constraints = await this.queryInterface.showConstraint('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.not.include('posts_username_users_fk');
+      });
+
+      it('should add, read & remove foreign key constraint with notValid', async function () {
+        await this.queryInterface.removeColumn('users', 'id');
+        await this.queryInterface.changeColumn('users', 'username', {
+          type: DataTypes.STRING,
+          allowNull: false,
+        });
+        await this.queryInterface.addConstraint('users', {
+          type: 'PRIMARY KEY',
+          fields: ['username'],
+        });
+        await this.queryInterface.addConstraint('posts', {
+          fields: ['username'],
+          references: {
+            table: 'users',
+            field: 'username',
+            notValid: true,
+          },
+          onDelete: 'cascade',
+          onUpdate: 'cascade',
+          type: 'foreign key',
+        });
+        let constraints = await this.queryInterface.showConstraint('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+
+        if (dialect === 'postgres') {
+          const foreignKeys = await this.sequelize.query(
+            this.queryInterface.queryGenerator.getForeignKeysQuery('posts', this.sequelize.config.database),
+            { type: this.sequelize.QueryTypes.FOREIGNKEYS },
+          );
+          expect(Object.keys(foreignKeys[0])).to.have.length(8);
+          expect(foreignKeys[0].condef).to.equal('FOREIGN KEY (username) REFERENCES users(username) ON UPDATE CASCADE ON DELETE CASCADE NOT VALID');
+        }
+
+        expect(constraints).to.include('posts_username_users_fk');
         await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
         constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
