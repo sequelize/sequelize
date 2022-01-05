@@ -7,7 +7,7 @@ import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { LOCK, Transaction } from './transaction';
-import { Col, Fn, Literal, Where } from './utils';
+import { Col, Literal, Where } from './utils';
 import { SetRequired } from '../type-helpers/set-required'
 import Op from '../../lib/operators';
 
@@ -2958,9 +2958,11 @@ export default Model;
  */
 export type AttributesOf<M extends Model, Excluded extends string = ''> = {
   [Key in keyof M as
-    M[Key] extends Fn ? never
+    M[Key] extends AnyFunction ? never
     : Key extends keyof Model ? never
     : Key extends Excluded ? never
     : Key
   ]: M[Key]
 };
+
+type AnyFunction = (...args: any[]) => any;
