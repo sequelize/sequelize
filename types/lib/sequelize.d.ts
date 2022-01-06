@@ -1184,7 +1184,7 @@ export class Sequelize extends Hooks {
   public define<M extends Model, TAttributes = M['_attributes']>(
     modelName: string,
     attributes: ModelAttributes<M, TAttributes>,
-    options?: ModelOptions
+    options?: ModelOptions<M>
   ): ModelCtor<M>;
 
   /**
