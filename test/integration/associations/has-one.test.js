@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 
@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(associatedUser.id).not.to.equal(fakeUser.id);
       await this.sequelize.dropSchema('admin');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('admin');
       }
     });
@@ -453,7 +453,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' &&
+        Support.getTestDialect() !== 'db2') {
       it('can cascade updates', async function() {
         const Task = this.sequelize.define('Task', { title: Sequelize.STRING }),
           User = this.sequelize.define('User', { username: Sequelize.STRING });

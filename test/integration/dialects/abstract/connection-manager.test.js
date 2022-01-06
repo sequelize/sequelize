@@ -1,14 +1,11 @@
-'use strict';
+const chai = require('chai');
+const Support = require('../../support');
+const sinon = require('sinon');
+const ConnectionManager = require('sequelize/lib/dialects/abstract/connection-manager');
+const { Pool } = require('sequelize-pool');
+const Config = require('../../../config/config');
 
-const chai = require('chai'),
-  expect = chai.expect,
-  deprecations = require('../../../../lib/utils/deprecations'),
-  Support = require('../../support'),
-  sinon = require('sinon'),
-  Config = require('../../../config/config'),
-  ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
-  Pool = require('sequelize-pool').Pool;
-
+const expect = chai.expect;
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {
   host: baseConf.host,
@@ -32,7 +29,10 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     connectionManager.initPools();
     expect(connectionManager.pool).to.be.instanceOf(Pool);
@@ -48,7 +48,10 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     connectionManager.initPools();
     expect(connectionManager.pool.read).to.be.instanceOf(Pool);
@@ -72,15 +75,22 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     const res = {
       queryType: 'read'
     };
 
-    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    const connectStub = sandbox
+      .stub(connectionManager, '_connect')
+      .resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
+    sandbox
+      .stub(sequelize, 'databaseVersion')
+      .resolves(sequelize.dialect.defaultVersion);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -89,7 +99,10 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       useMaster: false
     };
 
-    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
+    const _getConnection = connectionManager.getConnection.bind(
+      connectionManager,
+      queryOptions
+    );
 
     await _getConnection();
     await _getConnection();
@@ -104,9 +117,12 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
   });
 
   it('should trigger deprecation for non supported engine version', async () => {
-    const deprecationStub = sandbox.stub(deprecations, 'unsupportedEngine');
+    const stub = sandbox.stub(process, 'emitWarning');
     const sequelize = Support.createSequelizeInstance();
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
@@ -125,9 +141,14 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     };
 
     await connectionManager.getConnection(queryOptions);
-    chai.expect(deprecationStub).to.have.been.calledOnce;
+    chai.expect(stub).to.have.been.calledOnce;
+    chai
+      .expect(stub.getCalls()[0].args[0])
+      .to.contain(
+        'This database engine version is not supported, please update your database server.'
+      );
+    stub.restore();
   });
-
 
   it('should allow forced reads from the write pool', async () => {
     const main = { ...poolEntry };
@@ -140,15 +161,22 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     const res = {
       queryType: 'read'
     };
 
-    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    const connectStub = sandbox
+      .stub(connectionManager, '_connect')
+      .resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
+    sandbox
+      .stub(sequelize, 'databaseVersion')
+      .resolves(sequelize.dialect.defaultVersion);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -168,7 +196,10 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+    const connectionManager = new ConnectionManager(
+      sequelize.dialect,
+      sequelize
+    );
 
     connectionManager.initPools();
 

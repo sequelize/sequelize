@@ -3,7 +3,9 @@
 const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
-  getAbstractQueryGenerator = require('../../support').getAbstractQueryGenerator;
+  Support = require('../../support'),
+  getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
+const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -41,6 +43,25 @@ describe('QueryGenerator', () => {
 
       expect(() => QG.whereItemQuery('test', { $in: [4] }))
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
+
+      // simulate transaction passed into where query argument
+      class Sequelize {
+        constructor() {
+          this.config = {
+            password: 'password'
+          };
+        }
+      }
+
+      class Transaction {
+        constructor() {
+          this.sequelize = new Sequelize();
+        }
+      }
+
+      expect(() => QG.whereItemQuery('test', new Transaction())).to.throw(
+        'Invalid value Transaction { sequelize: Sequelize { config: [Object] } }'
+      );
     });
 
     it('should parse set aliases strings as operators', function() {
@@ -113,5 +134,12 @@ describe('QueryGenerator', () => {
       expect(() => QG.format(value)).to.throw(Error);
     });
   });
-});
 
+  describe('queryIdentifier', () => {
+    it('should throw an error if call base quoteIdentifier', function() {
+      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
+      expect(() => QG.quoteIdentifier('test', true))
+        .to.throw(`quoteIdentifier for Dialect "${this.sequelize.dialect.name}" is not implemented`);
+    });
+  });
+});

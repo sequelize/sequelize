@@ -17,6 +17,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+`dialectOptions` are passed directly to the MySQL connection constructor. A full list of options can be found in the [MySQL docs](https://www.npmjs.com/package/mysql#connection-options).
+
 ### MariaDB
 
 The underlying connector library used by Sequelize for MariaDB is the [mariadb](https://www.npmjs.com/package/mariadb) npm package.
@@ -32,6 +34,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   }
 });
 ```
+
+`dialectOptions` are passed directly to the MariaDB connection constructor. A full list of options can be found in the [MariaDB docs](https://mariadb.com/kb/en/nodejs-connection-options/).
 
 ### SQLite
 
@@ -51,6 +55,10 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+The following fields may be passed to SQLite `dialectOptions`:
+
+- `readWriteMode`: Set the opening mode for the SQLite connection. Potential values are provided by the sqlite3 package, and can include sqlite3.OPEN_READONLY, sqlite3.OPEN_READWRITE, or sqlite3.OPEN_CREATE. See the [SQLite C interface documentation for more details]( https://www.sqlite.org/c3ref/open.html).
+
 ### PostgreSQL
 
 The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) npm package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
@@ -66,12 +74,40 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+The following fields may be passed to Postgres `dialectOptions`:
+
+- `application_name`: Name of application in pg_stat_activity. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-APPLICATION-NAME) for details.
+- `ssl`: SSL options. See the [`pg` docs](https://node-postgres.com/features/ssl) for details.
+- `client_encoding`: // Setting 'auto' determines locale based on the client LC_CTYPE environment variable. See the [Postgres docs](https://www.postgresql.org/docs/current/multibyte.html) for details.
+- `keepAlive`: Boolean to enable TCP KeepAlive. See the [`pg` changelog](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md#v600) for details.
+- `statement_timeout`: Times out queries after a set time in milliseconds. Added in pg v7.3. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-STATEMENT-TIMEOUT) for details.
+- `idle_in_transaction_session_timeout`: Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT) for details.
+
 To connect over a unix domain socket, specify the path to the socket directory in the `host` option. The socket path must start with `/`.
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'postgres',
   host: '/path/to/socket_directory'
+});
+```
+
+The default `client_min_messages` config in sequelize is `WARNING`.
+
+### Redshift
+
+Most configuration is same as PostgreSQL above.
+
+Redshift doesn't support `client_min_messages`, 'ignore' is needed to skip the configuration:
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'postgres',
+  dialectOptions: {
+    // Your pg options here
+    // ...
+    clientMinMessages: 'ignore' // case insensitive
+  }
 });
 ```
 
@@ -95,6 +131,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+A full list of options can be found in the [tedious docs](https://tediousjs.github.io/tedious/api-connection.html#function_newConnection).
+
 #### MSSQL Domain Account
 
 In order to connect with a domain account, use the following format.
@@ -116,6 +154,39 @@ const sequelize = new Sequelize('database', null, null, {
     }
   }
 })
+```
+
+### Snowflake (Experiment)
+
+The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
+
+In order to connect with an account, use the following format:
+
+```js
+const sequelize = new Sequelize('database', null, null, {
+  dialect: 'snowflake',
+  dialectOptions: {
+    // put your snowflake account here,
+    account: 'myAccount',  // my-app.us-east-1
+
+    // below option should be optional
+    role: 'myRole',
+    warehouse: 'myWarehouse',
+    schema: 'mySchema'
+  },
+  // same as other dialect
+  username: 'myUserName',
+  password: 'myPassword',
+  database: 'myDatabaseName'
+})
+```
+
+**NOTE** There is no test sandbox provided so the snowflake integration test is not part of the pipeline. Also it is difficult for core team to triage and debug. This dialect needs to be maintained by the snowflake user/community for now.
+
+For running integration test:
+
+```sh
+SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse npm run test-integration-snowflake
 ```
 
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only

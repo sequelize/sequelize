@@ -1,12 +1,18 @@
 {
-  "extends": "eslint:recommended",
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
+    "@typescript-eslint/no-loss-of-precision": "off",
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
 
     "jsdoc/check-param-names": "error",
     "jsdoc/check-tag-names": "error",
-    "jsdoc/check-types": "error",
+    "jsdoc/check-types": "off",
     "jsdoc/newline-after-description": "error",
     "jsdoc/no-undefined-types": "off",
     "jsdoc/require-description-complete-sentence": "off",
@@ -15,9 +21,9 @@
     "jsdoc/require-param": "error",
     "jsdoc/require-param-description": "off",
     "jsdoc/require-param-name": "error",
-    "jsdoc/require-param-type": "error",
+    "jsdoc/require-param-type": "off",
     "jsdoc/require-returns-description": "off",
-    "jsdoc/require-returns-type": "error",
+    "jsdoc/require-returns-type": "off",
     "jsdoc/valid-types": "error",
 
     // style
@@ -34,11 +40,14 @@
       }
     ],
     "semi": ["error", "always"],
-    "space-before-function-paren": ["error", {
-      "named": "never",
-      "anonymous": "never",
-      "asyncArrow": "always"
-    }],
+    "space-before-function-paren": [
+      "error",
+      {
+        "named": "never",
+        "anonymous": "never",
+        "asyncArrow": "always"
+      }
+    ],
     "space-before-blocks": "error",
     "space-infix-ops": "error",
     "no-multi-spaces": "error",
@@ -66,7 +75,6 @@
 
     // functional
     "valid-jsdoc": "off",
-    "strict": ["error", "global"],
     "no-var": "error",
     "prefer-const": "error",
     "prefer-arrow-callback": "error",
@@ -97,6 +105,19 @@
     "no-case-declarations": "off",
     "prefer-object-spread": "error"
   },
+  "overrides": [
+    {
+      "files": ["**/*.js"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "jsdoc/require-param-type": "error",
+        "jsdoc/check-types": "error",
+        "jsdoc/require-returns-type": "error"
+      }
+    }
+  ],
   "settings": {
     "jsdoc": {
       "tagNamePreference": {
@@ -108,7 +129,8 @@
     "ecmaVersion": 2020,
     "sourceType": "script"
   },
-  "plugins": ["mocha", "jsdoc"],
+  "ignorePatterns": ["dist/**/*", "types/**/*"],
+  "plugins": ["mocha", "jsdoc", "@typescript-eslint"],
   "env": {
     "node": true,
     "mocha": true,

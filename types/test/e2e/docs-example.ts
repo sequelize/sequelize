@@ -8,8 +8,8 @@ import {
   HasManyCreateAssociationMixin,
   HasManyGetAssociationsMixin,
   HasManyHasAssociationMixin
-} from '../../lib/associations';
-import QueryTypes = require("../../lib/query-types");
+} from 'sequelize/lib/associations';
+import QueryTypes = require("sequelize/lib/query-types");
 
 class User extends Model {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.
@@ -28,7 +28,7 @@ class User extends Model {
   public addProject!: HasManyAddAssociationMixin<Project, number>;
   public hasProject!: HasManyHasAssociationMixin<Project, number>;
   public countProjects!: HasManyCountAssociationsMixin;
-  public createProject!: HasManyCreateAssociationMixin<Project>;
+  public createProject!: HasManyCreateAssociationMixin<Project, 'ownerId'>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
