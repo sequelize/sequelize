@@ -4,7 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const current = Support.sequelize;
-const AssociationError = require('../../../lib/errors').AssociationError;
+const AssociationError = require('sequelize/lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('should throw an AssociationError when two associations have the same alias', () => {

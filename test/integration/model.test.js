@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
-  errors = require('../../lib/errors'),
+  errors = require('sequelize/lib/errors'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
@@ -16,6 +16,8 @@ const chai = require('chai'),
   pMap = require('p-map');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  let isMySQL8;
+
   before(function() {
     this.clock = sinon.useFakeTimers();
   });
@@ -25,6 +27,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function() {
+    isMySQL8 = dialect === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
+
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -373,6 +377,79 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
+    describe('descending indices (MySQL 8 specific)', ()=>{
+      it('complains about missing support for descending indexes', async function() {
+        if (!isMySQL8) {
+          return;
+        }
+
+        const indices = [{
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          fields: [
+            'fieldB',
+            {
+              attribute: 'fieldA',
+              collate: 'en_US',
+              order: 'DESC',
+              length: 5
+            }
+          ]
+        }];
+
+        this.sequelize.define('model', {
+          fieldA: Sequelize.STRING,
+          fieldB: Sequelize.INTEGER,
+          fieldC: Sequelize.STRING,
+          fieldD: Sequelize.STRING
+        }, {
+          indexes: indices,
+          engine: 'MyISAM'
+        });
+
+        try {
+          await this.sequelize.sync();
+          expect.fail();
+        } catch (e) {
+          expect(e.message).to.equal('The storage engine for the table doesn\'t support descending indexes');
+        }
+      });
+
+      it('works fine with InnoDB', async function() {
+        if (!isMySQL8) {
+          return;
+        }
+
+        const indices = [{
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          fields: [
+            'fieldB',
+            {
+              attribute: 'fieldA',
+              collate: 'en_US',
+              order: 'DESC',
+              length: 5
+            }
+          ]
+        }];
+
+        this.sequelize.define('model', {
+          fieldA: Sequelize.STRING,
+          fieldB: Sequelize.INTEGER,
+          fieldC: Sequelize.STRING,
+          fieldD: Sequelize.STRING
+        }, {
+          indexes: indices,
+          engine: 'InnoDB'
+        });
+
+        await this.sequelize.sync();
+      });
+    });
+
     it('should allow the user to specify indexes in options', async function() {
       const indices = [{
         name: 'a_b_uniq',
@@ -383,13 +460,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: 'DESC',
+            order: isMySQL8 ? 'ASC' : 'DESC',
             length: 5
           }
         ]
       }];
 
-      if (dialect !== 'mssql') {
+      if (dialect !== 'mssql' && dialect !== 'db2') {
         indices.push({
           type: 'FULLTEXT',
           fields: ['fieldC'],
@@ -429,6 +506,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(idx2.fields).to.deep.equal([
           { attribute: 'fieldC', length: undefined, order: undefined }
+        ]);
+      } else if (dialect === 'db2') {
+        idx1 = args[1];
+
+        expect(idx1.fields).to.deep.equal([
+          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+          { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined }
         ]);
       } else if (dialect === 'mssql') {
         idx1 = args[0];
@@ -480,7 +564,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(idx1.name).to.equal('a_b_uniq');
       expect(idx1.unique).to.be.ok;
 
-      if (dialect !== 'mssql') {
+      if (dialect !== 'mssql' && dialect !== 'db2') {
         expect(idx2.name).to.equal('models_field_c');
         expect(idx2.unique).not.to.be.ok;
       }
@@ -1543,13 +1627,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true });
+      let sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
+      let result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      result = await this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true });
+      sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
+      result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      const [users] = await this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
+      sql = dialect === 'db2' ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
+      const [users] = await this.sequelize.query(sql, { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
     });
@@ -1720,9 +1807,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         group: ['data']
       });
       expect(count).to.have.lengthOf(2);
+
+      // The order of count varies across dialects; Hence find element by identified first.
+      expect(count.find(i => i.data === 'A')).to.deep.equal({ data: 'A', count: 2 });
+      expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
-    if (dialect !== 'mssql') {
+    if (dialect !== 'mssql' && dialect !== 'db2') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
@@ -2006,6 +2097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const expectedLengths = {
         mssql: 2,
         postgres: 2,
+        db2: 10,
         mariadb: 3,
         mysql: 1,
         sqlite: 1
@@ -2058,7 +2150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.not.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'db2'].includes(dialect)) {
             test++;
             expect(sql).to.not.contain('special');
           }
@@ -2077,7 +2169,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             test++;
             expect(sql).to.contain('special');
           }
-          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          else if (['mysql', 'mssql', 'mariadb', 'db2'].includes(dialect)) {
             test++;
             expect(sql).to.contain('special');
           }
@@ -2103,7 +2195,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
 
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+      if (['postgres', 'mssql', 'db2', 'mariadb'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
       }
@@ -2115,7 +2207,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         force: true,
         logging: _.after(2, _.once(sql => {
           test = true;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
           } else if (dialect === 'mssql') {
             expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
@@ -2137,7 +2229,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserPublicSync.create({ age: 3 }, {
         logging: UserPublic => {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
             expect(UserPublic).to.include('INSERT INTO "UserPublics"');
           } else if (dialect === 'sqlite') {
@@ -2159,7 +2251,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
         logging(UserSpecial) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
           } else if (dialect === 'sqlite') {
             expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
@@ -2176,7 +2268,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserSpecial.update({ age: 5 }, {
         logging(user) {
           logged++;
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'db2') {
             expect(user).to.include('UPDATE "special"."UserSpecials"');
           } else if (dialect === 'mssql') {
             expect(user).to.include('UPDATE [special].[UserSpecials]');
@@ -2217,8 +2309,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
+        } else if (dialect === 'db2') {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'sqlite') {
@@ -2241,8 +2335,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql' || dialect === 'mariadb') {
+        } else if (['mysql', 'mariadb'].includes(dialect)) {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
+        } else if (dialect === 'db2') {
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
@@ -2273,8 +2369,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       } catch (err) {
         if (dialect === 'mysql') {
-          // MySQL 5.7 or above doesn't support POINT EMPTY
-          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
+          if (isMySQL8) {
+            expect(err.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+          } else if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
             expect(err.message).to.match(/Can't create table/);
@@ -2288,6 +2385,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/);
         } else if (dialect === 'mssql') {
           expect(err.message).to.match(/Could not create constraint/);
+        } else if (dialect === 'db2') {
+          expect(err.message).to.match(/ is an undefined name/);
         } else {
           throw new Error('Undefined dialect!');
         }

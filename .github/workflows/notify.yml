@@ -1,0 +1,37 @@
+# Get releases:
+# curl -XGET -u "username:access-token" -H "Accept: application/vnd.github.everest-preview+json" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/releases
+
+# Trigger manually:
+# curl -XPOST -u "username:access-token" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": release-id}}'
+
+name: Notify release channels
+on: repository_dispatch
+jobs:
+  tweet:
+    name: Tweet release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: cardinalby/git-get-release-action@v1.1
+        id: releaseInfo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          releaseId: ${{ github.event.client_payload.release-id }}
+      - uses: ethomson/send-tweet-action@v1
+        with:
+          status: "We have just released ${{ steps.releaseInfo.outputs.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.releaseInfo.outputs.name }}"
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+  notify-opencollective:
+    name: Notify OpenCollective
+    runs-on: ubuntu-latest
+    steps:
+      - uses: sequelize/proxy-release-to-open-collective@main
+        with:
+          releaseId: ${{ github.event.client_payload.release-id }}
+          projectSlug: sequelize/sequelize
+          ocSlug: sequelize
+          ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
+          githubToken: ${{ secrets.GH_TOKEN }} 

@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
+  Op = require('sequelize/lib/operators'),
+  QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   moment = require('moment'),
   current = Support.sequelize,
   _ = require('lodash');
@@ -1102,8 +1102,14 @@ if (dialect.startsWith('postgres')) {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX IF EXISTS "user_foo_bar"'
         }, {
+          arguments: ['User', ['foo', 'bar'], { concurrently: true }],
+          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "user_foo_bar"'
+        }, {
           arguments: ['User', 'mySchema.user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"'
+        }, {
+          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
+          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "mySchema"."user_foo_bar"'
         },
 
         // Variants when quoteIdentifiers is false
@@ -1118,6 +1124,10 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['User', 'mySchema.user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
+          context: { options: { quoteIdentifiers: false } }
+        }, {
+          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
+          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS mySchema.user_foo_bar',
           context: { options: { quoteIdentifiers: false } }
         }
       ],

@@ -35,7 +35,7 @@ const User = sequelize.define('User', { /* attributes */ }, {
       fields: [
         'author',
         {
-          attribute: 'title',
+          name: 'title',
           collate: 'en_US',
           order: 'DESC',
           length: 5

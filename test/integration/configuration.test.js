@@ -17,35 +17,39 @@ if (dialect === 'sqlite') {
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
-    it('when we don\'t have the correct server details', async () => {
-      const options = {
-        logging: false,
-        host: 'localhost',
-        port: 19999, // Wrong port
-        dialect
-      };
+    if (dialect != 'db2') {
+      it('when we don\'t have the correct server details', async () => {
+        const options = {
+          logging: false,
+          host: 'localhost',
+          port: 19999, // Wrong port
+          dialect
+        };
 
-      const constructorArgs = [
-        config[dialect].database,
-        config[dialect].username,
-        config[dialect].password,
-        options
-      ];
+        const constructorArgs = [
+          config[dialect].database,
+          config[dialect].username,
+          config[dialect].password,
+          options
+        ];
 
-      let willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
+        let willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
 
-      if (dialect === 'sqlite') {
-        options.storage = '/path/to/no/where/land';
-        options.dialectOptions = { mode: sqlite3.OPEN_READONLY };
-        // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
-        willBeRejectedWithArgs = [Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file'];
-      }
+        if (dialect === 'sqlite') {
+          options.storage = '/path/to/no/where/land';
+          options.dialectOptions = { mode: sqlite3.OPEN_READONLY };
+          // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
+          willBeRejectedWithArgs = [Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file'];
+        }
 
-      const seq = new Sequelize(...constructorArgs);
-      await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
-    });
+        const seq = new Sequelize(...constructorArgs);
+        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      });
+    }
 
     it('when we don\'t have the correct login information', async () => {
+      const willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
+      
       if (dialect === 'mssql') {
         // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
@@ -56,7 +60,13 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
-      } else {
+      } 
+
+      else if (dialect === 'db2') {
+        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      } 
+      
+      else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
     });
@@ -64,7 +74,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2 and sqlite.');
     });
   });
 

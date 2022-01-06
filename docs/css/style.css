@@ -1,15 +1,23 @@
 @import url(https://fonts.googleapis.com/css?family=Titillium+Web);
 
-div.logo img {
-  width: 200px;
-  height: 200px;
-  box-shadow: none !important;
+div.logo {
+  display: flex;
+  align-content: center;
 }
 
+div.logo img {
+  width: 100px;
+  height: 100px;
+  box-shadow: none !important;
+  margin-right: 16px;
+}
+
+div.logo h1,
 div.sequelize {
   color: #399af3;
   font-size: 60px;
-  font-family: 'Titillium Web', sans-serif;
+  font-family: "Titillium Web", sans-serif;
+  border-width: 0;
 }
 
 .center {
@@ -55,8 +63,8 @@ div.sequelize {
   padding-bottom: 0;
 }
 
-.search-box>span {
-  display:block;
+.search-box > span {
+  display: block;
   width: 100%;
 }
 
@@ -129,11 +137,11 @@ code {
     display: inline-block;
   }
 
-  .layout-container .navigation>div {
+  .layout-container .navigation > div {
     display: none;
   }
 
-  .layout-container .navigation.open>div {
+  .layout-container .navigation.open > div {
     display: block;
   }
 
