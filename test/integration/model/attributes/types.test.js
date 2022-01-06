@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect();
@@ -101,6 +101,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
           if (dialect === 'mssql') {
             boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+          } else if (dialect === 'db2') {
+            boolQuery = '1 AS "someBoolean"';
           }
 
           const post = await Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
@@ -171,7 +173,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', async function() {
-          const user0 = await this.User.create({});
+          const user0 = await this.User.create(dialect === 'db2' ? { id: 1 } : {});
           await user0.createTask();
 
           const tasks = await this.Task.findAll({

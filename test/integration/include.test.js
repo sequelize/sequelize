@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   _ = require('lodash'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize,
@@ -650,6 +650,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         findAttributes = [
           Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
           [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
+        ];
+      } else if (dialect === 'db2') {
+        findAttributes = [
+          Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
+          [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
         ];
       } else {
         findAttributes = [

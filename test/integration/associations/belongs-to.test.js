@@ -4,8 +4,8 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
+  DataTypes = require('sequelize/lib/data-types'),
+  Sequelize = require('sequelize'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 
@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user).to.be.ok;
       await this.sequelize.dropSchema('archive');
       const schemas = await this.sequelize.showAllSchemas();
-      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
         expect(schemas).to.not.have.property('archive');
       }
     });
@@ -467,8 +467,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create({});
-      const mail = await Mail.create({});
+      await User.create(dialect === 'db2' ? { id: 1 } : {});
+      const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       // set recipients
@@ -625,7 +625,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' &&
+        Support.getTestDialect() !== 'db2') {
       it('can cascade updates', async function() {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });

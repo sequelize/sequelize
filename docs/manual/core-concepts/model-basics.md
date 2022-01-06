@@ -77,6 +77,69 @@ console.log(User === sequelize.models.User); // true
 
 Internally, `sequelize.define` calls `Model.init`, so both approaches are essentially equivalent.
 
+#### Caveat with Public Class Fields
+
+Adding a [Public Class Field](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Public_class_fields) with the same name as one of the model's attribute is going to cause issues.
+Sequelize adds a getter & a setter for each attribute defined through `Model.init`.
+Adding a Public Class Field will shadow those getter and setters, blocking access to the model's actual data.
+
+```typescript
+// Invalid
+class User extends Model {
+  id; // this field will shadow sequelize's getter & setter. It should be removed.
+  otherPublicField; // this field does not shadow anything. It is fine.
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // undefined
+```
+
+```typescript
+// Valid
+class User extends Model {
+  otherPublicField;
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // 1
+```
+
+In TypeScript, you can add typing information without adding an actual public class field by using the `declare` keyword:
+
+```typescript
+// Valid
+class User extends Model {
+  declare id: number; // this is ok! The 'declare' keyword ensures this field will not be emitted by TypeScript.
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // 1
+```
+
 ## Table name inference
 
 Observe that, in both methods above, the table name (`Users`) was never explicitly defined. However, the model name was given (`User`).
@@ -241,13 +304,13 @@ sequelize.define('User', {
 });
 ```
 
-Some special values, such as `Sequelize.NOW`, are also accepted:
+Some special values, such as `DataTypes.NOW`, are also accepted:
 
 ```js
 sequelize.define('Foo', {
   bar: {
     type: DataTypes.DATETIME,
-    defaultValue: Sequelize.NOW
+    defaultValue: DataTypes.NOW
     // This way, the current date/time will be used to populate this column (at the moment of insertion)
   }
 });

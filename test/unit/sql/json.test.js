@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   expect = require('chai').expect,
   expectsql = Support.expectsql,
   Sequelize = Support.Sequelize,
