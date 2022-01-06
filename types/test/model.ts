@@ -95,14 +95,21 @@ const model: typeof MyModel = MyModel.init({
   }
 });
 
+type UserModelAttributes = {
+  username: string,
+  beta_user: boolean,
+};
+
+type UserCreationAttributes = Optional<UserModelAttributes, 'beta_user'>;
+
 /**
  * Tests for findCreateFind() type.
  */
-class UserModel extends Model {}
+class UserModel extends Model<UserModelAttributes, UserCreationAttributes> {}
 
 UserModel.init({
   username: { type: DataTypes.STRING, allowNull: false },
-  beta_user: { type: DataTypes.BOOLEAN, allowNull: false }
+  beta_user: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
 }, {
   sequelize: sequelize
 })
@@ -112,7 +119,8 @@ UserModel.findCreateFind({
     username: "new user username"
   },
   defaults: {
-    beta_user: true
+    beta_user: true,
+    username: "new user username"
   }
 })
 
@@ -123,19 +131,54 @@ UserModel.getAttributes();
  */
 
 UserModel.findOrCreate({
-  fields: [ "jane.doe" ],
+  // 'create' options
+  hooks: true,
+  fields: ['username'],
+  ignoreDuplicates: true,
+  returning: true,
+  validate: true,
+  raw: true,
+  isNewRecord: true,
+  include: [],
+
+  // 'find' options
+  paranoid: true,
   where: {
     username: "jane.doe"
   },
+
+  // 'findOrCreate' options
   defaults: {
     username: "jane.doe"
   }
-})
+});
+
+/**
+ * Tests for findOrBuild() type.
+ */
+
+UserModel.findOrBuild({
+  // 'build' options
+  raw: true,
+  isNewRecord: true,
+  include: [],
+
+  // 'find' options
+  paranoid: true,
+  where: {
+    username: "jane.doe"
+  },
+
+  // 'findOrCreate' options
+  defaults: {
+    username: "jane.doe"
+  }
+});
 
 /**
  * Test for primaryKeyAttributes.
  */
-class TestModel extends Model {};
+class TestModel extends Model {}
 TestModel.primaryKeyAttributes;
 
 /**
