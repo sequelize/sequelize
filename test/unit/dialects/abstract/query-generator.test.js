@@ -135,55 +135,6 @@ describe('QueryGenerator', () => {
     });
   });
 
-  describe('jsonPathExtractionQuery', () => {
-    const expectQueryGenerator = (query, assertions) => {
-      const expectation = assertions[Support.sequelize.dialect.name];
-      if (!expectation) {
-        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
-      }
-      return expectation(query);
-    };
-
-    it('should handle isJson parameter true', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', true), {
-        postgres: query => expect(query()).to.equal('(profile#>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-
-    it('should use default handling if isJson is false', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', false), {
-        postgres: query => expect(query()).to.equal('(profile#>>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-
-    it('Should use default handling if isJson is not passed', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id'), {
-        postgres: query => expect(query()).to.equal('(profile#>>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-  });
-
   describe('queryIdentifier', () => {
     it('should throw an error if call base quoteIdentifier', function() {
       const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
