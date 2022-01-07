@@ -3073,6 +3073,6 @@ export type CreationAttributesOf<
      // We're checking if it's in the type.
   ]: { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
     // array special case
-    : M[Key] extends CreationAttributeBrandedArray<any> ? (M[Key] | undefined)
+    : CreationAttributeBrandedArray<any> extends M[Key] ? (M[Key] | undefined)
     : M[Key]
 };
