@@ -2936,14 +2936,20 @@ export default Model;
  * Do not export, Do not use.
  */
 declare const NonAttributeBrand: unique symbol;
+interface NonAttributeBrandedArray<Val> extends Array<Val> {
+  [NonAttributeBrand]: true
+}
 
 /**
  * This is a Branded Type.
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link AttributesOf} and {@link CreationAttributesOf}
  */
-// TODO: Not compatible with Arrays. Need to find a solution.
-export type NonAttribute<T> = T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+export type NonAttribute<T> = T extends Array<infer Val>
+  // Arrays are a special case when branding. Both sides need to be an array,
+  //  otherwise property access breaks.
+  ? T | NonAttributeBrandedArray<Val>
+  : T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
  * Option bag for {@link AttributesOf}.
@@ -3004,6 +3010,8 @@ export type AttributesOf<
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
     : { [NonAttributeBrand]: true } extends M[Key] ? never
+      // array special case
+    : M[Key] extends NonAttributeBrandedArray<any> ? never
     : Key extends keyof Model ? never
     // check 'omit' option is provided
     : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
@@ -3017,6 +3025,9 @@ export type AttributesOf<
  * Do not export, Do not use.
  */
 declare const CreationAttributeBrand: unique symbol;
+interface CreationAttributeBrandedArray<Val> extends Array<Val> {
+  [CreationAttributeBrand]: true
+}
 
 /**
  * This is a Branded Type.
@@ -3024,8 +3035,11 @@ declare const CreationAttributeBrand: unique symbol;
  *
  * For use with {@link CreationAttributesOf}.
  */
-// TODO: Not compatible with Arrays. Need to find a solution.
-export type CreationOptional<T> = T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+export type CreationOptional<T> = T extends Array<infer Val>
+  // Arrays are a special case when branding. Both sides need to be an array,
+  //  otherwise property access breaks.
+  ? T | CreationAttributeBrandedArray<Val>
+  : T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
  * Utility type to extract Attributes of a given Model.
@@ -3049,6 +3063,8 @@ export type CreationAttributesOf<
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
     : { [NonAttributeBrand]: true } extends M[Key] ? never
+      // array special case
+    : M[Key] extends NonAttributeBrandedArray<any> ? never
     : Key extends keyof Model ? never
     // check 'omit' option is provided
     : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
@@ -3056,5 +3072,7 @@ export type CreationAttributesOf<
      // it is normal that the brand extends the type.
      // We're checking if it's in the type.
   ]: { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
+    // array special case
+    : M[Key] extends CreationAttributeBrandedArray<any> ? (M[Key] | undefined)
     : M[Key]
 };

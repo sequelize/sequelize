@@ -36,7 +36,7 @@ class User extends Model<AttributesOf<User, { omit: 'projects' }>, CreationAttri
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  declare readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
+  declare readonly projects?: NonAttribute<Project[]>; // Note this is optional since it's only populated when explicitly requested in code
 
   // getters that are not attributes should be tagged using NonAttribute
   // to remove them from the model's Attribute Typings.
