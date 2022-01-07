@@ -37,7 +37,7 @@ type UndefinedPropertiesOf<T> = {
  * Makes all shallow properties of an object `optional` if they accept `undefined` as a value.
  *
  * @example
- * type MyOptionalType = OptionalUndefined<{
+ * type MyOptionalType = MakeUndefinedOptional<{
  *   id: number | undefined,
  *   name: string,
  * }>;
@@ -50,7 +50,7 @@ type UndefinedPropertiesOf<T> = {
  *   name: string,
  * };
  */
-type OptionalUndefined<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
+type MakeUndefinedOptional<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
 
 export interface Logging {
   /**
@@ -2036,7 +2036,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static build<M extends Model>(
     this: ModelStatic<M>,
-    record?: M['_creationAttributes'],
+    record?: MakeUndefinedOptional<M['_creationAttributes']>,
     options?: BuildOptions
   ): M;
 
@@ -2045,7 +2045,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<M['_creationAttributes']>,
+    records: ReadonlyArray<MakeUndefinedOptional<M['_creationAttributes']>>,
     options?: BuildOptions
   ): M[];
 
@@ -2057,7 +2057,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     O extends CreateOptions<M['_attributes']> = CreateOptions<M['_attributes']>
   >(
     this: ModelStatic<M>,
-    values?: M['_creationAttributes'],
+    values?: MakeUndefinedOptional<M['_creationAttributes']>,
     options?: O
   ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
@@ -2067,7 +2067,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
+    options: FindOrCreateOptions<
+      M['_attributes'],
+      MakeUndefinedOptional<M['_creationAttributes']>
+    >
   ): Promise<[M, boolean]>;
 
   /**
@@ -2083,7 +2086,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
+    options: FindOrCreateOptions<M['_attributes'], MakeUndefinedOptional<M['_creationAttributes']>>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2092,7 +2095,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findCreateFind<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
+    options: FindOrCreateOptions<M['_attributes'], MakeUndefinedOptional<M['_creationAttributes']>>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2116,7 +2119,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static upsert<M extends Model>(
     this: ModelStatic<M>,
-    values: M['_creationAttributes'],
+    values: MakeUndefinedOptional<M['_creationAttributes']>,
     options?: UpsertOptions<M['_attributes']>
   ): Promise<[M, boolean | null]>;
 
@@ -2133,7 +2136,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<M['_creationAttributes']>,
+    records: ReadonlyArray<MakeUndefinedOptional<M['_creationAttributes']>>,
     options?: BulkCreateOptions<M['_attributes']>
   ): Promise<M[]>;
 
@@ -2746,7 +2749,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Builds a new model instance.
    * @param values an object of key value pairs
    */
-  constructor(values?: TCreationAttributes, options?: BuildOptions);
+  constructor(values?: MakeUndefinedOptional<TCreationAttributes>, options?: BuildOptions);
 
   /**
    * Get an object representing the query for this instance, use with `options.where`
@@ -2821,8 +2824,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
-  public previous(): Partial<TCreationAttributes>;
-  public previous<K extends keyof TCreationAttributes>(key: K): TCreationAttributes[K] | undefined;
+  public previous(): Partial<TModelAttributes>;
+  public previous<K extends keyof TModelAttributes>(key: K): TModelAttributes[K] | undefined;
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
@@ -3041,7 +3044,7 @@ export type CreationOptional<T> = T & { [CreationAttributeBrand]: true };
 export type CreationAttributesOf<M extends Model, Excluded extends string = ''> = {
   [Key in keyof M as
     Key extends `_${string}` ? never
-    : M[Key] extends Fn ? never
+    : M[Key] extends AnyFunction ? never
     : Key extends keyof Model ? never
     : Key extends Excluded ? never
     : Key
