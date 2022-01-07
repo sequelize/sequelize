@@ -1,5 +1,5 @@
 import BaseError, { ErrorOptions } from './base-error';
-import type { Model } from '../../types/lib/model';
+import type { Model } from '../../';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class

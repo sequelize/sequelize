@@ -1,5 +1,5 @@
-<p align="center">
-  <img src="docs/images/logo-small.png" width="100" />
+<p style="text-align: center;">
+  <img src="docs/images/logo-small.png" width="100" alt="" />
   <h1 align="center">Sequelize</h1>
 </p>
 
@@ -14,7 +14,7 @@ Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](
 
 Sequelize follows [Semantic Versioning](http://semver.org) and the [official Node.js LTS schedule](https://nodejs.org/en/about/releases/). Version 7 of Sequelize officially supports the Node.js versions `^12.22.0`, `^14.17,0`, `^16.0.0`. Other version might be working as well.
 
-New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
+New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org). You might also be interested in the [API Reference](https://sequelize.org/v6/identifiers).
 
 Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help.
 
@@ -65,15 +65,15 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 ### Tools
 
 - [CLI](https://github.com/sequelize/cli)
-- [With TypeScript](https://sequelize.org/master/manual/typescript.html)
+- [With TypeScript](https://sequelize.org/v6/manual/typescript.html)
 - [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
-- [Plugins](https://sequelize.org/master/manual/resources.html)
+- [Plugins](https://sequelize.org/v6/manual/resources.html)
 - [For YugabyteDB](https://github.com/yugabyte/sequelize-yugabytedb)
 
 ### Translations
 
-- [English](https://sequelize.org/master) (OFFICIAL)
+- [English](https://sequelize.org) (OFFICIAL)
 - [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
 
