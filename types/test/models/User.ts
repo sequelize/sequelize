@@ -3,34 +3,33 @@ import {
   BelongsTo,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
-  BelongsToSetAssociationMixin,
+  BelongsToSetAssociationMixin, CreationAttributesOf, CreationOptional,
   DataTypes,
   FindOptions,
   Model,
   ModelStatic,
-  Op,
+  Op
 } from 'sequelize';
 import { sequelize } from '../connection';
 
 type NonUserAttributes = 'group';
-type CreationOptionalAttrs = 'id' | 'createdAt' | 'updatedAt' | 'username' | 'lastName' | 'groupId';
 
 export class User extends Model<
   AttributesOf<User, { omit: NonUserAttributes }>,
-  AttributesOf<User, { omit: NonUserAttributes, optional: CreationOptionalAttrs }>
+  CreationAttributesOf<User, { omit: NonUserAttributes }>
 > {
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
 
-  declare id: number;
-  declare createdAt: Date;
-  declare updatedAt: Date;
+  declare id: CreationOptional<number>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
 
-  declare username: string | null;
+  declare username: CreationOptional<string | null>;
   declare firstName: string;
-  declare lastName: string | null;
-  declare groupId: number | null;
+  declare lastName: CreationOptional<string | null>;
+  declare groupId: CreationOptional<number | null>;
 
   // mixins for association (optional)
   declare group?: UserGroup;

@@ -7,28 +7,26 @@
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
-  ModelDefined, Optional, Sequelize, AttributesOf
+  ModelDefined, Optional, Sequelize, AttributesOf, CreationAttributesOf, CreationOptional
 } from 'sequelize';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // 'projects' is excluded as it's not an attribute, it's an association.
 class User extends Model<
-  // attributes
   AttributesOf<User, { omit: 'projects' }>,
-  // creation attributes
-  AttributesOf<User, { omit: 'projects', optional: 'id' | 'createdAt' | 'updatedAt' }>
+  CreationAttributesOf<User, { omit: 'projects' }>
 > {
   // id can be undefined during creation when using `autoIncrement`
-  declare id: number;
+  declare id: CreationOptional<number>;
   declare name: string;
   declare preferredName: string | null; // for nullable fields
 
   // timestamps!
   // createdAt can be undefined during creation
-  declare readonly createdAt: Date;
+  declare readonly createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: Date;
+  declare readonly updatedAt: CreationOptional<Date>;
 
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
@@ -51,33 +49,31 @@ class User extends Model<
 // You can write `extends Model<AttributesOf<Project>, AttributesOf<Project>>` instead,
 // but that will do the exact same thing as below
 class Project extends Model<
-  // attributes
   AttributesOf<Project>,
-  // creation attributes
-  AttributesOf<Project, { optional: 'id' | 'createdAt' | 'updatedAt' }>
+  CreationAttributesOf<Project>
 > {
   // id can be undefined during creation when using `autoIncrement`
-  declare id: number;
+  declare id: CreationOptional<number>;
   declare ownerId: number;
   declare name: string;
 
   // createdAt can be undefined during creation
-  declare readonly createdAt: Date;
+  declare readonly createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: Date;
+  declare readonly updatedAt: CreationOptional<Date>;
 }
 
 class Address extends Model<
   AttributesOf<Address>,
-  AttributesOf<Address, { optional: 'createdAt' | 'updatedAt' }>
-  > {
+  CreationAttributesOf<Address>
+> {
   declare userId: number;
   declare address: string;
 
   // createdAt can be undefined during creation
-  declare readonly createdAt: Date;
+  declare readonly createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: Date;
+  declare readonly updatedAt: CreationOptional<Date>;
 }
 
 Project.init(

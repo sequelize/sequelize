@@ -1,5 +1,5 @@
 import {
-  AttributesOf,
+  AttributesOf, CreationAttributesOf, CreationOptional,
   DataTypes,
   HasMany,
   HasManyAddAssociationMixin,
@@ -22,13 +22,13 @@ import { User } from './User';
 // function just fine, with a bit less safe type-checking
 export class UserGroup extends Model<
   AttributesOf<UserGroup>,
-  AttributesOf<UserGroup, { optional: 'id' }>
+  CreationAttributesOf<UserGroup>
 > {
   public static associations: {
     users: HasMany<UserGroup, User>
   };
 
-  declare id: number;
+  declare id: CreationOptional<number>;
   declare name: string;
 
   // mixins for association (optional)

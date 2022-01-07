@@ -1,5 +1,5 @@
 import { expectTypeOf } from 'expect-type';
-import { AttributesOf, Model } from 'sequelize';
+import { AttributesOf, CreationAttributesOf, CreationOptional, Model } from 'sequelize';
 
 type GroupAttributes = AttributesOf<Group>;
 
@@ -18,11 +18,20 @@ class Group extends Model<GroupAttributes> {
   const fail3: AttributesOf<Group, { omit: never }> = {};
 }
 
+
+declare const Brand: unique symbol;
+
+type Branded<T> = T | { [Brand]: true };
+type BrandedString = Branded<string>;
+const works: { [Brand]: true } extends BrandedString ? 1 : 0 = 1;
+const brandedString: Branded<string> = 'test';
+const myString: string = brandedString;
+
 type UserAttributes = AttributesOf<User, { omit: 'groups' }>;
-type UserCreationAttributes = AttributesOf<User, { omit: 'groups', optional: 'id' }>;
+type UserCreationAttributes = CreationAttributesOf<User, { omit: 'groups' }>;
 
 class User extends Model<UserAttributes, UserCreationAttributes> {
-  declare id: number;
+  declare id: CreationOptional<number>;
   declare name: string | undefined;
 
   declare groups: Group[];

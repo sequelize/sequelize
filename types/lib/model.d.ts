@@ -2934,15 +2934,8 @@ export default Model;
  * Option bag for {@link AttributesOf}.
  *
  * - omit: properties to not treat as Attributes.
- * - optional: properties that are optional. For use with CreationAttributes.
  */
-type AttributesOfOptions<
-  Excluded,
-  Optional
-> = {
-  omit?: Excluded,
-  optional?: Optional,
-};
+type AttributesOfOptions<Excluded, > = { omit?: Excluded };
 
 /**
  * Utility type to extract Attributes of a given Model.
@@ -2984,15 +2977,61 @@ type AttributesOfOptions<
  */
 export type AttributesOf<
   M extends Model,
-  Options extends AttributesOfOptions<keyof M | never | '', keyof M | never | ''> = { omit: never, optional: never }
-  > = {
+  Options extends AttributesOfOptions<keyof M | never | ''> = { omit: never }
+> = {
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
     : Key extends keyof Model ? never
     // check 'omit' option is provided
     : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
     : Key
-  // check 'optional' option is provided
-  ]: Options['optional'] extends string ? (Key extends Options['optional'] ? (M[Key] | undefined) : M[Key])
+  ]: M[Key]
+};
+
+/**
+ * Dummy Symbol used as branding by {@link CreationOptional}.
+ *
+ * Do not export, Do not use.
+ */
+declare const CreationAttributeBrand: unique symbol;
+
+/**
+ * This is a Branded Type.
+ * You can use it to tag attributes that can be ommited during Model Creation.
+ *
+ * For use with {@link CreationAttributesOf}.
+ *
+ * @see CreationAttributesOf
+ */
+export type CreationOptional<T> = T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+
+/**
+ * Utility type to extract Attributes of a given Model.
+ *
+ * Works like {@link AttributesOf}, but fields that are tagged using
+ *  {@link CreationOptional} will be optional.
+ *
+ * @example
+ * class User extends Model<AttributesOf<User>, CreationAttributesOf<User>> {
+ *   // this attribute is optional in Model#create
+ *   declare id: CreationOptional<number>;
+ *
+ *   // this attribute is mandatory in Model#create
+ *   declare name: string;
+ * }
+ */
+export type CreationAttributesOf<
+  M extends Model,
+  Options extends AttributesOfOptions<keyof M | never | ''> = { omit: never }
+> = {
+  [Key in keyof M as
+    M[Key] extends AnyFunction ? never
+    : Key extends keyof Model ? never
+    // check 'omit' option is provided
+    : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
+    : Key
+     // it is normal that the brand extends the type.
+     // We're checking if it's in the type.
+  ]: { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
     : M[Key]
 };
