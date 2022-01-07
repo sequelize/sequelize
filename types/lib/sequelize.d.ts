@@ -483,8 +483,8 @@ export class Sequelize extends Hooks {
    *
    * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
    *   notation or a string using postgres json syntax.
-   * @param value An optional value to compare against. Produces a string of the form "<json path> =
-   *   '<value>'".
+   * @param value An optional value to compare against.
+   *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'"`.
    */
   public static json: typeof json;
   public json: typeof json;
@@ -1466,8 +1466,8 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  *
  * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
  *   notation or a string using postgres json syntax.
- * @param value An optional value to compare against. Produces a string of the form "<json path> =
- *   '<value>'".
+ * @param value An optional value to compare against.
+ *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'".
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 

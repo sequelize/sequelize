@@ -2107,7 +2107,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @return Promise<number> The number of destroyed rows
+   * @return The number of destroyed rows
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
