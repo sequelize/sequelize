@@ -2931,6 +2931,20 @@ export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(
 export default Model;
 
 /**
+ * Dummy Symbol used as branding by {@link NonAttribute}.
+ *
+ * Do not export, Do not use.
+ */
+declare const NonAttributeBrand: unique symbol;
+
+/**
+ * This is a Branded Type.
+ * You can use it to tag fields from your class that are NOT attributes.
+ * They will be ignored by {@link AttributesOf} and {@link CreationAttributesOf}
+ */
+export type NonAttribute<T> = T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+
+/**
  * Option bag for {@link AttributesOf}.
  *
  * - omit: properties to not treat as Attributes.
@@ -2944,6 +2958,7 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  * - those inherited from Model (intermediate inheritance works),
  * - the ones whose type is a function,
  * - the ones manually excluded using the second parameter.
+ * - the ones branded using {@link NonAttribute}
  *
  * It cannot detect whether something is a getter or not, you should use the `Excluded`
  * parameter to exclude getter & setters from the attribute list.
@@ -2957,22 +2972,28 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  *
  * @example
  * // listed attributes will be 'id' & 'firstName'.
- * // we're excluding the `name` & `test` getters using the `omit` option.
- * class User extends Model<AttributesOf<User, { omit: 'name' | 'test' }>> {
+ * // we're excluding the `name` getter & `projects` attribute using the `omit` option.
+ * class User extends Model<AttributesOf<User, { omit: 'name' | 'projects' }>> {
  *   id: number;
  *   firstName: string;
  *
- *   get name() { return this.firstName; }
- *   get test() { return ''; }
+ *   // this is a getter, not an attribute. It should not be listed in attributes.
+ *   get name(): string { return this.firstName; }
+ *   // this is an association, it should not be listed in attributes
+ *   projects?: Project[];
  * }
  *
  * @example
- * // You can mark some properties as Optional during creation using the `optional` option.
- *
- * class User extends Model<AttributesOf<User>, AttributesOf<User, { optional: 'id' }>> {
- *   // this attribute will be optional in User.create
+ * // listed attributes will be 'id' & 'firstName'.
+ * // we're excluding the `name` getter & `test` attribute using the `NonAttribute` branded type.
+ * class User extends Model<AttributesOf<User>> {
  *   id: number;
  *   firstName: string;
+ *
+ *   // this is a getter, not an attribute. It should not be listed in attributes.
+ *   get name(): NonAttribute<string> { return this.firstName; }
+ *   // this is an association, it should not be listed in attributes
+ *   projects?: NonAttribute<Project[]>;
  * }
  */
 export type AttributesOf<
@@ -2981,6 +3002,7 @@ export type AttributesOf<
 > = {
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
+    : { [NonAttributeBrand]: true } extends M[Key] ? never
     : Key extends keyof Model ? never
     // check 'omit' option is provided
     : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
@@ -3000,8 +3022,6 @@ declare const CreationAttributeBrand: unique symbol;
  * You can use it to tag attributes that can be ommited during Model Creation.
  *
  * For use with {@link CreationAttributesOf}.
- *
- * @see CreationAttributesOf
  */
 export type CreationOptional<T> = T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
@@ -3026,6 +3046,7 @@ export type CreationAttributesOf<
 > = {
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
+    : { [NonAttributeBrand]: true } extends M[Key] ? never
     : Key extends keyof Model ? never
     // check 'omit' option is provided
     : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
