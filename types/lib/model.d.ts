@@ -1,4 +1,4 @@
-import { IndexHints } from '..';
+import { IndexHints, Optional } from '..';
 import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
@@ -10,6 +10,47 @@ import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import { SetRequired } from '../type-helpers/set-required'
 import Op from '../../lib/operators';
+
+type AnyFunction = (...args: any[]) => any;
+
+/**
+ * Returns all shallow properties that accept `undefined`.
+ * Does not include Optional properties, only `undefined`.
+ *
+ * @example
+ * type UndefinedProps = UndefinedPropertiesOf<{
+ *   id: number | undefined,
+ *   createdAt: string | undefined,
+ *   firstName: string,
+ *   lastName?: string, // optional properties are not included.
+ * }>;
+ *
+ * // is equal to
+ *
+ * type UndefinedProps = 'id' | 'createdAt';
+ */
+type UndefinedPropertiesOf<T> = {
+  [P in keyof T]-?: undefined extends T[P] ? P : never
+}[keyof T];
+
+/**
+ * Makes all shallow properties of an object `optional` if they accept `undefined` as a value.
+ *
+ * @example
+ * type MyOptionalType = OptionalUndefined<{
+ *   id: number | undefined,
+ *   name: string,
+ * }>;
+ *
+ * // is equal to
+ *
+ * type MyOptionalType = {
+ *   // this property is optional.
+ *   id?: number | undefined,
+ *   name: string,
+ * };
+ */
+type OptionalUndefined<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
 
 export interface Logging {
   /**
@@ -2965,4 +3006,45 @@ export type AttributesOf<M extends Model, Excluded extends string = ''> = {
   ]: M[Key]
 };
 
-type AnyFunction = (...args: any[]) => any;
+/**
+ * Dummy Symbol used as branding by {@link CreationOptional}.
+ *
+ * Do not export, Do not use.
+ */
+declare const CreationAttributeBrand: unique symbol;
+
+/**
+ * This is a Branded Type.
+ * You can use it to tag attributes that can be ommited during Model Creation.
+ *
+ * For use with {@link CreationAttributesOf}.
+ *
+ * @see CreationAttributesOf
+ */
+export type CreationOptional<T> = T & { [CreationAttributeBrand]: true };
+
+/**
+ * Utility type to extract Attributes of a given Model.
+ *
+ * Works like {@link AttributesOf}, but fields that are tagged using
+ *  {@link CreationOptional} will be optional.
+ *
+ * @example
+ * class User extends Model<AttributesOf<User>, CreationAttributesOf<User>> {
+ *   // this attribute is optional in Model#create
+ *   declare id: CreationOptional<number>;
+ *
+ *   // this attribute is mandatory in Model#create
+ *   declare name: string;
+ * }
+ */
+export type CreationAttributesOf<M extends Model, Excluded extends string = ''> = {
+  [Key in keyof M as
+    Key extends `_${string}` ? never
+    : M[Key] extends Fn ? never
+    : Key extends keyof Model ? never
+    : Key extends Excluded ? never
+    : Key
+  ]: M[Key] extends CreationOptional<infer Val> ? (Val | undefined)
+    : M[Key]
+};
