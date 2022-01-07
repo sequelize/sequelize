@@ -7,16 +7,13 @@
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
-  ModelDefined, Optional, Sequelize, AttributesOf, CreationAttributesOf, CreationOptional
+  ModelDefined, Optional, Sequelize, AttributesOf, CreationAttributesOf, CreationOptional, NonAttribute
 } from 'sequelize';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // 'projects' is excluded as it's not an attribute, it's an association.
-class User extends Model<
-  AttributesOf<User, { omit: 'projects' }>,
-  CreationAttributesOf<User, { omit: 'projects' }>
-> {
+class User extends Model<AttributesOf<User, { omit: 'projects' }>, CreationAttributesOf<User, { omit: 'projects' }>> {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
   declare name: string;
@@ -41,6 +38,12 @@ class User extends Model<
   // actively include a relation.
   declare readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
 
+  // getters that are not attributes should be tagged using NonAttribute
+  // to remove them from the model's Attribute Typings.
+  get fullName(): NonAttribute<string> {
+    return this.name;
+  }
+
   declare static associations: {
     projects: Association<User, Project>;
   };
@@ -56,6 +59,10 @@ class Project extends Model<
   declare id: CreationOptional<number>;
   declare ownerId: number;
   declare name: string;
+
+  // `owner` is an eagerly-loaded association.
+  // We tag it as `NonAttribute`
+  declare owner?: NonAttribute<User>;
 
   // createdAt can be undefined during creation
   declare readonly createdAt: CreationOptional<Date>;

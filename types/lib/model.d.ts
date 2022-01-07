@@ -2942,6 +2942,7 @@ declare const NonAttributeBrand: unique symbol;
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link AttributesOf} and {@link CreationAttributesOf}
  */
+// TODO: Not compatible with Arrays. Need to find a solution.
 export type NonAttribute<T> = T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
@@ -3023,6 +3024,7 @@ declare const CreationAttributeBrand: unique symbol;
  *
  * For use with {@link CreationAttributesOf}.
  */
+// TODO: Not compatible with Arrays. Need to find a solution.
 export type CreationOptional<T> = T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
