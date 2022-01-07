@@ -9,6 +9,7 @@ import {
   Transactionable
 } from '../model';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
+import { MakeUndefinedOptional } from '../utils';
 
 /**
  * Options provided when associating models with hasMany relationship
@@ -214,7 +215,7 @@ export type HasManyCreateAssociationMixin<
   TForeignKey extends keyof TModel['_creationAttributes'] = never,
   TScope extends keyof TModel['_creationAttributes'] = never
 > = (
-  values?: Omit<TModel['_creationAttributes'], TForeignKey | TScope>,
+  values?: Omit<MakeUndefinedOptional<TModel['_creationAttributes']>, TForeignKey | TScope>,
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
