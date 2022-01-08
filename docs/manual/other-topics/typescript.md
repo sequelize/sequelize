@@ -83,13 +83,13 @@ Example of a minimal TypeScript project with strict type-checking for attributes
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
-  ModelDefined, Optional, Sequelize, AttributesOf, CreationAttributesOf, CreationOptional, NonAttribute
+  ModelDefined, Optional, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
 } from 'sequelize';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // 'projects' is excluded as it's not an attribute, it's an association.
-class User extends Model<AttributesOf<User, { omit: 'projects' }>, CreationAttributesOf<User, { omit: 'projects' }>> {
+class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreationAttributes<User, { omit: 'projects' }>> {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
   declare name: string;
@@ -112,7 +112,7 @@ class User extends Model<AttributesOf<User, { omit: 'projects' }>, CreationAttri
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  declare readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
+  declare readonly projects?: NonAttribute<Project[]>; // Note this is optional since it's only populated when explicitly requested in code
 
   // getters that are not attributes should be tagged using NonAttribute
   // to remove them from the model's Attribute Typings.
@@ -125,11 +125,9 @@ class User extends Model<AttributesOf<User, { omit: 'projects' }>, CreationAttri
   };
 }
 
-// You can write `extends Model<AttributesOf<Project>, AttributesOf<Project>>` instead,
-// but that will do the exact same thing as below
 class Project extends Model<
-  AttributesOf<Project>,
-  CreationAttributesOf<Project>
+  InferAttributes<Project>,
+  InferCreationAttributes<Project>
 > {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
@@ -147,8 +145,8 @@ class Project extends Model<
 }
 
 class Address extends Model<
-  AttributesOf<Address>,
-  CreationAttributesOf<Address>
+  InferAttributes<Address>,
+  InferCreationAttributes<Address>
 > {
   declare userId: number;
   declare address: string;

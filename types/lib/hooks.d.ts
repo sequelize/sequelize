@@ -1,4 +1,4 @@
-import { ModelType } from '../index';
+import { Attributes, CreationAttributes, ModelType } from '../index';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -97,11 +97,17 @@ export class Hooks<
   /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
+   *
+   * @deprecated This property will become a Symbol in v7 to prevent collisions.
+   * Use Attributes<Model> instead of this property to be forward-compatible.
    */
   _attributes: TModelAttributes;
   /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
+   *
+   * @deprecated This property will become a Symbol in v7 to prevent collisions.
+   * Use CreationAttributes<Model> instead of this property to be forward-compatible.
    */
   _creationAttributes: TCreationAttributes;
 
@@ -113,20 +119,20 @@ export class Hooks<
    */
   public static addHook<
     H extends Hooks,
-    K extends keyof SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>
+    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>
     >(
     this: HooksStatic<H>,
     hookType: K,
     name: string,
-    fn: SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>[K]
+    fn: SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>[K]
   ): HooksCtor<H>;
   public static addHook<
     H extends Hooks,
-    K extends keyof SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>
+    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>
   >(
     this: HooksStatic<H>,
     hookType: K,
-    fn: SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>[K]
+    fn: SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>[K]
   ): HooksCtor<H>;
 
   /**
@@ -134,7 +140,7 @@ export class Hooks<
    */
   public static removeHook<H extends Hooks>(
     this: HooksStatic<H>,
-    hookType: keyof SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>,
+    hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
     name: string,
   ): HooksCtor<H>;
 
@@ -143,11 +149,11 @@ export class Hooks<
    */
   public static hasHook<H extends Hooks>(
     this: HooksStatic<H>,
-    hookType: keyof SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>,
+    hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
   ): boolean;
   public static hasHooks<H extends Hooks>(
     this: HooksStatic<H>,
-    hookType: keyof SequelizeHooks<H['_model'], H['_attributes'], H['_creationAttributes']>,
+    hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
   ): boolean;
 
   /**

@@ -1,12 +1,12 @@
 import { DataType } from '../data-types';
 import {
-  CreateOptions,
+  CreateOptions, CreationAttributes,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
   Model,
   ModelCtor,
-  Transactionable
+  Transactionable,
 } from '../model';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 import { MakeUndefinedOptional } from '../utils';
@@ -212,10 +212,10 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any>
  */
 export type HasManyCreateAssociationMixin<
   TModel extends Model,
-  TForeignKey extends keyof TModel['_creationAttributes'] = never,
-  TScope extends keyof TModel['_creationAttributes'] = never
+  TForeignKey extends keyof CreationAttributes<TModel> = never,
+  TScope extends keyof CreationAttributes<TModel> = never
 > = (
-  values?: Omit<MakeUndefinedOptional<TModel['_creationAttributes']>, TForeignKey | TScope>,
+  values?: Omit<CreationAttributes<TModel>, TForeignKey | TScope>,
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

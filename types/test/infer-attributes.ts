@@ -1,10 +1,10 @@
 import { expectTypeOf } from 'expect-type';
-import { AttributesOf, CreationAttributesOf, CreationOptional, Model, NonAttribute } from 'sequelize';
+import { InferAttributes, InferCreationAttributes, CreationOptional, Model, NonAttribute, Attributes, CreationAttributes } from 'sequelize';
 
-type UserAttributes = AttributesOf<User, { omit: 'groups' }>;
-type UserCreationAttributes = CreationAttributesOf<User, { omit: 'groups' }>;
-
-class User extends Model<UserAttributes, UserCreationAttributes> {
+class User extends Model<
+  InferAttributes<User, { omit: 'groups' }>,
+  InferCreationAttributes<User, { omit: 'groups' }>
+> {
   declare id: CreationOptional<number>;
   declare name: string;
   declare anArray: CreationOptional<string[]>;
@@ -18,14 +18,17 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
   static staticMethod() {}
 }
 
+type UserAttributes = Attributes<User>;
+type UserCreationAttributes = CreationAttributes<User>;
+
 expectTypeOf<UserAttributes>().not.toBeAny();
 
 {
-  class Test extends Model<AttributesOf<Test>> {
+  class Test extends Model<InferAttributes<Test>> {
     declare id: NonAttribute<string>;
   }
 
-  const win: Test['_attributes'] = {};
+  const win: Attributes<Test> = {};
 }
 
 {
@@ -70,7 +73,7 @@ expectTypeOf<UserAttributes>().not.toBeAny();
   };
 }
 
-type GroupAttributes = AttributesOf<Group>;
+type GroupAttributes = InferAttributes<Group>;
 
 class Group extends Model<GroupAttributes> {
   declare id: number;
@@ -81,13 +84,13 @@ class Group extends Model<GroupAttributes> {
   const fail1: GroupAttributes = {};
 
   // @ts-expect-error - id should not be missing
-  const fail2: AttributesOf<Group, {}> = {};
+  const fail2: InferAttributes<Group, {}> = {};
 
   // @ts-expect-error - id should not be missing
-  const fail3: AttributesOf<Group, { omit: never }> = {};
+  const fail3: InferAttributes<Group, { omit: never }> = {};
 }
 
-class Project extends Model<AttributesOf<Project>> {
+class Project extends Model<InferAttributes<Project>> {
   declare id: number;
 }
 

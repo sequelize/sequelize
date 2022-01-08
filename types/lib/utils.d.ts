@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Model, ModelCtor, ModelType, WhereOptions } from './model';
+import { Model, ModelCtor, ModelType, WhereOptions, Attributes } from './model';
 import { Optional } from '..';
 
 export type Primitive = 'string' | 'number' | 'boolean';
@@ -33,13 +33,13 @@ export interface OptionsForMapping<TAttributes> {
 }
 
 /** Expand and normalize finder options */
-export function mapFinderOptions<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
+export function mapFinderOptions<M extends Model, T extends OptionsForMapping<Attributes<M>>>(
   options: T,
   model: ModelCtor<M>
 ): T;
 
 /* Used to map field names in attributes and where conditions */
-export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
+export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping<Attributes<M>>>(
   options: T, model: ModelCtor<M>
 ): T;
 

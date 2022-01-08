@@ -1398,13 +1398,13 @@ export interface ModelOptions<M extends Model = Model> {
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
    * find / findAll.
    */
-  defaultScope?: FindOptions<M['_attributes']>;
+  defaultScope?: FindOptions<Attributes<M>>;
 
   /**
    * More scopes, defined in the same way as defaultScope above. See `Model.scope` for more information about
    * how scopes are defined, and what you can do with them
    */
-  scopes?: ModelScopeOptions<M['_attributes']>;
+  scopes?: ModelScopeOptions<Attributes<M>>;
 
   /**
    * Don't persits null values. This means that all columns with null values will not be saved.
@@ -1504,7 +1504,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHooks<M, M['_attributes']>>;
+  hooks?: Partial<ModelHooks<M, Attributes<M>>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -1571,11 +1571,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *   options: NonNullFindOptions<TAttributes>
    * ): Promise<M>;
    * ```
+   *
+   * @deprecated This property will become a Symbol in v7 to prevent collisions.
+   * Use Attributes<Model> instead of this property to be forward-compatible.
    */
   _attributes: TModelAttributes;
+
   /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
+   *
+   * @deprecated This property will become a Symbol in v7 to prevent collisions.
+   * Use CreationAttributes<Model> instead of this property to be forward-compatible.
    */
   _creationAttributes: TCreationAttributes;
 
@@ -1664,7 +1671,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
     this: MS,
-    attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
+    attributes: ModelAttributes<M, Attributes<M>>, options: InitOptions<M>
   ): MS;
 
   /**
@@ -1782,13 +1789,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope: FindOptions<M['_attributes']>,
+    scope: FindOptions<Attributes<M>>,
     options?: AddScopeOptions
   ): void;
   public static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope: (...args: readonly any[]) => FindOptions<M['_attributes']>,
+    scope: (...args: readonly any[]) => FindOptions<Attributes<M>>,
     options?: AddScopeOptions
   ): void;
 
@@ -1856,7 +1863,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>): Promise<M[]>;
+    options?: FindOptions<Attributes<M>>): Promise<M[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1865,12 +1872,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'>
+    options: Omit<NonNullFindOptions<Attributes<M>>, 'where'>
   ): Promise<M>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<M['_attributes']>, 'where'>
+    options?: Omit<FindOptions<Attributes<M>>, 'where'>
   ): Promise<M | null>;
 
   /**
@@ -1878,11 +1885,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<M['_attributes']>
+    options: NonNullFindOptions<Attributes<M>>
   ): Promise<M>;
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>
+    options?: FindOptions<Attributes<M>>
   ): Promise<M | null>;
 
   /**
@@ -1896,9 +1903,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static aggregate<T, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'] | '*',
+    field: keyof Attributes<M> | '*',
     aggregateFunction: string,
-    options?: AggregateOptions<T, M['_attributes']>
+    options?: AggregateOptions<T, Attributes<M>>
   ): Promise<T>;
 
   /**
@@ -1906,7 +1913,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options: CountWithOptions<M['_attributes']>
+    options: CountWithOptions<Attributes<M>>
   ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
 
   /**
@@ -1916,7 +1923,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: CountOptions<M['_attributes']>
+    options?: CountOptions<Attributes<M>>
   ): Promise<number>;
 
   /**
@@ -1956,11 +1963,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<M['_attributes']>, 'group'>
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>
   ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
+    options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>
   ): Promise<{ rows: M[]; count: number[] }>;
 
   /**
@@ -1968,8 +1975,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static max<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'],
-    options?: AggregateOptions<T, M['_attributes']>
+    field: keyof Attributes<M>,
+    options?: AggregateOptions<T, Attributes<M>>
   ): Promise<T>;
 
   /**
@@ -1977,8 +1984,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static min<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'],
-    options?: AggregateOptions<T, M['_attributes']>
+    field: keyof Attributes<M>,
+    options?: AggregateOptions<T, Attributes<M>>
   ): Promise<T>;
 
   /**
@@ -1986,8 +1993,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static sum<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'],
-    options?: AggregateOptions<T, M['_attributes']>
+    field: keyof Attributes<M>,
+    options?: AggregateOptions<T, Attributes<M>>
   ): Promise<number>;
 
   /**
@@ -1995,7 +2002,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static build<M extends Model>(
     this: ModelStatic<M>,
-    record?: MakeUndefinedOptional<M['_creationAttributes']>,
+    record?: CreationAttributes<M>,
     options?: BuildOptions
   ): M;
 
@@ -2004,7 +2011,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<MakeUndefinedOptional<M['_creationAttributes']>>,
+    records: ReadonlyArray<CreationAttributes<M>>,
     options?: BuildOptions
   ): M[];
 
@@ -2013,10 +2020,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static create<
     M extends Model,
-    O extends CreateOptions<M['_attributes']> = CreateOptions<M['_attributes']>
+    O extends CreateOptions<Attributes<M>> = CreateOptions<Attributes<M>>
   >(
     this: ModelStatic<M>,
-    values?: MakeUndefinedOptional<M['_creationAttributes']>,
+    values?: CreationAttributes<M>,
     options?: O
   ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
@@ -2027,8 +2034,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrCreateOptions<
-      M['_attributes'],
-      MakeUndefinedOptional<M['_creationAttributes']>
+      Attributes<M>,
+      CreationAttributes<M>
     >
   ): Promise<[M, boolean]>;
 
@@ -2045,7 +2052,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], MakeUndefinedOptional<M['_creationAttributes']>>
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2054,7 +2061,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findCreateFind<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], MakeUndefinedOptional<M['_creationAttributes']>>
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2078,8 +2085,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static upsert<M extends Model>(
     this: ModelStatic<M>,
-    values: MakeUndefinedOptional<M['_creationAttributes']>,
-    options?: UpsertOptions<M['_attributes']>
+    values: CreationAttributes<M>,
+    options?: UpsertOptions<Attributes<M>>
   ): Promise<[M, boolean | null]>;
 
   /**
@@ -2095,8 +2102,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    records: ReadonlyArray<MakeUndefinedOptional<M['_creationAttributes']>>,
-    options?: BulkCreateOptions<M['_attributes']>
+    records: ReadonlyArray<CreationAttributes<M>>,
+    options?: BulkCreateOptions<Attributes<M>>
   ): Promise<M[]>;
 
   /**
@@ -2104,7 +2111,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<M['_attributes']>
+    options?: TruncateOptions<Attributes<M>>
   ): Promise<void>;
 
   /**
@@ -2114,7 +2121,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
-    options?: DestroyOptions<M['_attributes']>
+    options?: DestroyOptions<Attributes<M>>
   ): Promise<number>;
 
   /**
@@ -2122,7 +2129,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static restore<M extends Model>(
     this: ModelStatic<M>,
-    options?: RestoreOptions<M['_attributes']>
+    options?: RestoreOptions<Attributes<M>>
   ): Promise<void>;
 
   /**
@@ -2133,9 +2140,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static update<M extends Model>(
     this: ModelStatic<M>,
     values: {
-        [key in keyof M['_attributes']]?: M['_attributes'][key] | Fn | Col | Literal;
+        [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: UpdateOptions<M['_attributes']>
+    options: UpdateOptions<Attributes<M>>
   ): Promise<[number, M[]]>;
 
   /**
@@ -2143,8 +2150,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'],
-    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+    field: keyof Attributes<M>,
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2152,8 +2159,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    fields: ReadonlyArray<keyof M['_attributes']>,
-    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+    fields: ReadonlyArray<keyof Attributes<M>>,
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2161,8 +2168,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static increment<M extends Model>(
     this: ModelStatic<M>,
-    fields: { [key in keyof M['_attributes']]?: number },
-    options: IncrementDecrementOptions<M['_attributes']>
+    fields: { [key in keyof Attributes<M>]?: number },
+    options: IncrementDecrementOptions<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2170,8 +2177,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static decrement<M extends Model>(
     this: ModelStatic<M>,
-    field: keyof M['_attributes'],
-    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+    field: keyof Attributes<M>,
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2179,8 +2186,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static decrement<M extends Model>(
     this: ModelStatic<M>,
-    fields: (keyof M['_attributes'])[],
-    options: IncrementDecrementOptionsWithBy<M['_attributes']>
+    fields: (keyof Attributes<M>)[],
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2188,8 +2195,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static decrement<M extends Model>(
     this: ModelStatic<M>,
-    fields: { [key in keyof M['_attributes']]?: number },
-    options: IncrementDecrementOptions<M['_attributes']>
+    fields: { [key in keyof Attributes<M>]?: number },
+    options: IncrementDecrementOptions<Attributes<M>>
   ): Promise<M>;
 
   /**
@@ -2244,11 +2251,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2260,11 +2267,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2308,11 +2315,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2324,11 +2331,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2340,11 +2347,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeSave<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2356,11 +2363,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterSave<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<M['_attributes']> | SaveOptions<M['_attributes']>) => HookReturn
+    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2372,11 +2379,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instances: M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2388,11 +2395,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instances: readonly M[], options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2403,10 +2410,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn): void;
+    name: string, fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn): void;
   public static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: BulkCreateOptions<M['_attributes']>) => HookReturn
+    fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2417,11 +2424,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: DestroyOptions<M['_attributes']>) => HookReturn
+    fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2432,11 +2439,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2447,11 +2454,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: UpdateOptions<M['_attributes']>) => HookReturn
+    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2462,11 +2469,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeFind<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2477,11 +2484,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: CountOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: CountOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeCount<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: CountOptions<M['_attributes']>) => HookReturn
+    fn: (options: CountOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2492,11 +2499,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2507,11 +2514,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<M['_attributes']>) => HookReturn
+    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
   public static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
-    fn: (options: FindOptions<M['_attributes']>) => void
+    fn: (options: FindOptions<Attributes<M>>) => void
   ): HookReturn;
 
   /**
@@ -2523,11 +2530,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: ModelStatic<M>,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<M['_attributes']>) => HookReturn
+    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
@@ -2943,7 +2950,7 @@ interface NonAttributeBrandedArray<Val> extends Array<Val> {
 /**
  * This is a Branded Type.
  * You can use it to tag fields from your class that are NOT attributes.
- * They will be ignored by {@link AttributesOf} and {@link CreationAttributesOf}
+ * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
 export type NonAttribute<T> = T extends Array<infer Val>
   // Arrays are a special case when branding. Both sides need to be an array,
@@ -2952,14 +2959,14 @@ export type NonAttribute<T> = T extends Array<infer Val>
   : T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
- * Option bag for {@link AttributesOf}.
+ * Option bag for {@link InferAttributes}.
  *
  * - omit: properties to not treat as Attributes.
  */
-type AttributesOfOptions<Excluded, > = { omit?: Excluded };
+type InferAttributesOptions<Excluded, > = { omit?: Excluded };
 
 /**
- * Utility type to extract Attributes of a given Model.
+ * Utility type to extract Attributes of a given Model class.
  *
  * It returns all instance properties defined in the Model, except:
  * - those inherited from Model (intermediate inheritance works),
@@ -2972,7 +2979,7 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  *
  * @example
  * // listed attributes will be 'id' & 'firstName'.
- * class User extends Model<AttributesOf<User>> {
+ * class User extends Model<InferAttributes<User>> {
  *   id: number;
  *   firstName: string;
  * }
@@ -2980,7 +2987,7 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  * @example
  * // listed attributes will be 'id' & 'firstName'.
  * // we're excluding the `name` getter & `projects` attribute using the `omit` option.
- * class User extends Model<AttributesOf<User, { omit: 'name' | 'projects' }>> {
+ * class User extends Model<InferAttributes<User, { omit: 'name' | 'projects' }>> {
  *   id: number;
  *   firstName: string;
  *
@@ -2993,7 +3000,7 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  * @example
  * // listed attributes will be 'id' & 'firstName'.
  * // we're excluding the `name` getter & `test` attribute using the `NonAttribute` branded type.
- * class User extends Model<AttributesOf<User>> {
+ * class User extends Model<InferAttributes<User>> {
  *   id: number;
  *   firstName: string;
  *
@@ -3003,9 +3010,9 @@ type AttributesOfOptions<Excluded, > = { omit?: Excluded };
  *   projects?: NonAttribute<Project[]>;
  * }
  */
-export type AttributesOf<
+export type InferAttributes<
   M extends Model,
-  Options extends AttributesOfOptions<keyof M | never | ''> = { omit: never }
+  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
 > = {
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
@@ -3033,7 +3040,7 @@ interface CreationAttributeBrandedArray<Val> extends Array<Val> {
  * This is a Branded Type.
  * You can use it to tag attributes that can be ommited during Model Creation.
  *
- * For use with {@link CreationAttributesOf}.
+ * For use with {@link InferCreationAttributes}.
  */
 export type CreationOptional<T> = T extends Array<infer Val>
   // Arrays are a special case when branding. Both sides need to be an array,
@@ -3042,13 +3049,13 @@ export type CreationOptional<T> = T extends Array<infer Val>
   : T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
 
 /**
- * Utility type to extract Attributes of a given Model.
+ * Utility type to extract Creation Attributes of a given Model class.
  *
- * Works like {@link AttributesOf}, but fields that are tagged using
+ * Works like {@link InferAttributes}, but fields that are tagged using
  *  {@link CreationOptional} will be optional.
  *
  * @example
- * class User extends Model<AttributesOf<User>, CreationAttributesOf<User>> {
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
  *   // this attribute is optional in Model#create
  *   declare id: CreationOptional<number>;
  *
@@ -3056,9 +3063,9 @@ export type CreationOptional<T> = T extends Array<infer Val>
  *   declare name: string;
  * }
  */
-export type CreationAttributesOf<
+export type InferCreationAttributes<
   M extends Model,
-  Options extends AttributesOfOptions<keyof M | never | ''> = { omit: never }
+  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
 > = {
   [Key in keyof M as
     M[Key] extends AnyFunction ? never
@@ -3076,3 +3083,27 @@ export type CreationAttributesOf<
     : CreationAttributeBrandedArray<any> extends M[Key] ? (M[Key] | undefined)
     : M[Key]
 };
+
+// in v7, we should be able to drop InferCreationAttributes and InferAttributes,
+//  resolving this confusion.
+/**
+ * Returns the creation attributes of a given Model.
+ *
+ * This returns the Creation Attributes of a Model, it does not build them.
+ * If you need to build them, use {@link InferCreationAttributes}.
+ *
+ * @example
+ * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
+ */
+export type CreationAttributes<M extends Model | Hooks> = MakeUndefinedOptional<M['_creationAttributes']>;
+
+/**
+ * Returns the creation attributes of a given Model.
+ *
+ * This returns the Attributes of a Model that have already been defined, it does not build them.
+ * If you need to build them, use {@link InferAttributes}.
+ *
+ * @example
+ * function getValue<M extends Model>(modelClass: ModelStatic<M>, attribute: keyof Attributes<M>) {}
+ */
+export type Attributes<M extends Model | Hooks> = M['_attributes'];
