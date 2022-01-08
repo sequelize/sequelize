@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * An enum of index hints to be used in mysql for querying with index hints
  *
@@ -7,8 +5,9 @@
  * @property FORCE
  * @property IGNORE
  */
-const IndexHints = module.exports = { // eslint-disable-line
-  USE: 'USE',
-  FORCE: 'FORCE',
-  IGNORE: 'IGNORE'
-};
+// eslint-disable-next-line no-shadow
+export enum IndexHints {
+  USE = 'USE',
+  FORCE = 'FORCE',
+  IGNORE = 'IGNORE'
+}

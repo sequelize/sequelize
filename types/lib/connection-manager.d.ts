@@ -9,7 +9,9 @@ export interface GetConnectionOptions {
   useMaster?: boolean;
 }
 
-export type Connection = object;
+export type Connection = {
+  uuid: string | undefined
+};
 
 export interface ConnectionManager {
   refreshTypeParser(dataTypes: object): void;

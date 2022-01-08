@@ -10,9 +10,8 @@ import {
   Poolable,
   ModelCtor, ModelStatic, ModelType
 } from './model';
-import QueryTypes = require('./query-types');
+import { QueryTypes, Transaction } from '..';
 import { Sequelize, RetryOptions } from './sequelize';
-import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
 import { Deferrable } from './deferrable';

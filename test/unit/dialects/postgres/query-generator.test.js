@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Op = require('sequelize/lib/operators'),
+  { Op } = require('sequelize/lib/operators'),
   QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),

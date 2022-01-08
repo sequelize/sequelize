@@ -478,7 +478,7 @@ interface OpTypes {
   readonly values: unique symbol;
 }
 
-const Op: OpTypes = {
+export const Op: OpTypes = {
   eq: Symbol.for('eq'),
   ne: Symbol.for('ne'),
   gte: Symbol.for('gte'),
@@ -520,10 +520,3 @@ const Op: OpTypes = {
   join: Symbol.for('join'),
   match: Symbol.for('match')
 } as OpTypes;
-
-export default Op;
-
-// https://github.com/sequelize/sequelize/issues/13791
-// remove me in v7: kept for backward compatibility as `export default Op` is
-// transpiled to `module.exports.default` instead of `module.exports`
-module.exports = Op;

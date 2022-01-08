@@ -2,7 +2,7 @@
 
 const Support = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
-  QueryTypes = require('sequelize/lib/query-types'),
+  { QueryTypes } = require('sequelize/lib/query-types'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,

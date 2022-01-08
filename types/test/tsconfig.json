@@ -5,6 +5,7 @@
     "noEmit": true,
     "strict": true,
     "baseUrl": ".",
+    "esModuleInterop": true,
     "paths": {
       "sequelize": ["../../dist/"],
       "sequelize/*": ["../../dist/*"]

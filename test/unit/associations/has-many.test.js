@@ -8,7 +8,7 @@ const chai = require('chai'),
   Support = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
   HasMany = require('sequelize/lib/associations/has-many'),
-  Op = require('sequelize/lib/operators'),
+  { Op } = require('sequelize/lib/operators'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {

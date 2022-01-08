@@ -7,7 +7,7 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const Sequelize = require('sequelize');
 const config = require('../config/config');
-const Transaction = require('sequelize/lib/transaction');
+const { Transaction } = require('sequelize/lib/transaction');
 const sinon = require('sinon');
 const current = Support.sequelize;
 

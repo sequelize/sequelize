@@ -5,8 +5,8 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
-  Op = require('sequelize/lib/operators'),
-  IndexHints = require('sequelize/lib/index-hints'),
+  { Op } = require('sequelize/lib/operators'),
+  { IndexHints } = require('sequelize/lib/index-hints'),
   QueryGenerator = require('sequelize/lib/dialects/snowflake/query-generator');
 
 if (dialect === 'snowflake') {
