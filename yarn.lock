@@ -494,14 +494,14 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@es-joy/jsdoccomment@0.14.2":
-  version "0.14.2"
-  resolved "https://registry.yarnpkg.com/@es-joy/jsdoccomment/-/jsdoccomment-0.14.2.tgz#16f5411679066b277cf6d9e8c94a7e576aca1b55"
-  integrity sha512-812igKXDcLEdkwUbJvnhzMy88dBBiDeaf3mMF1jnQwclIObu5UQB8ow1KAvDRN1FQqpB+IsZnpmRA0jZ6KGt3g==
+"@es-joy/jsdoccomment@0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@es-joy/jsdoccomment/-/jsdoccomment-0.15.0.tgz#1ae09153e65615438762410d9fc52ac47c10ec6a"
+  integrity sha512-kohiFDuRHqQQfCo+aLtGQhDfK9WZd/C83l/GDYS0L5qDPHQSLsCx0cUw1NemytyFh5ur+yzvDF0FkEO159ZyuA==
   dependencies:
     comment-parser "1.3.0"
     esquery "^1.4.0"
-    jsdoc-type-pratt-parser "2.0.2"
+    jsdoc-type-pratt-parser "2.1.0"
 
 "@eslint/eslintrc@^1.0.5":
   version "1.0.5"
@@ -3254,17 +3254,17 @@ esdoc@1.1.0:
     minimist "1.2.0"
     taffydb "2.7.3"
 
-eslint-plugin-jsdoc@37.5.1:
-  version "37.5.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-37.5.1.tgz#9ac0c8c4528112a3d1800796326e7f859f6ef1d9"
-  integrity sha512-WMv/Na5QdpMQao1MR3SgYpGFi2PSrhh/JljlErQru9ZYXf1j9oQVIVCELQV7jcyqKQ/svPqCyU8eMhet9dzP+w==
+eslint-plugin-jsdoc@37.5.2:
+  version "37.5.2"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-37.5.2.tgz#7124e0a40aa8be83c2ce672f9b3c1196ff278def"
+  integrity sha512-BkWsJqaEg+kUKudhwm6k7OIUgYcrYeDsTJXVs6rs7M7RjzOZBKzDDVTqo99EhxZsAVp/4Ut9IFeZpZpGwWV2vQ==
   dependencies:
-    "@es-joy/jsdoccomment" "0.14.2"
+    "@es-joy/jsdoccomment" "0.15.0"
     comment-parser "1.3.0"
     debug "^4.3.3"
     escape-string-regexp "^4.0.0"
     esquery "^1.4.0"
-    jsdoc-type-pratt-parser "^2.0.2"
+    jsdoc-type-pratt-parser "^2.1.0"
     regextras "^0.8.0"
     semver "^7.3.5"
     spdx-expression-parse "^3.0.1"
@@ -4830,10 +4830,10 @@ jsbn@~0.1.0:
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
-jsdoc-type-pratt-parser@2.0.2, jsdoc-type-pratt-parser@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/jsdoc-type-pratt-parser/-/jsdoc-type-pratt-parser-2.0.2.tgz#5cb2542c6ed6c527b170a43b4f247e2d6237e158"
-  integrity sha512-gXN5CxeaI9WtYQYzpOO/CtTRfZppQlKxXRTIm73JuAX6kOGTQ7iZ0e+YB+b2m7Fk+gTYYxRtE1nqje7H6dqv8w==
+jsdoc-type-pratt-parser@2.1.0, jsdoc-type-pratt-parser@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/jsdoc-type-pratt-parser/-/jsdoc-type-pratt-parser-2.1.0.tgz#31dff5021cc1d7c28dc2c81ba74a79f1151b2f58"
+  integrity sha512-9HyIHmNmmnlk8XF7Gn3awzspDUEtEF1U7MX43fGIqur/6I2j4ZsxO9D5d9d9VMICe1BumgABaGg5idevNBZtTQ==
 
 jsdom@^7.0.2:
   version "7.2.2"
