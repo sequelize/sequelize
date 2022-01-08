@@ -82,8 +82,10 @@ Example of a minimal TypeScript project with strict type-checking for attributes
 ```typescript
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
-  ModelDefined, Optional, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
+  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
+  HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
+  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
+  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
 } from 'sequelize';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
@@ -97,22 +99,27 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
 
   // timestamps!
   // createdAt can be undefined during creation
-  declare readonly createdAt: CreationOptional<Date>;
+  declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
 
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
   declare getProjects: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
   declare addProject: HasManyAddAssociationMixin<Project, number>;
+  declare addProjects: HasManyAddAssociationsMixin<Project, number>;
+  declare setProjects: HasManySetAssociationsMixin<Project, number>;
+  declare removeProject: HasManyRemoveAssociationMixin<Project, number>;
+  declare removeProjects: HasManyRemoveAssociationsMixin<Project, number>;
   declare hasProject: HasManyHasAssociationMixin<Project, number>;
+  declare hasProjects: HasManyHasAssociationsMixin<Project, number>;
   declare countProjects: HasManyCountAssociationsMixin;
   declare createProject: HasManyCreateAssociationMixin<Project, 'ownerId'>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  declare readonly projects?: NonAttribute<Project[]>; // Note this is optional since it's only populated when explicitly requested in code
+  declare projects?: NonAttribute<Project[]>; // Note this is optional since it's only populated when explicitly requested in code
 
   // getters that are not attributes should be tagged using NonAttribute
   // to remove them from the model's Attribute Typings.
@@ -139,9 +146,9 @@ class Project extends Model<
   declare owner?: NonAttribute<User>;
 
   // createdAt can be undefined during creation
-  declare readonly createdAt: CreationOptional<Date>;
+  declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
 }
 
 class Address extends Model<
@@ -152,9 +159,9 @@ class Address extends Model<
   declare address: string;
 
   // createdAt can be undefined during creation
-  declare readonly createdAt: CreationOptional<Date>;
+  declare createdAt: CreationOptional<Date>;
   // updatedAt can be undefined during creation
-  declare readonly updatedAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
 }
 
 Project.init(
