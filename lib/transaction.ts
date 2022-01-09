@@ -15,7 +15,7 @@ export class Transaction {
 
   sequelize: Sequelize;
 
-  private _afterCommitHooks: AfterTransactionCommitCallback[] = [];
+  private _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
   private savepoints: Transaction[] = [];
   private options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private parent: Transaction | null;
@@ -198,18 +198,18 @@ export class Transaction {
   }
 
   /**
-   * Adds a hook that is run after a transaction is committed
+   * Adds a hook that is run after a transaction is committed.
    *
    * @param {Function} fn   A callback function that is called with the committed transaction
    * @name afterCommit
    * @memberof Sequelize.Transaction
    */
   afterCommit(fn: AfterTransactionCommitCallback): this {
-    if (!fn || typeof fn !== 'function') {
+    if (typeof fn !== 'function') {
       throw new Error('"fn" must be a function');
     }
 
-    this._afterCommitHooks.push(fn);
+    this._afterCommitHooks.add(fn);
 
     return this;
   }
