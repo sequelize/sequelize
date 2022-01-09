@@ -286,7 +286,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  if (dialect === 'mysql') {
+  if (['mysql', 'mariadb'].includes(dialect)) {
     describe('set', () => {
       it("should return an promised error if transaction isn't defined", async function() {
         await expect(this.sequelize.set({ foo: 'bar' }))
