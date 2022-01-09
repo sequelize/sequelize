@@ -5,7 +5,7 @@ const assert = require('assert');
 
 module.exports = function transform($, filePath) {
   // The rest of this script assumes forward slashes, so let's ensure this works on windows
-  filePath = filePath.replace(/\\/g, '/');
+  filePath = filePath.replaceAll('\\', '/');
 
   // Detect every heading with an ID
   const headingsWithId = $('h1,h2,h3,h4,h5').filter('[id]');

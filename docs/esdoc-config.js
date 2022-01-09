@@ -12,8 +12,8 @@ module.exports = {
     {
       name: 'esdoc-ecmascript-proposal-plugin',
       option: {
-        all: true
-      }
+        all: true,
+      },
     },
     {
       name: 'esdoc-inject-style-plugin',
@@ -21,9 +21,9 @@ module.exports = {
         enable: true,
         styles: [
           './docs/css/style.css',
-          './docs/css/theme.css'
-        ]
-      }
+          './docs/css/theme.css',
+        ],
+      },
     },
     {
       name: 'esdoc-standard-plugin',
@@ -32,7 +32,7 @@ module.exports = {
         coverage: { enable: false },
         accessor: {
           access: ['public'],
-          autoPrivate: true
+          autoPrivate: true,
         },
         undocumentIdentifier: { enable: false },
         unexportedIdentifier: { enable: true },
@@ -42,18 +42,18 @@ module.exports = {
           title: 'Sequelize',
           description: 'An easy-to-use multi SQL dialect ORM for Node.js',
           repository: 'https://github.com/sequelize/sequelize',
-          site: 'https://sequelize.org/master/'
+          site: 'https://sequelize.org/master/',
         },
         manual: {
           index: './docs/index.md',
           globalIndex: true,
           asset: './docs/images',
-          files: getDeclaredManuals()
-        }
-      }
+          files: getDeclaredManuals(),
+        },
+      },
     },
     {
-      name: './esdoc-ts'
-    }
-  ]
+      name: './esdoc-ts',
+    },
+  ],
 };

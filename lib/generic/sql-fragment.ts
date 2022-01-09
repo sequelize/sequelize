@@ -1,4 +1,4 @@
-import { Falsy } from './falsy';
+import type { Falsy } from './falsy';
 
 export type SQLFragment = string | Falsy | SQLFragment[];
 export type TruthySQLFragment = string | SQLFragment[];

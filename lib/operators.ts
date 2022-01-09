@@ -518,7 +518,7 @@ const Op: OpTypes = {
   col: Symbol.for('col'),
   placeholder: Symbol.for('placeholder'),
   join: Symbol.for('join'),
-  match: Symbol.for('match')
+  match: Symbol.for('match'),
 } as OpTypes;
 
 export default Op;

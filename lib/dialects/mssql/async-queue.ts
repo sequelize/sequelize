@@ -29,13 +29,13 @@ class AsyncQueue {
     this.rejectCurrent(
       new ConnectionError(
         new AsyncQueueError(
-          'the connection was closed before this query could finish executing'
-        )
-      )
+          'the connection was closed before this query could finish executing',
+        ),
+      ),
     );
   }
 
-  enqueue(asyncFunction: (...args: any[]) => Promise<unknown>) {
+  async enqueue(asyncFunction: (...args: any[]) => Promise<unknown>) {
     // This outer promise might seems superflous since down below we return asyncFunction().then(resolve, reject).
     // However, this ensures that this.previous will never be a rejected promise so the queue will
     // always keep going, while still communicating rejection from asyncFunction to the user.
@@ -46,11 +46,12 @@ class AsyncQueue {
           return reject(
             new ConnectionError(
               new AsyncQueueError(
-                'the connection was closed before this query could be executed'
-              )
-            )
+                'the connection was closed before this query could be executed',
+              ),
+            ),
           );
         }
+
         return asyncFunction().then(resolve, reject);
       });
     });

@@ -5,8 +5,8 @@
  * @module logging
  * @access package
  */
+import util from 'node:util';
 import nodeDebug from 'debug';
-import util from 'util';
 
 /**
  * The configuration for sequelize's logging interface.
@@ -28,7 +28,7 @@ export class Logger {
   constructor({ context = 'sequelize', ...rest }: Partial<LoggerConfig> = {}) {
     this.config = {
       context,
-      ...rest
+      ...rest,
     };
   }
 
@@ -50,7 +50,7 @@ export class Logger {
   inspect(value: unknown): string {
     return util.inspect(value, {
       showHidden: false,
-      depth: 1
+      depth: 1,
     });
   }
 

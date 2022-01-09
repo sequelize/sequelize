@@ -1,5 +1,6 @@
-const chai = require('chai'),
-  expect = chai.expect;
+const chai = require('chai');
+
+const expect = chai.expect;
 
 /**
  * Tests whether users can import files deeper than "sequelize" (eg. "sequelize/package.json").

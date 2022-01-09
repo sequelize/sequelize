@@ -1,15 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect();
+const chai = require('chai');
 
-if (dialect.match(/^mariadb/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+
+if (dialect.startsWith('mariadb')) {
   describe('QueryInterface', () => {
 
     describe('databases', () => {
-      it('should create and drop database', async function() {
+      it('should create and drop database', async function () {
         const res = await this.sequelize.query('SHOW DATABASES');
         const databaseNumber = res[0].length;
         await this.sequelize.getQueryInterface().createDatabase('myDB');
