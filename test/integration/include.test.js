@@ -593,6 +593,83 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(user.Products[1].Prices.length).to.equal(4);
     });
 
+    it('should support duplicated results through nested and plain options', function() {
+      const Cart = this.sequelize.define('Cart', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      });
+
+      const Product = this.sequelize.define('Product', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        name: {
+          type: Sequelize.STRING
+        },
+        price: {
+          type: Sequelize.DECIMAL
+        }
+      });
+
+      const CartItem = this.sequelize.define('CartItem', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        qty: {
+          type: Sequelize.INTEGER
+        }
+      });
+
+      Cart.belongsToMany(Product, {
+        through: {
+          model: CartItem,
+          unique: false
+        },
+        as: 'items'
+      });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([Cart.create(), Product.create({ name: 'Test', price: 12.3 })])
+          .then(results => {
+            const c = results[0];
+            const p = results[1];
+
+            const options = {
+              nested: true,
+              plain: true, // findOne
+              include: [{
+                model: Product,
+                attributes: ['id', 'name', 'price'],
+                as: 'items'
+              }],
+              where: { id: c.id }
+            };
+
+            return Promise.all([
+              CartItem.create({ qty: 1, CartId: c.id, ProductId: p.id }),
+              CartItem.create({ qty: 2, CartId: c.id, ProductId: p.id })
+            ])
+              .then(() => Cart.findAll(options))
+              .then(cart => {
+                expect(cart.items.length).to.equal(2);
+                expect(cart.items.reduce((prev, cur) => prev + cur.CartItem.qty, 0)).to.equal(3);
+
+                return cart.getItems().then(data => {
+                  expect(data.length).to.equal(2);
+                  expect(data.reduce((prev, cur) => prev + cur.CartItem.qty, 0)).to.equal(3);
+                });
+              });
+          });
+      });
+    });
+
     it('should support specifying attributes', async function() {
       const Project = this.sequelize.define('Project', {
         title: Sequelize.STRING
