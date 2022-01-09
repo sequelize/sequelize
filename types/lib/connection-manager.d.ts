@@ -7,6 +7,11 @@ export interface GetConnectionOptions {
    * Force master or write replica to get connection from
    */
   useMaster?: boolean;
+
+  /**
+   * ID of the connection.
+   */
+  uuid?: string | 'default';
 }
 
 export type Connection = {

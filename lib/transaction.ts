@@ -124,7 +124,8 @@ export class Transaction {
       connection = this.parent.connection;
     } else {
       connection = await this.sequelize.connectionManager.getConnection({
-        type: this.options.readOnly ? 'read' : 'write'
+        type: this.options.readOnly ? 'read' : 'write',
+        uuid: this.id
       });
     }
 
