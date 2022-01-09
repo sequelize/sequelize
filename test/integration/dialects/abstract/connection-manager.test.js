@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
+      type: 'read',
       useMaster: false
     };
 
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
+      type: 'read',
       useMaster: true
     };
 
@@ -181,7 +181,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
+      type: 'read',
       useMaster: true
     };
 
