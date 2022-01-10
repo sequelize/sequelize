@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             active: true,
           },
         }],
-        group: this.sequelize.col([...Task.name, '.'].concat(Task.primaryKeyField)),
+        group: this.sequelize.col(`${Task.name}.${Task.primaryKeyField}`),
       })).to.eventually.equal(1);
     });
   });
