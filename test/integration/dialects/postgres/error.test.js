@@ -38,7 +38,7 @@ if (dialect.startsWith('postgres')) {
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 
       _.each(errDetails, (value, key) => {
-        expect(value).to.be.deep.equal(err[key]);
+        expect(err[key]).to.be.deep.equal(value, `Value for key ${key} is invalid`);
       });
     });
 

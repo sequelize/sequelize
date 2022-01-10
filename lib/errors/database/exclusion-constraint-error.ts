@@ -24,6 +24,7 @@ class ExclusionConstraintError
     options.parent = options.parent || { sql: '', name: '', message: '' };
 
     super(options.parent, { stack: options.stack });
+    this.message = options.message || options.parent.message || '';
     this.name = 'SequelizeExclusionConstraintError';
     this.constraint = options.constraint;
     this.fields = options.fields;
