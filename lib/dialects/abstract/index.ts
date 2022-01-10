@@ -1,4 +1,4 @@
-type DialectSupports = {
+export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
   'VALUES ()': boolean,
@@ -8,9 +8,21 @@ type DialectSupports = {
   'UNION': boolean,
   'UNION ALL': boolean,
   'RIGHT JOIN': boolean,
+  EXCEPTION: boolean,
+
+  forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | undefined,
+  lock: boolean,
+  lockOf: boolean,
+  lockKey: boolean,
+  lockOuterJoinFailure: boolean,
+  skipLocked: boolean,
+  finalTable: boolean,
 
   /* does the dialect support returning values for inserted/updated fields */
-  returnValues: boolean,
+  returnValues: false | {
+    output: boolean,
+    returning: boolean,
+  },
 
   /* features specific to autoIncrement values */
   autoIncrement: {
@@ -35,7 +47,7 @@ type DialectSupports = {
   upserts: boolean,
   inserts: {
     ignoreDuplicates: string, /* dialect specific words for INSERT IGNORE or DO NOTHING */
-    updateOnDuplicate: boolean, /* whether dialect supports ON DUPLICATE KEY UPDATE */
+    updateOnDuplicate: boolean | string, /* whether dialect supports ON DUPLICATE KEY UPDATE */
     onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
     conflictFields: boolean /* whether the dialect supports specifying conflict fields or not */
   },
@@ -55,17 +67,36 @@ type DialectSupports = {
     parser: boolean,
     concurrently: boolean,
     type: boolean,
-    using: boolean,
+    using: boolean | number,
     functionBased: boolean,
-    operator: boolean
+    operator: boolean,
+    where: boolean,
   },
   groupedLimit: boolean,
   indexViaAlter: boolean,
   JSON: boolean,
-  deferrableConstraints: boolean
+  JSONB: boolean,
+  ARRAY: boolean,
+  RANGE: boolean,
+  NUMERIC: boolean,
+  GEOMETRY: boolean,
+  GEOGRAPHY: boolean,
+  REGEXP: boolean,
+  HSTORE: boolean,
+  TSVECTOR: boolean,
+  deferrableConstraints: boolean,
+  tmpTableTrigger: boolean,
+  indexHints: boolean,
+  searchPath: boolean
 };
 
-export class AbstractDialect {
+export abstract class AbstractDialect {
+  /**
+   * List of features this dialect supports.
+   *
+   * Important: Dialect implementations inherit these values.
+   * When changing a default, ensure the implementations still properly declare which feature they support.
+   */
   static readonly supports: DialectSupports = {
     'DEFAULT': true,
     'DEFAULT VALUES': false,
@@ -76,22 +107,19 @@ export class AbstractDialect {
     'UNION': true,
     'UNION ALL': true,
     'RIGHT JOIN': true,
-
-    /* does the dialect support returning values for inserted/updated fields */
+    EXCEPTION: false,
+    lock: false,
+    lockOf: false,
+    lockKey: false,
+    lockOuterJoinFailure: false,
+    skipLocked: false,
+    finalTable: false,
     returnValues: false,
-
-    /* features specific to autoIncrement values */
     autoIncrement: {
-      /* does the dialect require modification of insert queries when inserting auto increment fields */
       identityInsert: false,
-
-      /* does the dialect support inserting default/null values for autoincrement fields */
       defaultValue: true,
-
-      /* does the dialect support updating autoincrement fields */
       update: true
     },
-    /* Do we need to say DEFAULT for bulk insert */
     bulkDefault: false,
     schemas: false,
     transactions: true,
@@ -102,10 +130,10 @@ export class AbstractDialect {
     migrations: true,
     upserts: true,
     inserts: {
-      ignoreDuplicates: '', /* dialect specific words for INSERT IGNORE or DO NOTHING */
-      updateOnDuplicate: false, /* whether dialect supports ON DUPLICATE KEY UPDATE */
-      onConflictDoNothing: '', /* dialect specific words for ON CONFLICT DO NOTHING */
-      conflictFields: false /* whether the dialect supports specifying conflict fields or not */
+      ignoreDuplicates: '',
+      updateOnDuplicate: false,
+      onConflictDoNothing: '',
+      conflictFields: false
     },
     constraints: {
       restrict: true,
@@ -125,12 +153,25 @@ export class AbstractDialect {
       type: false,
       using: true,
       functionBased: false,
-      operator: false
+      operator: false,
+      where: false
     },
     groupedLimit: true,
     indexViaAlter: false,
     JSON: false,
-    deferrableConstraints: false
+    JSONB: false,
+    NUMERIC: false,
+    ARRAY: false,
+    RANGE: false,
+    GEOMETRY: false,
+    REGEXP: false,
+    GEOGRAPHY: false,
+    HSTORE: false,
+    TSVECTOR: false,
+    deferrableConstraints: false,
+    tmpTableTrigger: false,
+    indexHints: false,
+    searchPath: false
   };
 
   get supports(): DialectSupports {

@@ -226,7 +226,7 @@ const Support = {
             .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
         }
       } else {
-        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
+        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
       }
     }
 
