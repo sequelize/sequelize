@@ -1,4 +1,4 @@
-import { deprecate } from 'node:util';
+import { deprecate } from 'util';
 
 const noop = () => { /* noop */ };
 

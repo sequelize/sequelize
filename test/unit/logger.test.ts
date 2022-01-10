@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-import { inspect as nodeInspect } from 'node:util';
+import { inspect as nodeInspect } from 'util';
 import { expect } from 'chai';
 import { Logger, logger as defaultLogger } from 'sequelize/lib/utils/logger';
 import sinon from 'sinon';
