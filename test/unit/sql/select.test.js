@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ['first_name', 'firstName'],
           ['last_name', 'lastName'],
         ],
-        order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
         hasMultiAssociation: true, // must be set only for mssql dialect here
@@ -598,9 +598,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('attribute escaping', () => {
       it('plain attributes (1)', () => {
-        expectsql(sql.selectQuery('User', {
-          attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT)],
-        }), {
+        expectsql(sql.selectQuery('User', { attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]        }), {
           default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
           db2: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
           snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
@@ -636,7 +634,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('aliased attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
-            ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'myCol'],
+            ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'myCol'],
           ],
         }), {
           default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];',
@@ -684,8 +682,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attributes: ['name', 'age'],
           include: Model._validateIncludedElements({
             include: [{
-              attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT)],
-              association: User.Posts,
+              attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)],              association: User.Posts,
             }],
             model: User,
           }).include,
@@ -699,7 +696,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           include: Model._validateIncludedElements({
             include: [{
               attributes: [
-                ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
+                ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
               ],
               association: User.Posts,
             }],

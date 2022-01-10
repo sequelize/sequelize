@@ -33,9 +33,10 @@ module.exports = {
     'unicorn/no-object-as-default-parameter': 'off',
 
     // sequelize needs to support node >= 12.
-    // Object.hasOwn, Array#at are available in node >= 16.
+    // Object.hasOwn, Array#at, String#replaceAll are available in node >= 16.
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
+    'unicorn/prefer-string-replace-all': 'off',
 
     // Too opinionated.
     'unicorn/prevent-abbreviations': 'off',
