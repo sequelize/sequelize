@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
         });
 
         // last log is warning message
-        expect(logger.args.at(-1)[0]).to.be.match(/^MySQL Warnings \(default\):.*/m);
+        expect(logger.args[logger.args.length - 1][0]).to.be.match(/^MySQL Warnings \(default\):.*/m);
         logger.restore();
       });
     });
