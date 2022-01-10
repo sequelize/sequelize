@@ -141,9 +141,6 @@
       "optional": true
     }
   },
-  "resolution": {
-    "colors": "1.4.0"
-  },
   "keywords": [
     "mysql",
     "mariadb",
