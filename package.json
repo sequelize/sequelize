@@ -207,7 +207,8 @@
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
-    "lint": "eslint . --quiet --fix --report-unused-disable-directives",
+    "lint": "eslint . --fix --report-unused-disable-directives",
+    "lint-no-fix": "eslint . --quiet --fix --report-unused-disable-directives",
     "lint-docs": "markdownlint docs",
     "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json && tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
