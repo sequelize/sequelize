@@ -67,6 +67,8 @@ if (dialect.startsWith('mssql')) {
           })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
             .and.have.property('parent').that.instanceOf(AsyncQueueError),
         ]);
+
+        return promise;
       })).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');
 
       await expect(promise).not.to.be.rejected;
