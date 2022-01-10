@@ -44,6 +44,9 @@ module.exports = {
     'unicorn/prevent-abbreviations': 'off',
     'unicorn/prefer-switch': 'off',
 
+    // This rule is incompatible with DataTypes
+    'babel/new-cap': 'off',
+
     // Too slow for the scale of this codebase
     'import/no-deprecated': 'off',
     'import/named': 'off',
