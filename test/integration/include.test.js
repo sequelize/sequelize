@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   _ = require('lodash'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize,
@@ -653,8 +653,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ];
       } else if (dialect === 'ibmi') {
         findAttributes = [
-          Sequelize.literal('1 AS "PostComments.someProperty"'),
-          Sequelize.literal('1 AS "someProperty2"')
+          Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
+          [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
+        ];
+      } else if (dialect === 'db2') {
+        findAttributes = [
+          Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
+          [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
         ];
       } else {
         findAttributes = [

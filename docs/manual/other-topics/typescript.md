@@ -15,21 +15,19 @@ In order to avoid installation bloat for non TS users, you must install the foll
 
 Example of a minimal TypeScript project with strict type-checking for attributes.
 
+**Important**: You must use `declare` on your class properties typings to ensure TypeScript does not emit those class properties.
+See [Caveat with Public Class Fields](./model-basics.html#caveat-with-public-class-fields)
+
 **NOTE:** Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
 
-```ts
+```typescript
+/**
+ * Keep this file in sync with the code in the "Usage" section in typescript.md
+ */
 import {
-  Sequelize,
-  Model,
-  ModelDefined,
-  DataTypes,
-  HasManyGetAssociationsMixin,
-  HasManyAddAssociationMixin,
-  HasManyHasAssociationMixin,
-  Association,
-  HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin,
-  Optional,
+  Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
+  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
+  ModelDefined, Optional, Sequelize
 } from "sequelize";
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
@@ -46,28 +44,28 @@ interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes {
-  public id!: number; // Note that the `null assertion` `!` is required in strict mode.
-  public name!: string;
-  public preferredName!: string | null; // for nullable fields
+  declare id: number; // Note that the `null assertion` `!` is required in strict mode.
+  declare name: string;
+  declare preferredName: string | null; // for nullable fields
 
   // timestamps!
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
-  public getProjects!: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
-  public addProject!: HasManyAddAssociationMixin<Project, number>;
-  public hasProject!: HasManyHasAssociationMixin<Project, number>;
-  public countProjects!: HasManyCountAssociationsMixin;
-  public createProject!: HasManyCreateAssociationMixin<Project>;
+  declare getProjects: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  declare addProject: HasManyAddAssociationMixin<Project, number>;
+  declare hasProject: HasManyHasAssociationMixin<Project, number>;
+  declare countProjects: HasManyCountAssociationsMixin;
+  declare createProject: HasManyCreateAssociationMixin<Project>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  public readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
+  declare readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
 
-  public static associations: {
+  declare static associations: {
     projects: Association<User, Project>;
   };
 }
@@ -76,18 +74,19 @@ interface ProjectAttributes {
   id: number;
   ownerId: number;
   name: string;
+  description?: string;
 }
 
 interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
 
 class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   implements ProjectAttributes {
-  public id!: number;
-  public ownerId!: number;
-  public name!: string;
+  declare id: number;
+  declare ownerId: number;
+  declare name: string;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 interface AddressAttributes {
@@ -98,11 +97,11 @@ interface AddressAttributes {
 // You can write `extends Model<AddressAttributes, AddressAttributes>` instead,
 // but that will do the exact same thing as below
 class Address extends Model<AddressAttributes> implements AddressAttributes {
-  public userId!: number;
-  public address!: string;
+  declare userId: number;
+  declare address: string;
 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 // You can also define modules in a functional way
@@ -113,7 +112,8 @@ interface NoteAttributes {
 }
 
 // You can also set multiple attributes optional at once
-interface NoteCreationAttributes extends Optional<NoteAttributes, 'id' | 'title'> {};
+interface NoteCreationAttributes
+  extends Optional<NoteAttributes, "id" | "title"> {}
 
 Project.init(
   {
@@ -129,6 +129,10 @@ Project.init(
     name: {
       type: new DataTypes.STRING(128),
       allowNull: false,
+    },
+    description: {
+      type: new DataTypes.STRING(128),
+      allowNull: true,
     },
   },
   {
@@ -180,7 +184,7 @@ const Note: ModelDefined<
   NoteAttributes,
   NoteCreationAttributes
 > = sequelize.define(
-  'Note',
+  "Note",
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -189,7 +193,7 @@ const Note: ModelDefined<
     },
     title: {
       type: new DataTypes.STRING(64),
-      defaultValue: 'Unnamed Note',
+      defaultValue: "Unnamed Note",
     },
     content: {
       type: new DataTypes.STRING(4096),
@@ -197,7 +201,7 @@ const Note: ModelDefined<
     },
   },
   {
-    tableName: 'notes',
+    tableName: "notes",
   }
 );
 
@@ -220,6 +224,7 @@ async function doStuffWithUser() {
 
   const project = await newUser.createProject({
     name: "first!",
+    ownerId: 123,
   });
 
   const ourUser = await User.findByPk(1, {
@@ -231,6 +236,11 @@ async function doStuffWithUser() {
   // the model or not
   console.log(ourUser.projects![0].name);
 }
+
+(async () => {
+  await sequelize.sync();
+  await doStuffWithUser();
+})();
 ```
 
 ### Usage without strict types for attributes

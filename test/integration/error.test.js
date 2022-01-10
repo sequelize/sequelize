@@ -4,7 +4,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('./support'),
-  dialect = Support.getTestDialect(),
+  dialect   = Support.getTestDialect(),
   Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
@@ -151,6 +151,15 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         expect(error).to.have.property('origin', data[k]);
         expect(error).to.have.property('type', k);
       });
+    });
+
+    it('SequelizeValidationErrorItemOrigin is valid', () => {
+      const ORIGINS = Sequelize.ValidationErrorItemOrigin;
+
+      expect(ORIGINS).to.have.property('CORE', 'CORE');
+      expect(ORIGINS).to.have.property('DB', 'DB');
+      expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
+
     });
 
     it('SequelizeValidationErrorItem.Origins is valid', () => {
@@ -369,8 +378,11 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
       // And when the model is not passed at all
-      const sql = dialect === 'ibmi' ? 'INSERT INTO "users" ("name") VALUES (\'jan\')' : 'INSERT INTO users (name) VALUES (\'jan\')'
-      await expect(this.sequelize.query(sql)).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      if (dialect === 'db2' || dialect === 'ibmi') {
+        await expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      } else {
+        await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      }
     });
 
     it('adds parent and sql properties', async function() {

@@ -1,22 +1,22 @@
-import DataTypes = require('./lib/data-types');
-import Deferrable = require('./lib/deferrable');
-import Op = require('./lib/operators');
-import QueryTypes = require('./lib/query-types');
-import TableHints = require('./lib/table-hints');
-import IndexHints = require('./lib/index-hints');
-import Utils = require('./lib/utils');
+import DataTypes = require("./lib/data-types");
+import Deferrable = require("./lib/deferrable");
+import Op from "../lib/operators";
+import QueryTypes = require("./lib/query-types");
+import TableHints = require("./lib/table-hints");
+import IndexHints = require("./lib/index-hints");
+import Utils = require("./lib/utils");
 
-export * from './lib/sequelize';
-export * from './lib/query-interface';
-export * from './lib/data-types';
-export * from './lib/model';
-export * from './lib/transaction';
-export * from './lib/associations/index';
-export * from './lib/errors';
-export { BaseError as Error } from './lib/errors';
-export { useInflection } from './lib/utils';
+export * from "./lib/associations/index";
+export * from "./lib/data-types";
+export * from "./lib/errors";
+export { BaseError as Error } from "./lib/errors";
+export * from "./lib/model";
+export * from "./lib/query-interface";
+export * from "./lib/sequelize";
+export * from "./lib/transaction";
+export { useInflection } from "./lib/utils";
+export { Validator } from "./lib/utils/validator-extras";
 export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
-export { Validator as validator } from './lib/utils/validator-extras';
 
 /**
  * Type helper for making certain fields of an object optional. This is helpful

@@ -17,9 +17,11 @@ if (current.dialect.name !== 'sqlite') {
         }, 'email'), {
           ibmi: 'ALTER TABLE "archive"."user" DROP COLUMN "email"',
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
+          db2: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
           mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
-          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
+          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
+          snowflake: 'ALTER TABLE "archive"."user" DROP "email";'
         });
       });
     });

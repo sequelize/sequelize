@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {

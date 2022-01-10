@@ -2,20 +2,20 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
-const DataTypes = require('../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const Sequelize = require('../../index');
+const Sequelize = require('sequelize');
 const config = require('../config/config');
-const Transaction = require('../../lib/transaction');
+const Transaction = require('sequelize/lib/transaction');
 const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'ibmi') {
+  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
-  if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
+  if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
     return `\`${str}\``;
   }
   return str;
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
 
     if (dialect === 'postgres') {
-      const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}`;
+      const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
         // postgres://...
@@ -70,6 +70,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         // postgresql://...
         new Sequelize(connectionUri);
       });
+      it('should work with options in the connection string (postgresql protocol)', async () => {
+        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgresql', options: '-c%20search_path%3dtest_schema' });
+        const sequelize = new Sequelize(connectionUri);
+        const result = await sequelize.query('SHOW search_path');
+        expect(result[0].search_path).to.equal('test_schema');
+      });
+
     }
   });
 
@@ -122,6 +129,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               err.message.includes('invalid port number') ||
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
+              err.message.includes('A communication error has been detected') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
@@ -159,23 +167,24 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(err).to.be.instanceof(Sequelize.Error);
           }
         });
-
-        it('triggers the error event when using replication', async () => {
-          try {
-            await new Sequelize('sequelize', null, null, {
-              dialect,
-              replication: {
-                read: {
-                  host: 'localhost',
-                  username: 'omg',
-                  password: 'lol'
+        if (dialect != 'db2') {
+          it('triggers the error event when using replication', async () => {
+            try {
+              await new Sequelize('sequelize', null, null, {
+                dialect,
+                replication: {
+                  read: {
+                    host: 'localhost',
+                    username: 'omg',
+                    password: 'lol'
+                  }
                 }
-              }
-            }).authenticate();
-          } catch (err) {
-            expect(err).to.not.be.null;
-          }
-        });
+              }).authenticate();
+            } catch (err) {
+              expect(err).to.not.be.null;
+            }
+          });
+        }
       });
     });
 
@@ -284,7 +293,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  if (dialect === 'mysql') {
+  if (['mysql', 'mariadb'].includes(dialect)) {
     describe('set', () => {
       it("should return an promised error if transaction isn't defined", async function() {
         await expect(this.sequelize.set({ foo: 'bar' }))
@@ -360,7 +369,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.include('photos');
@@ -421,7 +430,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
-    if (dialect !== 'sqlite') {
+    if (dialect !== 'sqlite' && dialect !== 'db2') {
       it('fails for incorrect connection even when no models are defined', async function() {
         const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
@@ -446,7 +455,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (err) {
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
+          if (['postgres', 'postgres-native'].includes(dialect)) {
             assert([
               'fe_sendauth: no password supplied',
               'role "bar" does not exist',
@@ -458,6 +467,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'ibmi') {
             expect(err.message).to.equal('[odbc] Error connecting to the database');
             expect(err.original.odbcErrors[0].message).to.include('Communication link failure');
+          } else if (dialect === 'db2') {
+            expect(err.message).to.include('A communication error has been detected');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }
@@ -811,7 +822,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             await this.sp1.rollback();
             const users = await this.User.findAll({ transaction: this.transaction });
-            expect(users).to.have.length(0);
+            // SAVE TRANSACTION command commits for db2.
+            // There is no odbc API for save command.
+            // Db2 does not support nested transaction. So, save transaction
+            // is getting translated into commit and begin transaction.
+            const len = dialect === 'db2' ? 1 : 0;
+            expect(users).to.have.length(len);
 
             await this.transaction.rollback();
           });
@@ -862,7 +878,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t1.rollback();
           const users = await User.findAll();
-          expect(users.length).to.equal(0);
+          // Db2 does not support nested transaction.
+          const len = dialect === 'db2' ? 1 : 0;
+          expect(users.length).to.equal(len);
         });
       });
     }

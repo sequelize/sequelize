@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   Sequelize = Support.Sequelize,
   chai = require('chai'),
   util = require('util'),
@@ -41,6 +41,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
         ibmi: 'CLOB(1234)',
+        db2: 'VARCHAR(1234) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
         postgres: 'BYTEA'
@@ -49,6 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
         ibmi: 'CLOB(255)',
+        db2: 'VARCHAR(255) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
         postgres: 'BYTEA'
@@ -68,12 +70,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
+        db2: 'VARCHAR(32672)',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
@@ -81,6 +85,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
@@ -88,6 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
+        db2: 'VARCHAR(8192)',
         mariadb: 'MEDIUMTEXT',
         mysql: 'MEDIUMTEXT'
       });
@@ -95,6 +101,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
+        db2: 'CLOB(65536)',
         mariadb: 'LONGTEXT',
         mysql: 'LONGTEXT'
       });
@@ -148,10 +155,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
         ibmi: 'SMALLINT',
         postgres: 'BOOLEAN',
+        db2: 'BOOLEAN',
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)'
+        sqlite: 'TINYINT(1)',
+        snowflake: 'BOOLEAN'
       });
 
       describe('validate', () => {
@@ -183,7 +192,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME',
         mysql: 'DATETIME',
-        sqlite: 'DATETIME'
+        db2: 'TIMESTAMP',
+        sqlite: 'DATETIME',
+        snowflake: 'TIMESTAMP'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
@@ -192,7 +203,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
-        sqlite: 'DATETIME'
+        db2: 'TIMESTAMP(6)',
+        sqlite: 'DATETIME',
+        snowflake: 'TIMESTAMP'
       });
 
       describe('validate', () => {
@@ -236,10 +249,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('UUID', DataTypes.UUID, {
         postgres: 'UUID',
         ibmi: 'CHAR(36)',
+        db2: 'CHAR(36) FOR BIT DATA',
         mssql: 'CHAR(36)',
         mariadb: 'CHAR(36) BINARY',
         mysql: 'CHAR(36) BINARY',
-        sqlite: 'UUID'
+        sqlite: 'UUID',
+        snowflake: 'VARCHAR(36)'
       });
 
       describe('validate', () => {
@@ -337,6 +352,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('NOW', () => {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
+        db2: 'CURRENT TIME',
         mssql: 'GETDATE()'
       });
     });
@@ -350,6 +366,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER UNSIGNED',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER',
         sqlite: 'INTEGER'
       });
@@ -358,6 +375,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER UNSIGNED ZEROFILL',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER',
         sqlite: 'INTEGER'
       });
@@ -366,6 +384,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER(11)',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -373,6 +392,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER(11)',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -381,6 +401,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -389,6 +410,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -397,6 +419,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -405,6 +428,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        db2: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -448,6 +472,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2),
           expect: {
             default: 'TINYINT(2)',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
           }
@@ -457,6 +482,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
             default: 'TINYINT(2)',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
           }
@@ -466,6 +492,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -476,6 +503,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
             default: 'TINYINT(2) UNSIGNED',
+            db2: 'TINYINT',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -486,6 +514,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -496,6 +525,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
+            db2: 'TINYINT',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -506,6 +536,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
             default: 'TINYINT ZEROFILL',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -516,6 +547,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).ZEROFILL,
           expect: {
             default: 'TINYINT(2) ZEROFILL',
+            db2: 'TINYINT',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -526,6 +558,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
+            db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -536,6 +569,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
+            db2: 'TINYINT',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -584,6 +618,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT(4)',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         },
@@ -594,6 +629,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT(4)',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         },
@@ -604,6 +640,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT'
           }
@@ -616,6 +653,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         },
@@ -626,6 +664,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT'
           }
@@ -638,6 +677,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         },
@@ -648,6 +688,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT'
           }
@@ -660,6 +701,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         },
@@ -670,6 +712,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT'
           }
@@ -682,6 +725,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            db2: 'SMALLINT',
             mssql: 'SMALLINT'
           }
         }
@@ -835,6 +879,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT UNSIGNED',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT',
         sqlite: 'BIGINT'
       });
@@ -843,6 +888,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT UNSIGNED ZEROFILL',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT',
         sqlite: 'BIGINT'
       });
@@ -851,6 +897,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT(11)',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -858,6 +905,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT(11)',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -866,6 +914,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -874,6 +923,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -882,6 +932,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -890,6 +941,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        db2: 'BIGINT',
         mssql: 'BIGINT'
       });
 
@@ -923,6 +975,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL UNSIGNED',
         ibmi: 'REAL',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -930,6 +983,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -937,6 +991,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -945,6 +1000,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -953,6 +1009,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -961,6 +1018,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL ZEROFILL(11)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -969,6 +1027,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -976,6 +1035,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11,12)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -984,6 +1044,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -992,6 +1053,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -1000,6 +1062,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -1008,6 +1071,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL ZEROFILL(11,12)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
 
@@ -1016,81 +1080,95 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
+        db2: 'REAL',
         mssql: 'REAL'
       });
     });
 
     describe('DOUBLE PRECISION', () => {
       testsql('DOUBLE', DataTypes.DOUBLE, {
+        db2: 'DOUBLE',
         default: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
         default: 'DOUBLE PRECISION UNSIGNED',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11)', DataTypes.DOUBLE(11), {
         default: 'DOUBLE PRECISION(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).UNSIGNED', DataTypes.DOUBLE(11).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE({ length: 11 }).UNSIGNED', DataTypes.DOUBLE({ length: 11 }).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).ZEROFILL', DataTypes.DOUBLE(11).ZEROFILL, {
         default: 'DOUBLE PRECISION(11) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
         default: 'DOUBLE PRECISION(11,12)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
+        db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
     });
@@ -1105,12 +1183,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'FLOAT UNSIGNED',
         ibmi: 'FLOAT',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
       testsql('FLOAT(11)', DataTypes.FLOAT(11), {
         default: 'FLOAT(11)',
         postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
+        db2: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
         mssql: 'FLOAT(11)' // 1-24 = 4 bytes; 35-53 = 8 bytes
       });
 
@@ -1119,6 +1199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED(11)',
         postgres: 'FLOAT(11)',
+        db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)'
       });
 
@@ -1127,6 +1208,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)'
       });
 
@@ -1135,6 +1217,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)'
       });
 
@@ -1143,6 +1226,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)'
       });
 
@@ -1151,6 +1235,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)'
       });
 
@@ -1158,6 +1243,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'FLOAT(11,12)',
         ibmi: 'FLOAT',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1166,6 +1252,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1174,6 +1261,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1182,6 +1270,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1190,6 +1279,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1198,6 +1288,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        db2: 'FLOAT',
         mssql: 'FLOAT'
       });
 
@@ -1338,6 +1429,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'TINYBLOB',
         ibmi: 'BLOB(255)',
         mssql: 'VARBINARY(256)',
+        db2: 'BLOB(255)',
         postgres: 'BYTEA'
       });
 
@@ -1345,6 +1437,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'MEDIUMBLOB',
         ibmi: 'BLOB(16M)',
         mssql: 'VARBINARY(MAX)',
+        db2: 'BLOB(16M)',
         postgres: 'BYTEA'
       });
 
@@ -1352,6 +1445,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'MEDIUMBLOB',
         ibmi: 'BLOB(16M)',
         mssql: 'VARBINARY(MAX)',
+        db2: 'BLOB(16M)',
         postgres: 'BYTEA'
       });
 
@@ -1359,6 +1453,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'LONGBLOB',
         ibmi: 'BLOB(2G)',
         mssql: 'VARBINARY(MAX)',
+        db2: 'BLOB(2G)',
         postgres: 'BYTEA'
       });
 
@@ -1499,7 +1594,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.GEOMETRY) {
       describe('GEOMETRY', () => {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
-          default: 'GEOMETRY'
+          default: 'GEOMETRY',
+          snowflake: 'GEOGRAPHY'
         });
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {

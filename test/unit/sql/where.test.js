@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  QueryTypes = require('../../../lib/query-types'),
+  DataTypes = require('sequelize/lib/data-types'),
+  QueryTypes = require('sequelize/lib/query-types'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,
@@ -59,6 +59,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'WHERE [yolo.User].[id] = 1',
         ibmi: 'WHERE "yolo"."User"."id" = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
+        db2: 'WHERE "yolo"."User"."id" = 1',
+        snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
@@ -92,7 +94,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       name: 'here is a null char: \0'
     }, {
       default: "WHERE [name] = 'here is a null char: \\0'",
+      snowflake: 'WHERE "name" = \'here is a null char: \0\'',
       mssql: "WHERE [name] = N'here is a null char: \0'",
+      db2: "WHERE \"name\" = 'here is a null char: \0'",
       sqlite: "WHERE `name` = 'here is a null char: \0'"
     });
   });
@@ -116,7 +120,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
       ibmi: '"deleted" IS NULL',
+      db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
+      snowflake: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
     });
 
@@ -155,6 +161,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: "`field` = X'53657175656c697a65'",
         mariadb: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
+        db2: '"field" = BLOB(\'Sequelize\')',
+        snowflake: '"field" = X\'53657175656c697a65\'',
         mssql: '[field] = 0x53657175656c697a65'
       });
     });
@@ -499,6 +507,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
         ibmi: "\"date\" BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'",
         mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        db2: "\"date\" BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        snowflake: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
         mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
       });
 
@@ -1141,6 +1151,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`username` REGEXP '^sw.*r$'",
           mysql: "`username` REGEXP '^sw.*r$'",
+          snowflake: '"username" REGEXP \'^sw.*r$\'',
           postgres: '"username" ~ \'^sw.*r$\''
         });
       });
@@ -1151,6 +1162,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`newline` REGEXP '^new\\nline$'",
           mysql: "`newline` REGEXP '^new\\nline$'",
+          snowflake: '"newline" REGEXP \'^new\nline$\'',
           postgres: '"newline" ~ \'^new\nline$\''
         });
       });
@@ -1161,6 +1173,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`username` NOT REGEXP '^sw.*r$'",
           mysql: "`username` NOT REGEXP '^sw.*r$'",
+          snowflake: '"username" NOT REGEXP \'^sw.*r$\'',
           postgres: '"username" !~ \'^sw.*r$\''
         });
       });
@@ -1171,6 +1184,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`newline` NOT REGEXP '^new\\nline$'",
           mysql: "`newline` NOT REGEXP '^new\\nline$'",
+          snowflake: '"newline" NOT REGEXP \'^new\nline$\'',
           postgres: '"newline" !~ \'^new\nline$\''
         });
       });
@@ -1267,11 +1281,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       current.where(current.fn('lower', current.col('name')), null)], {
       default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
     });
-    
+
     testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
       default: '[hours] BETWEEN 0 AND 5'
     });
-    
+
     testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
       default: '[hours] NOT BETWEEN 0 AND 5'
     });

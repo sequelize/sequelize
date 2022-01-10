@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
   Op = Sequelize.Op,
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
@@ -390,6 +390,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(10);
       });
 
+      it('should be able to find a row using greater than or equal to logic with moment dates', async function() {
+        const users = await this.User.findAll({
+          where: {
+            theDate: {
+              [Op.gte]: moment('2013-01-09')
+            }
+          }
+        });
+
+        expect(users[0].username).to.equal('boo2');
+        expect(users[0].intVal).to.equal(10);
+      });
+
       it('should be able to find a row using greater than or equal to', async function() {
         const user = await this.User.findOne({
           where: {
@@ -484,7 +497,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].intVal).to.equal(10);
       });
 
-      if (dialect === 'postgres' || dialect === 'sqlite') {
+      if (['postgres', 'sqlite'].includes(dialect)) {
         it('should be able to find multiple users with case-insensitive on CITEXT type', async function() {
           const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
             username: Sequelize.CITEXT

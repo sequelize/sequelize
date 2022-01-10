@@ -9,6 +9,9 @@ const Support = require('../support'),
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
+  if (current.dialect.name === 'snowflake') {
+    return;
+  }
   describe('addIndex', () => {
     it('naming', () => {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
@@ -48,6 +51,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }), {
         ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
+        db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
         postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
         mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
@@ -63,6 +67,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
         mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
+        db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo'
@@ -73,6 +78,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
+        db2: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)'
       });
@@ -107,6 +113,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
+          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\''
         });
@@ -124,6 +131,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
+          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')'
         });
@@ -138,6 +146,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
+          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL'
         });
@@ -160,19 +169,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('show indexes', () => {
         expectsql(sql.showIndexesQuery('table'), {
           postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, ' +
-          'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
-          'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a ' +
-          'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
-          't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
+            'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
+            'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a ' +
+            'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
+            't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
         });
 
         expectsql(sql.showIndexesQuery({ tableName: 'table', schema: 'schema' }), {
           postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, ' +
-          'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
-          'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s ' +
-          'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
-          't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' ' +
-          'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
+            'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
+            'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s ' +
+            'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
+            't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' ' +
+            'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
         });
       });
     }
@@ -246,6 +255,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mariadb: 'DROP INDEX `table_column1_column2` ON `table`',
         mysql: 'DROP INDEX `table_column1_column2` ON `table`',
         mssql: 'DROP INDEX [table_column1_column2] ON [table]',
+        db2: 'DROP INDEX "table_column1_column2"',
         default: 'DROP INDEX IF EXISTS [table_column1_column2]'
       });
     });
