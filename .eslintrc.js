@@ -43,6 +43,10 @@ module.exports = {
     // Too opinionated.
     'unicorn/prevent-abbreviations': 'off',
     'unicorn/prefer-switch': 'off',
+
+    // Too slow for the scale of this codebase
+    'import/no-deprecated': 'off',
+    'import/named': 'off',
   },
   overrides: [{
     files: ['**/*.js'],
