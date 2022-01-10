@@ -10,15 +10,6 @@ module.exports = {
   ],
   plugins: ['mocha', 'jsdoc'],
   rules: {
-    // We need to enable this in the next Major, it resolves a code smell
-    'unicorn/custom-error-definition': 'off',
-
-    // Enable this one if you want to prevent creating throwaway objects (perf)
-    'unicorn/no-object-as-default-parameter': 'off',
-
-    'mocha/no-exclusive-tests': 'error',
-    'mocha/no-skipped-tests': 'warn',
-
     'jsdoc/check-param-names': 'error',
     'jsdoc/check-tag-names': 'error',
     'jsdoc/check-types': 'off',
@@ -34,6 +25,12 @@ module.exports = {
     'jsdoc/require-returns-description': 'off',
     'jsdoc/require-returns-type': 'off',
     'jsdoc/valid-types': 'error',
+
+    // We need to enable this in the next Major, it resolves a code smell
+    'unicorn/custom-error-definition': 'off',
+
+    // Enable this one if you want to prevent creating throwaway objects (perf)
+    'unicorn/no-object-as-default-parameter': 'off',
 
     // sequelize needs to support node >= 12.
     // Object.hasOwn, Array#at are available in node >= 16.
@@ -137,10 +134,27 @@ module.exports = {
       'import/order': 'off',
     },
   }, {
+    // Disable slow rules that are not important in tests & docs (perf)
+    files: ['test/**/*', 'docs/**/*'],
+    rules: {
+      'import/no-extraneous-dependencies': 'off',
+      // no need to check jsdoc in tests & docs
+      'jsdoc/check-types': 'off',
+      'jsdoc/valid-types': 'off',
+      'jsdoc/newline-after-description': 'off',
+      'jsdoc/check-tag-names': 'off',
+    },
+  }, {
+    // Enable test-specific rules (perf)
     files: ['test/**/*'],
     rules: {
+      'mocha/no-exclusive-tests': 'error',
+      'mocha/no-skipped-tests': 'warn',
+
       // it's fine if we're not very efficient in tests.
       'no-inner-declarations': 'off',
+      'unicorn/no-unsafe-regex': 'off',
+
       // because of Chai
       '@typescript-eslint/no-unused-expressions': 'off',
     },
