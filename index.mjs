@@ -1,7 +1,5 @@
 import Pkg from './index.js';
 
-export default Pkg;
-
 // export * from './lib/sequelize';
 export const Sequelize = Pkg.Sequelize;
 export const fn = Pkg.fn;
@@ -123,3 +121,5 @@ export const Validator = Pkg.Validator;
 
 export const ValidationErrorItemOrigin = Pkg.ValidationErrorItemOrigin;
 export const ValidationErrorItemType = Pkg.ValidationErrorItemType;
+
+export { default } from './index.js';

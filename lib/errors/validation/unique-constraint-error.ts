@@ -1,5 +1,6 @@
-import { CommonErrorProperties, ErrorOptions } from '../base-error';
-import ValidationError, { ValidationErrorItem } from '../validation-error';
+import type { CommonErrorProperties, ErrorOptions } from '../base-error';
+import type { ValidationErrorItem } from '../validation-error';
+import ValidationError from '../validation-error';
 
 interface UniqueConstraintErrorParent
   extends Error,
@@ -18,8 +19,7 @@ interface UniqueConstraintErrorOptions extends ErrorOptions {
  */
 class UniqueConstraintError
   extends ValidationError
-  implements CommonErrorProperties
-{
+  implements CommonErrorProperties {
   parent: UniqueConstraintErrorParent;
   original: UniqueConstraintErrorParent;
   fields: Record<string, unknown>;
@@ -28,8 +28,8 @@ class UniqueConstraintError
   constructor(options: UniqueConstraintErrorOptions) {
     options = options ?? {};
     options.parent = options.parent ?? { sql: '', name: '', message: '' };
-    options.message =
-      options.message || options.parent.message || 'Validation Error';
+    options.message
+      = options.message || options.parent.message || 'Validation Error';
     options.errors = options.errors ?? [];
     super(options.message, options.errors, { stack: options.stack });
 

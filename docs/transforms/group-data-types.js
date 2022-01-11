@@ -2,8 +2,8 @@
 
 function groupDataTypes($, path) {
   let firstLi;
-  $('nav a').each(function() {
-    /* eslint-disable no-invalid-this */
+  $('nav a').each(function () {
+
     if ($(this).attr('href').startsWith('class/lib/data-types.js~')) {
       const li = $(this).closest('li');
       if (!firstLi) {
@@ -18,7 +18,7 @@ function groupDataTypes($, path) {
 
   if (path.endsWith('identifiers.html')) {
     const rowsToDelete = [];
-    $('table.summary td a').each(function() {
+    $('table.summary td a').each(function () {
       if ($(this).attr('href').startsWith('class/lib/data-types.js~')) {
         rowsToDelete.push($(this).closest('tr'));
       }

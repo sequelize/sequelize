@@ -1,10 +1,11 @@
 'use strict';
 
-const sinon = require('sinon'),
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize;
+const sinon = require('sinon');
+const Support = require('../support');
+const DataTypes = require('sequelize/lib/data-types');
+
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
 
 if (current.dialect.name !== 'sqlite') {
   describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -14,29 +15,29 @@ if (current.dialect.name !== 'sqlite') {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true
+          autoIncrement: true,
         },
         level_id: {
-          type: DataTypes.INTEGER
-        }
+          type: DataTypes.INTEGER,
+        },
       }, { timestamps: false });
 
-      before(function() {
+      before(function () {
         this.stub = sinon.stub(current, 'query').resolvesArg(0);
       });
 
-      beforeEach(function() {
+      beforeEach(function () {
         this.stub.resetHistory();
       });
 
-      after(function() {
+      after(function () {
         this.stub.restore();
       });
 
       it('properly generate alter queries', () => {
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.FLOAT,
-          allowNull: false
+          allowNull: false,
         }).then(sql => {
           expectsql(sql, {
             mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
@@ -44,7 +45,7 @@ if (current.dialect.name !== 'sqlite') {
             mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
             mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
             postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
-            snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;'
+            snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
           });
         });
       });
@@ -54,10 +55,10 @@ if (current.dialect.name !== 'sqlite') {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key: 'id'
+            key: 'id',
           },
           onUpdate: 'cascade',
-          onDelete: 'cascade'
+          onDelete: 'cascade',
         }).then(sql => {
           expectsql(sql, {
             mssql: 'ALTER TABLE [users] ADD FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',
@@ -65,7 +66,7 @@ if (current.dialect.name !== 'sqlite') {
             mariadb: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             postgres: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
-            snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;'
+            snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
           });
         });
       });
