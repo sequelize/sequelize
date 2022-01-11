@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ];
         } else if (dialect === 'oracle') {
           findAttributes = [
-            Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS someProperty'),
+            Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "someProperty"'),
             [Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'), 'someProperty2']
           ];
         } else {

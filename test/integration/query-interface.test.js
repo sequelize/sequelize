@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'oracle') {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('my_test_table_new');
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'oracle') {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
@@ -451,6 +451,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
       } else if (dialect === 'sqlite') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
+      } else if (dialect === 'oracle') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(6);
       } else if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'mssql') {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {

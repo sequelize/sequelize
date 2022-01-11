@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'oracle') {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.include('photos');
@@ -441,6 +441,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ].some(fragment => err.message.includes(fragment)));
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
+          } else if (dialect === 'oracle') {
+            expect(err.message).to.equal('NJS-007: invalid value for "password" in parameter 1');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }

@@ -2936,7 +2936,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (dialect === 'mssql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mariadb' || dialect === 'oracle') {
         result = result.map(v => v.tableName);
       }
 
