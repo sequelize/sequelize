@@ -5,9 +5,8 @@
  * @property FORCE
  * @property IGNORE
  */
-// eslint-disable-next-line no-shadow
 export enum IndexHints {
   USE = 'USE',
   FORCE = 'FORCE',
-  IGNORE = 'IGNORE'
+  IGNORE = 'IGNORE',
 }

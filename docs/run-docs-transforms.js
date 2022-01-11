@@ -17,5 +17,6 @@ for (const htmlFile of htmlFiles) {
   for (const transform of transforms) {
     transform($, htmlFile);
   }
+
   jetpack.write(htmlFile, $.html());
 }

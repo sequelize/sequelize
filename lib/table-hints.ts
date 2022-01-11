@@ -17,7 +17,6 @@
  * @property SNAPSHOT
  * @property NOEXPAND
  */
-// eslint-disable-next-line no-shadow
 export enum TableHints {
   NOLOCK = 'NOLOCK',
   READUNCOMMITTED = 'READUNCOMMITTED',

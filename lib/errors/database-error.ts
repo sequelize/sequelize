@@ -1,4 +1,5 @@
-import BaseError, { CommonErrorProperties, ErrorOptions } from './base-error';
+import type { CommonErrorProperties, ErrorOptions } from './base-error';
+import BaseError from './base-error';
 
 export interface DatabaseErrorParent
   extends Error,
@@ -17,8 +18,7 @@ export interface DatabaseErrorSubclassOptions extends ErrorOptions {
  */
 class DatabaseError
   extends BaseError
-  implements DatabaseErrorParent, CommonErrorProperties
-{
+  implements DatabaseErrorParent, CommonErrorProperties {
   parent: Error;
   original: Error;
   sql: string;

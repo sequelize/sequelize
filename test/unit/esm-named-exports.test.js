@@ -1,5 +1,6 @@
-const chai = require('chai'),
-  expect = chai.expect;
+const chai = require('chai');
+
+const expect = chai.expect;
 
 /**
  * Tests whether the ESM named exports & the CJS exports are the same.
@@ -97,7 +98,7 @@ describe('ESM module', () => {
       'beforeBulkSync',
       'afterBulkSync',
       'beforeQuery',
-      'afterQuery'
+      'afterQuery',
     ];
 
     for (const key of ignoredCjsKeys) {

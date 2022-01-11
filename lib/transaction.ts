@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from '..';
+import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from '..';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -15,12 +15,12 @@ export class Transaction {
 
   sequelize: Sequelize;
 
-  private _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
-  private savepoints: Transaction[] = [];
-  private options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
-  private parent: Transaction | null;
-  private id: string;
-  private name: string;
+  private readonly _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
+  private readonly savepoints: Transaction[] = [];
+  private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
+  private readonly parent: Transaction | null;
+  private readonly id: string;
+  private readonly name: string;
   private finished: 'commit' | undefined;
   private connection: Connection | undefined;
 
@@ -46,7 +46,7 @@ export class Transaction {
       type: sequelize.options.transactionType,
       isolationLevel: sequelize.options.isolationLevel,
       readOnly: false,
-      ...options
+      ...options,
     };
 
     this.parent = this.options.transaction ?? null;
@@ -56,7 +56,9 @@ export class Transaction {
       this.parent.savepoints.push(this);
       this.name = `${this.id}-sp-${this.parent.savepoints.length}`;
     } else {
-      this.id = this.name = generateTransactionId();
+      const id = generateTransactionId();
+      this.id = id;
+      this.name = id;
     }
 
     delete this.options.transaction;
@@ -76,9 +78,10 @@ export class Transaction {
       return await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
     } finally {
       this.finished = 'commit';
-      this.cleanup();
+      await this.cleanup();
       for (const hook of this._afterCommitHooks) {
-        await hook.apply(this, [this]);
+        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
+        await Reflect.apply(hook, this, [this]);
       }
     }
   }
@@ -103,7 +106,7 @@ export class Transaction {
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
     } finally {
-      this.cleanup();
+      await this.cleanup();
     }
   }
 
@@ -125,7 +128,7 @@ export class Transaction {
     } else {
       connection = await this.sequelize.connectionManager.getConnection({
         type: this.options.readOnly ? 'read' : 'write',
-        uuid: this.id
+        uuid: this.id,
       });
     }
 
@@ -139,11 +142,11 @@ export class Transaction {
     try {
       await this.begin();
       result = await this.setDeferrable();
-    } catch (setupErr) {
+    } catch (error) {
       try {
         result = await this.rollback();
       } finally {
-        throw setupErr; // eslint-disable-line no-unsafe-finally
+        throw error; // eslint-disable-line no-unsafe-finally
       }
     }
 
@@ -154,9 +157,9 @@ export class Transaction {
     return result;
   }
 
-  async setDeferrable() {
+  async setDeferrable(): Promise<void> {
     if (this.options.deferrable) {
-      return await this
+      await this
         .sequelize
         .getQueryInterface()
         .deferConstraints(this, this.options);
@@ -168,6 +171,7 @@ export class Transaction {
 
     if (this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
       await queryInterface.startTransaction(this, this.options);
+
       return queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
     }
 
@@ -176,24 +180,25 @@ export class Transaction {
     return queryInterface.startTransaction(this, this.options);
   }
 
-  cleanup() {
+  async cleanup(): Promise<void> {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || this.connection?.uuid === undefined) return;
+    if (this.parent || this.connection?.uuid === undefined) {
+      return;
+    }
 
     this._clearCls();
     const res = this.sequelize.connectionManager.releaseConnection(this.connection);
     this.connection.uuid = undefined;
-    return res;
+
+    await res;
   }
 
   _clearCls() {
     const cls = this.sequelize.Sequelize._cls;
 
-    if (cls) {
-      if (cls.get('transaction') === this) {
-        cls.set('transaction', null);
-      }
+    if (cls && cls.get('transaction') === this) {
+      cls.set('transaction', null);
     }
   }
 
@@ -206,7 +211,7 @@ export class Transaction {
    */
   afterCommit(fn: AfterTransactionCommitCallback): this {
     if (typeof fn !== 'function') {
-      throw new Error('"fn" must be a function');
+      throw new TypeError('"fn" must be a function');
     }
 
     this._afterCommitHooks.add(fn);
@@ -263,7 +268,6 @@ export class Transaction {
   static get ISOLATION_LEVELS() {
     return ISOLATION_LEVELS;
   }
-
 
   /**
    * Possible options for row locking. Used in conjunction with `find` calls:

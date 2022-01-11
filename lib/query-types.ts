@@ -18,7 +18,6 @@
  * @property FOREIGNKEYS
  * @property SHOWCONSTRAINTS
  */
-// eslint-disable-next-line no-shadow
 export enum QueryTypes {
   SELECT = 'SELECT',
   INSERT = 'INSERT',
@@ -33,5 +32,5 @@ export enum QueryTypes {
   DESCRIBE = 'DESCRIBE',
   RAW = 'RAW',
   FOREIGNKEYS = 'FOREIGNKEYS',
-  SHOWCONSTRAINTS = 'SHOWCONSTRAINTS'
+  SHOWCONSTRAINTS = 'SHOWCONSTRAINTS',
 }

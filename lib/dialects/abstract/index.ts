@@ -33,7 +33,7 @@ export type DialectSupports = {
     defaultValue: boolean,
 
     /* does the dialect support updating autoincrement fields */
-    update: boolean
+    update: boolean,
   },
   /* Do we need to say DEFAULT for bulk insert */
   bulkDefault: boolean,
@@ -41,7 +41,7 @@ export type DialectSupports = {
   transactions: boolean,
   settingIsolationLevelDuringTransaction: boolean,
   transactionOptions: {
-    type: boolean
+    type: boolean,
   },
   migrations: boolean,
   upserts: boolean,
@@ -49,7 +49,7 @@ export type DialectSupports = {
     ignoreDuplicates: string, /* dialect specific words for INSERT IGNORE or DO NOTHING */
     updateOnDuplicate: boolean | string, /* whether dialect supports ON DUPLICATE KEY UPDATE */
     onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
-    conflictFields: boolean /* whether the dialect supports specifying conflict fields or not */
+    conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
   },
   constraints: {
     restrict: boolean,
@@ -59,7 +59,7 @@ export type DialectSupports = {
     default: boolean,
     check: boolean,
     foreignKey: boolean,
-    primaryKey: boolean
+    primaryKey: boolean,
   },
   index: {
     collate: boolean,
@@ -87,7 +87,7 @@ export type DialectSupports = {
   deferrableConstraints: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
-  searchPath: boolean
+  searchPath: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -98,13 +98,13 @@ export abstract class AbstractDialect {
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
   static readonly supports: DialectSupports = {
-    'DEFAULT': true,
+    DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,
     'LIMIT ON UPDATE': false,
     'ON DUPLICATE KEY': true,
     'ORDER NULLS': false,
-    'UNION': true,
+    UNION: true,
     'UNION ALL': true,
     'RIGHT JOIN': true,
     EXCEPTION: false,
@@ -118,14 +118,14 @@ export abstract class AbstractDialect {
     autoIncrement: {
       identityInsert: false,
       defaultValue: true,
-      update: true
+      update: true,
     },
     bulkDefault: false,
     schemas: false,
     transactions: true,
     settingIsolationLevelDuringTransaction: true,
     transactionOptions: {
-      type: false
+      type: false,
     },
     migrations: true,
     upserts: true,
@@ -133,7 +133,7 @@ export abstract class AbstractDialect {
       ignoreDuplicates: '',
       updateOnDuplicate: false,
       onConflictDoNothing: '',
-      conflictFields: false
+      conflictFields: false,
     },
     constraints: {
       restrict: true,
@@ -143,7 +143,7 @@ export abstract class AbstractDialect {
       default: false,
       check: true,
       foreignKey: true,
-      primaryKey: true
+      primaryKey: true,
     },
     index: {
       collate: true,
@@ -154,7 +154,7 @@ export abstract class AbstractDialect {
       using: true,
       functionBased: false,
       operator: false,
-      where: false
+      where: false,
     },
     groupedLimit: true,
     indexViaAlter: false,
@@ -171,11 +171,12 @@ export abstract class AbstractDialect {
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
-    searchPath: false
+    searchPath: false,
   };
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
+
     return Dialect.supports;
   }
 
