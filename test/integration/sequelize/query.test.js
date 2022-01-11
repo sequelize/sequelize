@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const moment = require('moment');
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql' || (dialect === 'oracle' && str.includes('.'))) {
+  if (dialect === 'postgres' || dialect === 'mssql' || (dialect === 'oracle')) {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       });
 
-      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ${
         qq('createdAt')  }, ${qq('updatedAt')
       }) VALUES ('john', 'john@gmail.com',${dateLiteral('2012-01-01 10:10:10')},${dateLiteral('2012-01-01 10:10:10')})`;
 
@@ -224,14 +224,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('executes select query with dot notation results', async function() {
       await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
       await this.sequelize.query(this.insertQuery);
-      const [users] = await this.sequelize.query(`select username as ${qq('user.username')} from ${qq(this.User.tableName)}`);
+      const [users] = await this.sequelize.query(`select ${qq('username')} as ${qq('user.username')} from ${qq(this.User.tableName)}`);
       expect(users).to.deep.equal([{ 'user.username': 'john' }]);
     });
 
     it('executes select query with dot notation results and nest it', async function() {
       await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
       await this.sequelize.query(this.insertQuery);
-      const users = await this.sequelize.query(`select username as ${qq('user.username')} from ${qq(this.User.tableName)}`, { raw: true, nest: true });
+      const users = await this.sequelize.query(`select ${qq('username')} as ${qq('user.username')} from ${qq(this.User.tableName)}`, { raw: true, nest: true });
       expect(users.map(u => { return u.user; })).to.deep.equal([{ 'username': 'john' }]);
     });
 
@@ -418,7 +418,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       date.setMilliseconds(0);
 
       const result = await this.sequelize.query({
-        query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
+        query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer' + Support.addDualInSelect(),
         values: [number, date, string, boolean, buffer]
       }, {
         type: this.sequelize.QueryTypes.SELECT,
