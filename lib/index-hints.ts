@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * An enum of index hints to be used in mysql for querying with index hints
  *
@@ -7,8 +5,8 @@
  * @property FORCE
  * @property IGNORE
  */
-const IndexHints = module.exports = {
-  USE: 'USE',
-  FORCE: 'FORCE',
-  IGNORE: 'IGNORE',
-};
+export enum IndexHints {
+  USE = 'USE',
+  FORCE = 'FORCE',
+  IGNORE = 'IGNORE',
+}

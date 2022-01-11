@@ -6,10 +6,9 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { LOCK, Transaction } from './transaction';
+import { LOCK, Transaction, Op } from '..';
 import { Col, Fn, Literal, Where } from './utils';
 import { SetRequired } from '../type-helpers/set-required'
-import Op from '../../lib/operators';
 
 export interface Logging {
   /**

@@ -4,7 +4,7 @@ import {
   Model, ModelType
 } from './model';
 import { Sequelize } from './sequelize';
-import QueryTypes = require('./query-types');
+import { QueryTypes } from '..';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };

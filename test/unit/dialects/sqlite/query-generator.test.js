@@ -9,7 +9,7 @@ const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const moment = require('moment');
-const Op = require('sequelize/lib/operators');
+const { Op } = require('sequelize/lib/operators');
 const QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
