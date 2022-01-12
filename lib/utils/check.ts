@@ -3,7 +3,7 @@ import { DataTypes } from '../..';
 import { getOperators } from './format';
 import { Where } from './sequelize-method';
 
-export function isPrimitive(val: any) {
+export function isPrimitive(val: any): val is string | number | boolean {
   const type = typeof val;
   return ['string', 'number', 'boolean'].includes(type);
 }
@@ -16,7 +16,7 @@ export function isColString(value: string | string[]): boolean {
   );
 }
 
-export function canTreatArrayAsAnd(arr: any[]) {
+export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where> {
   return arr.some(arg => _.isPlainObject(arg) || arg instanceof Where);
 }
 

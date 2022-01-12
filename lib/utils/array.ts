@@ -5,6 +5,6 @@
  * @param {Array} arr2
  * @private
  */
-export function intersects(arr1: any[], arr2: any[]) {
+export function intersects<T>(arr1: T[], arr2: T[]): boolean {
   return arr1.some(v => arr2.includes(v));
 }

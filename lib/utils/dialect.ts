@@ -11,7 +11,7 @@ const dialects = new Set([
   'db2'
 ]);
 
-export function now(dialect: string) {
+export function now(dialect: string): Date {
   const d = new Date();
   if (!dialects.has(dialect)) {
     d.setMilliseconds(0);
@@ -19,7 +19,7 @@ export function now(dialect: string) {
   return d;
 }
 
-export function toDefaultValue(value: any, dialect: string) {
+export function toDefaultValue(value: unknown, dialect: string): string {
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.ABSTRACT) {
@@ -49,10 +49,10 @@ export function toDefaultValue(value: any, dialect: string) {
 
 export const TICK_CHAR = '`';
 
-export function addTicks(s: string, tickChar: string = TICK_CHAR) {
+export function addTicks(s: string, tickChar: string = TICK_CHAR): string {
   return tickChar + removeTicks(s, tickChar) + tickChar;
 }
 
-export function removeTicks(s: string, tickChar: string = TICK_CHAR) {
+export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
   return s.replace(new RegExp(tickChar, 'g'), '');
 }

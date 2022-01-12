@@ -4,7 +4,7 @@ import { camelize } from './string';
 
 const baseIsNative = require('lodash/_baseIsNative');
 
-// Same concept as _.merge, but don't overwrite properties that have already been assigned
+/** Same concept as _.merge, but don't overwrite properties that have already been assigned */
 export function mergeDefaults(a: object, b: object) {
   return _.mergeWith(a, b, (objectValue, sourceValue) => {
     // If it's an object, let _ handle it this time, we will be called again for each property
@@ -22,8 +22,8 @@ export function mergeDefaults(a: object, b: object) {
 // An alternative to _.merge, which doesn't clone its arguments
 // Cloning is a bad idea because options arguments may contain references to sequelize
 // models - which again reference database libs which don't like to be cloned (in particular pg-native)
-export function merge(...args: any[]) {
-  const result: { [key: string]: any } = {};
+export function merge(...args: object[]): object {
+  const result: { [key: string]: any } = Object.create(null);
 
   for (const obj of args) {
     _.forOwn(obj, (value, key) => {
@@ -44,7 +44,7 @@ export function merge(...args: any[]) {
   return result;
 }
 
-export function cloneDeep(obj: object, onlyPlain?: boolean) {
+export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
   return _.cloneDeepWith(obj || {}, elem => {
     // Do not try to customize cloning of arrays or POJOs
     if (Array.isArray(elem) || _.isPlainObject(elem)) {

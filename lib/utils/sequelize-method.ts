@@ -86,7 +86,9 @@ export class Where extends SequelizeMethod {
   private comparator: any;
   private logic: any;
 
-  constructor(attribute: any, comparator: any, logic: any) {
+  constructor(attribute: AttributeType, comparator: string | symbol, logic: LogicType);
+  constructor(attribute: AttributeType, logic: LogicType);
+  constructor(attribute: any, comparatorOrLogic: string | symbol | LogicType, logic: LogicType | undefined) {
     super();
 
     if (logic === undefined) {

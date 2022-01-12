@@ -7,7 +7,7 @@ const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
 
-export function format(arr: string[], dialect: string) {
+export function format(arr: unknown[], dialect: string): string {
   const timeZone = null;
   // Make a clone of the array beacuse format modifies the passed args
   return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
@@ -15,9 +15,9 @@ export function format(arr: string[], dialect: string) {
 
 export function formatNamedParameters(
   sql: string,
-  parameters: object | string[], // TODO is that correct?
+  parameters: Record<string, unknown>,
   dialect: string
-) {
+): string {
   return SqlString.formatNamedParameters(sql, parameters, null, dialect);
 }
 
@@ -29,7 +29,7 @@ export type FinderOptions = {
 export function mapFinderOptions(
   options: FinderOptions,
   Model: ModelCtor<Model>
-) {
+): FinderOptions {
   if (options.attributes && Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes
@@ -48,7 +48,7 @@ export function mapFinderOptions(
 export function mapOptionFieldNames(
   options: FinderOptions,
   Model: ModelCtor<Model>
-) {
+): FinderOptions {
   if (Array.isArray(options.attributes)) {
     options.attributes = options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
@@ -130,11 +130,11 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
  * @returns {Array<symbol|string>} All operators properties of obj
  * @private
  */
-export function getOperators(obj: object): Array<symbol | string> {
+export function getOperators(obj: object): symbol[] {
   return Object.getOwnPropertySymbols(obj).filter(s => operatorsSet.has(s));
 }
 
-export function combineTableNames(tableName1: string, tableName2: string) {
+export function combineTableNames(tableName1: string, tableName2: string): string {
   return tableName1.toLowerCase() < tableName2.toLowerCase()
     ? tableName1 + tableName2
     : tableName2 + tableName1;
