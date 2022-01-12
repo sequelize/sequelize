@@ -25,6 +25,15 @@ async function test() {
         },
         type: DataTypes.INTEGER,
       },
+      attr5: {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+        references: {
+          key: 'id',
+          model: { schema: '<schema>', tableName: 'another_table_name' },
+        },
+        type: DataTypes.INTEGER,
+      },
       createdAt: {
         type: DataTypes.DATE,
       },
@@ -49,8 +58,10 @@ async function test() {
       }
     }
   );
+  await queryInterface.createTable({ tableName: '<table-name>' }, {});
 
   await queryInterface.dropTable('nameOfTheExistingTable');
+  await queryInterface.dropTable({ schema: '<schema>', tableName: 'nameOfTheExistingTable' });
 
   await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
@@ -62,9 +73,17 @@ async function test() {
 
   await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
 
+  queryInterface.quoteIdentifier("foo");
+  queryInterface.quoteIdentifier("foo", true);
+  queryInterface.quoteIdentifiers("table.foo");
+
   await queryInterface.dropAllTables();
 
   await queryInterface.renameTable('Person', 'User');
+  await queryInterface.renameTable(
+      { schema: '<schema>', tableName: 'Person' },
+      { schema: '<schema>', tableName: 'User' },
+    );
 
   const tableNames: string[] = await queryInterface.showAllTables();
 
@@ -128,9 +147,11 @@ async function test() {
   );
 
   await queryInterface.renameColumn('Person', 'signature', 'sig');
+  await queryInterface.renameColumn({ schema: '<schema>', tableName: 'Person' }, 'signature', 'sig');
 
   // This example will create the index person_firstname_lastname
   await queryInterface.addIndex('Person', ['firstname', 'lastname']);
+  await queryInterface.addIndex({ schema: '<schema>', tableName: 'Person' }, ['firstname', 'lastname']);
 
   // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
   // Possible options:
@@ -167,6 +188,7 @@ async function test() {
   })
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
+  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
 
   // or
 
@@ -180,8 +202,14 @@ async function test() {
   }))
 
   await queryInterface.removeConstraint('Person', 'firstnamexlastname');
+  await queryInterface.removeConstraint({ schema: '<schema>', tableName: 'Person' }, 'firstnamexlastname');
 
   await queryInterface.select(null, 'Person', {
+    where: {
+      a: 1,
+    },
+  });
+  await queryInterface.select(null, { schema: '<schema>', tableName: 'Person' }, {
     where: {
       a: 1,
     },

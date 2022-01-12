@@ -6,7 +6,7 @@ import {
   InstanceUpdateOptions,
   Model,
   ModelCtor,
-  Transactionable,
+  Transactionable
 } from '../model';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
@@ -209,8 +209,12 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any>
  * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
-export type HasManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type HasManyCreateAssociationMixin<
+  TModel extends Model,
+  TForeignKey extends keyof TModel['_creationAttributes'] = never,
+  TScope extends keyof TModel['_creationAttributes'] = never
+> = (
+  values?: Omit<TModel['_creationAttributes'], TForeignKey | TScope>,
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

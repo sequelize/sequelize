@@ -38,7 +38,9 @@
     "other-topics/typescript.md",
     "other-topics/resources.md",
     "other-topics/upgrade-to-v6.md",
+    "other-topics/upgrade-to-v7.md",
     "other-topics/whos-using.md",
+    "other-topics/aws-lambda.md",
     "other-topics/legal.md"
   ],
   "__hidden__": [

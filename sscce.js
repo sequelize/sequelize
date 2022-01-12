@@ -1,14 +1,18 @@
 'use strict';
 
+// See https://github.com/papb/sequelize-sscce as another option for running SSCCEs.
+
+const { expect } = require('chai'); // You can use `expect` on your SSCCE!
 const { createSequelizeInstance } = require('./dev/sscce-helpers');
 const { Model, DataTypes } = require('.');
 
 const sequelize = createSequelizeInstance({ benchmark: true });
 
 class User extends Model {}
+
 User.init({
   username: DataTypes.STRING,
-  birthday: DataTypes.DATE
+  birthday: DataTypes.DATE,
 }, { sequelize, modelName: 'user' });
 
 (async () => {
@@ -16,10 +20,12 @@ User.init({
 
   const jane = await User.create({
     username: 'janedoe',
-    birthday: new Date(1980, 6, 20)
+    birthday: new Date(1980, 6, 20),
   });
 
   console.log('\nJane:', jane.toJSON());
 
   await sequelize.close();
+
+  expect(jane.username).to.equal('janedoe');
 })();
