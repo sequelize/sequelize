@@ -634,16 +634,14 @@ export interface CountOptions<TAttributes = any>
 /**
  * Options for Model.count when GROUP BY is used
  */
-export interface CountWithOptions<TAttributes = any> extends CountOptions<TAttributes> {
-  /**
-   * GROUP BY in sql
-   * Used in conjunction with `attributes`.
-   * @see Projectable
-   */
-  group: GroupOption;
-}
+export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>
 
 export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
+
+interface GroupedCountResultItem {
+  [key: string]: unknown // projected attributes
+  count: number // the count for each group
+}
 
 /**
  * Options for Model.build method
@@ -1903,25 +1901,27 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Count number of records if group by is used
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<M['_attributes']>
-  ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
+  ): Promise<GroupedCountResultItem[]>;
 
   /**
    * Count the number of records matching the provided where clause.
    *
    * If you provide an `include` option, the number of matching associations will be counted instead.
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: CountOptions<M['_attributes']>
+    options?: Omit<CountOptions<M['_attributes']>, 'group'>
   ): Promise<number>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
-   * rows matching your query. This is very usefull for paging
+   * rows matching your query. This is very useful for paging
    *
    * ```js
    * Model.findAndCountAll({
@@ -1953,6 +1953,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * who have a profile will be counted. If we remove `required` from the include, both users with and
    * without
    * profiles will be counted
+   *
+   * This function also support grouping, when `group` is provided, the count will be an array of objects
+   * containing the count for each group and the projected attributes.
+   * ```js
+   * User.findAndCountAll({
+   *   group: 'type'
+   * });
+   * ```
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
@@ -1961,7 +1969,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
-  ): Promise<{ rows: M[]; count: number[] }>;
+  ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
 
   /**
    * Find the maximum value of field
