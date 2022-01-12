@@ -1,8 +1,7 @@
 import _ from 'lodash';
+import { DataTypes } from '../..';
 import { getOperators } from './format';
-import { Where } from '../../types/lib/utils';
-
-const DataTypes = require('../../lib/data-types');
+import { Where } from './sequelize-method';
 
 export function isPrimitive(val: any) {
   const type = typeof val;

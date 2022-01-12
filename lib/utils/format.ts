@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import { Model, ModelCtor } from 'types';
-import operators from '../operators';
-import SqlString from '../sql-string';
+import type { Model, ModelCtor } from '../..';
+import { DataTypes, Op as operators } from '../..';
 import { cloneDeep } from './object';
 
-const DataTypes = require('../data-types');
+const SqlString = require('../sql-string');
+
 const operatorsSet = new Set(Object.values(operators));
 
 export function format(arr: string[], dialect: string) {
