@@ -223,11 +223,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('TIME', () => {
       testsql('TIME', DataTypes.TIME, {
-        postgres: 'TIME',
-        mssql: 'TIME',
-        mariadb: 'TIME',
-        mysql: 'TIME',
-        sqlite: 'TIME'
+        default: 'TIME',
       });
 
       describe('validate', () => {
