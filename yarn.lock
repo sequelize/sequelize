@@ -4133,10 +4133,10 @@ fs-extra@^8.1.0:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-jetpack@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-4.3.0.tgz#8202abd21c9160faadf3c258b4cf918a74f680de"
-  integrity sha512-Zx4OJ8HyKvZL9sgxegMGRCgAJSQET5Cqpj/SESwnzqHruHvhkilJBGLoZf6EiYr3UWJDqcPoWDX7aAfaj7D9Qw==
+fs-jetpack@4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-4.3.1.tgz#cdfd4b64e6bfdec7c7dc55c76b39efaa7853bb20"
+  integrity sha512-dbeOK84F6BiQzk2yqqCVwCPWTxAvVGJ3fMQc6E2wuEohS28mR6yHngbrKuVCK1KHRx/ccByDylqu4H5PCP2urQ==
   dependencies:
     minimatch "^3.0.2"
     rimraf "^2.6.3"
