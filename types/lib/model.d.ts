@@ -1,4 +1,3 @@
-import { IndexHints } from '..';
 import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
@@ -6,9 +5,13 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { LOCK, Transaction, Op } from '..';
-import { Col, Fn, Literal, Where } from './utils';
+import { LOCK, Transaction, Op, Utils, IndexHints } from '..';
 import { SetRequired } from '../type-helpers/set-required'
+
+type Fn = Utils.Fn;
+type Literal = Utils.Literal;
+type Col = Utils.Col;
+type Where = Utils.Where;
 
 export interface Logging {
   /**

@@ -1,8 +1,8 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelCtor, ModelStatic } from '../..';
+import type { Model, ModelStatic, WhereOptions } from '../..';
 import { DataTypes, Op as operators } from '../..';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+// eslint-disable-next-line import/order
 import { cloneDeep } from './object';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
@@ -25,16 +25,16 @@ export function formatNamedParameters(
   return SqlString.formatNamedParameters(sql, parameters, null, dialect);
 }
 
-export type FinderOptions = {
-  attributes?: any[], // TODO: stricter typing for attributes
-  where?: any, // TODO: should this be WhereOptions?
+export type FinderOptions<TAttributes> = {
+  attributes?: string[],
+  where?: WhereOptions<TAttributes>,
 };
 
 /* Expand and normalize finder options */
-export function mapFinderOptions(
-  options: FinderOptions,
-  Model: ModelCtor<Model>,
-): FinderOptions {
+export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_attributes']>>(
+  options: T,
+  Model: ModelStatic<Model>,
+): T {
   if (options.attributes && Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes,
@@ -50,10 +50,10 @@ export function mapFinderOptions(
 }
 
 /* Used to map field names in attributes and where conditions */
-export function mapOptionFieldNames(
-  options: FinderOptions,
-  Model: ModelCtor<Model>,
-): FinderOptions {
+export function mapOptionFieldNames<M extends Model, T extends FinderOptions<M['_attributes']>>(
+  options: T,
+  Model: ModelStatic<Model>,
+): T {
   if (Array.isArray(options.attributes)) {
     options.attributes = options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
@@ -80,9 +80,7 @@ export function mapOptionFieldNames(
   return options;
 }
 
-// TODO: is attributes really an array? + stricter types for attributes
-//  mapOptionFieldNames calls this method with an object
-export function mapWhereFieldNames(attributes: any[], Model: ModelCtor<Model>) {
+export function mapWhereFieldNames(attributes: object, Model: ModelStatic<Model>): object {
   if (!attributes) {
     return attributes;
   }

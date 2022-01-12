@@ -55,6 +55,8 @@ export function toDefaultValue(value: unknown, dialect: string): unknown {
   return value;
 }
 
+// Note: Use the `quoteIdentifier()` and `escape()` methods on the
+// `QueryInterface` instead for more portable code.
 export const TICK_CHAR = '`';
 
 export function addTicks(s: string, tickChar: string = TICK_CHAR): string {

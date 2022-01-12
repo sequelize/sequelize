@@ -1,4 +1,4 @@
-import { ModelType } from '../index';
+import { ModelType, DeepWriteable } from '..';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -14,7 +14,6 @@ import Model, {
 import { AbstractQuery } from './query';
 import { QueryOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
-import { DeepWriteable } from './utils';
 
 export type HookReturn = Promise<void> | void;
 

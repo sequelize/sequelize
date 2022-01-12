@@ -8,13 +8,16 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor, ModelStatic, ModelType
+  ModelStatic,
+  ModelType
 } from './model';
-import { QueryTypes, Transaction } from '..';
+import { QueryTypes, Transaction, Utils } from '..';
 import { Sequelize, RetryOptions } from './sequelize';
 import { SetRequired } from './../type-helpers/set-required';
-import { Fn, Literal } from './utils';
 import { Deferrable } from './deferrable';
+
+type Fn = Utils.Fn;
+type Literal = Utils.Literal;
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };

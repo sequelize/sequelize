@@ -1,5 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
+import type { DataType } from '../..';
 import { DataTypes } from '../..';
 import { getOperators } from './format';
 import { Where } from './sequelize-method';
@@ -10,7 +11,7 @@ export function isPrimitive(val: any): val is string | number | boolean {
   return ['string', 'number', 'boolean'].includes(type);
 }
 
-export function isColString(value: string | string[]): boolean {
+export function isColString(value: string): boolean {
   return (
     typeof value === 'string'
     && value.startsWith('$')
@@ -26,11 +27,11 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
  * Determine if the default value provided exists and can be described
  * in a db schema using the DEFAULT directive.
  *
- * @param  {*} value Any default value.
- * @returns {boolean} yes / no.
+ * @param value Any default value.
+ * @returns yes / no.
  * @private
  */
-export function defaultValueSchemable(value: any): boolean {
+export function defaultValueSchemable(value: DataType): boolean {
   if (value === undefined) {
     return false;
   }

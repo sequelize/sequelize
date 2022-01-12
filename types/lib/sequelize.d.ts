@@ -23,10 +23,16 @@ import {
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS } from '..';
-import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS, Utils, DeepWriteable } from '..';
 import { ConnectionManager } from './connection-manager';
 import type { AbstractDialect } from '../../lib/dialects/abstract/index';
+
+type Cast = Utils.Cast;
+type Col = Utils.Col;
+type Fn = Utils.Fn;
+type Json = Utils.Json;
+type Literal = Utils.Literal;
+type Where = Utils.Where;
 
 /**
  * Additional options for table altering during sync

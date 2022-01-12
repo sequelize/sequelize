@@ -21,7 +21,7 @@ const baseIsNative = require('lodash/_baseIsNative');
  * @param a
  * @param b
  */
-export function mergeDefaults(a: object, b: object): object {
+export function mergeDefaults<T>(a: T, b: Partial<T>): T {
   return mergeWith(a, b, (objectValue, sourceValue) => {
     // If it's an object, let _ handle it this time, we will be called again for each property
     if (!isPlainObject(objectValue) && objectValue !== undefined) {
