@@ -1,10 +1,13 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('./support');
+
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
+
 const Sequelize = Support.Sequelize;
 const delay = require('delay');
 
@@ -17,6 +20,10 @@ function assertSameConnection(newConnection, oldConnection) {
     case 'mariadb':
     case 'mysql':
       expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
+      break;
+
+    case 'db2':
+      expect(newConnection.connected).to.equal(oldConnection.connected).and.to.be.ok;
       break;
 
     case 'mssql':
@@ -39,7 +46,13 @@ function assertNewConnection(newConnection, oldConnection) {
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
       break;
 
+    case 'db2':
+      expect(newConnection.connected).to.be.ok;
+      expect(oldConnection.connected).to.not.be.ok;
+      break;
+
     case 'mssql':
+      // Flaky test
       expect(newConnection.dummyId).to.not.be.ok;
       expect(oldConnection.dummyId).to.be.ok;
       break;
@@ -58,13 +71,15 @@ function attachMSSQLUniqueId(connection) {
 }
 
 describe(Support.getTestDialectTeaser('Pooling'), () => {
-  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') return;
+  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
+    return;
+  }
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.sinon = sinon.createSandbox();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.sinon.restore();
   });
 
@@ -75,11 +90,16 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         if (dialect === 'mssql') {
           connection = attachMSSQLUniqueId(connection);
         }
-        connection.emit('error', { code: 'ECONNRESET' });
+
+        if (dialect === 'db2') {
+          sequelize.connectionManager.pool.destroy(connection);
+        } else {
+          connection.emit('error', { code: 'ECONNRESET' });
+        }
       }
 
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 5000 }
+        pool: { max: 1, idle: 5000 },
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -98,17 +118,33 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should obtain new connection when released connection dies inside pool', async () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
-        if (dialect === 'mssql') {
-          attachMSSQLUniqueId(connection).close();
-        } else if (dialect === 'postgres') {
-          connection.end();
-        } else {
-          connection.close();
+        switch (dialect) {
+          case 'mssql': {
+            attachMSSQLUniqueId(connection).close();
+
+            break;
+          }
+
+          case 'postgres': {
+            connection.end();
+
+            break;
+          }
+
+          case 'db2': {
+            connection.closeSync();
+
+            break;
+          }
+
+          default: {
+            connection.close();
+          }
         }
       }
 
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 5000 }
+        pool: { max: 1, idle: 5000 },
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -129,7 +165,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
   describe('idle', () => {
     it('should maintain connection within idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 100 }
+        pool: { max: 1, idle: 100 },
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -152,9 +188,9 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(secondConnection);
     });
 
-    it('should get new connection beyond idle range', async () => {
+    it('[MSSQL Flaky] should get new connection beyond idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 100, evict: 10 }
+        pool: { max: 1, idle: 100, evict: 10 },
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -180,31 +216,31 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
   });
 
   describe('acquire', () => {
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async function () {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
         pool: {
-          acquire: 10
-        }
+          acquire: 10,
+        },
       });
 
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 
       await expect(
-        this.testInstance.authenticate()
+        this.testInstance.authenticate(),
       ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
     });
 
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function () {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
         pool: {
           acquire: 10,
-          max: 1
-        }
+          max: 1,
+        },
       });
 
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
@@ -213,7 +249,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       await expect(
         this.testInstance.transaction(async () => {
           await this.testInstance.transaction(() => {});
-        })
+        }),
       ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
     });
   });

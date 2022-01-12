@@ -5,9 +5,10 @@
     "noEmit": true,
     "strict": true,
     "baseUrl": ".",
+    "esModuleInterop": true,
     "paths": {
-      "sequelize": ["../"],
-      "sequelize/*": ["../"]
+      "sequelize": ["../../dist/"],
+      "sequelize/*": ["../../dist/*"]
     },
     "lib": ["es2016"]
   },

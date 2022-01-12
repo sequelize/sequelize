@@ -51,7 +51,7 @@ console.log(User === sequelize.models.User); // true
 
 ```js
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory');
+const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
 
@@ -76,6 +76,69 @@ console.log(User === sequelize.models.User); // true
 ```
 
 Internally, `sequelize.define` calls `Model.init`, so both approaches are essentially equivalent.
+
+#### Caveat with Public Class Fields
+
+Adding a [Public Class Field](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Public_class_fields) with the same name as one of the model's attribute is going to cause issues.
+Sequelize adds a getter & a setter for each attribute defined through `Model.init`.
+Adding a Public Class Field will shadow those getter and setters, blocking access to the model's actual data.
+
+```typescript
+// Invalid
+class User extends Model {
+  id; // this field will shadow sequelize's getter & setter. It should be removed.
+  otherPublicField; // this field does not shadow anything. It is fine.
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // undefined
+```
+
+```typescript
+// Valid
+class User extends Model {
+  otherPublicField;
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // 1
+```
+
+In TypeScript, you can add typing information without adding an actual public class field by using the `declare` keyword:
+
+```typescript
+// Valid
+class User extends Model {
+  declare id: number; // this is ok! The 'declare' keyword ensures this field will not be emitted by TypeScript.
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  }
+}, { sequelize });
+
+const user = new User({ id: 1 });
+user.id; // 1
+```
 
 ## Table name inference
 
@@ -241,13 +304,13 @@ sequelize.define('User', {
 });
 ```
 
-Some special values, such as `Sequelize.NOW`, are also accepted:
+Some special values, such as `DataTypes.NOW`, are also accepted:
 
 ```js
 sequelize.define('Foo', {
   bar: {
     type: DataTypes.DATETIME,
-    defaultValue: Sequelize.NOW
+    defaultValue: DataTypes.NOW
     // This way, the current date/time will be used to populate this column (at the moment of insertion)
   }
 });
@@ -324,12 +387,12 @@ DataTypes.DATEONLY   // DATE without time
 
 ### UUIDs
 
-For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `Sequelize.UUIDV1` or `Sequelize.UUIDV4` as the default value:
+For UUIDs, use `DataTypes.UUID`. It becomes the `UUID` data type for PostgreSQL and SQLite, and `CHAR(36)` for MySQL. Sequelize can generate UUIDs automatically for these fields, simply use `DataTypes.UUIDV1` or `DataTypes.UUIDV4` as the default value:
 
 ```js
 {
   type: DataTypes.UUID,
-  defaultValue: Sequelize.UUIDV4 // Or Sequelize.UUIDV1
+  defaultValue: DataTypes.UUIDV4 // Or DataTypes.UUIDV1
 }
 ```
 

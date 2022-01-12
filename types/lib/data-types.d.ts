@@ -102,7 +102,7 @@ export interface CharDataType extends StringDataType {
 }
 
 export interface CharDataTypeOptions extends StringDataTypeOptions {}
-   
+
 export type TextLength = 'tiny' | 'medium' | 'long';
 
 /**
@@ -112,6 +112,8 @@ export const TEXT: TextDataTypeConstructor;
 
 interface TextDataTypeConstructor extends AbstractDataTypeConstructor {
   new (length?: TextLength): TextDataType;
+  new (options?: TextDataTypeOptions): TextDataType;
+  (length?: TextLength): TextDataType;
   (options?: TextDataTypeOptions): TextDataType;
 }
 
@@ -602,9 +604,14 @@ export const INET: AbstractDataTypeConstructor;
 export const MACADDR: AbstractDataTypeConstructor;
 
 /**
- * Case incenstive text
+ * Case-insensitive text
  */
 export const CITEXT: AbstractDataTypeConstructor;
+
+/**
+ * Full text search vector. Only available in postgres.
+ */
+export const TSVECTOR: AbstractDataTypeConstructor;
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;
