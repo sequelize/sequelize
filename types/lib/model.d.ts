@@ -716,12 +716,20 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes>
 {
   /**
-   * The fields to insert / update. Defaults to all fields
+   * Default values to use if building a new instance
    */
-  fields?: (keyof TAttributes)[];
+  defaults?: TCreationAttributes;
+}
+
+/**
+ * Options for Model.findOrBuild method
+ */
+export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
+  extends FindOptions<TAttributes>, BuildOptions
+{
   /**
    * Default values to use if building a new instance
    */
@@ -2034,7 +2042,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
+    options: FindOrBuildOptions<M['_attributes'], M['_creationAttributes']>
   ): Promise<[M, boolean]>;
 
   /**
