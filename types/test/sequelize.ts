@@ -2,6 +2,11 @@ import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op } from 'sequelize';
 import { Fn } from 'sequelize/lib/utils';
 
 Sequelize.useCLS({
+  get(key: string): unknown {
+    return null;
+  },
+  set(key: string, value: unknown) {
+  }
 });
 
 export const sequelize = new Sequelize({

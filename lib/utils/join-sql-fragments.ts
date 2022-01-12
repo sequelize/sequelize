@@ -1,10 +1,11 @@
-import { SQLFragment, TruthySQLFragment } from '../generic/sql-fragment';
+import type { SQLFragment, TruthySQLFragment } from '../generic/sql-fragment';
 
 function doesNotWantLeadingSpace(str: string): boolean {
-  return /^[;,)]/.test(str);
+  return /^[),;]/.test(str);
 }
+
 function doesNotWantTrailingSpace(str: string): boolean {
-  return /\($/.test(str);
+  return str.endsWith('(');
 }
 
 /**
@@ -19,6 +20,7 @@ function doesNotWantTrailingSpace(str: string): boolean {
  * @private
  */
 function singleSpaceJoinHelper(parts: string[]): string {
+  // eslint-disable-next-line unicorn/no-array-reduce -- TODO
   return parts.reduce(
     ({ skipNextLeadingSpace, result }, part) => {
       if (skipNextLeadingSpace || doesNotWantLeadingSpace(part)) {
@@ -26,15 +28,16 @@ function singleSpaceJoinHelper(parts: string[]): string {
       } else {
         result += ` ${part.trim()}`;
       }
+
       return {
         skipNextLeadingSpace: doesNotWantTrailingSpace(part),
-        result
+        result,
       };
     },
     {
       skipNextLeadingSpace: true,
-      result: ''
-    }
+      result: '',
+    },
   ).result;
 }
 
@@ -52,10 +55,12 @@ function singleSpaceJoinHelper(parts: string[]): string {
  * @private
  */
 export function joinSQLFragments(array: SQLFragment[]): string {
-  if (array.length === 0) return '';
+  if (array.length === 0) {
+    return '';
+  }
 
   const truthyArray: TruthySQLFragment[] = array.filter(
-    (x): x is string | SQLFragment[] => !!x
+    (x): x is string | SQLFragment[] => Boolean(x),
   );
   const flattenedArray: string[] = truthyArray.map(
     (fragment: TruthySQLFragment) => {
@@ -64,7 +69,7 @@ export function joinSQLFragments(array: SQLFragment[]): string {
       }
 
       return fragment;
-    }
+    },
   );
 
   // Ensure strings
@@ -73,7 +78,7 @@ export function joinSQLFragments(array: SQLFragment[]): string {
       throw new JoinSQLFragmentsError(
         flattenedArray,
         fragment,
-        `Tried to construct a SQL string with a non-string, non-falsy fragment (${fragment}).`
+        `Tried to construct a SQL string with a non-string, non-falsy fragment (${fragment}).`,
       );
     }
   }
@@ -93,7 +98,7 @@ export class JoinSQLFragmentsError extends TypeError {
 
   constructor(args: SQLFragment[], fragment: any, message: string) {
     super(message);
-    
+
     this.args = args;
     this.fragment = fragment;
     this.name = 'JoinSQLFragmentsError';

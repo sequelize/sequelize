@@ -9,8 +9,8 @@ module.exports = {
       data.code = transformSync(data.code.replace(/\/\*\*/g, '/**@preserve'), {
         target: 'node10',
         format: 'cjs',
-        loader: 'ts'
+        loader: 'ts',
       }).code.replace(/\/\*\*@preserve/g, '/**');
     }
-  }
+  },
 };

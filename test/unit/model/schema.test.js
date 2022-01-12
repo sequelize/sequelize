@@ -1,17 +1,19 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support   = require('../support');
+
+const current   = Support.sequelize;
 
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
-    const Project = current.define('project'),
-      Company = current.define('company', {}, {
-        schema: 'default',
-        schemaDelimiter: '&'
-      });
+    const Project = current.define('project');
+    const Company = current.define('company', {}, {
+      schema: 'default',
+      schemaDelimiter: '&',
+    });
 
     describe('schema', () => {
       it('should work with no default schema', () => {
@@ -31,8 +33,8 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should support multiple, coexistent schema models', () => {
-        const schema1 = Company.schema('schema1'),
-          schema2 = Company.schema('schema1');
+        const schema1 = Company.schema('schema1');
+        const schema2 = Company.schema('schema1');
 
         expect(schema1._schema).to.equal('schema1');
         expect(schema2._schema).to.equal('schema1');
@@ -53,8 +55,8 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        const schema1 = Company.schema(Company._schema, '$'),
-          schema2 = Company.schema(Company._schema, '#');
+        const schema1 = Company.schema(Company._schema, '$');
+        const schema2 = Company.schema(Company._schema, '#');
 
         expect(schema1._schemaDelimiter).to.equal('$');
         expect(schema2._schemaDelimiter).to.equal('#');
