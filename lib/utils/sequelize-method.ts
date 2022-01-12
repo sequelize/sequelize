@@ -1,4 +1,5 @@
-import _ from 'lodash';
+import isObject from 'lodash/isObject';
+import type { AttributeType, LogicType } from '../..';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -9,35 +10,37 @@ import _ from 'lodash';
 export class SequelizeMethod {}
 
 export class Fn extends SequelizeMethod {
-  private fn: string;
-  private args: unknown[];
+  private readonly fn: string;
+  private readonly args: unknown[];
 
   constructor(fn: string, args: unknown[]) {
     super();
     this.fn = fn;
     this.args = args;
   }
+
   clone() {
     return new Fn(this.fn, this.args);
   }
 }
 
 export class Col extends SequelizeMethod {
-  private col: string[];
+  private readonly col: string[];
 
   constructor(col: string[], ...args: string[]) {
     super();
     if (args.length > 0) {
       col = args;
     }
+
     this.col = col;
   }
 }
 
 export class Cast extends SequelizeMethod {
-  private val: any;
-  private type: string;
-  private json: boolean;
+  private readonly val: any;
+  private readonly type: string;
+  private readonly json: boolean;
 
   constructor(val: any, type: string, json: boolean) {
     super();
@@ -48,7 +51,7 @@ export class Cast extends SequelizeMethod {
 }
 
 export class Literal extends SequelizeMethod {
-  private val: any;
+  private readonly val: any;
 
   constructor(val: any) {
     super();
@@ -57,19 +60,19 @@ export class Literal extends SequelizeMethod {
 }
 
 export class Json extends SequelizeMethod {
-  private conditions?: { [key: string]: any };
-  private path?: string;
-  private value?: any;
+  private readonly conditions?: { [key: string]: any };
+  private readonly path?: string;
+  private readonly value?: any;
 
   constructor(
     conditionsOrPath: { [key: string]: any } | string,
-    value: string
+    value: string,
   ) {
     super();
 
     const isPathString = typeof conditionsOrPath === 'string';
 
-    if (!isPathString && _.isObject(conditionsOrPath)) {
+    if (!isPathString && isObject(conditionsOrPath)) {
       this.conditions = conditionsOrPath;
     } else if (isPathString) {
       this.path = conditionsOrPath;
@@ -82,18 +85,22 @@ export class Json extends SequelizeMethod {
 }
 
 export class Where extends SequelizeMethod {
-  private attribute: any;
-  private comparator: any;
-  private logic: any;
+  private readonly attribute: any;
+  private readonly comparator: any;
+  private readonly logic: any;
 
   constructor(attribute: AttributeType, comparator: string | symbol, logic: LogicType);
   constructor(attribute: AttributeType, logic: LogicType);
-  constructor(attribute: any, comparatorOrLogic: string | symbol | LogicType, logic: LogicType | undefined) {
+  constructor(attribute: AttributeType, comparatorOrLogic: string | symbol | LogicType, logic?: LogicType) {
     super();
 
+    let comparator;
+
     if (logic === undefined) {
-      logic = comparator;
+      logic = comparatorOrLogic;
       comparator = '=';
+    } else {
+      comparator = comparatorOrLogic;
     }
 
     this.attribute = attribute;

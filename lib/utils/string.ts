@@ -5,8 +5,8 @@ type Inflection = typeof _inflection;
 
 let inflection: Inflection = _inflection;
 
-export function useInflection(_inflection: Inflection) {
-  inflection = _inflection;
+export function useInflection(newInflection: Inflection) {
+  inflection = newInflection;
 }
 
 /* String utils */
@@ -43,7 +43,7 @@ export function spliceStr(
   str: string,
   index: number,
   count: number,
-  add: string
+  add: string,
 ): string {
   return str.slice(0, index) + add + str.slice(index + count);
 }
@@ -57,8 +57,8 @@ export function pluralize(str: string): string {
 }
 
 type NameIndexIndex = {
-  fields: { name: string; attribute: string }[];
-  name: string;
+  fields: Array<{ name: string, attribute: string }>,
+  name: string,
 };
 type NameIndexTableName = string | { tableName: string };
 
@@ -74,16 +74,14 @@ type NameIndexTableName = string | { tableName: string };
  */
 export function nameIndex(
   index: NameIndexIndex,
-  tableName: NameIndexTableName
+  tableName: NameIndexTableName,
 ) {
   if (typeof tableName !== 'string' && tableName.tableName) {
     tableName = tableName.tableName;
   }
 
   if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
-    const fields = index.fields.map(field =>
-      typeof field === 'string' ? field : field.name || field.attribute
-    );
+    const fields = index.fields.map(field => (typeof field === 'string' ? field : field.name || field.attribute));
     index.name = underscore(`${tableName}_${fields.join('_')}`);
   }
 

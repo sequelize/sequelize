@@ -1,14 +1,18 @@
-import _ from 'lodash';
+import forIn from 'lodash/forIn';
+import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelCtor } from '../..';
 import { DataTypes, Op as operators } from '../..';
+// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { cloneDeep } from './object';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
 
 export function format(arr: unknown[], dialect: string): string {
   const timeZone = null;
+
   // Make a clone of the array beacuse format modifies the passed args
   return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
 }
@@ -16,26 +20,26 @@ export function format(arr: unknown[], dialect: string): string {
 export function formatNamedParameters(
   sql: string,
   parameters: Record<string, unknown>,
-  dialect: string
+  dialect: string,
 ): string {
   return SqlString.formatNamedParameters(sql, parameters, null, dialect);
 }
 
 export type FinderOptions = {
-  attributes?: any[];
-  where?: any;
+  attributes?: any[],
+  where?: any,
 };
 /* Expand and normalize finder options */
 export function mapFinderOptions(
   options: FinderOptions,
-  Model: ModelCtor<Model>
+  Model: ModelCtor<Model>,
 ): FinderOptions {
   if (options.attributes && Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
-      options.attributes
+      options.attributes,
     );
     options.attributes = options.attributes?.filter(
-      v => !Model._virtualAttributes.has(v)
+      v => !Model._virtualAttributes.has(v),
     );
   }
 
@@ -47,24 +51,28 @@ export function mapFinderOptions(
 /* Used to map field names in attributes and where conditions */
 export function mapOptionFieldNames(
   options: FinderOptions,
-  Model: ModelCtor<Model>
+  Model: ModelCtor<Model>,
 ): FinderOptions {
   if (Array.isArray(options.attributes)) {
     options.attributes = options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
-      if (typeof attr !== 'string') return attr;
+      if (typeof attr !== 'string') {
+        return attr;
+      }
+
       // Map attributes to aliased syntax attributes
       if (
-        Model.rawAttributes[attr] &&
-        attr !== Model.rawAttributes[attr].field
+        Model.rawAttributes[attr]
+        && attr !== Model.rawAttributes[attr].field
       ) {
         return [Model.rawAttributes[attr].field, attr];
       }
+
       return attr;
     });
   }
 
-  if (options.where && _.isPlainObject(options.where)) {
+  if (options.where && isPlainObject(options.where)) {
     options.where = mapWhereFieldNames(options.where, Model);
   }
 
@@ -72,41 +80,45 @@ export function mapOptionFieldNames(
 }
 
 export function mapWhereFieldNames(attributes: any[], Model: ModelCtor<Model>) {
-  if (attributes) {
-    attributes = cloneDeep(attributes);
-    getComplexKeys(attributes).forEach((attribute: any) => {
-      const rawAttribute: any = Model.rawAttributes[attribute];
+  if (!attributes) {
+    return attributes;
+  }
 
-      if (rawAttribute && rawAttribute.field !== rawAttribute.fieldName) {
-        attributes[rawAttribute.field] = attributes[attribute];
-        delete attributes[attribute];
-      }
+  attributes = cloneDeep(attributes);
+  for (const attributeName of getComplexKeys(attributes)) {
+    const rawAttribute: any = Model.rawAttributes[attributeName as any];
 
-      if (
-        _.isPlainObject(attributes[attribute]) &&
-        !(
-          rawAttribute &&
-          (rawAttribute.type instanceof DataTypes.HSTORE ||
-            rawAttribute.type instanceof DataTypes.JSON)
+    if (rawAttribute && rawAttribute.field !== rawAttribute.fieldName) {
+      attributes[rawAttribute.field] = attributes[attributeName];
+      delete attributes[attributeName];
+    }
+
+    if (
+      isPlainObject(attributes[attributeName])
+        && !(
+          rawAttribute
+          && (rawAttribute.type instanceof DataTypes.HSTORE
+            || rawAttribute.type instanceof DataTypes.JSON)
         )
-      ) {
-        // Prevent renaming of HSTORE & JSON fields
-        attributes[attribute] = mapOptionFieldNames(
-          {
-            where: attributes[attribute]
-          },
-          Model
-        ).where;
-      }
+    ) {
+      // Prevent renaming of HSTORE & JSON fields
+      attributes[attributeName] = mapOptionFieldNames(
+        {
+          where: attributes[attributeName],
+        },
+        Model,
+      ).where;
+    }
 
-      if (Array.isArray(attributes[attribute])) {
-        attributes[attribute].forEach((where: any, index: number) => {
-          if (_.isPlainObject(where)) {
-            attributes[attribute][index] = mapWhereFieldNames(where, Model);
-          }
-        });
+    if (Array.isArray(attributes[attributeName])) {
+      for (let i = 0; i < attributes.length; i++) {
+        const where = attributes[i];
+
+        if (isPlainObject(where)) {
+          attributes[attributeName][i] = mapWhereFieldNames(where, Model);
+        }
       }
-    });
+    }
   }
 
   return attributes;
@@ -120,7 +132,10 @@ export function mapWhereFieldNames(attributes: any[], Model: ModelCtor<Model>) {
  * @private
  */
 export function getComplexKeys(obj: object): Array<string | symbol> {
-  return getOperators(obj).concat(Object.keys(obj));
+  return [
+    ...getOperators(obj),
+    ...Object.keys(obj),
+  ];
 }
 
 /**
@@ -148,9 +163,9 @@ export function mapValueFieldNames(dataValues: any, fields: any, Model: any) {
     if (dataValues[attr] !== undefined && !Model._virtualAttributes.has(attr)) {
       // Field name mapping
       if (
-        Model.rawAttributes[attr] &&
-        Model.rawAttributes[attr].field &&
-        Model.rawAttributes[attr].field !== attr
+        Model.rawAttributes[attr]
+        && Model.rawAttributes[attr].field
+        && Model.rawAttributes[attr].field !== attr
       ) {
         values[Model.rawAttributes[attr].field] = dataValues[attr];
       } else {
@@ -165,7 +180,7 @@ export function mapValueFieldNames(dataValues: any, fields: any, Model: any) {
 export function removeNullValuesFromHash(
   hash: any,
   omitNull: boolean,
-  options: { allowNull?: string[] } = {}
+  options: { allowNull?: string[] } = {},
 ) {
   let result = hash;
 
@@ -174,11 +189,11 @@ export function removeNullValuesFromHash(
   if (omitNull) {
     const _hash: { [key: string]: any } = {};
 
-    _.forIn(hash, (val: any, key: string) => {
+    forIn(hash, (val: any, key: string) => {
       if (
-        options.allowNull?.includes(key) ||
-        key.endsWith('Id') ||
-        val !== null && val !== undefined
+        options.allowNull?.includes(key)
+        || key.endsWith('Id')
+        || val !== null && val !== undefined
       ) {
         _hash[key] = val;
       }
@@ -200,7 +215,7 @@ export function removeNullValuesFromHash(
  */
 export function generateEnumName(
   tableName: string,
-  columnName: string
+  columnName: string,
 ): string {
   return `enum_${tableName}_${columnName}`;
 }

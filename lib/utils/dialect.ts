@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import { DataTypes } from '../..';
 
@@ -8,7 +8,7 @@ const dialects = new Set([
   'postgres',
   'sqlite',
   'mssql',
-  'db2'
+  'db2',
 ]);
 
 export function now(dialect: string): Date {
@@ -16,10 +16,11 @@ export function now(dialect: string): Date {
   if (!dialects.has(dialect)) {
     d.setMilliseconds(0);
   }
+
   return d;
 }
 
-export function toDefaultValue(value: unknown, dialect: string): string {
+export function toDefaultValue(value: unknown, dialect: string): unknown {
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.ABSTRACT) {
@@ -27,23 +28,30 @@ export function toDefaultValue(value: unknown, dialect: string): string {
       // @ts-expect-error
       return tmp.toSql();
     }
+
     return tmp;
   }
+
   if (value instanceof DataTypes.UUIDV1) {
     return uuidv1();
   }
+
   if (value instanceof DataTypes.UUIDV4) {
     return uuidv4();
   }
+
   if (value instanceof DataTypes.NOW) {
     return now(dialect);
   }
+
   if (Array.isArray(value)) {
-    return value.slice();
+    return [...value];
   }
-  if (_.isPlainObject(value)) {
-    return { ...value };
+
+  if (isPlainObject(value)) {
+    return { ...(value as object) };
   }
+
   return value;
 }
 

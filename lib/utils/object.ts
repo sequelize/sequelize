@@ -1,21 +1,38 @@
-import _ from 'lodash';
+import cloneDeepWith from 'lodash/cloneDeepWith';
+import isEqual from 'lodash/eq';
+import forOwn from 'lodash/forOwn';
+import getValue from 'lodash/get';
+import isFunction from 'lodash/isFunction';
+import isPlainObject from 'lodash/isPlainObject';
+import mergeWith from 'lodash/mergeWith';
 import { getComplexKeys } from './format';
+// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const baseIsNative = require('lodash/_baseIsNative');
 
-/** Same concept as _.merge, but don't overwrite properties that have already been assigned */
+/**
+ * Same concept as _.merge, but don't overwrite properties that have already been assigned
+ *
+ * @param a
+ * @param b
+ */
 export function mergeDefaults(a: object, b: object) {
-  return _.mergeWith(a, b, (objectValue, sourceValue) => {
+  return mergeWith(a, b, (objectValue, sourceValue) => {
     // If it's an object, let _ handle it this time, we will be called again for each property
-    if (!_.isPlainObject(objectValue) && objectValue !== undefined) {
+    if (!isPlainObject(objectValue) && objectValue !== undefined) {
       // _.isNative includes a check for core-js and throws an error if present.
       // Depending on _baseIsNative bypasses the core-js check.
-      if (_.isFunction(objectValue) && baseIsNative(objectValue)) {
+      if (isFunction(objectValue) && baseIsNative(objectValue)) {
         return sourceValue || objectValue;
       }
+
       return objectValue;
     }
+
+    // eslint-disable-next-line consistent-return,no-useless-return -- lodash actually wants us to return `undefined` to fallback to the default customizer.
+    return;
   });
 }
 
@@ -26,17 +43,19 @@ export function merge(...args: object[]): object {
   const result: { [key: string]: any } = Object.create(null);
 
   for (const obj of args) {
-    _.forOwn(obj, (value, key) => {
-      if (value !== undefined) {
-        if (!result[key]) {
-          result[key] = value;
-        } else if (_.isPlainObject(value) && _.isPlainObject(result[key])) {
-          result[key] = merge(result[key], value);
-        } else if (Array.isArray(value) && Array.isArray(result[key])) {
-          result[key] = value.concat(result[key]);
-        } else {
-          result[key] = value;
-        }
+    forOwn(obj, (value, key) => {
+      if (value === undefined) {
+        return;
+      }
+
+      if (!result[key]) {
+        result[key] = value;
+      } else if (isPlainObject(value) && isPlainObject(result[key])) {
+        result[key] = merge(result[key], value);
+      } else if (Array.isArray(value) && Array.isArray(result[key])) {
+        result[key] = [...value, ...result[key]];
+      } else {
+        result[key] = value;
       }
     });
   }
@@ -44,11 +63,12 @@ export function merge(...args: object[]): object {
   return result;
 }
 
+/* eslint-disable consistent-return -- lodash actually wants us to return `undefined` to fallback to the default customizer. */
 export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
-  return _.cloneDeepWith(obj || {}, elem => {
+  return cloneDeepWith(obj || {}, elem => {
     // Do not try to customize cloning of arrays or POJOs
-    if (Array.isArray(elem) || _.isPlainObject(elem)) {
-      return undefined;
+    if (Array.isArray(elem) || isPlainObject(elem)) {
+      return;
     }
 
     // If we specified to clone only plain objects & arrays, we ignore everyhing else
@@ -63,6 +83,7 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
     }
   });
 }
+/* eslint-enable consistent-return */
 
 /**
  * Receives a tree-like object and returns a plain object which depth is 1.
@@ -94,22 +115,26 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @private
  */
 export function flattenObjectDeep(value: object) {
-  if (!_.isPlainObject(value)) return value;
+  if (!isPlainObject(value)) {
+    return value;
+  }
+
   const flattenedObj: { [key: string]: any } = {};
 
   function flattenObject(obj: { [key: string]: any }, subPath?: string) {
-    Object.keys(obj).forEach(key => {
+    for (const key of Object.keys(obj)) {
       const pathToProperty = subPath ? `${subPath}.${key}` : key;
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         flattenObject(obj[key], pathToProperty);
       } else {
-        flattenedObj[pathToProperty] = _.get(obj, key);
+        flattenedObj[pathToProperty] = getValue(obj, key);
       }
-    });
+    }
+
     return flattenedObj;
   }
 
-  return flattenObject(value, undefined);
+  return flattenObject(value);
 }
 
 /**
@@ -120,53 +145,48 @@ export function flattenObjectDeep(value: object) {
  *
  * **Note:** This method mutates `object`.
  *
- * @param {object} object The destination object.
+ * @param {object} objectIn The destination object.
  * @param {...object} [sources] The source objects.
  * @returns {object} Returns `object`.
  * @private
  */
 export function defaults(
-  object: { [key: string | symbol]: any },
-  ...sources: { [key: string | symbol]: any }[]
+  objectIn: { [key: string | symbol]: any },
+  ...sources: Array<{ [key: string | symbol]: any }>
 ): object {
-  object = Object(object);
-
-  sources.forEach(source => {
-    if (source) {
-      source = Object(source);
-
-      getComplexKeys(source).forEach((key: string | symbol) => {
-        const value = object[key];
-        const objectPrototype: { [key: string | symbol]: any } =
-          Object.prototype;
-
-        if (
-          value === undefined ||
-          _.eq(value, objectPrototype[key]) &&
-            !objectPrototype.hasOwnProperty.call(object, key)
-        ) {
-          object[key] = source[key];
-        }
-      });
+  for (const source of sources) {
+    if (!source) {
+      continue;
     }
-  });
 
-  return object;
+    for (const key of getComplexKeys(source)) {
+      const value = objectIn[key];
+      const objectPrototype: { [key: string | symbol]: any } = Object.prototype;
+
+      if (
+        value === undefined
+        || isEqual(value, objectPrototype[key])
+        && !Object.prototype.hasOwnProperty.call(objectIn, key)
+      ) {
+        objectIn[key] = source[key];
+      }
+    }
+  }
+
+  return objectIn;
 }
 
 /**
- * Returns an new Object which keys are camelized
- *
  * @param {object} obj
- * @returns {string}
+ * @returns {string} A new object with camel-cased keys
  * @private
  */
 export function camelizeObjectKeys(obj: { [key: string]: any }) {
-  const newObj: { [key: string]: any } = new Object();
+  const newObj: { [key: string]: any } = Object.create(null);
 
-  Object.keys(obj).forEach(key => {
+  for (const key of Object.keys(obj)) {
     newObj[camelize(key)] = obj[key];
-  });
+  }
 
   return newObj;
 }

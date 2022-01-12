@@ -1,23 +1,25 @@
-import _ from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import isPlainObject from 'lodash/isPlainObject';
 import { DataTypes } from '../..';
 import { getOperators } from './format';
 import { Where } from './sequelize-method';
 
 export function isPrimitive(val: any): val is string | number | boolean {
   const type = typeof val;
+
   return ['string', 'number', 'boolean'].includes(type);
 }
 
 export function isColString(value: string | string[]): boolean {
   return (
-    typeof value === 'string' &&
-    value[0] === '$' &&
-    value[value.length - 1] === '$'
+    typeof value === 'string'
+    && value.startsWith('$')
+    && value.endsWith('$')
   );
 }
 
 export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where> {
-  return arr.some(arg => _.isPlainObject(arg) || arg instanceof Where);
+  return arr.some(arg => isPlainObject(arg) || arg instanceof Where);
 }
 
 /**
@@ -54,5 +56,5 @@ export function defaultValueSchemable(value: any): boolean {
  * @private
  */
 export function isWhereEmpty(obj: object): boolean {
-  return !!obj && _.isEmpty(obj) && getOperators(obj).length === 0;
+  return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
 }
