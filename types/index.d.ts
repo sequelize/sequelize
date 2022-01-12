@@ -7,6 +7,7 @@ export { IndexHints } from "../lib/index-hints";
 export { TableHints } from "../lib/table-hints";
 export { Op } from "../lib/operators";
 export * from "../lib/transaction";
+export { Literal, Col, Json, Fn, Cast, SequelizeMethod } from '../lib/utils';
 
 export type { Connection } from "./lib/connection-manager";
 export * from "./lib/associations/index";

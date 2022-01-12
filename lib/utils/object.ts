@@ -13,12 +13,15 @@ import { camelize } from './string';
 const baseIsNative = require('lodash/_baseIsNative');
 
 /**
- * Same concept as _.merge, but don't overwrite properties that have already been assigned
+ * Deeply merges object `b` into `a`.
+ * Mutates `a`.
+ *
+ * Same concept as _.merge, but doesn't overwrite properties that have already been assigned.
  *
  * @param a
  * @param b
  */
-export function mergeDefaults(a: object, b: object) {
+export function mergeDefaults(a: object, b: object): object {
   return mergeWith(a, b, (objectValue, sourceValue) => {
     // If it's an object, let _ handle it this time, we will be called again for each property
     if (!isPlainObject(objectValue) && objectValue !== undefined) {
@@ -36,9 +39,16 @@ export function mergeDefaults(a: object, b: object) {
   });
 }
 
-// An alternative to _.merge, which doesn't clone its arguments
-// Cloning is a bad idea because options arguments may contain references to sequelize
-// models - which again reference database libs which don't like to be cloned (in particular pg-native)
+/**
+ * An alternative to _.merge, which doesn't clone its arguments.
+ *
+ * Does not mutate parameters.
+ *
+ * Cloning is a bad idea because options arguments may contain references to sequelize
+ * models - which again reference database libs which don't like to be cloned (in particular pg-native)
+ *
+ * @param args
+ */
 export function merge(...args: object[]): object {
   const result: { [key: string]: any } = Object.create(null);
 
@@ -114,9 +124,9 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @returns {object} a flattened object
  * @private
  */
-export function flattenObjectDeep(value: object) {
+export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
   if (!isPlainObject(value)) {
-    return value;
+    return value as Flatten<T>;
   }
 
   const flattenedObj: { [key: string]: any } = {};
@@ -134,8 +144,19 @@ export function flattenObjectDeep(value: object) {
     return flattenedObj;
   }
 
-  return flattenObject(value);
+  return flattenObject(value) as Flatten<T>;
 }
+
+// taken from
+// https://stackoverflow.com/questions/66614528/flatten-object-with-custom-keys-in-typescript
+// because this is typescript black magic
+type Flatten<T extends object> = object extends T ? object : {
+  [K in keyof T]-?: (x: NonNullable<T[K]> extends infer V ? V extends object ?
+    V extends readonly any[] ? Pick<T, K> : Flatten<V> extends infer FV ? ({
+      [P in keyof FV as `${Extract<K, string | number>}.${Extract<P, string | number>}`]:
+      FV[P] }) : never : Pick<T, K> : never
+  ) => void } extends Record<keyof T, (y: infer O) => void> ?
+  O extends unknown ? { [K in keyof O]: O[K] } : never : never;
 
 /**
  * Assigns own and inherited enumerable string and symbol keyed properties of source

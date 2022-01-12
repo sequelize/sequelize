@@ -1,6 +1,6 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelCtor } from '../..';
+import type { Model, ModelCtor, ModelStatic } from '../..';
 import { DataTypes, Op as operators } from '../..';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { cloneDeep } from './object';
@@ -13,7 +13,7 @@ const operatorsSet = new Set(Object.values(operators));
 export function format(arr: unknown[], dialect: string): string {
   const timeZone = null;
 
-  // Make a clone of the array beacuse format modifies the passed args
+  // Make a clone of the array because format modifies the passed args
   return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
 }
 
@@ -26,9 +26,10 @@ export function formatNamedParameters(
 }
 
 export type FinderOptions = {
-  attributes?: any[],
-  where?: any,
+  attributes?: any[], // TODO: stricter typing for attributes
+  where?: any, // TODO: should this be WhereOptions?
 };
+
 /* Expand and normalize finder options */
 export function mapFinderOptions(
   options: FinderOptions,
@@ -79,6 +80,8 @@ export function mapOptionFieldNames(
   return options;
 }
 
+// TODO: is attributes really an array? + stricter types for attributes
+//  mapOptionFieldNames calls this method with an object
 export function mapWhereFieldNames(attributes: any[], Model: ModelCtor<Model>) {
   if (!attributes) {
     return attributes;
@@ -155,52 +158,59 @@ export function combineTableNames(tableName1: string, tableName2: string): strin
     : tableName2 + tableName1;
 }
 
-/* Used to map field names in values */
-export function mapValueFieldNames(dataValues: any, fields: any, Model: any) {
-  const values: { [key: string]: any } = {};
+/**
+ * Used to map field names in values
+ *
+ * @param dataValues
+ * @param attributeNames
+ * @param ModelClass
+ */
+export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames?
+  dataValues: Record<string, any>,
+  attributeNames: string[], // TODO: can attributes be symbols too?
+  ModelClass: ModelStatic<Model>,
+): Record<string, any> {
+  const values: Record<string, any> = Object.create(null);
 
-  for (const attr of fields) {
-    if (dataValues[attr] !== undefined && !Model._virtualAttributes.has(attr)) {
+  for (const attributeName of attributeNames) {
+    if (dataValues[attributeName] !== undefined && !ModelClass._virtualAttributes.has(attributeName)) {
       // Field name mapping
-      if (
-        Model.rawAttributes[attr]
-        && Model.rawAttributes[attr].field
-        && Model.rawAttributes[attr].field !== attr
-      ) {
-        values[Model.rawAttributes[attr].field] = dataValues[attr];
-      } else {
-        values[attr] = dataValues[attr];
-      }
+      const columnName = ModelClass.rawAttributes[attributeName]?.field ?? attributeName;
+
+      values[columnName] = dataValues[attributeName];
     }
   }
 
   return values;
 }
 
+// TODO: rename to removeNullishValues as it also removes undefined.
 export function removeNullValuesFromHash(
-  hash: any,
+  hash: Record<string, any>,
   omitNull: boolean,
-  options: { allowNull?: string[] } = {},
-) {
+  options?: { allowNull?: string[] },
+): Record<string, any> {
   let result = hash;
 
-  options.allowNull = options.allowNull || [];
+  const allowNull = options?.allowNull ?? [];
 
-  if (omitNull) {
-    const _hash: { [key: string]: any } = {};
+  if (!omitNull) {
+    return result;
+  }
 
-    forIn(hash, (val: any, key: string) => {
-      if (
-        options.allowNull?.includes(key)
+  const _hash: { [key: string]: any } = Object.create(null);
+
+  forIn(hash, (val: any, key: string) => {
+    if (
+      allowNull.includes(key)
         || key.endsWith('Id')
         || val !== null && val !== undefined
-      ) {
-        _hash[key] = val;
-      }
-    });
+    ) {
+      _hash[key] = val;
+    }
+  });
 
-    result = _hash;
-  }
+  result = _hash;
 
   return result;
 }

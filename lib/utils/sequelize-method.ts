@@ -9,6 +9,9 @@ import type { AttributeType, LogicType } from '../..';
  */
 export class SequelizeMethod {}
 
+/**
+ * Do not use me directly. Use {@link Sequelize.fn}
+ */
 export class Fn extends SequelizeMethod {
   private readonly fn: string;
   private readonly args: unknown[];
@@ -19,16 +22,21 @@ export class Fn extends SequelizeMethod {
     this.args = args;
   }
 
-  clone() {
+  clone(): Fn {
     return new Fn(this.fn, this.args);
   }
 }
 
+/**
+ * Do not use me directly. Use {@link Sequelize.col}
+ */
 export class Col extends SequelizeMethod {
-  private readonly col: string[];
+  private readonly col: string[] | string;
 
-  constructor(col: string[], ...args: string[]) {
+  constructor(col: string[] | string, ...args: string[]) {
     super();
+    // TODO(ephys): this does not look right. First parameter is ignored if a second parameter is provided.
+    //  should we change the signature to `constructor(...cols: string[])`
     if (args.length > 0) {
       col = args;
     }
@@ -37,36 +45,45 @@ export class Col extends SequelizeMethod {
   }
 }
 
+/**
+ * Do not use me directly. Use {@link Sequelize.cast}
+ */
 export class Cast extends SequelizeMethod {
   private readonly val: any;
   private readonly type: string;
   private readonly json: boolean;
 
-  constructor(val: any, type: string, json: boolean) {
+  constructor(val: unknown, type: string = '', json: boolean = false) {
     super();
     this.val = val;
-    this.type = (type || '').trim();
-    this.json = json || false;
+    this.type = type.trim();
+    this.json = json;
   }
 }
 
+/**
+ * Do not use me directly. Use {@link Sequelize.literal}
+ */
 export class Literal extends SequelizeMethod {
-  private readonly val: any;
+  private readonly val: unknown;
 
-  constructor(val: any) {
+  constructor(val: unknown) {
     super();
     this.val = val;
   }
 }
 
+/**
+ * Do not use me directly. Use {@link Sequelize.json}
+ */
 export class Json extends SequelizeMethod {
   private readonly conditions?: { [key: string]: any };
   private readonly path?: string;
-  private readonly value?: any;
+  private readonly value?: string | number | boolean | null;
 
   constructor(
     conditionsOrPath: { [key: string]: any } | string,
-    value: string,
+    value?: string | number | boolean | null,
   ) {
     super();
 
@@ -84,10 +101,13 @@ export class Json extends SequelizeMethod {
   }
 }
 
+/**
+ * Do not use me directly. Use {@link Sequelize.where}
+ */
 export class Where extends SequelizeMethod {
-  private readonly attribute: any;
-  private readonly comparator: any;
-  private readonly logic: any;
+  private readonly attribute: AttributeType;
+  private readonly comparator: string | symbol;
+  private readonly logic: LogicType;
 
   constructor(attribute: AttributeType, comparator: string | symbol, logic: LogicType);
   constructor(attribute: AttributeType, logic: LogicType);
@@ -104,6 +124,7 @@ export class Where extends SequelizeMethod {
     }
 
     this.attribute = attribute;
+    // @ts-expect-error
     this.comparator = comparator;
     this.logic = logic;
   }
