@@ -1,8 +1,10 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../../support');
+
 const dialect = Support.getTestDialect();
 const DataTypes = require('sequelize/lib/data-types');
 
@@ -17,8 +19,8 @@ if (dialect === 'snowflake') {
 
       const [affectedCount] = await User.update({ username: 'jozef' }, {
         where: {
-          id: 1
-        }
+          id: 1,
+        },
       });
 
       // https://github.com/sequelize/sequelize/issues/7184

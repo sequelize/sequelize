@@ -1,16 +1,18 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../../support');
+
 const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 
-if (dialect.match(/^mssql/)) {
+if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Connection Manager', () => {
     describe('Errors', () => {
       it('ECONNREFUSED', async () => {
-        const sequelize = Support.createSequelizeInstance({ host: '127.0.0.1', port: 34237 });
+        const sequelize = Support.createSequelizeInstance({ host: '127.0.0.1', port: 34_237 });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
       });
 

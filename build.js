@@ -4,7 +4,7 @@ const glob = require('fast-glob');
 const { promisify } = require('util');
 const { build } = require('esbuild');
 const fs = require('fs');
-const copyFiles = promisify( require('copyfiles'));
+const copyFiles = promisify(require('copyfiles'));
 const path = require('path');
 const exec = promisify(require('child_process').exec);
 
@@ -25,33 +25,30 @@ async function rmDistDir() {
       await rm(outdir, { recursive: true });
     } else {
       const rmdir = promisify(fs.rmdir);
-      if (nodeMajorVersion >= 12) {
-        await rmdir(outdir, { recursive: true });
-      } else {
-        await rmdir(outdir);
-      }}
+      await (nodeMajorVersion >= 12 ? rmdir(outdir, { recursive: true }) : rmdir(outdir));
+    }
   } catch {
     /* no-op */
   }
 }
 
 async function main() {
-  console.log('Compiling sequelize...');
+  console.info('Compiling sequelize...');
   const [declarationFiles, filesToCompile] = await Promise.all([
     // Find all .d.ts files from types/
     glob('./types/**/*.d.ts', { onlyFiles: true, absolute: false }),
     // Find all .js and .ts files from lib/
     glob('./lib/**/*.[tj]s', { onlyFiles: true, absolute: false }),
     // Delete dist/ for a full rebuild.
-    rmDistDir()
+    rmDistDir(),
   ]);
 
   // copy .d.ts files prior to generating them from the .ts files
   // so the .ts files in lib/ will take priority..
   await copyFiles(
     // The last path in the list is the output directory
-    declarationFiles.concat(outdir),
-    { up: 1 }
+    [...declarationFiles, outdir],
+    { up: 1 },
   );
 
   await Promise.all([
@@ -64,9 +61,8 @@ async function main() {
       format: 'cjs',
 
       outdir,
-      entryPoints: filesToCompile
-        .concat('./index.js')
-        .map(file => path.resolve(file))
+      entryPoints: [...filesToCompile, './index.js']
+        .map(file => path.resolve(file)),
     }),
 
     // not passed to "build" because we need this file to stay as ESM instead of CJS
@@ -78,11 +74,11 @@ async function main() {
         // <pkg root>/node_modules/.bin.
         PATH: `${process.env.PATH || ''}:${path.join(
           rootDir,
-          'node_modules/.bin'
-        )}`
+          'node_modules/.bin',
+        )}`,
       },
-      cwd: rootDir
-    })
+      cwd: rootDir,
+    }),
   ]);
 }
 

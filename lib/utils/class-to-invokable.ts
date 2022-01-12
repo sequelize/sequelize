@@ -1,7 +1,7 @@
 /**
  * Utility type for a class which can be called in addion to being used as a constructor.
  */
-interface Invokeable<Args extends Array<any>, Instance> {
+interface Invokeable<Args extends any[], Instance> {
   (...args: Args): Instance;
   new (...args: Args): Instance;
 }
@@ -14,8 +14,8 @@ interface Invokeable<Args extends Array<any>, Instance> {
  * @returns {Proxy} Wrapped class instance.
  * @private
  */
-export function classToInvokable<Args extends Array<any>, Instance extends object>(
-  Class: new (...args: Args) => Instance
+export function classToInvokable<Args extends any[], Instance extends object>(
+  Class: new (...args: Args) => Instance,
 ): Invokeable<Args, Instance> {
   return new Proxy<Invokeable<Args, Instance>>(Class as any, {
     apply(_target, _thisArg, args: Args) {
@@ -23,6 +23,6 @@ export function classToInvokable<Args extends Array<any>, Instance extends objec
     },
     construct(_target, args: Args) {
       return new Class(...args);
-    }
+    },
   });
 }

@@ -1,4 +1,5 @@
 'use strict';
+
 const path = require('path');
 const hook = require('node-hook');
 const esbuild = require('esbuild');
@@ -32,12 +33,12 @@ function installSourceMapSupport() {
       if (map) {
         return {
           url: null,
-          map
+          map,
         };
       }
 
       return null;
-    }
+    },
   });
 }
 
@@ -48,7 +49,7 @@ function compileFor(loader) {
       target: 'node10',
       format: 'cjs',
       sourcefile,
-      loader
+      loader,
     });
 
     if (Object.keys(maps).length === 0) {

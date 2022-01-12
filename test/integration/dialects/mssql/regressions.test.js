@@ -1,28 +1,30 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon =  require('sinon'),
-  Support = require('../../support'),
-  Sequelize = Support.Sequelize,
-  Op = Sequelize.Op,
-  dialect = Support.getTestDialect();
+const chai = require('chai');
 
-if (dialect.match(/^mssql/)) {
+const expect = chai.expect;
+const sinon =  require('sinon');
+const Support = require('../../support');
+
+const Sequelize = Support.Sequelize;
+const Op = Sequelize.Op;
+const dialect = Support.getTestDialect();
+
+if (dialect.startsWith('mssql')) {
   describe(Support.getTestDialectTeaser('Regressions'), () => {
-    it('does not duplicate columns in ORDER BY statement, #9008', async function() {
+    it('does not duplicate columns in ORDER BY statement, #9008', async function () {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {
           field: 'id',
           type: Sequelize.INTEGER,
           primaryKey: true,
-          autoIncrement: true
+          autoIncrement: true,
         },
         UserID: {
           field: 'userid',
           type: Sequelize.UUID,
-          allowNull: false
-        }
+          allowNull: false,
+        },
       });
 
       const User = this.sequelize.define('User', {
@@ -30,20 +32,20 @@ if (dialect.match(/^mssql/)) {
           field: 'userid',
           type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true
+          primaryKey: true,
         },
         UserName: {
           field: 'username',
           type: Sequelize.STRING(50),
-          allowNull: false
-        }
+          allowNull: false,
+        },
       });
 
       LoginLog.belongsTo(User, {
-        foreignKey: 'UserID'
+        foreignKey: 'UserID',
       });
       User.hasMany(LoginLog, {
-        foreignKey: 'UserID'
+        foreignKey: 'UserID',
       });
 
       await this.sequelize.sync({ force: true });
@@ -52,14 +54,14 @@ if (dialect.match(/^mssql/)) {
         { UserName: 'Vayom' },
         { UserName: 'Shaktimaan' },
         { UserName: 'Nikita' },
-        { UserName: 'Aryamaan' }
+        { UserName: 'Aryamaan' },
       ], { returning: true });
 
       await Promise.all([
         vyom.createLoginLog(),
         shakti.createLoginLog(),
         nikita.createLoginLog(),
-        arya.createLoginLog()
+        arya.createLoginLog(),
       ]);
 
       const logs = await LoginLog.findAll({
@@ -68,14 +70,14 @@ if (dialect.match(/^mssql/)) {
             model: User,
             where: {
               UserName: {
-                [Op.like]: '%maan%'
-              }
-            }
-          }
+                [Op.like]: '%maan%',
+              },
+            },
+          },
         ],
         order: [[User, 'UserName', 'DESC']],
         offset: 0,
-        limit: 10
+        limit: 10,
       });
 
       expect(logs).to.have.length(2);
@@ -89,14 +91,14 @@ if (dialect.match(/^mssql/)) {
             model: User,
             where: {
               UserName: {
-                [Op.like]: '%maan%'
-              }
-            }
-          }
+                [Op.like]: '%maan%',
+              },
+            },
+          },
         ],
         order: [['id', 'DESC']],
         offset: 0,
-        limit: 10
+        limit: 10,
       });
 
       expect(otherLogs).to.have.length(2);
@@ -110,18 +112,18 @@ if (dialect.match(/^mssql/)) {
             model: LoginLog,
             separate: true,
             order: [
-              'id'
-            ]
-          }
+              'id',
+            ],
+          },
         ],
         where: {
           UserName: {
-            [Op.like]: '%maan%'
-          }
+            [Op.like]: '%maan%',
+          },
         },
         order: ['UserName', ['UserID', 'DESC']],
         offset: 0,
-        limit: 10
+        limit: 10,
       });
 
       expect(separateUsers).to.have.length(2);
@@ -131,15 +133,15 @@ if (dialect.match(/^mssql/)) {
       expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
     });
 
-    it('allow referencing FK to different tables in a schema with onDelete, #10125', async function() {
+    it('allow referencing FK to different tables in a schema with onDelete, #10125', async function () {
       const Child = this.sequelize.define(
         'Child',
         {},
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a'
-        }
+          schema: 'a',
+        },
       );
       const Toys = this.sequelize.define(
         'Toys',
@@ -147,8 +149,8 @@ if (dialect.match(/^mssql/)) {
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a'
-        }
+          schema: 'a',
+        },
       );
       const Parent = this.sequelize.define(
         'Parent',
@@ -156,16 +158,16 @@ if (dialect.match(/^mssql/)) {
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a'
-        }
+          schema: 'a',
+        },
       );
 
       Child.hasOne(Toys, {
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       });
 
       Parent.hasOne(Toys, {
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       });
 
       const spy = sinon.spy();
@@ -173,7 +175,7 @@ if (dialect.match(/^mssql/)) {
       await this.sequelize.queryInterface.createSchema('a');
       await this.sequelize.sync({
         force: true,
-        logging: spy
+        logging: spy,
       });
 
       expect(spy).to.have.been.called;
@@ -182,9 +184,9 @@ if (dialect.match(/^mssql/)) {
       expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });
 
-    it('sets the varchar(max) length correctly on describeTable', async function() {
+    it('sets the varchar(max) length correctly on describeTable', async function () {
       const Users = this.sequelize.define('_Users', {
-        username: Sequelize.STRING('MAX')
+        username: Sequelize.STRING('MAX'),
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
@@ -193,9 +195,9 @@ if (dialect.match(/^mssql/)) {
       expect(username.type).to.include('(MAX)');
     });
 
-    it('sets the char(10) length correctly on describeTable', async function() {
+    it('sets the char(10) length correctly on describeTable', async function () {
       const Users = this.sequelize.define('_Users', {
-        username: Sequelize.CHAR(10)
+        username: Sequelize.CHAR(10),
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
@@ -204,36 +206,36 @@ if (dialect.match(/^mssql/)) {
       expect(username.type).to.include('(10)');
     });
 
-    it('saves value bigger than 2147483647, #11245', async function() {
+    it('saves value bigger than 2147483647, #11245', async function () {
       const BigIntTable =  this.sequelize.define('BigIntTable', {
         business_id: {
           type: Sequelize.BIGINT,
-          allowNull: false
-        }
+          allowNull: false,
+        },
       }, {
-        freezeTableName: true
+        freezeTableName: true,
       });
 
-      const bigIntValue = 2147483648;
+      const bigIntValue = 2_147_483_648;
 
       await BigIntTable.sync({ force: true });
 
       await BigIntTable.create({
-        business_id: bigIntValue
+        business_id: bigIntValue,
       });
 
       const record = await BigIntTable.findOne();
       expect(Number(record.business_id)).to.equals(bigIntValue);
     });
 
-    it('saves boolean is true, #12090', async function() {
+    it('saves boolean is true, #12090', async function () {
       const BooleanTable =  this.sequelize.define('BooleanTable', {
         status: {
           type: Sequelize.BOOLEAN,
-          allowNull: false
-        }
+          allowNull: false,
+        },
       }, {
-        freezeTableName: true
+        freezeTableName: true,
       });
 
       const value = true;
@@ -241,7 +243,7 @@ if (dialect.match(/^mssql/)) {
       await BooleanTable.sync({ force: true });
 
       await BooleanTable.create({
-        status: value
+        status: value,
       });
 
       const record = await BooleanTable.findOne();
