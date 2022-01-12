@@ -10,7 +10,7 @@ const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {
   host: baseConf.host,
   port: baseConf.port,
-  pool: {}
+  pool: {},
 };
 
 describe(Support.getTestDialectTeaser('Connection Manager'), () => {
@@ -26,12 +26,12 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
   it('should initialize a single pool without replication', () => {
     const options = {
-      replication: null
+      replication: null,
     };
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     connectionManager.initPools();
@@ -44,13 +44,13 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: {
         write: { ...poolEntry },
-        read: [{ ...poolEntry }, { ...poolEntry }]
-      }
+        read: [{ ...poolEntry }, { ...poolEntry }],
+      },
     };
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     connectionManager.initPools();
@@ -71,17 +71,17 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: {
         write: { ...poolEntry },
-        read: [slave1, slave2]
-      }
+        read: [slave1, slave2],
+      },
     };
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     const res = {
-      queryType: 'read'
+      queryType: 'read',
     };
 
     const connectStub = sandbox
@@ -95,13 +95,13 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
-      useMaster: false
+      type: 'read',
+      useMaster: false,
     };
 
     const _getConnection = connectionManager.getConnection.bind(
       connectionManager,
-      queryOptions
+      queryOptions,
     );
 
     await _getConnection();
@@ -121,13 +121,13 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const sequelize = Support.createSequelizeInstance();
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
     const res = {
-      queryType: 'read'
+      queryType: 'read',
     };
 
     sandbox.stub(connectionManager, '_connect').resolves(res);
@@ -136,8 +136,8 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
-      useMaster: true
+      type: 'read',
+      useMaster: true,
     };
 
     await connectionManager.getConnection(queryOptions);
@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     chai
       .expect(stub.getCalls()[0].args[0])
       .to.contain(
-        'This database engine version is not supported, please update your database server.'
+        'This database engine version is not supported, please update your database server.',
       );
     stub.restore();
   });
@@ -157,17 +157,17 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: {
         write: main,
-        read: [{ ...poolEntry }]
-      }
+        read: [{ ...poolEntry }],
+      },
     };
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     const res = {
-      queryType: 'read'
+      queryType: 'read',
     };
 
     const connectStub = sandbox
@@ -181,8 +181,8 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const queryOptions = {
       priority: 0,
-      type: 'SELECT',
-      useMaster: true
+      type: 'read',
+      useMaster: true,
     };
 
     await connectionManager.getConnection(queryOptions);
@@ -193,12 +193,12 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
   it('should clear the pool after draining it', async () => {
     const options = {
-      replication: null
+      replication: null,
     };
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(
       sequelize.dialect,
-      sequelize
+      sequelize,
     );
 
     connectionManager.initPools();

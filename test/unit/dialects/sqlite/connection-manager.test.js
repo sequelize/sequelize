@@ -1,11 +1,13 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  Sequelize = Support.Sequelize,
-  dialect = Support.getTestDialect(),
-  sinon = require('sinon');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../../support');
+
+const Sequelize = Support.Sequelize;
+const dialect = Support.getTestDialect();
+const sinon = require('sinon');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] ConnectionManager', () => {
@@ -17,11 +19,12 @@ if (dialect === 'sqlite') {
         sinon.stub(sequelize.connectionManager, 'lib').value({
           Database: function FakeDatabase(_s, _m, cb) {
             cb();
+
             return {};
-          }
+          },
         });
         sinon.stub(sequelize.connectionManager, 'connections').value({ default: { run: () => {} } });
-        
+
         const options = {};
         sequelize.dialect.connectionManager.getConnection(options);
         expect(options.storage).to.be.equal('');

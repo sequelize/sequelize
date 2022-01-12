@@ -10,9 +10,8 @@ import {
   Poolable,
   ModelCtor, ModelStatic, ModelType
 } from './model';
-import QueryTypes = require('./query-types');
+import { QueryTypes, Transaction } from '..';
 import { Sequelize, RetryOptions } from './sequelize';
-import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
 import { Deferrable } from './deferrable';
@@ -630,21 +629,20 @@ export class QueryInterface {
   ): Promise<void>;
 
   /**
-   * Escape an identifier (e.g. a table or attribute name). If force is true, the identifier will be quoted
-   * even if the `quoteIdentifiers` option is false.
-   */
-  public quoteIdentifier(identifier: string, force: boolean): string;
-
-  /**
    * Escape a table name
    */
   public quoteTable(identifier: TableName): string;
 
   /**
-   * Split an identifier into .-separated tokens and quote each part. If force is true, the identifier will be
-   * quoted even if the `quoteIdentifiers` option is false.
+   * Escape an identifier (e.g. a table or attribute name). If force is true, the identifier will be quoted
+   * even if the `quoteIdentifiers` option is false.
    */
-  public quoteIdentifiers(identifiers: string, force: boolean): string;
+  public quoteIdentifier(identifier: string, force?: boolean): string;
+
+  /**
+   * Split an identifier into .-separated tokens and quote each part.
+   */
+  public quoteIdentifiers(identifiers: string): string;
 
   /**
    * Escape a value (e.g. a string, number or date)

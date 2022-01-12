@@ -21,9 +21,9 @@ class OptimisticLockError extends BaseError {
 
   constructor(options: OptimisticLockErrorOptions) {
     options = options || {};
-    options.message =
-      options.message ||
-      `Attempting to update a stale model instance: ${options.modelName}`;
+    options.message
+      = options.message
+      || `Attempting to update a stale model instance: ${options.modelName}`;
 
     super(options.message);
     this.name = 'SequelizeOptimisticLockError';

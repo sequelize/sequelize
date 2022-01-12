@@ -1,11 +1,13 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('./support'),
-  Sequelize = Support.Sequelize,
-  dialect = Support.getTestDialect(),
-  path = require('path');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('./support');
+
+const Sequelize = Support.Sequelize;
+const dialect = Support.getTestDialect();
+const path = require('path');
 
 describe('Sequelize', () => {
   describe('dialect is required', () => {
@@ -18,7 +20,7 @@ describe('Sequelize', () => {
     it('works when dialect explicitly supplied', () => {
       expect(() => {
         new Sequelize('localhost', 'test', 'test', {
-          dialect: 'mysql'
+          dialect: 'mysql',
         });
       }).not.to.throw(Error);
     });
@@ -28,7 +30,7 @@ describe('Sequelize', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test', {
         dialect: 'mysql',
-        pool: false
+        pool: false,
       });
     }).to.throw('Support for pool:false was removed in v4.0');
   });
@@ -40,8 +42,8 @@ describe('Sequelize', () => {
         dialect,
         dialectOptions: {
           supportBigNumbers: true,
-          bigNumberStrings: true
-        }
+          bigNumberStrings: true,
+        },
       });
       const config = sequelize.config;
 
@@ -70,7 +72,7 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
-    describe('sqllite path inititalization', () =>{
+    describe('sqllite path inititalization', () => {
       const current   = Support.sequelize;
       if (current.dialect.name === 'sqlite') {
         it('should accept relative paths for sqlite', () => {
@@ -126,7 +128,7 @@ describe('Sequelize', () => {
       const options = {
         username: 'root',
         password: 'pass',
-        database: 'dbname'
+        database: 'dbname',
       };
       const sequelize = new Sequelize('mysql://example.com:9821', options);
       const config = sequelize.config;
@@ -138,9 +140,9 @@ describe('Sequelize', () => {
 
     it('should use the default port when no other is specified', () => {
       const sequelize = new Sequelize('dbname', 'root', 'pass', {
-          dialect
-        }),
-        config = sequelize.config;
+        dialect,
+      });
+      const config = sequelize.config;
       let port;
 
       if (dialect === 'mysql') {
@@ -167,8 +169,8 @@ describe('Sequelize', () => {
         storage: '/completely/different/path.db',
         dialectOptions: {
           supportBigNumbers: true,
-          application_name: 'server' // eslint-disable-line
-        }
+          application_name: 'server',
+        },
       });
 
       const options = sequelize.options;

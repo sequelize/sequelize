@@ -1,4 +1,5 @@
-import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
+import type { DatabaseErrorSubclassOptions } from '../database-error';
+import DatabaseError from '../database-error';
 
 export enum RelationshipType {
   parent = 'parent',
@@ -24,16 +25,13 @@ class ForeignKeyConstraintError extends DatabaseError {
   reltype: RelationshipType;
 
   constructor(
-    options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions
+    options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions,
   ) {
     options = options || {};
     options.parent = options.parent || { sql: '', name: '', message: '' };
 
     super(options.parent, { stack: options.stack });
     this.name = 'SequelizeForeignKeyConstraintError';
-
-    this.message =
-      options.message || options.parent.message || 'Database Error';
     this.fields = options.fields;
     this.table = options.table;
     this.value = options.value;

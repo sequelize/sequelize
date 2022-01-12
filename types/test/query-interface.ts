@@ -73,6 +73,10 @@ async function test() {
 
   await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
 
+  queryInterface.quoteIdentifier("foo");
+  queryInterface.quoteIdentifier("foo", true);
+  queryInterface.quoteIdentifiers("table.foo");
+
   await queryInterface.dropAllTables();
 
   await queryInterface.renameTable('Person', 'User');

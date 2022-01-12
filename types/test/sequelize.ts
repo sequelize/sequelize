@@ -2,6 +2,11 @@ import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op } from 'sequelize';
 import { Fn } from 'sequelize/lib/utils';
 
 Sequelize.useCLS({
+  get(key: string): unknown {
+    return null;
+  },
+  set(key: string, value: unknown) {
+  }
 });
 
 export const sequelize = new Sequelize({
@@ -81,14 +86,19 @@ myModel.findAll();
 async function test() {
   const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
 
-  const res2: { count: number } = await sequelize
+  const res2: { count: number } | null = await sequelize
     .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
       type: QueryTypes.SELECT,
       plain: true
     });
 
-  const res3: { [key: string]: unknown; } = await sequelize
+  const res3: { [key: string]: unknown; } | null = await sequelize
     .query("SELECT COUNT(1) as count FROM `user`", {
+      plain: true
+    })
+
+  const res4: { [key: string]: unknown; } | null = await sequelize
+    .query("SELECT COUNT(1) as count FROM `user` WHERE 1 = 2", {
       plain: true
     })
 }

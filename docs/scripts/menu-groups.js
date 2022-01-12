@@ -2,23 +2,21 @@
 
 (() => {
   function toggleNavigationBar() {
-    const navigationElements = document.getElementsByClassName('navigation');
-    for (let i = 0; i < navigationElements.length; ++i) {
-      const navigationElement = navigationElements[i];
+    const navigationElements = document.querySelectorAll('.navigation');
+    for (const navigationElement of navigationElements) {
       navigationElement.classList.toggle('open');
     }
   }
 
   // Hamburger button - toggles the navigation bar
-  const hamburger = document.getElementById('navigationHamburger');
+  const hamburger = document.querySelector('#navigationHamburger');
   hamburger.addEventListener('click', () => {
     toggleNavigationBar();
   });
 
   // Each link in the navigation bar - closes the navigation bar
   const navigationLinks = document.querySelectorAll('.navigation a');
-  for (let i = 0; i < navigationLinks.length; ++i) {
-    const linkElement = navigationLinks[i];
+  for (const linkElement of navigationLinks) {
     linkElement.addEventListener('click', () => {
       toggleNavigationBar();
     });
