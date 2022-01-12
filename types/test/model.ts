@@ -52,13 +52,22 @@ MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
 });
 
 MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.num'] }).then(({ count, rows }) => {
-  expectTypeOf(count).toEqualTypeOf<number[]>();
+  expectTypeOf(count).toEqualTypeOf<({ [key: string]: unknown, count: number })[]>();
   expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
 });
 
-MyModel.count({ include: OtherModel });
+MyModel.count({ include: OtherModel }).then((count) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+});
 
-MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } });
+MyModel.count({ include: [MyModel], where: { '$num$': [10, 120] } }).then((count) => {
+  expectTypeOf(count).toEqualTypeOf<number>();
+});
+
+MyModel.count({ group: 'type' }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<({ [key: string]: unknown, count: number })[]>();
+  expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
+});
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
