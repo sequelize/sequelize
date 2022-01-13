@@ -1,7 +1,7 @@
 import { expectTypeOf } from 'expect-type';
 import { DataTypes } from 'sequelize';
 
-const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER } = DataTypes;
+const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB } = DataTypes;
 
 // TINYINT
 expectTypeOf(TINYINT()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
@@ -32,3 +32,11 @@ expectTypeOf(INTEGER()).toEqualTypeOf<DataTypes.IntegerDataType>();
 expectTypeOf(new INTEGER()).toEqualTypeOf<DataTypes.IntegerDataType>();
 expectTypeOf(INTEGER.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.IntegerDataType>();
 expectTypeOf(new INTEGER.UNSIGNED.ZEROFILL()).toEqualTypeOf<DataTypes.IntegerDataType>();
+
+// JSON
+expectTypeOf(new JSON()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(JSON()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// JSONB
+expectTypeOf(new JSONB()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(JSONB()).toEqualTypeOf<DataTypes.AbstractDataType>();
