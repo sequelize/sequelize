@@ -1,7 +1,7 @@
 import { expectTypeOf } from 'expect-type';
 import { DataTypes } from 'sequelize';
 
-const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB } = DataTypes;
+const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB, CITEXT, MACADDR, TSVECTOR, CIDR, INET } = DataTypes;
 
 // TINYINT
 expectTypeOf(TINYINT()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
@@ -40,3 +40,23 @@ expectTypeOf(JSON()).toEqualTypeOf<DataTypes.AbstractDataType>();
 // JSONB
 expectTypeOf(new JSONB()).toEqualTypeOf<DataTypes.AbstractDataType>();
 expectTypeOf(JSONB()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// CITEXT
+expectTypeOf(new CITEXT()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(CITEXT()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// MACADDR
+expectTypeOf(new MACADDR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(MACADDR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// TSVECTOR
+expectTypeOf(new TSVECTOR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(TSVECTOR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// CIDR
+expectTypeOf(new CIDR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(CIDR()).toEqualTypeOf<DataTypes.AbstractDataType>();
+
+// INET
+expectTypeOf(new INET()).toEqualTypeOf<DataTypes.AbstractDataType>();
+expectTypeOf(INET()).toEqualTypeOf<DataTypes.AbstractDataType>();
