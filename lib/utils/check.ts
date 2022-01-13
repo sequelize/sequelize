@@ -1,9 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import type { DataType } from '../..';
-import { DataTypes } from '../..';
 import { getOperators } from './format';
+// eslint-disable-next-line import/order
 import { Where } from './sequelize-method';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const DataTypes = require('../data-types');
 
 export function isPrimitive(val: any): val is string | number | boolean {
   const type = typeof val;

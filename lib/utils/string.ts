@@ -87,3 +87,21 @@ export function nameIndex(
 
   return index;
 }
+
+/**
+ * Stringify a value as JSON with some differences:
+ * - bigints are stringified as a json string. (`safeStringifyJson({ val: 1n })` outputs `'{ "val": "1" }'`).
+ *   This is because of a decision by TC39 to not support bigint in JSON.stringify https://github.com/tc39/proposal-bigint/issues/24
+ *
+ * @param {any} stringifyTarget the value to stringify.
+ * @returns {string} the resulting json.
+ */
+export function safeStringifyJson(stringifyTarget: any): string {
+  return JSON.stringify(stringifyTarget, (key, value) => {
+    if (typeof value === 'bigint') {
+      return String(value);
+    }
+
+    return value;
+  });
+}

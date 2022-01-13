@@ -1,10 +1,11 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } from '../..';
-import { DataTypes } from '../..';
 // eslint-disable-next-line import/order
 import { Op as operators } from '../operators';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const DataTypes = require('../data-types');
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const SqlString = require('../sql-string');
 
@@ -35,7 +36,13 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
   attributes?: Array<[columnName: string, attributeName: string] | string>,
 };
 
-/* Expand and normalize finder options */
+/**
+ * Expand and normalize finder options.
+ * Mutates the "options" parameter.
+ *
+ * @param options
+ * @param Model
+ */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_attributes']>>(
   options: T,
   Model: ModelStatic<Model>,
@@ -50,35 +57,39 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_at
     );
   }
 
-  return mapOptionFieldNames(options, Model);
+  mapOptionFieldNames(options, Model);
+
+  return options;
 }
 
 /**
  * Used to map field names in attributes and where conditions.
  *
+ * Mutates the "options" parameter.
+ *
  * @param options
  * @param Model
  */
-export function mapOptionFieldNames<M extends Model, T extends FinderOptions<M['_attributes']>>(
-  options: T,
+export function mapOptionFieldNames<M extends Model>(
+  options: FinderOptions<M['_attributes']>,
   Model: ModelStatic<Model>,
 ): MappedFinderOptions<M['_attributes']> {
-  const out: MappedFinderOptions<M['_attributes']> = { ...options };
+  const out: MappedFinderOptions<M['_attributes']> = options;
 
   if (Array.isArray(options.attributes)) {
-    out.attributes = options.attributes.map(attr => {
+    out.attributes = options.attributes.map(attributeName => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
-      if (typeof attr !== 'string') {
-        return attr;
+      if (typeof attributeName !== 'string') {
+        return attributeName;
       }
 
       // Map attributes to column names
-      const columnName = Model.rawAttributes[attr]?.field;
-      if (columnName) {
-        return [columnName, attr];
+      const columnName: string | undefined = Model.rawAttributes[attributeName]?.field;
+      if (columnName && columnName !== attributeName) {
+        return [columnName, attributeName];
       }
 
-      return attr;
+      return attributeName;
     });
   }
 
