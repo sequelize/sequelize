@@ -1,9 +1,8 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelStatic, WhereOptions } from '../..';
-import { DataTypes, Op as operators } from '../..';
+import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } from '../..';
 // eslint-disable-next-line import/order
-import { cloneDeep } from './object';
+import { DataTypes, Op as operators } from '../..';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const SqlString = require('../sql-string');
@@ -30,16 +29,22 @@ export type FinderOptions<TAttributes> = {
   where?: WhereOptions<TAttributes>,
 };
 
+export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 'attributes'> & {
+  // an array of attribute-column mapping, or just attributes
+  attributes?: Array<[columnName: string, attributeName: string] | string>,
+};
+
 /* Expand and normalize finder options */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_attributes']>>(
   options: T,
   Model: ModelStatic<Model>,
 ): T {
-  if (options.attributes && Array.isArray(options.attributes)) {
+  if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes,
     );
-    options.attributes = options.attributes?.filter(
+
+    options.attributes = options.attributes.filter(
       v => !Model._virtualAttributes.has(v),
     );
   }
@@ -49,53 +54,51 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_at
   return options;
 }
 
-/* Used to map field names in attributes and where conditions */
+/**
+ * Used to map field names in attributes and where conditions.
+ *
+ * @param options
+ * @param Model
+ */
 export function mapOptionFieldNames<M extends Model, T extends FinderOptions<M['_attributes']>>(
   options: T,
   Model: ModelStatic<Model>,
-): T {
-  if (Array.isArray(options.attributes)) {
-    options.attributes = options.attributes.map(attr => {
+): MappedFinderOptions<M['_attributes']> {
+  return {
+    ...options,
+    attributes: !Array.isArray(options.attributes) ? options.attributes : options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
       if (typeof attr !== 'string') {
         return attr;
       }
 
-      // Map attributes to aliased syntax attributes
-      if (
-        Model.rawAttributes[attr]
-        && attr !== Model.rawAttributes[attr].field
-      ) {
-        return [Model.rawAttributes[attr].field, attr];
+      // Map attributes to column names
+      const columnName = Model.rawAttributes[attr]?.field;
+      if (columnName) {
+        return [columnName, attr];
       }
 
       return attr;
-    });
-  }
-
-  if (options.where && isPlainObject(options.where)) {
-    options.where = mapWhereFieldNames(options.where, Model);
-  }
-
-  return options;
+    }),
+    where: options.where != null && isPlainObject(options.where)
+      ? mapWhereFieldNames(options.where, Model)
+      : options.where,
+  };
 }
 
-export function mapWhereFieldNames(attributes: object, Model: ModelStatic<Model>): object {
-  if (!attributes) {
-    return attributes;
+export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: ModelStatic<Model>): object {
+  if (!where) {
+    return where;
   }
 
-  attributes = cloneDeep(attributes);
-  for (const attributeName of getComplexKeys(attributes)) {
-    const rawAttribute: any = Model.rawAttributes[attributeName as any];
+  const newAttributes: Record<string | symbol, any> = Object.create(null);
+  for (const attributeNameOrOperator of getComplexKeys(where)) {
+    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator as any];
 
-    if (rawAttribute && rawAttribute.field !== rawAttribute.fieldName) {
-      attributes[rawAttribute.field] = attributes[attributeName];
-      delete attributes[attributeName];
-    }
+    const columnNameOrOperator: string | symbol = rawAttribute?.field ?? attributeNameOrOperator;
 
     if (
-      isPlainObject(attributes[attributeName])
+      isPlainObject(where[attributeNameOrOperator])
         && !(
           rawAttribute
           && (rawAttribute.type instanceof DataTypes.HSTORE
@@ -103,26 +106,32 @@ export function mapWhereFieldNames(attributes: object, Model: ModelStatic<Model>
         )
     ) {
       // Prevent renaming of HSTORE & JSON fields
-      attributes[attributeName] = mapOptionFieldNames(
+      newAttributes[columnNameOrOperator] = mapOptionFieldNames(
         {
-          where: attributes[attributeName],
+          where: where[attributeNameOrOperator],
         },
         Model,
       ).where;
+
+      continue;
     }
 
-    if (Array.isArray(attributes[attributeName])) {
-      for (let i = 0; i < attributes.length; i++) {
-        const where = attributes[i];
+    if (Array.isArray(where[attributeNameOrOperator])) {
+      newAttributes[attributeNameOrOperator] = [...where[attributeNameOrOperator]];
 
-        if (isPlainObject(where)) {
-          attributes[attributeName][i] = mapWhereFieldNames(where, Model);
+      for (const [index, wherePart] of where[attributeNameOrOperator].entries()) {
+        if (isPlainObject(wherePart)) {
+          newAttributes[columnNameOrOperator][index] = mapWhereFieldNames(wherePart, Model);
         }
       }
+
+      continue;
     }
+
+    newAttributes[columnNameOrOperator] = where[attributeNameOrOperator];
   }
 
-  return attributes;
+  return newAttributes;
 }
 
 /**

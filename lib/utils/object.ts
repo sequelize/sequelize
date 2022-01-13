@@ -129,7 +129,7 @@ export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
     return value as Flatten<T>;
   }
 
-  const flattenedObj: { [key: string]: any } = {};
+  const flattenedObj: { [key: string]: any } = Object.create(null);
 
   function flattenObject(obj: { [key: string]: any }, subPath?: string) {
     for (const key of Object.keys(obj)) {

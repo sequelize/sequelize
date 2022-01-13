@@ -1383,6 +1383,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 }
 
+export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends ModelAttributeColumnOptions {
+  /**
+   * The name of the attribute (JS side).
+   */
+  fieldName: string;
+}
+
 /**
  * Interface for Attributes provided for all columns in a model
  */
@@ -1615,12 +1622,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * The attributes of the model
    */
-  public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+  public static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumOptions };
 
   /**
    * Returns the attributes of the model
    */
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
+  public static  getAttributes(): { [attribute: string]: BuiltModelAttributeColumOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
