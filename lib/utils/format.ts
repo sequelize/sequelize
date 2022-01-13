@@ -65,9 +65,10 @@ export function mapOptionFieldNames<M extends Model, T extends FinderOptions<M['
   options: T,
   Model: ModelStatic<Model>,
 ): MappedFinderOptions<M['_attributes']> {
-  return {
-    ...options,
-    attributes: !Array.isArray(options.attributes) ? options.attributes : options.attributes.map(attr => {
+  const out: MappedFinderOptions<M['_attributes']> = { ...options };
+
+  if (Array.isArray(options.attributes)) {
+    out.attributes = options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
       if (typeof attr !== 'string') {
         return attr;
@@ -80,11 +81,14 @@ export function mapOptionFieldNames<M extends Model, T extends FinderOptions<M['
       }
 
       return attr;
-    }),
-    where: options.where != null && isPlainObject(options.where)
-      ? mapWhereFieldNames(options.where, Model)
-      : options.where,
-  };
+    });
+  }
+
+  if (options.where != null && isPlainObject(options.where)) {
+    out.where = mapWhereFieldNames(options.where, Model);
+  }
+
+  return out;
 }
 
 export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: ModelStatic<Model>): object {
