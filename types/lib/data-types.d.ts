@@ -366,13 +366,15 @@ export const HSTORE: AbstractDataTypeConstructor;
 /**
  * A JSON string column. Only available in postgres.
  */
-export const JSON: AbstractDataTypeConstructor;
-
+ export interface JSON extends AbstractDataTypeConstructor {
+  new (): JSON;
+}
 /**
  * A pre-processed JSON data column. Only available in postgres.
  */
-export const JSONB: AbstractDataTypeConstructor;
-
+export interface JSONB extends AbstractDataTypeConstructor {
+  new (): JSONB;
+}
 /**
  * A default value of the current timestamp
  */
