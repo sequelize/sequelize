@@ -1,8 +1,9 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } from '../..';
+import { DataTypes } from '../..';
 // eslint-disable-next-line import/order
-import { DataTypes, Op as operators } from '../..';
+import { Op as operators } from '../operators';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const SqlString = require('../sql-string');

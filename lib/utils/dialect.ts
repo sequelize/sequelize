@@ -1,6 +1,9 @@
 import isPlainObject from 'lodash/isPlainObject';
+// eslint-disable-next-line import/order
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-import { DataTypes } from '../..';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const DataTypes = require('../data-types');
 
 const dialects = new Set([
   'mariadb',
@@ -24,8 +27,6 @@ export function toDefaultValue(value: unknown, dialect: string): unknown {
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.ABSTRACT) {
-      // TODO(sdepold): fix me :)
-      // @ts-expect-error
       return tmp.toSql();
     }
 
