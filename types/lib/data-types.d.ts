@@ -336,7 +336,7 @@ interface DateDataTypeConstructor extends AbstractDataTypeConstructor {
   (options?: DateDataTypeOptions): DateDataType;
 }
 
-export interface DateDataType extends AbstractDataTypeConstructor {
+export interface DateDataType extends AbstractDataType {
   options: DateDataTypeOptions;
 }
 
