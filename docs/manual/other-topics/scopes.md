@@ -10,45 +10,46 @@ Scopes are defined in the model definition and can be finder objects, or functio
 
 ```js
 class Project extends Model {}
-Project.init({
-  // Attributes
-}, {
-  defaultScope: {
-    where: {
-      active: true
-    }
+Project.init(
+  {
+    // Attributes
   },
-  scopes: {
-    deleted: {
+  {
+    defaultScope: {
       where: {
-        deleted: true
-      }
+        active: true,
+      },
     },
-    activeUsers: {
-      include: [
-        { model: User, where: { active: true } }
-      ]
-    },
-    random() {
-      return {
+    scopes: {
+      deleted: {
         where: {
-          someNumber: Math.random()
-        }
-      }
+          deleted: true,
+        },
+      },
+      activeUsers: {
+        include: [{ model: User, where: { active: true } }],
+      },
+      random() {
+        return {
+          where: {
+            someNumber: Math.random(),
+          },
+        };
+      },
+      accessLevel(value) {
+        return {
+          where: {
+            accessLevel: {
+              [Op.gte]: value,
+            },
+          },
+        };
+      },
+      sequelize,
+      modelName: "project",
     },
-    accessLevel(value) {
-      return {
-        where: {
-          accessLevel: {
-            [Op.gte]: value
-          }
-        }
-      }
-    },
-    sequelize,
-    modelName: 'project'
   }
-});
+);
 ```
 
 You can also add scopes after a model has been defined by calling [`YourModel.addScope`](../class/lib/model.js~Model.html#static-method-addScope). This is especially useful for scopes with includes, where the model in the include might not be defined at the time the other model is being defined.
@@ -62,7 +63,7 @@ SELECT * FROM projects WHERE active = true
 The default scope can be removed by calling `.unscoped()`, `.scope(null)`, or by invoking another scope:
 
 ```js
-await Project.scope('deleted').findAll(); // Removes the default scope
+await Project.scope("deleted").findAll(); // Removes the default scope
 ```
 
 ```sql
@@ -73,10 +74,8 @@ It is also possible to include scoped models in a scope definition. This allows 
 
 ```js
 // The `activeUsers` scope defined in the example above could also have been defined this way:
-Project.addScope('activeUsers', {
-  include: [
-    { model: User.scope('active') }
-  ]
+Project.addScope("activeUsers", {
+  include: [{ model: User.scope("active") }],
 });
 ```
 
@@ -85,14 +84,14 @@ Project.addScope('activeUsers', {
 Scopes are applied by calling `.scope` on the model definition, passing the name of one or more scopes. `.scope` returns a fully functional model instance with all the regular methods: `.findAll`, `.update`, `.count`, `.destroy` etc. You can save this model instance and reuse it later:
 
 ```js
-const DeletedProjects = Project.scope('deleted');
+const DeletedProjects = Project.scope("deleted");
 await DeletedProjects.findAll();
 
 // The above is equivalent to:
 await Project.findAll({
   where: {
-    deleted: true
-  }
+    deleted: true,
+  },
 });
 ```
 
@@ -101,7 +100,7 @@ Scopes apply to `.find`, `.findAll`, `.count`, `.update`, `.increment` and `.des
 Scopes which are functions can be invoked in two ways. If the scope does not take any arguments it can be invoked as normally. If the scope takes arguments, pass an object:
 
 ```js
-await Project.scope('random', { method: ['accessLevel', 19] }).findAll();
+await Project.scope("random", { method: ["accessLevel", 19] }).findAll();
 ```
 
 Generated SQL:
@@ -116,8 +115,8 @@ Several scopes can be applied simultaneously by passing an array of scopes to `.
 
 ```js
 // These two are equivalent
-await Project.scope('deleted', 'activeUsers').findAll();
-await Project.scope(['deleted', 'activeUsers']).findAll();
+await Project.scope("deleted", "activeUsers").findAll();
+await Project.scope(["deleted", "activeUsers"]).findAll();
 ```
 
 Generated SQL:
@@ -132,7 +131,7 @@ AND users.active = true
 If you want to apply another scope alongside the default scope, pass the key `defaultScope` to `.scope`:
 
 ```js
-await Project.scope('defaultScope', 'deleted').findAll();
+await Project.scope("defaultScope", "deleted").findAll();
 ```
 
 Generated SQL:
@@ -144,22 +143,22 @@ SELECT * FROM projects WHERE active = true AND deleted = true
 When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similarly to [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)), except for `where` and `include`, which will be merged. Consider two scopes:
 
 ```js
-YourMode.addScope('scope1', {
+YourMode.addScope("scope1", {
   where: {
-    firstName: 'bob',
+    firstName: "bob",
     age: {
-      [Op.gt]: 20
-    }
+      [Op.gt]: 20,
+    },
   },
-  limit: 2
+  limit: 2,
 });
-YourMode.addScope('scope2', {
+YourMode.addScope("scope2", {
   where: {
     age: {
-      [Op.gt]: 30
-    }
+      [Op.gt]: 30,
+    },
   },
-  limit: 10
+  limit: 10,
 });
 ```
 
@@ -176,11 +175,11 @@ Note that `attributes` keys of multiple applied scopes are merged in such a way 
 The same merge logic applies when passing a find object directly to `findAll` (and similar finders) on a scoped model:
 
 ```js
-Project.scope('deleted').findAll({
+Project.scope("deleted").findAll({
   where: {
-    firstName: 'john'
-  }
-})
+    firstName: "john",
+  },
+});
 ```
 
 Generated where clause:
@@ -198,55 +197,67 @@ Includes are merged recursively based on the models being included. This is a ve
 Consider the models `Foo`, `Bar`, `Baz` and `Qux`, with One-to-Many associations as follows:
 
 ```js
-const Foo = sequelize.define('Foo', { name: Sequelize.STRING });
-const Bar = sequelize.define('Bar', { name: Sequelize.STRING });
-const Baz = sequelize.define('Baz', { name: Sequelize.STRING });
-const Qux = sequelize.define('Qux', { name: Sequelize.STRING });
-Foo.hasMany(Bar, { foreignKey: 'fooId' });
-Bar.hasMany(Baz, { foreignKey: 'barId' });
-Baz.hasMany(Qux, { foreignKey: 'bazId' });
+const Foo = sequelize.define("Foo", { name: Sequelize.STRING });
+const Bar = sequelize.define("Bar", { name: Sequelize.STRING });
+const Baz = sequelize.define("Baz", { name: Sequelize.STRING });
+const Qux = sequelize.define("Qux", { name: Sequelize.STRING });
+Foo.hasMany(Bar, { foreignKey: "fooId" });
+Bar.hasMany(Baz, { foreignKey: "barId" });
+Baz.hasMany(Qux, { foreignKey: "bazId" });
 ```
 
 Now, consider the following four scopes defined on Foo:
 
 ```js
-Foo.addScope('includeEverything', {
+Foo.addScope("includeEverything", {
   include: {
     model: Bar,
-    include: [{
-      model: Baz,
-      include: Qux
-    }]
-  }
+    include: [
+      {
+        model: Baz,
+        include: Qux,
+      },
+    ],
+  },
 });
 
-Foo.addScope('limitedBars', {
-  include: [{
-    model: Bar,
-    limit: 2
-  }]
+Foo.addScope("limitedBars", {
+  include: [
+    {
+      model: Bar,
+      limit: 2,
+    },
+  ],
 });
 
-Foo.addScope('limitedBazs', {
-  include: [{
-    model: Bar,
-    include: [{
-      model: Baz,
-      limit: 2
-    }]
-  }]
+Foo.addScope("limitedBazs", {
+  include: [
+    {
+      model: Bar,
+      include: [
+        {
+          model: Baz,
+          limit: 2,
+        },
+      ],
+    },
+  ],
 });
 
-Foo.addScope('excludeBazName', {
-  include: [{
-    model: Bar,
-    include: [{
-      model: Baz,
-      attributes: {
-        exclude: ['name']
-      }
-    }]
-  }]
+Foo.addScope("excludeBazName", {
+  include: [
+    {
+      model: Bar,
+      include: [
+        {
+          model: Baz,
+          attributes: {
+            exclude: ["name"],
+          },
+        },
+      ],
+    },
+  ],
 });
 ```
 
@@ -257,23 +268,25 @@ await Foo.findAll({
   include: {
     model: Bar,
     limit: 2,
-    include: [{
-      model: Baz,
-      limit: 2,
-      attributes: {
-        exclude: ['name']
+    include: [
+      {
+        model: Baz,
+        limit: 2,
+        attributes: {
+          exclude: ["name"],
+        },
+        include: Qux,
       },
-      include: Qux
-    }]
-  }
+    ],
+  },
 });
 
 // The above is equivalent to:
 await Foo.scope([
-  'includeEverything',
-  'limitedBars',
-  'limitedBazs',
-  'excludeBazName'
+  "includeEverything",
+  "limitedBars",
+  "limitedBazs",
+  "excludeBazName",
 ]).findAll();
 ```
 

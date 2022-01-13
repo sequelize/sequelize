@@ -18,15 +18,15 @@ You'll likely find many tiny differences which however should be easy to fix.
 
 ### Changes to `ConnectionManager`
 
-*This only impacts you if you used `ConnectionManager` directly.*
+_This only impacts you if you used `ConnectionManager` directly._
 
 `ConnectionManager#getConnection`: The `type` option now accepts `'read' | 'write'` instead of `'SELECT' | any`.
 It was already documented as such in v6, but the implementation did not match the documentation.
 
 ```typescript
 // Instead of doing this:
-sequelize.connectionManager.getConnection({ type: 'SELECT' });
+sequelize.connectionManager.getConnection({ type: "SELECT" });
 
 // Do this:
-sequelize.connectionManager.getConnection({ type: 'read' });
+sequelize.connectionManager.getConnection({ type: "read" });
 ```

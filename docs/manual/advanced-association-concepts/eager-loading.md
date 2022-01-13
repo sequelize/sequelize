@@ -1,6 +1,6 @@
 # Eager Loading
 
-As briefly mentioned in [the associations guide](assocs.html), eager Loading is the act of querying data of several models at once (one 'main' model and one or more associated models). At the SQL level, this is a query with one or more [joins](https://en.wikipedia.org/wiki/Join_\(SQL\)).
+As briefly mentioned in [the associations guide](assocs.html), eager Loading is the act of querying data of several models at once (one 'main' model and one or more associated models). At the SQL level, this is a query with one or more [joins](<https://en.wikipedia.org/wiki/Join_(SQL)>).
 
 When this is done, the associated models will be added by Sequelize in appropriately named, automatically created field(s) in the returned objects.
 
@@ -11,15 +11,27 @@ In Sequelize, eager loading is mainly done by using the `include` option on a mo
 Let's assume the following setup:
 
 ```js
-const User = sequelize.define('user', { name: DataTypes.STRING }, { timestamps: false });
-const Task = sequelize.define('task', { name: DataTypes.STRING }, { timestamps: false });
-const Tool = sequelize.define('tool', {
-  name: DataTypes.STRING,
-  size: DataTypes.STRING
-}, { timestamps: false });
+const User = sequelize.define(
+  "user",
+  { name: DataTypes.STRING },
+  { timestamps: false }
+);
+const Task = sequelize.define(
+  "task",
+  { name: DataTypes.STRING },
+  { timestamps: false }
+);
+const Tool = sequelize.define(
+  "tool",
+  {
+    name: DataTypes.STRING,
+    size: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
 User.hasMany(Task);
 Task.belongsTo(User);
-User.hasMany(Tool, { as: 'Instruments' });
+User.hasMany(Tool, { as: "Instruments" });
 ```
 
 ### Fetching a single associated element
@@ -34,20 +46,22 @@ console.log(JSON.stringify(tasks, null, 2));
 Output:
 
 ```json
-[{
-  "name": "A Task",
-  "id": 1,
-  "userId": 1,
-  "user": {
-    "name": "John Doe",
-    "id": 1
+[
+  {
+    "name": "A Task",
+    "id": 1,
+    "userId": 1,
+    "user": {
+      "name": "John Doe",
+      "id": 1
+    }
   }
-}]
+]
 ```
 
 Here, `tasks[0].user instanceof User` is `true`. This shows that when Sequelize fetches associated models, they are added to the output object as model instances.
 
-Above, the associated model was added to a new field called `user` in the fetched task. The name of this field was automatically chosen by Sequelize based on the name of the associated model, where its pluralized form is used when applicable (i.e., when  the association is `hasMany` or `belongsToMany`). In other words, since `Task.belongsTo(User)`, a task is associated to one user, therefore the logical choice is the singular form (which Sequelize follows automatically).
+Above, the associated model was added to a new field called `user` in the fetched task. The name of this field was automatically chosen by Sequelize based on the name of the associated model, where its pluralized form is used when applicable (i.e., when the association is `hasMany` or `belongsToMany`). In other words, since `Task.belongsTo(User)`, a task is associated to one user, therefore the logical choice is the singular form (which Sequelize follows automatically).
 
 ### Fetching all associated elements
 
@@ -63,15 +77,19 @@ console.log(JSON.stringify(users, null, 2));
 Output:
 
 ```json
-[{
-  "name": "John Doe",
-  "id": 1,
-  "tasks": [{
-    "name": "A Task",
+[
+  {
+    "name": "John Doe",
     "id": 1,
-    "userId": 1
-  }]
-}]
+    "tasks": [
+      {
+        "name": "A Task",
+        "id": 1,
+        "userId": 1
+      }
+    ]
+  }
+]
 ```
 
 Notice that the accessor (the `tasks` property in the resulting instance) is pluralized since the association is one-to-many.
@@ -84,7 +102,7 @@ Notice how the user's `Tool`s are aliased as `Instruments` above. In order to ge
 
 ```js
 const users = await User.findAll({
-  include: { model: Tool, as: 'Instruments' }
+  include: { model: Tool, as: "Instruments" },
 });
 console.log(JSON.stringify(users, null, 2));
 ```
@@ -92,22 +110,26 @@ console.log(JSON.stringify(users, null, 2));
 Output:
 
 ```json
-[{
-  "name": "John Doe",
-  "id": 1,
-  "Instruments": [{
-    "name": "Scissor",
+[
+  {
+    "name": "John Doe",
     "id": 1,
-    "userId": 1
-  }]
-}]
+    "Instruments": [
+      {
+        "name": "Scissor",
+        "id": 1,
+        "userId": 1
+      }
+    ]
+  }
+]
 ```
 
 You can also include by alias name by specifying a string that matches the association alias:
 
 ```js
-User.findAll({ include: 'Instruments' }); // Also works
-User.findAll({ include: { association: 'Instruments' } }); // Also works
+User.findAll({ include: "Instruments" }); // Also works
+User.findAll({ include: { association: "Instruments" } }); // Also works
 ```
 
 ### Required eager loading
@@ -118,8 +140,8 @@ When eager loading, we can force the query to return only records which have an 
 User.findAll({
   include: {
     model: Task,
-    required: true
-  }
+    required: true,
+  },
 });
 ```
 
@@ -161,7 +183,7 @@ INNER JOIN `tools` AS `Instruments` ON
 
 Note that the SQL query generated above will only fetch users that have at least one tool that matches the condition (of not being `small`, in this case). This is the case because, when the `where` option is used inside an `include`, Sequelize automatically sets the `required` option to `true`. This means that, instead of an `OUTER JOIN`, an `INNER JOIN` is done, returning only the parent models with at least one matching children.
 
-Note also that the `where` option used was converted into a condition for the `ON` clause of the `INNER JOIN`. In order to obtain a *top-level* `WHERE` clause, instead of an `ON` clause, something different must be done. This will be shown next.
+Note also that the `where` option used was converted into a condition for the `ON` clause of the `INNER JOIN`. In order to obtain a _top-level_ `WHERE` clause, instead of an `ON` clause, something different must be done. This will be shown next.
 
 #### Referring to other columns
 
@@ -173,10 +195,10 @@ Project.findAll({
   include: {
     model: Task,
     where: {
-      state: Sequelize.col('project.state')
-    }
-  }
-})
+      state: Sequelize.col("project.state"),
+    },
+  },
+});
 ```
 
 ### Complex where clauses at the top-level
@@ -188,12 +210,14 @@ It can be used, for example, to move the where conditions from an included model
 ```js
 User.findAll({
   where: {
-    '$Instruments.size$': { [Op.ne]: 'small' }
+    "$Instruments.size$": { [Op.ne]: "small" },
   },
-  include: [{
-    model: Tool,
-    as: 'Instruments'
-  }]
+  include: [
+    {
+      model: Tool,
+      as: "Instruments",
+    },
+  ],
 });
 ```
 
@@ -222,46 +246,46 @@ For a better understanding of all differences between the inner `where` option (
 await User.findAll({
   include: {
     model: Tool,
-    as: 'Instruments',
+    as: "Instruments",
     where: {
-      size: { [Op.ne]: 'small' }
-    }
-  }
+      size: { [Op.ne]: "small" },
+    },
+  },
 });
 
 // Inner where, `required: false`
 await User.findAll({
   include: {
     model: Tool,
-    as: 'Instruments',
+    as: "Instruments",
     where: {
-      size: { [Op.ne]: 'small' }
+      size: { [Op.ne]: "small" },
     },
-    required: false
-  }
+    required: false,
+  },
 });
 
 // Top-level where, with default `required: false`
 await User.findAll({
   where: {
-    '$Instruments.size$': { [Op.ne]: 'small' }
+    "$Instruments.size$": { [Op.ne]: "small" },
   },
   include: {
     model: Tool,
-    as: 'Instruments'
-  }
+    as: "Instruments",
+  },
 });
 
 // Top-level where, `required: true`
 await User.findAll({
   where: {
-    '$Instruments.size$': { [Op.ne]: 'small' }
+    "$Instruments.size$": { [Op.ne]: "small" },
   },
   include: {
     model: Tool,
-    as: 'Instruments',
-    required: true
-  }
+    as: "Instruments",
+    required: true,
+  },
 });
 ```
 
@@ -299,7 +323,7 @@ By default, associations are loaded using a `LEFT OUTER JOIN` - that is to say i
 
 Currenly, SQLite does not support [right joins](https://www.sqlite.org/omitted.html).
 
-*Note:* `right` is only respected if `required` is false.
+_Note:_ `right` is only respected if `required` is false.
 
 ```js
 User.findAll({
@@ -369,14 +393,14 @@ Foo.findAll({
 When you perform eager loading on a model with a Belongs-to-Many relationship, Sequelize will fetch the junction table data as well, by default. For example:
 
 ```js
-const Foo = sequelize.define('Foo', { name: DataTypes.TEXT });
-const Bar = sequelize.define('Bar', { name: DataTypes.TEXT });
-Foo.belongsToMany(Bar, { through: 'Foo_Bar' });
-Bar.belongsToMany(Foo, { through: 'Foo_Bar' });
+const Foo = sequelize.define("Foo", { name: DataTypes.TEXT });
+const Bar = sequelize.define("Bar", { name: DataTypes.TEXT });
+Foo.belongsToMany(Bar, { through: "Foo_Bar" });
+Bar.belongsToMany(Foo, { through: "Foo_Bar" });
 
 await sequelize.sync();
-const foo = await Foo.create({ name: 'foo' });
-const bar = await Bar.create({ name: 'bar' });
+const foo = await Foo.create({ name: "foo" });
+const bar = await Bar.create({ name: "bar" });
 await foo.addBar(bar);
 const fetchedFoo = await Foo.findOne({ include: Bar });
 console.log(JSON.stringify(fetchedFoo, null, 2));
@@ -407,12 +431,16 @@ However, you can specify which attributes you want fetched. This is done with th
 
 ```js
 Foo.findAll({
-  include: [{
-    model: Bar,
-    through: {
-      attributes: [/* list the wanted attributes here */]
-    }
-  }]
+  include: [
+    {
+      model: Bar,
+      through: {
+        attributes: [
+          /* list the wanted attributes here */
+        ],
+      },
+    },
+  ],
 });
 ```
 
@@ -423,9 +451,9 @@ Foo.findOne({
   include: {
     model: Bar,
     through: {
-      attributes: []
-    }
-  }
+      attributes: [],
+    },
+  },
 });
 ```
 
@@ -448,15 +476,17 @@ Whenever including a model from a Many-to-Many relationship, you can also apply 
 
 ```js
 User.findAll({
-  include: [{
-    model: Project,
-    through: {
-      where: {
-        // Here, `completed` is a column present at the junction table
-        completed: true
-      }
-    }
-  }]
+  include: [
+    {
+      model: Project,
+      through: {
+        where: {
+          // Here, `completed` is a column present at the junction table
+          completed: true,
+        },
+      },
+    },
+  ],
 });
 ```
 
@@ -485,10 +515,10 @@ To include all associated models, you can use the `all` and `nested` options:
 
 ```js
 // Fetch all models associated with User
-User.findAll({ include: { all: true }});
+User.findAll({ include: { all: true } });
 
 // Fetch all models associated with User and their nested associations (recursively)
-User.findAll({ include: { all: true, nested: true }});
+User.findAll({ include: { all: true, nested: true } });
 ```
 
 ## Including soft deleted records
@@ -497,12 +527,14 @@ In case you want to eager load soft deleted records you can do that by setting `
 
 ```js
 User.findAll({
-  include: [{
-    model: Tool,
-    as: 'Instruments',
-    where: { size: { [Op.ne]: 'small' } },
-    paranoid: false
-  }]
+  include: [
+    {
+      model: Tool,
+      as: "Instruments",
+      where: { size: { [Op.ne]: "small" } },
+      paranoid: false,
+    },
+  ],
 });
 ```
 
@@ -517,36 +549,34 @@ Company.findAll({
   include: Division,
   order: [
     // We start the order array with the model we want to sort
-    [Division, 'name', 'ASC']
-  ]
+    [Division, "name", "ASC"],
+  ],
 });
 Company.findAll({
   include: Division,
-  order: [
-    [Division, 'name', 'DESC']
-  ]
+  order: [[Division, "name", "DESC"]],
 });
 Company.findAll({
   // If the include uses an alias...
-  include: { model: Division, as: 'Div' },
+  include: { model: Division, as: "Div" },
   order: [
     // ...we use the same syntax from the include
     // in the beginning of the order array
-    [{ model: Division, as: 'Div' }, 'name', 'DESC']
-  ]
+    [{ model: Division, as: "Div" }, "name", "DESC"],
+  ],
 });
 
 Company.findAll({
   // If we have includes nested in several levels...
   include: {
     model: Division,
-    include: Department
+    include: Department,
   },
   order: [
     // ... we replicate the include chain of interest
     // at the beginning of the order array
-    [Division, Department, 'name', 'DESC']
-  ]
+    [Division, Department, "name", "DESC"],
+  ],
 });
 ```
 
@@ -556,11 +586,9 @@ In the case of many-to-many relationships, you are also able to sort by attribut
 Company.findAll({
   include: {
     model: Division,
-    include: Department
+    include: Department,
   },
-  order: [
-    [Division, DepartmentDivision, 'name', 'ASC']
-  ]
+  order: [[Division, DepartmentDivision, "name", "ASC"]],
 });
 ```
 
@@ -573,10 +601,8 @@ User.findAll({
   include: {
     model: Post,
     separate: true,
-    order: [
-      ['createdAt', 'DESC']
-    ]
-  }
+    order: [["createdAt", "DESC"]],
+  },
 });
 ```
 
@@ -592,12 +618,14 @@ You can use nested eager loading to load all related models of a related model:
 const users = await User.findAll({
   include: {
     model: Tool,
-    as: 'Instruments',
+    as: "Instruments",
     include: {
       model: Teacher,
-      include: [ /* etc */ ]
-    }
-  }
+      include: [
+        /* etc */
+      ],
+    },
+  },
 });
 console.log(JSON.stringify(users, null, 2));
 ```
@@ -605,35 +633,45 @@ console.log(JSON.stringify(users, null, 2));
 Output:
 
 ```json
-[{
-  "name": "John Doe",
-  "id": 1,
-  "Instruments": [{ // 1:M and N:M association
-    "name": "Scissor",
+[
+  {
+    "name": "John Doe",
     "id": 1,
-    "userId": 1,
-    "Teacher": { // 1:1 association
-      "name": "Jimi Hendrix"
-    }
-  }]
-}]
+    "Instruments": [
+      {
+        // 1:M and N:M association
+        "name": "Scissor",
+        "id": 1,
+        "userId": 1,
+        "Teacher": {
+          // 1:1 association
+          "name": "Jimi Hendrix"
+        }
+      }
+    ]
+  }
+]
 ```
 
 This will produce an outer join. However, a `where` clause on a related model will create an inner join and return only the instances that have matching sub-models. To return all parent instances, you should add `required: false`.
 
 ```js
 User.findAll({
-  include: [{
-    model: Tool,
-    as: 'Instruments',
-    include: [{
-      model: Teacher,
-      where: {
-        school: "Woodstock Music School"
-      },
-      required: false
-    }]
-  }]
+  include: [
+    {
+      model: Tool,
+      as: "Instruments",
+      include: [
+        {
+          model: Teacher,
+          where: {
+            school: "Woodstock Music School",
+          },
+          required: false,
+        },
+      ],
+    },
+  ],
 });
 ```
 
@@ -645,10 +683,8 @@ The `findAndCountAll` utility function supports includes. Only the includes that
 
 ```js
 User.findAndCountAll({
-  include: [
-    { model: Profile, required: true }
-  ],
-  limit: 3
+  include: [{ model: Profile, required: true }],
+  limit: 3,
 });
 ```
 
@@ -656,10 +692,8 @@ Because the include for `Profile` has `required` set it will result in an inner 
 
 ```js
 User.findAndCountAll({
-  include: [
-    { model: Profile, where: { active: true } }
-  ],
-  limit: 3
+  include: [{ model: Profile, where: { active: true } }],
+  limit: 3,
 });
 ```
 

@@ -25,9 +25,17 @@ See [Caveat with Public Class Fields](./model-basics.html#caveat-with-public-cla
  * Keep this file in sync with the code in the "Usage" section in typescript.md
  */
 import {
-  Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin, Model,
-  ModelDefined, Optional, Sequelize
+  Association,
+  DataTypes,
+  HasManyAddAssociationMixin,
+  HasManyCountAssociationsMixin,
+  HasManyCreateAssociationMixin,
+  HasManyGetAssociationsMixin,
+  HasManyHasAssociationMixin,
+  Model,
+  ModelDefined,
+  Optional,
+  Sequelize,
 } from "sequelize";
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
@@ -42,8 +50,10 @@ interface UserAttributes {
 // Some attributes are optional in `User.build` and `User.create` calls
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
-class User extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes {
+class User
+  extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes
+{
   declare id: number; // Note that the `null assertion` `!` is required in strict mode.
   declare name: string;
   declare preferredName: string | null; // for nullable fields
@@ -79,8 +89,10 @@ interface ProjectAttributes {
 
 interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
 
-class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
-  implements ProjectAttributes {
+class Project
+  extends Model<ProjectAttributes, ProjectCreationAttributes>
+  implements ProjectAttributes
+{
   declare id: number;
   declare ownerId: number;
   declare name: string;
@@ -180,30 +192,28 @@ Address.init(
 );
 
 // And with a functional approach defining a module looks like this
-const Note: ModelDefined<
-  NoteAttributes,
-  NoteCreationAttributes
-> = sequelize.define(
-  "Note",
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
+const Note: ModelDefined<NoteAttributes, NoteCreationAttributes> =
+  sequelize.define(
+    "Note",
+    {
+      id: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      title: {
+        type: new DataTypes.STRING(64),
+        defaultValue: "Unnamed Note",
+      },
+      content: {
+        type: new DataTypes.STRING(4096),
+        allowNull: false,
+      },
     },
-    title: {
-      type: new DataTypes.STRING(64),
-      defaultValue: "Unnamed Note",
-    },
-    content: {
-      type: new DataTypes.STRING(4096),
-      allowNull: false,
-    },
-  },
-  {
-    tableName: "notes",
-  }
-);
+    {
+      tableName: "notes",
+    }
+  );
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {

@@ -2,7 +2,7 @@
 
 Sequelize provides various methods to assist querying your database for data.
 
-*Important notice: to perform production-ready queries with Sequelize, make sure you have read the [Transactions guide](transactions.html) as well. Transactions are important to ensure data integrity and to provide other benefits.*
+_Important notice: to perform production-ready queries with Sequelize, make sure you have read the [Transactions guide](transactions.html) as well. Transactions are important to ensure data integrity and to provide other benefits._
 
 This guide will show how to make the standard [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) queries.
 
@@ -21,10 +21,13 @@ The [`Model.create()`](../class/lib/model.js~Model.html#static-method-create) me
 It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username but not an admin flag (i.e., `isAdmin`):
 
 ```js
-const user = await User.create({
-  username: 'alice123',
-  isAdmin: true
-}, { fields: ['username'] });
+const user = await User.create(
+  {
+    username: "alice123",
+    isAdmin: true,
+  },
+  { fields: ["username"] }
+);
 // let's assume the default of isAdmin is false
 console.log(user.username); // 'alice123'
 console.log(user.isAdmin); // false
@@ -37,7 +40,7 @@ You can read the whole table from the database with the [`findAll`](../class/lib
 ```js
 // Find all users
 const users = await User.findAll();
-console.log(users.every(user => user instanceof User)); // true
+console.log(users.every((user) => user instanceof User)); // true
 console.log("All users:", JSON.stringify(users, null, 2));
 ```
 
@@ -51,7 +54,7 @@ To select only some attributes, you can use the `attributes` option:
 
 ```js
 Model.findAll({
-  attributes: ['foo', 'bar']
+  attributes: ["foo", "bar"],
 });
 ```
 
@@ -63,7 +66,7 @@ Attributes can be renamed using a nested array:
 
 ```js
 Model.findAll({
-  attributes: ['foo', ['bar', 'baz'], 'qux']
+  attributes: ["foo", ["bar", "baz"], "qux"],
 });
 ```
 
@@ -76,10 +79,10 @@ You can use [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-met
 ```js
 Model.findAll({
   attributes: [
-    'foo',
-    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats'],
-    'bar'
-  ]
+    "foo",
+    [sequelize.fn("COUNT", sequelize.col("hats")), "n_hats"],
+    "bar",
+  ],
 });
 ```
 
@@ -95,18 +98,21 @@ Sometimes it may be tiresome to list all the attributes of the model if you only
 // This is a tiresome way of getting the number of hats (along with every column)
 Model.findAll({
   attributes: [
-    'id', 'foo', 'bar', 'baz', 'qux', 'hats', // We had to list all attributes...
-    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats'] // To add the aggregation...
-  ]
+    "id",
+    "foo",
+    "bar",
+    "baz",
+    "qux",
+    "hats", // We had to list all attributes...
+    [sequelize.fn("COUNT", sequelize.col("hats")), "n_hats"], // To add the aggregation...
+  ],
 });
 
 // This is shorter, and less error prone because it still works if you add / remove attributes from your model later
 Model.findAll({
   attributes: {
-    include: [
-      [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats']
-    ]
-  }
+    include: [[sequelize.fn("COUNT", sequelize.col("hats")), "n_hats"]],
+  },
 });
 ```
 
@@ -118,7 +124,7 @@ Similarly, it's also possible to remove a selected few attributes:
 
 ```js
 Model.findAll({
-  attributes: { exclude: ['baz'] }
+  attributes: { exclude: ["baz"] },
 });
 ```
 
@@ -136,8 +142,8 @@ The `where` option is used to filter the query. There are lots of operators to u
 ```js
 Post.findAll({
   where: {
-    authorId: 2
-  }
+    authorId: 2,
+  },
 });
 // SELECT * FROM post WHERE authorId = 2;
 ```
@@ -149,9 +155,9 @@ const { Op } = require("sequelize");
 Post.findAll({
   where: {
     authorId: {
-      [Op.eq]: 2
-    }
-  }
+      [Op.eq]: 2,
+    },
+  },
 });
 // SELECT * FROM post WHERE authorId = 2;
 ```
@@ -162,8 +168,8 @@ Multiple checks can be passed:
 Post.findAll({
   where: {
     authorId: 12,
-    status: 'active'
-  }
+    status: "active",
+  },
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 ```
@@ -174,11 +180,8 @@ Just like Sequelize inferred the `Op.eq` operator in the first example, here Seq
 const { Op } = require("sequelize");
 Post.findAll({
   where: {
-    [Op.and]: [
-      { authorId: 12 },
-      { status: 'active' }
-    ]
-  }
+    [Op.and]: [{ authorId: 12 }, { status: "active" }],
+  },
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 ```
@@ -189,11 +192,8 @@ An `OR` can be easily performed in a similar way:
 const { Op } = require("sequelize");
 Post.findAll({
   where: {
-    [Op.or]: [
-      { authorId: 12 },
-      { authorId: 13 }
-    ]
-  }
+    [Op.or]: [{ authorId: 12 }, { authorId: 13 }],
+  },
 });
 // SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
 ```
@@ -205,9 +205,9 @@ const { Op } = require("sequelize");
 Post.destroy({
   where: {
     authorId: {
-      [Op.or]: [12, 13]
-    }
-  }
+      [Op.or]: [12, 13],
+    },
+  },
 });
 // DELETE FROM post WHERE authorId = 12 OR authorId = 13;
 ```
@@ -279,8 +279,8 @@ Passing an array directly to the `where` option will implicitly use the `IN` ope
 ```js
 Post.findAll({
   where: {
-    id: [1,2,3] // Same as using `id: { [Op.in]: [1,2,3] }`
-  }
+    id: [1, 2, 3], // Same as using `id: { [Op.in]: [1,2,3] }`
+  },
 });
 // SELECT ... FROM "posts" AS "post" WHERE "post"."id" IN (1, 2, 3);
 ```
@@ -336,16 +336,16 @@ Foo.findAll({
 ```js
 Project.findAll({
   where: {
-    name: 'Some Project',
+    name: "Some Project",
     [Op.not]: [
-      { id: [1,2,3] },
+      { id: [1, 2, 3] },
       {
         description: {
-          [Op.like]: 'Hello%'
-        }
-      }
-    ]
-  }
+          [Op.like]: "Hello%",
+        },
+      },
+    ],
+  },
 });
 ```
 
@@ -370,12 +370,15 @@ What if you wanted to obtain something like `WHERE char_length("content") = 7`?
 
 ```js
 Post.findAll({
-  where: sequelize.where(sequelize.fn('char_length', sequelize.col('content')), 7)
+  where: sequelize.where(
+    sequelize.fn("char_length", sequelize.col("content")),
+    7
+  ),
 });
 // SELECT ... FROM "posts" AS "post" WHERE char_length("content") = 7
 ```
 
-Note the usage of the  [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-method-fn) and [`sequelize.col`](../class/lib/sequelize.js~Sequelize.html#static-method-col) methods, which should be used to specify an SQL function call and a table column, respectively. These methods should be used instead of passing a plain string (such as `char_length(content)`) because Sequelize needs to treat this situation differently (for example, using other symbol escaping approaches).
+Note the usage of the [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-method-fn) and [`sequelize.col`](../class/lib/sequelize.js~Sequelize.html#static-method-col) methods, which should be used to specify an SQL function call and a table column, respectively. These methods should be used instead of passing a plain string (such as `char_length(content)`) because Sequelize needs to treat this situation differently (for example, using other symbol escaping approaches).
 
 What if you need something even more complex?
 
@@ -383,22 +386,25 @@ What if you need something even more complex?
 Post.findAll({
   where: {
     [Op.or]: [
-      sequelize.where(sequelize.fn('char_length', sequelize.col('content')), 7),
+      sequelize.where(sequelize.fn("char_length", sequelize.col("content")), 7),
       {
         content: {
-          [Op.like]: 'Hello%'
-        }
+          [Op.like]: "Hello%",
+        },
       },
       {
         [Op.and]: [
-          { status: 'draft' },
-          sequelize.where(sequelize.fn('char_length', sequelize.col('content')), {
-            [Op.gt]: 10
-          })
-        ]
-      }
-    ]
-  }
+          { status: "draft" },
+          sequelize.where(
+            sequelize.fn("char_length", sequelize.col("content")),
+            {
+              [Op.gt]: 10,
+            }
+          ),
+        ],
+      },
+    ],
+  },
 });
 ```
 
@@ -446,17 +452,17 @@ For example:
 
 ```js
 const { Sequelize, Op } = require("sequelize");
-const sequelize = new Sequelize('sqlite::memory:', {
+const sequelize = new Sequelize("sqlite::memory:", {
   operatorsAliases: {
-    $gt: Op.gt
-  }
+    $gt: Op.gt,
+  },
 });
 
 // Now we can use `$gt` instead of `[Op.gt]` in where clauses:
 Foo.findAll({
   where: {
-    $gt: 6 // Works like using [Op.gt]
-  }
+    $gt: 6, // Works like using [Op.gt]
+  },
 });
 ```
 
@@ -466,11 +472,14 @@ Update queries also accept the `where` option, just like the read queries shown 
 
 ```js
 // Change everyone without a last name to "Doe"
-await User.update({ lastName: "Doe" }, {
-  where: {
-    lastName: null
+await User.update(
+  { lastName: "Doe" },
+  {
+    where: {
+      lastName: null,
+    },
   }
-});
+);
 ```
 
 ## Simple DELETE queries
@@ -481,8 +490,8 @@ Delete queries also accept the `where` option, just like the read queries shown 
 // Delete everyone named "Jane"
 await User.destroy({
   where: {
-    firstName: "Jane"
-  }
+    firstName: "Jane",
+  },
 });
 ```
 
@@ -491,7 +500,7 @@ To destroy everything the `TRUNCATE` SQL can be used:
 ```js
 // Truncate the table
 await User.destroy({
-  truncate: true
+  truncate: true,
 });
 ```
 
@@ -503,8 +512,8 @@ The usage of `Model.bulkCreate` is very similar to `Model.create`, by receiving 
 
 ```js
 const captains = await Captain.bulkCreate([
-  { name: 'Jack Sparrow' },
-  { name: 'Davy Jones' }
+  { name: "Jack Sparrow" },
+  { name: "Davy Jones" },
 ]);
 console.log(captains.length); // 2
 console.log(captains[0] instanceof Captain); // true
@@ -515,35 +524,30 @@ console.log(captains[0].id); // 1 // (or another auto-generated value)
 However, by default, `bulkCreate` does not run validations on each object that is going to be created (which `create` does). To make `bulkCreate` run these validations as well, you must pass the `validate: true` option. This will decrease performance. Usage example:
 
 ```js
-const Foo = sequelize.define('foo', {
+const Foo = sequelize.define("foo", {
   bar: {
     type: DataTypes.TEXT,
     validate: {
-      len: [4, 6]
-    }
-  }
+      len: [4, 6],
+    },
+  },
 });
 
 // This will not throw an error, both instances will be created
-await Foo.bulkCreate([
-  { name: 'abc123' },
-  { name: 'name too long' }
-]);
+await Foo.bulkCreate([{ name: "abc123" }, { name: "name too long" }]);
 
 // This will throw an error, nothing will be created
-await Foo.bulkCreate([
-  { name: 'abc123' },
-  { name: 'name too long' }
-], { validate: true });
+await Foo.bulkCreate([{ name: "abc123" }, { name: "name too long" }], {
+  validate: true,
+});
 ```
 
 If you are accepting values directly from the user, it might be beneficial to limit the columns that you want to actually insert. To support this, `bulkCreate()` accepts a `fields` option, an array defining which fields must be considered (the rest will be ignored).
 
 ```js
-await User.bulkCreate([
-  { username: 'foo' },
-  { username: 'bar', admin: true }
-], { fields: ['username'] });
+await User.bulkCreate([{ username: "foo" }, { username: "bar", admin: true }], {
+  fields: ["username"],
+});
 // Neither foo nor bar are admins.
 ```
 
@@ -553,88 +557,105 @@ Sequelize provides the `order` and `group` options to work with `ORDER BY` and `
 
 ### Ordering
 
-The `order` option takes an array of items to order the query by or a sequelize method. These *items* are themselves arrays in the form `[column, direction]`. The column will be escaped correctly and the direction will be checked in a whitelist of valid directions (such as `ASC`, `DESC`, `NULLS FIRST`, etc).
+The `order` option takes an array of items to order the query by or a sequelize method. These _items_ are themselves arrays in the form `[column, direction]`. The column will be escaped correctly and the direction will be checked in a whitelist of valid directions (such as `ASC`, `DESC`, `NULLS FIRST`, etc).
 
 ```js
 Subtask.findAll({
   order: [
     // Will escape title and validate DESC against a list of valid direction parameters
-    ['title', 'DESC'],
+    ["title", "DESC"],
 
     // Will order by max(age)
-    sequelize.fn('max', sequelize.col('age')),
+    sequelize.fn("max", sequelize.col("age")),
 
     // Will order by max(age) DESC
-    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
+    [sequelize.fn("max", sequelize.col("age")), "DESC"],
 
     // Will order by  otherfunction(`col1`, 12, 'lalala') DESC
-    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    [
+      sequelize.fn("otherfunction", sequelize.col("col1"), 12, "lalala"),
+      "DESC",
+    ],
 
     // Will order an associated model's createdAt using the model name as the association's name.
-    [Task, 'createdAt', 'DESC'],
+    [Task, "createdAt", "DESC"],
 
     // Will order through an associated model's createdAt using the model names as the associations' names.
-    [Task, Project, 'createdAt', 'DESC'],
+    [Task, Project, "createdAt", "DESC"],
 
     // Will order by an associated model's createdAt using the name of the association.
-    ['Task', 'createdAt', 'DESC'],
+    ["Task", "createdAt", "DESC"],
 
     // Will order by a nested associated model's createdAt using the names of the associations.
-    ['Task', 'Project', 'createdAt', 'DESC'],
+    ["Task", "Project", "createdAt", "DESC"],
 
     // Will order by an associated model's createdAt using an association object. (preferred method)
-    [Subtask.associations.Task, 'createdAt', 'DESC'],
+    [Subtask.associations.Task, "createdAt", "DESC"],
 
     // Will order by a nested associated model's createdAt using association objects. (preferred method)
-    [Subtask.associations.Task, Task.associations.Project, 'createdAt', 'DESC'],
+    [Subtask.associations.Task, Task.associations.Project, "createdAt", "DESC"],
 
     // Will order by an associated model's createdAt using a simple association object.
-    [{model: Task, as: 'Task'}, 'createdAt', 'DESC'],
+    [{ model: Task, as: "Task" }, "createdAt", "DESC"],
 
     // Will order by a nested associated model's createdAt simple association objects.
-    [{model: Task, as: 'Task'}, {model: Project, as: 'Project'}, 'createdAt', 'DESC']
+    [
+      { model: Task, as: "Task" },
+      { model: Project, as: "Project" },
+      "createdAt",
+      "DESC",
+    ],
   ],
 
   // Will order by max age descending
-  order: sequelize.literal('max(age) DESC'),
+  order: sequelize.literal("max(age) DESC"),
 
   // Will order by max age ascending assuming ascending is the default order when direction is omitted
-  order: sequelize.fn('max', sequelize.col('age')),
+  order: sequelize.fn("max", sequelize.col("age")),
 
   // Will order by age ascending assuming ascending is the default order when direction is omitted
-  order: sequelize.col('age'),
+  order: sequelize.col("age"),
 
   // Will order randomly based on the dialect (instead of fn('RAND') or fn('RANDOM'))
-  order: sequelize.random()
+  order: sequelize.random(),
 });
 
 Foo.findOne({
   order: [
     // will return `name`
-    ['name'],
+    ["name"],
     // will return `username` DESC
-    ['username', 'DESC'],
+    ["username", "DESC"],
     // will return max(`age`)
-    sequelize.fn('max', sequelize.col('age')),
+    sequelize.fn("max", sequelize.col("age")),
     // will return max(`age`) DESC
-    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
+    [sequelize.fn("max", sequelize.col("age")), "DESC"],
     // will return otherfunction(`col1`, 12, 'lalala') DESC
-    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    [
+      sequelize.fn("otherfunction", sequelize.col("col1"), 12, "lalala"),
+      "DESC",
+    ],
     // will return otherfunction(awesomefunction(`col`)) DESC, This nesting is potentially infinite!
-    [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
-  ]
+    [
+      sequelize.fn(
+        "otherfunction",
+        sequelize.fn("awesomefunction", sequelize.col("col"))
+      ),
+      "DESC",
+    ],
+  ],
 });
 ```
 
 To recap, the elements of the order array can be the following:
 
-* A string (which will be automatically quoted)
-* An array, whose first element will be quoted, second will be appended verbatim
-* An object with a `raw` field:
-  * The content of `raw` will be added verbatim without quoting
-  * Everything else is ignored, and if raw is not set, the query will fail
-* A call to `Sequelize.fn` (which will generate a function call in SQL)
-* A call to `Sequelize.col` (which will quoute the column name)
+- A string (which will be automatically quoted)
+- An array, whose first element will be quoted, second will be appended verbatim
+- An object with a `raw` field:
+  - The content of `raw` will be added verbatim without quoting
+  - Everything else is ignored, and if raw is not set, the query will fail
+- A call to `Sequelize.fn` (which will generate a function call in SQL)
+- A call to `Sequelize.col` (which will quoute the column name)
 
 ### Grouping
 
@@ -643,7 +664,7 @@ The syntax for grouping and ordering are equal, except that grouping does not ac
 You can also pass a string directly to `group`, which will be included directly (verbatim) into the generated SQL. Use with caution and don't use with user generated content.
 
 ```js
-Project.findAll({ group: 'name' });
+Project.findAll({ group: "name" });
 // yields 'GROUP BY name'
 ```
 
@@ -678,9 +699,9 @@ console.log(`There are ${await Project.count()} projects`);
 const amount = await Project.count({
   where: {
     id: {
-      [Op.gt]: 25
-    }
-  }
+      [Op.gt]: 25,
+    },
+  },
 });
 console.log(`There are ${amount} projects with an id greater than 25`);
 ```
@@ -692,12 +713,12 @@ Sequelize also provides the `max`, `min` and `sum` convenience methods.
 Let's assume we have three users, whose ages are 10, 5, and 40.
 
 ```js
-await User.max('age'); // 40
-await User.max('age', { where: { age: { [Op.lt]: 20 } } }); // 10
-await User.min('age'); // 5
-await User.min('age', { where: { age: { [Op.gt]: 5 } } }); // 10
-await User.sum('age'); // 55
-await User.sum('age', { where: { age: { [Op.gt]: 5 } } }); // 50
+await User.max("age"); // 40
+await User.max("age", { where: { age: { [Op.lt]: 20 } } }); // 10
+await User.min("age"); // 5
+await User.min("age", { where: { age: { [Op.gt]: 5 } } }); // 10
+await User.sum("age"); // 55
+await User.sum("age", { where: { age: { [Op.gt]: 5 } } }); // 50
 ```
 
 ### `increment`, `decrement`
@@ -707,6 +728,6 @@ Sequelize also provides the `increment` convenience method.
 Let's assume we have a user, whose age is 10.
 
 ```js
-await User.increment({age: 5}, { where: { id: 1 } }) // Will increase age to 15
-await User.increment({age: -5}, { where: { id: 1 } }) // Will decrease age to 5
+await User.increment({ age: 5 }, { where: { id: 1 } }); // Will increase age to 15
+await User.increment({ age: -5 }, { where: { id: 1 } }); // Will decrease age to 5
 ```

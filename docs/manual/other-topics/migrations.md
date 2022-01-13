@@ -140,17 +140,19 @@ Now we should edit this file to insert demo user to `User` table.
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Users', [{
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'example@example.com',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }]);
+    return queryInterface.bulkInsert("Users", [
+      {
+        firstName: "John",
+        lastName: "Doe",
+        email: "example@example.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Users', null, {});
-  }
+    return queryInterface.bulkDelete("Users", null, {});
+  },
 };
 ```
 
@@ -199,8 +201,8 @@ module.exports = {
   },
   down: (queryInterface, Sequelize) => {
     // logic for reverting the changes
-  }
-}
+  },
+};
 ```
 
 We can generate this file using `migration:generate`. This will create `xxx-migration-skeleton.js` in your migration folder.
@@ -214,18 +216,18 @@ The passed `queryInterface` object can be used to modify the database. The `Sequ
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Person', {
+    return queryInterface.createTable("Person", {
       name: Sequelize.DataTypes.STRING,
       isBetaMember: {
         type: Sequelize.DataTypes.BOOLEAN,
         defaultValue: false,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Person');
-  }
+    return queryInterface.dropTable("Person");
+  },
 };
 ```
 
@@ -234,25 +236,37 @@ The following is an example of a migration that performs two changes in the data
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction(t => {
+    return queryInterface.sequelize.transaction((t) => {
       return Promise.all([
-        queryInterface.addColumn('Person', 'petName', {
-          type: Sequelize.DataTypes.STRING
-        }, { transaction: t }),
-        queryInterface.addColumn('Person', 'favoriteColor', {
-          type: Sequelize.DataTypes.STRING,
-        }, { transaction: t })
+        queryInterface.addColumn(
+          "Person",
+          "petName",
+          {
+            type: Sequelize.DataTypes.STRING,
+          },
+          { transaction: t }
+        ),
+        queryInterface.addColumn(
+          "Person",
+          "favoriteColor",
+          {
+            type: Sequelize.DataTypes.STRING,
+          },
+          { transaction: t }
+        ),
       ]);
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction(t => {
+    return queryInterface.sequelize.transaction((t) => {
       return Promise.all([
-        queryInterface.removeColumn('Person', 'petName', { transaction: t }),
-        queryInterface.removeColumn('Person', 'favoriteColor', { transaction: t })
+        queryInterface.removeColumn("Person", "petName", { transaction: t }),
+        queryInterface.removeColumn("Person", "favoriteColor", {
+          transaction: t,
+        }),
       ]);
     });
-  }
+  },
 };
 ```
 
@@ -261,30 +275,30 @@ The next example is of a migration that has a foreign key. You can use reference
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Person', {
+    return queryInterface.createTable("Person", {
       name: Sequelize.DataTypes.STRING,
       isBetaMember: {
         type: Sequelize.DataTypes.BOOLEAN,
         defaultValue: false,
-        allowNull: false
+        allowNull: false,
       },
       userId: {
         type: Sequelize.DataTypes.INTEGER,
         references: {
           model: {
-            tableName: 'users',
-            schema: 'schema'
+            tableName: "users",
+            schema: "schema",
           },
-          key: 'id'
+          key: "id",
         },
-        allowNull: false
+        allowNull: false,
       },
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Person');
-  }
-}
+    return queryInterface.dropTable("Person");
+  },
+};
 ```
 
 The next example is of a migration that uses async/await where you create an unique index on a new column, with a manually-managed transaction:
@@ -295,22 +309,18 @@ module.exports = {
     const transaction = await queryInterface.sequelize.transaction();
     try {
       await queryInterface.addColumn(
-        'Person',
-        'petName',
+        "Person",
+        "petName",
         {
           type: Sequelize.DataTypes.STRING,
         },
         { transaction }
       );
-      await queryInterface.addIndex(
-        'Person',
-        'petName',
-        {
-          fields: 'petName',
-          unique: true,
-          transaction,
-        }
-      );
+      await queryInterface.addIndex("Person", "petName", {
+        fields: "petName",
+        unique: true,
+        transaction,
+      });
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
@@ -320,13 +330,13 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.removeColumn('Person', 'petName', { transaction });
+      await queryInterface.removeColumn("Person", "petName", { transaction });
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
       throw err;
     }
-  }
+  },
 };
 ```
 
@@ -335,27 +345,25 @@ The next example is of a migration that creates an unique index composed of mult
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    queryInterface.createTable('Person', {
-      name: Sequelize.DataTypes.STRING,
-      bool: {
-        type: Sequelize.DataTypes.BOOLEAN,
-        defaultValue: false
-      }
-    }).then((queryInterface, Sequelize) => {
-      queryInterface.addIndex(
-        'Person',
-        ['name', 'bool'],
-        {
-          indicesType: 'UNIQUE',
-          where: { bool : 'true' },
-        }
-      );
-    });
+    queryInterface
+      .createTable("Person", {
+        name: Sequelize.DataTypes.STRING,
+        bool: {
+          type: Sequelize.DataTypes.BOOLEAN,
+          defaultValue: false,
+        },
+      })
+      .then((queryInterface, Sequelize) => {
+        queryInterface.addIndex("Person", ["name", "bool"], {
+          indicesType: "UNIQUE",
+          where: { bool: "true" },
+        });
+      });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Person');
-  }
-}
+    return queryInterface.dropTable("Person");
+  },
+};
 ```
 
 ### The `.sequelizerc` file
@@ -383,13 +391,13 @@ To begin, let's create the `.sequelizerc` file in the root directory of your pro
 ```js
 // .sequelizerc
 
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  'config': path.resolve('config', 'database.json'),
-  'models-path': path.resolve('db', 'models'),
-  'seeders-path': path.resolve('db', 'seeders'),
-  'migrations-path': path.resolve('db', 'migrations')
+  config: path.resolve("config", "database.json"),
+  "models-path": path.resolve("db", "models"),
+  "seeders-path": path.resolve("db", "seeders"),
+  "migrations-path": path.resolve("db", "migrations"),
 };
 ```
 
@@ -407,11 +415,11 @@ The configuration file is by default a JSON file called `config.json`. But somet
 Thankfully, the Sequelize CLI can read from both `.json` and `.js` files. This can be setup with `.sequelizerc` file. You just have to provide the path to your `.js` file as the `config` option of your exported object:
 
 ```js
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  'config': path.resolve('config', 'config.js')
-}
+  config: path.resolve("config", "config.js"),
+};
 ```
 
 Now the Sequelize CLI will load `config/config.js` for getting configuration options.
@@ -419,30 +427,30 @@ Now the Sequelize CLI will load `config/config.js` for getting configuration opt
 An example of `config/config.js` file:
 
 ```js
-const fs = require('fs');
+const fs = require("fs");
 
 module.exports = {
   development: {
-    username: 'database_dev',
-    password: 'database_dev',
-    database: 'database_dev',
-    host: '127.0.0.1',
+    username: "database_dev",
+    password: "database_dev",
+    database: "database_dev",
+    host: "127.0.0.1",
     port: 3306,
-    dialect: 'mysql',
+    dialect: "mysql",
     dialectOptions: {
-      bigNumberStrings: true
-    }
+      bigNumberStrings: true,
+    },
   },
   test: {
     username: process.env.CI_DB_USERNAME,
     password: process.env.CI_DB_PASSWORD,
     database: process.env.CI_DB_NAME,
-    host: '127.0.0.1',
+    host: "127.0.0.1",
     port: 3306,
-    dialect: 'mysql',
+    dialect: "mysql",
     dialectOptions: {
-      bigNumberStrings: true
-    }
+      bigNumberStrings: true,
+    },
   },
   production: {
     username: process.env.PROD_DB_USERNAME,
@@ -450,14 +458,14 @@ module.exports = {
     database: process.env.PROD_DB_NAME,
     host: process.env.PROD_DB_HOSTNAME,
     port: process.env.PROD_DB_PORT,
-    dialect: 'mysql',
+    dialect: "mysql",
     dialectOptions: {
       bigNumberStrings: true,
       ssl: {
-        ca: fs.readFileSync(__dirname + '/mysql-ca-main.crt')
-      }
-    }
-  }
+        ca: fs.readFileSync(__dirname + "/mysql-ca-main.crt"),
+      },
+    },
+  },
 };
 ```
 
@@ -476,14 +484,14 @@ npm i --save-dev babel-register
 
 require("babel-register");
 
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  'config': path.resolve('config', 'config.json'),
-  'models-path': path.resolve('models'),
-  'seeders-path': path.resolve('seeders'),
-  'migrations-path': path.resolve('migrations')
-}
+  config: path.resolve("config", "config.json"),
+  "models-path": path.resolve("models"),
+  "seeders-path": path.resolve("seeders"),
+  "migrations-path": path.resolve("migrations"),
+};
 ```
 
 Of course, the outcome will depend upon your babel configuration (such as in a `.babelrc` file). Learn more at [babeljs.io](https://babeljs.io).

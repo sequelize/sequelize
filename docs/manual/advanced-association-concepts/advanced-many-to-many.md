@@ -5,28 +5,40 @@ Make sure you have read the [associations guide](assocs.html) before reading thi
 Let's start with an example of a Many-to-Many relationship between `User` and `Profile`.
 
 ```js
-const User = sequelize.define('user', {
-  username: DataTypes.STRING,
-  points: DataTypes.INTEGER
-}, { timestamps: false });
-const Profile = sequelize.define('profile', {
-  name: DataTypes.STRING
-}, { timestamps: false });
+const User = sequelize.define(
+  "user",
+  {
+    username: DataTypes.STRING,
+    points: DataTypes.INTEGER,
+  },
+  { timestamps: false }
+);
+const Profile = sequelize.define(
+  "profile",
+  {
+    name: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
 ```
 
 The simplest way to define the Many-to-Many relationship is:
 
 ```js
-User.belongsToMany(Profile, { through: 'User_Profiles' });
-Profile.belongsToMany(User, { through: 'User_Profiles' });
+User.belongsToMany(Profile, { through: "User_Profiles" });
+Profile.belongsToMany(User, { through: "User_Profiles" });
 ```
 
-By passing a string to `through` above, we are asking Sequelize to automatically generate a model named `User_Profiles` as the *through table* (also known as junction table), with only two columns: `userId` and `profileId`. A composite unique key will be established on these two columns.
+By passing a string to `through` above, we are asking Sequelize to automatically generate a model named `User_Profiles` as the _through table_ (also known as junction table), with only two columns: `userId` and `profileId`. A composite unique key will be established on these two columns.
 
 We can also define ourselves a model to be used as the through table.
 
 ```js
-const User_Profile = sequelize.define('User_Profile', {}, { timestamps: false });
+const User_Profile = sequelize.define(
+  "User_Profile",
+  {},
+  { timestamps: false }
+);
 User.belongsToMany(Profile, { through: User_Profile });
 Profile.belongsToMany(User, { through: User_Profile });
 ```
@@ -36,9 +48,13 @@ The above has the exact same effect. Note that we didn't define any attributes o
 However, defining the model by ourselves has several advantages. We can, for example, define more columns on our through table:
 
 ```js
-const User_Profile = sequelize.define('User_Profile', {
-  selfGranted: DataTypes.BOOLEAN
-}, { timestamps: false });
+const User_Profile = sequelize.define(
+  "User_Profile",
+  {
+    selfGranted: DataTypes.BOOLEAN,
+  },
+  { timestamps: false }
+);
 User.belongsToMany(Profile, { through: User_Profile });
 Profile.belongsToMany(User, { through: User_Profile });
 ```
@@ -48,12 +64,12 @@ With this, we can now track an extra information at the through table, namely th
 Example:
 
 ```js
-const amidala = await User.create({ username: 'p4dm3', points: 1000 });
-const queen = await Profile.create({ name: 'Queen' });
+const amidala = await User.create({ username: "p4dm3", points: 1000 });
+const queen = await Profile.create({ name: "Queen" });
 await amidala.addProfile(queen, { through: { selfGranted: false } });
 const result = await User.findOne({
-  where: { username: 'p4dm3' },
-  include: Profile
+  where: { username: "p4dm3" },
+  include: Profile,
 });
 console.log(result);
 ```
@@ -84,22 +100,27 @@ You can create all relationship in single `create` call too.
 Example:
 
 ```js
-const amidala = await User.create({
-  username: 'p4dm3',
-  points: 1000,
-  profiles: [{
-    name: 'Queen',
-    User_Profile: {
-      selfGranted: true
-    }
-  }]
-}, {
-  include: Profile
-});
+const amidala = await User.create(
+  {
+    username: "p4dm3",
+    points: 1000,
+    profiles: [
+      {
+        name: "Queen",
+        User_Profile: {
+          selfGranted: true,
+        },
+      },
+    ],
+  },
+  {
+    include: Profile,
+  }
+);
 
 const result = await User.findOne({
-  where: { username: 'p4dm3' },
-  include: Profile
+  where: { username: "p4dm3" },
+  include: Profile,
 });
 
 console.log(result);
@@ -129,21 +150,28 @@ Output:
 You probably noticed that the `User_Profiles` table does not have an `id` field. As mentioned above, it has a composite unique key instead. The name of this composite unique key is chosen automatically by Sequelize but can be customized with the `uniqueKey` option:
 
 ```js
-User.belongsToMany(Profile, { through: User_Profiles, uniqueKey: 'my_custom_unique' });
+User.belongsToMany(Profile, {
+  through: User_Profiles,
+  uniqueKey: "my_custom_unique",
+});
 ```
 
 Another possibility, if desired, is to force the through table to have a primary key just like other standard tables. To do this, simply define the primary key in the model:
 
 ```js
-const User_Profile = sequelize.define('User_Profile', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false
+const User_Profile = sequelize.define(
+  "User_Profile",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    selfGranted: DataTypes.BOOLEAN,
   },
-  selfGranted: DataTypes.BOOLEAN
-}, { timestamps: false });
+  { timestamps: false }
+);
 User.belongsToMany(Profile, { through: User_Profile });
 Profile.belongsToMany(User, { through: User_Profile });
 ```
@@ -152,31 +180,43 @@ The above will still create two columns `userId` and `profileId`, of course, but
 
 ## Through tables versus normal tables and the "Super Many-to-Many association"
 
-Now we will compare the usage of the last Many-to-Many setup shown above with the usual One-to-Many relationships, so that in the end we conclude with the concept of a *"Super Many-to-Many relationship"*.
+Now we will compare the usage of the last Many-to-Many setup shown above with the usual One-to-Many relationships, so that in the end we conclude with the concept of a _"Super Many-to-Many relationship"_.
 
 ### Models recap (with minor rename)
 
 To make things easier to follow, let's rename our `User_Profile` model to `grant`. Note that everything works in the same way as before. Our models are:
 
 ```js
-const User = sequelize.define('user', {
-  username: DataTypes.STRING,
-  points: DataTypes.INTEGER
-}, { timestamps: false });
-
-const Profile = sequelize.define('profile', {
-  name: DataTypes.STRING
-}, { timestamps: false });
-
-const Grant = sequelize.define('grant', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false
+const User = sequelize.define(
+  "user",
+  {
+    username: DataTypes.STRING,
+    points: DataTypes.INTEGER,
   },
-  selfGranted: DataTypes.BOOLEAN
-}, { timestamps: false });
+  { timestamps: false }
+);
+
+const Profile = sequelize.define(
+  "profile",
+  {
+    name: DataTypes.STRING,
+  },
+  { timestamps: false }
+);
+
+const Grant = sequelize.define(
+  "grant",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    selfGranted: DataTypes.BOOLEAN,
+  },
+  { timestamps: false }
+);
 ```
 
 We established a Many-to-Many relationship between `User` and `Profile` using the `Grant` model as the through table:
@@ -188,7 +228,7 @@ Profile.belongsToMany(User, { through: Grant });
 
 This automatically added the columns `userId` and `profileId` to the `Grant` model.
 
-**Note:** As shown above, we have chosen to force the `grant` model to have a single primary key (called `id`, as usual). This is necessary for the *Super Many-to-Many relationship* that will be defined soon.
+**Note:** As shown above, we have chosen to force the `grant` model to have a single primary key (called `id`, as usual). This is necessary for the _Super Many-to-Many relationship_ that will be defined soon.
 
 ### Using One-to-Many relationships instead
 
@@ -232,12 +272,12 @@ Profile.findAll({ include: User });
 User.findAll({
   include: {
     model: Grant,
-    include: Profile
-  }
+    include: Profile,
+  },
 }); // This emulates the `User.findAll({ include: Profile })`, however
-    // the resulting object structure is a bit different. The original
-    // structure has the form `user.profiles[].grant`, while the emulated
-    // structure has the form `user.grants[].profiles[]`.
+// the resulting object structure is a bit different. The original
+// structure has the form `user.profiles[].grant`, while the emulated
+// structure has the form `user.grants[].profiles[]`.
 ```
 
 ### The best of both worlds: the Super Many-to-Many relationship
@@ -273,7 +313,7 @@ User.findAll({
   include: [
     {
       model: Grant,
-      include: [User, Profile]
+      include: [User, Profile],
     },
     {
       model: Profile,
@@ -281,11 +321,11 @@ User.findAll({
         model: User,
         include: {
           model: Grant,
-          include: [User, Profile]
-        }
-      }
-    }
-  ]
+          include: [User, Profile],
+        },
+      },
+    },
+  ],
 });
 ```
 
@@ -298,21 +338,25 @@ Before proceeding, please recall [the aliasing example for `belongsTo`](assocs.h
 Defining an alias for a `belongsToMany` association also impacts the way includes are performed:
 
 ```js
-Product.belongsToMany(Category, { as: 'groups', through: 'product_categories' });
-Category.belongsToMany(Product, { as: 'items', through: 'product_categories' });
+Product.belongsToMany(Category, {
+  as: "groups",
+  through: "product_categories",
+});
+Category.belongsToMany(Product, { as: "items", through: "product_categories" });
 
 // [...]
 
 await Product.findAll({ include: Category }); // This doesn't work
 
-await Product.findAll({ // This works, passing the alias
+await Product.findAll({
+  // This works, passing the alias
   include: {
     model: Category,
-    as: 'groups'
-  }
+    as: "groups",
+  },
 });
 
-await Product.findAll({ include: 'groups' }); // This also works
+await Product.findAll({ include: "groups" }); // This also works
 ```
 
 However, defining an alias here has nothing to do with the foreign key names. The names of both foreign keys created in the through table are still constructed by Sequelize based on the name of the models being associated. This can readily be seen by inspecting the generated SQL for the through table in the example above:
@@ -331,14 +375,14 @@ We can see that the foreign keys are `productId` and `categoryId`. To change the
 
 ```js
 Product.belongsToMany(Category, {
-  through: 'product_categories',
-  foreignKey: 'objectId', // replaces `productId`
-  otherKey: 'typeId' // replaces `categoryId`
+  through: "product_categories",
+  foreignKey: "objectId", // replaces `productId`
+  otherKey: "typeId", // replaces `categoryId`
 });
 Category.belongsToMany(Product, {
-  through: 'product_categories',
-  foreignKey: 'typeId', // replaces `categoryId`
-  otherKey: 'objectId' // replaces `productId`
+  through: "product_categories",
+  foreignKey: "typeId", // replaces `categoryId`
+  otherKey: "objectId", // replaces `productId`
 });
 ```
 
@@ -361,7 +405,7 @@ As shown above, when you define a Many-to-Many relationship with two `belongsToM
 Sequelize supports self-referential Many-to-Many relationships, intuitively:
 
 ```js
-Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
+Person.belongsToMany(Person, { as: "Children", through: "PersonChildren" });
 // This will create the table PersonChildren which stores the ids of the objects.
 ```
 
@@ -398,9 +442,9 @@ User.findOne({
   include: {
     model: Profile,
     through: {
-      attributes: ['selfGranted']
-    }
-  }
+      attributes: ["selfGranted"],
+    },
+  },
 });
 ```
 
@@ -430,9 +474,9 @@ User.findOne({
   include: {
     model: Profile,
     through: {
-      attributes: []
-    }
-  }
+      attributes: [],
+    },
+  },
 });
 ```
 
@@ -455,7 +499,7 @@ Output:
 If you are using mixins (such as `user.getProfiles()`) instead of finder methods (such as `User.findAll()`), you have to use the `joinTableAttributes` option instead:
 
 ```js
-someUser.getProfiles({ joinTableAttributes: ['selfGranted'] });
+someUser.getProfiles({ joinTableAttributes: ["selfGranted"] });
 ```
 
 Output:
@@ -479,29 +523,29 @@ Consider you are trying to model a game championship. There are players and team
 So we start by defining the three relevant models:
 
 ```js
-const Player = sequelize.define('Player', { username: DataTypes.STRING });
-const Team = sequelize.define('Team', { name: DataTypes.STRING });
-const Game = sequelize.define('Game', { name: DataTypes.INTEGER });
+const Player = sequelize.define("Player", { username: DataTypes.STRING });
+const Team = sequelize.define("Team", { name: DataTypes.STRING });
+const Game = sequelize.define("Game", { name: DataTypes.INTEGER });
 ```
 
 Now, the question is: how to associate them?
 
 First, we note that:
 
-* One game has many teams associated to it (the ones that are playing that game);
-* One team may have participated in many games.
+- One game has many teams associated to it (the ones that are playing that game);
+- One team may have participated in many games.
 
 The above observations show that we need a Many-to-Many relationship between Game and Team. Let's use the Super Many-to-Many relationship as explained earlier in this guide:
 
 ```js
 // Super Many-to-Many relationship between Game and Team
-const GameTeam = sequelize.define('GameTeam', {
+const GameTeam = sequelize.define("GameTeam", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    allowNull: false
-  }
+    allowNull: false,
+  },
 });
 Team.belongsToMany(Game, { through: GameTeam });
 Game.belongsToMany(Team, { through: GameTeam });
@@ -511,19 +555,19 @@ Game.hasMany(GameTeam);
 Team.hasMany(GameTeam);
 ```
 
-The part about players is trickier. We note that the set of players that form a team depends not only on the team (obviously), but also on which game is being considered. Therefore, we don't want a Many-to-Many relationship between Player and Team. We also don't want a Many-to-Many relationship between Player and Game. Instead of associating a Player to any of those models, what we need is an association between a Player and something like a *"team-game pair constraint"*, since it is the pair (team plus game) that defines which players belong there. So what we are looking for turns out to be precisely the junction model, GameTeam, itself! And, we note that, since a given *game-team pair* specifies many players, and on the other hand that the same player can participate of many *game-team pairs*, we need a Many-to-Many relationship between Player and GameTeam!
+The part about players is trickier. We note that the set of players that form a team depends not only on the team (obviously), but also on which game is being considered. Therefore, we don't want a Many-to-Many relationship between Player and Team. We also don't want a Many-to-Many relationship between Player and Game. Instead of associating a Player to any of those models, what we need is an association between a Player and something like a _"team-game pair constraint"_, since it is the pair (team plus game) that defines which players belong there. So what we are looking for turns out to be precisely the junction model, GameTeam, itself! And, we note that, since a given _game-team pair_ specifies many players, and on the other hand that the same player can participate of many _game-team pairs_, we need a Many-to-Many relationship between Player and GameTeam!
 
 To provide the greatest flexibility, let's use the Super Many-to-Many relationship construction here again:
 
 ```js
 // Super Many-to-Many relationship between Player and GameTeam
-const PlayerGameTeam = sequelize.define('PlayerGameTeam', {
+const PlayerGameTeam = sequelize.define("PlayerGameTeam", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    allowNull: false
-  }
+    allowNull: false,
+  },
 });
 Player.belongsToMany(GameTeam, { through: PlayerGameTeam });
 GameTeam.belongsToMany(Player, { through: PlayerGameTeam });
@@ -536,22 +580,22 @@ GameTeam.hasMany(PlayerGameTeam);
 The above associations achieve precisely what we want. Here is a full runnable example of this:
 
 ```js
-const { Sequelize, Op, Model, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory:', {
-  define: { timestamps: false } // Just for less clutter in this example
+const { Sequelize, Op, Model, DataTypes } = require("sequelize");
+const sequelize = new Sequelize("sqlite::memory:", {
+  define: { timestamps: false }, // Just for less clutter in this example
 });
-const Player = sequelize.define('Player', { username: DataTypes.STRING });
-const Team = sequelize.define('Team', { name: DataTypes.STRING });
-const Game = sequelize.define('Game', { name: DataTypes.INTEGER });
+const Player = sequelize.define("Player", { username: DataTypes.STRING });
+const Team = sequelize.define("Team", { name: DataTypes.STRING });
+const Game = sequelize.define("Game", { name: DataTypes.INTEGER });
 
 // We apply a Super Many-to-Many relationship between Game and Team
-const GameTeam = sequelize.define('GameTeam', {
+const GameTeam = sequelize.define("GameTeam", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    allowNull: false
-  }
+    allowNull: false,
+  },
 });
 Team.belongsToMany(Game, { through: GameTeam });
 Game.belongsToMany(Team, { through: GameTeam });
@@ -561,13 +605,13 @@ Game.hasMany(GameTeam);
 Team.hasMany(GameTeam);
 
 // We apply a Super Many-to-Many relationship between Player and GameTeam
-const PlayerGameTeam = sequelize.define('PlayerGameTeam', {
+const PlayerGameTeam = sequelize.define("PlayerGameTeam", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    allowNull: false
-  }
+    allowNull: false,
+  },
 });
 Player.belongsToMany(GameTeam, { through: PlayerGameTeam });
 GameTeam.belongsToMany(Player, { through: PlayerGameTeam });
@@ -577,24 +621,23 @@ Player.hasMany(PlayerGameTeam);
 GameTeam.hasMany(PlayerGameTeam);
 
 (async () => {
-
   await sequelize.sync();
   await Player.bulkCreate([
-    { username: 's0me0ne' },
-    { username: 'empty' },
-    { username: 'greenhead' },
-    { username: 'not_spock' },
-    { username: 'bowl_of_petunias' }
+    { username: "s0me0ne" },
+    { username: "empty" },
+    { username: "greenhead" },
+    { username: "not_spock" },
+    { username: "bowl_of_petunias" },
   ]);
   await Game.bulkCreate([
-    { name: 'The Big Clash' },
-    { name: 'Winter Showdown' },
-    { name: 'Summer Beatdown' }
+    { name: "The Big Clash" },
+    { name: "Winter Showdown" },
+    { name: "Summer Beatdown" },
   ]);
   await Team.bulkCreate([
-    { name: 'The Martians' },
-    { name: 'The Earthlings' },
-    { name: 'The Plutonians' }
+    { name: "The Martians" },
+    { name: "The Earthlings" },
+    { name: "The Plutonians" },
   ]);
 
   // Let's start defining which teams were in which games. This can be done
@@ -602,12 +645,12 @@ GameTeam.hasMany(PlayerGameTeam);
   // brevity, we will use direct `create` calls instead, referring directly
   // to the IDs we want. We know that IDs are given in order starting from 1.
   await GameTeam.bulkCreate([
-    { GameId: 1, TeamId: 1 },   // this GameTeam will get id 1
-    { GameId: 1, TeamId: 2 },   // this GameTeam will get id 2
-    { GameId: 2, TeamId: 1 },   // this GameTeam will get id 3
-    { GameId: 2, TeamId: 3 },   // this GameTeam will get id 4
-    { GameId: 3, TeamId: 2 },   // this GameTeam will get id 5
-    { GameId: 3, TeamId: 3 }    // this GameTeam will get id 6
+    { GameId: 1, TeamId: 1 }, // this GameTeam will get id 1
+    { GameId: 1, TeamId: 2 }, // this GameTeam will get id 2
+    { GameId: 2, TeamId: 1 }, // this GameTeam will get id 3
+    { GameId: 2, TeamId: 3 }, // this GameTeam will get id 4
+    { GameId: 3, TeamId: 2 }, // this GameTeam will get id 5
+    { GameId: 3, TeamId: 3 }, // this GameTeam will get id 6
   ]);
 
   // Now let's specify players.
@@ -616,37 +659,38 @@ GameTeam.hasMany(PlayerGameTeam);
   // not_spock and bowl_of_petunias played for The Plutonians:
   await PlayerGameTeam.bulkCreate([
     // In 'Winter Showdown' (i.e. GameTeamIds 3 and 4):
-    { PlayerId: 1, GameTeamId: 3 },   // s0me0ne played for The Martians
-    { PlayerId: 3, GameTeamId: 3 },   // greenhead played for The Martians
-    { PlayerId: 4, GameTeamId: 4 },   // not_spock played for The Plutonians
-    { PlayerId: 5, GameTeamId: 4 }    // bowl_of_petunias played for The Plutonians
+    { PlayerId: 1, GameTeamId: 3 }, // s0me0ne played for The Martians
+    { PlayerId: 3, GameTeamId: 3 }, // greenhead played for The Martians
+    { PlayerId: 4, GameTeamId: 4 }, // not_spock played for The Plutonians
+    { PlayerId: 5, GameTeamId: 4 }, // bowl_of_petunias played for The Plutonians
   ]);
 
   // Now we can make queries!
   const game = await Game.findOne({
     where: {
-      name: "Winter Showdown"
+      name: "Winter Showdown",
     },
     include: {
       model: GameTeam,
       include: [
         {
           model: Player,
-          through: { attributes: [] } // Hide unwanted `PlayerGameTeam` nested object from results
+          through: { attributes: [] }, // Hide unwanted `PlayerGameTeam` nested object from results
         },
-        Team
-      ]
-    }
+        Team,
+      ],
+    },
   });
 
   console.log(`Found game: "${game.name}"`);
   for (let i = 0; i < game.GameTeams.length; i++) {
     const team = game.GameTeams[i].Team;
     const players = game.GameTeams[i].Players;
-    console.log(`- Team "${team.name}" played game "${game.name}" with the following players:`);
-    console.log(players.map(p => `--- ${p.username}`).join('\n'));
+    console.log(
+      `- Team "${team.name}" played game "${game.name}" with the following players:`
+    );
+    console.log(players.map((p) => `--- ${p.username}`).join("\n"));
   }
-
 })();
 ```
 
@@ -662,6 +706,6 @@ Found game: "Winter Showdown"
 --- bowl_of_petunias
 ```
 
-So this is how we can achieve a *many-to-many-to-many* relationship between three models in Sequelize, by taking advantage of the Super Many-to-Many relationship technique!
+So this is how we can achieve a _many-to-many-to-many_ relationship between three models in Sequelize, by taking advantage of the Super Many-to-Many relationship technique!
 
-This idea can be applied recursively for even more complex, *many-to-many-to-...-to-many* relationships (although at some point queries might become slow).
+This idea can be applied recursively for even more complex, _many-to-many-to-...-to-many_ relationships (although at some point queries might become slow).

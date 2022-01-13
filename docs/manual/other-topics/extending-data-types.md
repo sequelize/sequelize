@@ -11,21 +11,20 @@ To extend Sequelize datatypes, do it before any Sequelize instance is created.
 In this example, we will create a type called `SOMETYPE` that replicates the built-in datatype `DataTypes.INTEGER(11).ZEROFILL.UNSIGNED`.
 
 ```js
-const { Sequelize, DataTypes, Utils } = require('Sequelize');
+const { Sequelize, DataTypes, Utils } = require("Sequelize");
 createTheNewDataType();
-const sequelize = new Sequelize('sqlite::memory:');
+const sequelize = new Sequelize("sqlite::memory:");
 
 function createTheNewDataType() {
-
   class SOMETYPE extends DataTypes.ABSTRACT {
     // Mandatory: complete definition of the new type in the database
     toSql() {
-      return 'INTEGER(11) UNSIGNED ZEROFILL'
+      return "INTEGER(11) UNSIGNED ZEROFILL";
     }
 
     // Optional: validator function
     validate(value, options) {
-      return (typeof value === 'number') && (!Number.isNaN(value));
+      return typeof value === "number" && !Number.isNaN(value);
     }
 
     // Optional: sanitizer
@@ -46,7 +45,7 @@ function createTheNewDataType() {
   }
 
   // Mandatory: set the type key
-  SOMETYPE.prototype.key = SOMETYPE.key = 'SOMETYPE';
+  SOMETYPE.prototype.key = SOMETYPE.key = "SOMETYPE";
 
   // Mandatory: add the new type to DataTypes. Optionally wrap it on `Utils.classToInvokable` to
   // be able to use this datatype directly without having to call `new` on it.
@@ -54,7 +53,6 @@ function createTheNewDataType() {
 
   // Optional: disable escaping after stringifier. Do this at your own risk, since this opens opportunity for SQL injections.
   // DataTypes.SOMETYPE.escape = false;
-
 }
 ```
 
@@ -105,8 +103,8 @@ function createTheNewDataType() {
   // [...]
 
   // Add postgresql range, SOMETYPE comes from DataType.SOMETYPE.key in lower case
-  DataTypes.RANGE.types.postgres.subtypes.SOMETYPE = 'SOMETYPE_range';
-  DataTypes.RANGE.types.postgres.castTypes.SOMETYPE = 'pg_new_type';
+  DataTypes.RANGE.types.postgres.subtypes.SOMETYPE = "SOMETYPE_range";
+  DataTypes.RANGE.types.postgres.castTypes.SOMETYPE = "pg_new_type";
 }
 ```
 

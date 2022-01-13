@@ -4,7 +4,7 @@ The contents of this page were moved to [Model Basics](model-basics.html).
 
 The only exception is the guide on `sequelize.import`, which is deprecated and was removed from the docs. However, if you really need it, it was kept here.
 
-----
+---
 
 ## Deprecated: `sequelize.import`
 
@@ -22,9 +22,9 @@ const Project = sequelize.import(__dirname + "/path/to/models/project");
 
 // The model definition is done in /path/to/models/project.js
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define('project', {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
-    description: DataTypes.TEXT
+    description: DataTypes.TEXT,
   });
 };
 ```
@@ -32,10 +32,10 @@ module.exports = (sequelize, DataTypes) => {
 The `import` method can also accept a callback as an argument.
 
 ```js
-sequelize.import('project', (sequelize, DataTypes) => {
-  return sequelize.define('project', {
+sequelize.import("project", (sequelize, DataTypes) => {
+  return sequelize.define("project", {
     name: DataTypes.STRING,
-    description: DataTypes.TEXT
+    description: DataTypes.TEXT,
   });
 });
 ```
@@ -50,8 +50,8 @@ This can be worked around by passing in Meteor's version of `require`:
 
 ```js
 // If this fails...
-const AuthorModel = db.import('./path/to/models/project');
+const AuthorModel = db.import("./path/to/models/project");
 
 // Try this instead!
-const AuthorModel = db.import('project', require('./path/to/models/project'));
+const AuthorModel = db.import("project", require("./path/to/models/project"));
 ```

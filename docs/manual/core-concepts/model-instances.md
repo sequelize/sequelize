@@ -12,10 +12,10 @@ const User = sequelize.define("user", {
   name: DataTypes.TEXT,
   favoriteColor: {
     type: DataTypes.TEXT,
-    defaultValue: 'green'
+    defaultValue: "green",
   },
   age: DataTypes.INTEGER,
-  cash: DataTypes.INTEGER
+  cash: DataTypes.INTEGER,
 });
 
 (async () => {
@@ -34,11 +34,11 @@ console.log(jane instanceof User); // true
 console.log(jane.name); // "Jane"
 ```
 
-However, the code above does not communicate with the database at all (note that it is not even asynchronous)! This is because the [`build`](../class/lib/model.js~Model.html#static-method-build) method only creates an object that *represents* data that *can* be mapped to a database. In order to really save (i.e. persist) this instance in the database, the [`save`](../class/lib/model.js~Model.html#instance-method-save) method should be used:
+However, the code above does not communicate with the database at all (note that it is not even asynchronous)! This is because the [`build`](../class/lib/model.js~Model.html#static-method-build) method only creates an object that _represents_ data that _can_ be mapped to a database. In order to really save (i.e. persist) this instance in the database, the [`save`](../class/lib/model.js~Model.html#instance-method-save) method should be used:
 
 ```js
 await jane.save();
-console.log('Jane was saved to the database!');
+console.log("Jane was saved to the database!");
 ```
 
 Note, from the usage of `await` in the snippet above, that `save` is an asynchronous method. In fact, almost every Sequelize method is asynchronous; `build` is one of the very few exceptions.
@@ -94,7 +94,7 @@ const jane = await User.create({ name: "Jane" });
 
 jane.set({
   name: "Ada",
-  favoriteColor: "blue"
+  favoriteColor: "blue",
 });
 // As above, the database still has "Jane" and "green"
 await jane.save();
@@ -105,10 +105,10 @@ Note that the `save()` here will also persist any other changes that have been m
 
 ```js
 const jane = await User.create({ name: "Jane" });
-jane.favoriteColor = "blue"
-await jane.update({ name: "Ada" })
+jane.favoriteColor = "blue";
+await jane.update({ name: "Ada" });
 // The database now has "Ada" for name, but still has the default "green" for favorite color
-await jane.save()
+await jane.save();
 // Now the database has "Ada" for name and "blue" for favorite color
 ```
 
@@ -150,7 +150,7 @@ console.log(jane.name); // "Jane"
 console.log(jane.favoriteColor); // "green"
 jane.name = "Jane II";
 jane.favoriteColor = "blue";
-await jane.save({ fields: ['name'] });
+await jane.save({ fields: ["name"] });
 console.log(jane.name); // "Jane II"
 console.log(jane.favoriteColor); // "blue"
 // The above printed blue because the local object has it set to blue, but
@@ -172,7 +172,7 @@ In order to increment/decrement values of an instance without running into concu
 
 ```js
 const jane = await User.create({ name: "Jane", age: 100 });
-const incrementResult = await jane.increment('age', { by: 2 });
+const incrementResult = await jane.increment("age", { by: 2 });
 // Note: to increment by 1 you can omit the `by` option and just do `user.increment('age')`
 
 // In PostgreSQL, `incrementResult` will be the updated user, unless the option
@@ -186,12 +186,12 @@ You can also increment multiple fields at once:
 ```js
 const jane = await User.create({ name: "Jane", age: 100, cash: 5000 });
 await jane.increment({
-  'age': 2,
-  'cash': 100
+  age: 2,
+  cash: 100,
 });
 
 // If the values are incremented by the same amount, you can use this other syntax as well:
-await jane.increment(['age', 'cash'], { by: 2 });
+await jane.increment(["age", "cash"], { by: 2 });
 ```
 
 Decrementing works in the exact same way.

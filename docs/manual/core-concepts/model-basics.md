@@ -14,8 +14,8 @@ A model in Sequelize has a name. This name does not have to be the same name of 
 
 Models can be defined in two equivalent ways in Sequelize:
 
-* Calling [`sequelize.define(modelName, attributes, options)`](../class/lib/sequelize.js~Sequelize.html#instance-method-define)
-* Extending [Model](../class/lib/model.js~Model.html) and calling [`init(attributes, options)`](../class/lib/model.js~Model.html#static-method-init)
+- Calling [`sequelize.define(modelName, attributes, options)`](../class/lib/sequelize.js~Sequelize.html#instance-method-define)
+- Extending [Model](../class/lib/model.js~Model.html) and calling [`init(attributes, options)`](../class/lib/model.js~Model.html#static-method-init)
 
 After a model is defined, it is available within `sequelize.models` by its model name.
 
@@ -26,22 +26,26 @@ Both ways to define this model are shown below. After being defined, we can acce
 ### Using [`sequelize.define`](../class/lib/sequelize.js~Sequelize.html#instance-method-define):
 
 ```js
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory:');
+const { Sequelize, DataTypes } = require("sequelize");
+const sequelize = new Sequelize("sqlite::memory:");
 
-const User = sequelize.define('User', {
-  // Model attributes are defined here
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false
+const User = sequelize.define(
+  "User",
+  {
+    // Model attributes are defined here
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      // allowNull defaults to true
+    },
   },
-  lastName: {
-    type: DataTypes.STRING
-    // allowNull defaults to true
+  {
+    // Other model options go here
   }
-}, {
-  // Other model options go here
-});
+);
 
 // `sequelize.define` also returns the model
 console.log(User === sequelize.models.User); // true
@@ -50,26 +54,29 @@ console.log(User === sequelize.models.User); // true
 ### Extending [Model](../class/lib/model.js~Model.html)
 
 ```js
-const { Sequelize, DataTypes, Model } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory:');
+const { Sequelize, DataTypes, Model } = require("sequelize");
+const sequelize = new Sequelize("sqlite::memory:");
 
 class User extends Model {}
 
-User.init({
-  // Model attributes are defined here
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false
+User.init(
+  {
+    // Model attributes are defined here
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      // allowNull defaults to true
+    },
   },
-  lastName: {
-    type: DataTypes.STRING
-    // allowNull defaults to true
+  {
+    // Other model options go here
+    sequelize, // We need to pass the connection instance
+    modelName: "User", // We need to choose the model name
   }
-}, {
-  // Other model options go here
-  sequelize, // We need to pass the connection instance
-  modelName: 'User' // We need to choose the model name
-});
+);
 
 // the defined model is the class itself
 console.log(User === sequelize.models.User); // true
@@ -90,13 +97,16 @@ class User extends Model {
   otherPublicField; // this field does not shadow anything. It is fine.
 }
 
-User.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
-  }
-}, { sequelize });
+User.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+  },
+  { sequelize }
+);
 
 const user = new User({ id: 1 });
 user.id; // undefined
@@ -108,13 +118,16 @@ class User extends Model {
   otherPublicField;
 }
 
-User.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
-  }
-}, { sequelize });
+User.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+  },
+  { sequelize }
+);
 
 const user = new User({ id: 1 });
 user.id; // 1
@@ -128,13 +141,16 @@ class User extends Model {
   declare id: number; // this is ok! The 'declare' keyword ensures this field will not be emitted by TypeScript.
 }
 
-User.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
-  }
-}, { sequelize });
+User.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+  },
+  { sequelize }
+);
 
 const user = new User({ id: 1 });
 user.id; // 1
@@ -153,11 +169,15 @@ Of course, this behavior is easily configurable.
 You can stop the auto-pluralization performed by Sequelize using the `freezeTableName: true` option. This way, Sequelize will infer the table name to be equal to the model name, without any modifications:
 
 ```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  freezeTableName: true
-});
+sequelize.define(
+  "User",
+  {
+    // ... (attributes)
+  },
+  {
+    freezeTableName: true,
+  }
+);
 ```
 
 The example above will create a model named `User` pointing to a table also named `User`.
@@ -165,10 +185,10 @@ The example above will create a model named `User` pointing to a table also name
 This behavior can also be defined globally for the sequelize instance, when it is created:
 
 ```js
-const sequelize = new Sequelize('sqlite::memory:', {
+const sequelize = new Sequelize("sqlite::memory:", {
   define: {
-    freezeTableName: true
-  }
+    freezeTableName: true,
+  },
 });
 ```
 
@@ -179,11 +199,15 @@ This way, all tables will use the same name as the model name.
 You can simply tell Sequelize the name of the table directly as well:
 
 ```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  tableName: 'Employees'
-});
+sequelize.define(
+  "User",
+  {
+    // ... (attributes)
+  },
+  {
+    tableName: "Employees",
+  }
+);
 ```
 
 ## Model synchronization
@@ -192,9 +216,9 @@ When you define a model, you're telling Sequelize a few things about its table i
 
 This is where model synchronization comes in. A model can be synchronized with the database by calling [`model.sync(options)`](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-sync), an asynchronous function (that returns a Promise). With this call, Sequelize will automatically perform an SQL query to the database. Note that this changes only the table in the database, not the model in the JavaScript side.
 
-* `User.sync()` - This creates the table if it doesn't exist (and does nothing if it already exists)
-* `User.sync({ force: true })` - This creates the table, dropping it first if it already existed
-* `User.sync({ alter: true })` - This checks what is the current state of the table in the database (which columns it has, what are their data types, etc), and then performs the necessary changes in the table to make it match the model.
+- `User.sync()` - This creates the table if it doesn't exist (and does nothing if it already exists)
+- `User.sync({ force: true })` - This creates the table, dropping it first if it already existed
+- `User.sync({ alter: true })` - This checks what is the current state of the table in the database (which columns it has, what are their data types, etc), and then performs the necessary changes in the table to make it match the model.
 
 Example:
 
@@ -245,34 +269,43 @@ As shown above, `sync({ force: true })` and `sync({ alter: true })` can be destr
 
 By default, Sequelize automatically adds the fields `createdAt` and `updatedAt` to every model, using the data type `DataTypes.DATE`. Those fields are automatically managed as well - whenever you use Sequelize to create or update something, those fields will be set correctly. The `createdAt` field will contain the timestamp representing the moment of creation, and the `updatedAt` will contain the timestamp of the latest update.
 
-**Note:** This is done in the Sequelize level (i.e. not done with *SQL triggers*). This means that direct SQL queries (for example queries performed without Sequelize by any other means) will not cause these fields to be updated automatically.
+**Note:** This is done in the Sequelize level (i.e. not done with _SQL triggers_). This means that direct SQL queries (for example queries performed without Sequelize by any other means) will not cause these fields to be updated automatically.
 
 This behavior can be disabled for a model with the `timestamps: false` option:
 
 ```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  timestamps: false
-});
+sequelize.define(
+  "User",
+  {
+    // ... (attributes)
+  },
+  {
+    timestamps: false,
+  }
+);
 ```
 
 It is also possible to enable only one of `createdAt`/`updatedAt`, and to provide a custom name for these columns:
 
 ```js
 class Foo extends Model {}
-Foo.init({ /* attributes */ }, {
-  sequelize,
+Foo.init(
+  {
+    /* attributes */
+  },
+  {
+    sequelize,
 
-  // don't forget to enable timestamps!
-  timestamps: true,
+    // don't forget to enable timestamps!
+    timestamps: true,
 
-  // I don't want createdAt
-  createdAt: false,
+    // I don't want createdAt
+    createdAt: false,
 
-  // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
-});
+    // I want updatedAt to actually be called updateTimestamp
+    updatedAt: "updateTimestamp",
+  }
+);
 ```
 
 ## Column declaration shorthand syntax
@@ -281,14 +314,14 @@ If the only thing being specified about a column is its data type, the syntax ca
 
 ```js
 // This:
-sequelize.define('User', {
+sequelize.define("User", {
   name: {
-    type: DataTypes.STRING
-  }
+    type: DataTypes.STRING,
+  },
 });
 
 // Can be simplified to:
-sequelize.define('User', { name: DataTypes.STRING });
+sequelize.define("User", { name: DataTypes.STRING });
 ```
 
 ## Default Values
@@ -296,23 +329,23 @@ sequelize.define('User', { name: DataTypes.STRING });
 By default, Sequelize assumes that the default value of a column is `NULL`. This behavior can be changed by passing a specific `defaultValue` to the column definition:
 
 ```js
-sequelize.define('User', {
+sequelize.define("User", {
   name: {
     type: DataTypes.STRING,
-    defaultValue: "John Doe"
-  }
+    defaultValue: "John Doe",
+  },
 });
 ```
 
 Some special values, such as `DataTypes.NOW`, are also accepted:
 
 ```js
-sequelize.define('Foo', {
+sequelize.define("Foo", {
   bar: {
     type: DataTypes.DATETIME,
-    defaultValue: DataTypes.NOW
+    defaultValue: DataTypes.NOW,
     // This way, the current date/time will be used to populate this column (at the moment of insertion)
-  }
+  },
 });
 ```
 
@@ -327,42 +360,42 @@ const { DataTypes } = require("sequelize"); // Import the built-in data types
 ### Strings
 
 ```js
-DataTypes.STRING             // VARCHAR(255)
-DataTypes.STRING(1234)       // VARCHAR(1234)
-DataTypes.STRING.BINARY      // VARCHAR BINARY
-DataTypes.TEXT               // TEXT
-DataTypes.TEXT('tiny')       // TINYTEXT
-DataTypes.CITEXT             // CITEXT          PostgreSQL and SQLite only.
-DataTypes.TSVECTOR           // TSVECTOR        PostgreSQL only.
+DataTypes.STRING; // VARCHAR(255)
+DataTypes.STRING(1234); // VARCHAR(1234)
+DataTypes.STRING.BINARY; // VARCHAR BINARY
+DataTypes.TEXT; // TEXT
+DataTypes.TEXT("tiny"); // TINYTEXT
+DataTypes.CITEXT; // CITEXT          PostgreSQL and SQLite only.
+DataTypes.TSVECTOR; // TSVECTOR        PostgreSQL only.
 ```
 
 ### Boolean
 
 ```js
-DataTypes.BOOLEAN            // TINYINT(1)
+DataTypes.BOOLEAN; // TINYINT(1)
 ```
 
 ### Numbers
 
 ```js
-DataTypes.INTEGER            // INTEGER
-DataTypes.BIGINT             // BIGINT
-DataTypes.BIGINT(11)         // BIGINT(11)
+DataTypes.INTEGER; // INTEGER
+DataTypes.BIGINT; // BIGINT
+DataTypes.BIGINT(11); // BIGINT(11)
 
-DataTypes.FLOAT              // FLOAT
-DataTypes.FLOAT(11)          // FLOAT(11)
-DataTypes.FLOAT(11, 10)      // FLOAT(11,10)
+DataTypes.FLOAT; // FLOAT
+DataTypes.FLOAT(11); // FLOAT(11)
+DataTypes.FLOAT(11, 10); // FLOAT(11,10)
 
-DataTypes.REAL               // REAL            PostgreSQL only.
-DataTypes.REAL(11)           // REAL(11)        PostgreSQL only.
-DataTypes.REAL(11, 12)       // REAL(11,12)     PostgreSQL only.
+DataTypes.REAL; // REAL            PostgreSQL only.
+DataTypes.REAL(11); // REAL(11)        PostgreSQL only.
+DataTypes.REAL(11, 12); // REAL(11,12)     PostgreSQL only.
 
-DataTypes.DOUBLE             // DOUBLE
-DataTypes.DOUBLE(11)         // DOUBLE(11)
-DataTypes.DOUBLE(11, 10)     // DOUBLE(11,10)
+DataTypes.DOUBLE; // DOUBLE
+DataTypes.DOUBLE(11); // DOUBLE(11)
+DataTypes.DOUBLE(11, 10); // DOUBLE(11,10)
 
-DataTypes.DECIMAL            // DECIMAL
-DataTypes.DECIMAL(10, 2)     // DECIMAL(10,2)
+DataTypes.DECIMAL; // DECIMAL
+DataTypes.DECIMAL(10, 2); // DECIMAL(10,2)
 ```
 
 #### Unsigned & Zerofill integers - MySQL/MariaDB only
@@ -370,9 +403,9 @@ DataTypes.DECIMAL(10, 2)     // DECIMAL(10,2)
 In MySQL and MariaDB, the data types `INTEGER`, `BIGINT`, `FLOAT` and `DOUBLE` can be set as unsigned or zerofill (or both), as follows:
 
 ```js
-DataTypes.INTEGER.UNSIGNED
-DataTypes.INTEGER.ZEROFILL
-DataTypes.INTEGER.UNSIGNED.ZEROFILL
+DataTypes.INTEGER.UNSIGNED;
+DataTypes.INTEGER.ZEROFILL;
+DataTypes.INTEGER.UNSIGNED.ZEROFILL;
 // You can also specify the size i.e. INTEGER(10) instead of simply INTEGER
 // Same for BIGINT, FLOAT and DOUBLE
 ```
@@ -380,9 +413,9 @@ DataTypes.INTEGER.UNSIGNED.ZEROFILL
 ### Dates
 
 ```js
-DataTypes.DATE       // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
-DataTypes.DATE(6)    // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
-DataTypes.DATEONLY   // DATE without time
+DataTypes.DATE; // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
+DataTypes.DATE(6); // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
+DataTypes.DATEONLY; // DATE without time
 ```
 
 ### UUIDs
@@ -408,68 +441,74 @@ When defining a column, apart from specifying the `type` of the column, and the 
 const { Model, DataTypes, Deferrable } = require("sequelize");
 
 class Foo extends Model {}
-Foo.init({
-  // instantiating will automatically set the flag to true if not set
-  flag: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+Foo.init(
+  {
+    // instantiating will automatically set the flag to true if not set
+    flag: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
 
-  // default values for dates => current time
-  myDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    // default values for dates => current time
+    myDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
 
-  // setting allowNull to false will add NOT NULL to the column, which means an error will be
-  // thrown from the DB when the query is executed if the column is null. If you want to check that a value
-  // is not null before querying the DB, look at the validations section below.
-  title: { type: DataTypes.STRING, allowNull: false },
+    // setting allowNull to false will add NOT NULL to the column, which means an error will be
+    // thrown from the DB when the query is executed if the column is null. If you want to check that a value
+    // is not null before querying the DB, look at the validations section below.
+    title: { type: DataTypes.STRING, allowNull: false },
 
-  // Creating two objects with the same value will throw an error. The unique property can be either a
-  // boolean, or a string. If you provide the same string for multiple columns, they will form a
-  // composite unique key.
-  uniqueOne: { type: DataTypes.STRING,  unique: 'compositeIndex' },
-  uniqueTwo: { type: DataTypes.INTEGER, unique: 'compositeIndex' },
+    // Creating two objects with the same value will throw an error. The unique property can be either a
+    // boolean, or a string. If you provide the same string for multiple columns, they will form a
+    // composite unique key.
+    uniqueOne: { type: DataTypes.STRING, unique: "compositeIndex" },
+    uniqueTwo: { type: DataTypes.INTEGER, unique: "compositeIndex" },
 
-  // The unique property is simply a shorthand to create a unique constraint.
-  someUnique: { type: DataTypes.STRING, unique: true },
+    // The unique property is simply a shorthand to create a unique constraint.
+    someUnique: { type: DataTypes.STRING, unique: true },
 
-  // Go on reading for further information about primary keys
-  identifier: { type: DataTypes.STRING, primaryKey: true },
+    // Go on reading for further information about primary keys
+    identifier: { type: DataTypes.STRING, primaryKey: true },
 
-  // autoIncrement can be used to create auto_incrementing integer columns
-  incrementMe: { type: DataTypes.INTEGER, autoIncrement: true },
+    // autoIncrement can be used to create auto_incrementing integer columns
+    incrementMe: { type: DataTypes.INTEGER, autoIncrement: true },
 
-  // You can specify a custom column name via the 'field' attribute:
-  fieldWithUnderscores: { type: DataTypes.STRING, field: 'field_with_underscores' },
+    // You can specify a custom column name via the 'field' attribute:
+    fieldWithUnderscores: {
+      type: DataTypes.STRING,
+      field: "field_with_underscores",
+    },
 
-  // It is possible to create foreign keys:
-  bar_id: {
-    type: DataTypes.INTEGER,
+    // It is possible to create foreign keys:
+    bar_id: {
+      type: DataTypes.INTEGER,
 
-    references: {
-      // This is a reference to another model
-      model: Bar,
+      references: {
+        // This is a reference to another model
+        model: Bar,
 
-      // This is the column name of the referenced model
-      key: 'id',
+        // This is the column name of the referenced model
+        key: "id",
 
-      // With PostgreSQL, it is optionally possible to declare when to check the foreign key constraint, passing the Deferrable type.
-      deferrable: Deferrable.INITIALLY_IMMEDIATE
-      // Options:
-      // - `Deferrable.INITIALLY_IMMEDIATE` - Immediately check the foreign key constraints
-      // - `Deferrable.INITIALLY_DEFERRED` - Defer all foreign key constraint check to the end of a transaction
-      // - `Deferrable.NOT` - Don't defer the checks at all (default) - This won't allow you to dynamically change the rule in a transaction
-    }
+        // With PostgreSQL, it is optionally possible to declare when to check the foreign key constraint, passing the Deferrable type.
+        deferrable: Deferrable.INITIALLY_IMMEDIATE,
+        // Options:
+        // - `Deferrable.INITIALLY_IMMEDIATE` - Immediately check the foreign key constraints
+        // - `Deferrable.INITIALLY_DEFERRED` - Defer all foreign key constraint check to the end of a transaction
+        // - `Deferrable.NOT` - Don't defer the checks at all (default) - This won't allow you to dynamically change the rule in a transaction
+      },
+    },
+
+    // Comments can only be added to columns in MySQL, MariaDB, PostgreSQL and MSSQL
+    commentMe: {
+      type: DataTypes.INTEGER,
+      comment: "This is a column name that has a comment",
+    },
   },
+  {
+    sequelize,
+    modelName: "foo",
 
-  // Comments can only be added to columns in MySQL, MariaDB, PostgreSQL and MSSQL
-  commentMe: {
-    type: DataTypes.INTEGER,
-    comment: 'This is a column name that has a comment'
+    // Using `unique: true` in an attribute above is exactly the same as creating the index in the model's options:
+    indexes: [{ unique: true, fields: ["someUnique"] }],
   }
-}, {
-  sequelize,
-  modelName: 'foo',
-
-  // Using `unique: true` in an attribute above is exactly the same as creating the index in the model's options:
-  indexes: [{ unique: true, fields: ['someUnique'] }]
-});
+);
 ```
 
 ## Taking advantage of Models being classes
@@ -479,22 +518,25 @@ The Sequelize models are [ES6 classes](https://developer.mozilla.org/en-US/docs/
 ```js
 class User extends Model {
   static classLevelMethod() {
-    return 'foo';
+    return "foo";
   }
   instanceLevelMethod() {
-    return 'bar';
+    return "bar";
   }
   getFullname() {
-    return [this.firstname, this.lastname].join(' ');
+    return [this.firstname, this.lastname].join(" ");
   }
 }
-User.init({
-  firstname: Sequelize.TEXT,
-  lastname: Sequelize.TEXT
-}, { sequelize });
+User.init(
+  {
+    firstname: Sequelize.TEXT,
+    lastname: Sequelize.TEXT,
+  },
+  { sequelize }
+);
 
 console.log(User.classLevelMethod()); // 'foo'
-const user = User.build({ firstname: 'Jane', lastname: 'Doe' });
+const user = User.build({ firstname: "Jane", lastname: "Doe" });
 console.log(user.instanceLevelMethod()); // 'bar'
 console.log(user.getFullname()); // 'Jane Doe'
 ```

@@ -11,7 +11,7 @@ This guide shows a few examples, but for the full list of what it can do, and fo
 From now on, we will call `queryInterface` the singleton instance of the [QueryInterface](../class/lib/dialects/abstract/query-interface.js~QueryInterface.html) class, which is available on your Sequelize instance:
 
 ```js
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = new Sequelize(/* ... */);
 const queryInterface = sequelize.getQueryInterface();
 ```
@@ -19,13 +19,13 @@ const queryInterface = sequelize.getQueryInterface();
 ## Creating a table
 
 ```js
-queryInterface.createTable('Person', {
+queryInterface.createTable("Person", {
   name: DataTypes.STRING,
   isBetaMember: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    allowNull: false
-  }
+    allowNull: false,
+  },
 });
 ```
 
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `Person` (
 ## Adding a column to a table
 
 ```js
-queryInterface.addColumn('Person', 'petName', { type: DataTypes.STRING });
+queryInterface.addColumn("Person", "petName", { type: DataTypes.STRING });
 ```
 
 Generated SQL (using SQLite):
@@ -55,10 +55,10 @@ ALTER TABLE `Person` ADD `petName` VARCHAR(255);
 ## Changing the datatype of a column
 
 ```js
-queryInterface.changeColumn('Person', 'foo', {
+queryInterface.changeColumn("Person", "foo", {
   type: DataTypes.FLOAT,
   defaultValue: 3.14,
-  allowNull: false
+  allowNull: false,
 });
 ```
 
@@ -71,7 +71,9 @@ ALTER TABLE `Person` CHANGE `foo` `foo` FLOAT NOT NULL DEFAULT 3.14;
 ## Removing a column
 
 ```js
-queryInterface.removeColumn('Person', 'petName', { /* query options */ });
+queryInterface.removeColumn("Person", "petName", {
+  /* query options */
+});
 ```
 
 Generated SQL (using PostgreSQL):
@@ -88,22 +90,22 @@ For example:
 
 ```js
 // Assuming we have a table in SQLite created as follows:
-queryInterface.createTable('Person', {
+queryInterface.createTable("Person", {
   name: DataTypes.STRING,
   isBetaMember: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    allowNull: false
+    allowNull: false,
   },
   petName: DataTypes.STRING,
-  foo: DataTypes.INTEGER
+  foo: DataTypes.INTEGER,
 });
 
 // And we change a column:
-queryInterface.changeColumn('Person', 'foo', {
+queryInterface.changeColumn("Person", "foo", {
   type: DataTypes.FLOAT,
   defaultValue: 3.14,
-  allowNull: false
+  allowNull: false,
 });
 ```
 

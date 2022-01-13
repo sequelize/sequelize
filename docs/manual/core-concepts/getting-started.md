@@ -54,9 +54,9 @@ You can use the `.authenticate()` function to test if the connection is OK:
 ```js
 try {
   await sequelize.authenticate();
-  console.log('Connection has been established successfully.');
+  console.log("Connection has been established successfully.");
 } catch (error) {
-  console.error('Unable to connect to the database:', error);
+  console.error("Unable to connect to the database:", error);
 }
 ```
 
@@ -94,13 +94,13 @@ By default, Sequelize will log to console every SQL query it performs. The `opti
 Common useful values for `options.logging`:
 
 ```js
-const sequelize = new Sequelize('sqlite::memory:', {
+const sequelize = new Sequelize("sqlite::memory:", {
   // Choose one of the logging options
-  logging: console.log,                  // Default, displays the first parameter of the log function call
+  logging: console.log, // Default, displays the first parameter of the log function call
   logging: (...msg) => console.log(msg), // Displays all log function call parameters
-  logging: false,                        // Disables logging
-  logging: msg => logger.debug(msg),     // Use custom logger (e.g. Winston or Bunyan), displays the first parameter
-  logging: logger.debug.bind(logger)     // Alternative way to use custom logger, displays all messages
+  logging: false, // Disables logging
+  logging: (msg) => logger.debug(msg), // Use custom logger (e.g. Winston or Bunyan), displays the first parameter
+  logging: logger.debug.bind(logger), // Alternative way to use custom logger, displays all messages
 });
 ```
 

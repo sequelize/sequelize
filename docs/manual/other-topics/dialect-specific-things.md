@@ -9,12 +9,12 @@ The underlying connector library used by Sequelize for MySQL is the [mysql2](htt
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mysql',
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "mysql",
   dialectOptions: {
     // Your mysql2 options here
-  }
-})
+  },
+});
 ```
 
 `dialectOptions` are passed directly to the MySQL connection constructor. A full list of options can be found in the [MySQL docs](https://www.npmjs.com/package/mysql#connection-options).
@@ -26,12 +26,12 @@ The underlying connector library used by Sequelize for MariaDB is the [mariadb](
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mariadb',
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "mariadb",
   dialectOptions: {
     // Your mariadb options here
     // connectTimeout: 1000
-  }
+  },
 });
 ```
 
@@ -57,7 +57,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 The following fields may be passed to SQLite `dialectOptions`:
 
-- `readWriteMode`: Set the opening mode for the SQLite connection. Potential values are provided by the sqlite3 package, and can include sqlite3.OPEN_READONLY, sqlite3.OPEN_READWRITE, or sqlite3.OPEN_CREATE. See the [SQLite C interface documentation for more details]( https://www.sqlite.org/c3ref/open.html).
+- `readWriteMode`: Set the opening mode for the SQLite connection. Potential values are provided by the sqlite3 package, and can include sqlite3.OPEN_READONLY, sqlite3.OPEN_READWRITE, or sqlite3.OPEN_CREATE. See the [SQLite C interface documentation for more details](https://www.sqlite.org/c3ref/open.html).
 
 ### PostgreSQL
 
@@ -66,11 +66,11 @@ The underlying connector library used by Sequelize for PostgreSQL is the [pg](ht
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'postgres',
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "postgres",
   dialectOptions: {
     // Your pg options here
-  }
+  },
 });
 ```
 
@@ -86,9 +86,9 @@ The following fields may be passed to Postgres `dialectOptions`:
 To connect over a unix domain socket, specify the path to the socket directory in the `host` option. The socket path must start with `/`.
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'postgres',
-  host: '/path/to/socket_directory'
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "postgres",
+  host: "/path/to/socket_directory",
 });
 ```
 
@@ -101,13 +101,13 @@ Most configuration is same as PostgreSQL above.
 Redshift doesn't support `client_min_messages`, 'ignore' is needed to skip the configuration:
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'postgres',
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "postgres",
   dialectOptions: {
     // Your pg options here
     // ...
-    clientMinMessages: 'ignore' // case insensitive
-  }
+    clientMinMessages: "ignore", // case insensitive
+  },
 });
 ```
 
@@ -118,16 +118,16 @@ The underlying connector library used by Sequelize for MSSQL is the [tedious](ht
 You can provide custom options to it using `dialectOptions.options` in the Sequelize constructor:
 
 ```js
-const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mssql',
+const sequelize = new Sequelize("database", "username", "password", {
+  dialect: "mssql",
   dialectOptions: {
     // Observe the need for this nested `options` field for MSSQL
     options: {
       // Your tedious options here
       useUTC: false,
-      dateFirst: 1
-    }
-  }
+      dateFirst: 1,
+    },
+  },
 });
 ```
 
@@ -138,22 +138,22 @@ A full list of options can be found in the [tedious docs](https://tediousjs.gith
 In order to connect with a domain account, use the following format.
 
 ```js
-const sequelize = new Sequelize('database', null, null, {
-  dialect: 'mssql',
+const sequelize = new Sequelize("database", null, null, {
+  dialect: "mssql",
   dialectOptions: {
     authentication: {
-      type: 'ntlm',
+      type: "ntlm",
       options: {
-        domain: 'yourDomain',
-        userName: 'username',
-        password: 'password'
-      }
+        domain: "yourDomain",
+        userName: "username",
+        password: "password",
+      },
     },
     options: {
-      instanceName: 'SQLEXPRESS'
-    }
-  }
-})
+      instanceName: "SQLEXPRESS",
+    },
+  },
+});
 ```
 
 ### Snowflake (Experiment)
@@ -163,22 +163,22 @@ The underlying connector library used by Sequelize for Snowflake is the [snowfla
 In order to connect with an account, use the following format:
 
 ```js
-const sequelize = new Sequelize('database', null, null, {
-  dialect: 'snowflake',
+const sequelize = new Sequelize("database", null, null, {
+  dialect: "snowflake",
   dialectOptions: {
     // put your snowflake account here,
-    account: 'myAccount',  // my-app.us-east-1
+    account: "myAccount", // my-app.us-east-1
 
     // below option should be optional
-    role: 'myRole',
-    warehouse: 'myWarehouse',
-    schema: 'mySchema'
+    role: "myRole",
+    warehouse: "myWarehouse",
+    schema: "mySchema",
   },
   // same as other dialect
-  username: 'myUserName',
-  password: 'myPassword',
-  database: 'myDatabaseName'
-})
+  username: "myUserName",
+  password: "myPassword",
+  database: "myDatabaseName",
+});
 ```
 
 **NOTE** There is no test sandbox provided so the snowflake integration test is not part of the pipeline. Also it is difficult for core team to triage and debug. This dialect needs to be maintained by the snowflake user/community for now.
@@ -194,8 +194,8 @@ SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=m
 If you are working with the PostgreSQL `TIMESTAMP WITHOUT TIME ZONE` and you need to parse it to a different timezone, please use the pg library's own parser:
 
 ```js
-require('pg').types.setTypeParser(1114, stringValue => {
-  return new Date(stringValue + '+0000');
+require("pg").types.setTypeParser(1114, (stringValue) => {
+  return new Date(stringValue + "+0000");
   // e.g., UTC offset. Use any offset that you would like.
 });
 ```
@@ -213,12 +213,12 @@ The `tableHint` option can be used to define a table hint. The hint must be a va
 Table hints override the default behavior of MSSQL query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
 ```js
-const { TableHints } = require('sequelize');
+const { TableHints } = require("sequelize");
 Project.findAll({
   // adding the table hint NOLOCK
-  tableHint: TableHints.NOLOCK
+  tableHint: TableHints.NOLOCK,
   // this will generate the SQL 'WITH (NOLOCK)'
-})
+});
 ```
 
 ## Index Hints - MySQL/MariaDB only
@@ -230,17 +230,15 @@ Index hints [override the default behavior of the MySQL query optimizer](https:/
 ```js
 const { IndexHints } = require("sequelize");
 Project.findAll({
-  indexHints: [
-    { type: IndexHints.USE, values: ['index_project_on_name'] }
-  ],
+  indexHints: [{ type: IndexHints.USE, values: ["index_project_on_name"] }],
   where: {
     id: {
-      [Op.gt]: 623
+      [Op.gt]: 623,
     },
     name: {
-      [Op.like]: 'Foo %'
-    }
-  }
+      [Op.like]: "Foo %",
+    },
+  },
 });
 ```
 
@@ -261,17 +259,23 @@ The default engine for a model is InnoDB.
 You can change the engine for a model with the `engine` option (e.g., to MyISAM):
 
 ```js
-const Person = sequelize.define('person', { /* attributes */ }, {
-  engine: 'MYISAM'
-});
+const Person = sequelize.define(
+  "person",
+  {
+    /* attributes */
+  },
+  {
+    engine: "MYISAM",
+  }
+);
 ```
 
 Like every option for the definition of a model, this setting can also be changed globally with the `define` option of the Sequelize constructor:
 
 ```js
 const sequelize = new Sequelize(db, user, pw, {
-  define: { engine: 'MYISAM' }
-})
+  define: { engine: "MYISAM" },
+});
 ```
 
 ## Table comments - MySQL/MariaDB/PostgreSQL only
@@ -280,10 +284,15 @@ You can specify a comment for a table when defining the model:
 
 ```js
 class Person extends Model {}
-Person.init({ /* attributes */ }, {
-  comment: "I'm a table comment!",
-  sequelize
-})
+Person.init(
+  {
+    /* attributes */
+  },
+  {
+    comment: "I'm a table comment!",
+    sequelize,
+  }
+);
 ```
 
 The comment will be set when calling `sync()`.

@@ -6,19 +6,25 @@ Adding constraints between tables means that tables must be created in the datab
 const { Sequelize, Model, DataTypes } = require("sequelize");
 
 class Document extends Model {}
-Document.init({
-    author: DataTypes.STRING
-}, { sequelize, modelName: 'document' });
+Document.init(
+  {
+    author: DataTypes.STRING,
+  },
+  { sequelize, modelName: "document" }
+);
 
 class Version extends Model {}
-Version.init({
-  timestamp: DataTypes.DATE
-}, { sequelize, modelName: 'version' });
+Version.init(
+  {
+    timestamp: DataTypes.DATE,
+  },
+  { sequelize, modelName: "version" }
+);
 
 Document.hasMany(Version); // This adds documentId attribute to version
 Document.belongsTo(Version, {
-  as: 'Current',
-  foreignKey: 'currentVersionId'
+  as: "Current",
+  foreignKey: "currentVersionId",
 }); // This adds currentVersionId attribute to document
 ```
 
@@ -33,9 +39,9 @@ In order to alleviate that, we can pass `constraints: false` to one of the assoc
 ```js
 Document.hasMany(Version);
 Document.belongsTo(Version, {
-  as: 'Current',
-  foreignKey: 'currentVersionId',
-  constraints: false
+  as: "Current",
+  foreignKey: "currentVersionId",
+  constraints: false,
 });
 ```
 
@@ -69,44 +75,53 @@ Sometimes you may want to reference another table, without adding any constraint
 
 ```js
 class Trainer extends Model {}
-Trainer.init({
-  firstName: Sequelize.STRING,
-  lastName: Sequelize.STRING
-}, { sequelize, modelName: 'trainer' });
+Trainer.init(
+  {
+    firstName: Sequelize.STRING,
+    lastName: Sequelize.STRING,
+  },
+  { sequelize, modelName: "trainer" }
+);
 
 // Series will have a trainerId = Trainer.id foreign reference key
 // after we call Trainer.hasMany(series)
 class Series extends Model {}
-Series.init({
-  title: Sequelize.STRING,
-  subTitle: Sequelize.STRING,
-  description: Sequelize.TEXT,
-  // Set FK relationship (hasMany) with `Trainer`
-  trainerId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Trainer,
-      key: 'id'
-    }
-  }
-}, { sequelize, modelName: 'series' });
+Series.init(
+  {
+    title: Sequelize.STRING,
+    subTitle: Sequelize.STRING,
+    description: Sequelize.TEXT,
+    // Set FK relationship (hasMany) with `Trainer`
+    trainerId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Trainer,
+        key: "id",
+      },
+    },
+  },
+  { sequelize, modelName: "series" }
+);
 
 // Video will have seriesId = Series.id foreign reference key
 // after we call Series.hasOne(Video)
 class Video extends Model {}
-Video.init({
-  title: Sequelize.STRING,
-  sequence: Sequelize.INTEGER,
-  description: Sequelize.TEXT,
-  // set relationship (hasOne) with `Series`
-  seriesId: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: Series, // Can be both a string representing the table name or a Sequelize model
-      key: 'id'
-    }
-  }
-}, { sequelize, modelName: 'video' });
+Video.init(
+  {
+    title: Sequelize.STRING,
+    sequence: Sequelize.INTEGER,
+    description: Sequelize.TEXT,
+    // set relationship (hasOne) with `Series`
+    seriesId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Series, // Can be both a string representing the table name or a Sequelize model
+        key: "id",
+      },
+    },
+  },
+  { sequelize, modelName: "video" }
+);
 
 Series.hasOne(Video);
 Trainer.hasMany(Series);

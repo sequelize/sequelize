@@ -12,14 +12,14 @@ const User = sequelize.define("user", {
   username: {
     type: DataTypes.TEXT,
     allowNull: false,
-    unique: true
+    unique: true,
   },
   hashedPassword: {
     type: DataTypes.STRING(64),
     validate: {
-      is: /^[0-9a-f]{64}$/i
-    }
-  }
+      is: /^[0-9a-f]{64}$/i,
+    },
+  },
 });
 
 (async () => {
@@ -68,10 +68,10 @@ Without `allowNull: false`, the call `User.create({})` would work.
 
 ### Note about `allowNull` implementation
 
-The `allowNull` check is the only check in Sequelize that is a mix of a *validation* and a *constraint* in the senses described at the beginning of this tutorial. This is because:
+The `allowNull` check is the only check in Sequelize that is a mix of a _validation_ and a _constraint_ in the senses described at the beginning of this tutorial. This is because:
 
-* If an attempt is made to set `null` to a field that does not allow null, a `ValidationError` will be thrown *without any SQL query being performed*.
-* In addition, after `sequelize.sync`, the column that has `allowNull: false` will be defined with a `NOT NULL` SQL constraint. This way, direct SQL queries that attempt to set the value to `null` will also fail.
+- If an attempt is made to set `null` to a field that does not allow null, a `ValidationError` will be thrown _without any SQL query being performed_.
+- In addition, after `sequelize.sync`, the column that has `allowNull: false` will be defined with a `NOT NULL` SQL constraint. This way, direct SQL queries that attempt to set the value to `null` will also fail.
 
 ## Validators
 
@@ -142,7 +142,7 @@ To use a custom error message instead of that provided by [validator.js](https:/
 
 ```js
 isInt: {
-  msg: "Must be an integer number of pennies"
+  msg: "Must be an integer number of pennies";
 }
 ```
 
@@ -171,15 +171,18 @@ This means you can, for instance, have a string field which validates its length
 
 ```js
 class User extends Model {}
-User.init({
-  username: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    validate: {
-      len: [5, 10]
-    }
-  }
-}, { sequelize });
+User.init(
+  {
+    username: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        len: [5, 10],
+      },
+    },
+  },
+  { sequelize }
+);
 ```
 
 You also can conditionally allow `null` values, with a custom validator, since it won't be skipped:
@@ -206,17 +209,20 @@ You can customize `allowNull` error message by setting the `notNull` validator:
 
 ```js
 class User extends Model {}
-User.init({
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notNull: {
-        msg: 'Please enter your name'
-      }
-    }
-  }
-}, { sequelize });
+User.init(
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "Please enter your name",
+        },
+      },
+    },
+  },
+  { sequelize }
+);
 ```
 
 ### Model-wide validations
@@ -231,33 +237,36 @@ An example:
 
 ```js
 class Place extends Model {}
-Place.init({
-  name: Sequelize.STRING,
-  address: Sequelize.STRING,
-  latitude: {
-    type: DataTypes.INTEGER,
-    validate: {
-      min: -90,
-      max: 90
-    }
+Place.init(
+  {
+    name: Sequelize.STRING,
+    address: Sequelize.STRING,
+    latitude: {
+      type: DataTypes.INTEGER,
+      validate: {
+        min: -90,
+        max: 90,
+      },
+    },
+    longitude: {
+      type: DataTypes.INTEGER,
+      validate: {
+        min: -180,
+        max: 180,
+      },
+    },
   },
-  longitude: {
-    type: DataTypes.INTEGER,
+  {
+    sequelize,
     validate: {
-      min: -180,
-      max: 180
-    }
-  },
-}, {
-  sequelize,
-  validate: {
-    bothCoordsOrNone() {
-      if ((this.latitude === null) !== (this.longitude === null)) {
-        throw new Error('Either both latitude and longitude, or neither!');
-      }
-    }
+      bothCoordsOrNone() {
+        if ((this.latitude === null) !== (this.longitude === null)) {
+          throw new Error("Either both latitude and longitude, or neither!");
+        }
+      },
+    },
   }
-})
+);
 ```
 
 In this simple case an object fails validation if either latitude or longitude is given, but not both. If we try to build one with an out-of-range latitude and no longitude, `somePlace.validate()` might return:
