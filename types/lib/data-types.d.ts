@@ -52,6 +52,8 @@ export const ABSTRACT: AbstractDataTypeConstructor;
 interface AbstractDataTypeConstructor {
   key: string;
   warn(link: string, text: string): void;
+  new (): AbstractDataType;
+  (): AbstractDataType;
 }
 
 export interface AbstractDataType {
@@ -366,16 +368,11 @@ export const HSTORE: AbstractDataTypeConstructor;
 /**
  * A JSON string column. Only available in postgres.
  */
-export const JSON: JSONDataTypeConstructor;
+export const JSON: AbstractDataTypeConstructor;
 /**
  * A pre-processed JSON data column. Only available in postgres.
  */
-export const JSONB: JSONDataTypeConstructor;
-
-interface JSONDataTypeConstructor extends AbstractDataTypeConstructor {
-  new (): AbstractDataType;
-  (): AbstractDataType;
-}
+export const JSONB: AbstractDataTypeConstructor;
 
 /**
  * A default value of the current timestamp
