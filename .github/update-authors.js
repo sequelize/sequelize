@@ -30,7 +30,7 @@ output.write("# Authors ordered by first contribution.\n\n");
 const seen = new Set();
 
 // exclude emails from <ROOT>/AUTHORS file
-const excludeEmails = ["bot@renovateapp.com"];
+const excludeEmails = ["<bot@renovateapp.com>", "<support@greenkeeper.io>"];
 
 // Support regular git author metadata, as well as `Author:` and
 // `Co-authored-by:` in the message body. Both have been used in the past
@@ -45,7 +45,14 @@ rl.on("line", (line) => {
 
   const { author, email } = match.groups;
 
-  if (seen.has(email) || excludeEmails.includes(email)) {
+  const botRegex = /bot@users.noreply.github.com/g;
+  const botEmail = email.replace(/\[bot.*?\]/g, "bot");
+
+  if (
+    seen.has(email) ||
+    excludeEmails.includes(email) ||
+    botEmail.match(botRegex)
+  ) {
     return;
   }
 
