@@ -8,7 +8,7 @@ on:
 
 jobs:
   authors_update:
-    if: github.repository == 'nodejs/node'
+    if: github.repository == 'sequelize/sequelize'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
           body: >
             Here are some new additions to the AUTHORS file.
             This is an automatically generated PR by the
-            `authors.yml` GitHub Action, which runs `tools/update-authors.js`.
+            `authors.yml` GitHub Action, which runs `.github/update-authors.js`.
           branch: "actions/authors-update" # Custom branch *just* for this Action.
           commit-message: "meta: update sequelize AUTHORS"
           labels: meta
