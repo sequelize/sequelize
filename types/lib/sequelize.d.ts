@@ -1487,7 +1487,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
+export type AttributeType = Fn | Col | Literal | Cast | ModelAttributeColumnOptions | string;
 export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> | WhereOperators | string | symbol | null;
 
 /**
