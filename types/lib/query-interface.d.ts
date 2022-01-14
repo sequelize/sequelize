@@ -497,7 +497,7 @@ export class QueryInterface {
     tableName: TableName,
     records: object[],
     options?: QueryOptions,
-    attributes?: string[] | string
+    attributes?: Record<string, ModelAttributeColumnOptions>
   ): Promise<object | number>;
 
   /**
