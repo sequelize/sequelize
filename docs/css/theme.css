@@ -1,0 +1,16 @@
+/* Side Nav */
+.manual-color, .kind-class, .manual-color-faq {
+  background-color: #6eb5f7;
+}
+
+.manual-color a, .kind-class, .manual-color-faq a {
+  color: #ffffff !important;
+}
+
+.kind-variable, .manual-color-reference {
+  background-color: #074278;
+}
+
+.kind-variable, .manual-color-reference a, .manual-color-faq a {
+  color: #ffffff;
+}
