@@ -87,16 +87,14 @@ export class Json extends SequelizeMethod {
   ) {
     super();
 
-    const isPathString = typeof conditionsOrPath === 'string';
-
-    if (!isPathString && isObject(conditionsOrPath)) {
-      this.conditions = conditionsOrPath;
-    } else if (isPathString) {
+    if (typeof conditionsOrPath === 'string') {
       this.path = conditionsOrPath;
 
       if (value) {
         this.value = value;
       }
+    } else if (isObject(conditionsOrPath)) {
+      this.conditions = conditionsOrPath;
     }
   }
 }

@@ -106,10 +106,14 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
   }
 
   const newAttributes: Record<string | symbol, any> = Object.create(null);
-  for (const attributeNameOrOperator of getComplexKeys(where)) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator as any];
+  // note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
+  // Cast can be removed in sept. 2022 when we drop support for < 4.4
+  for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
+    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
 
-    const columnNameOrOperator: string | symbol = rawAttribute?.field ?? attributeNameOrOperator;
+    // note on 'any': TypeScript < 4.4 does not support using Symbol for keys.
+    // Cast can changed back to 'symbol | string' in sept. 2022 when we drop support for < 4.4
+    const columnNameOrOperator: any = rawAttribute?.field ?? attributeNameOrOperator;
 
     if (
       isPlainObject(where[attributeNameOrOperator])
