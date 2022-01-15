@@ -232,7 +232,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid date');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid time');
         });
 
         it('should return `true` if `value` is a date', () => {
@@ -247,9 +247,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect(type.validate('12:30:30')).to.equal(true);
         });
 
+        it('should return `true` if `value` is a time with ms', () => {
+          const type = DataTypes.TIME();
+
+          expect(type.validate('12:30:30.111')).to.equal(true);
+        });
+
       });
     });
-    
 
     if (current.dialect.supports.HSTORE) {
       describe('HSTORE', () => {
