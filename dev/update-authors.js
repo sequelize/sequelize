@@ -51,7 +51,7 @@ rl.on("line", (line) => {
   if (
     seen.has(email) ||
     excludeEmails.includes(email) ||
-    botEmail.match(botRegex)
+    botRegex.test(botEmail)
   ) {
     return;
   }
