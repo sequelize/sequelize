@@ -40,7 +40,7 @@ export function defaultValueSchemable(value: DataType): boolean {
   }
 
   // TODO this will be schemable when all supported db
-  // have been normalized for this case
+  //  have been normalized for this case
   if (value instanceof DataTypes.NOW) {
     return false;
   }

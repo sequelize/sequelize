@@ -190,9 +190,9 @@ export function combineTableNames(tableName1: string, tableName2: string): strin
  * @param attributeNames
  * @param ModelClass
  */
-export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames?
+export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames? See https://github.com/sequelize/meetings/issues/17
   dataValues: Record<string, any>,
-  attributeNames: string[], // TODO: can attributes be symbols too?
+  attributeNames: string[],
   ModelClass: ModelStatic<Model>,
 ): Record<string, any> {
   const values: Record<string, any> = Object.create(null);
