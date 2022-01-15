@@ -172,19 +172,19 @@ type Flatten<T extends object> = object extends T ? object : {
  * @private
  */
 export function defaults(
-  objectIn: { [key: string]: any }, // note: key should be string | symbol but can't before TS 4.4
-  ...sources: Array<{ [key: string]: any }> // note: key should be string | symbol but can't before TS 4.4
+  objectIn: { [key: string]: any }, // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
+  ...sources: Array<{ [key: string]: any }> // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
 ): object {
   for (const source of sources) {
     if (!source) {
       continue;
     }
 
-    // note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
-    // Cast can be removed in sept. 2022 when we drop support for < 4.4
+    // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
+    //  Cast can be removed in sept. 2022 when we drop support for < 4.4
     for (const key of getComplexKeys(source) as any[]) {
       const value = objectIn[key];
-      const objectPrototype: { [key: string]: any } = Object.prototype; // note: key should be string | symbol but can't before TS 4.4
+      const objectPrototype: { [key: string]: any } = Object.prototype; // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
 
       if (
         value === undefined
