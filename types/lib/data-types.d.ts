@@ -52,6 +52,8 @@ export const ABSTRACT: AbstractDataTypeConstructor;
 interface AbstractDataTypeConstructor extends Function {
   key: string;
   warn(link: string, text: string): void;
+  new (): AbstractDataType;
+  (): AbstractDataType;
 }
 
 export interface AbstractDataType {
@@ -336,7 +338,7 @@ interface DateDataTypeConstructor extends AbstractDataTypeConstructor {
   (options?: DateDataTypeOptions): DateDataType;
 }
 
-export interface DateDataType extends AbstractDataTypeConstructor {
+export interface DateDataType extends AbstractDataType {
   options: DateDataTypeOptions;
 }
 
@@ -367,7 +369,6 @@ export const HSTORE: AbstractDataTypeConstructor;
  * A JSON string column. Only available in postgres.
  */
 export const JSON: AbstractDataTypeConstructor;
-
 /**
  * A pre-processed JSON data column. Only available in postgres.
  */
