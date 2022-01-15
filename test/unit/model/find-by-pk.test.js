@@ -13,19 +13,11 @@ const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findByPk', () => {
-    before(() => {
-      sinon.stub(Sequelize.Model, 'findAll');
-    });
-    after(() => {
-      Sequelize.Model.findAll.restore();
-    });
-
     beforeEach(function () {
-      this.stub = Sequelize.Model.findAll;
-      this.stub.resolves();
+      this.stub = sinon.stub(Sequelize.Model, 'findAll').resolves();
     });
-    afterEach(function () {
-      this.stub.reset();
+    afterEach(() => {
+      sinon.restore();
     });
 
     it('should call internal findOne() method if findOne() is overridden', async () => {
