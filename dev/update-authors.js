@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // original comes from https://github.com/nodejs/node/blob/master/tools/update-authors.js
 
-// Usage: tools/update-author.js [--dry]
+// Usage: dev/update-author.js [--dry]
 // Passing --dry will redirect output to stdout rather than write to 'AUTHORS'.
 "use strict";
 const { spawn } = require("child_process");
