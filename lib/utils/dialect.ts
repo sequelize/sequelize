@@ -1,8 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject';
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO (@AllAwesome497): .js files must be imported using require. Fix me once data-types has been migrated to TS.
 const DataTypes = require('../data-types');
 
 const dialects = new Set([

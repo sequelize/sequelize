@@ -2,10 +2,10 @@ import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import type { DataType } from '../..';
 import { getOperators } from './format';
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Where } from './sequelize-method';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO (@AllAwesome497): .js files must be imported using require. Fix me once data-types has been migrated to TS.
 const DataTypes = require('../data-types');
 
 export function isPrimitive(val: any): val is string | number | boolean {

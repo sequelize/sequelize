@@ -1,12 +1,12 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } from '../..';
-// eslint-disable-next-line import/order
+// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO (@AllAwesome497): .js files must be imported using require. Fix me once data-types has been migrated to TS.
 const DataTypes = require('../data-types');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO: .js files must be imported using require. Fix me once sql-string has been migrated to TS.
 const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
