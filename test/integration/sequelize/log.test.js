@@ -9,11 +9,11 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('log', () => {
     beforeEach(function () {
-      this.stub = stub(console, 'log');
+      this.stub = stub(console, 'debug');
     });
 
     afterEach(() => {
-      console.log.restore();
+      console.debug.restore();
     });
 
     describe('with disabled logging', () => {

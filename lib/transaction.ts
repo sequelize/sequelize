@@ -27,11 +27,11 @@ export class Transaction {
   /**
    * Creates a new transaction instance
    *
-   * @param {Sequelize} sequelize A configured sequelize Instance
-   * @param {object} options An object with options
-   * @param {string} [options.type] Sets the type of the transaction. Sqlite only
-   * @param {string} [options.isolationLevel] Sets the isolation level of the transaction.
-   * @param {string} [options.deferrable] Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   * @param sequelize A configured sequelize Instance
+   * @param options An object with options
+   * @param [options.type] Sets the type of the transaction. Sqlite only
+   * @param [options.isolationLevel] Sets the isolation level of the transaction.
+   * @param [options.deferrable] Sets the constraints to be deferred or immediately checked. PostgreSQL only
    */
   constructor(sequelize: Sequelize, options: TransactionOptions) {
     this.sequelize = sequelize;
@@ -65,9 +65,7 @@ export class Transaction {
   }
 
   /**
-   * Commit the transaction
-   *
-   * @returns {Promise}
+   * Commit the transaction.
    */
   async commit(): Promise<void> {
     if (this.finished) {
@@ -88,8 +86,6 @@ export class Transaction {
 
   /**
    * Rollback (abort) the transaction
-   *
-   * @returns {Promise}
    */
   async rollback(): Promise<void> {
     if (this.finished) {
@@ -114,8 +110,7 @@ export class Transaction {
    * Called to acquire a connection to use and set the correct options on the connection.
    * We should ensure all of the environment that's set up is cleaned up in `cleanup()` below.
    *
-   * @param {boolean} useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
-   * @returns {Promise}
+   * @param useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
    */
   async prepareEnvironment(useCLS?: boolean) {
     if (useCLS === undefined) {
@@ -146,7 +141,7 @@ export class Transaction {
       try {
         result = await this.rollback();
       } finally {
-        throw error; // eslint-disable-line no-unsafe-finally
+        throw error; // eslint-disable-line no-unsafe-finally -- while this will mask the error thrown by `rollback`, the previous error is more important.
       }
     }
 
@@ -205,7 +200,7 @@ export class Transaction {
   /**
    * Adds a hook that is run after a transaction is committed.
    *
-   * @param {Function} fn   A callback function that is called with the committed transaction
+   * @param fn   A callback function that is called with the committed transaction
    * @name afterCommit
    * @memberof Sequelize.Transaction
    */
@@ -303,7 +298,7 @@ export class Transaction {
    * });
    * # The query will now return any rows that aren't locked by another transaction
    *
-   * @returns {object} possible options for row locking
+   * @returns possible options for row locking
    * @property UPDATE
    * @property SHARE
    * @property KEY_SHARE Postgres 9.3+ only

@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           const type = DataTypes.STRING();
 
           expect(type.validate('foobar')).to.equal(true);
-          // eslint-disable-next-line no-new-wrappers,unicorn/new-for-builtins
+          // eslint-disable-next-line no-new-wrappers,unicorn/new-for-builtins -- you should never create boxed primitives yourself, but we still want to test that our validation works with them.
           expect(type.validate(new String('foobar'))).to.equal(true);
           expect(type.validate(12)).to.equal(true);
         });
