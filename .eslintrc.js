@@ -25,6 +25,7 @@ module.exports = {
     'jsdoc/require-returns-description': 'off',
     'jsdoc/require-returns-type': 'off',
     'jsdoc/valid-types': 'error',
+    'jsdoc/no-types': 'error',
 
     // We need to enable this in the next Major, it resolves a code smell
     'unicorn/custom-error-definition': 'off',
@@ -52,12 +53,16 @@ module.exports = {
     'import/named': 'off',
   },
   overrides: [{
-    files: ['**/*.js'],
+    files: ['**/*.{js,mjs,cjs}'],
     rules: {
+      'jsdoc/no-types': 'off',
       'jsdoc/require-param-type': 'error',
       'jsdoc/check-types': 'error',
       'jsdoc/require-returns-type': 'error',
-
+    },
+  }, {
+    files: ['**/*.js'],
+    rules: {
       // These rules have been disabled in .js files to ease adoption.
       // They'll be fixed during the TS migration.
       // Remove these once most files have been migrated to TS.
@@ -160,6 +165,9 @@ module.exports = {
 
       // because of Chai
       '@typescript-eslint/no-unused-expressions': 'off',
+    },
+    env: {
+      mocha: true,
     },
     parserOptions: {
       project: ['./test/tsconfig.json'],
