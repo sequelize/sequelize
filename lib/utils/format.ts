@@ -209,8 +209,18 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
   return values;
 }
 
-// TODO: rename to removeNullishValues as it also removes undefined.
-export function removeNullValuesFromHash(
+/**
+ * Removes entries from `hash` whose value is either null or undefined, unless `omitNull` is false or `allowNull` includes that key.
+ *
+ * Keys ending with 'Id' are never removed.
+ *
+ * @param hash the object from which entries with nullish values will be removed.
+ * @param omitNull if false, this method returns the object as-is
+ * @param options
+ * @param options.allowNull A list of keys that must be preserved even if their value is null or undefined.
+ * @returns {Record<string, any>}
+ */
+export function removeNullishValuesFromHash(
   hash: Record<string, any>,
   omitNull: boolean,
   options?: { allowNull?: string[] },
