@@ -518,7 +518,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
       const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
-      let primary; let idx1; let idx2; let idx3;
+      let primary;
+      let idx1;
+      let idx2;
+      let idx3;
 
       switch (dialect) {
         case 'sqlite': {
@@ -1877,7 +1880,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     describe('options sent to aggregate', () => {
-      let options; let aggregateSpy;
+      let options;
+      let aggregateSpy;
 
       beforeEach(function () {
         options = { where: { username: 'user1' } };

@@ -14,23 +14,23 @@ if (current.dialect.supports.tmpTableTrigger) {
     describe('trigger', () => {
       let User;
       let triggerQuery = 'create trigger User_ChangeTracking on [users] for insert,update, delete \n'
-                          + 'as\n'
-                            + 'SET NOCOUNT ON\n'
-                            + 'if exists(select 1 from inserted)\n'
-                            + 'begin\n'
-                              + 'select * from inserted\n'
-                            + 'end\n'
-                            + 'if exists(select 1 from deleted)\n'
-                            + 'begin\n'
-                              + 'select * from deleted\n'
-                            + 'end\n';
+        + 'as\n'
+        + 'SET NOCOUNT ON\n'
+        + 'if exists(select 1 from inserted)\n'
+        + 'begin\n'
+        + 'select * from inserted\n'
+        + 'end\n'
+        + 'if exists(select 1 from deleted)\n'
+        + 'begin\n'
+        + 'select * from deleted\n'
+        + 'end\n';
       if (dialect === 'db2') {
         triggerQuery = 'CREATE OR REPLACE TRIGGER User_ChangeTracking\n'
-                       + 'AFTER INSERT ON "users"\n'
-                       + 'FOR EACH STATEMENT\n'
-                       + 'BEGIN ATOMIC\n'
-                       + '  SELECT * FROM "users";\n'
-                       + 'END';
+          + 'AFTER INSERT ON "users"\n'
+          + 'FOR EACH STATEMENT\n'
+          + 'BEGIN ATOMIC\n'
+          + '  SELECT * FROM "users";\n'
+          + 'END';
       }
 
       beforeEach(async function () {

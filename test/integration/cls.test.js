@@ -42,7 +42,8 @@ if (current.dialect.supports.transactions) {
       });
 
       it('supports several concurrent transactions', async function () {
-        let t1id; let t2id;
+        let t1id;
+        let t2id;
         await Promise.all([
           this.sequelize.transaction(async () => {
             t1id = this.ns.get('transaction').id;

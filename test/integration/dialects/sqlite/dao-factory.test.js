@@ -108,7 +108,7 @@ if (dialect === 'sqlite') {
             expect(user.name).to.equal('user');
           });
 
-          it.skip('should make aliased attributes available', async function () { // eslint-disable-line mocha/no-skipped-tests
+          it('should make aliased attributes available', async function () {
             const user = await this.User.findOne({
               where: { name: 'user' },
               attributes: ['id', ['name', 'username']],

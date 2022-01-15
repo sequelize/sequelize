@@ -15,7 +15,8 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
   }
 
   let sandbox;
-  let readSpy; let writeSpy;
+  let readSpy;
+  let writeSpy;
 
   beforeEach(async function () {
     sandbox = sinon.createSandbox();
