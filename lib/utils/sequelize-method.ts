@@ -112,18 +112,16 @@ export class Where extends SequelizeMethod {
   constructor(attribute: AttributeType, comparatorOrLogic: string | symbol | LogicType, logic?: LogicType) {
     super();
 
-    let comparator;
-
-    if (logic === undefined) {
-      logic = comparatorOrLogic;
-      comparator = '=';
-    } else {
-      comparator = comparatorOrLogic;
-    }
-
     this.attribute = attribute;
-    // @ts-expect-error
-    this.comparator = comparator;
-    this.logic = logic;
+
+    if (logic !== undefined) {
+      this.logic = logic;
+      // TypeScript is not smart enough to know that if `logic` is undefined, then `comparatorOrLogic` has to be `LogicType`
+      // @ts-expect-error
+      this.comparator = comparatorOrLogic;
+    } else {
+      this.logic = comparatorOrLogic;
+      this.comparator = '=';
+    }
   }
 }
