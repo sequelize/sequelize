@@ -122,5 +122,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Model.findAll.should.not.have.been.called;
       Sequelize.Model.findAll.should.have.been.called;
     });
+    it('should call internal findAll() method if findOne() is overridden', async () => {
+      const Model = current.define('model', {
+        unique1: {
+          type: DataTypes.INTEGER,
+          unique: 'unique',
+        },
+        unique2: {
+          type: DataTypes.INTEGER,
+          unique: 'unique',
+        },
+      });
+      Model.findAll = sinon.stub();
+
+      await Model.findOne();
+      Model.findAll.should.not.have.been.called;
+      Sequelize.Model.findAll.should.have.been.called;
+    });
   });
 });
