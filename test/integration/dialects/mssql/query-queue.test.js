@@ -100,7 +100,7 @@ if (dialect.startsWith('mssql')) {
     });
 
     describe('unhandled rejections', () => {
-      it('unhandled rejection should occur if user doesn\'t catch promise returned from query', async function () {
+      it.skip('unhandled rejection should occur if user doesn\'t catch promise returned from query', async function () {
         const User = this.User;
         const rejectionPromise = Support.nextUnhandledRejection();
         User.create({
