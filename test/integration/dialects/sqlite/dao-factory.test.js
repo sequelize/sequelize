@@ -107,15 +107,6 @@ if (dialect === 'sqlite') {
             const user = await this.User.findOne({ where: { name: 'user' } });
             expect(user.name).to.equal('user');
           });
-
-          it('should make aliased attributes available', async function () {
-            const user = await this.User.findOne({
-              where: { name: 'user' },
-              attributes: ['id', ['name', 'username']],
-            });
-
-            expect(user.username).to.equal('user');
-          });
         });
 
         describe('.all', () => {
