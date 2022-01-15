@@ -92,7 +92,7 @@
     "lint-staged": "12.1.7",
     "mariadb": "2.5.5",
     "markdownlint-cli": "0.30.0",
-    "mocha": "7.2.0",
+    "mocha": "9.1.4",
     "module-alias": "2.2.2",
     "ibm_db": "2.8.1",
     "mysql2": "2.3.3",
