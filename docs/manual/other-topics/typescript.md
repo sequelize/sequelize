@@ -80,7 +80,7 @@ You only need to use `CreationOptional` & `NonAttribute` on class instance field
 
 Example of a minimal TypeScript project with strict type-checking for attributes:
 
-<!-- NOTE for maintainers: Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly. -->
+[//]: # (NOTE for maintainers: Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.)
 
 ```typescript
 import {
@@ -310,8 +310,7 @@ async function doStuffWithUser() {
 
 The typings for Sequelize v5 allowed you to define models without specifying types for the attributes. This is still possible for backwards compatibility and for cases where you feel strict typing for attributes isn't worth it.
 
-<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure
-it typechecks correctly. -->
+[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
 import { Sequelize, Model, DataTypes } from "sequelize";
@@ -363,8 +362,7 @@ async function doStuffWithUserModel() {
 
 In Sequelize versions before v5, the default way of defining a model involved using `sequelize.define`. It's still possible to define models with that, and you can also add typings to these models using interfaces.
 
-<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure
-it typechecks correctly. -->
+[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure it typechecks correctly.)
 
 ```ts
 import { Sequelize, Model, DataTypes, Optional } from "sequelize";
@@ -405,8 +403,7 @@ async function doStuff() {
 
 If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
 
-<!-- NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure
-it typechecks correctly. -->
+[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
 import { Sequelize, Model, DataTypes } from "sequelize";
