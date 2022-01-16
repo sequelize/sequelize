@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Utils = require('sequelize/lib/utils');
+const Utils = require('sequelize/lib/utils/index');
 const Support = require('./support');
 const DataTypes = require('sequelize/lib/data-types');
 const Sequelize = require('sequelize');
