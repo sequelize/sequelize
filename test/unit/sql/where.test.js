@@ -2,7 +2,7 @@
 
 const Support = require('../support');
 const DataTypes = require('sequelize/lib/data-types');
-const QueryTypes = require('sequelize/lib/query-types');
+const { QueryTypes } = require('sequelize/lib/query-types');
 const util = require('util');
 const _ = require('lodash');
 

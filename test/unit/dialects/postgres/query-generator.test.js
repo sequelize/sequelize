@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Op = require('sequelize/lib/operators');
+const { Op } = require('sequelize/lib/operators');
 const QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator');
 const Support = require('../../support');
 

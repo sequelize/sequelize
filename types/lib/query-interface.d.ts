@@ -14,9 +14,8 @@ import {
   CreationAttributes,
   Attributes,
 } from './model';
-import QueryTypes = require('./query-types');
+import { QueryTypes, Transaction } from '..';
 import { Sequelize, RetryOptions } from './sequelize';
-import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
 import { Fn, Literal } from './utils';
 import { Deferrable } from './deferrable';
@@ -502,7 +501,7 @@ export class QueryInterface {
     tableName: TableName,
     records: object[],
     options?: QueryOptions,
-    attributes?: string[] | string
+    attributes?: Record<string, ModelAttributeColumnOptions>
   ): Promise<object | number>;
 
   /**

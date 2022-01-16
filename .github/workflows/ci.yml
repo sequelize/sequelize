@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["3.9", "4.0", "4.1", "4.2", "4.3", "4.4", "4.5"]
+        ts-version: ["4.1", "4.2", "4.3", "4.4", "4.5"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
@@ -76,10 +76,8 @@ jobs:
         run: yarn start-db2
       - name: Unit Tests
         run: yarn test-unit
-        continue-on-error: true
       - name: Integration Tests
         run: yarn test-integration
-        continue-on-error: true
   test-sqlite:
     strategy:
       fail-fast: false

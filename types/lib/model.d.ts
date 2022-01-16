@@ -6,10 +6,9 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { LOCK, Transaction } from './transaction';
 import { Col, Fn, Literal, Where, MakeUndefinedOptional, AnyFunction } from './utils';
+import { LOCK, Transaction, Op } from '..';
 import { SetRequired } from '../type-helpers/set-required'
-import Op from '../../lib/operators';
 
 export interface Logging {
   /**
@@ -634,16 +633,14 @@ export interface CountOptions<TAttributes = any>
 /**
  * Options for Model.count when GROUP BY is used
  */
-export interface CountWithOptions<TAttributes = any> extends CountOptions<TAttributes> {
-  /**
-   * GROUP BY in sql
-   * Used in conjunction with `attributes`.
-   * @see Projectable
-   */
-  group: GroupOption;
-}
+export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>
 
 export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
+
+interface GroupedCountResultItem {
+  [key: string]: unknown // projected attributes
+  count: number // the count for each group
+}
 
 /**
  * Options for Model.build method
@@ -718,12 +715,20 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes>
 {
   /**
-   * The fields to insert / update. Defaults to all fields
+   * Default values to use if building a new instance
    */
-  fields?: (keyof TAttributes)[];
+  defaults?: TCreationAttributes;
+}
+
+/**
+ * Options for Model.findOrBuild method
+ */
+export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
+  extends FindOptions<TAttributes>, BuildOptions
+{
   /**
    * Default values to use if building a new instance
    */
@@ -962,7 +967,7 @@ export interface InstanceRestoreOptions extends Logging, Transactionable { }
 /**
  * Options used for Instance.destroy method
  */
-export interface InstanceDestroyOptions extends Logging, Transactionable {
+export interface InstanceDestroyOptions extends Logging, Transactionable, Hookable {
   /**
    * If set to true, paranoid models will actually be deleted
    */
@@ -1910,25 +1915,27 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Count number of records if group by is used
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<Attributes<M>>
-  ): Promise<Array<{ [groupKey: string]: unknown, count: number }>>;
+  ): Promise<GroupedCountResultItem[]>;
 
   /**
    * Count the number of records matching the provided where clause.
    *
    * If you provide an `include` option, the number of matching associations will be counted instead.
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: CountOptions<Attributes<M>>
+    options?: Omit<CountOptions<Attributes<M>>, 'group'>
   ): Promise<number>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
-   * rows matching your query. This is very usefull for paging
+   * rows matching your query. This is very useful for paging
    *
    * ```js
    * Model.findAndCountAll({
@@ -1960,6 +1967,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * who have a profile will be counted. If we remove `required` from the include, both users with and
    * without
    * profiles will be counted
+   *
+   * This function also support grouping, when `group` is provided, the count will be an array of objects
+   * containing the count for each group and the projected attributes.
+   * ```js
+   * User.findAndCountAll({
+   *   group: 'type'
+   * });
+   * ```
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
@@ -1968,7 +1983,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>
-  ): Promise<{ rows: M[]; count: number[] }>;
+  ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
 
   /**
    * Find the maximum value of field
@@ -2033,7 +2048,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<
+    options: FindOrBuildOptions<
       Attributes<M>,
       CreationAttributes<M>
     >

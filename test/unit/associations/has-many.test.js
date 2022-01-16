@@ -9,7 +9,7 @@ const _ = require('lodash');
 const Support = require('../support');
 const DataTypes = require('sequelize/lib/data-types');
 const HasMany = require('sequelize/lib/associations/has-many');
-const Op = require('sequelize/lib/operators');
+const { Op } = require('sequelize/lib/operators');
 
 const current = Support.sequelize;
 
