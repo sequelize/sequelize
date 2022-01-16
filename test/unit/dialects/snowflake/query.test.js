@@ -13,11 +13,11 @@ const expect = chai.expect;
 describe('[SNOWFLAKE Specific] Query', () => {
   describe('logWarnings', () => {
     beforeEach(() => {
-      sinon.spy(console, 'log');
+      sinon.spy(console, 'debug');
     });
 
     afterEach(() => {
-      console.log.restore();
+      console.debug.restore();
     });
 
     it('check iterable', async () => {
@@ -31,7 +31,7 @@ describe('[SNOWFLAKE Specific] Query', () => {
 
       const results = await query.logWarnings('dummy-results');
       expect('dummy-results').to.equal(results);
-      expect(true).to.equal(console.log.calledOnce);
+      expect(true).to.equal(console.debug.calledOnce);
     });
   });
 });

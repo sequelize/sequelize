@@ -175,7 +175,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('add parameters in log sql', async function () {
-          let createSql; let updateSql;
+          let createSql;
+          let updateSql;
 
           const user = await this.User.create({
             username: 'john',

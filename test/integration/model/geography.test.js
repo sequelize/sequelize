@@ -25,7 +25,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           location: { field: 'coordinates', type: DataTypes.GEOGRAPHY },
         });
         const point = {
-          type: 'Point', coordinates: [39.807_222, -76.984_722],
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -43,7 +44,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create a geography object', async function () {
         const User = this.User;
         const point = {
-          type: 'Point', coordinates: [39.807_222, -76.984_722],
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -60,7 +62,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geography object', async function () {
         const User = this.User;
         const point1 = {
-          type: 'Point', coordinates: [39.807_222, -76.984_722],
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -69,7 +72,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         };
         const point2 = {
-          type: 'Point', coordinates: [49.807_222, -86.984_722],
+          type: 'Point',
+          coordinates: [49.807_222, -86.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -99,7 +103,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create a geography object', async function () {
         const User = this.User;
         const point = {
-          type: 'Point', coordinates: [39.807_222, -76.984_722],
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -116,7 +121,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geography object', async function () {
         const User = this.User;
         const point1 = {
-          type: 'Point', coordinates: [39.807_222, -76.984_722],
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -125,7 +131,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         };
         const point2 = {
-          type: 'Point', coordinates: [49.807_222, -86.984_722],
+          type: 'Point',
+          coordinates: [49.807_222, -86.984_722],
           crs: {
             type: 'name',
             properties: {
@@ -155,7 +162,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create a geography object', async function () {
         const User = this.User;
         const point = {
-          type: 'LineString', coordinates: [[100, 0], [101, 1]],
+          type: 'LineString',
+          coordinates: [[100, 0], [101, 1]],
           crs: {
             type: 'name',
             properties: {
@@ -172,7 +180,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geography object', async function () {
         const User = this.User;
         const point1 = {
-          type: 'LineString', coordinates: [[100, 0], [101, 1]],
+          type: 'LineString',
+          coordinates: [[100, 0], [101, 1]],
           crs: {
             type: 'name',
             properties: {
@@ -181,7 +190,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         };
         const point2 = {
-          type: 'LineString', coordinates: [[101, 0], [102, 1]],
+          type: 'LineString',
+          coordinates: [[101, 0], [102, 1]],
           crs: {
             type: 'name',
             properties: {
@@ -211,9 +221,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create a geography object', async function () {
         const User = this.User;
         const point = {
-          type: 'Polygon', coordinates: [
-            [[100, 0], [101, 0], [101, 1],
-              [100, 1], [100, 0]],
+          type: 'Polygon',
+          coordinates: [
+            [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
           ],
           crs: {
             type: 'name',
@@ -231,7 +241,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geography object', async function () {
         const User = this.User;
         const polygon1 = {
-          type: 'Polygon', coordinates: [
+          type: 'Polygon',
+          coordinates: [
             [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
           ],
           crs: {
@@ -242,9 +253,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         };
         const polygon2 = {
-          type: 'Polygon', coordinates: [
-            [[100, 0], [102, 0], [102, 1],
-              [100, 1], [100, 0]],
+          type: 'Polygon',
+          coordinates: [
+            [[100, 0], [102, 0], [102, 1], [100, 1], [100, 0]],
           ],
           crs: {
             type: 'name',
@@ -276,9 +287,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should create a geography object', async function () {
           const User = this.User;
           const point = {
-            type: 'Polygon', coordinates: [
-              [[100, 0], [101, 0], [101, 1],
-                [100, 1], [100, 0]],
+            type: 'Polygon',
+            coordinates: [
+              [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
             ],
             crs: {
               type: 'name',
@@ -296,7 +307,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should update a geography object', async function () {
           const User = this.User;
           const polygon1 = {
-            type: 'Polygon', coordinates: [
+            type: 'Polygon',
+            coordinates: [
               [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
             ],
             crs: {
@@ -307,9 +319,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           };
           const polygon2 = {
-            type: 'Polygon', coordinates: [
-              [[100, 0], [102, 0], [102, 1],
-                [100, 1], [100, 0]],
+            type: 'Polygon',
+            coordinates: [
+              [[100, 0], [102, 0], [102, 1], [100, 1], [100, 0]],
             ],
             crs: {
               type: 'name',

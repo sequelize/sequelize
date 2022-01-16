@@ -19,7 +19,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('options tests', () => {
-      let stub; let instance;
+      let stub;
+      let instance;
       const Model = current.define('User', {
         id: {
           type: Sequelize.BIGINT,

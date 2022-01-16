@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable no-console -- the point of this file is to debug :) */
+
 // See https://github.com/papb/sequelize-sscce as another option for running SSCCEs.
 
 const { expect } = require('chai'); // You can use `expect` on your SSCCE!
@@ -29,3 +31,5 @@ User.init({
 
   expect(jane.username).to.equal('janedoe');
 })();
+
+/* eslint-enable no-console -- the point of this file is to debug :) */

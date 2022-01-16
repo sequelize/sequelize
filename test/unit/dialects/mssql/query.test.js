@@ -13,7 +13,8 @@ const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 const connectionStub = { beginTransaction: () => {}, lib: tedious };
 
-let sandbox; let query;
+let sandbox;
+let query;
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Query', () => {
