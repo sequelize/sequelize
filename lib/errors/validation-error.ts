@@ -236,9 +236,9 @@ class ValidationError extends BaseError {
   /**
    * Gets all validation error items for the path / field specified.
    *
-   * @param {string} path The path to be checked for error items
+   * @param path The path to be checked for error items
    *
-   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
+   * @returns Validation error items for the specified path
    */
   get(path: string): ValidationErrorItem[] {
     const out: ValidationErrorItem[] = [];

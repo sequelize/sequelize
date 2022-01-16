@@ -15,8 +15,7 @@ function doesNotWantTrailingSpace(str: string): boolean {
  * - Strings starting with ';', ',' and ')', which do not get a leading space.
  * - Strings ending with '(', which do not get a trailing space.
  *
- * @param {string[]} parts
- * @returns {string}
+ * @param parts
  * @private
  */
 function singleSpaceJoinHelper(parts: string[]): string {
@@ -46,11 +45,11 @@ function singleSpaceJoinHelper(parts: string[]): string {
  *
  * Certain elements do not get leading/trailing spaces.
  *
- * @param {SQLFragment[]} array The array to be joined. Falsy values are skipped. If an
+ * @param array The array to be joined. Falsy values are skipped. If an
  * element is another array, this function will be called recursively on that array.
  * Otherwise, if a non-string, non-falsy value is present, a TypeError will be thrown.
  *
- * @returns {string} The joined string.
+ * @returns The joined string.
  *
  * @private
  */

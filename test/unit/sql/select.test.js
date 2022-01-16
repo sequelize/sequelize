@@ -598,7 +598,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('attribute escaping', () => {
       it('plain attributes (1)', () => {
-        expectsql(sql.selectQuery('User', { attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]        }), {
+        expectsql(sql.selectQuery('User', {
+          attributes: [
+            '* FROM [User]; DELETE FROM [User];SELECT [id]'
+              .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+              .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+          ],
+        }), {
           default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
           db2: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
           snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
@@ -682,7 +688,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attributes: ['name', 'age'],
           include: Model._validateIncludedElements({
             include: [{
-              attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)],              association: User.Posts,
+              attributes: [
+                '* FROM [User]; DELETE FROM [User];SELECT [id]'
+                  .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+                  .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              ],
+              association: User.Posts,
             }],
             model: User,
           }).include,
