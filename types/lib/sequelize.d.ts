@@ -19,7 +19,9 @@ import {
   WhereOperators,
   ModelCtor,
   Hookable,
-  ModelType, CreationAttributes, Attributes,
+  ModelType,
+  CreationAttributes,
+  Attributes,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';

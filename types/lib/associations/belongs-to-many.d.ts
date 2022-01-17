@@ -1,6 +1,7 @@
 import {
   BulkCreateOptions,
-  CreateOptions, CreationAttributes,
+  CreateOptions,
+  CreationAttributes,
   Filterable,
   FindAttributeOptions,
   FindOptions,

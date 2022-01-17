@@ -1,6 +1,7 @@
 import { DataType } from '../data-types';
 import {
-  CreateOptions, CreationAttributes,
+  CreateOptions,
+  CreationAttributes,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
@@ -9,7 +10,6 @@ import {
   Transactionable,
 } from '../model';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
-import { MakeUndefinedOptional } from '../utils';
 
 /**
  * Options provided when associating models with hasMany relationship

@@ -101,7 +101,7 @@ export class Hooks<
    * @deprecated This property will become a Symbol in v7 to prevent collisions.
    * Use Attributes<Model> instead of this property to be forward-compatible.
    */
-  _attributes: TModelAttributes;
+  _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in model.d.ts)
   /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
@@ -109,7 +109,7 @@ export class Hooks<
    * @deprecated This property will become a Symbol in v7 to prevent collisions.
    * Use CreationAttributes<Model> instead of this property to be forward-compatible.
    */
-  _creationAttributes: TCreationAttributes;
+  _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in model.d.ts)
 
   /**
    * Add a hook to the model
