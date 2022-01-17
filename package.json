@@ -64,7 +64,7 @@
     "@ephys/eslint-config-typescript": "14.0.0",
     "@types/chai": "4.3.0",
     "@types/mocha": "9.0.0",
-    "@types/node": "16.11.19",
+    "@types/node": "16.11.20",
     "@types/sinon": "10.0.6",
     "@types/validator": "13.7.1",
     "acorn": "8.7.0",
