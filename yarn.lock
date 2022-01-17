@@ -502,20 +502,20 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@ephys/eslint-config-typescript@14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@ephys/eslint-config-typescript/-/eslint-config-typescript-14.0.0.tgz#45a1d484bdf14c6f32cb2cad18287106d95936e2"
-  integrity sha512-Bth0o4muU3IonqoAyxq7XNFO6NEzzMNygNwk4n6zOJYnfyadkAD2osb1CQZ6xdl3VkkKHcuPs9BVO8pgA7/C0A==
+"@ephys/eslint-config-typescript@14.1.1":
+  version "14.1.1"
+  resolved "https://registry.yarnpkg.com/@ephys/eslint-config-typescript/-/eslint-config-typescript-14.1.1.tgz#7210e3a50d6e74187a62b7c164386d826a8a618c"
+  integrity sha512-6QnoFAWnU+QJAnAKjWsZGQ+LqrwdOcx6HSDxgGYtbK3vAmZJ/mUh4ErWyvwo1fT7Lt6lT2kIbjrvdqvbOgH/QQ==
   dependencies:
-    "@ephys/eslint-config" "^14.0.0"
+    "@ephys/eslint-config" "14.1.0"
     "@typescript-eslint/eslint-plugin" "^5.8.1"
     "@typescript-eslint/parser" "^5.8.1"
     eslint-import-resolver-typescript "^2.5.0"
 
-"@ephys/eslint-config@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@ephys/eslint-config/-/eslint-config-14.0.0.tgz#78953346e5aaef3eeb0d2c6ea64e05a74ad976d3"
-  integrity sha512-MYK85D2mbDzbH/asYqG+3f8VCpFWGcEw+6zPNGB/TQA63ZYPhbJSuf0m1Bnvzt3DccDSZV3VzyPyq2/yjUVbng==
+"@ephys/eslint-config@14.1.0":
+  version "14.1.0"
+  resolved "https://registry.yarnpkg.com/@ephys/eslint-config/-/eslint-config-14.1.0.tgz#2e8e1cdbda96c4ecd3fafb8191ab1eb69c0f3597"
+  integrity sha512-KnkJsKrZB8y1ynFyZ7De3ZNeRMwFl1a7+wNOZSSVRHjBcFdVjJXhNyLa/KJph4PRsc49bVecNyKnIG7S/ZsB8Q==
   dependencies:
     "@babel/core" "^7.16.7"
     "@babel/eslint-parser" "^7.16.5"
