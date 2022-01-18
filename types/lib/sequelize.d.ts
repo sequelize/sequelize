@@ -1,4 +1,3 @@
-import * as DataTypes from './data-types';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -24,10 +23,10 @@ import {
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import QueryTypes = require('./query-types');
-import { Transaction, TransactionOptions } from './transaction';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS } from '..';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
+import type { AbstractDialect } from '../../lib/dialects/abstract/index';
 
 /**
  * Additional options for table altering during sync
@@ -326,14 +325,14 @@ export interface Options extends Logging {
    *
    * @default 'REPEATABLE_READ'
    */
-  isolationLevel?: string;
+  isolationLevel?: ISOLATION_LEVELS;
 
   /**
    * Set the default transaction type. See Sequelize.Transaction.TYPES for possible options. Sqlite only.
    *
    * @default 'DEFERRED'
    */
-  transactionType?: Transaction.TYPES;
+  transactionType?: TRANSACTION_TYPES;
 
   /**
    * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
@@ -365,6 +364,9 @@ export interface Options extends Logging {
    * The PostgreSQL `client_min_messages` session parameter.
    * Set to `false` to not override the database's default.
    *
+   * Deprecated in v7, please use the sequelize option "dialectOptions.clientMinMessages" instead
+   *
+   * @deprecated
    * @default 'warning'
    */
   clientMinMessages?: string | boolean;
@@ -390,6 +392,11 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * If defined the connection will use the provided schema instead of the default ("public").
+   */
+  schema?: string;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -426,6 +433,7 @@ export class Sequelize extends Hooks {
    * @param args All further arguments will be passed as arguments to the function
    */
   public static fn: typeof fn;
+  public fn: typeof fn;
 
   /**
    * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -434,6 +442,7 @@ export class Sequelize extends Hooks {
    * @param col The name of the column
    */
   public static col: typeof col;
+  public col: typeof col;
 
   /**
    * Creates a object representing a call to the cast function.
@@ -442,6 +451,7 @@ export class Sequelize extends Hooks {
    * @param type The type to cast it to
    */
   public static cast: typeof cast;
+  public cast: typeof cast;
 
   /**
    * Creates a object representing a literal, i.e. something that will not be escaped.
@@ -449,6 +459,7 @@ export class Sequelize extends Hooks {
    * @param val
    */
   public static literal: typeof literal;
+  public literal: typeof literal;
 
   /**
    * An AND query
@@ -456,6 +467,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by AND
    */
   public static and: typeof and;
+  public and: typeof and;
 
   /**
    * An OR query
@@ -463,6 +475,7 @@ export class Sequelize extends Hooks {
    * @param args Each argument will be joined by OR
    */
   public static or: typeof or;
+  public or: typeof or;
 
   /**
    * Creates an object representing nested where conditions for postgres's json data-type.
@@ -473,6 +486,7 @@ export class Sequelize extends Hooks {
    *   '<value>'".
    */
   public static json: typeof json;
+  public json: typeof json;
 
   /**
    * A way of specifying attr = condition.
@@ -493,6 +507,7 @@ export class Sequelize extends Hooks {
    *   etc.)
    */
   public static where: typeof where;
+  public where: typeof where;
 
   /**
    * A hook that is run before validation
@@ -804,7 +819,7 @@ export class Sequelize extends Hooks {
    *
    * @param namespace
    */
-  public static useCLS(namespace: object): typeof Sequelize;
+  public static useCLS(namespace: ContinuationLocalStorageNamespace): typeof Sequelize;
 
   /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
@@ -816,9 +831,20 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
+  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+
+  public readonly dialect: AbstractDialect;
+
   public readonly modelManager: ModelManager;
 
   public readonly connectionManager: ConnectionManager;
+
+  /**
+   * For internal use only.
+   *
+   * @type {ContinuationLocalStorageNamespace | undefined}
+   */
+  public static readonly _cls: ContinuationLocalStorageNamespace | undefined;
 
   /**
    * Dictionary of all models linked with this instance.
@@ -1165,10 +1191,10 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TCreationAttributes = M['_attributes']>(
+  public define<M extends Model, TAttributes = M['_attributes']>(
     modelName: string,
-    attributes: ModelAttributes<M, TCreationAttributes>,
-    options?: ModelOptions
+    attributes: ModelAttributes<M, TAttributes>,
+    options?: ModelOptions<M>
   ): ModelCtor<M>;
 
   /**
@@ -1213,11 +1239,15 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   public query<M extends Model>(
     sql: string | { query: string; values: unknown[] },
+    options: QueryOptionsWithModel<M> & { plain: true }
+  ): Promise<M | null>;
+  public query<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel<M>
   ): Promise<M[]>;
-  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown }>;
+  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
@@ -1474,5 +1504,10 @@ export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> 
  */
 export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
 export function where(attr: AttributeType, logic: LogicType): Where;
+
+type ContinuationLocalStorageNamespace = {
+  get(key: string): unknown;
+  set(key: string, value: unknown): void;
+};
 
 export default Sequelize;

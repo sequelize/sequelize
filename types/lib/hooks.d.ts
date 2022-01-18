@@ -4,16 +4,15 @@ import Model, {
   BulkCreateOptions,
   CountOptions,
   CreateOptions,
-  DestroyOptions,
-  RestoreOptions,
-  FindOptions,
+  DestroyOptions, FindOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
   InstanceUpdateOptions,
   ModelAttributes,
-  ModelOptions,
-  UpdateOptions,
+  ModelOptions, RestoreOptions, UpdateOptions, UpsertOptions
 } from './model';
+import { AbstractQuery } from './query';
+import { QueryOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { DeepWriteable } from './utils';
 
@@ -34,6 +33,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
+  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
+  afterUpsert(attributes: [ M,  boolean | null ], options: UpsertOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
@@ -59,7 +60,10 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
   afterBulkSync(options: SyncOptions): HookReturn;
+  beforeQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
+  afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
 }
+
 
 export interface SequelizeHooks<
   M extends Model<TAttributes, TCreationAttributes> = Model,
