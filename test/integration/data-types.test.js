@@ -30,7 +30,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
-      return value.format('YYYY-MM-DD HH:mm:ss');
+      let ret = value.format('YYYY-MM-DD HH:mm:ss');
+      if (dialect === 'oracle') {
+        // For ORACLE, use TO_DATE()
+        const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
+        const format = 'YYYY-MM-DD HH24:mi:ss';
+        ret = `TO_DATE('${formatedDate}', '${format}')`;
+      }
+      return ret;
     });
 
     current.refreshTypes();
