@@ -8644,10 +8644,10 @@ targz@^1.0.1:
   dependencies:
     tar-fs "^1.8.1"
 
-tedious@8.3.0:
-  version "8.3.0"
-  resolved "https://registry.yarnpkg.com/tedious/-/tedious-8.3.0.tgz#74d3d434638b0bdd02b6266f041c003ceca93f67"
-  integrity sha512-v46Q9SRVgz6IolyPdlsxQtfm9q/sqDs+y4aRFK0ET1iKitbpzCCQRHb6rnVcR1FLnLR0Y7AgcqnWUoMPUXz9HA==
+tedious@8.3.1:
+  version "8.3.1"
+  resolved "https://registry.yarnpkg.com/tedious/-/tedious-8.3.1.tgz#f169699d26e20676f596740ff46012ed14d8f1b1"
+  integrity sha512-HraoUHvXbbVrdLcYSh1KBiffqvtuXubEe8zmuKFdWAEwTUi3fS3swM1HdSq5tq/Q+A0NowYf/qvkOM4qoBpNRw==
   dependencies:
     "@azure/ms-rest-nodeauth" "2.0.2"
     "@js-joda/core" "^2.0.0"
