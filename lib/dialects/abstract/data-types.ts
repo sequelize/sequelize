@@ -37,7 +37,7 @@ export type RawTypeOf<T extends DataType> = Constructed<T> extends ABSTRACT<
 
 export type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> =
   | T
-  | { key: string; new (): T };
+  | { key: string, new (): T };
 
 // TODO: This typing may not be accurate, validate when query-generator is typed.
 export interface StringifyOptions {
@@ -54,8 +54,8 @@ export interface BindParamOptions extends StringifyOptions {
 // @internal
 export type DialectTypeMeta =
   | {
-      subtypes: { [name: string]: string };
-      castTypes: { [name: string]: string };
+      subtypes: { [name: string]: string },
+      castTypes: { [name: string]: string },
     }
   | string[]
   | [null];
@@ -116,7 +116,7 @@ class _ABSTRACT<
 
     if (!(proto && proto instanceof ABSTRACT)) {
       throw new TypeError(
-        "Unexpected call to ABSTRACT getter on object which does't extend ABSTRACT",
+        'Unexpected call to ABSTRACT getter on object which does\'t extend ABSTRACT',
       );
     }
 
@@ -124,7 +124,7 @@ class _ABSTRACT<
     // callable value (including classes) with the property `key`.
 
     const constructor = proto.constructor as Function & {
-      key: string;
+      key: string,
     };
 
     // Ensure that the parent DataType has a `key` property.
@@ -164,7 +164,7 @@ class _ABSTRACT<
     // callable value (including classes) with the property `key`.
 
     const constructor = proto.constructor as Function & {
-      escape: boolean;
+      escape: boolean,
     };
 
     // Since proto must extend ABSTRACT.prototype, we'll assume that its constructor extends ABSTRACT.
@@ -180,8 +180,7 @@ class _ABSTRACT<
   }
 
   protected _construct<Constructor extends abstract new () => ABSTRACT<any>>(
-    ...args: ConstructorParameters<Constructor>
-  ): this {
+    ...args: ConstructorParameters<Constructor>): this {
     const constructor = this.constructor as new (
       ..._args: ConstructorParameters<Constructor>
     ) => this;
@@ -326,8 +325,8 @@ class _STRING extends ABSTRACT<string | Buffer, string> {
   public validate(value: string | Buffer): true {
     if (Object.prototype.toString.call(value) !== '[object String]') {
       if (
-        (this.options.binary && Buffer.isBuffer(value)) ||
-        typeof value === 'number'
+        (this.options.binary && Buffer.isBuffer(value))
+        || typeof value === 'number'
       ) {
         return true;
       }
@@ -842,8 +841,8 @@ class _BOOLEAN extends ABSTRACT<
           return false;
         }
       } else if (
-        type === 'number' && // Only take action on valid boolean integers.
-        (value === 0 || value === 1)
+        type === 'number' // Only take action on valid boolean integers.
+        && (value === 0 || value === 1)
       ) {
         return Boolean(value);
       }
@@ -892,8 +891,8 @@ class _DATE extends ABSTRACT<AcceptedDate, Date, RawDate> {
    */
   constructor(length?: number | DateOptions) {
     super();
-    const options: DateOptions =
-      typeof length === 'object' ? length : { length };
+    const options: DateOptions
+      = typeof length === 'object' ? length : { length };
     this.options = options;
     // TODO: Check if this is still used and remove if it isn't.
     this._length = options.length || '';
@@ -933,12 +932,12 @@ class _DATE extends ABSTRACT<AcceptedDate, Date, RawDate> {
     originalValue: AcceptedDate,
   ): boolean {
     if (
-      originalValue &&
-      Boolean(value) &&
-      (value === originalValue ||
-        (value instanceof Date &&
-          originalValue instanceof Date &&
-          value.getTime() === originalValue.getTime()))
+      originalValue
+      && Boolean(value)
+      && (value === originalValue
+        || (value instanceof Date
+          && originalValue instanceof Date
+          && value.getTime() === originalValue.getTime()))
     ) {
       return false;
     }
@@ -1109,8 +1108,8 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
    */
   constructor(length?: BlobLength | BlobOptions) {
     super();
-    const options: BlobOptions =
-      typeof length === 'object' ? length : { length };
+    const options: BlobOptions
+      = typeof length === 'object' ? length : { length };
 
     this.options = options;
     this._length = options.length?.toLowerCase();
@@ -1141,8 +1140,8 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
   }
 
   protected _stringify(value: string | Buffer) {
-    const buf =
-      typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+    const buf
+      = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
     const hex = buf.toString('hex');
 
@@ -1186,8 +1185,8 @@ class _RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends ABSTRACT<
     const options = ABSTRACT.isType(subtype) ? { subtype } : subtype;
 
     if (typeof options.subtype === 'function') {
-      options.subtype =
-        typeof options.subtype === 'function'
+      options.subtype
+        = typeof options.subtype === 'function'
           ? new options.subtype()
           : options.subtype;
     } else {
