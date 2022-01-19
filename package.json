@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "1.1.0",
-    "@commitlint/cli": "16.0.2",
+    "@commitlint/cli": "16.0.3",
     "@commitlint/config-angular": "16.0.0",
     "@ephys/eslint-config-typescript": "14.1.1",
     "@types/chai": "4.3.0",
