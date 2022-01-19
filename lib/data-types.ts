@@ -42,41 +42,72 @@ export type RawTypeOf<T extends DataType> = Constructed<T> extends ABSTRACT<
   ? Raw
   : never;
 
-type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> = T | (new () => T);
+export type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> =
+  | T
+  | { key: string } & (new () => T);
 
-interface StringifyOptions {
+// TODO: This typing may not be accurate, validate when query-generator is typed.
+export interface StringifyOptions {
   escape(str: string): string;
   timezone?: string;
+  // TODO: Update this when query-generator is converted to TS
+  field?: any;
 }
-interface BindParamOptions extends StringifyOptions {
-  bindParam(value: string | Buffer): string;
+// TODO: This typing may not be accurate, validate when query-generator is typed.
+export interface BindParamOptions extends StringifyOptions {
+  bindParam(value: string | Buffer | string[] | null): string;
 }
+
+// @internal
+export type DialectTypeMeta =
+  | {
+      subtypes: { [name: string]: string },
+      castTypes: { [name: string]: string },
+    }
+  | string[]
+  | [null];
+
+const kSetDialectNames = Symbol.for(
+  'sequelize.internal.data-types.set-dialect-names',
+);
+
+// @internal
+export type SetDialectNamesSymbol = typeof kSetDialectNames;
 
 class _ABSTRACT<
   /** The type of value we'll accept - ie for a column of this type, we'll accept this value as user input. */
   AcceptedType,
   /** The "sane" type of this column - ie the type of a value of a field if it was sanitized via sequelize. */
   SaneType extends AcceptedType = AcceptedType,
-  /** The type of value retrieved from */
+  /** The type of value retrieved from. */
   RawType = AcceptedType,
 > {
   public static readonly key: string = 'ABSTRACT';
-  public static readonly escape: boolean = true;
+  public static readonly types: Record<string, DialectTypeMeta>;
+  // @ts-expect-error types is not set in constructor.
+  public types: Record<string, DialectTypeMeta>;
 
-  protected static _loadPrototypeProperty<
-    M extends abstract new () => ABSTRACT<any>,
-    Key extends keyof Constructed<M>,
-  >(this: M, key: Key): Constructed<M>[Key] {
-    return (this.prototype as Constructed<M>)[key];
-  }
+  /**
+   * Helper used to add a dialect to `types` of a DataType.  It ensures that it doesn't modify the types of its parent.
+   *
+   * @param dialect The dialect the types apply to
+   * @param types The dialect-specific types.
+   */
+  // @internal
+  public static [kSetDialectNames](dialect: string, types: DialectTypeMeta) {
+    if (!Object.prototype.hasOwnProperty.call(this, 'types')) {
+      const prop = {
+        value: {},
+        writable: false,
+        enumerable: false,
+        configurable: false,
+      };
 
-  protected _construct<Constructor extends abstract new () => ABSTRACT<any>>(
-    ...args: ConstructorParameters<Constructor>): this {
-    const constructor = this.constructor as new (
-      ..._args: ConstructorParameters<Constructor>
-    ) => this;
+      Reflect.defineProperty(this, 'types', prop);
+      Reflect.defineProperty(this.prototype, 'types', prop);
+    }
 
-    return new constructor(...args);
+    this.types[dialect] = types;
   }
 
   // A "memorized" getter.  This ensures that we'll inherit the static `key` property of each DataType and set it directly on that DataType's prototype
@@ -119,6 +150,8 @@ class _ABSTRACT<
     return constructor.key;
   }
 
+  public static readonly escape: boolean = true;
+
   public get escape(): boolean {
     const proto = Reflect.getPrototypeOf(this);
 
@@ -151,6 +184,15 @@ class _ABSTRACT<
     return constructor.escape;
   }
 
+  protected _construct<Constructor extends abstract new () => ABSTRACT<any>>(
+    ...args: ConstructorParameters<Constructor>): this {
+    const constructor = this.constructor as new (
+      ..._args: ConstructorParameters<Constructor>
+    ) => this;
+
+    return new constructor(...args);
+  }
+
   dialectTypes = '';
   /** A meta-property used in typing to determine the JS type of a value of this type
    * at runtime.  E.g. for the String DataType this would be a `string`, since that's what sequelize returns by default.
@@ -164,6 +206,7 @@ class _ABSTRACT<
     options?: { raw?: false },
   ): SaneType | null;
   protected _sanitize?(value: RawType, options: { raw: true }): RawType | null;
+
   public validate?(value: AcceptedType): asserts value is AcceptedType;
 
   protected _stringify?(value: AcceptedType, options: StringifyOptions): string;
@@ -246,7 +289,9 @@ type StringConstructorParams =
 
 class _STRING extends ABSTRACT<string | Buffer, string> {
   public static readonly key: string = 'STRING';
-  public readonly options: Required<StringTypeOptions>;
+  protected readonly options: StringTypeOptions;
+  protected readonly _binary?: boolean;
+  protected readonly _length?: number;
 
   /**
    * @param {StringTypeOptions} options hm
@@ -266,12 +311,15 @@ class _STRING extends ABSTRACT<string | Buffer, string> {
     }
 
     this.options = {
-      length: options.length ?? 255,
+      length: options.length || 255,
       binary: options.binary ?? false,
     };
+
+    this._binary = this.options.binary;
+    this._length = this.options.length;
   }
 
-  toSql() {
+  public toSql() {
     return joinSQLFragments([
       `VAR_CHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
@@ -298,7 +346,10 @@ class _STRING extends ABSTRACT<string | Buffer, string> {
   }
 
   get BINARY() {
-    return this._construct<typeof _STRING>({ binary: true });
+    return this._construct<typeof STRING>({
+      binary: true,
+      ...this.options,
+    });
   }
 
   static get BINARY() {
@@ -314,9 +365,9 @@ export const STRING = classToInvokable(_STRING);
 
 class _CHAR extends STRING {
   public static readonly key = 'CHAR';
-  toSql() {
+  public toSql() {
     return joinSQLFragments([
-      `_CHAR(${this.options.length})`,
+      `CHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
     ]);
   }
@@ -340,7 +391,8 @@ interface TextOptions {
 
 class _TEXT extends ABSTRACT<string, string> {
   public static readonly key = 'TEXT';
-  protected options: TextOptions;
+  protected readonly options: TextOptions;
+  protected _length?: TextLength;
 
   /**
    * @param [length='TEXT'] could be tiny, medium, long.
@@ -353,6 +405,8 @@ class _TEXT extends ABSTRACT<string, string> {
     this.options = {
       length: options.length?.toLowerCase() as TextLength,
     };
+
+    this._length = this.options.length;
   }
 
   toSql() {
@@ -429,18 +483,18 @@ type AcceptedNumber =
 class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
   public static readonly key: string = 'NUMBER';
 
-  protected readonly options: Readonly<NumberOptions>;
-  protected readonly _length?: number;
-  protected readonly _decimals?: number;
-  protected readonly _zerofill?: boolean;
-  protected readonly _unsigned?: boolean;
+  protected options: NumberOptions;
+  protected _length?: number;
+  protected _decimals?: number;
+  protected _zerofill?: boolean;
+  protected _unsigned?: boolean;
 
   /**
    * @param options type options
    * @param [options.length] length of type, like `INT(4)`
    * @param [options.zerofill] Is zero filled?
    * @param [options.unsigned] Is unsigned?
-   * @param [options.decimals] number of decimal points, used with length `_FLOAT(5, 4)`
+   * @param [options.decimals] number of decimal points, used with length `FLOAT(5, 4)`
    * @param [options.precision] defines precision for decimal type
    * @param [options.scale] defines scale for decimal type
    */
@@ -497,7 +551,7 @@ class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
     return true;
   }
 
-  protected override _stringify(number: AcceptedNumber): string {
+  protected _stringify(number: AcceptedNumber): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(number);
 
@@ -505,11 +559,11 @@ class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
   }
 
   public get UNSIGNED() {
-    return this._construct<typeof _NUMBER>({ ...this.options, unsigned: true });
+    return this._construct<typeof NUMBER>({ ...this.options, unsigned: true });
   }
 
   public get ZEROFILL() {
-    return this._construct<typeof _NUMBER>({ ...this.options, zerofill: true });
+    return this._construct<typeof NUMBER>({ ...this.options, zerofill: true });
   }
 
   public static get UNSIGNED() {
@@ -599,8 +653,8 @@ class _FLOAT extends NUMBER {
   public static readonly escape = false;
 
   /**
-   * @param {object|string|number} [length] length of type, like `_FLOAT(4)`
-   * @param {string|number} [decimals] number of decimal points, used with length `_FLOAT(5, 4)`
+   * @param {object|string|number} [length] length of type, like `FLOAT(4)`
+   * @param {string|number} [decimals] number of decimal points, used with length `FLOAT(5, 4)`
    */
   constructor(options: NumberOptions);
   constructor(length: number, decimals?: number);
@@ -637,16 +691,13 @@ class _FLOAT extends NUMBER {
     return num.toString();
   }
 
-  protected override _stringify(value: AcceptedNumber) {
+  protected _stringify(value: AcceptedNumber) {
     this.validate(value);
 
     return `'${this._value(value)}'`;
   }
 
-  protected override _bindParam(
-    value: AcceptedNumber,
-    options: BindParamOptions,
-  ) {
+  protected _bindParam(value: AcceptedNumber, options: BindParamOptions) {
     return options.bindParam(this._value(value));
   }
 }
@@ -707,7 +758,7 @@ class _DECIMAL extends NUMBER {
       this.options ??= precision;
     } else {
       super();
-      // Sadly TS isn't smart enough to infer that this will be defined by the constructor of _NUMBER.
+      // Sadly TS isn't smart enough to infer that this will be defined by the constructor of NUMBER.
       // This should never do anything becuase this.options should already be defined.
       this.options ??= {};
 
@@ -721,7 +772,7 @@ class _DECIMAL extends NUMBER {
 
   public toSql() {
     if (this._precision || this._scale) {
-      return `_DECIMAL(${[this._precision, this._scale]
+      return `DECIMAL(${[this._precision, this._scale]
         .filter(num => num != null)
         .join(',')})`;
     }
@@ -775,7 +826,9 @@ class _BOOLEAN extends ABSTRACT<
     return true;
   }
 
-  protected _sanitize(value: string | number | Buffer): boolean | null {
+  protected _sanitize(
+    value: string | number | Buffer | boolean,
+  ): boolean | null {
     if (value !== null && value !== undefined) {
       if (Buffer.isBuffer(value) && value.length === 1) {
         // Bit fields are returned as buffers
@@ -830,9 +883,10 @@ interface DateOptions {
   length?: string | number;
 }
 
-type AcceptedDate = Date | string | number;
+type RawDate = Date | string | number;
+type AcceptedDate = RawDate | moment.Moment;
 
-class _DATE extends ABSTRACT<AcceptedDate, Date> {
+class _DATE extends ABSTRACT<AcceptedDate, Date, RawDate> {
   public static readonly key: string = 'DATE';
   protected options: DateOptions;
   protected _length?: string | number;
@@ -864,12 +918,9 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
     return true;
   }
 
-  protected _sanitize(
-    value: AcceptedDate,
-    options: { raw: true },
-  ): AcceptedDate;
-  protected _sanitize(value: AcceptedDate, options?: { raw?: false }): Date;
-  protected _sanitize(value: AcceptedDate, options?: { raw?: boolean }) {
+  protected _sanitize(value: RawDate, options: { raw: true }): RawDate;
+  protected _sanitize(value: RawDate, options?: { raw?: false }): Date;
+  protected _sanitize(value: RawDate, options?: { raw?: boolean }) {
     if (options?.raw) {
       return value;
     }
@@ -923,9 +974,8 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
     if (!moment.isMoment(date)) {
       date = this._applyTimezone(date, options);
     }
-    // const d = moment.isMoment(date) ? date :
 
-    // Z here means current timezone, _not_ UTC
+    // Z here means current timezone, *not* UTC
     return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
@@ -936,7 +986,7 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
 export type DATE = _DATE;
 export const DATE = classToInvokable(_DATE);
 
-class _DATEONLY extends ABSTRACT<AcceptedDate, Date> {
+class _DATEONLY extends ABSTRACT<AcceptedDate, Date, RawDate> {
   public static readonly key = 'DATEONLY';
 
   public toSql() {
@@ -947,12 +997,12 @@ class _DATEONLY extends ABSTRACT<AcceptedDate, Date> {
     return moment(date).format('YYYY-MM-DD');
   }
 
-  protected _sanitize(value: AcceptedDate, options?: { raw?: false }): Date;
+  protected _sanitize(value: RawDate, options?: { raw?: false }): Date;
   protected _sanitize(
-    value: AcceptedDate,
+    value: RawDate,
     options: { raw: true },
-  ): AcceptedDate;
-  protected _sanitize(value: AcceptedDate, options?: { raw?: boolean }) {
+  ): RawDate;
+  protected _sanitize(value: RawDate, options?: { raw?: boolean }) {
     if (!options?.raw && value) {
       return moment(value).format('YYYY-MM-DD');
     }
@@ -983,7 +1033,7 @@ export const DATEONLY = classToInvokable(_DATEONLY);
 class _HSTORE extends ABSTRACT<Record<string, unknown>> {
   public static readonly key = 'HSTORE';
 
-  validate(value: Record<string, unknown>) {
+  public validate(value: Record<string, unknown>) {
     const proto = Object.getPrototypeOf(value);
 
     if (proto && proto !== Object.prototype) {
@@ -1010,7 +1060,7 @@ class _JSONTYPE extends ABSTRACT<any> {
     return true;
   }
 
-  _stringify(value: any) {
+  stringify(value: any) {
     return JSON.stringify(value);
   }
 }
@@ -1086,7 +1136,7 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
     }
   }
 
-  validate(value: AcceptedBlob) {
+  public validate(value: AcceptedBlob) {
     if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
       throw new ValidationError(
         util.format('%j is not a valid blob', value),
@@ -1121,34 +1171,20 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
 export type BLOB = _BLOB;
 export const BLOB = classToInvokable(_BLOB);
 
-interface RangeOptions<
-  T extends
-    | NUMBER
-    | DATE
-    | DATEONLY
-    | typeof NUMBER
-    | typeof DATE
-    | typeof DATEONLY,
-> {
+interface RangeOptions<T extends NUMBER | DATE | DATEONLY> {
   subtype?: T;
 }
 
-class _RANGE<
-  T extends
-    | NUMBER
-    | NUMBER
-    | DATE
-    | DATEONLY
-    | typeof NUMBER
-    | typeof DATE
-    | typeof DATEONLY,
-> extends ABSTRACT<AcceptedNumber, T[]> {
+class _RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends ABSTRACT<
+  AcceptedNumber,
+  T[]
+> {
   public static readonly key = 'RANGE';
   protected _subtype: string;
   protected options: Required<RangeOptions<T>>;
 
   /**
-   * @param subtype A subtype for range, like _RANGE(_DATE)
+   * @param subtype A subtype for range, like RANGE(DATE)
    */
   constructor(
     subtype: DataType<T> | RangeOptions<T> | { subtype: new () => T },
@@ -1156,23 +1192,22 @@ class _RANGE<
     super();
     const options = ABSTRACT.isType(subtype) ? { subtype } : subtype;
 
-    if (
-      typeof options === 'object'
-      && !(options instanceof ABSTRACT)
-      && typeof (options as RangeOptions<T>).subtype === 'function'
-    ) {
-      options.subtype = new options.subtype();
+    if (typeof options.subtype === 'function') {
+      options.subtype
+        = typeof options.subtype === 'function'
+          ? new options.subtype()
+          : options.subtype;
     } else {
-      // @ts-expect-error This errors since _INTEGER doesn't always apply to T, but we'll assume that if T is provided,
+      // @ts-expect-error This errors since INTEGER doesn't always apply to T, but we'll assume that if T is provided,
       // the user will provvide the type themselves.
-      options.subtype ??= new _INTEGER();
+      options.subtype ??= new INTEGER();
     }
 
-    this._subtype = options.subtype.key as string;
+    this._subtype = options.subtype.key;
     this.options = options as Required<RangeOptions<T>>;
   }
 
-  validate(value: Array<SaneTypeOf<T>>) {
+  public validate(value: Array<SaneTypeOf<T>>) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid range', value),
@@ -1195,7 +1230,7 @@ class _RANGE<
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  */
-export type RANGE = _RANGE;
+export type RANGE<T extends NUMBER | DATE | DATEONLY> = _RANGE<T>;
 export const RANGE = classToInvokable(_RANGE);
 
 interface UUIDOptions {
@@ -1205,7 +1240,7 @@ interface UUIDOptions {
 class _UUID extends ABSTRACT<string> {
   public static readonly key = 'UUID';
 
-  validate(value: string, options?: UUIDOptions) {
+  public validate(value: string, options?: UUIDOptions) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1226,7 +1261,7 @@ class _UUID extends ABSTRACT<string> {
 
 /**
  * A column storing a unique universal identifier.
- * Use with `_UUIDV1` or `_UUIDV4` for default values.
+ * Use with `UUIDV1` or `UUIDV4` for default values.
  */
 export type UUID = _UUID;
 export const UUID = classToInvokable(_UUID);
@@ -1234,7 +1269,7 @@ export const UUID = classToInvokable(_UUID);
 class _UUIDV1 extends ABSTRACT<string> {
   public static readonly key = 'UUIDV1';
 
-  validate(value: string, options?: UUIDOptions) {
+  public validate(value: string, options?: UUIDOptions) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1242,7 +1277,7 @@ class _UUIDV1 extends ABSTRACT<string> {
       );
     }
 
-    if (!options?.acceptStrings && !Validator.is_UUID(value, 1)) {
+    if (!options?.acceptStrings && !Validator.isUUID(value, 1)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv1', value),
         [],
@@ -1254,7 +1289,7 @@ class _UUIDV1 extends ABSTRACT<string> {
 }
 
 /**
- * A default unique universal identifier generated following the _UUID v1 standard
+ * A default unique universal identifier generated following the UUID v1 standard
  */
 export type UUIDV1 = _UUIDV1;
 export const UUIDV1 = classToInvokable(_UUIDV1);
@@ -1262,7 +1297,7 @@ export const UUIDV1 = classToInvokable(_UUIDV1);
 class _UUIDV4 extends ABSTRACT<string> {
   public static readonly key = 'UUIDV4';
 
-  validate(value: string, options?: UUIDOptions) {
+  public validate(value: string, options?: UUIDOptions) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1270,7 +1305,7 @@ class _UUIDV4 extends ABSTRACT<string> {
       );
     }
 
-    if (!options?.acceptStrings && !Validator.is_UUID(value, 4)) {
+    if (!options?.acceptStrings && !Validator.isUUID(value, 4)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv4', value),
         [],
@@ -1282,7 +1317,7 @@ class _UUIDV4 extends ABSTRACT<string> {
 }
 
 /**
- * A default unique universal identifier generated following the _UUID v4 standard
+ * A default unique universal identifier generated following the UUID v4 standard
  */
 export type UUIDV4 = _UUIDV4;
 export const UUIDV4 = classToInvokable(_UUIDV4);
@@ -1311,7 +1346,7 @@ class _VIRTUAL<T> extends ABSTRACT<T> {
 /**
  * A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model that is returned to the user but not stored in the DB.
  *
- * You could also use it to validate a value before permuting and storing it. _VIRTUAL also takes a return type and dependency fields as arguments
+ * You could also use it to validate a value before permuting and storing it. VIRTUAL also takes a return type and dependency fields as arguments
  * If a virtual attribute is present in `attributes` it will automatically pull in the extra fields as well.
  * Return type is mostly useful for setups that rely on types like GraphQL.
  *
@@ -1319,7 +1354,7 @@ class _VIRTUAL<T> extends ABSTRACT<T> {
  * sequelize.define('user', {
  *   password_hash: DataTypes.STRING,
  *   password: {
- *     type: DataTypes._VIRTUAL,
+ *     type: DataTypes.VIRTUAL,
  *     set: function (val) {
  *        // Remember to set the data value, otherwise it won't be validated
  *        this.setDataValue('password', val);
@@ -1340,7 +1375,7 @@ class _VIRTUAL<T> extends ABSTRACT<T> {
  * @example <caption>Virtual with dependency fields</caption>
  * {
  *   active: {
- *     type: new DataTypes._VIRTUAL(DataTypes._BOOLEAN, ['createdAt']),
+ *     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
  *     get: function() {
  *       return this.get('createdAt') > Date.now() - (7 * 24 * 60 * 60 * 1000)
  *     }
@@ -1412,9 +1447,9 @@ class _ENUM<Member extends string> extends ABSTRACT<Member> {
  * An enumeration, Postgres Only
  *
  * @example
- * DataTypes._ENUM('value', 'another value')
- * DataTypes._ENUM(['value', 'another value'])
- * DataTypes._ENUM({
+ * DataTypes.ENUM('value', 'another value')
+ * DataTypes.ENUM(['value', 'another value'])
+ * DataTypes.ENUM({
  *   values: ['value', 'another value']
  * })
  */
@@ -1429,7 +1464,7 @@ interface ArrayOptions<T extends ABSTRACT<any>> {
  * An array of `type`. Only available in Postgres.
  *
  * @example
- * DataTypes._ARRAY(DataTypes._DECIMAL)
+ * DataTypes.ARRAY(DataTypes.DECIMAL)
  */
 class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
   Array<AcceptableTypeOf<T>>,
@@ -1459,7 +1494,7 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
   }
 
   // Note: Validation of individual items is handled in the query-generator.
-  validate(value: Array<AcceptableTypeOf<T>>) {
+  public validate(value: Array<AcceptableTypeOf<T>>) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid array', value),
@@ -1473,8 +1508,8 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
   static is<T extends ABSTRACT<any>>(
     obj: unknown,
     type: new () => T,
-  ): obj is _ARRAY<T> {
-    return obj instanceof _ARRAY && obj.type instanceof type;
+  ): obj is ARRAY<T> {
+    return obj instanceof ARRAY && (obj as ARRAY<any>).type instanceof type;
   }
 }
 
@@ -1519,13 +1554,16 @@ class _GEOMETRY<Type extends GeometryType = GeometryType> extends ABSTRACT<
     this.srid = options.srid;
   }
 
-  _stringify(value: string | Buffer, options: StringifyOptions) {
+  protected _stringify(value: string | Buffer, options: StringifyOptions) {
     return `STGeomFromText(${options.escape(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
 
-  _bindParam(value: string | Buffer | wkx.Geometry, options: BindParamOptions) {
+  protected _bindParam(
+    value: string | Buffer | wkx.Geometry,
+    options: BindParamOptions,
+  ) {
     return `STGeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
@@ -1544,9 +1582,9 @@ class _GEOMETRY<Type extends GeometryType = GeometryType> extends ABSTRACT<
  * Therefore, one can just follow the [GeoJSON spec](https://tools.ietf.org/html/rfc7946) for handling geometry objects.  See the following examples:
  *
  * @example <caption>Defining a Geometry type attribute</caption>
- * DataTypes._GEOMETRY
- * DataTypes._GEOMETRY('POINT')
- * DataTypes._GEOMETRY('POINT', 4326)
+ * DataTypes.GEOMETRY
+ * DataTypes.GEOMETRY('POINT')
+ * DataTypes.GEOMETRY('POINT', 4326)
  *
  * @example <caption>Create a new point</caption>
  * const point = { type: 'Point', coordinates: [-76.984722, 39.807222]}; // GeoJson format: [lng, lat]
@@ -1576,7 +1614,7 @@ class _GEOMETRY<Type extends GeometryType = GeometryType> extends ABSTRACT<
  * User.create({username: 'username', geometry: point })
  *
  *
- * @see {@link DataTypes._GEOGRAPHY}
+ * @see {@link DataTypes.GEOGRAPHY}
  */
 export type GEOMETRY = _GEOMETRY;
 export const GEOMETRY = classToInvokable(_GEOMETRY);
@@ -1584,13 +1622,13 @@ export const GEOMETRY = classToInvokable(_GEOMETRY);
 /**
  * A geography datatype represents two dimensional spacial objects in an elliptic coord system.
  *
- * _The difference from geometry and geography type:__
+ * **The difference from geometry and geography type:**
  *
  * PostGIS 1.5 introduced a new spatial type called geography, which uses geodetic measurement instead of Cartesian measurement.
  * Coordinate points in the geography type are always represented in WGS 84 lon lat degrees (SRID 4326),
  * but measurement functions and relationships STDistance, STDWithin, STLength, and STArea always return answers in meters or assume inputs in meters.
  *
- * _What is best to use? It depends:__
+ * **What is best to use? It depends:**
  *
  * When choosing between the geometry and geography type for data storage, you should consider what you’ll be using it for.
  * If all you do are simple measurements and relationship checks on your data, and your data covers a fairly large area, then most likely you’ll be better off storing your data using the new geography type.
@@ -1598,9 +1636,9 @@ export const GEOMETRY = classToInvokable(_GEOMETRY);
  * The geometry type has a much richer set of functions than geography, relationship checks are generally faster, and it has wider support currently across desktop and web-mapping tools
  *
  * @example <caption>Defining a Geography type attribute</caption>
- * DataTypes._GEOGRAPHY
- * DataTypes._GEOGRAPHY('POINT')
- * DataTypes._GEOGRAPHY('POINT', 4326)
+ * DataTypes.GEOGRAPHY
+ * DataTypes.GEOGRAPHY('POINT')
+ * DataTypes.GEOGRAPHY('POINT', 4326)
  */
 class _GEOGRAPHY extends GEOMETRY {
   public static readonly key = 'GEOGRAPHY';
@@ -1612,7 +1650,7 @@ export const GEOGRAPHY = classToInvokable(_GEOGRAPHY);
 class _CIDR extends ABSTRACT<string> {
   public static readonly key = 'CIDR';
 
-  validate(value: string) {
+  public validate(value: string) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
       throw new ValidationError(
         util.format('%j is not a valid CIDR', value),
@@ -1634,7 +1672,7 @@ export const CIDR = classToInvokable(_CIDR);
 
 class _INET extends ABSTRACT<string> {
   public static readonly key = 'INET';
-  validate(value: string) {
+  public validate(value: string) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       throw new ValidationError(
         util.format('%j is not a valid INET', value),
@@ -1657,7 +1695,7 @@ export const INET = classToInvokable(_INET);
 class _MACADDR extends ABSTRACT<string> {
   public static readonly key = 'MACADDR';
 
-  validate(value: string) {
+  public validate(value: string) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new ValidationError(
         util.format('%j is not a valid MACADDR', value),
@@ -1681,7 +1719,7 @@ export const MACADDR = classToInvokable(_MACADDR);
 class _TSVECTOR extends ABSTRACT<string> {
   public static readonly key = 'TSVECTOR';
 
-  validate(value: string) {
+  public validate(value: string) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
@@ -1706,39 +1744,39 @@ export const TSVECTOR = classToInvokable(_TSVECTOR);
  * A convenience class holding commonly used data types. The data types are used when defining a new model using `Sequelize.define`, like this:
  * ```js
  * sequelize.define('model', {
- *   column: DataTypes._INTEGER
+ *   column: DataTypes.INTEGER
  * })
  * ```
- * When defining a model you can just as easily pass a string as type, but often using the types defined here is beneficial. For example, using `DataTypes._BLOB`, mean
+ * When defining a model you can just as easily pass a string as type, but often using the types defined here is beneficial. For example, using `DataTypes.BLOB`, mean
  * that that column will be returned as an instance of `Buffer` when being fetched by sequelize.
  *
- * To provide a length for the data type, you can invoke it like a function: `_INTEGER(2)`
+ * To provide a length for the data type, you can invoke it like a function: `INTEGER(2)`
  *
  * Some data types have special properties that can be accessed in order to change the data type.
- * For example, to get an unsigned integer with zerofill you can do `DataTypes._INTEGER.UNSIGNED.ZEROFILL`.
- * The order you access the properties in do not matter, so `DataTypes._INTEGER.ZEROFILL.UNSIGNED` is fine as well.
+ * For example, to get an unsigned integer with zerofill you can do `DataTypes.INTEGER.UNSIGNED.ZEROFILL`.
+ * The order you access the properties in do not matter, so `DataTypes.INTEGER.ZEROFILL.UNSIGNED` is fine as well.
  *
  * * All number types (`INTEGER`, `BIGINT`, `FLOAT`, `DOUBLE`, `REAL`, `DECIMAL`) expose the properties `UNSIGNED` and `ZEROFILL`
  * * The `CHAR` and `STRING` types expose the `BINARY` property
  *
- * Three of the values provided here (`_NOW`, `_UUIDV1` and `_UUIDV4`) are special default values, that should not be used to define types. Instead they are used as shorthands for
- * defining default values. For example, to get a uuid field with a default value generated following v1 of the _UUID standard:
+ * Three of the values provided here (`NOW`, `UUIDV1` and `UUIDV4`) are special default values, that should not be used to define types. Instead they are used as shorthands for
+ * defining default values. For example, to get a uuid field with a default value generated following v1 of the UUID standard:
  * ```js
  * sequelize.define('model', {
  *   uuid: {
- *     type: DataTypes._UUID,
- *     defaultValue: DataTypes._UUIDV1,
+ *     type: DataTypes.UUID,
+ *     defaultValue: DataTypes.UUIDV1,
  *     primaryKey: true
  *   }
  * })
  * ```
- * There may be times when you want to generate your own _UUID conforming to some other algorithm. This is accomplished
- * using the defaultValue property as well, but instead of specifying one of the supplied _UUID types, you return a value
+ * There may be times when you want to generate your own UUID conforming to some other algorithm. This is accomplished
+ * using the defaultValue property as well, but instead of specifying one of the supplied UUID types, you return a value
  * from a function.
  * ```js
  * sequelize.define('model', {
  *   uuid: {
- *     type: DataTypes._UUID,
+ *     type: DataTypes.UUID,
  *     defaultValue: function() {
  *       return generateMyId()
  *     },
