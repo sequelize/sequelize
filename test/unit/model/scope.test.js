@@ -1,57 +1,60 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require('sequelize'),
-  Op = Sequelize.Op,
-  Support   = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  current   = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Sequelize = require('sequelize');
+
+const Op = Sequelize.Op;
+const Support   = require('../support');
+const DataTypes = require('sequelize/lib/data-types');
+
+const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  const Project = current.define('project'),
-    User = current.define('user');
+  const Project = current.define('project');
+  const User = current.define('user');
 
   const scopes = {
     complexFunction(value) {
       return {
-        where: [`${value} IN (SELECT foobar FROM some_sql_function(foo.bar))`]
+        where: [`${value} IN (SELECT foobar FROM some_sql_function(foo.bar))`],
       };
     },
     somethingTrue: {
       where: {
         something: true,
-        somethingElse: 42
+        somethingElse: 42,
       },
-      limit: 5
+      limit: 5,
     },
     somethingFalse: {
       where: {
-        something: false
-      }
+        something: false,
+      },
     },
     sequelize_where: {
-      where: Sequelize.where()
+      where: Sequelize.where(),
     },
     users: {
       include: [
-        { model: User }
-      ]
+        { model: User },
+      ],
     },
     alsoUsers: {
       include: [
-        { model: User, where: { something: 42 } }
-      ]
+        { model: User, where: { something: 42 } },
+      ],
     },
     projects: {
-      include: [Project]
+      include: [Project],
     },
     groupByCompanyId: {
-      group: ['company.id']
+      group: ['company.id'],
     },
     groupByProjectId: {
       group: ['project.id'],
-      include: [Project]
+      include: [Project],
     },
     noArgs() {
       // This does not make much sense, since it does not actually need to be in a function,
@@ -59,25 +62,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return {
         where: {
-          other_value: 7
-        }
+          other_value: 7,
+        },
       };
     },
     actualValue(value) {
       return {
         where: {
-          other_value: value
-        }
+          other_value: value,
+        },
       };
-    }
+    },
   };
 
   const Company = current.define('company', {}, {
     defaultScope: {
       include: [Project],
-      where: { active: true }
+      where: { active: true },
     },
-    scopes
+    scopes,
   });
 
   describe('.scope', () => {
@@ -85,20 +88,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = current.define('user', {
         password: DataTypes.STRING,
         value: DataTypes.INTEGER,
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       }, {
         defaultScope: {
           attributes: {
-            exclude: ['password']
-          }
+            exclude: ['password'],
+          },
         },
         scopes: {
           aScope: {
             attributes: {
-              exclude: ['value']
-            }
-          }
-        }
+              exclude: ['value'],
+            },
+          },
+        },
       });
 
       it('should not expand attributes', () => {
@@ -127,7 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should apply default scope', () => {
       expect(Company._scope).to.deep.equal({
         include: [Project],
-        where: { active: true }
+        where: { active: true },
       });
     });
 
@@ -143,15 +146,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           something: false,
           somethingElse: 42,
-          [Op.and]: Sequelize.where()
+          [Op.and]: Sequelize.where(),
         },
-        limit: 5
+        limit: 5,
       });
     });
 
     it('should support multiple, coexistent scoped models', () => {
-      const scoped1 = Company.scope('somethingTrue'),
-        scoped2 = Company.scope('somethingFalse');
+      const scoped1 = Company.scope('somethingTrue');
+      const scoped2 = Company.scope('somethingFalse');
 
       expect(scoped1._scope).to.deep.equal(scopes.somethingTrue);
       expect(scoped2._scope).to.deep.equal(scopes.somethingFalse);
@@ -160,14 +163,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should work with function scopes', () => {
       expect(Company.scope({ method: ['actualValue', 11] })._scope).to.deep.equal({
         where: {
-          other_value: 11
-        }
+          other_value: 11,
+        },
       });
 
       expect(Company.scope('noArgs')._scope).to.deep.equal({
         where: {
-          other_value: 7
-        }
+          other_value: 7,
+        },
       });
     });
 
@@ -175,14 +178,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const scope = { method: ['actualValue', 11] };
       expect(Company.scope(scope)._scope).to.deep.equal({
         where: {
-          other_value: 11
-        }
+          other_value: 11,
+        },
       });
 
       expect(Company.scope(scope)._scope).to.deep.equal({
         where: {
-          other_value: 11
-        }
+          other_value: 11,
+        },
       });
     });
 
@@ -202,8 +205,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User },
-          { model: Project }
-        ]
+          { model: Project },
+        ],
       });
     });
 
@@ -211,20 +214,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
         include: [
           { model: Project },
-          { model: User, where: { something: 42 } }
-        ]
+          { model: User, where: { something: 42 } },
+        ],
       });
 
       expect(Company.options.scopes.alsoUsers).to.deep.equal({
         include: [
-          { model: User, where: { something: 42 } }
-        ]
+          { model: User, where: { something: 42 } },
+        ],
       });
 
       expect(Company.options.scopes.users).to.deep.equal({
         include: [
-          { model: User }
-        ]
+          { model: User },
+        ],
       });
     });
 
@@ -237,25 +240,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project }],
         where: {
           active: true,
-          other_value: 11
-        }
+          other_value: 11,
+        },
       });
     });
 
     it('should be able to use raw queries', () => {
       expect(Company.scope([{ method: ['complexFunction', 'qux'] }])._scope).to.deep.equal({
-        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
+        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
       });
     });
 
     it('should override the default scope', () => {
       expect(Company.scope(['defaultScope', { method: ['complexFunction', 'qux'] }])._scope).to.deep.equal({
         include: [{ model: Project }],
-        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
+        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
       });
     });
 
-    it("should emit an error for scopes that don't exist", () => {
+    it('should emit an error for scopes that don\'t exist', () => {
       expect(() => {
         Company.scope('doesntexist');
       }).to.throw('Invalid scope doesntexist called.');
@@ -264,7 +267,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should concatenate scope groups', () => {
       expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
         group: ['company.id', 'project.id'],
-        include: [{ model: Project }]
+        include: [{ model: Project }],
       });
     });
   });
@@ -285,14 +288,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       Company.addScope('newScope', {
         where: {
-          this: 'that'
+          this: 'that',
         },
-        include: [{ model: Project }]
+        include: [{ model: Project }],
       });
 
       expect(Company.scope('newScope')._scope).to.deep.equal({
         where: { this: 'that' },
-        include: [{ model: Project }]
+        include: [{ model: Project }],
       });
     });
 
@@ -305,12 +308,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('allows me to override an existing scope', () => {
       Company.addScope('somethingTrue', {
         where: {
-          something: false
-        }
+          something: false,
+        },
       }, { override: true });
 
       expect(Company.scope('somethingTrue')._scope).to.deep.equal({
-        where: { something: false }
+        where: { something: false },
       });
     });
 
@@ -330,11 +333,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows me to override a default scope', () => {
       Company.addScope('defaultScope', {
-        include: [{ model: Project }]
+        include: [{ model: Project }],
       }, { override: true });
 
       expect(Company._scope).to.deep.equal({
-        include: [{ model: Project }]
+        include: [{ model: Project }],
       });
     });
 
@@ -342,27 +345,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Company.addScope('newIncludeScope', {
         attributes: {
           include: ['foobar'],
-          exclude: ['createdAt']
-        }
+          exclude: ['createdAt'],
+        },
       });
 
       expect(Company.scope('newIncludeScope')._scope).to.deep.equal({
         attributes: {
           include: ['foobar'],
-          exclude: ['createdAt']
-        }
+          exclude: ['createdAt'],
+        },
       });
     });
 
     it('should be able to merge scopes with the same include', () => {
       Company.addScope('project', {
-        include: [{ model: Project, where: { something: false, somethingElse: 99 } }]
+        include: [{ model: Project, where: { something: false, somethingElse: 99 } }],
       });
       Company.addScope('alsoProject', {
-        include: [{ model: Project, where: { something: true }, limit: 1 }]
+        include: [{ model: Project, where: { something: true }, limit: 1 }],
       });
       expect(Company.scope(['project', 'alsoProject'])._scope).to.deep.equal({
-        include: [{ model: Project, where: { something: true, somethingElse: 99 }, limit: 1 }]
+        include: [{ model: Project, where: { something: true, somethingElse: 99 }, limit: 1 }],
       });
     });
   });
@@ -372,17 +375,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Sequelize.Model._scope = {
         where: {
           something: true,
-          somethingElse: 42
+          somethingElse: 42,
         },
         limit: 15,
-        offset: 3
+        offset: 3,
       };
 
       const options = {
         where: {
-          something: false
+          something: false,
         },
-        limit: 9
+        limit: 9,
       };
 
       Sequelize.Model._injectScope(options);
@@ -390,10 +393,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(options).to.deep.equal({
         where: {
           something: false,
-          somethingElse: 42
+          somethingElse: 42,
         },
         limit: 9,
-        offset: 3
+        offset: 3,
       });
     });
 
@@ -401,17 +404,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Sequelize.Model._scope = {
         having: {
           something: true,
-          somethingElse: 42
+          somethingElse: 42,
         },
         limit: 15,
-        offset: 3
+        offset: 3,
       };
 
       const options = {
         having: {
-          something: false
+          something: false,
         },
-        limit: 9
+        limit: 9,
       };
 
       Sequelize.Model._injectScope(options);
@@ -419,20 +422,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(options).to.deep.equal({
         having: {
           something: false,
-          somethingElse: 42
+          somethingElse: 42,
         },
         limit: 9,
-        offset: 3
+        offset: 3,
       });
     });
-
 
     it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {
         include: [
           { model: Project, where: { something: false, somethingElse: 99 } },
-          { model: Project, where: { something: true }, limit: 1 }
-        ]
+          { model: Project, where: { something: true }, limit: 1 },
+        ],
       };
 
       const options = {};
@@ -445,11 +447,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to merge scoped include', () => {
       Sequelize.Model._scope = {
-        include: [{ model: Project, where: { something: false, somethingElse: 99 } }]
+        include: [{ model: Project, where: { something: false, somethingElse: 99 } }],
       };
 
       const options = {
-        include: [{ model: Project, where: { something: true }, limit: 1 }]
+        include: [{ model: Project, where: { something: true }, limit: 1 }],
       };
 
       Sequelize.Model._injectScope(options);
@@ -460,11 +462,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to merge aliased includes with the same model', () => {
       Sequelize.Model._scope = {
-        include: [{ model: User, as: 'someUser' }]
+        include: [{ model: User, as: 'someUser' }],
       };
 
       const options = {
-        include: [{ model: User, as: 'otherUser' }]
+        include: [{ model: User, as: 'otherUser' }],
       };
 
       Sequelize.Model._injectScope(options);
@@ -477,14 +479,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should be able to merge scoped include with include in find', () => {
       Sequelize.Model._scope = {
         include: [
-          { model: Project, where: { something: false } }
-        ]
+          { model: Project, where: { something: false } },
+        ],
       };
 
       const options = {
         include: [
-          { model: User, where: { something: true } }
-        ]
+          { model: User, where: { something: true } },
+        ],
       };
 
       Sequelize.Model._injectScope(options);
@@ -498,14 +500,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('scope with all', () => {
         Sequelize.Model._scope = {
           include: [
-            { all: true }
-          ]
+            { all: true },
+          ],
         };
 
         const options = {
           include: [
-            { model: User, where: { something: true } }
-          ]
+            { model: User, where: { something: true } },
+          ],
         };
 
         Sequelize.Model._injectScope(options);
@@ -515,18 +517,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include[1]).to.deep.equal({ model: User, where: { something: true } });
       });
 
-
       it('options with all', () => {
         Sequelize.Model._scope = {
           include: [
-            { model: User, where: { something: true } }
-          ]
+            { model: User, where: { something: true } },
+          ],
         };
 
         const options = {
           include: [
-            { all: true }
-          ]
+            { all: true },
+          ],
         };
 
         Sequelize.Model._injectScope(options);

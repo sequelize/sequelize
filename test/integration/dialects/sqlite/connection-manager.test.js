@@ -2,8 +2,10 @@
 
 const chai = require('chai');
 const jetpack = require('fs-jetpack').cwd(__dirname);
+
 const expect = chai.expect;
 const Support = require('../../support');
+
 const dialect = Support.getTestDialect();
 const DataTypes = require('sequelize/lib/data-types');
 
@@ -18,9 +20,9 @@ if (dialect === 'sqlite') {
       jetpack.remove(directoryName);
     });
 
-    it('close connection and remove journal and wal files', async function() {
+    it('close connection and remove journal and wal files', async function () {
       const sequelize = Support.createSequelizeInstance({
-        storage: jetpack.path(fileName)
+        storage: jetpack.path(fileName),
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 

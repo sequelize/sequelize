@@ -1,22 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Falsy } from './generic/falsy';
+// @typescript-eslint/no-redeclare is disabled due to declaration merging with `classToInvokeable`
+/* eslint-disable @typescript-eslint/no-redeclare */
 import util from 'util';
-import wkx from 'wkx';
-import { ValidationError } from './errors';
-import { validator as Validator } from './utils/validator-extras';
-import momentTz from 'moment-timezone';
 import moment from 'moment';
-import { logger } from './utils/logger';
+import momentTz from 'moment-timezone';
+import wkx from 'wkx';
+import getDb2DataTypes from './dialects/db2/data-types';
+import getMariadbDataTypes from './dialects/mariadb/data-types';
+import getMssqlDataTypes from './dialects/mssql/data-types';
+import getMysqlDataTypes from './dialects/mysql/data-types';
+import getPostgresDataTypes from './dialects/postgres/data-types';
+import getSnowflakeDataTypes from './dialects/snowflake/data-types';
+import getSqliteDataTypes from './dialects/sqlite/data-types';
+import { ValidationError } from './errors';
+import type { Falsy } from './generic/falsy';
 import { classToInvokable } from './utils/class-to-invokable';
 import { joinSQLFragments } from './utils/join-sql-fragments';
-
-import getPostgresDataTypes from './dialects/postgres/data-types';
-import getMysqlDataTypes from './dialects/mysql/data-types';
-import getMariadbDataTypes from './dialects/mariadb/data-types';
-import getSqliteDataTypes from './dialects/sqlite/data-types';
-import getMssqlDataTypes from './dialects/mssql/data-types';
-import getDb2DataTypes from './dialects/db2/data-types';
-import getSnowflakeDataTypes from './dialects/snowflake/data-types';
+import { logger } from './utils/logger';
+import { validator as Validator } from './utils/validator-extras';
 
 const warnings: Record<string, boolean> = {};
 
@@ -42,8 +42,6 @@ export type RawTypeOf<T extends DataType> = Constructed<T> extends ABSTRACT<
   ? Raw
   : never;
 
-const trueAsVoid = true as unknown as void;
-
 type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> = T | (new () => T);
 
 interface StringifyOptions {
@@ -60,21 +58,20 @@ class _ABSTRACT<
   /** The "sane" type of this column - ie the type of a value of a field if it was sanitized via sequelize. */
   SaneType extends AcceptedType = AcceptedType,
   /** The type of value retrieved from */
-  RawType = AcceptedType
+  RawType = AcceptedType,
 > {
   public static readonly key: string = 'ABSTRACT';
   public static readonly escape: boolean = true;
 
   protected static _loadPrototypeProperty<
     M extends abstract new () => ABSTRACT<any>,
-    Key extends keyof Constructed<M>
+    Key extends keyof Constructed<M>,
   >(this: M, key: Key): Constructed<M>[Key] {
     return (this.prototype as Constructed<M>)[key];
   }
 
   protected _construct<Constructor extends abstract new () => ABSTRACT<any>>(
-    ...args: ConstructorParameters<Constructor>
-  ): this {
+    ...args: ConstructorParameters<Constructor>): this {
     const constructor = this.constructor as new (
       ..._args: ConstructorParameters<Constructor>
     ) => this;
@@ -93,21 +90,21 @@ class _ABSTRACT<
 
     if (!(proto && proto instanceof ABSTRACT)) {
       throw new TypeError(
-        "Unexpected call to ABSTRACT getter on object which doesn't extend ABSTRACT"
+        'Unexpected call to ABSTRACT getter on object which does\'t extend ABSTRACT',
       );
     }
 
     // The usage of Function here is intentional.  This is casting `this.constructor` to any
     // callable value (including classes) with the property `key`.
-    // eslint-disable-next-line @typescript-eslint/ban-types
+
     const constructor = proto.constructor as Function & {
-      key: string;
+      key: string,
     };
 
     // Ensure that the parent DataType has a `key` property.
     if (!Object.prototype.hasOwnProperty.call(constructor, 'key') || !proto) {
       throw new TypeError(
-        `Expected type '${constructor.name}' to have a static property 'key'`
+        `Expected type '${constructor.name}' to have a static property 'key'`,
       );
     }
 
@@ -116,7 +113,7 @@ class _ABSTRACT<
       writable: false,
       enumerable: false,
       configurable: false,
-      value: constructor.key
+      value: constructor.key,
     });
 
     return constructor.key;
@@ -131,15 +128,15 @@ class _ABSTRACT<
 
     if (!(proto && proto instanceof ABSTRACT)) {
       throw new TypeError(
-        "Unexpected call to ABSTRACT getter on object which doesn't extend ABSTRACT"
+        'Unexpected call to ABSTRACT getter on object which does not extend ABSTRACT',
       );
     }
 
     // The usage of Function here is intentional.  This is casting `this.constructor` to any
     // callable value (including classes) with the property `key`.
-    // eslint-disable-next-line @typescript-eslint/ban-types
+
     const constructor = proto.constructor as Function & {
-      escape: boolean;
+      escape: boolean,
     };
 
     // Since proto must extend ABSTRACT.prototype, we'll assume that its constructor extends ABSTRACT.
@@ -148,7 +145,7 @@ class _ABSTRACT<
       writable: false,
       enumerable: false,
       configurable: false,
-      value: constructor.escape
+      value: constructor.escape,
     });
 
     return constructor.escape;
@@ -160,11 +157,11 @@ class _ABSTRACT<
    *
    * @private
    */
-  private _saneType?: SaneType;
+  private readonly _saneType?: SaneType;
 
   protected _sanitize?(
     value: RawType,
-    options?: { raw?: false }
+    options?: { raw?: false },
   ): SaneType | null;
   protected _sanitize?(value: RawType, options: { raw: true }): RawType | null;
   public validate?(value: AcceptedType): asserts value is AcceptedType;
@@ -215,7 +212,7 @@ class _ABSTRACT<
 
   static extend<A, S extends A, Options>(
     this: new (options: Options) => ABSTRACT<A, S>,
-    oldType: ABSTRACT<A, S> & { options: Options }
+    oldType: ABSTRACT<A, S> & { options: Options },
   ) {
     return new this(oldType.options);
   }
@@ -232,7 +229,7 @@ class _ABSTRACT<
 export type ABSTRACT<
   AcceptedType,
   SaneType extends AcceptedType = AcceptedType,
-  RawType = AcceptedType
+  RawType = AcceptedType,
 > = _ABSTRACT<AcceptedType, SaneType, RawType>;
 export const ABSTRACT = classToInvokable(_ABSTRACT);
 
@@ -270,33 +267,34 @@ class _STRING extends ABSTRACT<string | Buffer, string> {
 
     this.options = {
       length: options.length ?? 255,
-      binary: options.binary ?? false
+      binary: options.binary ?? false,
     };
   }
 
   toSql() {
     return joinSQLFragments([
       `VAR_CHAR(${this.options.length})`,
-      this.options.binary && 'BINARY'
+      this.options.binary && 'BINARY',
     ]);
   }
 
-  public validate(value: string | Buffer): asserts value is string | Buffer {
+  public validate(value: string | Buffer): asserts value is string | Buffer;
+  public validate(value: string | Buffer): true {
     if (Object.prototype.toString.call(value) !== '[object String]') {
       if (
-        this.options.binary && Buffer.isBuffer(value) ||
-        typeof value === 'number'
+        (this.options.binary && Buffer.isBuffer(value))
+        || typeof value === 'number'
       ) {
-        return trueAsVoid;
+        return true;
       }
 
       throw new ValidationError(
         util.format('%j is not a valid string', value),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 
   get BINARY() {
@@ -319,7 +317,7 @@ class _CHAR extends STRING {
   toSql() {
     return joinSQLFragments([
       `_CHAR(${this.options.length})`,
-      this.options.binary && 'BINARY'
+      this.options.binary && 'BINARY',
     ]);
   }
 }
@@ -333,7 +331,7 @@ export const CHAR = classToInvokable(_CHAR);
 export enum TextLength {
   TINY = 'tiny',
   MEDIUM = 'medium',
-  LONG = 'long'
+  LONG = 'long',
 }
 
 interface TextOptions {
@@ -345,7 +343,7 @@ class _TEXT extends ABSTRACT<string, string> {
   protected options: TextOptions;
 
   /**
-   * @param {string} [length='TEXT'] could be tiny, medium, long.
+   * @param [length='TEXT'] could be tiny, medium, long.
    */
   constructor(length?: TextLength | Partial<TextOptions>) {
     super();
@@ -353,7 +351,7 @@ class _TEXT extends ABSTRACT<string, string> {
     const options = typeof length === 'object' ? length : { length };
 
     this.options = {
-      length: options.length?.toLowerCase() as TextLength
+      length: options.length?.toLowerCase() as TextLength,
     };
   }
 
@@ -370,15 +368,16 @@ class _TEXT extends ABSTRACT<string, string> {
     }
   }
 
-  validate(value: string): asserts value is string {
+  validate(value: string): asserts value is string;
+  validate(value: string): true {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 }
 
@@ -390,15 +389,16 @@ export const TEXT = classToInvokable(_TEXT);
 
 class _CITEXT extends ABSTRACT<string> {
   public static readonly key = 'CITEXT';
-  validate(value: string): asserts value is string {
+  validate(value: string): asserts value is string;
+  validate(value: string): true {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 }
 
@@ -436,19 +436,19 @@ class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
   protected readonly _unsigned?: boolean;
 
   /**
-   * @param {object} options type options
-   * @param {string|number} [options.length] length of type, like `INT(4)`
-   * @param {boolean} [options.zerofill] Is zero filled?
-   * @param {boolean} [options.unsigned] Is unsigned?
-   * @param {string|number} [options.decimals] number of decimal points, used with length `_FLOAT(5, 4)`
-   * @param {string|number} [options.precision] defines precision for decimal type
-   * @param {string|number} [options.scale] defines scale for decimal type
+   * @param options type options
+   * @param [options.length] length of type, like `INT(4)`
+   * @param [options.zerofill] Is zero filled?
+   * @param [options.unsigned] Is unsigned?
+   * @param [options.decimals] number of decimal points, used with length `_FLOAT(5, 4)`
+   * @param [options.precision] defines precision for decimal type
+   * @param [options.scale] defines scale for decimal type
    */
   constructor(options: number | Readonly<NumberOptions> = {}) {
     super();
     if (typeof options === 'number') {
       options = {
-        length: options
+        length: options,
       };
     }
 
@@ -467,34 +467,40 @@ class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
       if (typeof this._decimals === 'number') {
         result += `,${this._decimals}`;
       }
+
       result += ')';
     }
+
     if (this._unsigned) {
       result += ' UNSIGNED';
     }
+
     if (this._zerofill) {
       result += ' ZEROFILL';
     }
+
     return result;
   }
 
-  public validate(value: AcceptedNumber): asserts value is number {
+  public validate(value: AcceptedNumber): asserts value is number;
+  public validate(value: AcceptedNumber): true {
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format(
           `%j is not a valid ${super.toString().toLowerCase()}`,
-          value
+          value,
         ),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 
   protected override _stringify(number: AcceptedNumber): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(number);
+
     return String(number);
   }
 
@@ -528,9 +534,10 @@ class _INTEGER extends NUMBER {
     if (!Validator.isInt(String(value))) {
       throw new ValidationError(
         util.format(`%j is not a valid ${this.key.toLowerCase()}`, value),
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -602,25 +609,28 @@ class _FLOAT extends NUMBER {
     super(typeof length === 'object' ? length : { length, decimals });
   }
 
-  public validate(value: AcceptedNumber): asserts value is AcceptedNumber {
+  public validate(value: AcceptedNumber): asserts value is AcceptedNumber;
+  public validate(value: AcceptedNumber): true {
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format('%j is not a valid float', value),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 
   protected _value(value: AcceptedNumber) {
     const num = typeof value === 'number' ? value : Number(String(value));
 
-    if (isNaN(num)) {
+    if (Number.isNaN(num)) {
       return 'NaN';
     }
-    if (!isFinite(num)) {
+
+    if (!Number.isFinite(num)) {
       const sign = num < 0 ? '-' : '';
+
       return `${sign}Infinity`;
     }
 
@@ -629,12 +639,13 @@ class _FLOAT extends NUMBER {
 
   protected override _stringify(value: AcceptedNumber) {
     this.validate(value);
+
     return `'${this._value(value)}'`;
   }
 
   protected override _bindParam(
     value: AcceptedNumber,
-    options: BindParamOptions
+    options: BindParamOptions,
   ) {
     return options.bindParam(this._value(value));
   }
@@ -714,18 +725,20 @@ class _DECIMAL extends NUMBER {
         .filter(num => num != null)
         .join(',')})`;
     }
+
     return 'DECIMAL';
   }
 
-  public validate(value: AcceptedNumber): asserts value is AcceptedNumber {
+  public validate(value: AcceptedNumber): asserts value is AcceptedNumber;
+  public validate(value: AcceptedNumber): true {
     if (!Validator.isDecimal(String(value))) {
       throw new ValidationError(
         util.format('%j is not a valid decimal', value),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 }
 
@@ -750,13 +763,15 @@ class _BOOLEAN extends ABSTRACT<
     return 'TINYINT(1)';
   }
 
-  public validate(value: boolean | Falsy) {
+  public validate(value: boolean | Falsy): asserts value is boolean;
+  public validate(value: boolean | Falsy): true {
     if (!Validator.isBoolean(String(value))) {
       throw new ValidationError(
         util.format('%j is not a valid boolean', value),
-        []
+        [],
       );
     }
+
     return true;
   }
 
@@ -773,14 +788,15 @@ class _BOOLEAN extends ABSTRACT<
         if (value === 'true') {
           return true;
         }
+
         if (value === 'false') {
           return false;
         }
-      } else if (type === 'number') {
-        // Only take action on valid boolean integers.
-        if (value === 0 || 1 === value) {
-          return Boolean(value);
-        }
+      } else if (
+        type === 'number' // Only take action on valid boolean integers.
+        && (value === 0 || value === 1)
+      ) {
+        return Boolean(value);
       }
     }
 
@@ -822,12 +838,12 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
   protected _length?: string | number;
 
   /**
-   * @param {string|number|object} [length] precision to allow storing milliseconds
+   * @param [length] precision to allow storing milliseconds
    */
   constructor(length?: number | DateOptions) {
     super();
-    const options: DateOptions =
-      typeof length === 'object' ? length : { length };
+    const options: DateOptions
+      = typeof length === 'object' ? length : { length };
     this.options = options;
     // TODO: Check if this is still used and remove if it isn't.
     this._length = options.length || '';
@@ -841,7 +857,7 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
     if (!Validator.isDate(String(value))) {
       throw new ValidationError(
         util.format('%j is not a valid date', value),
-        []
+        [],
       );
     }
 
@@ -850,7 +866,7 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
 
   protected _sanitize(
     value: AcceptedDate,
-    options: { raw: true }
+    options: { raw: true },
   ): AcceptedDate;
   protected _sanitize(value: AcceptedDate, options?: { raw?: false }): Date;
   protected _sanitize(value: AcceptedDate, options?: { raw?: boolean }) {
@@ -867,22 +883,24 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
 
   protected _isChanged(
     value: AcceptedDate,
-    originalValue: AcceptedDate
+    originalValue: AcceptedDate,
   ): boolean {
     if (
-      originalValue &&
-      !!value &&
-      (value === originalValue ||
-        value instanceof Date &&
-          originalValue instanceof Date &&
-          value.getTime() === originalValue.getTime())
+      originalValue
+      && Boolean(value)
+      && (value === originalValue
+        || (value instanceof Date
+          && originalValue instanceof Date
+          && value.getTime() === originalValue.getTime()))
     ) {
       return false;
     }
+
     // not changed when set to same empty value
     if (!originalValue && !value && originalValue === value) {
       return false;
     }
+
     return true;
   }
 
@@ -900,12 +918,15 @@ class _DATE extends ABSTRACT<AcceptedDate, Date> {
 
   protected _stringify(
     date: AcceptedDate,
-    options: { timezone?: string } = {}
+    options: { timezone?: string } = {},
   ) {
+    if (!moment.isMoment(date)) {
+      date = this._applyTimezone(date, options);
+    }
+    // const d = moment.isMoment(date) ? date :
+
     // Z here means current timezone, _not_ UTC
-    return this._applyTimezone(date, options).format(
-      'YYYY-MM-DD HH:mm:ss.SSS Z'
-    );
+    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
@@ -929,7 +950,7 @@ class _DATEONLY extends ABSTRACT<AcceptedDate, Date> {
   protected _sanitize(value: AcceptedDate, options?: { raw?: false }): Date;
   protected _sanitize(
     value: AcceptedDate,
-    options: { raw: true }
+    options: { raw: true },
   ): AcceptedDate;
   protected _sanitize(value: AcceptedDate, options?: { raw?: boolean }) {
     if (!options?.raw && value) {
@@ -940,7 +961,7 @@ class _DATEONLY extends ABSTRACT<AcceptedDate, Date> {
   }
 
   protected _isChanged(value: AcceptedDate, originalValue: AcceptedDate) {
-    if (originalValue && !!value && originalValue === value) {
+    if (originalValue && Boolean(value) && originalValue === value) {
       return false;
     }
 
@@ -968,7 +989,7 @@ class _HSTORE extends ABSTRACT<Record<string, unknown>> {
     if (proto && proto !== Object.prototype) {
       throw new ValidationError(
         util.format('%j is not a valid hstore', value),
-        []
+        [],
       );
     }
 
@@ -1027,7 +1048,7 @@ type AcceptedBlob = Buffer | string;
 enum BlobLength {
   TINY = 'tiny',
   MEDIUM = 'medium',
-  LONG = 'long'
+  LONG = 'long',
 }
 
 interface BlobOptions {
@@ -1041,16 +1062,17 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
   protected _length?: string;
 
   /**
-   * @param {string} [length=''] could be tiny, medium, long.
+   * @param [length=''] could be tiny, medium, long.
    */
   constructor(length?: BlobLength | BlobOptions) {
     super();
-    const options: BlobOptions =
-      typeof length === 'object' ? length : { length };
+    const options: BlobOptions
+      = typeof length === 'object' ? length : { length };
 
     this.options = options;
     this._length = options.length?.toLowerCase();
   }
+
   toSql() {
     switch (this._length) {
       case BlobLength.TINY:
@@ -1063,20 +1085,24 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
         return this.key;
     }
   }
+
   validate(value: AcceptedBlob) {
     if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
       throw new ValidationError(
         util.format('%j is not a valid blob', value),
-        []
+        [],
       );
     }
+
     return true;
   }
+
   protected _stringify(value: string | Buffer) {
-    const buf =
-      typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+    const buf
+      = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
     const hex = buf.toString('hex');
+
     return this._hexify(hex);
   }
 
@@ -1095,28 +1121,46 @@ class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
 export type BLOB = _BLOB;
 export const BLOB = classToInvokable(_BLOB);
 
-interface RangeOptions<T extends NUMBER | _DATE | _DATEONLY> {
+interface RangeOptions<
+  T extends
+    | NUMBER
+    | DATE
+    | DATEONLY
+    | typeof NUMBER
+    | typeof DATE
+    | typeof DATEONLY,
+> {
   subtype?: T;
 }
 
-class _RANGE<T extends NUMBER | _DATE | _DATEONLY = _INTEGER> extends ABSTRACT<
-  AcceptedNumber,
-  Array<T>
-> {
+class _RANGE<
+  T extends
+    | NUMBER
+    | NUMBER
+    | DATE
+    | DATEONLY
+    | typeof NUMBER
+    | typeof DATE
+    | typeof DATEONLY,
+> extends ABSTRACT<AcceptedNumber, T[]> {
   public static readonly key = 'RANGE';
   protected _subtype: string;
   protected options: Required<RangeOptions<T>>;
 
   /**
-   * @param {ABSTRACT} subtype A subtype for range, like _RANGE(_DATE)
+   * @param subtype A subtype for range, like _RANGE(_DATE)
    */
   constructor(
-    subtype: DataType<T> | RangeOptions<T> | { subtype: new () => T }
+    subtype: DataType<T> | RangeOptions<T> | { subtype: new () => T },
   ) {
     super();
     const options = ABSTRACT.isType(subtype) ? { subtype } : subtype;
 
-    if (typeof options.subtype === 'function') {
+    if (
+      typeof options === 'object'
+      && !(options instanceof ABSTRACT)
+      && typeof (options as RangeOptions<T>).subtype === 'function'
+    ) {
       options.subtype = new options.subtype();
     } else {
       // @ts-expect-error This errors since _INTEGER doesn't always apply to T, but we'll assume that if T is provided,
@@ -1127,19 +1171,22 @@ class _RANGE<T extends NUMBER | _DATE | _DATEONLY = _INTEGER> extends ABSTRACT<
     this._subtype = options.subtype.key as string;
     this.options = options as Required<RangeOptions<T>>;
   }
+
   validate(value: Array<SaneTypeOf<T>>) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid range', value),
-        []
+        [],
       );
     }
+
     if (value.length !== 2) {
       throw new ValidationError(
         'A range must be an array with two elements',
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -1162,14 +1209,14 @@ class _UUID extends ABSTRACT<string> {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
-        []
+        [],
       );
     }
 
     if (!options?.acceptStrings && !Validator.isUUID(value)) {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
-        []
+        [],
       );
     }
 
@@ -1191,14 +1238,14 @@ class _UUIDV1 extends ABSTRACT<string> {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
-        []
+        [],
       );
     }
 
     if (!options?.acceptStrings && !Validator.is_UUID(value, 1)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv1', value),
-        []
+        [],
       );
     }
 
@@ -1219,14 +1266,14 @@ class _UUIDV4 extends ABSTRACT<string> {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
-        []
+        [],
       );
     }
 
     if (!options?.acceptStrings && !Validator.is_UUID(value, 4)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv4', value),
-        []
+        [],
       );
     }
 
@@ -1244,15 +1291,18 @@ class _VIRTUAL<T> extends ABSTRACT<T> {
   public static readonly key = 'VIRTUAL';
 
   returnType?: ABSTRACT<T>;
-  fields?: Array<string>;
+  fields?: string[];
 
   /**
-   * @param {ABSTRACT} [ReturnType] return type for virtual type
-   * @param {Array} [fields] array of fields this virtual type is dependent on
+   * @param [ReturnType] return type for virtual type
+   * @param [fields] array of fields this virtual type is dependent on
    */
-  constructor(ReturnType?: DataType, fields?: Array<string>) {
+  constructor(ReturnType?: DataType, fields?: string[]) {
     super();
-    if (typeof ReturnType === 'function') ReturnType = new ReturnType();
+    if (typeof ReturnType === 'function') {
+      ReturnType = new ReturnType();
+    }
+
     this.returnType = ReturnType;
     this.fields = fields;
   }
@@ -1302,26 +1352,26 @@ export type VIRTUAL<T> = _VIRTUAL<T>;
 export const VIRTUAL = classToInvokable(_VIRTUAL);
 
 interface EnumOptions<Member extends string> {
-  values: Array<Member>;
+  values: Member[];
 }
 
 type EnumParams<Member extends string> =
   | []
   | [EnumOptions<Member>]
-  | [Array<Member>]
-  | Array<Member | Array<Member>>;
+  | [Member[]]
+  | Array<Member | Member[]>;
 
 class _ENUM<Member extends string> extends ABSTRACT<Member> {
   public static readonly key = 'ENUM';
-  public values: Array<Member>;
+  public values: Member[];
   protected options: EnumOptions<Member>;
 
   /**
    * @param {...any|{ values: any[] }|any[]} args either array of values or options object with values array. It also supports variadic values
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: Array<Member>);
-  constructor(...members: Array<Member | Array<Member>>);
+  constructor(members: Member[]);
+  constructor(...members: Array<Member | Member[]>);
   constructor(...args: EnumParams<Member>); // This is the overload TS will chose when using ConstructorParams and is needed.
   constructor(...args: EnumParams<Member>) {
     super();
@@ -1335,9 +1385,9 @@ class _ENUM<Member extends string> extends ABSTRACT<Member> {
       options = { values: arg0 };
     } else {
       options = {
-        values: ([] as Array<Member>).concat(
-          ...(args as Array<Member | Array<Member>>)
-        )
+        // this rule is irrelevant - this is using `concat` for cases such as `new Union('a', ['b', 'c]])`
+        // eslint-disable-next-line unicorn/prefer-spread
+        values: ([] as Member[]).concat(...(args as Array<Member | Member[]>)),
       };
     }
 
@@ -1345,15 +1395,16 @@ class _ENUM<Member extends string> extends ABSTRACT<Member> {
     this.options = options;
   }
 
-  validate(value: Member): asserts value is Member {
+  validate(value: Member): asserts value is Member;
+  validate(value: Member): true {
     if (!this.values.includes(value)) {
       throw new ValidationError(
         util.format('%j is not a valid choice in %j', value, this.values),
-        []
+        [],
       );
     }
 
-    return trueAsVoid;
+    return true;
   }
 }
 
@@ -1390,14 +1441,14 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
   public type: T;
 
   /**
-   * @param {ABSTRACT} type type of array values
+   * @param type type of array values
    */
   constructor(type: DataType<T> | { type: DataType<T> }) {
     super();
     const opts = ABSTRACT.isType(type) ? { type } : type;
 
     this.options = {
-      type: typeof opts.type === 'function' ? new opts.type() : opts.type
+      type: typeof opts.type === 'function' ? new opts.type() : opts.type,
     };
 
     this.type = this.options.type;
@@ -1412,7 +1463,7 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid array', value),
-        []
+        [],
       );
     }
 
@@ -1421,7 +1472,7 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
 
   static is<T extends ABSTRACT<any>>(
     obj: unknown,
-    type: new () => T
+    type: new () => T,
   ): obj is _ARRAY<T> {
     return obj instanceof _ARRAY && obj.type instanceof type;
   }
@@ -1470,12 +1521,13 @@ class _GEOMETRY<Type extends GeometryType = GeometryType> extends ABSTRACT<
 
   _stringify(value: string | Buffer, options: StringifyOptions) {
     return `STGeomFromText(${options.escape(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
+
   _bindParam(value: string | Buffer | wkx.Geometry, options: BindParamOptions) {
     return `STGeomFromText(${options.bindParam(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
 }
@@ -1564,9 +1616,10 @@ class _CIDR extends ABSTRACT<string> {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
       throw new ValidationError(
         util.format('%j is not a valid CIDR', value),
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -1585,9 +1638,10 @@ class _INET extends ABSTRACT<string> {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       throw new ValidationError(
         util.format('%j is not a valid INET', value),
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -1607,9 +1661,10 @@ class _MACADDR extends ABSTRACT<string> {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new ValidationError(
         util.format('%j is not a valid MACADDR', value),
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -1630,9 +1685,10 @@ class _TSVECTOR extends ABSTRACT<string> {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
-        []
+        [],
       );
     }
+
     return true;
   }
 }
@@ -1731,32 +1787,32 @@ export const DataTypes = {
   INET,
   MACADDR,
   CITEXT,
-  TSVECTOR
+  TSVECTOR,
 } as const;
 
 export type DataTypes = typeof DataTypes;
 
 export type TypeRegisterFunction = (
-  abstractTypes: DataTypes
+  abstractTypes: DataTypes,
 ) => Partial<DataTypes>;
 
 export const postgres = (
   getPostgresDataTypes as unknown as TypeRegisterFunction
 )(DataTypes);
 export const mysql = (getMysqlDataTypes as unknown as TypeRegisterFunction)(
-  DataTypes
+  DataTypes,
 );
 export const mariadb = (getMariadbDataTypes as unknown as TypeRegisterFunction)(
-  DataTypes
+  DataTypes,
 );
 export const sqlite = (getSqliteDataTypes as unknown as TypeRegisterFunction)(
-  DataTypes
+  DataTypes,
 );
 export const mssql = (getMssqlDataTypes as unknown as TypeRegisterFunction)(
-  DataTypes
+  DataTypes,
 );
 export const db2 = (getDb2DataTypes as unknown as TypeRegisterFunction)(
-  DataTypes
+  DataTypes,
 );
 export const snowflake = (
   getSnowflakeDataTypes as unknown as TypeRegisterFunction
@@ -1769,7 +1825,7 @@ for (const dialectTypes of [
   sqlite,
   mssql,
   db2,
-  snowflake
+  snowflake,
 ]) {
   for (const [key, Type] of Object.entries(dialectTypes)) {
     if (!Reflect.has(Type, 'key')) {
@@ -1777,7 +1833,7 @@ for (const dialectTypes of [
         value: key,
         writable: false,
         enumerable: false,
-        configurable: false
+        configurable: false,
       });
     }
 

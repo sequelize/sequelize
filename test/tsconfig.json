@@ -10,5 +10,5 @@
     "emitDeclarationOnly": false,
     "noEmit": true
   },
-  "include": ["./**/*"],
+  "include": ["./**/*"]
 }

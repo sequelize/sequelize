@@ -6,9 +6,9 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { LOCK, Transaction } from './transaction';
+import { LOCK, Transaction, Op } from '..';
 import { Col, Fn, Literal, Where } from './utils';
-import Op = require('./operators');
+import { SetRequired } from '../type-helpers/set-required'
 
 export interface Logging {
   /**
@@ -633,16 +633,14 @@ export interface CountOptions<TAttributes = any>
 /**
  * Options for Model.count when GROUP BY is used
  */
-export interface CountWithOptions<TAttributes = any> extends CountOptions<TAttributes> {
-  /**
-   * GROUP BY in sql
-   * Used in conjunction with `attributes`.
-   * @see Projectable
-   */
-  group: GroupOption;
-}
+export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>
 
 export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
+
+interface GroupedCountResultItem {
+  [key: string]: unknown // projected attributes
+  count: number // the count for each group
+}
 
 /**
  * Options for Model.build method
@@ -717,12 +715,20 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes>
 {
   /**
-   * The fields to insert / update. Defaults to all fields
+   * Default values to use if building a new instance
    */
-  fields?: (keyof TAttributes)[];
+  defaults?: TCreationAttributes;
+}
+
+/**
+ * Options for Model.findOrBuild method
+ */
+export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
+  extends FindOptions<TAttributes>, BuildOptions
+{
   /**
    * Default values to use if building a new instance
    */
@@ -961,7 +967,7 @@ export interface InstanceRestoreOptions extends Logging, Transactionable { }
 /**
  * Options used for Instance.destroy method
  */
-export interface InstanceDestroyOptions extends Logging, Transactionable {
+export interface InstanceDestroyOptions extends Logging, Transactionable, Hookable {
   /**
    * If set to true, paranoid models will actually be deleted
    */
@@ -1611,7 +1617,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the attributes of the model
    */
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions }; 
+  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -1902,25 +1908,27 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Count number of records if group by is used
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<M['_attributes']>
-  ): Promise<{ [key: string]: number }>;
+  ): Promise<GroupedCountResultItem[]>;
 
   /**
    * Count the number of records matching the provided where clause.
    *
    * If you provide an `include` option, the number of matching associations will be counted instead.
+   * @return Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: CountOptions<M['_attributes']>
+    options?: Omit<CountOptions<M['_attributes']>, 'group'>
   ): Promise<number>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
-   * rows matching your query. This is very usefull for paging
+   * rows matching your query. This is very useful for paging
    *
    * ```js
    * Model.findAndCountAll({
@@ -1952,15 +1960,23 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * who have a profile will be counted. If we remove `required` from the include, both users with and
    * without
    * profiles will be counted
+   *
+   * This function also support grouping, when `group` is provided, the count will be an array of objects
+   * containing the count for each group and the projected attributes.
+   * ```js
+   * User.findAndCountAll({
+   *   group: 'type'
+   * });
+   * ```
    */
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']> & { group: GroupOption }
-  ): Promise<{ rows: M[]; count: number[] }>;
+    options?: Omit<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: number }>;
   public static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindAndCountOptions<M['_attributes']>
-  ): Promise<{ rows: M[]; count: number }>;
+    options: SetRequired<FindAndCountOptions<M['_attributes']>, 'group'>
+  ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
 
   /**
    * Find the maximum value of field
@@ -2025,7 +2041,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<M['_attributes'], M['_creationAttributes']>
+    options: FindOrBuildOptions<M['_attributes'], M['_creationAttributes']>
   ): Promise<[M, boolean]>;
 
   /**
@@ -2910,15 +2926,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
+/** @deprecated use ModelStatic */
 export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
-// Do not switch the order of `typeof Model` and `{ new(): M }`. For
-// instances created by `sequelize.define` to typecheck well, `typeof Model`
-// must come first for unknown reasons.
-export type ModelCtor<M extends Model> = typeof Model & { new(): M };
+type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
 
-export type ModelDefined<S, T> = ModelCtor<Model<S, T>>;
+/** @deprecated use ModelStatic */
+export type ModelCtor<M extends Model> = ModelStatic<M>;
 
-export type ModelStatic<M extends Model> = { new(): M };
+export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+
+// remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
+export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
 
 export default Model;

@@ -1,5 +1,6 @@
-import { ErrorOptions } from '../base-error';
-import DatabaseError, { DatabaseErrorParent } from '../database-error';
+import type { ErrorOptions } from '../base-error';
+import type { DatabaseErrorParent } from '../database-error';
+import DatabaseError from '../database-error';
 
 /**
  * Thrown when a database query times out because of a deadlock

@@ -15,7 +15,7 @@ export {
   default as ValidationError,
   ValidationErrorItem,
   ValidationErrorItemOrigin,
-  ValidationErrorItemType
+  ValidationErrorItemType,
 } from './validation-error';
 
 export { default as AccessDeniedError } from './connection/access-denied-error';

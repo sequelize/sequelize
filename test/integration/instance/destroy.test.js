@@ -1,17 +1,19 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  moment = require('moment'),
-  Support = require('../support'),
-  dialect = Support.getTestDialect(),
-  current = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const sinon = require('sinon');
+const moment = require('moment');
+const Support = require('../support');
+
+const dialect = Support.getTestDialect();
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('destroy', () => {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
@@ -27,10 +29,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    it('does not set the deletedAt date in subsequent destroys if dao is paranoid', async function() {
+    it('does not set the deletedAt date in subsequent destroys if dao is paranoid', async function () {
       const UserDestroy = this.sequelize.define('UserDestroy', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT
+        bio: Support.Sequelize.TEXT,
       }, { paranoid: true });
 
       await UserDestroy.sync({ force: true });
@@ -44,16 +46,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.deletedAt).to.eql(deletedAt);
     });
 
-    it('does not update deletedAt with custom default in subsequent destroys', async function() {
+    it('does not update deletedAt with custom default in subsequent destroys', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: Support.Sequelize.STRING,
-        deletedAt: { type: Support.Sequelize.DATE, defaultValue: new Date(0) }
+        deletedAt: { type: Support.Sequelize.DATE, defaultValue: new Date(0) },
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       const user0 = await user1.destroy();
@@ -67,10 +69,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.deletedAt.toISOString()).to.equal(deletedAt.toISOString());
     });
 
-    it('deletes a record from the database if dao is not paranoid', async function() {
+    it('deletes a record from the database if dao is not paranoid', async function () {
       const UserDestroy = this.sequelize.define('UserDestroy', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT
+        bio: Support.Sequelize.TEXT,
       });
 
       await UserDestroy.sync({ force: true });
@@ -82,15 +84,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(users0.length).to.equal(0);
     });
 
-    it('allows updating soft deleted instance', async function() {
+    it('allows updating soft deleted instance', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING
+        username: Support.Sequelize.STRING,
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       const user1 = await user2.destroy();
@@ -104,24 +106,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'foo'
-        }
+          username: 'foo',
+        },
       });
 
       expect(user).to.be.ok;
       expect(user.deletedAt).to.be.ok;
     });
 
-    it('supports custom deletedAt field', async function() {
+    it('supports custom deletedAt field', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: Support.Sequelize.STRING,
-        destroyTime: Support.Sequelize.DATE
+        destroyTime: Support.Sequelize.DATE,
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       const user0 = await user1.destroy();
@@ -131,8 +133,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username'
-        }
+          username: 'username',
+        },
       });
 
       expect(user).to.be.ok;
@@ -140,16 +142,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.deletedAt).to.not.be.ok;
     });
 
-    it('supports custom deletedAt database column', async function() {
+    it('supports custom deletedAt database column', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: Support.Sequelize.STRING,
-        deletedAt: { type: Support.Sequelize.DATE, field: 'deleted_at' }
+        deletedAt: { type: Support.Sequelize.DATE, field: 'deleted_at' },
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       const user0 = await user1.destroy();
@@ -159,8 +161,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username'
-        }
+          username: 'username',
+        },
       });
 
       expect(user).to.be.ok;
@@ -168,16 +170,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.deleted_at).to.not.be.ok;
     });
 
-    it('supports custom deletedAt field and database column', async function() {
+    it('supports custom deletedAt field and database column', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: Support.Sequelize.STRING,
-        destroyTime: { type: Support.Sequelize.DATE, field: 'destroy_time' }
+        destroyTime: { type: Support.Sequelize.DATE, field: 'destroy_time' },
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       const user0 = await user1.destroy();
@@ -187,8 +189,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username'
-        }
+          username: 'username',
+        },
       });
 
       expect(user).to.be.ok;
@@ -196,15 +198,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.destroy_time).to.not.be.ok;
     });
 
-    it('persists other model changes when soft deleting', async function() {
+    it('persists other model changes when soft deleting', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING
+        username: Support.Sequelize.STRING,
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
 
       const user4 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       user4.username = 'foo';
@@ -216,8 +218,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user2 = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'foo'
-        }
+          username: 'foo',
+        },
       });
 
       expect(user2).to.be.ok;
@@ -235,8 +237,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'bar'
-        }
+          username: 'bar',
+        },
       });
 
       expect(user).to.be.ok;
@@ -245,10 +247,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.username).to.equal('bar');
     });
 
-    it('allows sql logging of delete statements', async function() {
+    it('allows sql logging of delete statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT
+        bio: Support.Sequelize.TEXT,
       });
 
       const logging = sinon.spy();
@@ -264,10 +266,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(sql.toUpperCase()).to.include('DELETE');
     });
 
-    it('allows sql logging of update statements', async function() {
+    it('allows sql logging of update statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT
+        bio: Support.Sequelize.TEXT,
       }, { paranoid: true });
 
       const logging = sinon.spy();
@@ -283,24 +285,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(sql.toUpperCase()).to.include('UPDATE');
     });
 
-    it('should not call save hooks when soft deleting', async function() {
+    it('should not call save hooks when soft deleting', async function () {
       const beforeSave = sinon.spy();
       const afterSave = sinon.spy();
 
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING
+        username: Support.Sequelize.STRING,
       }, {
         paranoid: true,
         hooks: {
           beforeSave,
-          afterSave
-        }
+          afterSave,
+        },
       });
 
       await ParanoidUser.sync({ force: true });
 
       const user0 = await ParanoidUser.create({
-        username: 'username'
+        username: 'username',
       });
 
       // clear out calls from .create
@@ -318,17 +320,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await result;
     });
 
-    it('delete a record of multiple primary keys table', async function() {
+    it('delete a record of multiple primary keys table', async function () {
       const MultiPrimary = this.sequelize.define('MultiPrimary', {
         bilibili: {
           type: Support.Sequelize.CHAR(2),
-          primaryKey: true
+          primaryKey: true,
         },
 
         guruguru: {
           type: Support.Sequelize.CHAR(2),
-          primaryKey: true
-        }
+          primaryKey: true,
+        },
       });
 
       await MultiPrimary.sync({ force: true });
@@ -343,7 +345,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           expect(sql.toUpperCase()).to.include('DELETE');
           expect(sql).to.include('ru');
           expect(sql).to.include('bl');
-        }
+        },
       });
 
       const ms0 = await MultiPrimary.findAll();
@@ -352,24 +354,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(ms0[0].guruguru).to.equal('gu');
     });
 
-    if (dialect.match(/^postgres/)) {
-      it('converts Infinity in where clause to a timestamp', async function() {
+    if (dialect.startsWith('postgres')) {
+      it('converts Infinity in where clause to a timestamp', async function () {
         const Date = this.sequelize.define('Date',
           {
             date: {
               type: Support.Sequelize.DATE,
-              primaryKey: true
+              primaryKey: true,
             },
             deletedAt: {
               type: Support.Sequelize.DATE,
-              defaultValue: Infinity
-            }
+              defaultValue: Number.POSITIVE_INFINITY,
+            },
           },
           { paranoid: true });
 
         await this.sequelize.sync({ force: true });
 
-        const date = await Date.build({ date: Infinity })
+        const date = await Date.build({ date: Number.POSITIVE_INFINITY })
           .save();
 
         await date.destroy();

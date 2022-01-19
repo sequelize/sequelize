@@ -67,11 +67,17 @@ async function test() {
 
   const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
 
+  const bulkInsertResWithAttrs: Promise<number | object> = queryInterface.bulkInsert('foo', [{}], {}, { bar: { type: DataTypes.JSON } });
+
   await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
 
   await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
 
   await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
+
+  queryInterface.quoteIdentifier("foo");
+  queryInterface.quoteIdentifier("foo", true);
+  queryInterface.quoteIdentifiers("table.foo");
 
   await queryInterface.dropAllTables();
 
