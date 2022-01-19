@@ -44,7 +44,7 @@ export type RawTypeOf<T extends DataType> = Constructed<T> extends ABSTRACT<
 
 export type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> =
   | T
-  | { key: string } & (new () => T);
+  | { key: string, new (): T };
 
 // TODO: This typing may not be accurate, validate when query-generator is typed.
 export interface StringifyOptions {
@@ -83,7 +83,9 @@ class _ABSTRACT<
   RawType = AcceptedType,
 > {
   public static readonly key: string = 'ABSTRACT';
+  // @internal
   public static readonly types: Record<string, DialectTypeMeta>;
+  // @internal
   // @ts-expect-error types is not set in constructor.
   public types: Record<string, DialectTypeMeta>;
 
@@ -998,10 +1000,7 @@ class _DATEONLY extends ABSTRACT<AcceptedDate, Date, RawDate> {
   }
 
   protected _sanitize(value: RawDate, options?: { raw?: false }): Date;
-  protected _sanitize(
-    value: RawDate,
-    options: { raw: true },
-  ): RawDate;
+  protected _sanitize(value: RawDate, options: { raw: true }): RawDate;
   protected _sanitize(value: RawDate, options?: { raw?: boolean }) {
     if (!options?.raw && value) {
       return moment(value).format('YYYY-MM-DD');
