@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       assertVal = 'TINYINT(1)';
       switch (dialect) {
         case 'oracle':
-          assertVal = 'NUMBER';
+          assertVal = 'CHAR';
           break;
         case 'postgres':
           assertVal = 'BOOLEAN';
