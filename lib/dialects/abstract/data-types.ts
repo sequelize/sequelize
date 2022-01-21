@@ -4,6 +4,7 @@ import util from 'util';
 import moment from 'moment';
 import momentTz from 'moment-timezone';
 import wkx from 'wkx';
+import { kSetDialectNames } from '../../dialect-toolbox';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import { classToInvokable } from '../../utils/class-to-invokable';
@@ -59,13 +60,6 @@ export type DialectTypeMeta =
     }
   | string[]
   | [null];
-
-const kSetDialectNames = Symbol.for(
-  'sequelize.internal.data-types.set-dialect-names',
-);
-
-// @internal
-export type SetDialectNamesSymbol = typeof kSetDialectNames;
 
 class _ABSTRACT<
   /** The type of value we'll accept - ie for a column of this type, we'll accept this value as user input. */
