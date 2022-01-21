@@ -1,7 +1,7 @@
 import { expectTypeOf } from 'expect-type'
 import { User } from './models/User';
 
-async () => {
+(async () => {
     const user = await User.create({
         id: 123,
         firstName: '<first-name>',
@@ -71,4 +71,4 @@ async () => {
         // @ts-expect-error unknown attribute
         unknown: '<unknown>',
     });
-};
+})();

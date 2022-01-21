@@ -8,14 +8,12 @@ interface UserAttributes extends UserCreationAttributes {
   id: number;
 }
 
-class User
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes {
-  public id!: number;
-  public name!: string;
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  declare id: number;
+  declare name: string;
 
-  public readonly projects?: Project[];
-  public readonly address?: Address;
+  declare readonly projects?: Project[];
+  declare readonly address?: Address;
 }
 
 interface ProjectCreationAttributes {
@@ -30,14 +28,14 @@ interface ProjectAttributes extends ProjectCreationAttributes {
 class Project
   extends Model<ProjectAttributes, ProjectCreationAttributes>
   implements ProjectAttributes {
-  public id!: number;
-  public ownerId!: number;
-  public name!: string;
+  declare id: number;
+  declare ownerId: number;
+  declare name: string;
 }
 
 class Address extends Model {
-  public userId!: number;
-  public address!: string;
+  declare userId: number;
+  declare address: string;
 }
 
 // both models should be accepted in include
