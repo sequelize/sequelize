@@ -1,10 +1,10 @@
 import wkx from 'wkx';
+import { kSetDialectNames } from '../../dialect-toolbox';
 import { addTicks, generateEnumName } from '../../utils';
 import type {
   AcceptableTypeOf,
   DataTypes,
   RawTypeOf,
-  SetDialectNamesSymbol,
   StringifyOptions,
   DataType,
   BindParamOptions,
@@ -13,13 +13,9 @@ import type {
 import * as BaseTypes from '../abstract/data-types';
 import range from './range';
 
-const kSetDialectNames: SetDialectNamesSymbol = Symbol.for(
-  'sequelize.internal.data-types.set-dialect-names',
-) as SetDialectNamesSymbol;
-
 const warn = BaseTypes.ABSTRACT.warn.bind(
   undefined,
-  'http://www.postgresql.org/docs/9.4/static/datatype.html',
+  'https://www.postgresql.org/docs/9.4/static/datatype.html',
 );
 
 /**
@@ -188,7 +184,7 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     return 'BOOLEAN';
   }
 
-  protected override _sanitize(value: RawTypeOf<DataTypes['BOOLEAN']>): any {
+  protected _sanitize(value: RawTypeOf<DataTypes['BOOLEAN']>): any {
     if (value !== null && value !== undefined) {
       if (Buffer.isBuffer(value) && value.length === 1) {
         // Bit fields are returned as buffers
