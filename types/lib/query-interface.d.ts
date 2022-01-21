@@ -8,7 +8,11 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor, ModelStatic, ModelType
+  ModelCtor,
+  ModelStatic,
+  ModelType,
+  CreationAttributes,
+  Attributes,
 } from './model';
 import { QueryTypes, Transaction } from '..';
 import { Sequelize, RetryOptions } from './sequelize';
@@ -336,7 +340,7 @@ export class QueryInterface {
    */
   public createTable<M extends Model>(
     tableName: TableName,
-    attributes: ModelAttributes<M, M['_creationAttributes']>,
+    attributes: ModelAttributes<M, CreationAttributes<M>>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
 
@@ -507,7 +511,7 @@ export class QueryInterface {
     instance: M,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<M['_attributes']>,
+    identifier: WhereOptions<Attributes<M>>,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -554,7 +558,7 @@ export class QueryInterface {
     instance: Model,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<M['_attributes']>,
+    identifier: WhereOptions<Attributes<M>>,
     options?: QueryOptions
   ): Promise<object>;
 

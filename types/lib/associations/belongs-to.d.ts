@@ -1,5 +1,5 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 // type ModelCtor<M extends Model> = InstanceType<typeof M>;
@@ -117,7 +117,7 @@ export interface BelongsToCreateAssociationMixinOptions
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel extends Model> = (
-  values?: TModel['_creationAttributes'],
+  values?: CreationAttributes<TModel>,
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
