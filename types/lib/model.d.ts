@@ -374,6 +374,8 @@ export type WhereAttributeHash<TAttributes = any> = {
    *  }
    */
   [field in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+} & {
+  [key: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 }
 /**
  * Through options for Include Options
