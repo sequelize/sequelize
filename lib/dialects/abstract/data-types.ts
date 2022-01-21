@@ -52,14 +52,14 @@ export interface BindParamOptions extends StringifyOptions {
   bindParam(value: string | Buffer | string[] | null): string;
 }
 
-// @internal
 export type DialectTypeMeta =
   | {
       subtypes: { [name: string]: string },
       castTypes: { [name: string]: string },
     }
   | string[]
-  | [null];
+  | [null]
+  | false;
 
 class _ABSTRACT<
   /** The type of value we'll accept - ie for a column of this type, we'll accept this value as user input. */
@@ -82,7 +82,6 @@ class _ABSTRACT<
    * @param dialect The dialect the types apply to
    * @param types The dialect-specific types.
    */
-  // @internal
   public static [kSetDialectNames](dialect: string, types: DialectTypeMeta) {
     if (!Object.prototype.hasOwnProperty.call(this, 'types')) {
       const prop = {
