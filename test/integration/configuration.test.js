@@ -65,6 +65,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else if (dialect === 'db2') {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      } else if (dialect === 'ibmi') {
+        await expect(seq.query('select 1 as hello from SYSIBM.SYSDUMMY1')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'Error connecting to the database');
       } else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }

@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql') {
+        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'ibmi') {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function () {
             const users = await this.User.findAll({

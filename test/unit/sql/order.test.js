@@ -353,6 +353,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         Support.sequelize.random(),
       ],
     }, {
+      ibmi: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND()',
       mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
       db2: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND();',
       mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',

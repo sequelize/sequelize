@@ -160,7 +160,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       } catch (error) {
         expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        expect(error.errors[0].path).to.be.a('string', 'username');
+        if (dialect !== 'ibmi') {
+          expect(error.errors[0].path).to.be.a('string', 'username');
+        }
       }
     });
 
@@ -461,7 +463,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
+<<<<<<< HEAD
       (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+=======
+      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'ibmi' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
+>>>>>>> origin/newbranch
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -1094,7 +1100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await User.sync({ force: true });
           const tableName = User.getTableName();
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower(username)))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

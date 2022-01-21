@@ -10,10 +10,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/markdirish/sequelize-ibmi"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+    "url": "https://github.com/markdirish/sequelize-ibmi/issues"
   },
   "homepage": "https://sequelize.org/",
   "main": "./dist/index.js",
@@ -76,7 +76,6 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.3",
     "esdoc": "1.1.0",
     "esdoc-ecmascript-proposal-plugin": "1.0.0",
     "esdoc-inject-style-plugin": "1.0.0",
@@ -94,10 +93,10 @@
     "markdownlint-cli": "0.30.0",
     "mocha": "7.2.0",
     "module-alias": "2.2.2",
-    "ibm_db": "2.8.1",
     "mysql2": "2.3.3",
     "node-hook": "1.0.0",
     "nyc": "15.1.0",
+    "odbc": "2.4.1",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
@@ -149,6 +148,8 @@
     "postgres",
     "pg",
     "mssql",
+    "ibmi",
+    "odbc",
     "db2",
     "ibm_db",
     "sql",

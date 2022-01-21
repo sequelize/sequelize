@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ alter: true });
       const data = await testSync.describe();
       expect(data).to.have.ownProperty('age');
-      expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
+      expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
     });
 
     it('should not alter table if data type does not change', async function () {

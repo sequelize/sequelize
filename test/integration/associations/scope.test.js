@@ -11,6 +11,10 @@ const current = Support.sequelize;
 const Op = Sequelize.Op;
 const semver = require('semver');
 
+const {
+  setTimeout,
+} = require('timers/promises');
+
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
     beforeEach(function () {

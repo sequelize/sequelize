@@ -79,7 +79,15 @@ module.exports = {
     port: process.env.DB2_PORT_50000_TCP_PORT || process.env.SEQ_DB2_PORT || process.env.SEQ_PORT || process.env.IBM_DB_PORT || 50_000,
     pool: {
       max: process.env.SEQ_DB2_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
-      idle: process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000,
-    },
+      idle: process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
   },
+  ibmi: {
+    odbcConnectionString: 'DSN=SEQUELIZE',
+    database: 'SEQUELIZE',
+    pool: {
+      max: env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5,
+      idle: env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000
+    }
+  }
 };
