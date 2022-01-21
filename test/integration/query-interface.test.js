@@ -36,11 +36,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('showAllTables', () => {
     it('should not contain views', async function() {
       async function cleanup(sequelize) {
-        await sequelize.query('DROP VIEW IF EXISTS V_Fail');
+        let sql;
+        if (dialect !== 'oracle') {
+          sql = 'DROP VIEW IF EXISTS V_Fail';
+        } else {
+          sql = [
+            'DECLARE',
+            '  V_COUNT INTEGER;',
+            'BEGIN',
+            '  V_COUNT := 0;',
+            `  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = 'V_FAIL';`,
+            '  IF V_COUNT != 0 THEN',
+            '    EXECUTE IMMEDIATE ',
+            `'DROP VIEW V_Fail'`,
+            ';',
+            '  END IF;',
+            'END;'
+          ].join('');
+        }
+        await sequelize.query(sql);
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      await this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id');
+      await this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id' + Support.addDualInSelect());
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
       if (tableNames[0] && tableNames[0].tableName) {
@@ -49,7 +67,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect != 'oracle') {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function() {
