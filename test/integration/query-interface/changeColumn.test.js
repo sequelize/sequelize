@@ -46,6 +46,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (dialect === 'postgres' || dialect === 'postgres-native') {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -74,6 +76,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (dialect === 'postgres' || dialect === 'postgres-native') {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
