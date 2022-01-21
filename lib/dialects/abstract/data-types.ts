@@ -43,6 +43,7 @@ export type DataType<T extends ABSTRACT<any> = ABSTRACT<any>> =
 // TODO: This typing may not be accurate, validate when query-generator is typed.
 export interface StringifyOptions {
   escape(str: string): string;
+  operation?: string;
   timezone?: string;
   // TODO: Update this when query-generator is converted to TS
   field?: any;
@@ -217,11 +218,11 @@ class _ABSTRACT<
     return options.bindParam(String(value));
   }
 
-  public toString(): string {
-    return this.toSql();
+  public toString(options: StringifyOptions): string {
+    return this.toSql(options);
   }
 
-  public toSql(): string {
+  public toSql(_options: StringifyOptions): string {
     // this is defiend via
     if (!this.key) {
       throw new TypeError('Expected a key property to be defined');
@@ -529,7 +530,13 @@ class _NUMBER extends ABSTRACT<AcceptedNumber, number> {
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format(
-          `%j is not a valid ${super.toString().toLowerCase()}`,
+          `%j is not a valid ${super
+            .toString({
+              escape(str) {
+                return str;
+              },
+            })
+            .toLowerCase()}`,
           value,
         ),
         [],
@@ -1474,8 +1481,8 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
     this.type = this.options.type;
   }
 
-  toSql() {
-    return `${this.type.toSql()}[]`;
+  toSql(options: StringifyOptions) {
+    return `${this.type.toSql(options)}[]`;
   }
 
   // Note: Validation of individual items is handled in the query-generator.
@@ -1501,14 +1508,14 @@ class _ARRAY<T extends ABSTRACT<any>> extends ABSTRACT<
 export type ARRAY<T extends ABSTRACT<any>> = _ARRAY<T>;
 export const ARRAY = classToInvokable(_ARRAY);
 
-type GeometryType = keyof typeof wkx;
+export type GeometryType = Uppercase<keyof typeof wkx>;
 
 interface GeometryOptions<Type extends GeometryType> {
   type?: Type;
   srid?: number;
 }
 
-type GeometryParams<Type extends GeometryType> =
+export type GeometryParams<Type extends GeometryType> =
   | []
   | [GeometryOptions<Type> | undefined]
   | [Type | undefined]
