@@ -433,3 +433,97 @@ async function doStuff() {
   console.log(instance.id);
 }
 ```
+
+## Utility Types
+
+### Requesting a Model Class
+
+`ModelStatic` is designed to be used to type a Model *class*.
+
+Here is an example of a utility method that requests a Model Class, and returns the list of primary keys defined in that class:
+
+```typescript
+import { ModelStatic, ModelAttributeColumnOptions, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+
+/**
+ * Returns the list of attributes that are part of the model's primary key.
+ */
+export function getPrimaryKeyAttributes(model: ModelStatic<any>): ModelAttributeColumnOptions[] {
+  const attributes: ModelAttributeColumnOptions[] = [];
+
+  for (const attribute of Object.values(model.rawAttributes)) {
+    if (attribute.primaryKey) {
+      attributes.push(attribute);
+    }
+  }
+
+  return attributes;
+}
+
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  id: CreationOptional<number>;
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    autoIncrement: true,
+    primaryKey: true
+  },
+}, { sequelize });
+
+const primaryAttributes = getPrimaryKeyAttributes(User);
+```
+
+### Getting a Model's attributes
+
+If you need to access the list of attributes of a given model, `Attributes<Model>` and `CreationAttributes<Model>`
+are what you need to use.
+
+They will return the Attributes (and Creation Attributes) of the Model passed as a parameter.
+
+Don't confuse them with `InferAttributes` and `InferCreationAttributes`. These two utility types should only every be used
+in the definition of a Model to automatically create the list of attributes from the model's public class fields. They only work
+with class-based model definitions (When using `Model.init`).
+
+`Attributes<Model>` and `CreationAttributes<Model>` will return the list of attributes of any model, no matter how they were created (be it `Model.init` or `Sequelize#define`).
+
+Here is an example of a utility function that requests a Model Class, and the name of an attribute ; and returns the corresponding attribute metadata.
+
+```typescript
+import {
+  ModelStatic,
+  ModelAttributeColumnOptions,
+  Model,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+  Attributes
+} from 'sequelize';
+
+export function getAttributeMetadata<M extends Model>(model: ModelStatic<M>, attributeName: keyof Attributes<M>): ModelAttributeColumnOptions {
+  const attribute = model.rawAttributes[attributeName];
+  if (attribute == null) {
+    throw new Error(`Attribute ${attributeName} does not exist on model ${model.name}`);
+  }
+
+  return attribute;
+}
+
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  id: CreationOptional<number>;
+}
+
+User.init({
+  id: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    autoIncrement: true,
+    primaryKey: true
+  },
+}, { sequelize });
+
+const idAttributeMeta = getAttributeMetadata(User, 'id'); // works!
+
+// @ts-expect-error
+const nameAttributeMeta = getAttributeMetadata(User, 'name'); // fails because 'name' is not an attribute of User
+```
