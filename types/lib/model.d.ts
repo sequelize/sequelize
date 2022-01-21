@@ -375,6 +375,9 @@ export type WhereAttributeHash<TAttributes = any> = {
    */
   [field in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 } & {
+  /**
+   * Makes $nested.syntax$ valid
+   */
   [key: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 }
 /**
