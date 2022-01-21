@@ -451,6 +451,8 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
 
   /**
    * Run include in separate queries.
+   *
+   * This must be true if {@link IncludeOptions#limit} is specified.
    */
   separate?: boolean;
 
