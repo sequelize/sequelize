@@ -580,18 +580,11 @@ export interface FindOptions<TAttributes = any>
    *   include: [User.associations.projects],
    *   subQuery: false,
    * });
-   *
-   * @example
-   * // in the following query, `limit` only affects how many projects are returned for each user.
-   * // This may return all users, each with up to 2 project,
-   * User.findAll({
-   *   include: [{
-   *     association: User.associations.projects,
-   *     limit: 2,
-   *   }],
-   * });
    */
   limit?: number;
+
+  // TODO: document this - this is an undocumented property but it exists and there are tests for it.
+  groupedLimit?: unknown;
 
   /**
    * Skip the results;
