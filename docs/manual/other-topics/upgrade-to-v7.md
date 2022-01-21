@@ -16,6 +16,36 @@ As a result, the manual typings that were formerly best-effort guesses on top of
 have been removed and all typings are now directly retrieved from the actual TypeScript code.
 You'll likely find many tiny differences which however should be easy to fix.
 
+### Changes to `include.limit` & `include.separate`
+
+Limiting how many eagerly-loaded entities must be returned always required turning the `include.separate` option on.
+
+When writing the following code, Sequelize v6 would silently turn the `separate` option on.
+
+```typescript
+await User.findAll({
+  include: [{
+    association: User.associations.projects,
+    limit: 1,
+  }],
+});
+```
+
+Due to the extra cost of sequentially running more than one query, Sequelize v7 now asks you
+to acknowledge that a second query must be run by setting `separate` to true yourself.
+
+Instead of the above code, write this:
+
+```typescript
+await User.findAll({
+  include: [{
+    association: User.associations.projects,
+    limit: 1,
+    separate: true,
+  }],
+});
+```
+
 ### Changes to `ConnectionManager`
 
 *This only impacts you if you used `ConnectionManager` directly.*
