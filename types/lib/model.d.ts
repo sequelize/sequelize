@@ -378,9 +378,9 @@ export type WhereAttributeHash<TAttributes = any> = {
   /**
    * Makes $nested.syntax$ valid
    */
-  // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.3
-  // TypeScript < 4.3 does not support using a Template Literal Type as a key.
-  //  note: this *must* be a ts-ignore, as it works in ts >= 4.3
+  // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
+  // TypeScript < 4.4 does not support using a Template Literal Type as a key.
+  //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
   // @ts-ignore
   [key: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 }
