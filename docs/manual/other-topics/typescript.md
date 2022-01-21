@@ -44,15 +44,15 @@ class User extends Model<UserAttributes, UserCreationAttributes> {
 }
 ```
 
-This solution is verbose. Sequelize v6 provides new utility types that will drastically reduce the amount
-of boilerplate necessary: `AttributeOf`, and `CreationAttributeOf`. They will extract Attribute typings
+This solution is verbose. Sequelize >=6.14.0 provides new utility types that will drastically reduce the amount
+of boilerplate necessary: `InferAttributes`, and `InferCreationAttributes`. They will extract Attribute typings
 directly from the Model:
 
 ```typescript
-import { Model, AttributesOf, CreationAttributesOf, CreationOptional } from 'sequelize';
+import { Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 
-// order of AttributesOf & CreationAttributesOf is important.
-class User extends Model<AttributesOf<User>, CreationAttributesOf<User>> {
+// order of InferAttributes & InferCreationAttributes is important.
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   // 'CreationOptional' is a special type that marks the field as optional
   // when creating an instance of the model (such as using Model.create()).
   declare id: CreationOptional<number>;
@@ -61,19 +61,19 @@ class User extends Model<AttributesOf<User>, CreationAttributesOf<User>> {
 }
 ```
 
-Important things to know about `AttributesOf` & `CreationAttributes` work: They will select all declared properties of the class except:
+Important things to know about `InferAttributes` & `InferCreationAttributes` work: They will select all declared properties of the class except:
 
 - Static fields and methods.
 - Methods (anything whose type is a function).
 - Those whose type uses the branded type `NonAttribute`.
-- Those excluded by using AttributesOf like this: `AttributesOf<User, { omit: 'properties' | 'to' | 'omit' }>`.
+- Those excluded by using AttributesOf like this: `InferAttributes<User, { omit: 'properties' | 'to' | 'omit' }>`.
 - Those declared by the Model superclass (but not intermediary classes!).
   If one of your attributes shares the same name as one of the properties of `Model`, change its name.
   Doing this is likely to cause issues anyway.
 - Getter & setters are not automatically excluded. Set their return / parameter type to `NonAttribute`,
   or add them to `omit` to exclude them.
 
-`CreationAttributes` works the same way as `AttributesOf` with one exception: Properties typed using the `CreationOptional` type
+`InferCreationAttributes` works the same way as `AttributesOf` with one exception: Properties typed using the `CreationOptional` type
 will be marked as optional.
 
 You only need to use `CreationOptional` & `NonAttribute` on class instance fields or getters.
