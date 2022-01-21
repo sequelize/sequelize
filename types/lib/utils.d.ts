@@ -1,5 +1,6 @@
 import { DataType } from './data-types';
-import { Model, ModelCtor, ModelType, WhereOptions } from './model';
+import { Model, ModelCtor, ModelType, WhereOptions, Attributes } from './model';
+import { Optional } from '..';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 
@@ -32,13 +33,13 @@ export interface OptionsForMapping<TAttributes> {
 }
 
 /** Expand and normalize finder options */
-export function mapFinderOptions<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
+export function mapFinderOptions<M extends Model, T extends OptionsForMapping<Attributes<M>>>(
   options: T,
   model: ModelCtor<M>
 ): T;
 
 /* Used to map field names in attributes and where conditions */
-export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping<M['_attributes']>>(
+export function mapOptionFieldNames<M extends Model, T extends OptionsForMapping<Attributes<M>>>(
   options: T, model: ModelCtor<M>
 ): T;
 
@@ -122,3 +123,44 @@ export class Where extends SequelizeMethod {
   constructor(attr: object, comparator: string, logic: string | object);
   constructor(attr: object, logic: string | object);
 }
+
+export type AnyFunction = (...args: any[]) => any;
+
+/**
+ * Returns all shallow properties that accept `undefined`.
+ * Does not include Optional properties, only `undefined`.
+ *
+ * @example
+ * type UndefinedProps = UndefinedPropertiesOf<{
+ *   id: number | undefined,
+ *   createdAt: string | undefined,
+ *   firstName: string,
+ *   lastName?: string, // optional properties are not included.
+ * }>;
+ *
+ * // is equal to
+ *
+ * type UndefinedProps = 'id' | 'createdAt';
+ */
+export type UndefinedPropertiesOf<T> = {
+  [P in keyof T]-?: undefined extends T[P] ? P : never
+}[keyof T];
+
+/**
+ * Makes all shallow properties of an object `optional` if they accept `undefined` as a value.
+ *
+ * @example
+ * type MyOptionalType = MakeUndefinedOptional<{
+ *   id: number | undefined,
+ *   name: string,
+ * }>;
+ *
+ * // is equal to
+ *
+ * type MyOptionalType = {
+ *   // this property is optional.
+ *   id?: number | undefined,
+ *   name: string,
+ * };
+ */
+export type MakeUndefinedOptional<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
