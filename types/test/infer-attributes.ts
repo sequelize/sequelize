@@ -1,24 +1,39 @@
 import { expectTypeOf } from 'expect-type';
-import { InferAttributes, InferCreationAttributes, CreationOptional, Model, NonAttribute, Attributes, CreationAttributes } from 'sequelize';
+import {
+  Attributes,
+  CreationAttributes,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NonAttribute,
+} from 'sequelize';
 
-class User extends Model<
-  InferAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>,
-  InferCreationAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>
-> {
+class Project extends Model<InferAttributes<Project>> {
+  declare id: number;
+}
+
+class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>,
+  InferCreationAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>> {
   declare optionalAttribute: CreationOptional<number>;
   declare mandatoryAttribute: string;
 
   declare optionalArrayAttribute: CreationOptional<string[]>;
   declare mandatoryArrayAttribute: string[];
 
-  declare nonAttribute: NonAttribute<boolean>;
-  declare nonAttributeArray: NonAttribute<boolean[]>;
+  declare nonAttribute: NonAttribute<string>;
+  declare nonAttributeArray: NonAttribute<string[]>;
 
   declare omittedAttribute: number;
   declare omittedAttributeArray: number[];
 
-  instanceMethod() {}
-  static staticMethod() {}
+  declare joinedEntity?: NonAttribute<Project>;
+
+  instanceMethod() {
+  }
+
+  static staticMethod() {
+  }
 }
 
 type UserAttributes = Attributes<User>;
@@ -60,10 +75,12 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 // brands:
 
 {
+  const user = User.build({ mandatoryArrayAttribute: [], mandatoryAttribute: '' });
+
   // ensure branding does not break arrays.
-  const brandedArray: NonAttribute<string[]> = [''];
-  const anArray: string[] = brandedArray;
-  const item: string = brandedArray[0];
+  const brandedArray: NonAttribute<string[]> = user.nonAttributeArray;
+  const anArray: string[] = user.nonAttributeArray;
+  const item: boolean = user.nonAttributeArray[0].endsWith('');
 }
 
 {
@@ -80,7 +97,9 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 }
 
 {
-  // ensure branding does not break instances
-  const brandedUser: NonAttribute<User> = new User();
-  const aUser: User = brandedUser;
+  const user = User.build({ mandatoryArrayAttribute: [], mandatoryAttribute: '' });
+  const project: Project = user.joinedEntity!;
+
+  // ensure branding does not break objects
+  const id = project.id;
 }

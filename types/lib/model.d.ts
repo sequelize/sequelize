@@ -522,8 +522,6 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-
 /**
  * Options that are passed to any model creating a SELECT query
  *
@@ -2952,26 +2950,23 @@ export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(
 
 export default Model;
 
+type IsBranded<T, Brand extends symbol> = keyof T extends keyof Omit<T, Brand>
+  ? false
+  : true;
+
 /**
  * Dummy Symbol used as branding by {@link NonAttribute}.
  *
  * Do not export, Do not use.
  */
 declare const NonAttributeBrand: unique symbol;
-interface NonAttributeBrandedArray<Val> extends Array<Val> {
-  [NonAttributeBrand]: true
-}
 
 /**
  * This is a Branded Type.
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
-export type NonAttribute<T> = T extends Array<infer Val>
-  // Arrays are a special case when branding. Both sides need to be an array,
-  //  otherwise property access breaks.
-  ? T | NonAttributeBrandedArray<Val>
-  : T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+export type NonAttribute<T> = T & { [NonAttributeBrand]?: true };
 
 /**
  * Option bag for {@link InferAttributes}.
@@ -3028,8 +3023,8 @@ type InferAttributesOptions<Excluded, > = { omit?: Excluded };
 export type InferAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-> = {
-  [Key in keyof M as InternalMapAttributeKeys<M, Key, Options>]: M[Key]
+  > = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key]
 };
 
 /**
@@ -3038,9 +3033,6 @@ export type InferAttributes<
  * Do not export, Do not use.
  */
 declare const CreationAttributeBrand: unique symbol;
-interface CreationAttributeBrandedArray<Val> extends Array<Val> {
-  [CreationAttributeBrand]: true
-}
 
 /**
  * This is a Branded Type.
@@ -3048,11 +3040,7 @@ interface CreationAttributeBrandedArray<Val> extends Array<Val> {
  *
  * For use with {@link InferCreationAttributes}.
  */
-export type CreationOptional<T> = T extends Array<infer Val>
-  // Arrays are a special case when branding. Both sides need to be an array,
-  //  otherwise property access breaks.
-  ? T | CreationAttributeBrandedArray<Val>
-  : T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+export type CreationOptional<T> = T & { [CreationAttributeBrand]?: true };
 
 /**
  * Utility type to extract Creation Attributes of a given Model class.
@@ -3072,11 +3060,9 @@ export type CreationOptional<T> = T extends Array<infer Val>
 export type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-> = {
-  [Key in keyof M as InternalMapAttributeKeys<M, Key, Options>]:
-      { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
-    // array special case
-    : CreationAttributeBrandedArray<any> extends M[Key] ? (M[Key] | undefined)
+  > = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: IsBranded<M[Key], typeof CreationAttributeBrand> extends true
+    ? (M[Key] | undefined)
     : M[Key]
 };
 
@@ -3090,14 +3076,14 @@ export type InferCreationAttributes<
  * - inherited from {@link Model}
  * - Excluded manually using {@link InferAttributesOptions#omit}
  */
-type InternalMapAttributeKeys<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
-    M[Key] extends AnyFunction ? never
-  : { [NonAttributeBrand]: true } extends M[Key] ? never
-  // array special case
-  : M[Key] extends { [NonAttributeBrand]: true } ? never
-  : M[Key] extends NonAttributeBrandedArray<any> ? never
+type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
+  // functions are always excluded
+  M[Key] extends AnyFunction ? never
+  // fields inherited from Model are all excluded
   : Key extends keyof Model ? never
-  // check 'omit' option is provided
+  // fields branded with NonAttribute are excluded
+  : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
+  // check 'omit' option is provided & exclude those listed in it
   : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
   : Key
 
