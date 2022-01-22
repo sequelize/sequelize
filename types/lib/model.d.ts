@@ -373,16 +373,21 @@ export type WhereAttributeHash<TAttributes = any> = {
    *    }
    *  }
    */
-  [field in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [attribute in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 } & {
   /**
-   * Makes $nested.syntax$ valid
+   * Makes $attribute$ valid & type-checks that the used attribute exists.
+   */
+  [attribute in keyof TAttributes as attribute extends string ? `$${attribute}$` : never]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+} & {
+  /**
+   * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
    */
   // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
   // TypeScript < 4.4 does not support using a Template Literal Type as a key.
   //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
   // @ts-ignore
-  [key: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [attribute: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 }
 /**
  * Through options for Include Options
