@@ -2,17 +2,20 @@ import { expectTypeOf } from 'expect-type';
 import { InferAttributes, InferCreationAttributes, CreationOptional, Model, NonAttribute, Attributes, CreationAttributes } from 'sequelize';
 
 class User extends Model<
-  InferAttributes<User, { omit: 'groups' }>,
-  InferCreationAttributes<User, { omit: 'groups' }>
+  InferAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>,
+  InferCreationAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>
 > {
-  declare id: CreationOptional<number>;
-  declare name: string;
-  declare anArray: CreationOptional<string[]>;
+  declare optionalAttribute: CreationOptional<number>;
+  declare mandatoryAttribute: string;
 
-  // omitted using `omit` option
-  declare groups: Group[];
-  // omitted using `NonAttribute`
-  declare projects: NonAttribute<Project>;
+  declare optionalArrayAttribute: CreationOptional<string[]>;
+  declare mandatoryArrayAttribute: string[];
+
+  declare nonAttribute: NonAttribute<boolean>;
+  declare nonAttributeArray: NonAttribute<boolean[]>;
+
+  declare omittedAttribute: number;
+  declare omittedAttributeArray: number[];
 
   instanceMethod() {}
   static staticMethod() {}
@@ -22,77 +25,37 @@ type UserAttributes = Attributes<User>;
 type UserCreationAttributes = CreationAttributes<User>;
 
 expectTypeOf<UserAttributes>().not.toBeAny();
+expectTypeOf<UserCreationAttributes>().not.toBeAny();
 
-{
-  class Test extends Model<InferAttributes<Test>> {
-    declare id: NonAttribute<string>;
-  }
+expectTypeOf<UserAttributes['optionalAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['optionalAttribute']>().toBeNullable();
 
-  const win: Attributes<Test> = {};
-}
+expectTypeOf<UserAttributes['mandatoryAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['mandatoryAttribute']>().not.toBeNullable();
 
-{
-  const win: UserAttributes = {
-    id: 1,
-    name: '',
-    anArray: [''],
-  };
+expectTypeOf<UserAttributes['optionalArrayAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['optionalArrayAttribute']>().toBeNullable();
 
-  const fail1: UserAttributes = {
-    id: 1,
-    name: '',
-    // @ts-expect-error - 'extra' should not be present
-    extra: ''
-  };
+expectTypeOf<UserAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
 
-  // @ts-expect-error - 'name' should be present
-  const fail2: UserAttributes = {
-    id: 1,
-  };
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttribute');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttribute');
 
-{
-  const win: UserCreationAttributes = {
-    id: undefined,
-    name: '',
-    anArray: undefined,
-  };
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttributeArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttributeArray');
 
-  const fail1: UserCreationAttributes = {
-    id: 1,
-    name: '',
-    // @ts-expect-error 'extra' does not exist
-    extra: ''
-  };
+expectTypeOf<UserAttributes>().not.toHaveProperty('omittedAttribute');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('omittedAttribute');
 
-  const fail2: UserCreationAttributes = {
-    id: 1,
-    // @ts-expect-error name cannot be undefined
-    name: undefined,
-    anArray: undefined,
-  };
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('omittedAttributeArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('omittedAttributeArray');
 
-type GroupAttributes = InferAttributes<Group>;
+expectTypeOf<UserAttributes>().not.toHaveProperty('instanceMethod');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('instanceMethod');
 
-class Group extends Model<GroupAttributes> {
-  declare id: number;
-}
-
-{
-  // @ts-expect-error - id should not be missing
-  const fail1: GroupAttributes = {};
-
-  // @ts-expect-error - id should not be missing
-  const fail2: InferAttributes<Group, {}> = {};
-
-  // @ts-expect-error - id should not be missing
-  const fail3: InferAttributes<Group, { omit: never }> = {};
-}
-
-class Project extends Model<InferAttributes<Project>> {
-  declare id: number;
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('staticMethod');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 
 // brands:
 

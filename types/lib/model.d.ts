@@ -3029,16 +3029,7 @@ export type InferAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
 > = {
-  [Key in keyof M as
-    M[Key] extends AnyFunction ? never
-    : { [NonAttributeBrand]: true } extends M[Key] ? never
-      // array special case
-    : M[Key] extends NonAttributeBrandedArray<any> ? never
-    : Key extends keyof Model ? never
-    // check 'omit' option is provided
-    : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-    : Key
-  ]: M[Key]
+  [Key in keyof M as InternalMapAttributeKeys<M, Key, Options>]: M[Key]
 };
 
 /**
@@ -3082,22 +3073,33 @@ export type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
 > = {
-  [Key in keyof M as
-    M[Key] extends AnyFunction ? never
-    : { [NonAttributeBrand]: true } extends M[Key] ? never
-      // array special case
-    : M[Key] extends NonAttributeBrandedArray<any> ? never
-    : Key extends keyof Model ? never
-    // check 'omit' option is provided
-    : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-    : Key
-     // it is normal that the brand extends the type.
-     // We're checking if it's in the type.
-  ]: { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
+  [Key in keyof M as InternalMapAttributeKeys<M, Key, Options>]:
+      { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
     // array special case
     : CreationAttributeBrandedArray<any> extends M[Key] ? (M[Key] | undefined)
     : M[Key]
 };
+
+/**
+ * @private
+ *
+ * Internal type used by {@link InferCreationAttributes} and {@link InferAttributes} to exclude
+ * attributes that are:
+ * - functions
+ * - branded using {@link NonAttribute}
+ * - inherited from {@link Model}
+ * - Excluded manually using {@link InferAttributesOptions#omit}
+ */
+type InternalMapAttributeKeys<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
+    M[Key] extends AnyFunction ? never
+  : { [NonAttributeBrand]: true } extends M[Key] ? never
+  // array special case
+  : M[Key] extends { [NonAttributeBrand]: true } ? never
+  : M[Key] extends NonAttributeBrandedArray<any> ? never
+  : Key extends keyof Model ? never
+  // check 'omit' option is provided
+  : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
+  : Key
 
 // in v7, we should be able to drop InferCreationAttributes and InferAttributes,
 //  resolving this confusion.
