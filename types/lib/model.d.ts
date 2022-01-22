@@ -372,13 +372,10 @@ export type WhereAttributeHash<TAttributes = any> = {
    *      [Op.gt]: 20
    *    }
    *  }
+   *
+   * - An $attribute$ name
    */
-  [attribute in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
-} & {
-  /**
-   * Makes $attribute$ valid & type-checks that the used attribute exists.
-   */
-  [attribute in keyof TAttributes as attribute extends string ? `$${attribute}$` : never]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [attribute in keyof TAttributes as attribute extends string ? attribute | `$${attribute}$` : attribute]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 } & {
   /**
    * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
