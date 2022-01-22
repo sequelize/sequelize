@@ -46,6 +46,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('A column called \'id\' was added to the attributes of \'bars\' but not marked with \'primaryKey: true\'');
     });
 
+    it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
+      expect(() => {
+        current.define('foo', {
+          $id$: DataTypes.INTEGER,
+        });
+      }).to.throw('"foo.$id$": attribute name cannot start and end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
+    });
+
     it('should defend against null or undefined "unique" attributes', () => {
       expect(() => {
         current.define('baz', {
