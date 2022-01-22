@@ -35,15 +35,22 @@ const RELEASING_COLUMN_ID = 17444349;
     process.exit(1);
   }
 
-  const github = new Octokit({
-    auth: token
-  });
+  const github = new Octokit({ auth: token });
   const commits = await getCommitsFromProject(github);
 
-  await Promise.all(commits.map(commit => mergeCommit(github, commit)));
+  await processCommitsInSeries(github, commits);
 })();
 
 // Helpers
+
+async function processCommitsInSeries(github: Octokit, commits: CardCommit[]) {
+  let commit: CardCommit | undefined = commits.shift();
+
+  while (commit) {
+    await mergeCommit(github, commit);
+    commit = commits.shift();
+  }
+}
 
 async function getCommitsFromProject(github: Octokit): Promise<CardCommit[]> {
   const cards = await github.rest.projects.listCards({
@@ -110,15 +117,19 @@ function mergeCommitTeaser(commit: PullRequest) {
 }
 
 async function moveCard(github: Octokit, card: Card, to: number) {
+  let result = 'skipped';
+
   if (process.env.DRY_RUN === 'false') {
-    const a = await github.rest.projects.moveCard({
+    const response = await github.rest.projects.moveCard({
       card_id: card.id,
       position: 'bottom',
       column_id: to
     });
 
-    console.log(a);
+    result = response.status === 201 ? 'success' : 'error';
   }
+
+  console.info('- Card moved to column:', result);
 }
 
 async function gitMerge(sha: string) {
