@@ -2950,6 +2950,13 @@ export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(
 
 export default Model;
 
+/**
+ * Type will be true is T is branded with Brand, false otherwise
+ */
+// How this works:
+// - `A extends B` will be true if A has *at least* all the properties of B
+// - If we do `A extends Omit<A, Checked>` - the result will only be true if A did not have Checked to begin with
+// - So if we want to check if T is branded, we remove the brand, and check if they list of keys is still the same.
 type IsBranded<T, Brand extends symbol> = keyof T extends keyof Omit<T, Brand>
   ? false
   : true;
