@@ -51,7 +51,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         current.define('foo', {
           $id$: DataTypes.INTEGER,
         });
-      }).to.throw('"foo.$id$": attribute name cannot start and end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
+      }).to.throw('Name of attribute "$id$" in model "foo" cannot start and end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
+    });
+
+    it('should throw when the attribute name is ambiguous with json.path syntax', () => {
+      expect(() => {
+        current.define('foo', {
+          'my.attribute': DataTypes.INTEGER,
+        });
+      }).to.throw('Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.');
     });
 
     it('should defend against null or undefined "unique" attributes', () => {
