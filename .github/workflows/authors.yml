@@ -20,7 +20,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          author: Node.js GitHub Bot <github-bot@iojs.org>
+          author: SequelizeJS <mail@sequelizejs.com>
           body: >
             Here are some new additions to the AUTHORS file.
             This is an automatically generated PR by the
