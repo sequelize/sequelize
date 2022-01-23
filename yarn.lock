@@ -5687,10 +5687,10 @@ linkify-it@^3.0.1:
   dependencies:
     uc.micro "^1.0.1"
 
-lint-staged@12.2.2:
-  version "12.2.2"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-12.2.2.tgz#e03d93b41092316e0f38b37c9630da807aae3cca"
-  integrity sha512-bcHEoM1M/f+K1BYdHcEuIn8K+zMOSJR3mkny6PAuQiTgcSUcRbUWaUD6porAYypxF4k1vYZZ2HutZt1p94Z1jQ==
+lint-staged@12.3.0:
+  version "12.3.0"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-12.3.0.tgz#9fa38336d2a9e246aea57bad772d7367f41ad0df"
+  integrity sha512-bk+jvy5H+12Srg8MGlSmBt78B9GEbMtd4BETHdHS1mMmbgt3Gw18d8KwrJXCcJmICMGQTCiKBUMZSZ3NlfQ8PQ==
   dependencies:
     cli-truncate "^3.1.0"
     colorette "^2.0.16"
