@@ -184,7 +184,7 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'script',
   },
-  ignorePatterns: ['dist/**/*', 'types/**/*', 'dev/**/*'],
+  ignorePatterns: ['dist/**/*', 'types/**/*', 'dev/**/*', '!dev/update-authors.js'],
   env: {
     node: true,
     mocha: true,
