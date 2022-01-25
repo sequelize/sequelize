@@ -1,5 +1,5 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 /**
@@ -114,6 +114,6 @@ export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociatio
  * @see Instance
  */
 export type HasOneCreateAssociationMixin<TModel extends Model> = (
-  values?: TModel['_creationAttributes'],
+  values?: CreationAttributes<TModel>,
   options?: HasOneCreateAssociationMixinOptions
 ) => Promise<TModel>;

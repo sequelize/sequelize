@@ -20,6 +20,8 @@ import {
   ModelCtor,
   Hookable,
   ModelType,
+  CreationAttributes,
+  Attributes,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
@@ -757,10 +759,10 @@ export class Sequelize extends Hooks {
    */
   public static beforeDefine<M extends Model>(
     name: string,
-    fn: (attributes: ModelAttributes<M, M['_creationAttributes']>, options: ModelOptions<M>) => void
+    fn: (attributes: ModelAttributes<M, CreationAttributes<M>>, options: ModelOptions<M>) => void
   ): void;
   public static beforeDefine<M extends Model>(
-    fn: (attributes: ModelAttributes<M, M['_creationAttributes']>, options: ModelOptions<M>) => void
+    fn: (attributes: ModelAttributes<M, CreationAttributes<M>>, options: ModelOptions<M>) => void
   ): void;
 
   /**
@@ -1197,7 +1199,7 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TAttributes = M['_attributes']>(
+  public define<M extends Model, TAttributes = Attributes<M>>(
     modelName: string,
     attributes: ModelAttributes<M, TAttributes>,
     options?: ModelOptions<M>

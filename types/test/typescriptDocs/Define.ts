@@ -1,6 +1,8 @@
 /**
  * Keep this file in sync with the code in the "Usage of `sequelize.define`"
- * section in typescript.md
+ * section in /docs/manual/other-topics/typescript.md
+ *
+ * Don't include this comment in the md file.
  */
 import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
 

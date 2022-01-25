@@ -1,6 +1,8 @@
 /**
  * Keep this file in sync with the code in the "Usage without strict types for
- * attributes" section in typescript.md
+ * attributes" section in /docs/manual/other-topics/typescript.md
+ *
+ * Don't include this comment in the md file.
  */
 import { Sequelize, Model, DataTypes } from 'sequelize';
 

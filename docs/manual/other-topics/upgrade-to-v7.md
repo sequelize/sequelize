@@ -30,3 +30,9 @@ sequelize.connectionManager.getConnection({ type: 'SELECT' });
 // Do this:
 sequelize.connectionManager.getConnection({ type: 'read' });
 ```
+
+### Microsoft SQL Server Support
+
+Sequelize v7 fully supports MS SQL Server 2017 (version 14) onwards, up from 2012 (version 13) in
+Sequelize v6, as this matches Microsoft's own [mainstream support](
+https://docs.microsoft.com/en-us/sql/sql-server/end-of-support/sql-server-end-of-life-overview?view=sql-server-ver15#lifecycle-dates).
