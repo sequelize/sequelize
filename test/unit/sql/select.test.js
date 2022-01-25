@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
           ORDER BY [user].[last_name] ASC
-          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })};
+          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
         `),
       });
 
