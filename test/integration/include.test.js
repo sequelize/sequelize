@@ -667,8 +667,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ];
       } else if (dialect === 'ibmi') {
         findAttributes = [
-          Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
-          [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
+          Sequelize.literal('"1" AS "PostComments.someProperty"'),
+          [Sequelize.literal('"1"'), 'someProperty2'],
         ];
       } else if (dialect === 'db2') {
         findAttributes = [

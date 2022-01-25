@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql', 'db2'].includes(current.dialect.name)) {
+    if (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function () {
         const User = this.sequelize.define('User', {
           email: {
@@ -463,11 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-<<<<<<< HEAD
-      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-=======
-      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'ibmi' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
->>>>>>> origin/newbranch
+      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2'  && dialect !== 'ibmi' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
