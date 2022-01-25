@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
@@ -116,12 +116,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (err) {
-            console.log(err);
             expect(
               err.message.includes('connect ECONNREFUSED') ||
               err.message.includes('invalid port number') ||
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
+              err.message.includes('ORA-12545: Connect failed because target host or object does not exist') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }

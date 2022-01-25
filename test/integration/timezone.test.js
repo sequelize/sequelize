@@ -29,7 +29,7 @@ if (dialect !== 'sqlite') {
       let query = `SELECT ${now} as now`;
 
       if (dialect === 'oracle') {
-        query = 'SELECT CURRENT_DATE AS now FROM DUAL';
+        query = 'SELECT sysdate AS "now" FROM DUAL';
       }
 
       const [now1, now2] = await Promise.all([
