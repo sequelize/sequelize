@@ -9,7 +9,6 @@ import { getComplexKeys } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- .js files must be imported using require
 const baseIsNative = require('lodash/_baseIsNative');
 
 /**
@@ -120,8 +119,8 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  *    address.coordinates.longitude: 12.5964313
  *  }
  *
- * @param {object} value an Object
- * @returns {object} a flattened object
+ * @param value an Object
+ * @returns a flattened object
  * @private
  */
 export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
@@ -166,9 +165,9 @@ type Flatten<T extends object> = object extends T ? object : {
  *
  * **Note:** This method mutates `object`.
  *
- * @param {object} objectIn The destination object.
- * @param {...object} [sources] The source objects.
- * @returns {object} Returns `object`.
+ * @param objectIn The destination object.
+ * @param sources The source objects.
+ * @returns Returns `object`.
  * @private
  */
 export function defaults(
@@ -200,8 +199,8 @@ export function defaults(
 }
 
 /**
- * @param {object} obj
- * @returns {string} A new object with camel-cased keys
+ * @param obj
+ * @returns A new object with camel-cased keys
  * @private
  */
 export function camelizeObjectKeys(obj: { [key: string]: any }) {

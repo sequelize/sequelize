@@ -64,12 +64,11 @@ type NameIndexTableName = string | { tableName: string };
 
 /**
  *
- * @param {object} index
- * @param {Array}  index.fields
- * @param {string} [index.name]
- * @param {string|object} tableName
+ * @param index
+ * @param index.fields
+ * @param index.name
+ * @param tableName
  *
- * @returns {object}
  * @private
  */
 export function nameIndex(
@@ -93,8 +92,8 @@ export function nameIndex(
  * - bigints are stringified as a json string. (`safeStringifyJson({ val: 1n })` outputs `'{ "val": "1" }'`).
  *   This is because of a decision by TC39 to not support bigint in JSON.stringify https://github.com/tc39/proposal-bigint/issues/24
  *
- * @param {any} stringifyTarget the value to stringify.
- * @returns {string} the resulting json.
+ * @param stringifyTarget the value to stringify.
+ * @returns the resulting json.
  */
 export function safeStringifyJson(stringifyTarget: any): string {
   return JSON.stringify(stringifyTarget, (key, value) => {

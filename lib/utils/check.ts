@@ -5,7 +5,6 @@ import { getOperators } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Where } from './sequelize-method';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO (@AllAwesome497): .js files must be imported using require. Fix me once data-types has been migrated to TS.
 const DataTypes = require('../data-types');
 
 export function isPrimitive(val: any): val is string | number | boolean {
@@ -55,8 +54,8 @@ export function defaultValueSchemable(value: DataType): boolean {
 /**
  * Returns true if a where clause is empty, even with Symbols
  *
- * @param  {object} obj
- * @returns {boolean}
+ * @param obj
+ * @returns
  * @private
  */
 export function isWhereEmpty(obj: object): boolean {

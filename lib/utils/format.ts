@@ -72,6 +72,11 @@ export function mapOptionFieldNames<M extends Model>(
   options: FinderOptions<M['_attributes']>,
   Model: ModelStatic<Model>,
 ): MappedFinderOptions<M['_attributes']> {
+
+  // note: parts of Sequelize rely on this function mutating its inputs.
+  //  be aware that these places need to be fixed before trying to make this a pure function.
+  //  - ephys
+
   const out: MappedFinderOptions<M['_attributes']> = options;
 
   if (Array.isArray(options.attributes)) {
@@ -216,7 +221,6 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
  * @param omitNull if false, this method returns the object as-is
  * @param options
  * @param options.allowNull A list of keys that must be preserved even if their value is null or undefined.
- * @returns
  */
 export function removeNullishValuesFromHash(
   hash: Record<string, any>,
@@ -253,7 +257,6 @@ export function removeNullishValuesFromHash(
  *
  * @param tableName
  * @param columnName
- * @returns
  * @private
  */
 export function generateEnumName(
