@@ -1,6 +1,5 @@
 import { expectTypeOf } from "expect-type";
-import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize } from 'sequelize';
-import { ModelDefined } from 'sequelize/lib/model';
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize, ModelDefined } from 'sequelize';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {

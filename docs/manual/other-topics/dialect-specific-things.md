@@ -113,7 +113,11 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MSSQL
 
-The underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package (version 6.0.0 or above).
+The supported versions of MS SQL are from MS SQL 2017 (version 14) up to the most recent version.
+
+#### Tedious
+
+The default underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package.
 
 You can provide custom options to it using `dialectOptions.options` in the Sequelize constructor:
 

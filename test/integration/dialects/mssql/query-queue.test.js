@@ -98,27 +98,5 @@ if (dialect.startsWith('mssql')) {
 
       await expect(promise).not.to.be.rejected;
     });
-
-    describe('unhandled rejections', () => {
-      it('unhandled rejection should occur if user doesn\'t catch promise returned from query', async function () {
-        const User = this.User;
-        const rejectionPromise = Support.nextUnhandledRejection();
-        User.create({
-          username: new Date(),
-        });
-        await expect(rejectionPromise).to.be.rejectedWith(
-          Sequelize.ValidationError, 'string violation: username cannot be an array or an object',
-        );
-      });
-
-      it('no unhandled rejections should occur as long as user catches promise returned from query', async function () {
-        const User = this.User;
-        const unhandledRejections = Support.captureUnhandledRejections();
-        await expect(User.create({
-          username: new Date(),
-        })).to.be.rejectedWith(Sequelize.ValidationError);
-        expect(unhandledRejections).to.deep.equal([]);
-      });
-    });
   });
 }
