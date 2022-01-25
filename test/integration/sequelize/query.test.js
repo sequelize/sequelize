@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         await this.User.create(payload);
 
         await expect(this.sequelize.query(`
-          INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
+          INSERT INTO ${qq(this.User.tableName)} (${qq('username')},${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `, {
           bind: payload,
           logging: spy,

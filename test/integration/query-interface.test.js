@@ -639,7 +639,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: 'cascade',
+          onUpdate: (dialect !== 'oracle') ?  'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');
