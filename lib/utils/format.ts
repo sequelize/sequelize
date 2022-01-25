@@ -108,7 +108,7 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
     return where;
   }
 
-  const newAttributes: Record<string | symbol, any> = Object.create(null);
+  const newWhere: Record<string | symbol, any> = Object.create(null);
   // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
   //  Cast can be removed in sept. 2022 when we drop support for < 4.4
   for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
@@ -127,7 +127,7 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
         )
     ) {
       // Prevent renaming of HSTORE & JSON fields
-      newAttributes[columnNameOrOperator] = mapOptionFieldNames(
+      newWhere[columnNameOrOperator] = mapOptionFieldNames(
         {
           where: where[attributeNameOrOperator],
         },
@@ -138,21 +138,21 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
     }
 
     if (Array.isArray(where[attributeNameOrOperator])) {
-      newAttributes[columnNameOrOperator] = [...where[attributeNameOrOperator]];
+      newWhere[columnNameOrOperator] = [...where[attributeNameOrOperator]];
 
       for (const [index, wherePart] of where[attributeNameOrOperator].entries()) {
         if (isPlainObject(wherePart)) {
-          newAttributes[columnNameOrOperator][index] = mapWhereFieldNames(wherePart, Model);
+          newWhere[columnNameOrOperator][index] = mapWhereFieldNames(wherePart, Model);
         }
       }
 
       continue;
     }
 
-    newAttributes[columnNameOrOperator] = where[attributeNameOrOperator];
+    newWhere[columnNameOrOperator] = where[attributeNameOrOperator];
   }
 
-  return newAttributes;
+  return newWhere;
 }
 
 /**
