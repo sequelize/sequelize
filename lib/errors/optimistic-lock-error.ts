@@ -15,9 +15,9 @@ interface OptimisticLockErrorOptions {
  * Thrown when attempting to update a stale model instance
  */
 class OptimisticLockError extends BaseError {
-  modelName?: string;
-  values?: Record<string, unknown>;
-  where?: Record<string, unknown>;
+  modelName: string | undefined;
+  values: Record<string, unknown> | undefined;
+  where: Record<string, unknown> | undefined;
 
   constructor(options: OptimisticLockErrorOptions) {
     options = options || {};
