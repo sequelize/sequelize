@@ -16,10 +16,10 @@ const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('select', () => {
-    const testsql = function (options, expectation) {
+    const testsql = function (options, expectation, testFunction = it) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      testFunction(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -30,6 +30,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
       });
     };
+
+    testsql.only = (options, expectation) => testsql(options, expectation, it.only);
 
     testsql({
       table: 'User',

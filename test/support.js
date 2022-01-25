@@ -268,6 +268,16 @@ const Support = {
   isDeepEqualToOneOf(actual, expectedOptions) {
     return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
   },
+
+  /**
+   * Reduces insignificant whitespace from SQL string.
+   *
+   * @param {string} sql the SQL string
+   * @returns {string} the SQL string with insignificant whitespace removed.
+   */
+  minifySql(sql) {
+    return sql.replace(/\s+/g, ' ').trim();
+  },
 };
 
 if (global.beforeEach) {
