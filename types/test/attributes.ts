@@ -1,4 +1,4 @@
-import { Model } from "sequelize/lib/model";
+import { Model } from "sequelize";
 
 interface UserCreationAttributes {
   name: string;
