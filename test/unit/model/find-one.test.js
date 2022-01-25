@@ -105,39 +105,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Model.findOne({ where: { unique1: 42 } });
       expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
     });
-    it('should call internal findAll() method if findOne() is overridden', async () => {
-      const Model = current.define('model', {
-        unique1: {
-          type: DataTypes.INTEGER,
-          unique: 'unique',
-        },
-        unique2: {
-          type: DataTypes.INTEGER,
-          unique: 'unique',
-        },
-      });
-      Model.findAll = sinon.stub();
-
-      await Model.findOne();
-      Model.findAll.should.not.have.been.called;
-      Sequelize.Model.findAll.should.have.been.called;
-    });
-    it('should call internal findAll() method if findOne() is overridden', async () => {
-      const Model = current.define('model', {
-        unique1: {
-          type: DataTypes.INTEGER,
-          unique: 'unique',
-        },
-        unique2: {
-          type: DataTypes.INTEGER,
-          unique: 'unique',
-        },
-      });
-      Model.findAll = sinon.stub();
-
-      await Model.findOne();
-      Model.findAll.should.not.have.been.called;
-      Sequelize.Model.findAll.should.have.been.called;
-    });
   });
 });
