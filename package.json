@@ -68,7 +68,7 @@
     "@types/sinon": "10.0.8",
     "@types/validator": "13.7.1",
     "acorn": "8.7.0",
-    "chai": "4.3.4",
+    "chai": "4.3.5",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "cheerio": "1.0.0-rc.10",
