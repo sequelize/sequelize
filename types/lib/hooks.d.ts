@@ -1,4 +1,4 @@
-import { ModelType, DeepWriteable, Attributes, CreationAttributes } from '..';
+import { ModelType, Utils, Attributes, CreationAttributes } from '..';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -73,7 +73,7 @@ export interface SequelizeHooks<
   afterDefine(model: ModelType): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
-  beforeConnect(config: DeepWriteable<Config>): HookReturn;
+  beforeConnect(config: Utils.DeepWriteable<Config>): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
   beforeDisconnect(connection: unknown): HookReturn;
   afterDisconnect(connection: unknown): HookReturn;

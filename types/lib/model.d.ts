@@ -5,13 +5,15 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { LOCK, Transaction, Op, Utils, IndexHints, MakeUndefinedOptional, AnyFunction } from '..';
+import { LOCK, Transaction, Op, Utils, IndexHints } from '..';
 import { SetRequired } from '../type-helpers/set-required'
 
 type Fn = Utils.Fn;
 type Literal = Utils.Literal;
 type Col = Utils.Col;
 type Where = Utils.Where;
+type AnyFunction = Utils.AnyFunction;
+type MakeUndefinedOptional<T extends object> = Utils.MakeUndefinedOptional<T>;
 
 export interface Logging {
   /**

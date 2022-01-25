@@ -1,5 +1,5 @@
 import assert from 'assert';
-import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from '..';
+import type { Logging, Sequelize, Deferrable, Utils, Connection } from '..';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -17,7 +17,7 @@ export class Transaction {
 
   private readonly _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
   private readonly savepoints: Transaction[] = [];
-  private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
+  private readonly options: Utils.PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private readonly parent: Transaction | null;
   private readonly id: string;
   private readonly name: string;

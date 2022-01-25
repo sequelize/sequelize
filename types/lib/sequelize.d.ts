@@ -25,7 +25,7 @@ import {
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS, Utils, DeepWriteable } from '..';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, Utils } from '..';
 import { ConnectionManager } from './connection-manager';
 import type { AbstractDialect } from '../../lib/dialects/abstract/index';
 
@@ -689,8 +689,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeConnect(name: string, fn: (options: DeepWriteable<Config>) => void): void;
-  public static beforeConnect(fn: (options: DeepWriteable<Config>) => void): void;
+  public static beforeConnect(name: string, fn: (options: Utils.DeepWriteable<Config>) => void): void;
+  public static beforeConnect(fn: (options: Utils.DeepWriteable<Config>) => void): void;
 
   /**
    * A hook that is run after a connection is established
@@ -839,7 +839,7 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
-  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+  public readonly options: Utils.PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
 
   public readonly dialect: AbstractDialect;
 
