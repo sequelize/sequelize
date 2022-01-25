@@ -1,5 +1,4 @@
-import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op } from 'sequelize';
-import { Fn } from 'sequelize/lib/utils';
+import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from 'sequelize';
 
 Sequelize.useCLS({
   get(key: string): unknown {
@@ -75,7 +74,7 @@ Sequelize.afterConnect(() => {
 
 });
 
-const rnd: Fn = sequelize.random();
+const rnd: Utils.Fn = sequelize.random();
 
 class Model1 extends Model{}
 class Model2 extends Model{}
