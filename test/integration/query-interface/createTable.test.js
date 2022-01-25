@@ -89,6 +89,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(indexes[2].unique).to.be.true;
           expect(indexes[2].fields[0].attribute).to.equal('name');
           break;
+        case 'ibmi':
+          // name + email
+          expect(indexes[1].unique).to.be.true;
+          expect(indexes[1].fields[0].attribute).to.equal('email');
+          expect(indexes[1].fields[1].attribute).to.equal('name');
+
+          // name
+          expect(indexes[2].unique).to.be.true;
+          expect(indexes[2].fields[0].attribute).to.equal('name');
+          break;
         default:
           throw new Error(`Not implemented fpr ${dialect}`);
       }

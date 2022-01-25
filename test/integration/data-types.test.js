@@ -312,7 +312,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type

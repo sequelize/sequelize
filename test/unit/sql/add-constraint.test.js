@@ -173,6 +173,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             }),
             {
               db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
+              ibmi: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE',
               default:
                 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;',
             },
@@ -191,6 +192,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             onDelete: 'cascade',
           }), {
             db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
+            ibmi: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE',
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
           });
         });

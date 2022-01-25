@@ -197,7 +197,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(project.ProjectUsers.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+      if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
         expect(schemas).to.not.have.property('acme');
       }
     });
@@ -1458,7 +1458,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('hasAssociations with binary key', () => {
     beforeEach(function () {
-      const keyDataType = ['mysql', 'mariadb', 'db2'].includes(dialect) ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect) ? 'BINARY(255)' : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -3420,7 +3420,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }, through: 'UserProjects' });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.deep.equal(User.getTableName());
         expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });

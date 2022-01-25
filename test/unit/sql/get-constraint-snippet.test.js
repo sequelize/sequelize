@@ -134,6 +134,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           onDelete: 'cascade',
         }), {
           default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+          ibmi: 'CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE',
         });
       });
 

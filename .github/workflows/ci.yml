@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches:
+      - ibmi-dialect
       - main
       - v6
       - v7
@@ -78,6 +79,39 @@ jobs:
         run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
+  test-ibmi:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [12]
+    name: IBM i (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: test-typings
+    env:
+      DIALECT: ibmi
+      SEQ_DB: SEQUELIZE
+      SEQ_IBMI_CONN_STR: "${{ secrets.IBMI_CONN_STR }}"
+      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
+      SEQ_USER:
+      SEQ_PW:
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install unixodbc
+        run: sudo apt-get install -y unixodbc unixodbc-dev
+      - name: Download IBM i ODBC driver
+        run: |
+          mkdir installer
+          wget --no-verbose https://public.dhe.ibm.com/software/ibmi/products/odbc/ibm-iaccess-1.1.0.15-1.0.amd64.deb -O installer/ibm-iaccess-1.1.0.15-1.0.amd64.deb
+      - name: Install IBM i ODBC driver
+        run: sudo dpkg -i installer/ibm-iaccess-1.1.0.15-1.0.amd64.deb
+      - name: Unit Tests
+        run: yarn test-unit
+      - name: Smoke Tests
+        run: yarn test-smoke
   test-sqlite:
     strategy:
       fail-fast: false

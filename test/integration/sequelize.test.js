@@ -14,7 +14,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -439,7 +439,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
-        this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        if (dialect === 'ibmi') {
+          const badOptions = {
+            odbcConnectionString: `${this.sequelize.options.odbcConnectionString};UID=omg;PWD=bar;`,
+          };
+          this.sequelizeWithInvalidCredentials = new Sequelize({ ...this.sequelize.options, ...badOptions });
+        } else {
+          this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        }
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
@@ -458,6 +465,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(error.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
+          } else if (dialect === 'ibmi') {
+            expect(error.message).to.equal('[odbc] Error connecting to the database');
+            expect(error.original.odbcErrors[0].message).to.include('Communication link failure');
           } else {
             expect(error.message.toString()).to.match(/.*Access denied.*/);
           }

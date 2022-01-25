@@ -35,6 +35,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options.table,
             options,
           ), {
+            ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
             postgres: 'TRUNCATE "public"."test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
@@ -64,6 +65,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options.table,
             options,
           ), {
+            ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
             postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
@@ -99,6 +101,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql: 'DELETE FROM [public].[test_users] WHERE [name] = N\'foo\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             snowflake: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\';',
+            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
           },
         );
       });
@@ -120,6 +123,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
+            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
@@ -155,6 +159,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         return expectsql(
           query, {
+            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             postgres: new Error('Cannot LIMIT delete without a model.'),
             mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
@@ -193,6 +198,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
+            ibmi: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             postgres: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             sqlite: 'DELETE FROM `test_user` WHERE `test_user_id` = 100',
             mssql: 'DELETE FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',

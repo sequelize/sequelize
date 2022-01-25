@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
           if (dialect === 'mssql') {
             boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
-          } else if (dialect === 'db2') {
+          } else if (['db2', 'ibmi'].includes(dialect)) {
             boolQuery = '1 AS "someBoolean"';
           }
 
