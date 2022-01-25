@@ -4,9 +4,7 @@ import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } fr
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO (@AllAwesome497): .js files must be imported using require. Fix me once data-types has been migrated to TS.
 const DataTypes = require('../data-types');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- TODO: .js files must be imported using require. Fix me once sql-string has been migrated to TS.
 const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
@@ -135,7 +133,7 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
     }
 
     if (Array.isArray(where[attributeNameOrOperator])) {
-      newAttributes[attributeNameOrOperator] = [...where[attributeNameOrOperator]];
+      newAttributes[columnNameOrOperator] = [...where[attributeNameOrOperator]];
 
       for (const [index, wherePart] of where[attributeNameOrOperator].entries()) {
         if (isPlainObject(wherePart)) {
@@ -155,8 +153,8 @@ export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: M
 /**
  * getComplexKeys
  *
- * @param  {object} obj
- * @returns {Array<string|symbol>} All keys including operators
+ * @param obj
+ * @returns All keys including operators
  * @private
  */
 export function getComplexKeys(obj: object): Array<string | symbol> {
@@ -169,8 +167,8 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
 /**
  * getOperators
  *
- * @param  {object} obj
- * @returns {Array<symbol|string>} All operators properties of obj
+ * @param obj
+ * @returns All operators properties of obj
  * @private
  */
 export function getOperators(obj: object): symbol[] {
@@ -218,7 +216,7 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
  * @param omitNull if false, this method returns the object as-is
  * @param options
  * @param options.allowNull A list of keys that must be preserved even if their value is null or undefined.
- * @returns {Record<string, any>}
+ * @returns
  */
 export function removeNullishValuesFromHash(
   hash: Record<string, any>,
@@ -253,9 +251,9 @@ export function removeNullishValuesFromHash(
 /**
  * Returns ENUM name by joining table and column name
  *
- * @param {string} tableName
- * @param {string} columnName
- * @returns {string}
+ * @param tableName
+ * @param columnName
+ * @returns
  * @private
  */
 export function generateEnumName(
