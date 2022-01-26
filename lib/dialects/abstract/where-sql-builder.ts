@@ -21,6 +21,8 @@ type Options = {
 
 type Field = ModelAttributeMeta;
 
+type RightOperands = Required<WhereOperators>;
+
 function isModelAttributeMeta(val: any): val is ModelAttributeMeta {
   return 'type' in val && 'fieldName' in val && val.type instanceof DataTypes.ABSTRACT;
 }
@@ -35,13 +37,28 @@ class WhereSqlBuilder {
    * @param options
    */
   whereOptionsToSql(where: WhereOptions, options: Options): string {
+    if (typeof where === 'string') {
+      throw new TypeError('Support for `{where: \'raw query\'}` has been removed. Use `{ where: Sequelize.literal(\'raw query\') }` instead');
+    }
+
+    return this.#whereOptionsToSql(undefined, where, options);
+  }
+
+  /**
+   *
+   * @param inheritedLeftOperand TODO DOCUMENT
+   * @param where
+   * @param options
+   * @private
+   */
+  #whereOptionsToSql(inheritedLeftOperand: LeftOperand | undefined, where: WhereOptions, options: Options): string {
     if (where == null) {
       // NO OP
       return '';
     }
 
     if (where instanceof Utils.Where) {
-      return this.whereInstanceToSql(where, options);
+      return this.#whereInstanceToSql(where, options);
     }
 
     if (where instanceof Utils.Literal || where instanceof Utils.Fn) {
@@ -49,7 +66,7 @@ class WhereSqlBuilder {
     }
 
     if (isPlainObject(where)) {
-      return this.whereAttributeHashToSql(where, options);
+      return this.#whereAttributeHashToSql(inheritedLeftOperand, where, options);
     }
 
     throw new TypeError('Received invalid value for `where` option');
@@ -58,17 +75,30 @@ class WhereSqlBuilder {
   /**
    * Transforms any value accepted by {@link WhereAttributeHash} into a SQL string.
    *
+   * @param inheritedLeftOperand
    * @param where
    * @param options
    */
-  whereAttributeHashToSql(where: WhereAttributeHash, options: Options): string {
+  #whereAttributeHashToSql(
+    inheritedLeftOperand: LeftOperand | undefined,
+    where: WhereAttributeHash,
+    options: Options,
+  ): string {
     // @ts-expect-error - missing typings
     if (Utils.getComplexSize(where) === 0) {
       // NO OP
       return '';
     }
 
-    return this.buildComparison(undefined, undefined, Op.and, where, options);
+    return this.buildComparison(
+      inheritedLeftOperand,
+      typeof inheritedLeftOperand === 'string'
+        ? this.queryGenerator._findField(inheritedLeftOperand, options)
+        : undefined,
+      Op.and,
+      where,
+      options,
+    );
   }
 
   /**
@@ -77,7 +107,7 @@ class WhereSqlBuilder {
    * @param where
    * @param options
    */
-  whereInstanceToSql(where: Utils.Where, options: Options): string {
+  #whereInstanceToSql(where: Utils.Where, options: Options): string {
     // TODO (@ephys): Once Util has been migrated to TS
     //  rename Utils.Where fields
     //  attribute -> leftOperand
@@ -91,17 +121,17 @@ class WhereSqlBuilder {
       isModelAttributeMeta(key) ? key : undefined,
       // TODO (@ephys): fix where.comparator once https://github.com/sequelize/sequelize/pull/14018 has been merged
       // @ts-expect-error
-      where.comparator as keyof WhereOperators,
+      where.comparator as keyof RightOperands,
       where.logic,
       options,
     );
   }
 
-  buildComparison<Operator extends keyof WhereOperators>(
+  buildComparison<Operator extends keyof RightOperands>(
     leftOperand: LeftOperand | undefined,
     leftOperandAttr: Field | undefined,
     operator: Operator,
-    rightOperand: WhereOperators[Operator],
+    rightOperand: RightOperands[Operator],
     options: Options = EMPTY_OBJECT,
   ): string {
     if (!(operator in this)) {
@@ -113,11 +143,11 @@ class WhereSqlBuilder {
     return this[operator](leftOperand, leftOperandAttr, rightOperand, options);
   }
 
-  #buildSimpleOperator<Operator extends keyof WhereOperators>(
+  #buildSimpleOperator<Operator extends keyof RightOperands>(
     leftOperand: LeftOperand | undefined,
     leftOperandAttr: Field | undefined,
     operatorSymbol: Operator,
-    rightOperand: WhereOperators[Operator],
+    rightOperand: RightOperands[Operator],
     options: Options,
   ): string {
     const operator = this.queryGenerator.OperatorMap[operatorSymbol];
@@ -140,7 +170,7 @@ class WhereSqlBuilder {
     );
   }
 
-  [Op.eq](key: LeftOperand | undefined, field: Field, value: WhereOperators[typeof Op.eq], options: Options): string {
+  [Op.eq](key: LeftOperand | undefined, field: Field, value: RightOperands[typeof Op.eq], options: Options): string {
     // alias "= NULL" to "IS NULL"
     if (value === null) {
       return this.#buildSimpleOperator(key, field, Op.is, value, options);
@@ -150,45 +180,49 @@ class WhereSqlBuilder {
     // and as the default 'do nothing' operator in Sequelize.where()
     // @ts-expect-error - getOperators has no typings yet
     if (isPlainObject(value) && Utils.getOperators(value).length > 0) {
-      return this.queryGenerator.whereItemQuery(key, value, options);
+      return this.buildComparison(key, field, Op.and, value, options);
     }
 
     return this.#buildSimpleOperator(key, field, Op.eq, value, options);
   }
 
-  [Op.ne](key: LeftOperand | undefined, field: Field, value: WhereOperators[typeof Op.eq], options: Options): string {
+  [Op.ne](key: LeftOperand | undefined, field: Field, value: RightOperands[typeof Op.ne], options: Options): string {
     // alias "!= NULL" to "IS NOT NULL"
     if (value === null) {
       return this.#buildSimpleOperator(key, field, Op.isNot, value, options);
     }
 
-    return this.#buildSimpleOperator(key, field, Op.eq, value, options);
+    return this.#buildSimpleOperator(key, field, Op.ne, value, options);
   }
 
-  [Op.not](key: LeftOperand | undefined, field: Field, value: WhereOperators[typeof Op.not], options: Options): string {
+  [Op.not](key: LeftOperand | undefined, field: Field, value: RightOperands[typeof Op.not], options: Options): string {
     // Legacy: `{ [Op.not]: null }` used to mean "IS NOT NULL", which is now the role of `{ [Op.isNot]: null }`
-    if (value === null) {
+    if (value === null || typeof value === 'boolean') {
       return this.#buildSimpleOperator(key, field, Op.isNot, value, options);
+    }
+
+    if (typeof value === 'number' || typeof value === 'string') {
+      return this.#buildSimpleOperator(key, field, Op.ne, value, options);
     }
 
     // TODO (@ephys): check NOT support for different dialects
     const notOperator: string = this.queryGenerator.OperatorMap[Op.not];
 
-    return `${notOperator} (${this.queryGenerator.whereItemQuery(key, value, options)})`;
+    return `${notOperator} (${this.#whereOptionsToSql(key, value, options)})`;
   }
 
-  [Op.and](key: LeftOperand | undefined, field: Field, value: WhereOperators[typeof Op.and], options: Options): string {
+  [Op.and](key: LeftOperand | undefined, field: Field, value: RightOperands[typeof Op.and], options: Options): string {
     return this.#andOr(key, field, value, options, Op.and);
   }
 
-  [Op.or](key: LeftOperand | undefined, field: Field, value: WhereOperators[typeof Op.or], options: Options): string {
+  [Op.or](key: LeftOperand | undefined, field: Field, value: RightOperands[typeof Op.or], options: Options): string {
     return this.#andOr(key, field, value, options, Op.or);
   }
 
   #andOr(
     key: LeftOperand | undefined,
     field: Field,
-    valueCollection: WhereOperators[typeof Op.or],
+    valueCollection: RightOperands[typeof Op.or],
     options: Options,
     operatorSymbol: typeof Op.or | typeof Op.and,
   ) {
@@ -217,11 +251,11 @@ class WhereSqlBuilder {
           const value = valueCollection[attributeOrOperator];
 
           if (typeof attributeOrOperator === 'symbol') {
-            return this.buildComparison(key, field, attributeOrOperator as keyof WhereOperators, value, options);
+            return this.buildComparison(key, field, attributeOrOperator as keyof RightOperands, value, options);
           }
 
           const newKey = attributeOrOperator;
-          const newField = this.queryGenerator._findField(key, options);
+          const newField = this.queryGenerator._findField(newKey, options);
 
           return this.buildComparison(newKey, newField, Op.eq, value, options);
         })
@@ -232,13 +266,13 @@ class WhereSqlBuilder {
   }
 
   [Op.between](key: LeftOperand | undefined, field: Field,
-    value: WhereOperators[typeof Op.between], options: Options): string {
+    value: RightOperands[typeof Op.between], options: Options): string {
 
     return this.#between(key, field, value, options, Op.between);
   }
 
   [Op.notBetween](key: LeftOperand | undefined, field: Field,
-    value: WhereOperators[typeof Op.notBetween], options: Options): string {
+    value: RightOperands[typeof Op.notBetween], options: Options): string {
 
     return this.#between(key, field, value, options, Op.notBetween);
   }
@@ -255,7 +289,7 @@ class WhereSqlBuilder {
   #between(
     key: LeftOperand | undefined,
     field: Field,
-    value: WhereOperators[typeof Op.notBetween],
+    value: RightOperands[typeof Op.notBetween],
     options: Options,
     operatorSymbol: typeof Op.notBetween | typeof Op.between,
   ) {
@@ -277,6 +311,47 @@ class WhereSqlBuilder {
       operator,
       options.prefix,
     );
+  }
+
+  [Op.in](
+    leftOperand: LeftOperand | undefined,
+    leftAttr: Field | undefined,
+    rightOperand: RightOperands[typeof Op.in],
+    options: Options,
+  ): string {
+    return this.#in(leftOperand, leftAttr, rightOperand, options, Op.in);
+  }
+
+  [Op.notIn](
+    leftOperand: LeftOperand | undefined,
+    leftAttr: Field | undefined,
+    rightOperand: RightOperands[typeof Op.notIn],
+    options: Options,
+  ): string {
+    return this.#in(leftOperand, leftAttr, rightOperand, options, Op.notIn);
+  }
+
+  #in(leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.in], options: Options, opSymbol: typeof Op.in | typeof Op.notIn): string {
+
+    const operator: string = this.queryGenerator.OperatorMap[opSymbol];
+
+    let rightOperand;
+    if (rightOperandRaw instanceof Utils.Literal) {
+      rightOperand = this.queryGenerator.escape(rightOperandRaw);
+    } else if (Array.isArray(rightOperandRaw)) {
+      if (rightOperandRaw.length === 0) {
+        if (opSymbol === Op.in) {
+          return '1 = 2'; // IN () is always false
+        }
+
+        return '1 = 1'; // NOT IN () is always true
+      }
+
+      rightOperand = `(${rightOperandRaw.map(item => this.queryGenerator.escape(item, leftAttr)).join(', ')})`;
+    }
+
+    return this.queryGenerator._joinKeyValue(leftOperand, rightOperand, operator, options.prefix);
   }
 }
 
