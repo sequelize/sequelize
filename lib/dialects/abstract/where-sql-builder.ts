@@ -158,7 +158,7 @@ class WhereSqlBuilder {
   ): string {
     const operator = this.queryGenerator.OperatorMap[operatorSymbol];
     if (!operator) {
-      throw new Error(`Operator ${operator} is not supported in this dialect.`);
+      throw new Error(`Operator ${String(operatorSymbol)} is not supported in this dialect.`);
     }
 
     assert(leftOperand != null, 'key must be provided');
@@ -438,11 +438,18 @@ class WhereSqlBuilder {
     if (isPlainObject(rightOperandRaw)) {
       // support for `{ like: { any: [] } }` and `{ like: { all: [] } }`
 
+      // TODO (@ephys): remove ts-expect-error once isPlainObject is properly typed
+
+      // @ts-expect-error
       assertSingleKeyObject(rightOperandRaw, [Op.any, Op.all]);
 
+      // @ts-expect-error
       if (Op.any in rightOperandRaw) {
+        // @ts-expect-error
         rightOperand = this[Op.any](leftOperand, leftAttr, rightOperandRaw[Op.any], options);
+        // @ts-expect-error
       } else if (Op.all in rightOperandRaw) {
+        // @ts-expect-error
         rightOperand = this[Op.all](leftOperand, leftAttr, rightOperandRaw[Op.all], options);
       } else {
         throw new Error('This code should not execute due to the preceding assert');
