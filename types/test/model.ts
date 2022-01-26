@@ -1,5 +1,17 @@
 import { expectTypeOf } from "expect-type";
-import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Optional, Sequelize, ModelDefined } from 'sequelize';
+import {
+  Association,
+  BelongsToManyGetAssociationsMixin,
+  DataTypes,
+  HasOne,
+  Model,
+  Optional,
+  Sequelize,
+  ModelDefined,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from 'sequelize';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {
@@ -103,17 +115,13 @@ const model: typeof MyModel = MyModel.init({
   }
 });
 
-type UserModelAttributes = {
-  username: string,
-  beta_user: boolean,
-};
-
-type UserCreationAttributes = Optional<UserModelAttributes, 'beta_user'>;
-
 /**
  * Tests for findCreateFind() type.
  */
-class UserModel extends Model<UserModelAttributes, UserCreationAttributes> {}
+class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
+  declare username: string;
+  declare beta_user: CreationOptional<boolean>;
+}
 
 UserModel.init({
   username: { type: DataTypes.STRING, allowNull: false },
@@ -132,7 +140,10 @@ UserModel.findCreateFind({
   }
 })
 
-UserModel.getAttributes();
+const rawAttributes = UserModel.getAttributes();
+expectTypeOf(rawAttributes).toHaveProperty('username');
+expectTypeOf(rawAttributes).toHaveProperty('beta_user');
+expectTypeOf(rawAttributes).not.toHaveProperty('non_attribute');
 
 /**
  * Tests for findOrCreate() type.
