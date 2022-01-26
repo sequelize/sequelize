@@ -117,20 +117,6 @@ export type WhereOptions<TAttributes = any> =
   | Fn
   | Where;
 
-/**
- * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
- *
- * _PG only_
- */
-export interface AnyOperator {
-  [Op.any]: readonly (string | number)[];
-}
-
-/** TODO: Undocumented? */
-export interface AllOperator {
-  [Op.all]: readonly (string | number | Date | Literal)[];
-}
-
 export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
 
 /**
@@ -148,7 +134,9 @@ export interface WhereOperators<TAttributes = any> {
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
   [Op.eq]?: null | boolean | string | number | Literal | WhereOperators<TAttributes> | Col;
 
-  [Op.any]?: readonly (string | number | Literal)[] | Literal;
+  [Op.any]?: Array<string | number | Date | Literal> | Literal | ValuesObject;
+
+  [Op.all]?: Array<string | number | Date | Literal> | Literal | ValuesObject;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
   [Op.gte]?: number | string | Date | Literal | Col;
@@ -328,10 +316,24 @@ export interface WhereOperators<TAttributes = any> {
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
-export type OrOperator<TAttributes = any> = Pick<WhereOperators<TAttributes>, typeof Op.or>;
+export type OrOperator<TAttributes = any> = Required<Pick<WhereOperators<TAttributes>, typeof Op.or>>;
 
 /** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
-export type AndOperator<TAttributes = any> = Pick<WhereOperators<TAttributes>, typeof Op.and>;
+export type AndOperator<TAttributes = any> = Required<Pick<WhereOperators<TAttributes>, typeof Op.and>>;
+
+/**
+ * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
+ *
+ * _PG only_
+ */
+export type AnyOperator = Required<Pick<WhereOperators, typeof Op.any>>;
+
+/** TODO: Undocumented? */
+export type AllOperator = Required<Pick<WhereOperators, typeof Op.all>>;
+
+export type ValuesObject = {
+  [Op.values]: ReadonlyArray<string | number | Date | Literal> | Literal,
+};
 
 /**
  * Where Geometry Options

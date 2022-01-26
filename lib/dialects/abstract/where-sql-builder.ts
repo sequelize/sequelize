@@ -357,11 +357,55 @@ class WhereSqlBuilder {
         return '1 = 1'; // NOT IN () is always true
       }
 
-      // TODO (@ephys): Test options.bindParam with IN / NOT IN
+      // TODO (@ephys): Test options.bindParam with IN
       rightOperand = `(${rightOperandRaw.map(item => this.queryGenerator.escape(item, leftAttr)).join(', ')})`;
     }
 
     return this.queryGenerator._joinKeyValue(leftOperand, rightOperand, operator, options.prefix);
+  }
+
+  [Op.all](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.all], options: Options): string {
+    return this.#allAny(leftOperand, leftAttr, rightOperandRaw, options, Op.all);
+  }
+
+  [Op.any](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.any], options: Options): string {
+    return this.#allAny(leftOperand, leftAttr, rightOperandRaw, options, Op.any);
+  }
+
+  #allAny(leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.all], options: Options, operatorSymbol: typeof Op.any | typeof Op.all) {
+
+    const operator = `${this.queryGenerator.OperatorMap[Op.eq]} ${this.queryGenerator.OperatorMap[operatorSymbol]}`;
+
+    let rightOperand: string;
+
+    // TODO (@ephys): Test options.bindParam with ALL / ANY / ALL VALUES / ANY VALUES
+
+    if (rightOperandRaw instanceof Utils.Literal) {
+      rightOperand = `(${this.#escape(rightOperandRaw, leftAttr)})`;
+    } else if (Array.isArray(rightOperandRaw)) {
+      rightOperand = `(${rightOperandRaw.map(part => this.#escape(part, leftAttr)).join(', ')})`;
+    } else if (rightOperandRaw[Op.values]) {
+      const values = rightOperandRaw[Op.values];
+
+      if (values instanceof Utils.Literal) {
+        rightOperand = `(VALUES (${this.#escape(rightOperandRaw, leftAttr)}))`;
+      } else if (Array.isArray(rightOperandRaw)) {
+        rightOperand = `(VALUES ${rightOperandRaw.map(part => `${this.#escape(part, leftAttr)}`).join(', ')})`;
+      } else {
+        throw new TypeError(`[${String(operator)}][${String(Op.values)}] expected a literal or an array, but received ${nodeUtil.inspect(values)}`);
+      }
+    } else {
+      throw new TypeError(`[${String(operator)}] expected a literal, an array, or a POJO with Op.values, but received ${nodeUtil.inspect(rightOperandRaw)}`);
+    }
+
+    return this.queryGenerator._joinKeyValue(leftOperand, rightOperand, operator, options.prefix);
+  }
+
+  #escape(value: any, attributeField: Field | undefined) {
+    return this.queryGenerator.escape(value, attributeField);
   }
 
   #escapeOrBindLeaf(value: any, attributeField: Field | undefined, options: Options & { acceptStrings?: boolean }): string {
