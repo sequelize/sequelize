@@ -1616,6 +1616,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static readonly options: InitOptions;
 
+  // TODO [>7]: Remove `rawAttributes` in v8
   /**
    * The attributes of the model.
    *
