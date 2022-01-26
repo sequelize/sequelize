@@ -1293,12 +1293,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(
       current.where(current.col('first_name'), { [Op.not]: { [Op.iLike]: 'Lily' } }),
-      { default: `NOT ("first_name" ILIKE 'Lily')` },
+      { default: `NOT ([first_name] ILIKE 'Lily')` },
     );
 
     testsql(
       { [Op.not]: current.where(current.col('first_name'), { [Op.iLike]: 'Lily' }) },
-      { default: `NOT ("first_name" ILIKE 'Lily')` },
+      { default: `NOT ([users].[first_name] ILIKE 'Lily')` },
+    );
+
+    testsql(
+      {
+        [Op.and]: [
+          current.where(current.col('first_name'), { [Op.iLike]: 'Lily' }),
+          current.where(current.col('first_name'), { [Op.iLike]: 'Lily2' }),
+        ],
+      },
+      { default: `[users].[first_name] ILIKE 'Lily' AND [users].[first_name] ILIKE 'Lily2'` },
     );
   });
 });
