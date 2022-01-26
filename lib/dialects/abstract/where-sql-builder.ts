@@ -404,6 +404,68 @@ class WhereSqlBuilder {
     return this.queryGenerator._joinKeyValue(leftOperand, rightOperand, operator, options.prefix);
   }
 
+  [Op.like](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.like], options: Options): string {
+    return this.#like(leftOperand, leftAttr, rightOperandRaw, options, Op.like);
+  }
+
+  [Op.iLike](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.iLike], options: Options): string {
+    return this.#like(leftOperand, leftAttr, rightOperandRaw, options, Op.iLike);
+  }
+
+  [Op.notLike](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.notLike], options: Options): string {
+    return this.#like(leftOperand, leftAttr, rightOperandRaw, options, Op.notLike);
+  }
+
+  [Op.notILike](leftOperand: LeftOperand | undefined, leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.notILike], options: Options): string {
+    return this.#like(leftOperand, leftAttr, rightOperandRaw, options, Op.notILike);
+  }
+
+  #like(
+    leftOperand: LeftOperand | undefined,
+    leftAttr: Field | undefined,
+    rightOperandRaw: RightOperands[typeof Op.like],
+    options: Options,
+    operatorSymbol: typeof Op.like | typeof Op.iLike | typeof Op.notLike | typeof Op.notILike,
+  ) {
+    const operator = this.queryGenerator.OperatorMap[operatorSymbol];
+
+    let rightOperand: string;
+
+    if (isPlainObject(rightOperandRaw)) {
+      // support for `{ like: { any: [] } }` and `{ like: { all: [] } }`
+
+      assertSingleKeyObject(rightOperandRaw, [Op.any, Op.all]);
+
+      if (Op.any in rightOperandRaw) {
+        rightOperand = this[Op.any](leftOperand, leftAttr, rightOperandRaw[Op.any], options);
+      } else if (Op.all in rightOperandRaw) {
+        rightOperand = this[Op.all](leftOperand, leftAttr, rightOperandRaw[Op.all], options);
+      } else {
+        throw new Error('This code should not execute due to the preceding assert');
+      }
+    } else {
+      // support for `{ like: literalOrString }`
+
+      rightOperand = this.#escapeOrBindLeaf(rightOperandRaw, leftAttr, {
+        ...options,
+        acceptStrings: true,
+      });
+    }
+
+    return this.queryGenerator._joinKeyValue(
+      leftOperand,
+      rightOperand,
+      operator,
+      options.prefix,
+    );
+  }
+
+  // ========================================== UTILITIES ==========================================
+
   #escape(value: any, attributeField: Field | undefined) {
     return this.queryGenerator.escape(value, attributeField);
   }
@@ -414,6 +476,15 @@ class WhereSqlBuilder {
     }
 
     return this.queryGenerator.escape(value, attributeField);
+  }
+}
+
+function assertSingleKeyObject(obj: object, keyAllowList: Array<string | symbol>): void {
+  // @ts-expect-error - no typings yet
+  const keys = Utils.getComplexKeys(obj);
+
+  if (keys.length !== 1 || !keyAllowList.includes(keys[0])) {
+    throw new TypeError(`Object ${nodeUtil.inspect(obj)} can only include one key, which must be one of "${keyAllowList.join(', ')}"`);
   }
 }
 

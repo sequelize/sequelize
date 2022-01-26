@@ -195,6 +195,15 @@ export interface WhereOperators<TAttributes = any> {
   [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
+   * PG only
+   *
+   * Examples:
+   *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
+   *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   */
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+
+  /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
@@ -217,15 +226,6 @@ export interface WhereOperators<TAttributes = any> {
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date | Literal | Col;
-
-  /**
-   * PG only
-   *
-   * Examples:
-   *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
-   *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
-   */
-  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: Rangable;
