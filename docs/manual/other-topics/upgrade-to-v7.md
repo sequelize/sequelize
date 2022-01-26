@@ -56,3 +56,28 @@ class User extends Model {
 // but it works in v7
 User.findByPk(1);
 ```
+
+### `Sequelize.where()` does not support string operators anymore
+
+Similarly to plain POJO where options, `where()` will not accept string operators anymore and requires you to
+use symbol operators.
+
+```typescript
+// this is not valid anymore
+User.findAll({
+  where: Sequelize.where(
+    Sequelize.col('name'),
+    'LIKE',
+    name,
+  )
+});
+
+// do this instead
+User.findAll({
+  where: Sequelize.where(
+    Sequelize.col('name'),
+    Op.like,
+    name,
+  )
+});
+```
