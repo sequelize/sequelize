@@ -1483,7 +1483,19 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated use {@link WhereLeftOperand} instead.
+ */
+export type AttributeType = WhereLeftOperand;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated this is not used anymore, typing definitions for {@link where} have changed to more accurately reflect reality.
+ */
+export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> | WhereOperators | string | symbol | null;
 
 /**
  * A way of specifying "attr = condition".
@@ -1498,7 +1510,7 @@ export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions;
  *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
  * @param operator The comparison operator to use. If unspecified, defaults to {@link Op.eq}.
  * @param rightOperand The right side of the comparison. Its value depends on the used operator.
- *  If `operator` is unspecified, this also accepts {@link Sequelize.or} and {@link Sequelize.and}
+ *  See {@link WhereOperators} for information about what value is valid for each operator.
  *
  * @example
  * // Using an attribute as the left operand.
@@ -1520,8 +1532,8 @@ export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions;
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where<Op extends keyof WhereOperators>(leftOperand: AttributeType, operator: Op, rightOperand: WhereOperators[Op]): Where;
-export function where(leftOperand: AttributeType, rightOperand: WhereOperators[typeof Op.eq]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
 
 type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;
