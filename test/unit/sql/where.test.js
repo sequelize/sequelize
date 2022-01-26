@@ -1275,9 +1275,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: 'lower([name]) IS NOT NULL',
     });
 
-    testsql([current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
-      current.where(current.fn('lower', current.col('name')), null)], {
-      default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)',
+    testsql([
+      current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
+      current.where(current.fn('lower', current.col('name')), null),
+    ], {
+      default: 'SUM([hours]) > 0 AND lower([name]) IS NULL',
     });
 
     testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
@@ -1287,5 +1289,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
       default: '[hours] NOT BETWEEN 0 AND 5',
     });
+
+    testsql(
+      { first_name: { [Op.not]: { [Op.iLike]: 'Lily' } } },
+      { default: `NOT ([users].[first_name] ILIKE 'Lily')` },
+    );
+
+    testsql(
+      current.where(current.col('first_name'), { [Op.not]: { [Op.iLike]: 'Lily' } }),
+      { default: `NOT ("first_name" ILIKE 'Lily')` },
+    );
+
+    testsql(
+      { [Op.not]: current.where(current.col('first_name'), { [Op.iLike]: 'Lily' }) },
+      { default: `NOT ("first_name" ILIKE 'Lily')` },
+    );
   });
 });
