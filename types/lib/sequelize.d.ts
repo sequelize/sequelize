@@ -1533,6 +1533,7 @@ export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> 
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
 export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
 export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
 
 type ContinuationLocalStorageNamespace = {
