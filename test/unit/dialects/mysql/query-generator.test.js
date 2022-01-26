@@ -309,7 +309,7 @@ if (dialect === 'mysql') {
           arguments: ['myTable', function (sequelize) {
             return {
               where: sequelize.and(
-                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), Op.like, '%t%'),
                 { type: 1 },
               ),
             };

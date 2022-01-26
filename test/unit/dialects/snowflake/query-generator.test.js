@@ -456,12 +456,12 @@ if (dialect === 'snowflake') {
           arguments: ['myTable', function (sequelize) {
             return {
               where: sequelize.and(
-                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), Op.like, '%t%'),
                 { type: 1 },
               ),
             };
           }],
-          expectation: 'SELECT * FROM "myTable" WHERE (LOWER("user"."name") LIKE \'%t%\' AND "myTable"."type" = 1);',
+          expectation: 'SELECT * FROM "myTable" WHERE LOWER("user"."name") LIKE \'%t%\' AND "myTable"."type" = 1;',
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -519,7 +519,7 @@ if (dialect === 'snowflake') {
               ),
             };
           }],
-          expectation: 'SELECT * FROM "myTable" WHERE ("myTable"."archived" IS NULL AND COALESCE("place_type_codename", "announcement_type_codename") IN (\'Lost\', \'Found\'));',
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."archived" IS NULL AND COALESCE("place_type_codename", "announcement_type_codename") IN (\'Lost\', \'Found\');',
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -736,7 +736,7 @@ if (dialect === 'snowflake') {
           arguments: ['myTable', function (sequelize) {
             return {
               where: sequelize.and(
-                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
+                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), Op.like, '%t%'),
                 { type: 1 },
               ),
             };
