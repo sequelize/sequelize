@@ -1301,7 +1301,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       const where = current.where(User.rawAttributes.id, Op.eq, 1);
-      const expectations = { default: '"user"."internal_id" = 1' };
+      const expectations = { default: '[user].[internal_id] = 1' };
 
       return expectsql(sql.getWhereConditions(where, User.tableName, User), expectations);
     });
