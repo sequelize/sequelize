@@ -138,7 +138,7 @@ export type Rangable = readonly [number, number] | readonly [Date, Date] | reado
  *
  * See https://sequelize.org/master/en/v3/docs/querying/#operators
  */
-export interface WhereOperators {
+export interface WhereOperators<TAttributes = any> {
   /**
    * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
    *
@@ -146,7 +146,7 @@ export interface WhereOperators {
    */
 
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators<TAttributes> | Col;
 
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
@@ -163,13 +163,16 @@ export interface WhereOperators {
   [Op.match]?: Fn;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: null | string | number | Literal | WhereOperators;
+  [Op.ne]?: null | string | number | Literal;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
+  [Op.not]?: null | Literal | WhereOperators<TAttributes>;
 
   /** Example: `[Op.is]: null,` becomes `IS NULL` */
   [Op.is]?: null;
+
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: null;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: Rangable;
@@ -317,17 +320,18 @@ export interface WhereOperators {
    */
   [Op.noExtendRight]?: Rangable;
 
+  /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
+  [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
+
+  /** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
+  [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
-export interface OrOperator<TAttributes = any> {
-  [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
-}
+export type OrOperator<TAttributes = any> = Pick<WhereOperators<TAttributes>, typeof Op.or>;
 
 /** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
-export interface AndOperator<TAttributes = any> {
-  [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
-}
+export type AndOperator<TAttributes = any> = Pick<WhereOperators<TAttributes>, typeof Op.and>;
 
 /**
  * Where Geometry Options
@@ -1285,6 +1289,13 @@ export interface ModelAttributeColumnReferencesOptions {
    * PostgreSQL only
    */
   deferrable?: Deferrable;
+}
+
+export interface ModelAttributeMeta extends ModelAttributeColumnOptions {
+  /**
+   * The JS name of this attribute.
+   */
+  readonly fieldName: string;
 }
 
 /**
