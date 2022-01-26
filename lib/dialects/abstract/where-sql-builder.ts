@@ -17,6 +17,12 @@ type Options = {
   model: ModelStatic<any>,
   prefix: string,
   type: unknown,
+  /**
+   * Pass the value to bind, and this will return its identifier in the query.
+   *
+   * @param value
+   */
+  bindParam?(value: any): string,
 };
 
 type Field = ModelAttributeMeta;
@@ -36,7 +42,7 @@ class WhereSqlBuilder {
    * @param where
    * @param options
    */
-  whereOptionsToSql(where: WhereOptions, options: Options): string {
+  whereOptionsToSql(where: WhereOptions, options: Options = EMPTY_OBJECT): string {
     if (typeof where === 'string') {
       throw new TypeError('Support for `{where: \'raw query\'}` has been removed. Use `{ where: Sequelize.literal(\'raw query\') }` instead');
     }
@@ -164,7 +170,10 @@ class WhereSqlBuilder {
 
     return this.queryGenerator._joinKeyValue(
       leftOperand,
-      this.queryGenerator.escape(rightOperand, leftOperandAttr, escapeOptions),
+      this.#escapeOrBindLeaf(rightOperand, leftOperandAttr, {
+        ...options,
+        ...escapeOptions,
+      }),
       operator,
       options.prefix,
     );
@@ -298,7 +307,7 @@ class WhereSqlBuilder {
     if (value instanceof Utils.Literal) {
       rightOperand = this.queryGenerator.escape(value);
     } else if (Array.isArray(value) && value.length === 2) {
-      rightOperand = `${this.queryGenerator.escape(value[0], field)} AND ${this.queryGenerator.escape(value[1], field)}`;
+      rightOperand = `${this.#escapeOrBindLeaf(value[0], field, options)} AND ${this.#escapeOrBindLeaf(value[1], field, options)}`;
     } else {
       throw new TypeError('Op.between / Op.notBetween expect an array of length 2 or Sequelize.literal()');
     }
@@ -348,10 +357,19 @@ class WhereSqlBuilder {
         return '1 = 1'; // NOT IN () is always true
       }
 
+      // TODO (@ephys): Test options.bindParam with IN / NOT IN
       rightOperand = `(${rightOperandRaw.map(item => this.queryGenerator.escape(item, leftAttr)).join(', ')})`;
     }
 
     return this.queryGenerator._joinKeyValue(leftOperand, rightOperand, operator, options.prefix);
+  }
+
+  #escapeOrBindLeaf(value: any, attributeField: Field | undefined, options: Options & { acceptStrings?: boolean }): string {
+    if (options.bindParam) {
+      return this.queryGenerator.format(value, attributeField, options, options.bindParam);
+    }
+
+    return this.queryGenerator.escape(value, attributeField);
   }
 }
 
