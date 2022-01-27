@@ -21,6 +21,9 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   declare optionalArrayAttribute: CreationOptional<string[]>;
   declare mandatoryArrayAttribute: string[];
 
+  declare nullableOptionalAttribute1: CreationOptional<string> | null;
+  declare nullableOptionalAttribute2: CreationOptional<string | null>;
+
   declare nonAttribute: NonAttribute<string>;
   declare nonAttributeArray: NonAttribute<string[]>;
 
@@ -50,6 +53,11 @@ expectTypeOf<UserCreationAttributes['mandatoryAttribute']>().not.toBeNullable();
 
 expectTypeOf<UserAttributes['optionalArrayAttribute']>().not.toBeNullable();
 expectTypeOf<UserCreationAttributes['optionalArrayAttribute']>().toBeNullable();
+
+type NonUndefined<T> = T extends undefined ? never : T;
+
+expectTypeOf<UserCreationAttributes['nullableOptionalAttribute1']>().not.toEqualTypeOf<NonUndefined<UserCreationAttributes['nullableOptionalAttribute1']>>();
+expectTypeOf<UserCreationAttributes['nullableOptionalAttribute2']>().not.toEqualTypeOf<NonUndefined<UserCreationAttributes['nullableOptionalAttribute2']>>();
 
 expectTypeOf<UserAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
 expectTypeOf<UserCreationAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
@@ -102,4 +110,9 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 
   // ensure branding does not break objects
   const id = project.id;
+}
+
+{
+  // ensure branding does not break null
+  const brandedString: NonAttribute<string | null> = null;
 }

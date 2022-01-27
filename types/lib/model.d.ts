@@ -2957,7 +2957,9 @@ export default Model;
 // - `A extends B` will be true if A has *at least* all the properties of B
 // - If we do `A extends Omit<A, Checked>` - the result will only be true if A did not have Checked to begin with
 // - So if we want to check if T is branded, we remove the brand, and check if they list of keys is still the same.
-type IsBranded<T, Brand extends symbol> = keyof T extends keyof Omit<T, Brand>
+// we exclude Null & Undefined so "field: Brand<value> | null" is still detected as branded
+// this is important because "Brand<value | null>" are transformed into "Brand<value> | null" to not break null & undefined
+type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omit<NonNullable<T>, Brand>
   ? false
   : true;
 
@@ -2973,7 +2975,13 @@ declare const NonAttributeBrand: unique symbol;
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
-export type NonAttribute<T> = T & { [NonAttributeBrand]?: true };
+
+export type NonAttribute<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `NonAttribute<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `NonAttribute<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [NonAttributeBrand]?: true });
 
 /**
  * Option bag for {@link InferAttributes}.
@@ -3047,7 +3055,12 @@ declare const CreationAttributeBrand: unique symbol;
  *
  * For use with {@link InferCreationAttributes}.
  */
-export type CreationOptional<T> = T & { [CreationAttributeBrand]?: true };
+export type CreationOptional<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `CreationAttributeBrand<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `CreationAttributeBrand<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [CreationAttributeBrand]?: true });
 
 /**
  * Utility type to extract Creation Attributes of a given Model class.
