@@ -1464,14 +1464,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): AndOperator<any>;
+export function and<T>(...args: (WhereOperators | WhereAttributeHash<T> | Where | AndOperator<T> | OrOperator<T> | Literal)[]): AndOperator<T>;
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): OrOperator<any>;
+export function or<T>(...args: (WhereOperators | WhereAttributeHash<T> | Where | AndOperator<T> | OrOperator<T> | Literal)[]): OrOperator<T>;
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.

@@ -1,5 +1,18 @@
 import { expectTypeOf } from "expect-type";
-import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn, Transaction } from 'sequelize';
+import {
+  AndOperator,
+  fn,
+  Model,
+  Op,
+  OrOperator,
+  Sequelize,
+  WhereOperators,
+  WhereOptions,
+  literal,
+  where as whereFn,
+  Transaction,
+  and, or,
+} from 'sequelize';
 
 class MyModel extends Model {
   public hi!: number;
@@ -262,6 +275,27 @@ MyModel.findAll({
       [Op.not]: false, // status NOT FALSE
     },
   },
+});
+
+const where: WhereOptions = {};
+MyModel.findAll({
+  where: and(
+    where,
+    or({ id: 1 }, { id: 2 }),
+    and({ id: 1 }, { id: 2 }),
+    Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    Sequelize.literal('1 = 2'),
+  ),
+});
+
+MyModel.findAll({
+  where: or(
+    where,
+    or({ id: 1 }, { id: 2 }),
+    and({ id: 1 }, { id: 2 }),
+    Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    Sequelize.literal('1 = 2'),
+  ),
 });
 
 Sequelize.where(
