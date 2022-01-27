@@ -15,10 +15,10 @@ const Support = require('../support'),
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('select', () => {
-    const testsql = function(options, expectation) {
+    const testsql = function(options, expectation, testFunction = it) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      testFunction(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -29,6 +29,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
       });
     };
+
+    testsql.only = (options, expectation) => testsql(options, expectation, it.only);
 
     testsql({
       table: 'User',
@@ -297,6 +299,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                        'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC'}${
           sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;`
+      });
+
+      // By default, SELECT with include of a multi association & limit will be ran as a subQuery
+      //  This checks the result when the query is forced to be ran without a subquery
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include,
+        attributes: [
+          ['id_user', 'id'],
+          'email',
+          ['first_name', 'firstName'],
+          ['last_name', 'lastName']
+        ],
+        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        limit: 30,
+        offset: 10,
+        hasMultiAssociation: true, // must be set only for mssql dialect here
+        subQuery: false
+      }, {
+        default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
+          ON [user].[id_user] = [POSTS].[user_id]
+          ORDER BY [user].[last_name] ASC
+          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
+        `)
       });
 
       const nestedInclude = Model._validateIncludedElements({
