@@ -1289,6 +1289,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(current.where(current.literal(`'hours'`), Op.eq, 'hours'), {
       default: `'hours' = 'hours'`,
+      mssql: `'hours' = N'hours'`,
     });
 
     it('where(left: ModelAttributeColumnOptions, op, right)', () => {
