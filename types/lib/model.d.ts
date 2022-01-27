@@ -106,16 +106,21 @@ export interface ScopeOptions {
   method: string | readonly [string, ...unknown[]];
 }
 
+type AllowOrAnd<T> = T | { [Op.or]: T[] } | { [Op.and]: T[] };
+type AllowOrAndRecursive<T> = T | { [Op.or]: AllowArray<AllowOrAndRecursive<T>> } | { [Op.and]: AllowArray<AllowOrAndRecursive<T>> };
+type AllowArray<T> = T | T[];
+
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions<TAttributes = any> =
-  | WhereAttributeHash<TAttributes>
-  | AndOperator<TAttributes>
-  | OrOperator<TAttributes>
-  | Literal
-  | Fn
-  | Where;
+export type WhereOptions<TAttributes = any> = AllowArray<
+  AllowOrAndRecursive<
+    | WhereAttributeHash<TAttributes>
+    | Literal
+    | Fn
+    | Where
+  >
+>;
 
 /**
  * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
@@ -139,60 +144,65 @@ export type Rangable = readonly [number, number] | readonly [Date, Date] | reado
  * See https://sequelize.org/master/en/v3/docs/querying/#operators
  */
 export interface WhereOperators {
+   /** Example: `[Op.eq]: 6,` becomes `= 6` */
+  [Op.eq]?: AllowOrAnd<null | boolean | string | number | Buffer | Date | Literal | WhereOperators | Col>;
+
+  /** Example: `[Op.ne]: 20,` becomes `!= 20` */
+  [Op.ne]?: WhereOperators[typeof Op.eq]; // accepts the same types as Op.eq
+
+  /** Example: `[Op.is]: null,` becomes `IS NULL` */
+  [Op.is]?: AllowOrAnd<null | boolean>;
+
+  /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
+  [Op.not]?: WhereOperators[typeof Op.is];
+
   /**
    * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
    *
    * _PG only_
    */
-
-   /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
-
-  [Op.any]?: readonly (string | number | Literal)[] | Literal;
+  [Op.any]?: readonly (string | number | Literal)[] | Literal; // TODO (@ephys): AllowOrAnd?
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
   [Op.gte]?: number | string | Date | Literal | Col;
 
-  /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date | Literal | Col;
-
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date | Literal | Col;
+  [Op.lte]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
+
+  /** Example: `[Op.lt]: 10,` becomes `< 10` */
+  [Op.lt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
+
+  /** Example: `[Op.gt]: 6,` becomes `> 6` */
+  [Op.gt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
 
   /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: Fn;
-
-  /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: null | string | number | Literal | WhereOperators;
-
-  /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
-
-  /** Example: `[Op.is]: null,` becomes `IS NULL` */
-  [Op.is]?: null;
+  [Op.match]?: AllowOrAnd<Fn>;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: Rangable;
+  [Op.between]?: AllowOrAnd<Rangable>;
+
+  /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
+  [Op.notBetween]?: WhereOperators[typeof Op.between];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: readonly (string | number | Literal)[] | Literal;
+  [Op.in]?: AllowOrAnd<ReadonlyArray<string | number | Literal | Buffer> | Literal>;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: readonly (string | number | Literal)[] | Literal;
+  [Op.notIn]?: WhereOperators[typeof Op.in];
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator;
+  [Op.like]?: AllowOrAnd<string | Literal | AnyOperator | AllOperator>;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notLike]?: WhereOperators[typeof Op.like];
 
   /**
    * case insensitive PG only
@@ -201,31 +211,7 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
-
-  /**
-   * PG array overlap operator
-   *
-   * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
-   */
-  [Op.overlap]?: Rangable;
-
-  /**
-   * PG array contains operator
-   *
-   * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
-   */
-  [Op.contains]?: readonly (string | number)[] | Rangable;
-
-  /**
-   * PG array contained by operator
-   *
-   * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
-   */
-  [Op.contained]?: readonly (string | number)[] | Rangable;
-
-  /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date | Literal | Col;
+  [Op.iLike]?: WhereOperators[typeof Op.like];
 
   /**
    * PG only
@@ -234,24 +220,42 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notILike]?: WhereOperators[typeof Op.like];
 
-  /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-  [Op.notBetween]?: Rangable;
+  /**
+   * PG array overlap operator
+   *
+   * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
+   */
+  [Op.overlap]?: AllowOrAnd<Rangable | Literal>;
+
+  /**
+   * PG array contains operator
+   *
+   * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
+   */
+  [Op.contains]?: AllowOrAnd<ReadonlyArray<string | number | Date> | Literal>;
+
+  /**
+   * PG array contained by operator
+   *
+   * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
+   */
+  [Op.contained]?: WhereOperators[typeof Op.contains];
 
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: string;
+  [Op.startsWith]?: AllowOrAnd<string | Literal>;
 
   /**
    * String ends with value.
    */
-  [Op.endsWith]?: string;
+  [Op.endsWith]?: AllowOrAnd<string>;
   /**
    * String contains value.
    */
-  [Op.substring]?: string;
+  [Op.substring]?: AllowOrAnd<string>;
 
   /**
    * MySQL/PG only
@@ -260,7 +264,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: string;
+  [Op.regexp]?: AllowOrAnd<string>;
 
   /**
    * MySQL/PG only
@@ -269,7 +273,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
-  [Op.notRegexp]?: string;
+  [Op.notRegexp]?: WhereOperators[typeof Op.regexp];
 
   /**
    * PG only
@@ -278,7 +282,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
-  [Op.iRegexp]?: string;
+  [Op.iRegexp]?: WhereOperators[typeof Op.regexp];
 
   /**
    * PG only
@@ -287,44 +291,53 @@ export interface WhereOperators {
    *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
-  [Op.notIRegexp]?: string;
+  [Op.notIRegexp]?: WhereOperators[typeof Op.regexp];
 
   /**
    * PG only
    *
    * Forces the operator to be strictly left eg. `<< [a, b)`
    */
-  [Op.strictLeft]?: Rangable;
+  [Op.strictLeft]?: AllowOrAnd<Rangable>;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly right eg. `>> [a, b)`
    */
-  [Op.strictRight]?: Rangable;
+  [Op.strictRight]?: WhereOperators[typeof Op.strictLeft];
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&> [1, 2)`
    */
-  [Op.noExtendLeft]?: Rangable;
+  [Op.noExtendLeft]?: WhereOperators[typeof Op.strictLeft];
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&< [1, 2)`
    */
-  [Op.noExtendRight]?: Rangable;
-
+  [Op.noExtendRight]?: WhereOperators[typeof Op.strictLeft];
 }
 
-/** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
+/**
+ * Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)`
+ *
+ * @deprecated do not use me!
+ */
+// TODO [>6]: Remove me
 export interface OrOperator<TAttributes = any> {
   [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
 
-/** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
+/**
+ * Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)`
+ *
+ * @deprecated do not use me!
+ */
+// TODO [>6]: Remove me
 export interface AndOperator<TAttributes = any> {
   [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
@@ -340,7 +353,10 @@ export interface WhereGeometryOptions {
 /**
  * Used for the right hand side of WhereAttributeHash.
  * WhereAttributeHash is in there for JSON columns.
+ *
+ * @deprecated do not use me
  */
+// TODO [>6]: remove this
 export type WhereValue<TAttributes = any> =
   | string
   | number
@@ -349,14 +365,10 @@ export type WhereValue<TAttributes = any> =
   | Date
   | Buffer
   | null
-  | WhereOperators
   | WhereAttributeHash<any> // for JSON columns
   | Col // reference another column
   | Fn
-  | OrOperator<TAttributes>
-  | AndOperator<TAttributes>
   | WhereGeometryOptions
-  | readonly (string | number | Buffer | WhereAttributeHash<TAttributes>)[]; // implicit [Op.or]
 
 /**
  * A hash of attributes to describe your search.
@@ -373,7 +385,12 @@ export type WhereAttributeHash<TAttributes = any> = {
    *    }
    *  }
    */
-  [field in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [field in keyof TAttributes]?: WhereOperators[typeof Op.eq]
+    // in v6, `{ attr: Array }` means "attr IN Array" instead of "attr = Array"
+    // TODO (v7): Always normalize "no operator" to "equals" (https://github.com/sequelize/sequelize/pull/14020)
+    | WhereOperators[typeof Op.in]
+    | AllowOrAndRecursive<WhereOperators>
+    | WhereAttributeHash<any> // for JSON columns
 }
 /**
  * Through options for Include Options

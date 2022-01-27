@@ -15,7 +15,7 @@ import {
 } from 'sequelize';
 
 class MyModel extends Model {
-  public hi!: number;
+  declare hi: number;
 }
 
 // Simple options
@@ -283,8 +283,9 @@ MyModel.findAll({
     where,
     or({ id: 1 }, { id: 2 }),
     and({ id: 1 }, { id: 2 }),
-    Sequelize.where(Sequelize.col('col'), Op.eq, null),
-    Sequelize.literal('1 = 2'),
+    // TODO: these two fail because and() does not infer its generic properly
+    // Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    // Sequelize.literal('1 = 2'),
   ),
 });
 
@@ -293,9 +294,144 @@ MyModel.findAll({
     where,
     or({ id: 1 }, { id: 2 }),
     and({ id: 1 }, { id: 2 }),
+    // TODO: these two fail because and() does not infer its generic properly
+    // Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    // Sequelize.literal('1 = 2'),
+  ),
+});
+
+MyModel.findAll({
+  where: {
+    [Op.and]: [
+      where,
+      or({ id: 1 }, { id: 2 }),
+      and({ id: 1 }, { id: 2 }),
+      Sequelize.where(Sequelize.col('col'), Op.eq, null),
+      Sequelize.literal('1 = 2'),
+    ],
+  }
+});
+
+MyModel.findAll({
+  where: {
+    [Op.or]: [
+      where,
+      or({ id: 1 }, { id: 2 }),
+      and({ id: 1 }, { id: 2 }),
+      Sequelize.where(Sequelize.col('col'), Op.eq, null),
+      Sequelize.literal('1 = 2'),
+    ],
+  }
+});
+
+MyModel.findAll({
+  // implicit "AND"
+  where: [
+    where,
+    or({ id: 1 }, { id: 2 }),
+    and({ id: 1 }, { id: 2 }),
     Sequelize.where(Sequelize.col('col'), Op.eq, null),
     Sequelize.literal('1 = 2'),
+  ],
+});
+
+MyModel.findAll({
+  where: {
+    id: { [Op.or]: [1, 2] },
+  },
+});
+
+MyModel.findAll({
+  where: {
+    id: {
+      [Op.or]: {
+        [Op.gt]: 1,
+        [Op.eq]: 1,
+      },
+    },
+  },
+});
+
+MyModel.findAll({
+  where: {
+    id: {
+      [Op.or]: [
+        { [Op.gt]: 1 },
+        { [Op.eq]: 1 },
+      ],
+    },
+  },
+});
+
+MyModel.findAll({
+  where: and(
+    { id: { [Op.or]: [1, 2, 3] } },
+
+    { id: { [Op.eq]: { [Op.or]: [1, 2, 3] } } },
+    { id: { [Op.ne]: { [Op.or]: [1, 2, 3] } } },
+
+    { id: { [Op.is]: { [Op.or]: [true, null] } } },
+    { id: { [Op.not]: { [Op.or]: [true, null] } } },
+
+    // { id: { [Op.any]: { [Op.or]: [1, 2, 3] } } }, // TODO
+    // TODO: all?
+
+    { id: { [Op.match]: { [Op.or]: [fn('to_tsquery', 'fat & rat'), fn('to_tsquery', 'fat & rat')] } } },
+
+    // TODO (@ephys): add the remaining operators!
   ),
+});
+
+MyModel.findAll({
+  where: {
+    id: {
+      [Op.in]: {
+        [Op.or]: [
+          [1, 2],
+          // @ts-expect-error - cannot use Operator inside another one!
+          { [Op.eq]: [1, 2] },
+        ],
+      },
+    },
+  },
+});
+
+MyModel.findAll({
+  // @ts-expect-error - no operator
+  where: [1, 2],
+});
+
+MyModel.findAll({
+  // @ts-expect-error - no operator
+  where: { [Op.or]: [1, 2] },
+});
+
+MyModel.findAll({
+  // @ts-expect-error - no operator
+  where: { [Op.and]: { [Op.or]: [1, 2] } },
+});
+
+MyModel.findAll({
+  where: {
+    [Op.or]: {
+      firstName: 'name',
+      id: { [Op.gt]: 2 }
+    }
+  },
+});
+
+MyModel.findAll({
+  where: {
+    [Op.and]: [
+      { [Op.or]: { firstName: { [Op.eq]: 2 } } },
+    ],
+  },
+});
+
+MyModel.findAll({
+  where: {
+    id: literal('my-literal'),
+  },
 });
 
 Sequelize.where(
@@ -306,7 +442,7 @@ Sequelize.where(
     [Op.lt]: Sequelize.literal('LIT'),
     [Op.lte]: Sequelize.literal('LIT'),
     [Op.ne]: Sequelize.literal('LIT'),
-    [Op.not]: Sequelize.literal('LIT'),
+    [Op.not]: null,
     [Op.in]: Sequelize.literal('LIT'),
     [Op.notIn]: Sequelize.literal('LIT'),
     [Op.like]: Sequelize.literal('LIT'),

@@ -15,7 +15,6 @@ import {
   ModelOptions,
   OrOperator,
   UpdateOptions,
-  WhereAttributeHash,
   WhereOperators,
   ModelCtor,
   Hookable,
@@ -25,7 +24,7 @@ import {
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS } from '..';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS, Op } from '..';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
 import type { AbstractDialect } from '../../lib/dialects/abstract/index';
@@ -1464,14 +1463,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and<T>(...args: (WhereOperators | WhereAttributeHash<T> | Where | AndOperator<T> | OrOperator<T> | Literal)[]): AndOperator<T>;
+export function and<T>(...args: T[]): { [Op.and]: T };
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or<T>(...args: (WhereOperators | WhereAttributeHash<T> | Where | AndOperator<T> | OrOperator<T> | Literal)[]): OrOperator<T>;
+export function or<T>(...args: T[]): { [Op.and]: T };
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.
