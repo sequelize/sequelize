@@ -382,34 +382,38 @@ MyModel.findAll({
   ),
 });
 
-MyModel.findAll({
-  where: {
-    id: {
-      [Op.in]: {
-        [Op.or]: [
-          [1, 2],
-          // @ts-expect-error - cannot use Operator inside another one!
-          { [Op.eq]: [1, 2] },
-        ],
-      },
-    },
-  },
-});
+// TODO [2022-05-26]: TS < 4.4 reports the error in a different location than 4.4
+//  Uncomment test once we remove support for TS 4.3
+// MyModel.findAll({
+//   where: {
+//     id: {
+//       [Op.in]: {
+//         [Op.or]: [
+//           [1, 2],
+//           // @ts-expect-error - cannot use Operator inside another one!
+//           { [Op.eq]: [1, 2] },
+//         ],
+//       },
+//     },
+//   },
+// });
 
 MyModel.findAll({
   // @ts-expect-error - no operator
   where: [1, 2],
 });
 
-MyModel.findAll({
-  // @ts-expect-error - no operator
-  where: { [Op.or]: [1, 2] },
-});
+// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
+// MyModel.findAll({
+//   // @ts-expect-error - no operator
+//   where: { [Op.or]: [1, 2] },
+// });
 
-MyModel.findAll({
-  // @ts-expect-error - no operator
-  where: { [Op.and]: { [Op.or]: [1, 2] } },
-});
+// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
+// MyModel.findAll({
+//   // @ts-expect-error - no operator
+//   where: { [Op.and]: { [Op.or]: [1, 2] } },
+// });
 
 MyModel.findAll({
   where: {
