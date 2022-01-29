@@ -8,8 +8,8 @@ import Utils = require("./lib/utils");
 
 export * from "./lib/associations/index";
 export * from "./lib/data-types";
-export * from "./lib/errors";
-export { BaseError as Error } from "./lib/errors";
+export * from "../lib/errors";
+export { BaseError as Error } from "../lib/errors";
 export * from "./lib/model";
 export * from "./lib/query-interface";
 export * from "./lib/sequelize";

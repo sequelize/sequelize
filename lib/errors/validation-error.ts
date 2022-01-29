@@ -1,5 +1,6 @@
-import BaseError, { ErrorOptions } from './base-error';
-import type { Model } from '../../types/lib/model';
+import type { Model } from '../..';
+import type { ErrorOptions } from './base-error';
+import BaseError from './base-error';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class
@@ -51,44 +52,44 @@ export class ValidationErrorItem {
   /**
    * An error message
    */
-  message: string;
+  readonly message: string;
 
   /**
    * The type/origin of the validation error
    */
-  type: keyof typeof ValidationErrorItemType | null;
+  readonly type: keyof typeof ValidationErrorItemType | null;
 
   /**
    * The field that triggered the validation error
    */
-  path: string | null;
+  readonly path: string | null;
 
   /**
    * The value that generated the error
    */
-  value: string | null;
+  readonly value: string | null;
 
-  origin: keyof typeof ValidationErrorItemOrigin | null;
+  readonly origin: keyof typeof ValidationErrorItemOrigin | null;
 
   /**
    * The DAO instance that caused the validation error
    */
-  instance: Model | null;
+  readonly instance: Model | null;
 
   /**
    * A validation "key", used for identification
    */
-  validatorKey: string | null;
+  readonly validatorKey: string | null;
 
   /**
    * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
    */
-  validatorName: string | null;
+  readonly validatorName: string | null;
 
   /**
    * Parameters used with the BUILT-IN validator function, if applicable
    */
-  validatorArgs: unknown[];
+  readonly validatorArgs: unknown[];
 
   /**
    * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
@@ -202,7 +203,8 @@ export class ValidationErrorItem {
  * @param errors Array of ValidationErrorItem objects describing the validation errors
  */
 class ValidationError extends BaseError {
-  errors: ValidationErrorItem[];
+  /** Array of ValidationErrorItem objects describing the validation errors */
+  readonly errors: ValidationErrorItem[];
 
   constructor(
     message: string,

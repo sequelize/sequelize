@@ -24,6 +24,10 @@ class DatabaseError
   sql: string;
   parameters: object;
 
+  /**
+   * @param parent The database specific error which triggered this one
+   * @param options
+   */
   constructor(parent: DatabaseErrorParent, options: ErrorOptions = {}) {
     super(parent.message);
     this.name = 'SequelizeDatabaseError';

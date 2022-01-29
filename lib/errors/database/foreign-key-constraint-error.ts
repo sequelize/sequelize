@@ -6,22 +6,22 @@ export enum RelationshipType {
 }
 
 interface ForeignKeyConstraintErrorOptions {
-  table: string;
-  fields: { [field: string]: string };
-  value: unknown;
-  index: string;
-  reltype: RelationshipType;
+  table?: string;
+  fields?: { [field: string]: string };
+  value?: unknown;
+  index?: string;
+  reltype?: RelationshipType;
 }
 
 /**
  * Thrown when a foreign key constraint is violated in the database
  */
 class ForeignKeyConstraintError extends DatabaseError {
-  table: string;
-  fields: { [field: string]: string };
+  table: string | undefined;
+  fields: { [field: string]: string } | undefined;
   value: unknown;
-  index: string;
-  reltype: RelationshipType;
+  index: string | undefined;
+  reltype: RelationshipType | undefined;
 
   constructor(
     options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions

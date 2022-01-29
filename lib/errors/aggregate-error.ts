@@ -3,10 +3,11 @@ import BaseError from './base-error';
 /**
  * A wrapper for multiple Errors
  *
- * @param errors Array of errors
+ * @param errors The aggregated errors that occurred
  */
 class AggregateError extends BaseError {
-  errors: Array<AggregateError | Error>;
+  /** the aggregated errors that occurred */
+  readonly errors: Array<AggregateError | Error>;
 
   constructor(errors: Array<AggregateError | Error>) {
     super();
