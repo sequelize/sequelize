@@ -1,6 +1,7 @@
 import { DataType } from '../data-types';
 import {
   CreateOptions,
+  CreationAttributes,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
@@ -209,8 +210,12 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any>
  * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
-export type HasManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type HasManyCreateAssociationMixin<
+  TModel extends Model,
+  TForeignKey extends keyof CreationAttributes<TModel> = never,
+  TScope extends keyof CreationAttributes<TModel> = never
+> = (
+  values?: Omit<CreationAttributes<TModel>, TForeignKey | TScope>,
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

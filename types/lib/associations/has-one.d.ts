@@ -1,5 +1,5 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 /**
@@ -113,7 +113,7 @@ export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociatio
  * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
-export type HasOneCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type HasOneCreateAssociationMixin<TModel extends Model> = (
+  values?: CreationAttributes<TModel>,
   options?: HasOneCreateAssociationMixinOptions
 ) => Promise<TModel>;

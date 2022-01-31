@@ -1,11 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  Sequelize = require('../../../index'),
-  config = require('../../config/config')
-  ;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const Sequelize = require('sequelize');
 
 if (!Support.sequelize.dialect.supports.deferrableConstraints) {
   return;
@@ -15,13 +14,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('Deferrable', () => {
     const describeDeferrableTest = (title, defineModels) => {
       describe(title, () => {
-        beforeEach(function() {
-          this.run = async function(deferrable, options) {
+        beforeEach(function () {
+          this.run = async function (deferrable, options) {
             options = options || {};
 
-            const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
+            const taskTableName      = options.taskTableName || `tasks_${Support.rand()}`;
             const transactionOptions = { deferrable: Sequelize.Deferrable.SET_DEFERRED, ...options };
-            const userTableName      = `users_${config.rand()}`;
+            const userTableName      = `users_${Support.rand()}`;
 
             const { Task, User } = await defineModels({ sequelize: this.sequelize, userTableName, deferrable, taskTableName });
 
@@ -31,19 +30,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
               const [task, user] = await Promise.all([task0, User.create({}, { transaction: t })]);
               task.user_id = user.id;
+
               return task.save({ transaction: t });
             });
           };
         });
 
         describe('NOT', () => {
-          it('does not allow the violation of the foreign key constraint', async function() {
+          it('does not allow the violation of the foreign key constraint', async function () {
             await expect(this.run(Sequelize.Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
           });
         });
 
         describe('INITIALLY_IMMEDIATE', () => {
-          it('allows the violation of the foreign key constraint if the transaction is deferred', async function() {
+          it('allows the violation of the foreign key constraint if the transaction is deferred', async function () {
             const task = await this
               .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE);
 
@@ -51,19 +51,19 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(task.user_id).to.equal(1);
           });
 
-          it('does not allow the violation of the foreign key constraint if the transaction is not deffered', async function() {
+          it('does not allow the violation of the foreign key constraint if the transaction is not deffered', async function () {
             await expect(this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
-              deferrable: undefined
+              deferrable: undefined,
             })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
           });
 
-          it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function() {
-            const taskTableName = `tasks_${config.rand()}`;
+          it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function () {
+            const taskTableName = `tasks_${Support.rand()}`;
 
             const task = await this
               .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
                 deferrable: Sequelize.Deferrable.SET_DEFERRED([`${taskTableName}_user_id_fkey`]),
-                taskTableName
+                taskTableName,
               });
 
             expect(task.title).to.equal('a task');
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         describe('INITIALLY_DEFERRED', () => {
-          it('allows the violation of the foreign key constraint', async function() {
+          it('allows the violation of the foreign key constraint', async function () {
             const task = await this
               .run(Sequelize.Deferrable.INITIALLY_DEFERRED);
 
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describeDeferrableTest('set in define', async ({ sequelize, userTableName, deferrable, taskTableName }) => {
       const User = sequelize.define(
-        'User', { name: Sequelize.STRING }, { tableName: userTableName }
+        'User', { name: Sequelize.STRING }, { tableName: userTableName },
       );
 
       const Task = sequelize.define(
@@ -97,12 +97,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             references: {
               model: userTableName,
               key: 'id',
-              deferrable
-            }
-          }
+              deferrable,
+            },
+          },
         }, {
-          tableName: taskTableName
-        }
+          tableName: taskTableName,
+        },
       );
 
       await User.sync({ force: true });
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describeDeferrableTest('set in addConstraint', async ({ sequelize, userTableName, deferrable, taskTableName }) => {
       const User = sequelize.define(
-        'User', { name: Sequelize.STRING }, { tableName: userTableName }
+        'User', { name: Sequelize.STRING }, { tableName: userTableName },
       );
 
       const Task = sequelize.define(
@@ -121,11 +121,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           title: Sequelize.STRING,
           user_id: {
             allowNull: false,
-            type: Sequelize.INTEGER
-          }
+            type: Sequelize.INTEGER,
+          },
         }, {
-          tableName: taskTableName
-        }
+          tableName: taskTableName,
+        },
       );
 
       await User.sync({ force: true });
@@ -138,8 +138,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         deferrable,
         references: {
           table: userTableName,
-          field: 'id'
-        }
+          field: 'id',
+        },
       });
 
       return { Task, User };

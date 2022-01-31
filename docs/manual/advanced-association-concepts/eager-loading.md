@@ -1,6 +1,6 @@
 # Eager Loading
 
-As briefly mentioned in [the associations guide](assocs.html), eager Loading is the act of querying data of several models at once (one 'main' model and one or more associated models). At the SQL level, this is a query with one or more [joins](https://en.wikipedia.org/wiki/Join_(SQL)).
+As briefly mentioned in [the associations guide](assocs.html), eager Loading is the act of querying data of several models at once (one 'main' model and one or more associated models). At the SQL level, this is a query with one or more [joins](https://en.wikipedia.org/wiki/Join_\(SQL\)).
 
 When this is done, the associated models will be added by Sequelize in appropriately named, automatically created field(s) in the returned objects.
 
@@ -378,7 +378,7 @@ await sequelize.sync();
 const foo = await Foo.create({ name: 'foo' });
 const bar = await Bar.create({ name: 'bar' });
 await foo.addBar(bar);
-const fetchedFoo = Foo.findOne({ include: Bar });
+const fetchedFoo = await Foo.findOne({ include: Bar });
 console.log(JSON.stringify(fetchedFoo, null, 2));
 ```
 
@@ -416,13 +416,15 @@ Foo.findAll({
 });
 ```
 
-If you don't want anything from the junction table, you can explicitly provide an empty array to the `attributes` option, and in this case nothing will be fetched and the extra property will not even be created:
+If you don't want anything from the junction table, you can explicitly provide an empty array to the `attributes` option inside the `through` option of the `include` option, and in this case nothing will be fetched and the extra property will not even be created:
 
 ```js
 Foo.findOne({
   include: {
     model: Bar,
-    attributes: []
+    through: {
+      attributes: []
+    }
   }
 });
 ```

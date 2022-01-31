@@ -63,9 +63,14 @@ if (created) {
 
 The `findAndCountAll` method is a convenience method that combines `findAll` and `count`. This is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query.
 
-The `findAndCountAll` method returns an object with two properties:
+When `group` is not provided, the `findAndCountAll` method returns an object with two properties:
 
 * `count` - an integer - the total number records matching the query
+* `rows` - an array of objects - the obtained records
+
+When `group` is provided, the `findAndCountAll` method returns an object with two properties:
+
+* `count` - an array of objects - contains the count in each group and the projected attributes
 * `rows` - an array of objects - the obtained records
 
 ```js
