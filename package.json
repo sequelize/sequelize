@@ -112,7 +112,7 @@
     "snowflake-sdk": "1.6.6",
     "source-map-support": "0.5.21",
     "sqlite3": "npm:@vscode/sqlite3@5.0.7",
-    "tedious": "14.1.0",
+    "tedious": "14.2.0",
     "typescript": "4.5.5"
   },
   "peerDependenciesMeta": {
