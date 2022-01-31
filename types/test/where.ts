@@ -434,6 +434,12 @@ MyModel.findAll({
 
 MyModel.findAll({
   where: {
+    firstName: { [Op.or]: [5, { [Op.eq]: 2 }] },
+  },
+});
+
+MyModel.findAll({
+  where: {
     id: literal('my-literal'),
   },
 });
