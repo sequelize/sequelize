@@ -1,9 +1,7 @@
 import { expectTypeOf } from "expect-type";
-import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions } from "sequelize";
-import { ModelHooks } from "../lib/hooks";
-import { AbstractQuery } from "../lib/query";
-import { Config } from '../lib/sequelize';
-import { DeepWriteable } from '../lib/utils';
+import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions, Config, Utils } from "sequelize";
+import { ModelHooks } from "sequelize/lib/hooks";
+import { AbstractQuery } from "sequelize/lib/query";
 import { SemiDeepWritable } from "./type-helpers/deep-writable";
 
 {
@@ -84,7 +82,7 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
 }
 
 {
-  Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<DeepWriteable<Config>>());
-  Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<DeepWriteable<Config>>());
-  Sequelize.addHook('beforeConnect', (...args) => { expectTypeOf(args).toEqualTypeOf<[DeepWriteable<Config>]>(); })
+  Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
+  Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
+  Sequelize.addHook('beforeConnect', (...args) => { expectTypeOf(args).toEqualTypeOf<[Utils.DeepWriteable<Config>]>(); })
 }

@@ -1,8 +1,6 @@
-<div>
-  <div class="center logo">
-    ![logo](manual/asset/logo-small.png)
-  </div>
-  <div class="center sequelize">Sequelize</div>
+<div class="logo">
+  <img src="./manual/asset/logo.png" />
+  <div class="sequelize"><h1>Sequelize</h1></div>
 </div>
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
@@ -17,9 +15,9 @@
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/main/LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
+Sequelize is a promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite), [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server), [Amazon Redshift](https://docs.aws.amazon.com/redshift/index.html) and [Snowflake’s Data Cloud](https://docs.snowflake.com/en/user-guide/intro-key-concepts.html). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
-Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10 and above.
+Sequelize follows [Semantic Versioning](http://semver.org) and the [official Node.js LTS schedule](https://nodejs.org/en/about/releases/). Version 7 of Sequelize officially supports the Node.js versions `^12.22.0`, `^14.17,0`, `^16.0.0`. Other version might be working as well.
 
 You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.html).
 

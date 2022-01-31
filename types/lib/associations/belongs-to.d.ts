@@ -1,5 +1,5 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 // type ModelCtor<M extends Model> = InstanceType<typeof M>;
@@ -116,8 +116,8 @@ export interface BelongsToCreateAssociationMixinOptions
  * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
-export type BelongsToCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type BelongsToCreateAssociationMixin<TModel extends Model> = (
+  values?: CreationAttributes<TModel>,
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

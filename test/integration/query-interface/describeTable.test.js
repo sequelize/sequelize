@@ -1,30 +1,32 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
+
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('describeTable', () => {
     if (Support.sequelize.dialect.supports.schemas) {
-      it('reads the metadata of the table with schema', async function() {
+      it('reads the metadata of the table with schema', async function () {
         const MyTable1 = this.sequelize.define('my_table', {
-          username1: DataTypes.STRING
+          username1: DataTypes.STRING,
         });
 
         const MyTable2 = this.sequelize.define('my_table', {
-          username2: DataTypes.STRING
+          username2: DataTypes.STRING,
         }, { schema: 'test_meta' });
 
         await this.sequelize.createSchema('test_meta');
@@ -39,22 +41,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    it('rejects when no data is available', async function() {
+    it('rejects when no data is available', async function () {
       await expect(
-        this.queryInterface.describeTable('_some_random_missing_table')
+        this.queryInterface.describeTable('_some_random_missing_table'),
       ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
     });
 
-    it('reads the metadata of the table', async function() {
+    it('reads the metadata of the table', async function () {
       const Users = this.sequelize.define('_Users', {
         username: DataTypes.STRING,
         city: {
           type: DataTypes.STRING,
           defaultValue: null,
-          comment: 'Users City'
+          comment: 'Users City',
         },
         isAdmin: DataTypes.BOOLEAN,
-        enumVals: DataTypes.ENUM('hello', 'world')
+        enumVals: DataTypes.ENUM('hello', 'world'),
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
@@ -67,7 +69,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(id.primaryKey).to.be.true;
 
-      if (['mysql', 'mssql'].includes(dialect)) {
+      if (['mysql', 'mssql', 'db2'].includes(dialect)) {
         expect(id.autoIncrement).to.be.true;
       }
 
@@ -79,7 +81,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'db2':
+          assertVal = 'VARCHAR';
+          break;
       }
+
       expect(username.type).to.equal(assertVal);
       expect(username.allowNull).to.be.true;
 
@@ -100,12 +106,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       assertVal = 'TINYINT(1)';
       switch (dialect) {
         case 'postgres':
+        case 'db2':
           assertVal = 'BOOLEAN';
           break;
         case 'mssql':
           assertVal = 'BIT';
           break;
       }
+
       expect(isAdmin.type).to.equal(assertVal);
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
@@ -116,23 +124,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(isAdmin.defaultValue).to.be.null;
       }
 
-      if (dialect.match(/^postgres/)) {
+      if (dialect.startsWith('postgres')) {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
     });
 
-    it('should correctly determine the primary key columns', async function() {
+    it('should correctly determine the primary key columns', async function () {
       const Country = this.sequelize.define('_Country', {
         code: { type: DataTypes.STRING, primaryKey: true },
-        name: { type: DataTypes.STRING, allowNull: false }
+        name: { type: DataTypes.STRING, allowNull: false },
       }, { freezeTableName: true });
       const Alumni = this.sequelize.define('_Alumni', {
         year: { type: DataTypes.INTEGER, primaryKey: true },
@@ -143,8 +151,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         city: { type: DataTypes.STRING, allowNull: false },
         ctrycod: {
           type: DataTypes.STRING, allowNull: false,
-          references: { model: Country, key: 'code' }
-        }
+          references: { model: Country, key: 'code' },
+        },
       }, { freezeTableName: true });
 
       await Country.sync({ force: true });

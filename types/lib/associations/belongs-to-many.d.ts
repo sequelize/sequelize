@@ -1,6 +1,7 @@
 import {
   BulkCreateOptions,
   CreateOptions,
+  CreationAttributes,
   Filterable,
   FindAttributeOptions,
   FindOptions,
@@ -10,7 +11,6 @@ import {
   ModelCtor,
   ModelType,
   Transactionable,
-  WhereOptions,
 } from '../model';
 import { Association, AssociationScope, ForeignKeyOptions, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
@@ -303,8 +303,8 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
-export type BelongsToManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
+  values?: CreationAttributes<TModel>,
   options?: BelongsToManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
