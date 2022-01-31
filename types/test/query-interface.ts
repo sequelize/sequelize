@@ -1,6 +1,4 @@
-import { DataTypes, Model, fn, literal, col } from 'sequelize';
-// tslint:disable-next-line:no-submodule-imports
-import { QueryInterface } from 'sequelize/lib/query-interface';
+import { DataTypes, Model, fn, literal, col, QueryInterface } from 'sequelize';
 
 declare let queryInterface: QueryInterface;
 
