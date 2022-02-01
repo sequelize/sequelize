@@ -8,9 +8,11 @@ The only exception is the guide on `sequelize.import`, which is deprecated and w
 
 ## Deprecated: `sequelize.import`
 
-> _**Note:** You should not use `sequelize.import`. Please just use `require` instead._
+> _**Note:** You should not use `sequelize.import`. Please just use [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import), [`import()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#dynamic_imports), or [`require`](https://nodejs.org/api/modules.html#requireid) instead._
 >
 > _This documentation has been kept just in case you really need to maintain old code that uses it._
+
+`sequelize.import` can only load [CommonJS](https://nodejs.org/api/modules.html) files, and is not capable of loading [`ecmascript modules`](https://nodejs.org/api/esm.html). Use native `import` if you need to load ecmascript modules.
 
 You can store your model definitions in a single file using the `sequelize.import` method. The returned object is exactly the same as defined in the imported file's function. The import is cached, just like `require`, so you won't run into trouble if importing a file more than once.
 
