@@ -89,7 +89,7 @@
     "fs-jetpack": "4.3.1",
     "husky": "7.0.4",
     "lcov-result-merger": "3.1.0",
-    "lint-staged": "12.3.2",
+    "lint-staged": "12.3.3",
     "mariadb": "2.5.5",
     "markdownlint-cli": "0.30.0",
     "mocha": "9.2.0",
