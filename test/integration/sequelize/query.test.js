@@ -416,9 +416,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         buffer = Buffer.from('t\'e"st');
 
       date.setMilliseconds(0);
+      let sql = 'select ? as number, ? as date,? as string,? as boolean,? as buffer';
+      if (dialect === 'oracle') {
+        sql = 'select ? as "number", ? as "date",? as "string",? as "boolean",? as "buffer" from dual';
+      }
 
       const result = await this.sequelize.query({
-        query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer from dual',
+        query: sql,
         values: [number, date, string, boolean, buffer]
       }, {
         type: this.sequelize.QueryTypes.SELECT,
