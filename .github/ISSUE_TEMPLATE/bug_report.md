@@ -85,9 +85,9 @@ Add any other context and details here.
 
 ### Environment
 
-- Sequelize version: XXX <!-- run `npm list sequelize` to obtain this -->
+- Sequelize version: XXX <!-- run `npm list sequelize` (or `yarn list --pattern sequelize`) to obtain this -->
 - Node.js version: XXX <!-- run `node -v` to obtain this -->
-- If TypeScript related: TypeScript version: XXX <!-- run `npm list typescript` to obtain this -->
+- If TypeScript related: TypeScript version: XXX <!-- run `npm list typescript` (or `yarn list --pattern typescript`) to obtain this -->
 
 ## Bug Report Checklist
 

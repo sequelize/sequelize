@@ -10,8 +10,11 @@ A Migration in Sequelize is javascript file which exports two functions, `up` an
 
 To install the Sequelize CLI:
 
-```text
+```sh
+# using npm
 npm install --save-dev sequelize-cli
+# using yarn
+yarn add sequelize-cli --dev
 ```
 
 For details see the [CLI GitHub repository](https://github.com/sequelize/cli).
@@ -20,7 +23,7 @@ For details see the [CLI GitHub repository](https://github.com/sequelize/cli).
 
 To create an empty project you will need to execute `init` command
 
-```text
+```sh
 npx sequelize-cli init
 ```
 
@@ -467,8 +470,11 @@ The example above also shows how to add custom dialect options to the configurat
 
 To enable more modern constructions in your migrations and seeders, you can simply install `babel-register` and require it at the beginning of `.sequelizerc`:
 
-```text
+```sh
+# using npm
 npm i --save-dev babel-register
+# using yarn
+yarn add babel-register --dev
 ```
 
 ```js

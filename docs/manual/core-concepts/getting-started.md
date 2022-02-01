@@ -7,18 +7,29 @@ In this tutorial you will learn to make a simple setup of Sequelize.
 Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [yarn](https://yarnpkg.com/package/sequelize)).
 
 ```sh
-npm install --save sequelize
+# using npm
+npm i sequelize # This will install latest version of Sequelize
+# using yarn
+yarn add sequelize
 ```
 
 You'll also have to manually install the driver for your database of choice:
 
 ```sh
-# One of the following:
-$ npm install --save pg pg-hstore # Postgres
-$ npm install --save mysql2
-$ npm install --save mariadb
-$ npm install --save sqlite3
-$ npm install --save tedious # Microsoft SQL Server
+# using npm
+$ npm i pg pg-hstore # PostgreSQL
+$ npm i mysql2 # MySQL
+$ npm i mariadb # MariaDB
+$ npm i sqlite3 # SQLite
+$ npm i tedious # Microsoft SQL Server
+$ npm i ibm_db # DB2
+# using yarn
+$ yarn add pg pg-hstore # PostgreSQL
+$ yarn add mysql2 # MySQL
+$ yarn add mariadb # MariaDB
+$ yarn add sqlite3 # SQLite
+$ yarn add tedious # Microsoft SQL Server
+$ yarn add ibm_db # DB2
 ```
 
 ## Connecting to a database

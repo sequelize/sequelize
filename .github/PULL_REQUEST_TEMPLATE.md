@@ -11,7 +11,7 @@ If your PR only contains changes to documentation, you may skip the template bel
 _Please make sure to review and check all of these items:_
 
 - [ ] Have you added new tests to prevent regressions?
-- [ ] Does `npm run test` or `npm run test-DIALECT` pass with this change (including linting)?
+- [ ] Does `npm run test` / `yarn test` or `npm run test-DIALECT` / `yarn test-DIALECT` pass with this change (including linting)?
 - [ ] Is a documentation update included (if this change modifies existing APIs, or introduces new ones)?
 - [ ] Did you update the typescript typings accordingly (if applicable)?
 - [ ] Does the description below contain a link to an existing issue (Closes #[issue]) or a description of the issue you are solving?
