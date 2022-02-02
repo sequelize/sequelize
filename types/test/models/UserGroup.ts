@@ -13,7 +13,8 @@ import {
   HasManyRemoveAssociationMixin,
   HasManyRemoveAssociationsMixin,
   HasManySetAssociationsMixin,
-  Model
+  Model,
+  NonAttribute,
 } from 'sequelize';
 import { sequelize } from '../connection';
 // associate
@@ -34,7 +35,7 @@ export class UserGroup extends Model<
   declare name: string;
 
   // mixins for association (optional)
-  declare users?: User[];
+  declare users?: NonAttribute<User[]>;
   declare getUsers: HasManyGetAssociationsMixin<User>;
   declare setUsers: HasManySetAssociationsMixin<User, number>;
   declare addUser: HasManyAddAssociationMixin<User, number>;
