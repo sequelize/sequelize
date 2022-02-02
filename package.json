@@ -42,8 +42,8 @@
     "semver": "^6.3.0",
     "sequelize-pool": "^2.3.0",
     "toposort-class": "^1.0.1",
-    "uuid": "^3.3.3",
-    "validator": "^10.11.0",
+    "uuid": "^8.3.2",
+    "validator": "^13.7.0",
     "wkx": "^0.4.8"
   },
   "devDependencies": {
@@ -51,7 +51,7 @@
     "@commitlint/config-angular": "^8.2.0",
     "@types/bluebird": "^3.5.26",
     "@types/node": "^12.7.8",
-    "@types/validator": "^10.11.0",
+    "@types/validator": "^13.7.0",
     "big-integer": "^1.6.45",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
