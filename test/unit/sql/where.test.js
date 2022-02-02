@@ -1,14 +1,14 @@
 'use strict';
 
-const Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  QueryTypes = require('sequelize/lib/query-types'),
-  util = require('util'),
-  _ = require('lodash'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.queryGenerator,
-  Op = Support.Sequelize.Op;
+const Support = require('../support');
+const { QueryTypes, DataTypes } = require('sequelize');
+const util = require('util');
+const _ = require('lodash');
+
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
+const Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -1284,6 +1284,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
       default: '[hours] NOT BETWEEN 0 AND 5'
+    });
+
+    testsql(current.where(current.literal('\'hours\''), Op.eq, 'hours'), {
+      default: '\'hours\' = \'hours\'',
+      mssql: '\'hours\' = N\'hours\''
+    });
+
+    it('where(left: ModelAttributeColumnOptions, op, right)', () => {
+      const User = current.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'internal_id',
+          primaryKey: true
+        }
+      });
+
+      const where = current.where(User.rawAttributes.id, Op.eq, 1);
+      const expectations = { default: '[user].[internal_id] = 1' };
+
+      return expectsql(sql.getWhereConditions(where, User.tableName, User), expectations);
     });
   });
 });
