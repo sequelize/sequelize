@@ -555,9 +555,36 @@ export interface FindOptions<TAttributes = any>
   group?: GroupOption;
 
   /**
-   * Limit the results
+   * Limits how many items will be retrieved by the operation.
+   *
+   * If `limit` and `include` are used together, Sequelize will turn the `subQuery` option on by default.
+   * This is done to ensure that `limit` only impacts the Model on the same level as the `limit` option.
+   *
+   * You can disable this behavior by explicitly setting `subQuery: false`, however `limit` will then
+   * affect the total count of returned values, including eager-loaded associations, instead of just one table.
+   *
+   * @example
+   * // in the following query, `limit` only affects the "User" model.
+   * // This will return 2 users, each including all of their projects.
+   * User.findAll({
+   *   limit: 2,
+   *   include: [User.associations.projects],
+   * });
+   *
+   * @example
+   * // in the following query, `limit` affects the total number of returned values, eager-loaded associations included.
+   * // This may return 2 users, each with one project,
+   * //  or 1 user with 2 projects.
+   * User.findAll({
+   *   limit: 2,
+   *   include: [User.associations.projects],
+   *   subQuery: false,
+   * });
    */
   limit?: number;
+
+  // TODO: document this - this is an undocumented property but it exists and there are tests for it.
+  groupedLimit?: unknown;
 
   /**
    * Skip the results;
@@ -589,7 +616,10 @@ export interface FindOptions<TAttributes = any>
   having?: WhereOptions<any>;
 
   /**
-   * Use sub queries (internal)
+   * Use sub queries (internal).
+   *
+   * If unspecified, this will `true` by default if `limit` is specified, and `false` otherwise.
+   * See {@link FindOptions#limit} for more information.
    */
   subQuery?: boolean;
 }
