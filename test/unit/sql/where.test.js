@@ -1,8 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const { QueryTypes } = require('sequelize/lib/query-types');
+const { QueryTypes, DataTypes } = require('sequelize');
 const util = require('util');
 const _ = require('lodash');
 
@@ -1286,6 +1285,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
       default: '[hours] NOT BETWEEN 0 AND 5',
+    });
+
+    testsql(current.where(current.literal(`'hours'`), Op.eq, 'hours'), {
+      default: `'hours' = 'hours'`,
+      mssql: `'hours' = N'hours'`,
+    });
+
+    it('where(left: ModelAttributeColumnOptions, op, right)', () => {
+      const User = current.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'internal_id',
+          primaryKey: true,
+        },
+      });
+
+      const where = current.where(User.rawAttributes.id, Op.eq, 1);
+      const expectations = { default: '[user].[internal_id] = 1' };
+
+      return expectsql(sql.getWhereConditions(where, User.tableName, User), expectations);
     });
   });
 });

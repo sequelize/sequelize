@@ -146,7 +146,7 @@ export interface WhereOperators {
    */
 
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col | AndOperator | OrOperator;
 
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
@@ -185,7 +185,7 @@ export interface WhereOperators {
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator | Fn;
 
   /**
    * Examples:
