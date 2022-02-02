@@ -25,6 +25,7 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
 
   declare nonAttribute: NonAttribute<string>;
   declare nonAttributeArray: NonAttribute<string[]>;
+  declare nonAttributeNestedArray: NonAttribute<string[][]>;
 
   declare omittedAttribute: number;
   declare omittedAttributeArray: number[];
@@ -65,6 +66,9 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttribute');
 
 expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttributeArray');
 expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttributeArray');
+
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttributeNestedArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttributeNestedArray');
 
 expectTypeOf<UserAttributes>().not.toHaveProperty('omittedAttribute');
 expectTypeOf<UserCreationAttributes>().not.toHaveProperty('omittedAttribute');
