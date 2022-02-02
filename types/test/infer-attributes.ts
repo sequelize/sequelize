@@ -1,106 +1,96 @@
 import { expectTypeOf } from 'expect-type';
-import { InferAttributes, InferCreationAttributes, CreationOptional, Model, NonAttribute, Attributes, CreationAttributes } from 'sequelize';
+import {
+  Attributes,
+  CreationAttributes,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+  NonAttribute,
+} from 'sequelize';
 
-class User extends Model<
-  InferAttributes<User, { omit: 'groups' }>,
-  InferCreationAttributes<User, { omit: 'groups' }>
-> {
-  declare id: CreationOptional<number>;
-  declare name: string;
-  declare anArray: CreationOptional<string[]>;
+class Project extends Model<InferAttributes<Project>> {
+  declare id: number;
+}
 
-  // omitted using `omit` option
-  declare groups: Group[];
-  // omitted using `NonAttribute`
-  declare projects: NonAttribute<Project>;
+class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>,
+  InferCreationAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>> {
+  declare optionalAttribute: CreationOptional<number>;
+  declare mandatoryAttribute: string;
 
-  instanceMethod() {}
-  static staticMethod() {}
+  declare optionalArrayAttribute: CreationOptional<string[]>;
+  declare mandatoryArrayAttribute: string[];
+
+  declare nullableOptionalAttribute: CreationOptional<string | null>;
+
+  declare nonAttribute: NonAttribute<string>;
+  declare nonAttributeArray: NonAttribute<string[]>;
+  declare nonAttributeNestedArray: NonAttribute<string[][]>;
+
+  declare omittedAttribute: number;
+  declare omittedAttributeArray: number[];
+
+  declare joinedEntity?: NonAttribute<Project>;
+
+  instanceMethod() {
+  }
+
+  static staticMethod() {
+  }
 }
 
 type UserAttributes = Attributes<User>;
 type UserCreationAttributes = CreationAttributes<User>;
 
 expectTypeOf<UserAttributes>().not.toBeAny();
+expectTypeOf<UserCreationAttributes>().not.toBeAny();
 
-{
-  class Test extends Model<InferAttributes<Test>> {
-    declare id: NonAttribute<string>;
-  }
+expectTypeOf<UserAttributes['optionalAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['optionalAttribute']>().toBeNullable();
 
-  const win: Attributes<Test> = {};
-}
+expectTypeOf<UserAttributes['mandatoryAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['mandatoryAttribute']>().not.toBeNullable();
 
-{
-  const win: UserAttributes = {
-    id: 1,
-    name: '',
-    anArray: [''],
-  };
+expectTypeOf<UserAttributes['optionalArrayAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['optionalArrayAttribute']>().toBeNullable();
 
-  const fail1: UserAttributes = {
-    id: 1,
-    name: '',
-    // @ts-expect-error - 'extra' should not be present
-    extra: ''
-  };
+type NonUndefined<T> = T extends undefined ? never : T;
 
-  // @ts-expect-error - 'name' should be present
-  const fail2: UserAttributes = {
-    id: 1,
-  };
-}
+expectTypeOf<UserCreationAttributes['nullableOptionalAttribute']>().not.toEqualTypeOf<NonUndefined<UserCreationAttributes['nullableOptionalAttribute']>>();
 
-{
-  const win: UserCreationAttributes = {
-    id: undefined,
-    name: '',
-    anArray: undefined,
-  };
+expectTypeOf<UserAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
+expectTypeOf<UserCreationAttributes['mandatoryArrayAttribute']>().not.toBeNullable();
 
-  const fail1: UserCreationAttributes = {
-    id: 1,
-    name: '',
-    // @ts-expect-error 'extra' does not exist
-    extra: ''
-  };
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttribute');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttribute');
 
-  const fail2: UserCreationAttributes = {
-    id: 1,
-    // @ts-expect-error name cannot be undefined
-    name: undefined,
-    anArray: undefined,
-  };
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttributeArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttributeArray');
 
-type GroupAttributes = InferAttributes<Group>;
+expectTypeOf<UserAttributes>().not.toHaveProperty('nonAttributeNestedArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('nonAttributeNestedArray');
 
-class Group extends Model<GroupAttributes> {
-  declare id: number;
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('omittedAttribute');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('omittedAttribute');
 
-{
-  // @ts-expect-error - id should not be missing
-  const fail1: GroupAttributes = {};
+expectTypeOf<UserAttributes>().not.toHaveProperty('omittedAttributeArray');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('omittedAttributeArray');
 
-  // @ts-expect-error - id should not be missing
-  const fail2: InferAttributes<Group, {}> = {};
+expectTypeOf<UserAttributes>().not.toHaveProperty('instanceMethod');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('instanceMethod');
 
-  // @ts-expect-error - id should not be missing
-  const fail3: InferAttributes<Group, { omit: never }> = {};
-}
-
-class Project extends Model<InferAttributes<Project>> {
-  declare id: number;
-}
+expectTypeOf<UserAttributes>().not.toHaveProperty('staticMethod');
+expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 
 // brands:
 
 {
+  const user = User.build({ mandatoryArrayAttribute: [], mandatoryAttribute: '' });
+
   // ensure branding does not break arrays.
-  const brandedArray: NonAttribute<string[]> = [''];
-  const anArray: string[] = brandedArray;
-  const item: string = brandedArray[0];
+  const brandedArray: NonAttribute<string[]> = user.nonAttributeArray;
+  const anArray: string[] = user.nonAttributeArray;
+  const item: boolean = user.nonAttributeArray[0].endsWith('');
 }
 
 {
@@ -117,7 +107,14 @@ class Project extends Model<InferAttributes<Project>> {
 }
 
 {
-  // ensure branding does not break instances
-  const brandedUser: NonAttribute<User> = new User();
-  const aUser: User = brandedUser;
+  const user = User.build({ mandatoryArrayAttribute: [], mandatoryAttribute: '' });
+  const project: Project = user.joinedEntity!;
+
+  // ensure branding does not break objects
+  const id = project.id;
+}
+
+{
+  // ensure branding does not break null
+  const brandedString: NonAttribute<string | null> = null;
 }
