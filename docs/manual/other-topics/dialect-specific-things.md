@@ -4,7 +4,7 @@
 
 ### MySQL
 
-The underlying connector library used by Sequelize for MySQL is the [mysql2](https://www.npmjs.com/package/mysql2) npm package (version 1.5.2 or higher).
+The underlying connector library used by Sequelize for MySQL is the [mysql2](https://www.npmjs.com/package/mysql2) package (version 1.5.2 or higher).
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -21,7 +21,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MariaDB
 
-The underlying connector library used by Sequelize for MariaDB is the [mariadb](https://www.npmjs.com/package/mariadb) npm package.
+The underlying connector library used by Sequelize for MariaDB is the [mariadb](https://www.npmjs.com/package/mariadb) package.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -39,7 +39,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### SQLite
 
-The underlying connector library used by Sequelize for SQLite is the [sqlite3](https://www.npmjs.com/package/sqlite3) npm package (version 4.0.0 or above).
+The underlying connector library used by Sequelize for SQLite is the [sqlite3](https://www.npmjs.com/package/sqlite3) package (version 4.0.0 or above).
 
 You specify the storage file in the Sequelize constructor with the `storage` option (use `:memory:` for an in-memory SQLite instance).
 
@@ -61,7 +61,7 @@ The following fields may be passed to SQLite `dialectOptions`:
 
 ### PostgreSQL
 
-The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) npm package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
+The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -117,7 +117,7 @@ The supported versions of MS SQL are from MS SQL 2017 (version 14) up to the mos
 
 #### Tedious
 
-The default underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package.
+The default underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) package.
 
 You can provide custom options to it using `dialectOptions.options` in the Sequelize constructor:
 
@@ -162,7 +162,7 @@ const sequelize = new Sequelize('database', null, null, {
 
 ### Snowflake (Experiment)
 
-The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
+The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) package.
 
 In order to connect with an account, use the following format:
 
@@ -190,7 +190,10 @@ const sequelize = new Sequelize('database', null, null, {
 For running integration test:
 
 ```sh
+# using npm
 SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse npm run test-integration-snowflake
+# using yarn
+SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse yarn test-integration-snowflake
 ```
 
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
