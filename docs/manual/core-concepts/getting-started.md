@@ -17,19 +17,19 @@ You'll also have to manually install the driver for your database of choice:
 
 ```sh
 # using npm
-$ npm i pg pg-hstore # PostgreSQL
-$ npm i mysql2 # MySQL
-$ npm i mariadb # MariaDB
-$ npm i sqlite3 # SQLite
-$ npm i tedious # Microsoft SQL Server
-$ npm i ibm_db # DB2
+npm i pg pg-hstore # PostgreSQL
+npm i mysql2 # MySQL
+npm i mariadb # MariaDB
+npm i sqlite3 # SQLite
+npm i tedious # Microsoft SQL Server
+npm i ibm_db # DB2
 # using yarn
-$ yarn add pg pg-hstore # PostgreSQL
-$ yarn add mysql2 # MySQL
-$ yarn add mariadb # MariaDB
-$ yarn add sqlite3 # SQLite
-$ yarn add tedious # Microsoft SQL Server
-$ yarn add ibm_db # DB2
+yarn add pg pg-hstore # PostgreSQL
+yarn add mysql2 # MySQL
+yarn add mariadb # MariaDB
+yarn add sqlite3 # SQLite
+yarn add tedious # Microsoft SQL Server
+yarn add ibm_db # DB2
 ```
 
 ## Connecting to a database
