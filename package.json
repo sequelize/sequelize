@@ -91,7 +91,7 @@
     "lcov-result-merger": "3.1.0",
     "lint-staged": "12.3.3",
     "mariadb": "2.5.5",
-    "markdownlint-cli": "0.30.0",
+    "markdownlint-cli": "0.31.0",
     "mocha": "9.2.0",
     "module-alias": "2.2.2",
     "ibm_db": "2.8.1",
