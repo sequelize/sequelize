@@ -478,6 +478,11 @@ interface OpTypes {
   readonly values: unique symbol;
 }
 
+// Note: These symbols are registered in the Global Symbol Registry
+//  to counter bugs when two different versions of this library are loaded
+//  Source issue: https://github.com/sequelize/sequelize/issues/8663
+// This is not an endorsement of having two different versions of the library loaded at the same time,
+//  a lot more is going to silently break if you do this.
 export const Op: OpTypes = {
   eq: Symbol.for('eq'),
   ne: Symbol.for('ne'),

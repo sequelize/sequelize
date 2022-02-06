@@ -280,7 +280,7 @@ jobs:
         with:
           node-version: 16.x
       - run: yarn install --frozen-lockfile
-      - run: npx semantic-release
+      - run: yarn semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
         with:
