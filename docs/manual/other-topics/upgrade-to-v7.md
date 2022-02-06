@@ -48,3 +48,23 @@ sequelize.connectionManager.getConnection({ type: 'read' });
 Sequelize v7 fully supports MS SQL Server 2017 (version 14) onwards, up from 2012 (version 13) in
 Sequelize v6, as this matches Microsoft's own [mainstream support](
 https://docs.microsoft.com/en-us/sql/sql-server/end-of-support/sql-server-end-of-life-overview?view=sql-server-ver15#lifecycle-dates).
+
+### Overridden Model methods won't be called internally
+
+`Model.findOne` and `Model.findAll` are used respectively by `Model.findByPk` and `Model.findOne`.
+This is considered an implementation detail and as such, starting with Sequelize v7,
+overrides of either of these methods will not be called internally by `Model.findByPk` or `Model.findOne`.
+
+In other words, doing this won't break:
+
+```typescript
+class User extends Model {
+  static findOne() {
+    throw new Error('Do not call findOne');
+  }
+}
+
+// this would have thrown "Do not call findOne" in v6
+// but it works in v7
+User.findByPk(1);
+```

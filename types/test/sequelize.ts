@@ -1,5 +1,4 @@
-import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op } from 'sequelize';
-import { Fn } from 'sequelize/lib/utils';
+import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from 'sequelize';
 
 Sequelize.useCLS({
   get(key: string): unknown {
@@ -33,6 +32,7 @@ Sequelize.and()
 Sequelize.or()
 Sequelize.json('data.id')
 Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+Sequelize.where(Sequelize.col("ABS"), '=', null);
 
 // instance members
 sequelize.fn('max', sequelize.col('age'))
@@ -75,7 +75,7 @@ Sequelize.afterConnect(() => {
 
 });
 
-const rnd: Fn = sequelize.random();
+const rnd: Utils.Fn = sequelize.random();
 
 class Model1 extends Model{}
 class Model2 extends Model{}

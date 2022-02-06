@@ -146,7 +146,7 @@ export interface WhereOperators {
    */
 
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col;
+  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col | AndOperator | OrOperator;
 
   [Op.any]?: readonly (string | number | Literal)[] | Literal;
 
@@ -185,7 +185,7 @@ export interface WhereOperators {
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator | Fn;
 
   /**
    * Examples:
@@ -372,8 +372,19 @@ export type WhereAttributeHash<TAttributes = any> = {
    *      [Op.gt]: 20
    *    }
    *  }
+   *
+   * - An $attribute$ name
    */
-  [field in keyof TAttributes]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [attribute in keyof TAttributes as attribute extends string ? attribute | `$${attribute}$` : attribute]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+} & {
+  /**
+   * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
+   */
+  // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
+  // TypeScript < 4.4 does not support using a Template Literal Type as a key.
+  //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
+  // @ts-ignore
+  [attribute: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
 }
 /**
  * Through options for Include Options
@@ -522,8 +533,6 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-
 /**
  * Options that are passed to any model creating a SELECT query
  *
@@ -555,9 +564,36 @@ export interface FindOptions<TAttributes = any>
   group?: GroupOption;
 
   /**
-   * Limit the results
+   * Limits how many items will be retrieved by the operation.
+   *
+   * If `limit` and `include` are used together, Sequelize will turn the `subQuery` option on by default.
+   * This is done to ensure that `limit` only impacts the Model on the same level as the `limit` option.
+   *
+   * You can disable this behavior by explicitly setting `subQuery: false`, however `limit` will then
+   * affect the total count of returned values, including eager-loaded associations, instead of just one table.
+   *
+   * @example
+   * // in the following query, `limit` only affects the "User" model.
+   * // This will return 2 users, each including all of their projects.
+   * User.findAll({
+   *   limit: 2,
+   *   include: [User.associations.projects],
+   * });
+   *
+   * @example
+   * // in the following query, `limit` affects the total number of returned values, eager-loaded associations included.
+   * // This may return 2 users, each with one project,
+   * //  or 1 user with 2 projects.
+   * User.findAll({
+   *   limit: 2,
+   *   include: [User.associations.projects],
+   *   subQuery: false,
+   * });
    */
   limit?: number;
+
+  // TODO: document this - this is an undocumented property but it exists and there are tests for it.
+  groupedLimit?: unknown;
 
   /**
    * Skip the results;
@@ -589,7 +625,10 @@ export interface FindOptions<TAttributes = any>
   having?: WhereOptions<any>;
 
   /**
-   * Use sub queries (internal)
+   * Use sub queries (internal).
+   *
+   * If unspecified, this will `true` by default if `limit` is specified, and `false` otherwise.
+   * See {@link FindOptions#limit} for more information.
    */
   subQuery?: boolean;
 }
@@ -2953,25 +2992,37 @@ export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(
 export default Model;
 
 /**
+ * Type will be true is T is branded with Brand, false otherwise
+ */
+// How this works:
+// - `A extends B` will be true if A has *at least* all the properties of B
+// - If we do `A extends Omit<A, Checked>` - the result will only be true if A did not have Checked to begin with
+// - So if we want to check if T is branded, we remove the brand, and check if they list of keys is still the same.
+// we exclude Null & Undefined so "field: Brand<value> | null" is still detected as branded
+// this is important because "Brand<value | null>" are transformed into "Brand<value> | null" to not break null & undefined
+type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omit<NonNullable<T>, Brand>
+  ? false
+  : true;
+
+/**
  * Dummy Symbol used as branding by {@link NonAttribute}.
  *
  * Do not export, Do not use.
  */
 declare const NonAttributeBrand: unique symbol;
-interface NonAttributeBrandedArray<Val> extends Array<Val> {
-  [NonAttributeBrand]: true
-}
 
 /**
  * This is a Branded Type.
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
-export type NonAttribute<T> = T extends Array<infer Val>
-  // Arrays are a special case when branding. Both sides need to be an array,
-  //  otherwise property access breaks.
-  ? T | NonAttributeBrandedArray<Val>
-  : T | { [NonAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+
+export type NonAttribute<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `NonAttribute<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `NonAttribute<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [NonAttributeBrand]?: true });
 
 /**
  * Option bag for {@link InferAttributes}.
@@ -3028,17 +3079,8 @@ type InferAttributesOptions<Excluded, > = { omit?: Excluded };
 export type InferAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-> = {
-  [Key in keyof M as
-    M[Key] extends AnyFunction ? never
-    : { [NonAttributeBrand]: true } extends M[Key] ? never
-      // array special case
-    : M[Key] extends NonAttributeBrandedArray<any> ? never
-    : Key extends keyof Model ? never
-    // check 'omit' option is provided
-    : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-    : Key
-  ]: M[Key]
+  > = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key]
 };
 
 /**
@@ -3047,9 +3089,6 @@ export type InferAttributes<
  * Do not export, Do not use.
  */
 declare const CreationAttributeBrand: unique symbol;
-interface CreationAttributeBrandedArray<Val> extends Array<Val> {
-  [CreationAttributeBrand]: true
-}
 
 /**
  * This is a Branded Type.
@@ -3057,11 +3096,12 @@ interface CreationAttributeBrandedArray<Val> extends Array<Val> {
  *
  * For use with {@link InferCreationAttributes}.
  */
-export type CreationOptional<T> = T extends Array<infer Val>
-  // Arrays are a special case when branding. Both sides need to be an array,
-  //  otherwise property access breaks.
-  ? T | CreationAttributeBrandedArray<Val>
-  : T | { [CreationAttributeBrand]: true }; // this MUST be a union or nothing will be assignable to this type.
+export type CreationOptional<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `CreationAttributeBrand<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `CreationAttributeBrand<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [CreationAttributeBrand]?: true });
 
 /**
  * Utility type to extract Creation Attributes of a given Model class.
@@ -3081,23 +3121,32 @@ export type CreationOptional<T> = T extends Array<infer Val>
 export type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-> = {
-  [Key in keyof M as
-    M[Key] extends AnyFunction ? never
-    : { [NonAttributeBrand]: true } extends M[Key] ? never
-      // array special case
-    : M[Key] extends NonAttributeBrandedArray<any> ? never
-    : Key extends keyof Model ? never
-    // check 'omit' option is provided
-    : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-    : Key
-     // it is normal that the brand extends the type.
-     // We're checking if it's in the type.
-  ]: { [CreationAttributeBrand]: true } extends M[Key] ? (M[Key] | undefined)
-    // array special case
-    : CreationAttributeBrandedArray<any> extends M[Key] ? (M[Key] | undefined)
+  > = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: IsBranded<M[Key], typeof CreationAttributeBrand> extends true
+    ? (M[Key] | undefined)
     : M[Key]
 };
+
+/**
+ * @private
+ *
+ * Internal type used by {@link InferCreationAttributes} and {@link InferAttributes} to exclude
+ * attributes that are:
+ * - functions
+ * - branded using {@link NonAttribute}
+ * - inherited from {@link Model}
+ * - Excluded manually using {@link InferAttributesOptions#omit}
+ */
+type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
+  // functions are always excluded
+  M[Key] extends AnyFunction ? never
+  // fields inherited from Model are all excluded
+  : Key extends keyof Model ? never
+  // fields branded with NonAttribute are excluded
+  : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
+  // check 'omit' option is provided & exclude those listed in it
+  : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
+  : Key
 
 // in v7, we should be able to drop InferCreationAttributes and InferAttributes,
 //  resolving this confusion.
