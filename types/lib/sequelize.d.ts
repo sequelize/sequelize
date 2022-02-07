@@ -1,4 +1,3 @@
-import * as DataTypes from './data-types';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -28,6 +27,7 @@ import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
+import { Op } from '..';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
 
@@ -1473,28 +1473,57 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
+export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated use {@link WhereLeftOperand} instead.
+ */
+export type AttributeType = WhereLeftOperand;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated this is not used anymore, typing definitions for {@link where} have changed to more accurately reflect reality.
+ */
 export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> | WhereOperators | string | symbol | null;
 
 /**
- * A way of specifying attr = condition.
+ * A way of specifying "attr = condition".
+ * Can be used as a replacement for the POJO syntax (e.g. `where: { name: 'Lily' }`) when you need to compare a column that the POJO syntax cannot represent.
  *
- * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id`
- * or
- * `Model.rawAttributes.name`). The attribute should be defined in your model definition. The attribute can
- * also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
+ * @param leftOperand The left side of the comparison.
+ *  - A value taken from YourModel.rawAttributes, to reference an attribute.
+ *    The attribute must be defined in your model definition.
+ *  - A Literal (using {@link Sequelize#literal})
+ *  - A SQL Function (using {@link Sequelize#fn})
+ *  - A Column name (using {@link Sequelize#col})
+ *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
+ * @param operator The comparison operator to use. If unspecified, defaults to {@link Op.eq}.
+ * @param rightOperand The right side of the comparison. Its value depends on the used operator.
+ *  See {@link WhereOperators} for information about what value is valid for each operator.
  *
- * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your
- * string to be escaped, use `sequelize.literal`.
+ * @example
+ * // Using an attribute as the left operand.
+ * // Equal to: WHERE first_name = 'Lily'
+ * where(User.rawAttributes.firstName, Op.eq, 'Lily');
  *
- * @param attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a
- *   sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the
- *   POJO syntax
- * @param comparator Comparator
- * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
- *   etc.)
+ * @example
+ * // Using a column name as the left operand.
+ * // Equal to: WHERE first_name = 'Lily'
+ * where(col('first_name'), Op.eq, 'Lily');
+ *
+ * @example
+ * // Using a SQL function on the left operand.
+ * // Equal to: WHERE LOWER(first_name) = 'lily'
+ * where(fn('LOWER', col('first_name')), Op.eq, 'lily');
+ *
+ * @example
+ * // Using raw SQL as the left operand.
+ * // Equal to: WHERE 'Lily' = 'Lily'
+ * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
-export function where(attr: AttributeType, logic: LogicType): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
 
 export default Sequelize;
