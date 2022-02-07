@@ -62,30 +62,30 @@ Project.init({
   id: {
     type: DataTypes.INTEGER.UNSIGNED, // you can omit the `new` but this is discouraged
     autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
   },
   ownerId: {
     type: DataTypes.INTEGER.UNSIGNED,
-    allowNull: false
+    allowNull: false,
   },
   name: {
     type: new DataTypes.STRING(128),
-    allowNull: false
+    allowNull: false,
   }
 }, {
   sequelize,
-  tableName: 'projects'
+  tableName: 'projects',
 });
 
 User.init({
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
   },
   name: {
     type: new DataTypes.STRING(128),
-    allowNull: false
+    allowNull: false,
   },
   preferredName: {
     type: new DataTypes.STRING(128),
@@ -93,20 +93,20 @@ User.init({
   }
 }, {
   tableName: 'users',
-  sequelize // this bit is important
+  sequelize: sequelize, // this bit is important
 });
 
 Address.init({
   userId: {
-    type: DataTypes.INTEGER.UNSIGNED
+    type: DataTypes.INTEGER.UNSIGNED,
   },
   address: {
     type: new DataTypes.STRING(128),
-    allowNull: false
+    allowNull: false,
   }
 }, {
   tableName: 'users',
-  sequelize // this bit is important
+  sequelize: sequelize, // this bit is important
 });
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
@@ -116,35 +116,35 @@ User.hasMany(Project, {
   as: 'projects' // this determines the name in `associations`!
 });
 
-Address.belongsTo(User, { targetKey: 'id' });
-User.hasOne(Address, { sourceKey: 'id' });
+Address.belongsTo(User, {targetKey: 'id'});
+User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
   const newUser = await User.create({
     name: 'Johnny',
-    preferredName: 'John'
+    preferredName: 'John',
   });
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
   const project = await newUser.createProject({
-    name: 'first!'
+    name: 'first!',
   });
 
   const ourUser = await User.findByPk(1, {
     include: [User.associations.projects],
-    rejectOnEmpty: true // Specifying true here removes `null` from the return type!
+    rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
   });
   console.log(ourUser.projects![0].name); // Note the `!` null assertion since TS can't know if we included
-  // the model or not
+                                          // the model or not
 
-  const user = await sequelize.query('SELECT * FROM users WHERE name = :userName', {
+  const user = await sequelize.query('SELECT * FROM users WHERE name = :userName',{
     type: QueryTypes.SELECT,
     replacements: {
       userName: 'Johnny'
     },
     mapToModel: true,
     model: User
-  });
+  })
 }
 
 // Legacy models
@@ -163,13 +163,13 @@ type MyModelStatic = typeof Model & {
 const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   id: {
     primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED
+    type: DataTypes.INTEGER.UNSIGNED,
   }
 });
 
 async function stuffTwo() {
   const myModel = await MyDefineModel.findByPk(1, {
-    rejectOnEmpty: true
+    rejectOnEmpty: true,
   });
   console.log(myModel.id);
 }

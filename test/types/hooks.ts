@@ -35,7 +35,7 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
     afterQuery(options, query) {
       expectTypeOf(options).toEqualTypeOf<QueryOptions>();
       expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
-    }
+    },
   };
 
   const sequelize = new Sequelize('uri', { hooks });
