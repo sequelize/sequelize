@@ -1472,14 +1472,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and<T>(...args: T[]): { [Op.and]: T };
+export function and<T extends Array<any>>(...args: T): { [Op.and]: T };
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or<T>(...args: T[]): { [Op.and]: T };
+export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.

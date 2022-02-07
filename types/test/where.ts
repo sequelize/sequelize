@@ -9,7 +9,6 @@ import {
   WhereOperators,
   WhereOptions,
   literal,
-  where as whereFn,
   Transaction,
   and, or,
 } from 'sequelize';
@@ -282,9 +281,8 @@ MyModel.findAll({
     where,
     or({ id: 1 }, { id: 2 }),
     and({ id: 1 }, { id: 2 }),
-    // TODO: these two fail because and() does not infer its generic properly
-    // Sequelize.where(Sequelize.col('col'), Op.eq, null),
-    // Sequelize.literal('1 = 2'),
+    Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    Sequelize.literal('1 = 2'),
   ),
 });
 
@@ -293,9 +291,8 @@ MyModel.findAll({
     where,
     or({ id: 1 }, { id: 2 }),
     and({ id: 1 }, { id: 2 }),
-    // TODO: these two fail because and() does not infer its generic properly
-    // Sequelize.where(Sequelize.col('col'), Op.eq, null),
-    // Sequelize.literal('1 = 2'),
+    Sequelize.where(Sequelize.col('col'), Op.eq, null),
+    Sequelize.literal('1 = 2'),
   ),
 });
 
