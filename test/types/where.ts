@@ -1,4 +1,4 @@
-import { expectTypeOf } from "expect-type";
+import { expectTypeOf } from 'expect-type';
 import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn } from 'sequelize';
 import Transaction from 'sequelize/lib/transaction';
 
@@ -30,17 +30,17 @@ expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions
 // Operators
 
 expectTypeOf({
-  [Op.and]: { a: 5 }, // AND (a = 5)
+  [Op.and]: { a: 5 } // AND (a = 5)
 }).toMatchTypeOf<AndOperator>();
 expectTypeOf({
-  [Op.and]: { a: 5 }, // AND (a = 5)
+  [Op.and]: { a: 5 } // AND (a = 5)
 }).toMatchTypeOf<AndOperator<{ a: number }>>();
 
 expectTypeOf({
-  [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
+  [Op.or]: [{ a: 5 }, { a: 6 }] // (a = 5 OR a = 6)
 }).toMatchTypeOf<OrOperator>();
 expectTypeOf({
-  [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
+  [Op.or]: [{ a: 5 }, { a: 6 }] // (a = 5 OR a = 6)
 }).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 expectTypeOf({
@@ -82,7 +82,7 @@ expectTypeOf({
   [Op.like]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
   [Op.iLike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
   [Op.notLike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
-  [Op.notILike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
+  [Op.notILike]: { [Op.any]: ['cat', 'hat'] } // LIKE ANY ARRAY['cat', 'hat']
 }).toMatchTypeOf<WhereOperators>();
 
 // Complex where options via combinations
@@ -98,7 +98,7 @@ expectTypeOf([
   {
     createdAt: {
       [Op.lt]: new Date(),
-      [Op.gt]: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      [Op.gt]: new Date(Date.now() - 24 * 60 * 60 * 1000)
     }
   },
   {
@@ -120,7 +120,7 @@ expectTypeOf([
     },
     meta3: {
       [Op.contains]: [1, 2, 3, 4]
-    },
+    }
   },
   {
     name: 'a project',
@@ -141,32 +141,32 @@ expectTypeOf([
   {
     name: 'a project',
     type: {
-      [Op.and]: [['a', 'b'], { [Op.notLike]: '%z' }],
-    },
+      [Op.and]: [['a', 'b'], { [Op.notLike]: '%z' }]
+    }
   },
   {
     name: 'a project',
-    [Op.not]: [{ id: [1, 2, 3] }, { array: { [Op.contains]: [3, 4, 5] } }],
+    [Op.not]: [{ id: [1, 2, 3] }, { array: { [Op.contains]: [3, 4, 5] } }]
   },
   {
     meta: {
       video: {
         url: {
-          [Op.ne]: null,
-        },
-      },
-    },
+          [Op.ne]: null
+        }
+      }
+    }
   },
   {
     'meta.audio.length': {
-      [Op.gt]: 20,
-    },
+      [Op.gt]: 20
+    }
   },
   {
-    [Op.and]: [{ id: [1, 2, 3] }, { array: { [Op.contains]: [3, 4, 5] } }],
+    [Op.and]: [{ id: [1, 2, 3] }, { array: { [Op.contains]: [3, 4, 5] } }]
   },
   {
-    [Op.gt]: fn('NOW'),
+    [Op.gt]: fn('NOW')
   },
   literal('true'),
   fn('LOWER', 'asd'),
@@ -179,9 +179,9 @@ MyModel.findAll({
   include: [
     {
       model: MyModel,
-      where: { state: Sequelize.col('project.state') },
-    },
-  ],
+      where: { state: Sequelize.col('project.state') }
+    }
+  ]
 });
 
 {
@@ -191,10 +191,10 @@ MyModel.findAll({
       {
         include: [{ model: MyModel, where }],
         model: MyModel,
-        where,
-      },
+        where
+      }
     ],
-    where,
+    where
   });
   MyModel.destroy({ where });
   MyModel.update({ hi: 1 }, { where });
@@ -210,7 +210,7 @@ async function test() {
   let projects: MyModel[] = await MyModel.findAll();
 
   // search for specific attributes - hash usage
-  projects = await MyModel.findAll({ where: { name: 'A MyModel', enabled: true } })
+  projects = await MyModel.findAll({ where: { name: 'A MyModel', enabled: true } });
 
   // search within a specific range
   projects = await MyModel.findAll({ where: { id: [1, 2, 3] } });
@@ -219,7 +219,7 @@ async function test() {
   projects = await MyModel.findAll({ lock: Transaction.LOCK.KEY_SHARE });
 
   // locks on model
-  projects = await MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} });
+  projects = await MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel } });
 }
 
 MyModel.findAll({
@@ -239,7 +239,7 @@ MyModel.findAll({
       [Op.lte]: 10, // id <= 10
       [Op.lte]: Sequelize.col('SOME_COL'), // id <= <column>
       [Op.ne]: 20, // id != 20
-      [Op.between]: [6, 10] || [new Date(), new Date()] || ["2020-01-01", "2020-12-31"], // BETWEEN 6 AND 10
+      [Op.between]: [6, 10] || [new Date(), new Date()] || ['2020-01-01', '2020-12-31'], // BETWEEN 6 AND 10
       [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
       [Op.in]: [1, 2], // IN [1, 2]
       [Op.notIn]: [1, 2], // NOT IN [1, 2]
@@ -256,12 +256,12 @@ MyModel.findAll({
       [Op.strictRight]: [1, 2],
       [Op.noExtendLeft]: [1, 2],
       [Op.noExtendRight]: [1, 2],
-      [Op.values]: [1, 2],
+      [Op.values]: [1, 2]
     } as WhereOperators,
     status: {
-      [Op.not]: false, // status NOT FALSE
-    },
-  },
+      [Op.not]: false // status NOT FALSE
+    }
+  }
 });
 
 Sequelize.where(
@@ -283,29 +283,29 @@ Sequelize.where(
     [Op.contains]: Sequelize.literal('LIT'),
     [Op.contained]: Sequelize.literal('LIT'),
     [Op.gt]: Sequelize.literal('LIT'),
-    [Op.notILike]: Sequelize.literal('LIT'),
-  },
+    [Op.notILike]: Sequelize.literal('LIT')
+  }
 );
 
-Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+Sequelize.where(Sequelize.col('ABS'), Op.is, null);
 
 Sequelize.where(
-  Sequelize.fn("ABS", Sequelize.col("age")),
+  Sequelize.fn('ABS', Sequelize.col('age')),
   Op.like,
-  Sequelize.fn("ABS", Sequelize.col("age"))
+  Sequelize.fn('ABS', Sequelize.col('age'))
 );
 
-Sequelize.where(Sequelize.col("ABS"), null);
+Sequelize.where(Sequelize.col('ABS'), null);
 Sequelize.where(Sequelize.literal('first_name'), null);
 
-Sequelize.where(Sequelize.col("ABS"), Sequelize.and(
+Sequelize.where(Sequelize.col('ABS'), Sequelize.and(
   { [Op.iLike]: 'abs' },
-  { [Op.not]: { [Op.eq]: 'ABS' }}
+  { [Op.not]: { [Op.eq]: 'ABS' } }
 ));
 
-Sequelize.where(Sequelize.col("ABS"), Sequelize.or(
+Sequelize.where(Sequelize.col('ABS'), Sequelize.or(
   { [Op.iLike]: 'abs' },
-  { [Op.not]: { [Op.eq]: 'ABS' }}
+  { [Op.not]: { [Op.eq]: 'ABS' } }
 ));
 
-Sequelize.where(Sequelize.col("ABS"), { [Op.not]: 'abs' });
+Sequelize.where(Sequelize.col('ABS'), { [Op.not]: 'abs' });

@@ -21,15 +21,15 @@ import {
   Hookable,
   ModelType,
   CreationAttributes,
-  Attributes,
+  Attributes
 } from './model';
 import { ModelManager } from './model-manager';
-import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
+import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
-import { Op } from '..';
+import { Op } from './index';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
-import { ConnectionManager } from './connection-manager';
+import { ConnectionManager } from './dialects/abstract/connection-manager';
 
 /**
  * Additional options for table altering during sync
@@ -432,6 +432,7 @@ export class Sequelize extends Hooks {
    *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
    * })
    * ```
+   *
    * @param fn The function you want to call
    * @param args All further arguments will be passed as arguments to the function
    */
@@ -789,6 +790,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run before sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public static beforeBulkSync(dname: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -796,6 +798,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run after sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -803,6 +806,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run before Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -810,6 +814,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run after Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -880,6 +885,7 @@ export class Sequelize extends Hooks {
 
   /**
    * Instantiate sequelize with an URI
+   *
    * @param uri A full database URI
    * @param options See above for possible options
    */
@@ -1088,6 +1094,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run before sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -1095,6 +1102,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run after sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -1102,6 +1110,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run before Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -1109,6 +1118,7 @@ export class Sequelize extends Hooks {
 
   /**
    * A hook that is run after Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -1421,6 +1431,7 @@ export class Sequelize extends Hooks {
  *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
  * })
  * ```
+ *
  * @param fn The function you want to call
  * @param args All further arguments will be passed as arguments to the function
  */

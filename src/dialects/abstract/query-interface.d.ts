@@ -1,4 +1,4 @@
-import { DataType } from './data-types';
+import { DataType } from '../../data-types';
 import {
   Logging,
   Model,
@@ -12,14 +12,14 @@ import {
   ModelStatic,
   ModelType,
   CreationAttributes,
-  Attributes,
-} from './model';
-import QueryTypes = require('./query-types');
-import { Sequelize, RetryOptions } from './sequelize';
-import { Transaction } from './transaction';
-import { SetRequired } from './../type-helpers/set-required';
-import { Fn, Literal } from './utils';
-import { Deferrable } from './deferrable';
+  Attributes
+} from '../../model';
+import QueryTypes = require('../../query-types');
+import { Sequelize, RetryOptions } from '../../sequelize';
+import { Transaction } from '../../transaction';
+import { SetRequired } from '../../utils/set-required';
+import { Fn, Literal } from '../../utils';
+import { Deferrable } from '../../deferrable';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
