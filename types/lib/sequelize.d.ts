@@ -24,7 +24,16 @@ import {
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS, Op } from '..';
+import {
+  QueryTypes,
+  Transaction,
+  TransactionOptions,
+  TRANSACTION_TYPES,
+  PartlyRequired,
+  ISOLATION_LEVELS,
+  Op,
+  WhereAttributeHash,
+} from '..';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
 import type { AbstractDialect } from '../../lib/dialects/abstract/index';
@@ -1533,7 +1542,7 @@ export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> 
  */
 export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
 export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq] | WhereAttributeHash): Where;
 
 type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;
