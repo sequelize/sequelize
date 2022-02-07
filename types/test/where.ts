@@ -180,7 +180,6 @@ expectTypeOf([
   {
     [Op.gt]: fn('NOW'),
   },
-  whereFn('test', { [Op.gt]: new Date() }),
   literal('true'),
   fn('LOWER', 'asd'),
   { [Op.lt]: Sequelize.literal('SOME_STRING') }
@@ -445,7 +444,8 @@ MyModel.findAll({
 });
 
 Sequelize.where(
-  Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'), {
+  Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),
+  {
     [Op.lt]: Sequelize.literal('LIT'),
     [Op.any]: Sequelize.literal('LIT'),
     [Op.gte]: Sequelize.literal('LIT'),
@@ -463,8 +463,8 @@ Sequelize.where(
     [Op.contained]: Sequelize.literal('LIT'),
     [Op.gt]: Sequelize.literal('LIT'),
     [Op.notILike]: Sequelize.literal('LIT'),
-  }
-)
+  },
+);
 
 Sequelize.where(Sequelize.col("ABS"), Op.is, null);
 
@@ -475,3 +475,16 @@ Sequelize.where(
 );
 
 Sequelize.where(Sequelize.col("ABS"), null);
+Sequelize.where(Sequelize.literal('first_name'), null);
+
+Sequelize.where(Sequelize.col("ABS"), Sequelize.and(
+  { [Op.iLike]: 'abs' },
+  { [Op.not]: { [Op.eq]: 'ABS' }}
+));
+
+Sequelize.where(Sequelize.col("ABS"), Sequelize.or(
+  { [Op.iLike]: 'abs' },
+  { [Op.not]: { [Op.eq]: 'ABS' }}
+));
+
+Sequelize.where(Sequelize.col("ABS"), { [Op.not]: 'abs' });
