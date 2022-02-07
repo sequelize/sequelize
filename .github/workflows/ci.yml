@@ -285,7 +285,9 @@ jobs:
         uses: sdepold/github-action-get-latest-release@master
         with:
           repository: sequelize/sequelize
-      - run: |
+      - name: Notify channels
+        run: |
           curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": ${{ steps.sequelize.outputs.id }}}}'
-      - run: |
+      - name: Notify docs repo
+        run: |
           curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize.org/dispatches --data '{"event_type":"Build website"}'
