@@ -630,9 +630,7 @@ if (dialect === 'sqlite') {
             'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
             + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
             + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
+            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
       getForeignKeysQuery: [
