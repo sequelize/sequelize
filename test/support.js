@@ -10,7 +10,7 @@ const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
-const distDir = path.resolve(__dirname, '../dist');
+const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
@@ -166,7 +166,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(path.join(distDir, 'lib/dialects'))
+    return fs.readdirSync(path.join(distDir, 'dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
