@@ -4,9 +4,9 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "sequelize": ["/home/ephys/Development/sequelize/types/index.d.ts"],
-      "sequelize/lib/*": ["/home/ephys/Development/sequelize/types/*"],
-      "sequelize/*": ["/home/ephys/Development/sequelize/*"]
+      "sequelize": ["../types/index.d.ts"],
+      "sequelize/lib/*": ["../types/*"],
+      "sequelize/*": ["../*"]
     },
     "types": ["node", "mocha", "sinon", "chai"],
     "noEmit": true,
