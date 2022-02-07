@@ -640,6 +640,18 @@ if (dialect === 'sqlite') {
           expectation: 'PRAGMA foreign_key_list(`myTable`)',
         },
       ],
+      foreignKeyCheckQuery: [
+        {
+          title: 'Properly quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_check(`myTable`);',
+        },
+        {
+          title: 'Properly quotes table names as schema',
+          arguments: [{ schema: 'schema', tableName: 'myTable' }],
+          expectation: 'PRAGMA foreign_key_check(`schema.myTable`);',
+        },
+      ],
     };
 
     _.each(suites, (tests, suiteTitle) => {
