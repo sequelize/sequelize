@@ -1,15 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Op = require('../../../../lib/operators'),
-  Support = require('../../support'),
-  getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
+const chai = require('chai');
+
+const expect = chai.expect;
+const { Op } = require('sequelize');
+const Support = require('../../support');
+
+const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
 const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
-    it('should generate correct query for Symbol operators', function() {
+    it('should generate correct query for Symbol operators', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.whereItemQuery(Op.or, [{ test: { [Op.gt]: 5 } }, { test: { [Op.lt]: 3 } }, { test: { [Op.in]: [4] } }])
         .should.be.equal('(test > 5 OR test < 3 OR test IN (4))');
@@ -21,7 +23,7 @@ describe('QueryGenerator', () => {
         .should.be.equal('(test IS NULL OR testSame IS NULL)');
     });
 
-    it('should not parse any strings as aliases operators', function() {
+    it('should not parse any strings as aliases operators', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       expect(() => QG.whereItemQuery('$or', [{ test: 5 }, { test: 3 }]))
         .to.throw('Invalid value { test: 5 }');
@@ -48,7 +50,7 @@ describe('QueryGenerator', () => {
       class Sequelize {
         constructor() {
           this.config = {
-            password: 'password'
+            password: 'password',
           };
         }
       }
@@ -60,17 +62,17 @@ describe('QueryGenerator', () => {
       }
 
       expect(() => QG.whereItemQuery('test', new Transaction())).to.throw(
-        'Invalid value Transaction { sequelize: Sequelize { config: [Object] } }'
+        'Invalid value Transaction { sequelize: Sequelize { config: [Object] } }',
       );
     });
 
-    it('should parse set aliases strings as operators', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize),
-        aliases = {
-          OR: Op.or,
-          '!': Op.not,
-          '^^': Op.gt
-        };
+    it('should parse set aliases strings as operators', function () {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      const aliases = {
+        OR: Op.or,
+        '!': Op.not,
+        '^^': Op.gt,
+      };
 
       QG.setOperatorsAliases(aliases);
 
@@ -108,7 +110,7 @@ describe('QueryGenerator', () => {
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
     });
 
-    it('should correctly parse sequelize.where with .fn as logic', function() {
+    it('should correctly parse sequelize.where with .fn as logic', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.handleSequelizeMethod(this.sequelize.where(this.sequelize.col('foo'), 'LIKE', this.sequelize.col('bar')))
         .should.be.equal('foo LIKE bar');
@@ -120,7 +122,7 @@ describe('QueryGenerator', () => {
         .should.be.equal('foo IS NOT NULL');
     });
 
-    it('should correctly escape $ in sequelize.fn arguments', function() {
+    it('should correctly escape $ in sequelize.fn arguments', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
         .should.include('$$user');
@@ -128,64 +130,15 @@ describe('QueryGenerator', () => {
   });
 
   describe('format', () => {
-    it('should throw an error if passed SequelizeMethod', function() {
+    it('should throw an error if passed SequelizeMethod', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       const value = this.sequelize.fn('UPPER', 'test');
       expect(() => QG.format(value)).to.throw(Error);
     });
   });
 
-  describe('jsonPathExtractionQuery', () => {
-    const expectQueryGenerator = (query, assertions) => {
-      const expectation = assertions[Support.sequelize.dialect.name];
-      if (!expectation) {
-        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
-      }
-      return expectation(query);
-    };
-
-    it('should handle isJson parameter true', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', true), {
-        postgres: query => expect(query()).to.equal('(profile#>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-
-    it('should use default handling if isJson is false', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id', false), {
-        postgres: query => expect(query()).to.equal('(profile#>>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-
-    it('Should use default handling if isJson is not passed', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-      expectQueryGenerator(() => QG.jsonPathExtractionQuery('profile', 'id'), {
-        postgres: query => expect(query()).to.equal('(profile#>>\'{id}\')'),
-        sqlite: query => expect(query()).to.equal('json_extract(profile,\'$.id\')'),
-        mariadb: query => expect(query()).to.equal('json_unquote(json_extract(profile,\'$.id\'))'),
-        mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
-        mssql: query => expect(query).to.throw(Error),
-        snowflake: query => expect(query).to.throw(Error),
-        db2: query => expect(query).to.throw(Error)
-      });
-    });
-  });
-
   describe('queryIdentifier', () => {
-    it('should throw an error if call base quoteIdentifier', function() {
+    it('should throw an error if call base quoteIdentifier', function () {
       const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
       expect(() => QG.quoteIdentifier('test', true))
         .to.throw(`quoteIdentifier for Dialect "${this.sequelize.dialect.name}" is not implemented`);

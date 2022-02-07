@@ -1,4 +1,5 @@
-import BaseError, { CommonErrorProperties, ErrorOptions } from './base-error';
+import type { CommonErrorProperties, ErrorOptions } from './base-error';
+import BaseError from './base-error';
 
 export interface DatabaseErrorParent
   extends Error,
@@ -17,13 +18,16 @@ export interface DatabaseErrorSubclassOptions extends ErrorOptions {
  */
 class DatabaseError
   extends BaseError
-  implements DatabaseErrorParent, CommonErrorProperties
-{
+  implements DatabaseErrorParent, CommonErrorProperties {
   parent: Error;
   original: Error;
   sql: string;
   parameters: object;
 
+  /**
+   * @param parent The database specific error which triggered this one
+   * @param options
+   */
   constructor(parent: DatabaseErrorParent, options: ErrorOptions = {}) {
     super(parent.message);
     this.name = 'SequelizeDatabaseError';

@@ -52,6 +52,8 @@ export const ABSTRACT: AbstractDataTypeConstructor;
 interface AbstractDataTypeConstructor {
   key: string;
   warn(link: string, text: string): void;
+  new (): AbstractDataType;
+  (): AbstractDataType;
 }
 
 export interface AbstractDataType {
@@ -102,7 +104,7 @@ export interface CharDataType extends StringDataType {
 }
 
 export interface CharDataTypeOptions extends StringDataTypeOptions {}
-   
+
 export type TextLength = 'tiny' | 'medium' | 'long';
 
 /**
@@ -336,7 +338,7 @@ interface DateDataTypeConstructor extends AbstractDataTypeConstructor {
   (options?: DateDataTypeOptions): DateDataType;
 }
 
-export interface DateDataType extends AbstractDataTypeConstructor {
+export interface DateDataType extends AbstractDataType {
   options: DateDataTypeOptions;
 }
 
@@ -367,7 +369,6 @@ export const HSTORE: AbstractDataTypeConstructor;
  * A JSON string column. Only available in postgres.
  */
 export const JSON: AbstractDataTypeConstructor;
-
 /**
  * A pre-processed JSON data column. Only available in postgres.
  */
@@ -604,9 +605,14 @@ export const INET: AbstractDataTypeConstructor;
 export const MACADDR: AbstractDataTypeConstructor;
 
 /**
- * Case incenstive text
+ * Case-insensitive text
  */
 export const CITEXT: AbstractDataTypeConstructor;
+
+/**
+ * Full text search vector. Only available in postgres.
+ */
+export const TSVECTOR: AbstractDataTypeConstructor;
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;

@@ -1,11 +1,13 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  env = process.env,
-  Sequelize = Support.Sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const env = process.env;
+const Sequelize = Support.Sequelize;
 
 if (dialect !== 'mariadb') {
   return;
@@ -15,7 +17,8 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL', async () => {
     const sequelize = Support.createSequelizeInstance(
-      { dialectOptions: { initSql: 'SET @myUserVariable=\'myValue\'' } });
+      { dialectOptions: { initSql: 'SET @myUserVariable=\'myValue\'' } },
+    );
     const res = await sequelize.query('SELECT @myUserVariable');
     expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
     sequelize.close();
@@ -26,27 +29,27 @@ describe('[MARIADB Specific] Connection Manager', () => {
       {
         dialectOptions: {
           initSql: ['SET @myUserVariable1=\'myValue\'',
-            'SET @myUserVariable2=\'myValue\'']
-        }
-      });
+            'SET @myUserVariable2=\'myValue\''],
+        },
+      },
+    );
     const res = await sequelize.query('SELECT @myUserVariable1, @myUserVariable2');
     expect(res[0]).to.deep.equal(
-      [{ '@myUserVariable1': 'myValue', '@myUserVariable2': 'myValue' }]);
+      [{ '@myUserVariable1': 'myValue', '@myUserVariable2': 'myValue' }],
+    );
     sequelize.close();
   });
-
-
 
   describe('Errors', () => {
     const testHost = env.MARIADB_PORT_3306_TCP_ADDR || env.SEQ_MARIADB_HOST || env.SEQ_HOST || '127.0.0.1';
 
     it('Connection timeout', async () => {
-      const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65535, dialectOptions: { connectTimeout: 500 } });
+      const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65_535, dialectOptions: { connectTimeout: 500 } });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.SequelizeConnectionError);
     });
 
     it('ECONNREFUSED', async () => {
-      const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65535 });
+      const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65_535 });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
     });
 

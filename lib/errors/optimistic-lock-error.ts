@@ -15,15 +15,15 @@ interface OptimisticLockErrorOptions {
  * Thrown when attempting to update a stale model instance
  */
 class OptimisticLockError extends BaseError {
-  modelName?: string;
-  values?: Record<string, unknown>;
-  where?: Record<string, unknown>;
+  modelName: string | undefined;
+  values: Record<string, unknown> | undefined;
+  where: Record<string, unknown> | undefined;
 
   constructor(options: OptimisticLockErrorOptions) {
     options = options || {};
-    options.message =
-      options.message ||
-      `Attempting to update a stale model instance: ${options.modelName}`;
+    options.message
+      = options.message
+      || `Attempting to update a stale model instance: ${options.modelName}`;
 
     super(options.message);
     this.name = 'SequelizeOptimisticLockError';

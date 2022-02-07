@@ -15,3 +15,4 @@ test/binary/tmp/*
 esdoc
 node_modules
 dist
+*.log

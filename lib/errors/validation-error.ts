@@ -1,5 +1,6 @@
-import BaseError, { ErrorOptions } from './base-error';
-import type { Model } from '../../types/lib/model';
+import type { Model } from '../..';
+import type { ErrorOptions } from './base-error';
+import BaseError from './base-error';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class
@@ -51,44 +52,44 @@ export class ValidationErrorItem {
   /**
    * An error message
    */
-  message: string;
+  readonly message: string;
 
   /**
    * The type/origin of the validation error
    */
-  type: keyof typeof ValidationErrorItemType | null;
+  readonly type: keyof typeof ValidationErrorItemType | null;
 
   /**
    * The field that triggered the validation error
    */
-  path: string | null;
+  readonly path: string | null;
 
   /**
    * The value that generated the error
    */
-  value: string | null;
+  readonly value: string | null;
 
-  origin: keyof typeof ValidationErrorItemOrigin | null;
+  readonly origin: keyof typeof ValidationErrorItemOrigin | null;
 
   /**
    * The DAO instance that caused the validation error
    */
-  instance: Model | null;
+  readonly instance: Model | null;
 
   /**
    * A validation "key", used for identification
    */
-  validatorKey: string | null;
+  readonly validatorKey: string | null;
 
   /**
    * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
    */
-  validatorName: string | null;
+  readonly validatorName: string | null;
 
   /**
    * Parameters used with the BUILT-IN validator function, if applicable
    */
-  validatorArgs: unknown[];
+  readonly validatorArgs: unknown[];
 
   /**
    * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
@@ -112,7 +113,7 @@ export class ValidationErrorItem {
     instance: Model,
     validatorKey: string,
     fnName: string,
-    fnArgs: unknown[]
+    fnArgs: unknown[],
   ) {
     this.message = message || '';
     this.type = null;
@@ -150,7 +151,7 @@ export class ValidationErrorItem {
   private isValidationErrorItemOrigin(
     origin:
       | keyof typeof ValidationErrorItemOrigin
-      | keyof typeof ValidationErrorItemType
+      | keyof typeof ValidationErrorItemType,
   ): origin is keyof typeof ValidationErrorItemOrigin {
     return (
       ValidationErrorItemOrigin[
@@ -175,18 +176,18 @@ export class ValidationErrorItem {
    * @throws {Error}    thrown if NSSeparator is found to be invalid.
    */
   getValidatorKey(useTypeAsNS: boolean, NSSeparator: string): string {
-    const useTANS = useTypeAsNS === undefined || !!useTypeAsNS;
+    const useTANS = useTypeAsNS === undefined || Boolean(useTypeAsNS);
     const NSSep = NSSeparator === undefined ? '.' : NSSeparator;
 
     const type = this.origin;
     const key = this.validatorKey || this.validatorName;
     const useNS = useTANS && type && ValidationErrorItemOrigin[type];
 
-    if (useNS && (typeof NSSep !== 'string' || !NSSep.length)) {
+    if (useNS && (typeof NSSep !== 'string' || NSSep.length === 0)) {
       throw new Error('Invalid namespace separator given, must be a non-empty string');
     }
 
-    if (!(typeof key === 'string' && key.length)) {
+    if (!(typeof key === 'string' && key.length > 0)) {
       return '';
     }
 
@@ -202,16 +203,16 @@ export class ValidationErrorItem {
  * @param errors Array of ValidationErrorItem objects describing the validation errors
  */
 class ValidationError extends BaseError {
-  errors: ValidationErrorItem[];
+  /** Array of ValidationErrorItem objects describing the validation errors */
+  readonly errors: ValidationErrorItem[];
 
   constructor(
     message: string,
     errors: ValidationErrorItem[],
-    options: ErrorOptions = {}
+    options: ErrorOptions = {},
   ) {
     super(message);
     this.name = 'SequelizeValidationError';
-    this.message = 'Validation Error';
     this.errors = errors || [];
 
     // Use provided error message if available...
@@ -222,8 +223,7 @@ class ValidationError extends BaseError {
     } else if (this.errors.length > 0 && this.errors[0].message) {
       this.message = this.errors
         .map(
-          (err: ValidationErrorItem) =>
-            `${err.type || err.origin}: ${err.message}`
+          (err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`,
         )
         .join(',\n');
     }
@@ -237,17 +237,20 @@ class ValidationError extends BaseError {
   /**
    * Gets all validation error items for the path / field specified.
    *
-   * @param {string} path The path to be checked for error items
+   * @param path The path to be checked for error items
    *
-   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
+   * @returns Validation error items for the specified path
    */
   get(path: string): ValidationErrorItem[] {
-    return this.errors.reduce<ValidationErrorItem[]>((reduced, error) => {
+    const out: ValidationErrorItem[] = [];
+
+    for (const error of this.errors) {
       if (error.path === path) {
-        reduced.push(error);
+        out.push(error);
       }
-      return reduced;
-    }, []);
+    }
+
+    return out;
   }
 }
 

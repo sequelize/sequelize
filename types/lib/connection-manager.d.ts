@@ -7,9 +7,16 @@ export interface GetConnectionOptions {
    * Force master or write replica to get connection from
    */
   useMaster?: boolean;
+
+  /**
+   * ID of the connection.
+   */
+  uuid?: string | 'default';
 }
 
-export type Connection = object;
+export type Connection = {
+  uuid: string | undefined
+};
 
 export interface ConnectionManager {
   refreshTypeParser(dataTypes: object): void;

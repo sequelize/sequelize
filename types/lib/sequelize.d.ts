@@ -1,4 +1,3 @@
-import * as DataTypes from './data-types';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -21,13 +20,15 @@ import {
   ModelCtor,
   Hookable,
   ModelType,
+  CreationAttributes,
+  Attributes,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
-import QueryTypes = require('./query-types');
-import { Transaction, TransactionOptions } from './transaction';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, PartlyRequired, ISOLATION_LEVELS, Op } from '..';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
+import type { AbstractDialect } from '../../lib/dialects/abstract/index';
 
 /**
  * Additional options for table altering during sync
@@ -326,14 +327,14 @@ export interface Options extends Logging {
    *
    * @default 'REPEATABLE_READ'
    */
-  isolationLevel?: string;
+  isolationLevel?: ISOLATION_LEVELS;
 
   /**
    * Set the default transaction type. See Sequelize.Transaction.TYPES for possible options. Sqlite only.
    *
    * @default 'DEFERRED'
    */
-  transactionType?: Transaction.TYPES;
+  transactionType?: TRANSACTION_TYPES;
 
   /**
    * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
@@ -752,10 +753,10 @@ export class Sequelize extends Hooks {
    */
   public static beforeDefine<M extends Model>(
     name: string,
-    fn: (attributes: ModelAttributes<M, M['_creationAttributes']>, options: ModelOptions<M>) => void
+    fn: (attributes: ModelAttributes<M, CreationAttributes<M>>, options: ModelOptions<M>) => void
   ): void;
   public static beforeDefine<M extends Model>(
-    fn: (attributes: ModelAttributes<M, M['_creationAttributes']>, options: ModelOptions<M>) => void
+    fn: (attributes: ModelAttributes<M, CreationAttributes<M>>, options: ModelOptions<M>) => void
   ): void;
 
   /**
@@ -820,7 +821,7 @@ export class Sequelize extends Hooks {
    *
    * @param namespace
    */
-  public static useCLS(namespace: object): typeof Sequelize;
+  public static useCLS(namespace: ContinuationLocalStorageNamespace): typeof Sequelize;
 
   /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
@@ -832,9 +833,20 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
+  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+
+  public readonly dialect: AbstractDialect;
+
   public readonly modelManager: ModelManager;
 
   public readonly connectionManager: ConnectionManager;
+
+  /**
+   * For internal use only.
+   *
+   * @type {ContinuationLocalStorageNamespace | undefined}
+   */
+  public static readonly _cls: ContinuationLocalStorageNamespace | undefined;
 
   /**
    * Dictionary of all models linked with this instance.
@@ -1181,10 +1193,10 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TAttributes = M['_attributes']>(
+  public define<M extends Model, TAttributes = Attributes<M>>(
     modelName: string,
     attributes: ModelAttributes<M, TAttributes>,
-    options?: ModelOptions
+    options?: ModelOptions<M>
   ): ModelCtor<M>;
 
   /**
@@ -1229,11 +1241,15 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   public query<M extends Model>(
     sql: string | { query: string; values: unknown[] },
+    options: QueryOptionsWithModel<M> & { plain: true }
+  ): Promise<M | null>;
+  public query<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel<M>
   ): Promise<M[]>;
-  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown }>;
+  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
@@ -1467,28 +1483,62 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
+export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated use {@link WhereLeftOperand} instead.
+ */
+export type AttributeType = WhereLeftOperand;
+
+// TODO [>6]: Remove
+/**
+ * @deprecated this is not used anymore, typing definitions for {@link where} have changed to more accurately reflect reality.
+ */
 export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> | WhereOperators | string | symbol | null;
 
 /**
- * A way of specifying attr = condition.
+ * A way of specifying "attr = condition".
+ * Can be used as a replacement for the POJO syntax (e.g. `where: { name: 'Lily' }`) when you need to compare a column that the POJO syntax cannot represent.
  *
- * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id`
- * or
- * `Model.rawAttributes.name`). The attribute should be defined in your model definition. The attribute can
- * also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
+ * @param leftOperand The left side of the comparison.
+ *  - A value taken from YourModel.rawAttributes, to reference an attribute.
+ *    The attribute must be defined in your model definition.
+ *  - A Literal (using {@link Sequelize#literal})
+ *  - A SQL Function (using {@link Sequelize#fn})
+ *  - A Column name (using {@link Sequelize#col})
+ *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
+ * @param operator The comparison operator to use. If unspecified, defaults to {@link Op.eq}.
+ * @param rightOperand The right side of the comparison. Its value depends on the used operator.
+ *  See {@link WhereOperators} for information about what value is valid for each operator.
  *
- * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your
- * string to be escaped, use `sequelize.literal`.
+ * @example
+ * // Using an attribute as the left operand.
+ * // Equal to: WHERE first_name = 'Lily'
+ * where(User.rawAttributes.firstName, Op.eq, 'Lily');
  *
- * @param attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a
- *   sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the
- *   POJO syntax
- * @param comparator Comparator
- * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
- *   etc.)
+ * @example
+ * // Using a column name as the left operand.
+ * // Equal to: WHERE first_name = 'Lily'
+ * where(col('first_name'), Op.eq, 'Lily');
+ *
+ * @example
+ * // Using a SQL function on the left operand.
+ * // Equal to: WHERE LOWER(first_name) = 'lily'
+ * where(fn('LOWER', col('first_name')), Op.eq, 'lily');
+ *
+ * @example
+ * // Using raw SQL as the left operand.
+ * // Equal to: WHERE 'Lily' = 'Lily'
+ * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
-export function where(attr: AttributeType, logic: LogicType): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
+
+type ContinuationLocalStorageNamespace = {
+  get(key: string): unknown;
+  set(key: string, value: unknown): void;
+};
 
 export default Sequelize;

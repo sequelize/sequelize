@@ -1,7 +1,11 @@
-import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op } from 'sequelize';
-import { Fn } from 'sequelize/lib/utils';
+import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from 'sequelize';
 
 Sequelize.useCLS({
+  get(key: string): unknown {
+    return null;
+  },
+  set(key: string, value: unknown) {
+  }
 });
 
 export const sequelize = new Sequelize({
@@ -28,6 +32,7 @@ Sequelize.and()
 Sequelize.or()
 Sequelize.json('data.id')
 Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+Sequelize.where(Sequelize.col("ABS"), '=', null);
 
 // instance members
 sequelize.fn('max', sequelize.col('age'))
@@ -70,7 +75,7 @@ Sequelize.afterConnect(() => {
 
 });
 
-const rnd: Fn = sequelize.random();
+const rnd: Utils.Fn = sequelize.random();
 
 class Model1 extends Model{}
 class Model2 extends Model{}
@@ -81,14 +86,19 @@ myModel.findAll();
 async function test() {
   const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
 
-  const res2: { count: number } = await sequelize
+  const res2: { count: number } | null = await sequelize
     .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
       type: QueryTypes.SELECT,
       plain: true
     });
 
-  const res3: { [key: string]: unknown; } = await sequelize
+  const res3: { [key: string]: unknown; } | null = await sequelize
     .query("SELECT COUNT(1) as count FROM `user`", {
+      plain: true
+    })
+
+  const res4: { [key: string]: unknown; } | null = await sequelize
+    .query("SELECT COUNT(1) as count FROM `user` WHERE 1 = 2", {
       plain: true
     })
 }

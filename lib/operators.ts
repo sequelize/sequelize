@@ -478,7 +478,12 @@ interface OpTypes {
   readonly values: unique symbol;
 }
 
-const Op: OpTypes = {
+// Note: These symbols are registered in the Global Symbol Registry
+//  to counter bugs when two different versions of this library are loaded
+//  Source issue: https://github.com/sequelize/sequelize/issues/8663
+// This is not an endorsement of having two different versions of the library loaded at the same time,
+//  a lot more is going to silently break if you do this.
+export const Op: OpTypes = {
   eq: Symbol.for('eq'),
   ne: Symbol.for('ne'),
   gte: Symbol.for('gte'),
@@ -518,12 +523,5 @@ const Op: OpTypes = {
   col: Symbol.for('col'),
   placeholder: Symbol.for('placeholder'),
   join: Symbol.for('join'),
-  match: Symbol.for('match')
+  match: Symbol.for('match'),
 } as OpTypes;
-
-export default Op;
-
-// https://github.com/sequelize/sequelize/issues/13791
-// remove me in v7: kept for backward compatibility as `export default Op` is
-// transpiled to `module.exports.default` instead of `module.exports`
-module.exports = Op;

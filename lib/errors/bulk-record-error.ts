@@ -1,5 +1,5 @@
+import type { Model } from '../..';
 import BaseError from './base-error';
-import type { Model } from '../../types/lib/model';
 
 /**
  * Thrown when bulk operation fails, it represent per record level error.
