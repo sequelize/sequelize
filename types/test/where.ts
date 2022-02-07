@@ -487,4 +487,4 @@ Sequelize.where(Sequelize.col("ABS"), Sequelize.or(
   { [Op.not]: { [Op.eq]: 'ABS' }}
 ));
 
-Sequelize.where(Sequelize.col("ABS"), { [Op.not]: 'abs' });
+Sequelize.where(Sequelize.col("ABS"), { [Op.not]: true });
