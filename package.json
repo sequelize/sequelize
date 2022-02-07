@@ -32,12 +32,9 @@
     "node": ">=10.0.0"
   },
   "files": [
-    "dist",
     "lib",
-    "index.js",
-    "lib/index.d.ts",
-    "test/types/lib",
-    "test/types/type-helpers"
+    "types",
+    "index.js"
   ],
   "license": "MIT",
   "dependencies": {
