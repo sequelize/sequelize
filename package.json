@@ -208,7 +208,7 @@
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
-    "lint": "eslint lib test --quiet --fix",
+    "lint": "eslint src test --quiet --fix",
     "lint-docs": "markdownlint docs",
     "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
