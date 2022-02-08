@@ -140,6 +140,13 @@ module.exports = {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
       'import/order': 'off',
+
+      'no-invalid-this': 'off',
+      'no-unused-expressions': 'off',
+      camelcase: 'off',
+      'no-console': 'off',
+      'no-prototype-builtins': 'off',
+      'no-multi-spaces': 'off',
     },
   }, {
     // Disable slow rules that are not important in tests & docs (perf)

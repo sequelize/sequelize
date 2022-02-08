@@ -12,5 +12,5 @@
     "noEmit": true,
     "emitDeclarationOnly": false
   },
-  "include": ["./types/**/*", "../types/*"]
+  "include": ["./types/**/*", "./**/*"]
 }
