@@ -1,15 +1,18 @@
-import { expectTypeOf } from 'expect-type'
+import { expectTypeOf } from 'expect-type';
 import { Sequelize } from 'sequelize';
 import { User } from './models/User';
 
 async () => {
     const users = await User.findAll({ raw: false });
-    expectTypeOf(users).toEqualTypeOf<User[]>()
+    expectTypeOf(users).toEqualTypeOf<User[]>();
 
-    interface RawUser {
+    const rawUsers = await User.findAll({ raw: true });
+    expectTypeOf(rawUsers).toEqualTypeOf<User['_attributes'][]>();
+
+    interface CustomUser {
         foo: 'bar';
     }
-    const rawUsers = await User.findAll<User, RawUser>({
+    const customUsers = await User.findAll<User, CustomUser>({
         attributes: [
             ['bar', 'foo'],
             'ignored',
@@ -17,8 +20,8 @@ async () => {
         ],
         raw: true,
     });
-    expectTypeOf(rawUsers).toEqualTypeOf<RawUser[]>();
+    expectTypeOf(customUsers).toEqualTypeOf<CustomUser[]>();
 
     // @ts-expect-error
-    rawUsers[0].id = 123; // not an instance
+    customUsers[0].id = 123; // not an instance
 };
