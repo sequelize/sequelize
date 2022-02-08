@@ -1,8 +1,8 @@
 /**
  * Full credits to sindresorhus/type-fest
- * 
+ *
  * https://github.com/sindresorhus/type-fest/blob/v0.8.1/source/set-required.d.ts
- * 
+ *
  * Thank you!
  */
 export type SetRequired<BaseType, Keys extends keyof BaseType = keyof BaseType> =
