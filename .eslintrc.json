@@ -129,7 +129,7 @@
     "ecmaVersion": 2020,
     "sourceType": "script"
   },
-  "ignorePatterns": ["dist/**/*", "types/**/*"],
+  "ignorePatterns": ["lib/**/*", "types/**/*", "test/types/**/*", "src/**/*.d.ts"],
   "plugins": ["mocha", "jsdoc", "@typescript-eslint"],
   "env": {
     "node": true,
