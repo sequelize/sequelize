@@ -363,82 +363,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(refs[0].referencedColumnName).to.equal('id');
     });
 
-    it('should change columns with foreign key constraints without data loss', async function () {
-      await this.queryInterface.createTable('users', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-        level_id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          references: {
-            key: 'id',
-            model: 'level',
-          },
-          onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
-        },
-      });
-
-      await this.queryInterface.createTable('level', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        name: {
-          type: DataTypes.CHAR,
-          allowNull: false,
-        },
-      });
-
-      const levels = [{
-        id: 1,
-        name: 'L1',
-      }, {
-        id: 2,
-        name: 'L2',
-      },
-      {
-        id: 3,
-        name: 'L3',
-      }];
-
-      const users = [
-        {
-          name: 'Morpheus',
-          level_id: 2,
-        },
-        {
-          name: 'Neo',
-          level_id: 1,
-        },
-      ];
-
-      await Promise.all([
-        this.queryInterface.bulkInsert('level', levels),
-        this.queryInterface.bulkInsert('users', users),
-      ]);
-
-      await this.queryInterface.changeColumn('level', 'name', {
-        type: DataTypes.STRING,
-        allowNull: true,
-      });
-
-      const userRows = await this.queryInterface.sequelize.query('SELECT * from users;', {
-        type: 'SELECT',
-      });
-
-      expect(userRows).to.have.length(users.length, 'user records should be unaffected');
-    });
-
-    // Only sqlite has issues with changeColumn due to limited set of ALTER TABLE queries
+    // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
+    // This leads to issues with losing data or losing foreign key references.
+    // The tests below address these problems
     if (dialect === 'sqlite') {
       it('should retain ON UPDATE and ON DELETE constraints after a column is changed', async function () {
         await this.queryInterface.createTable('users', {
@@ -487,6 +414,81 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(usersSql).to.include('ON DELETE CASCADE', 'should include ON DELETE constraint');
         expect(usersSql).to.include('ON UPDATE CASCADE', 'should include ON UPDATE constraint');
+      });
+
+      it('should change columns with foreign key constraints without data loss', async function () {
+        await this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.STRING,
+            allowNull: true,
+          },
+          level_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+              key: 'id',
+              model: 'level',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+          },
+        });
+
+        await this.queryInterface.createTable('level', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.CHAR,
+            allowNull: false,
+          },
+        });
+
+        const levels = [{
+          id: 1,
+          name: 'L1',
+        }, {
+          id: 2,
+          name: 'L2',
+        },
+        {
+          id: 3,
+          name: 'L3',
+        }];
+
+        const users = [
+          {
+            name: 'Morpheus',
+            level_id: 2,
+          },
+          {
+            name: 'Neo',
+            level_id: 1,
+          },
+        ];
+
+        await Promise.all([
+          this.queryInterface.bulkInsert('level', levels),
+          this.queryInterface.bulkInsert('users', users),
+        ]);
+
+        await this.queryInterface.changeColumn('level', 'name', {
+          type: DataTypes.STRING,
+          allowNull: true,
+        });
+
+        const userRows = await this.queryInterface.sequelize.query('SELECT * from users;', {
+          type: 'SELECT',
+        });
+
+        expect(userRows).to.have.length(users.length, 'user records should be unaffected');
       });
     }
 
