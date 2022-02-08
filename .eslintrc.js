@@ -184,8 +184,8 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'script',
   },
-  // TODO: un-ignore test/types/**, and src/**/*.d.ts
-  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts'],
+  // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
+  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*'],
   env: {
     node: true,
     mocha: true,
