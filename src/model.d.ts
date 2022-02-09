@@ -1,14 +1,14 @@
-import { IndexHints } from '..';
+import { IndexHints } from './index-hints';
 import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { IndexesOptions, QueryOptions, TableName } from './query-interface';
+import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeUndefinedOptional, AnyFunction } from './utils';
-import { LOCK, Transaction, Op } from '..';
-import { SetRequired } from '../type-helpers/set-required'
+import { LOCK, Transaction, Op } from './index';
+import { SetRequired } from './utils/set-required';
 
 export interface Logging {
   /**
@@ -659,6 +659,7 @@ export interface CountOptions<TAttributes = any>
   /**
    * GROUP BY in sql
    * Used in conjunction with `attributes`.
+   *
    * @see Projectable
    */
   group?: GroupOption;
@@ -1289,6 +1290,7 @@ export interface ColumnOptions {
   /**
    * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
    * instance is saved.
+   *
    * @default true
    */
   allowNull?: boolean;
@@ -1573,6 +1575,7 @@ export interface ModelOptions<M extends Model = Model> {
    * OptimisticLockingError error when stale instances are saved.
    * - If string: Uses the named attribute.
    * - If boolean: Uses `version`.
+   *
    * @default false
    */
   version?: boolean | string;
@@ -1663,7 +1666,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the attributes of the model
    */
-  public static  getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
+  public static getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -1711,7 +1714,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *  An object, where each attribute is a column of the table. Each column can be either a DataType, a
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
-   * @return Return the initialized model
+   * @returns Return the initialized model
    */
   public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
     this: MS,
@@ -1814,7 +1817,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
    * ```
    *
-   * @return Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
+   * @returns Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
    */
   public static scope<M extends Model>(
@@ -1942,7 +1945,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param field The field to aggregate over. Can be a field name or *
    * @param aggregateFunction The function to use for aggregation, e.g. sum, max etc.
    * @param options Query options. See sequelize.query for full options
-   * @return Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in
+   * @returns Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in
    *     which case the complete data result is returned.
    */
   public static aggregate<T, M extends Model>(
@@ -1954,7 +1957,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Count number of records if group by is used
-   * @return Returns count for each group and the projected attributes.
+   *
+   * @returns Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
@@ -1965,7 +1969,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Count the number of records matching the provided where clause.
    *
    * If you provide an `include` option, the number of matching associations will be counted instead.
-   * @return Returns count for each group and the projected attributes.
+   *
+   * @returns Returns count for each group and the projected attributes.
    */
   public static count<M extends Model>(
     this: ModelStatic<M>,
@@ -2171,7 +2176,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @return Promise<number> The number of destroyed rows
+   * @returns Promise<number> The number of destroyed rows
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
@@ -2593,6 +2598,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * A hook that is run before sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -2600,6 +2606,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * A hook that is run after sequelize.sync call
+   *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
   public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -2607,6 +2614,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * A hook that is run before Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -2614,6 +2622,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * A hook that is run after Model.sync call
+   *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
@@ -2767,6 +2776,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Builds a new model instance.
+   *
    * @param values an object of key value pairs
    */
   constructor(values?: MakeUndefinedOptional<TCreationAttributes>, options?: BuildOptions);

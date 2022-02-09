@@ -16,28 +16,25 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "homepage": "https://sequelize.org/",
-  "main": "./dist/index.js",
-  "types": "./dist",
+  "main": "./lib/index.js",
+  "types": "./types",
   "type": "commonjs",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
     },
-    "./lib/*": "./dist/lib/*.js",
-    "./lib/errors": "./dist/lib/errors/index.js",
+    "./lib/*": "./lib/*.js",
+    "./lib/errors": "./lib/errors/index.js",
     "./*": "./*"
   },
   "engines": {
     "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
   },
   "files": [
-    "dist",
     "lib",
-    "index.js",
-    "types/index.d.ts",
-    "types/lib",
-    "types/type-helpers"
+    "types",
+    "index.js"
   ],
   "license": "MIT",
   "dependencies": {
@@ -210,7 +207,7 @@
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "lint-docs": "markdownlint docs",
-    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json && tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
+    "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
     "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "----------------------------------------- tests ---------------------------------------------------": "",
