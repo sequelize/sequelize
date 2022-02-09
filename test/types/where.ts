@@ -359,25 +359,6 @@ MyModel.findAll({
   },
 });
 
-MyModel.findAll({
-  where: and(
-    { id: { [Op.or]: [1, 2, 3] } },
-
-    { id: { [Op.eq]: { [Op.or]: [1, 2, 3] } } },
-    { id: { [Op.ne]: { [Op.or]: [1, 2, 3] } } },
-
-    { id: { [Op.is]: { [Op.or]: [true, null] } } },
-    { id: { [Op.not]: { [Op.or]: [true, null] } } },
-
-    // { id: { [Op.any]: { [Op.or]: [1, 2, 3] } } }, // TODO
-    // TODO: all?
-
-    { id: { [Op.match]: { [Op.or]: [fn('to_tsquery', 'fat & rat'), fn('to_tsquery', 'fat & rat')] } } },
-
-    // TODO (@ephys): add the remaining operators!
-  ),
-});
-
 // TODO [2022-05-26]: TS < 4.4 reports the error in a different location than 4.4
 //  Uncomment test once we remove support for TS 4.3
 // MyModel.findAll({
@@ -454,16 +435,16 @@ MyModel.findAll({
 });
 
 // TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
-// MyModel.findAll({
-//   where: {
-//     id: {
-//       [Op.eq]: {
-//         // @ts-expect-error - this is not a valid query
-//         [Op.or]: [1, 2],
-//       },
-//     },
-//   },
-// });
+MyModel.findAll({
+  where: {
+    id: {
+      [Op.eq]: {
+        // @ts-expect-error - this is not a valid query
+        [Op.or]: [1, 2],
+      },
+    },
+  },
+});
 
 Sequelize.where(
   Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),
