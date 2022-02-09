@@ -384,11 +384,8 @@ MyModel.findAll({
 //   where: {
 //     id: {
 //       [Op.in]: {
-//         [Op.or]: [
-//           [1, 2],
-//           // @ts-expect-error - cannot use Operator inside another one!
-//           { [Op.eq]: [1, 2] },
-//         ],
+//         // @ts-expect-error - cannot use Operator inside another one!
+//         [Op.eq]: [1, 2],
 //       },
 //     },
 //   },
@@ -439,6 +436,34 @@ MyModel.findAll({
     id: literal('my-literal'),
   },
 });
+
+MyModel.findAll({
+  where: {
+    [Op.or]: [{ id: 1 }, { id: 2 }],
+    [Op.and]: [{ id: 1 }, { id: 2 }],
+  },
+});
+
+MyModel.findAll({
+  where: {
+    id: {
+      [Op.or]: [1, 2],
+      [Op.and]: [1, 2],
+    },
+  },
+});
+
+// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
+// MyModel.findAll({
+//   where: {
+//     id: {
+//       [Op.eq]: {
+//         // @ts-expect-error - this is not a valid query
+//         [Op.or]: [1, 2],
+//       },
+//     },
+//   },
+// });
 
 Sequelize.where(
   Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),

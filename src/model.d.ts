@@ -145,13 +145,13 @@ export type Rangable = readonly [number, number] | readonly [Date, Date] | reado
  */
 export interface WhereOperators {
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: AllowOrAnd<null | boolean | string | number | Buffer | Date | Literal | WhereOperators | Col>;
+  [Op.eq]?: null | boolean | string | number | Buffer | Date | Literal | WhereOperators | Col;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
   [Op.ne]?: WhereOperators[typeof Op.eq]; // accepts the same types as Op.eq
 
   /** Example: `[Op.is]: null,` becomes `IS NULL` */
-  [Op.is]?: AllowOrAnd<null | boolean>;
+  [Op.is]?: null | boolean;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
   [Op.not]?: WhereOperators[typeof Op.is];
@@ -176,16 +176,16 @@ export interface WhereOperators {
   [Op.gt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
 
   /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: AllowOrAnd<Fn>;
+  [Op.match]?: Fn;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: AllowOrAnd<Rangable>;
+  [Op.between]?: Rangable;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: WhereOperators[typeof Op.between];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: AllowOrAnd<ReadonlyArray<string | number | Literal | Buffer> | Literal>;
+  [Op.in]?: ReadonlyArray<string | number | Literal | Buffer> | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
   [Op.notIn]?: WhereOperators[typeof Op.in];
@@ -195,7 +195,7 @@ export interface WhereOperators {
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: AllowOrAnd<string | Literal | AnyOperator | AllOperator | Fn>;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator | Fn;
 
   /**
    * Examples:
@@ -227,14 +227,14 @@ export interface WhereOperators {
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: AllowOrAnd<Rangable | Literal>;
+  [Op.overlap]?: Rangable | Literal;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: AllowOrAnd<ReadonlyArray<string | number | Date> | Literal>;
+  [Op.contains]?: ReadonlyArray<string | number | Date> | Literal;
 
   /**
    * PG array contained by operator
@@ -246,16 +246,16 @@ export interface WhereOperators {
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: AllowOrAnd<string | Literal>;
+  [Op.startsWith]?: string | Literal;
 
   /**
    * String ends with value.
    */
-  [Op.endsWith]?: AllowOrAnd<string>;
+  [Op.endsWith]?: string;
   /**
    * String contains value.
    */
-  [Op.substring]?: AllowOrAnd<string>;
+  [Op.substring]?: string;
 
   /**
    * MySQL/PG only
@@ -264,7 +264,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: AllowOrAnd<string>;
+  [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
@@ -298,7 +298,7 @@ export interface WhereOperators {
    *
    * Forces the operator to be strictly left eg. `<< [a, b)`
    */
-  [Op.strictLeft]?: AllowOrAnd<Rangable>;
+  [Op.strictLeft]?: Rangable;
 
   /**
    * PG only
@@ -399,10 +399,13 @@ export type WhereAttributeHash<TAttributes = any> = {
   [attribute: `$${string}.${string}$`]: WhereAttributeHashValue<TAttributes>;
 }
 
-type WhereAttributeHashValue<TAttributes> = WhereOperators[typeof Op.eq]
-  // in v6, `{ attr: Array }` means "attr IN Array" instead of "attr = Array"
-  // TODO (v7): Always normalize "no operator" to "equals" (https://github.com/sequelize/sequelize/pull/14020)
-  | WhereOperators[typeof Op.in]
+type WhereAttributeHashValue<TAttributes> =
+  | AllowOrAnd<
+    | WhereOperators[typeof Op.eq]
+    // in v6, `{ attr: Array }` means "attr IN Array" instead of "attr = Array"
+    // TODO (v7): Always normalize "no operator" to "equals" (https://github.com/sequelize/sequelize/pull/14020)
+    | WhereOperators[typeof Op.in]
+  >
   | AllowOrAndRecursive<WhereOperators>
   | WhereAttributeHash<any> // for JSON columns
 
