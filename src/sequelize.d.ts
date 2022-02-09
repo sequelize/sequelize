@@ -1427,6 +1427,11 @@ export class Sequelize extends Hooks {
    * Returns the database version
    */
   public databaseVersion(): Promise<string>;
+
+  /**
+   * Returns the installed version of Sequelize
+   */
+  static get version(): string;
 }
 
 // Utilities
