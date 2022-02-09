@@ -79,7 +79,7 @@
     "esdoc-inject-style-plugin": "1.0.0",
     "esdoc-standard-plugin": "1.0.0",
     "eslint": "8.8.0",
-    "eslint-plugin-jsdoc": "37.8.0",
+    "eslint-plugin-jsdoc": "37.8.1",
     "eslint-plugin-mocha": "10.0.3",
     "expect-type": "0.12.0",
     "fast-glob": "3.2.11",
