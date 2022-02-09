@@ -1287,7 +1287,7 @@ Sequelize.prototype.validate = Sequelize.prototype.authenticate;
 Object.defineProperty(Sequelize, 'version', {
   enumerable: true,
   get() {
-    return require('../../package.json').version;
+    return require('../package.json').version;
   }
 });
 
