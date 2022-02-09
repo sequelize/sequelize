@@ -1,10 +1,7 @@
-import { IncludeOptions } from '..';
 import { Connection } from './connection-manager';
-import {
-  Model, ModelType
-} from './model';
-import { Sequelize } from './sequelize';
-import { QueryTypes } from '..';
+import { QueryTypes } from '../../query-types';
+import { Model, ModelType, IncludeOptions } from '../../model';
+import { Sequelize } from '../../sequelize';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -161,24 +158,28 @@ export class AbstractQuery {
 
   /**
    * Checks if the query type is RAW
+   *
    * @returns {boolean}
    */
   public isRawQuery(): boolean;
 
   /**
    * Checks if the query type is VERSION
+   *
    * @returns {boolean}
    */
   public isVersionQuery(): boolean;
 
   /**
    * Checks if the query type is UPSERT
+   *
    * @returns {boolean}
    */
   public isUpsertQuery(): boolean;
 
   /**
    * Checks if the query type is INSERT
+   *
    * @returns {boolean}
    */
   public isInsertQuery(results?: unknown[], metaData?: unknown): boolean;
@@ -194,6 +195,7 @@ export class AbstractQuery {
 
   /**
    * Checks if the query type is SHOWTABLES
+   *
    * @returns {boolean}
    */
   public isShowTablesQuery(): boolean;
@@ -208,48 +210,56 @@ export class AbstractQuery {
 
   /**
    * Checks if the query type is SHOWINDEXES
+   *
    * @returns {boolean}
    */
   public isShowIndexesQuery(): boolean;
 
   /**
    * Checks if the query type is SHOWCONSTRAINTS
+   *
    * @returns {boolean}
    */
   public isShowConstraintsQuery(): boolean;
 
   /**
    * Checks if the query type is DESCRIBE
+   *
    * @returns {boolean}
    */
   public isDescribeQuery(): boolean;
 
   /**
    * Checks if the query type is SELECT
+   *
    * @returns {boolean}
    */
   public isSelectQuery(): boolean;
 
   /**
    * Checks if the query type is BULKUPDATE
+   *
    * @returns {boolean}
    */
   public isBulkUpdateQuery(): boolean;
 
   /**
    * Checks if the query type is BULKDELETE
+   *
    * @returns {boolean}
    */
   public isBulkDeleteQuery(): boolean;
 
   /**
    * Checks if the query type is FOREIGNKEYS
+   *
    * @returns {boolean}
    */
   public isForeignKeysQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE
+   *
    * @returns {boolean}
    */
   public isUpdateQuery(): boolean;
@@ -264,12 +274,14 @@ export class AbstractQuery {
 
   /**
    * Checks if the query starts with 'show' or 'describe'
+   *
    * @returns {boolean}
    */
   public isShowOrDescribeQuery(): boolean;
 
   /**
    * Checks if the query starts with 'call'
+   *
    * @returns {boolean}
    */
   public isCallQuery(): boolean;

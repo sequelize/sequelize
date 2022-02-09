@@ -7,4 +7,4 @@
   */
 
 /** Exports the sequelize entry point. */
-module.exports = require('./lib/sequelize');
+module.exports = require('./sequelize');

@@ -1,6 +1,6 @@
 import { DataType } from './data-types';
 import { Model, ModelCtor, ModelType, WhereOptions, Attributes } from './model';
-import { Optional } from '..';
+import { Optional } from './index';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 

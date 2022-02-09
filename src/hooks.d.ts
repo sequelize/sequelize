@@ -1,4 +1,3 @@
-import { Attributes, CreationAttributes, ModelType } from '../index';
 import { ValidationOptions } from './instance-validator';
 import Model, {
   BulkCreateOptions,
@@ -9,10 +8,11 @@ import Model, {
   InstanceRestoreOptions,
   InstanceUpdateOptions,
   ModelAttributes,
-  ModelOptions, RestoreOptions, UpdateOptions, UpsertOptions
+  ModelOptions, RestoreOptions, UpdateOptions, UpsertOptions,
+  Attributes, CreationAttributes, ModelType
 } from './model';
-import { AbstractQuery } from './query';
-import { QueryOptions } from './query-interface';
+import { AbstractQuery } from './dialects/abstract/query';
+import { QueryOptions } from './dialects/abstract/query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { DeepWriteable } from './utils';
 
@@ -34,7 +34,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): HookReturn;
   beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): HookReturn;
-  afterUpsert(attributes: [ M,  boolean | null ], options: UpsertOptions<TAttributes>): HookReturn;
+  afterUpsert(attributes: [ M, boolean | null ], options: UpsertOptions<TAttributes>): HookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>

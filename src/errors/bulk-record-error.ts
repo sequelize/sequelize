@@ -1,4 +1,4 @@
-import type { Model } from '../..';
+import type { Model } from '..';
 import BaseError from './base-error';
 
 /**

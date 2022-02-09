@@ -1,5 +1,5 @@
 import assert from 'assert';
-import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from '..';
+import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from './index.js';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
