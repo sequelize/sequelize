@@ -1658,15 +1658,20 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static readonly options: InitOptions;
 
+  // TODO [>7]: Remove `rawAttributes` in v8
   /**
-   * The attributes of the model
+   * The attributes of the model.
+   *
+   * @deprecated use {@link Model.getAttributes} for better typings.
    */
   public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
 
   /**
    * Returns the attributes of the model
    */
-  public static getAttributes(): { [attribute: string]: ModelAttributeColumnOptions };
+  public static getAttributes<M extends Model>(this: ModelStatic<M>): {
+    readonly [Key in keyof Attributes<M>]: ModelAttributeColumnOptions
+  };
 
   /**
    * Reference to the sequelize instance the model was initialized with
