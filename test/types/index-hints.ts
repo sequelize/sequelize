@@ -1,5 +1,5 @@
-import { User } from 'models/User';
-import { IndexHints } from '..';
+import { User } from './models/User';
+import { IndexHints } from 'sequelize';
 
 User.findAll({
   indexHints: [{
