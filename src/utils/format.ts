@@ -97,7 +97,8 @@ export function mapOptionFieldNames<M extends Model>(
   }
 
   if (options.where != null && isPlainObject(options.where)) {
-    // @ts-expect-error the work necessary to type the return type of mapWhereFieldNames is not worth it
+    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- this fails in TS 4.4 and up, but not before
+    // @ts-ignore the work necessary to type the return type of mapWhereFieldNames is not worth it
     out.where = mapWhereFieldNames(options.where, Model);
   }
 
