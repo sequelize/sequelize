@@ -55,16 +55,12 @@ if (dialect.startsWith('mssql')) {
 
       let promise;
 
-      await expect(this.sequelize.transaction(t => {
+      await expect(this.sequelize.transaction(transaction => {
         promise = Promise.all([
-          expect(this.sequelize.dialect.connectionManager.disconnect(t.connection)).to.be.fulfilled,
-          expect(User.findOne({
-            transaction: t,
-          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+          expect(this.sequelize.dialect.connectionManager.disconnect(transaction.connection)).to.be.fulfilled,
+          expect(User.findOne({ transaction })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
             .and.have.property('parent').that.instanceOf(AsyncQueueError),
-          expect(User.findOne({
-            transaction: t,
-          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+          expect(User.findOne({ transaction })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
             .and.have.property('parent').that.instanceOf(AsyncQueueError),
         ]);
 
@@ -75,21 +71,20 @@ if (dialect.startsWith('mssql')) {
     });
 
     it('closing the connection should reject in-progress requests', async function () {
-      const User = this.User;
+      const { User, sequelize } = this;
 
       let promise;
 
-      await expect(this.sequelize.transaction(async t => {
-        const wrappedExecSql = t.connection.execSql;
-        t.connection.execSql = (...args) => {
-          this.sequelize.dialect.connectionManager.disconnect(t.connection);
+      await expect(sequelize.transaction(async transaction => {
+        const wrappedExecSql = transaction.connection.execSql;
+        transaction.connection.execSql = async function execSql(...args) {
+          await sequelize.dialect.connectionManager.disconnect(transaction.connection);
 
-          return wrappedExecSql(...args);
+          return wrappedExecSql.call(this, ...args);
         };
 
-        promise = expect(User.findOne({
-          transaction: t,
-        })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could finish executing')
+        promise = expect(User.findOne({ transaction }))
+          .to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could finish executing')
           .and.have.property('parent').that.instanceOf(AsyncQueueError);
 
         return promise;
