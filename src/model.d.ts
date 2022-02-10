@@ -115,6 +115,8 @@ export type WhereOptions<TAttributes = any> =
   | OrOperator<TAttributes>
   | Literal
   | Fn
+  | { [Op.not]: WhereOptions<TAttributes> }
+  | { [Op.col]: string }
   | Where;
 
 /**

@@ -11,6 +11,7 @@ import {
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
+  Op,
 } from 'sequelize';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
@@ -50,6 +51,18 @@ MyModel.findOne({
     { model: OtherModel, paranoid: true }
   ]
 });
+
+MyModel.findOne({
+  where: {
+    [Op.not]: { foo: 'bar' }
+  }
+})
+
+MyModel.findOne({
+  where: {
+    foo: { [Op.col]: 'MyModel.bar' },
+  }
+})
 
 MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
 
