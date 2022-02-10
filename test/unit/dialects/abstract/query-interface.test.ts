@@ -1,7 +1,6 @@
 // eslint-disable-next-line import/order
 import { expect } from 'chai';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const Support = require('../../support');
 
 const { sequelize } = Support;
