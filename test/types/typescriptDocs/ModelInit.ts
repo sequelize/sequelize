@@ -8,7 +8,7 @@ import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
-  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
+  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelStatic, Optional,
   Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
 } from 'sequelize';
 
@@ -165,10 +165,10 @@ interface NoteAttributes {
 type NoteCreationAttributes = Optional<NoteAttributes, 'id' | 'title'>;
 
 // And with a functional approach defining a module looks like this
-const Note: ModelDefined<
+const Note: ModelStatic<Model<
   NoteAttributes,
   NoteCreationAttributes
-> = sequelize.define(
+>> = sequelize.define(
   'Note',
   {
     id: {

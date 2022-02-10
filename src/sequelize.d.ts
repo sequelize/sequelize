@@ -17,9 +17,8 @@ import {
   UpdateOptions,
   WhereAttributeHash,
   WhereOperators,
-  ModelCtor,
+  ModelStatic,
   Hookable,
-  ModelType,
   CreationAttributes,
   Attributes
 } from './model';
@@ -768,8 +767,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public static afterDefine(name: string, fn: (model: ModelType) => void): void;
-  public static afterDefine(fn: (model: ModelType) => void): void;
+  public static afterDefine(name: string, fn: (model: ModelStatic<any>) => void): void;
+  public static afterDefine(fn: (model: ModelStatic<any>) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
@@ -859,7 +858,7 @@ export class Sequelize extends Hooks {
    * Dictionary of all models linked with this instance.
    */
   public readonly models: {
-    [key: string]: ModelCtor<Model>;
+    [key: string]: ModelStatic<Model>;
   };
 
   /**
@@ -1083,8 +1082,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public afterDefine(name: string, fn: (model: ModelType) => void): void;
-  public afterDefine(fn: (model: ModelType) => void): void;
+  public afterDefine(name: string, fn: (model: ModelStatic<any>) => void): void;
+  public afterDefine(fn: (model: ModelStatic<any>) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
@@ -1209,14 +1208,14 @@ export class Sequelize extends Hooks {
     modelName: string,
     attributes: ModelAttributes<M, TAttributes>,
     options?: ModelOptions<M>
-  ): ModelCtor<M>;
+  ): ModelStatic<M>;
 
   /**
    * Fetch a Model which is already defined
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  public model(modelName: string): ModelCtor<Model>;
+  public model(modelName: string): ModelStatic<Model>;
 
   /**
    * Checks whether a model with the given name is defined

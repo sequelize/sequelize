@@ -407,7 +407,7 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable {
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = ModelType | Association | IncludeOptions | { all: true, nested?: true } | string;
+export type Includeable = ModelStatic<any> | Association | IncludeOptions | { all: true, nested?: true } | string;
 
 /**
  * Complex include options
@@ -420,7 +420,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
-  model?: ModelType;
+  model?: ModelStatic<any>;
 
   /**
    * The alias of the relation, in case the model you want to eagerly load is aliassed. For `hasOne` /
@@ -1313,7 +1313,7 @@ export interface ModelAttributeColumnReferencesOptions {
   /**
    * If this column references another table, provide it here as a Model, or a string
    */
-  model?: TableName | ModelType;
+  model?: TableName | ModelStatic<any>;
 
   /**
    * The column of the foreign table that this column references
@@ -1759,7 +1759,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     schema: string,
     options?: SchemaOptions
-  ): ModelCtor<M>;
+  ): ModelStatic<M>;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
@@ -1828,7 +1828,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static scope<M extends Model>(
     this: ModelStatic<M>,
     options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
-  ): ModelCtor<M>;
+  ): ModelStatic<M>;
 
   /**
    * Add a new scope to the model
@@ -2272,7 +2272,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Unscope the model
    */
-  public static unscoped<M extends ModelType>(this: M): M;
+  public static unscoped<M extends ModelStatic<any>>(this: M): M;
 
   /**
    * A hook that is run before validation
@@ -2990,16 +2990,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
-/** @deprecated use ModelStatic */
-export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
-
 type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
 type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
-
-/** @deprecated use ModelStatic */
-export type ModelCtor<M extends Model> = ModelStatic<M>;
-
-export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };

@@ -9,8 +9,6 @@
 import {
   Model,
   Sequelize,
-  ModelCtor,
-  ModelDefined,
   ModelStatic,
 } from 'sequelize';
 
@@ -31,8 +29,6 @@ type SequelizeBasic =
   | Builtin
   | Sequelize
   | Model
-  | ModelCtor<Model>
-  | ModelDefined<any, any>
   | ModelStatic<Model>;
 
 // type ToMutableArrayIfNeeded<T> = T extends readonly any[]

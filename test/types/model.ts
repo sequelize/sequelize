@@ -7,10 +7,9 @@ import {
   Model,
   Optional,
   Sequelize,
-  ModelDefined,
   CreationOptional,
   InferAttributes,
-  InferCreationAttributes,
+  InferCreationAttributes, ModelStatic,
 } from 'sequelize';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
@@ -240,10 +239,10 @@ interface ModelAttributes {
 
 interface CreationAttributes extends Optional<ModelAttributes, 'id'> {}
 
-const ModelWithAttributes: ModelDefined<
+const ModelWithAttributes: ModelStatic<Model<
   ModelAttributes,
   CreationAttributes
-> = sequelize.define('efs', {
+>> = sequelize.define('efs', {
   name: DataTypes.STRING
 });
 
