@@ -1,14 +1,7 @@
-import { Model } from "sequelize";
+import { Attributes, CreationAttributes, Model, ModelStatic } from 'sequelize';
+import { expectTypeOf } from 'expect-type';
 
-interface UserCreationAttributes {
-  name: string;
-}
-
-interface UserAttributes extends UserCreationAttributes {
-  id: number;
-}
-
-class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+class User extends Model<User, { omit: 'projects' | 'address' }> {
   declare id: number;
   declare name: string;
 
@@ -25,9 +18,7 @@ interface ProjectAttributes extends ProjectCreationAttributes {
   id: number;
 }
 
-class Project
-  extends Model<ProjectAttributes, ProjectCreationAttributes>
-  implements ProjectAttributes {
+class Project extends Model<Project> implements ProjectAttributes {
   declare id: number;
   declare ownerId: number;
   declare name: string;
@@ -40,3 +31,25 @@ class Address extends Model {
 
 // both models should be accepted in include
 User.findAll({ include: [Project, Address] });
+
+expectTypeOf<Attributes<User>>().toEqualTypeOf<{
+  id: number,
+  name: string,
+}>();
+
+// test Attributes works on ModelStatic too
+expectTypeOf<Attributes<ModelStatic<User>>>().toEqualTypeOf<{
+  id: number,
+  name: string,
+}>();
+
+expectTypeOf<CreationAttributes<User>>().toEqualTypeOf<{
+  id: number,
+  name: string,
+}>();
+
+// test Attributes works on ModelStatic too
+expectTypeOf<CreationAttributes<ModelStatic<User>>>().toEqualTypeOf<{
+  id: number,
+  name: string,
+}>();

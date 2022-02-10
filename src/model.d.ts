@@ -1,14 +1,25 @@
 import { IndexHints } from './index-hints';
-import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
+import {
+  Association,
+  BelongsTo,
+  BelongsToMany,
+  BelongsToManyOptions,
+  BelongsToOptions,
+  HasMany,
+  HasManyOptions,
+  HasOne,
+  HasOneOptions,
+} from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeUndefinedOptional, AnyFunction } from './utils';
-import { LOCK, Transaction, Op } from './index';
+import { AnyFunction, Col, Fn, Literal, MakeUndefinedOptional, Where } from './utils';
+import { LOCK, Op, Transaction } from './index';
 import { SetRequired } from './utils/set-required';
+import { IsBranded, OmitConstructors } from './utils/typing';
 
 export interface Logging {
   /**
@@ -1550,7 +1561,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHooks<M, Attributes<M>>>;
+  hooks?: Partial<ModelHooks<M>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -1601,9 +1612,39 @@ export interface AddScopeOptions {
   override: boolean;
 }
 
-export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes>
-{
+/**
+ * Do not export this!
+ *
+ * This is a type-only value that exposes Attributes on {@link ModelInternal}.
+ * Used by {@link Attributes}
+ */
+declare const AttributeSymbol: unique symbol;
+
+/**
+ * Do not export this!
+ *
+ * This is a type-only value that exposes Creation Attributes on {@link ModelInternal}
+ * Used by {@link CreationAttributes}
+ */
+declare const CreationAttributeSymbol: unique symbol;
+
+export abstract class Model<
+  M extends ModelInternal = any,
+  Opts extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
+> extends ModelInternal<InferAttributes<M, Opts>, InferCreationAttributes<M,  Opts>> {}
+
+/**
+ * Do not export this!
+ *
+ * ModelInternal is like {@link Model}, with the difference that its generics
+ * expect the attributes of the model, instead of the model itself.
+ *
+ * Do not use this class directly! Use {@link Model} for most use cases, and {@link ModelDefined} to type the output of {@link Sequelize#define}.
+ */
+declare abstract class ModelInternal<
+  TModelAttributes extends {} = any,
+  TCreationAttributes extends {} = TModelAttributes
+> extends Hooks<Model<ModelInternal<TModelAttributes, TCreationAttributes>>> {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -1622,7 +1663,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @deprecated This property will become a Symbol in v7 to prevent collisions.
    * Use Attributes<Model> instead of this property to be forward-compatible.
    */
-  _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
+  [AttributeSymbol]: TModelAttributes;
 
   /**
    * A similar dummy variable that doesn't exist on the real object. Do not
@@ -1631,7 +1672,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @deprecated This property will become a Symbol in v7 to prevent collisions.
    * Use CreationAttributes<Model> instead of this property to be forward-compatible.
    */
-  _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
+  [CreationAttributeSymbol]: TCreationAttributes;
 
   /** The name of the database table */
   public static readonly tableName: string;
@@ -2990,26 +3031,17 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
-type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
-type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
-
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
+export type ModelStatic<M extends Model> = OmitConstructors<typeof Model> & { new(): M };
+
+/**
+ * ModelDefined represents a Model as generated by {@link Sequelize#define}.
+ */
+export type ModelDefined<Attributes extends object> = ModelStatic<Model<Model & Attributes>>;
 
 export default Model;
 
-/**
- * Type will be true is T is branded with Brand, false otherwise
- */
-// How this works:
-// - `A extends B` will be true if A has *at least* all the properties of B
-// - If we do `A extends Omit<A, Checked>` - the result will only be true if A did not have Checked to begin with
-// - So if we want to check if T is branded, we remove the brand, and check if they list of keys is still the same.
-// we exclude Null & Undefined so "field: Brand<value> | null" is still detected as branded
-// this is important because "Brand<value | null>" are transformed into "Brand<value> | null" to not break null & undefined
-type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omit<NonNullable<T>, Brand>
-  ? false
-  : true;
+
 
 /**
  * Dummy Symbol used as branding by {@link NonAttribute}.
@@ -3036,7 +3068,7 @@ export type NonAttribute<T> =
  *
  * - omit: properties to not treat as Attributes.
  */
-type InferAttributesOptions<Excluded, > = { omit?: Excluded };
+type InferAttributesOptions<Excluded> = { omit?: Excluded };
 
 /**
  * Utility type to extract Attributes of a given Model class.
@@ -3083,10 +3115,10 @@ type InferAttributesOptions<Excluded, > = { omit?: Excluded };
  *   projects?: NonAttribute<Project[]>;
  * }
  */
-export type InferAttributes<
+type InferAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-  > = {
+> = {
   [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key]
 };
 
@@ -3125,10 +3157,10 @@ export type CreationOptional<T> =
  *   declare name: string;
  * }
  */
-export type InferCreationAttributes<
+type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-  > = {
+> = {
   [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: IsBranded<M[Key], typeof CreationAttributeBrand> extends true
     ? (M[Key] | undefined)
     : M[Key]
@@ -3155,8 +3187,6 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
   : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
   : Key
 
-// in v7, we should be able to drop InferCreationAttributes and InferAttributes,
-//  resolving this confusion.
 /**
  * Returns the creation attributes of a given Model.
  *
@@ -3166,7 +3196,10 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * @example
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  */
-export type CreationAttributes<M extends Model | Hooks> = MakeUndefinedOptional<M['_creationAttributes']>;
+export type CreationAttributes<M extends Model | ModelStatic<any>> =
+  M extends ModelStatic<infer M2> ? MakeUndefinedOptional<M2[typeof CreationAttributeSymbol]>
+  : M extends Model ? MakeUndefinedOptional<M[typeof CreationAttributeSymbol]>
+  : never;
 
 /**
  * Returns the creation attributes of a given Model.
@@ -3177,4 +3210,7 @@ export type CreationAttributes<M extends Model | Hooks> = MakeUndefinedOptional<
  * @example
  * function getValue<M extends Model>(modelClass: ModelStatic<M>, attribute: keyof Attributes<M>) {}
  */
-export type Attributes<M extends Model | Hooks> = M['_attributes'];
+export type Attributes<M extends Model | ModelStatic<any>> =
+  M extends ModelStatic<infer M2> ? M2[typeof AttributeSymbol]
+  : M extends Model ? M[typeof AttributeSymbol]
+  : never;

@@ -1,6 +1,4 @@
 import {
-  InferAttributes,
-  InferCreationAttributes,
   CreationOptional,
   DataTypes,
   HasMany,
@@ -23,11 +21,8 @@ import { User } from './User';
 
 // This class doesn't extend the generic Model<TAttributes>, but should still
 // function just fine, with a bit less safe type-checking
-export class UserGroup extends Model<
-  InferAttributes<UserGroup>,
-  InferCreationAttributes<UserGroup>
-> {
-  public static associations: {
+export class UserGroup extends Model<UserGroup> {
+  static associations: {
     users: HasMany<UserGroup, User>
   };
 

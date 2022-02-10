@@ -1,25 +1,19 @@
 import {
-  InferAttributes,
+  Attributes,
   BelongsTo,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
-  InferCreationAttributes,
   CreationOptional,
   DataTypes,
   FindOptions,
   Model,
   ModelStatic,
-  Op
+  Op,
 } from 'sequelize';
 import { sequelize } from '../connection';
 
-type NonUserAttributes = 'group';
-
-export class User extends Model<
-  InferAttributes<User, { omit: NonUserAttributes }>,
-  InferCreationAttributes<User, { omit: NonUserAttributes }>
-> {
+export class User extends Model<User, { omit: 'group' }> {
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
@@ -105,7 +99,7 @@ User.afterFind((users, options) => {
 });
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.addHook('beforeFind', 'test', (options: FindOptions<InferAttributes<User>>) => {
+User.addHook('beforeFind', 'test', (options: FindOptions<Attributes<User>>) => {
   return undefined;
 });
 

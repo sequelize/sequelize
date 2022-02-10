@@ -27,3 +27,5 @@ export { Utils, DataTypes, Deferrable };
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+export { NonConstructorKeys } from './utils/typing.js';
+export { OmitConstructors } from './utils/typing.js';

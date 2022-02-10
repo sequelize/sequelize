@@ -15,86 +15,34 @@ In order to avoid installation bloat for non TS users, you must install the foll
 - `@types/node` (this is universally required in node projects)
 - `@types/validator`
 
-## Usage
+## Recommended Usage
 
 **Important**: You must use `declare` on your class properties typings to ensure TypeScript does not emit those class properties.
 See [Caveat with Public Class Fields](./model-basics.html#caveat-with-public-class-fields)
 
-Sequelize Models accept two generic types to define what the model's Attributes & Creation Attributes are like:
-
-```typescript
-import { Model, Optional } from 'sequelize';
-
-// We don't recommend doing this. Read on for the new way of declaring Model typings.
-
-type UserAttributes = {
-  id: number,
-  name: string,
-  // other attributes...
-};
-
-// we're telling the Model that 'id' is optional
-// when creating an instance of the model (such as using Model.create()).
-type UserCreationAttributes = Optional<UserAttributes, 'id'>;
-
-class User extends Model<UserAttributes, UserCreationAttributes> {
-  declare id: number;
-  declare string: number;
-  // other attributes...
-}
-```
-
-This solution is verbose. Sequelize >=6.14.0 provides new utility types that will drastically reduce the amount
-of boilerplate necessary: `InferAttributes`, and `InferCreationAttributes`. They will extract Attribute typings
-directly from the Model:
-
-```typescript
-import { Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
-
-// order of InferAttributes & InferCreationAttributes is important.
-class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
-  // 'CreationOptional' is a special type that marks the field as optional
-  // when creating an instance of the model (such as using Model.create()).
-  declare id: CreationOptional<number>;
-  declare string: number;
-  // other attributes...
-}
-```
-
-Important things to know about `InferAttributes` & `InferCreationAttributes` work: They will select all declared properties of the class except:
-
-- Static fields and methods.
-- Methods (anything whose type is a function).
-- Those whose type uses the branded type `NonAttribute`.
-- Those excluded by using AttributesOf like this: `InferAttributes<User, { omit: 'properties' | 'to' | 'omit' }>`.
-- Those declared by the Model superclass (but not intermediary classes!).
-  If one of your attributes shares the same name as one of the properties of `Model`, change its name.
-  Doing this is likely to cause issues anyway.
-- Getter & setters are not automatically excluded. Set their return / parameter type to `NonAttribute`,
-  or add them to `omit` to exclude them.
-
-`InferCreationAttributes` works the same way as `AttributesOf` with one exception: Properties typed using the `CreationOptional` type
-will be marked as optional.
-
-You only need to use `CreationOptional` & `NonAttribute` on class instance fields or getters.
-
-Example of a minimal TypeScript project with strict type-checking for attributes:
+Here is an example of a minimal TypeScript project with strict type-checking for attributes:
 
 [//]: # (NOTE for maintainers: Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.)
 
 ```typescript
+/**
+ * Keep this file in sync with the code in the "Usage" section
+ * in /docs/manual/other-topics/typescript.md
+ *
+ * Don't include this comment in the md file.
+ */
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
-  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
-  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
+  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model,
+  Sequelize, CreationOptional, NonAttribute, ModelDefined,
 } from 'sequelize';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // 'projects' is excluded as it's not an attribute, it's an association.
-class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreationAttributes<User, { omit: 'projects' }>> {
+class User extends Model<User, { omit: 'projects' }> {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
   declare name: string;
@@ -108,8 +56,8 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
 
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
-  // these will not exist until `Model.init` was called.
-  declare getProjects: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  // these will not exist until `Model.init` has been called.
+  declare getProjects: HasManyGetAssociationsMixin<Project>;
   declare addProject: HasManyAddAssociationMixin<Project, number>;
   declare addProjects: HasManyAddAssociationsMixin<Project, number>;
   declare setProjects: HasManySetAssociationsMixin<Project, number>;
@@ -122,7 +70,8 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  declare projects?: NonAttribute<Project[]>; // Note this is optional since it's only populated when explicitly requested in code
+  // Note: this is optional since it's only populated when explicitly requested in code
+  declare projects?: NonAttribute<Project[]>;
 
   // getters that are not attributes should be tagged using NonAttribute
   // to remove them from the model's Attribute Typings.
@@ -135,10 +84,7 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
   };
 }
 
-class Project extends Model<
-  InferAttributes<Project>,
-  InferCreationAttributes<Project>
-> {
+class Project extends Model<Project> {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
   declare ownerId: number;
@@ -154,10 +100,7 @@ class Project extends Model<
   declare updatedAt: CreationOptional<Date>;
 }
 
-class Address extends Model<
-  InferAttributes<Address>,
-  InferCreationAttributes<Address>
-> {
+class Address extends Model<Address> {
   declare userId: number;
   declare address: string;
 
@@ -172,156 +115,24 @@ Project.init(
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     ownerId: {
       type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false
+      allowNull: false,
     },
     name: {
       type: new DataTypes.STRING(128),
-      allowNull: false
+      allowNull: false,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
-    tableName: 'projects'
-  }
-);
-
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    name: {
-      type: new DataTypes.STRING(128),
-      allowNull: false
-    },
-    preferredName: {
-      type: new DataTypes.STRING(128),
-      allowNull: true
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
+    tableName: 'projects',
   },
-  {
-    tableName: 'users',
-    sequelize // passing the `sequelize` instance is required
-  }
 );
-
-Address.init(
-  {
-    userId: {
-      type: DataTypes.INTEGER.UNSIGNED
-    },
-    address: {
-      type: new DataTypes.STRING(128),
-      allowNull: false
-    },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
-  },
-  {
-    tableName: 'address',
-    sequelize // passing the `sequelize` instance is required
-  }
-);
-
-// You can also define modules in a functional way
-interface NoteAttributes {
-  id: number;
-  title: string;
-  content: string;
-}
-
-// You can also set multiple attributes optional at once
-type NoteCreationAttributes = Optional<NoteAttributes, 'id' | 'title'>;
-
-// And with a functional approach defining a module looks like this
-const Note: ModelDefined<
-  NoteAttributes,
-  NoteCreationAttributes
-> = sequelize.define(
-  'Note',
-  {
-    id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    title: {
-      type: new DataTypes.STRING(64),
-      defaultValue: 'Unnamed Note'
-    },
-    content: {
-      type: new DataTypes.STRING(4096),
-      allowNull: false
-    }
-  },
-  {
-    tableName: 'notes'
-  }
-);
-
-// Here we associate which actually populates out pre-declared `association` static and other methods.
-User.hasMany(Project, {
-  sourceKey: 'id',
-  foreignKey: 'ownerId',
-  as: 'projects' // this determines the name in `associations`!
-});
-
-Address.belongsTo(User, { targetKey: 'id' });
-User.hasOne(Address, { sourceKey: 'id' });
-
-async function doStuffWithUser() {
-  const newUser = await User.create({
-    name: 'Johnny',
-    preferredName: 'John',
-  });
-  console.log(newUser.id, newUser.name, newUser.preferredName);
-
-  const project = await newUser.createProject({
-    name: 'first!'
-  });
-
-  const ourUser = await User.findByPk(1, {
-    include: [User.associations.projects],
-    rejectOnEmpty: true // Specifying true here removes `null` from the return type!
-  });
-
-  // Note the `!` null assertion since TS can't know if we included
-  // the model or not
-  console.log(ourUser.projects![0].name);
-}
-
-(async () => {
-  await sequelize.sync();
-  await doStuffWithUser();
-})();
-```
-
-### Usage without strict types for attributes
-
-The typings for Sequelize v5 allowed you to define models without specifying types for the attributes. This is still possible for backwards compatibility and for cases where you feel strict typing for attributes isn't worth it.
-
-[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure it typechecks correctly.)
-
-```ts
-import { Sequelize, Model, DataTypes } from "sequelize";
-
-const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
-
-class User extends Model {
-  declare id: number;
-  declare name: string;
-  declare preferredName: string | null;
-}
 
 User.init(
   {
@@ -338,24 +149,98 @@ User.init(
       type: new DataTypes.STRING(128),
       allowNull: true,
     },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE,
   },
   {
-    tableName: "users",
+    tableName: 'users',
     sequelize, // passing the `sequelize` instance is required
-  }
+  },
 );
 
-async function doStuffWithUserModel() {
+Address.init(
+  {
+    userId: {
+      type: DataTypes.INTEGER.UNSIGNED,
+    },
+    address: {
+      type: new DataTypes.STRING(128),
+      allowNull: false,
+    },
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE,
+  },
+  {
+    tableName: 'address',
+    sequelize, // passing the `sequelize` instance is required
+  },
+);
+
+// You can also define modules in a functional way
+interface NoteAttributes {
+  id: CreationOptional<number>;
+  title: CreationOptional<string>;
+  content: string;
+}
+
+// And with a functional approach defining a module looks like this
+const Note: ModelDefined<NoteAttributes> = sequelize.define(
+  'Note',
+  {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    title: {
+      type: new DataTypes.STRING(64),
+      defaultValue: 'Unnamed Note',
+    },
+    content: {
+      type: new DataTypes.STRING(4096),
+      allowNull: false,
+    },
+  },
+  {
+    tableName: 'notes',
+  },
+);
+
+// Here we associate which actually populates out pre-declared `association` static and other methods.
+User.hasMany(Project, {
+  sourceKey: 'id',
+  foreignKey: 'ownerId',
+  as: 'projects', // this determines the name in `associations`!
+});
+
+Address.belongsTo(User, { targetKey: 'id' });
+User.hasOne(Address, { sourceKey: 'id' });
+
+async function doStuffWithUser() {
   const newUser = await User.create({
-    name: "Johnny",
-    preferredName: "John",
+    name: 'Johnny',
+    preferredName: 'John',
   });
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
-  const foundUser = await User.findOne({ where: { name: "Johnny" } });
-  if (foundUser === null) return;
-  console.log(foundUser.name);
+  const project = await newUser.createProject({
+    name: 'first!',
+  });
+
+  const ourUser = await User.findByPk(1, {
+    include: [User.associations.projects],
+    rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
+  });
+
+  // Note the `!` null assertion since TS can't know if we included
+  // the model or not
+  console.log(ourUser.projects![0].name);
 }
+
+(async () => {
+  await sequelize.sync();
+  await doStuffWithUser();
+})();
 ```
 
 ## Usage of `sequelize.define`
@@ -364,26 +249,20 @@ In Sequelize versions before v5, the default way of defining a model involved us
 
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure it typechecks correctly.)
 
-```ts
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
+```typescript
+import { Sequelize, Model, DataTypes, CreationOptional } from 'sequelize';
 
-const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
+const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
-interface UserAttributes {
-  id: number;
+// We need to declare an interface for our model that is basically what our class would be
+interface IUserModel extends Model<IUserModel> {
+  // Some fields are optional when calling UserModel.create() or UserModel.build()
+  id: CreationOptional<number>;
   name: string;
 }
 
-// Some fields are optional when calling UserModel.create() or UserModel.build()
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
-
-// We need to declare an interface for our model that is basically what our class would be
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {}
-
-const UserModel = sequelize.define<UserInstance>("User", {
+const UserModel = sequelize.define<IUserModel>('User', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
@@ -401,38 +280,111 @@ async function doStuff() {
 }
 ```
 
-If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
+## Type inference for Attributes
 
-[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure it typechecks correctly.)
+Sequelize needs to be aware of the proper typing of your attributes, to ensure methods
+like `Model.create`, `Model.findAll`, etc… are typed correctly.
 
-```ts
-import { Sequelize, Model, DataTypes } from "sequelize";
+In Sequelize 6, you had to write those typings by hand and pass them as generic to `Model`
 
-const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
+Starting with Sequelize 7, Sequelize will infer your Model's attribute typings for
+you using your class's public class fields!
+It will consider any declared public class field to be an attribute except:
 
-// We need to declare an interface for our model that is basically what our class would be
-interface UserInstance extends Model {
-  id: number;
-  name: string;
+- Static fields and methods.
+- Methods (anything whose type is a function).
+- Fields whose type uses the branded type `NonAttribute`.
+  ```typescript
+  import { NonAttribute, Model } from 'sequelize';
+
+  class User extends Model<User> {
+    // 'id' is considered to be an attribute
+    declare id: number;
+
+    // 'projects' is not considered to be an attribute,
+    // because its type uses 'NonAttribute'.
+    declare projects?: NonAttribute<Project[]>;
+  }
+  ```
+- Those excluded by the 'omit' generic option.
+  ```typescript
+  import { Model } from 'sequelize';
+
+  class User extends Model<User, { omit: 'projects' | 'address' }> {
+    // 'id' is considered to be an attribute
+    declare id: number;
+
+    // 'projects' is not considered to be an attribute,
+    // because it has been added to the 'omit' option
+    declare projects?: Project[];
+    // 'address' is not considered to be an attribute
+    // because it has been added to the 'omit' option
+    declare address?: Address;
+  }
+  ```
+- Those inherited from Sequelize's `Model` class (but not intermediary classes!).
+  If one of your attributes shares the same name as one of the properties of `Model`, change its name.
+  Doing this is likely to cause issues anyway.
+
+**Note**: Getter & setters are not automatically excluded. This is because it's not possible to know whether a property is a getter or not through typings.
+
+Set their return / parameter type to `NonAttribute`, or add them to `omit` to exclude them:
+
+```typescript
+import { Model, NonAttribute } from 'sequelize';
+
+class User extends Model<User> {
+  // 'firstName' is considered to be an attribute
+  declare firstName: string;
+
+  // you need to set its return value to NonAttribute<>
+  //  or sequelize will consider this to be an attribute.
+  get name(): NonAttribute<string> {
+    return this.firstName;
+  }
 }
 
-const UserModel = sequelize.define<UserInstance>("User", {
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-  },
-  name: {
-    type: DataTypes.STRING,
-  },
-});
+// or
 
-async function doStuff() {
-  const instance = await UserModel.findByPk(1, {
-    rejectOnEmpty: true,
-  });
-  console.log(instance.id);
+// you can exclude the getter using 'omit':
+class User extends Model<User, { omit: 'name' }> {
+  declare firstName: string;
+
+  get name(): string {
+    return this.firstName;
+  }
 }
 ```
+
+### Attributes optional during creation
+
+Some attributes have default values, and are therefore optional when creating a new instance of your model.
+
+The attribute typing inference will need a bit of help to properly mark these attributes as optional.
+
+Here is a scenario where TypeScript will complain even though it is valid code:
+
+```typescript
+class User extends Model<User> {
+  declare id: number;
+}
+
+// Typing Error! 'id' is missing, because TypeScript doesn't know that 'id' is optional.
+await User.create({});
+```
+
+You fix that using the `CreationOptional` type. This type tells Sequelize
+that the attribute is optional during model creation:
+
+```typescript
+class User extends Model<User> {
+  declare id: CreationOptional<number>;
+}
+
+// No error! Since `id` has been marked as optional when creating an instance with `CreationOptional`.
+await User.create({});
+```
+
 
 ## Utility Types
 

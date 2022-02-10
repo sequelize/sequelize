@@ -10,11 +10,11 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
   const hooks: Partial<ModelHooks> = {
     beforeSave(m, options) {
       expectTypeOf(m).toEqualTypeOf<TestModel>();
-      expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+      expectTypeOf(options).toMatchTypeOf<SaveOptions>();
     },
     afterSave(m, options) {
       expectTypeOf(m).toEqualTypeOf<TestModel>();
-      expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+      expectTypeOf(options).toMatchTypeOf<SaveOptions>();
     },
     afterFind(m, options) {
       expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
@@ -22,11 +22,11 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
     },
     beforeUpsert(m, options) {
       expectTypeOf(m).toEqualTypeOf<TestModel>();
-      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+      expectTypeOf(options).toMatchTypeOf<UpsertOptions>();
     },
     afterUpsert(m, options) {
       expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
-      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+      expectTypeOf(options).toMatchTypeOf<UpsertOptions>();
     },
     beforeQuery(options, query) {
       expectTypeOf(options).toEqualTypeOf<QueryOptions>();

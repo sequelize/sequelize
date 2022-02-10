@@ -1,19 +1,17 @@
 import { expectTypeOf } from 'expect-type';
-import { BuildOptions, DataTypes, Model, Optional } from 'sequelize';
+import { BuildOptions, CreationOptional, DataTypes, Model } from 'sequelize';
 import { sequelize } from './connection';
 
 // I really wouldn't recommend this, but if you want you can still use define() and interfaces
 
 interface UserAttributes {
-  id: number;
+  id: CreationOptional<number>;
   username: string;
   firstName: string;
   lastName: string;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
-
-interface UserModel extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {}
+interface UserModel extends Model<UserModel>, UserAttributes {}
 
 const User = sequelize.define<UserModel>(
   'User',
@@ -37,7 +35,7 @@ async function test() {
   await user.save();
 }
 
-// The below doesn't define Attribute types, but should still work
+// The below doesn't pass itself to Model<x>, but should still work
 interface UntypedUserModel extends Model, UserAttributes {}
 
 type UntypedUserModelStatic = typeof Model & {

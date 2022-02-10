@@ -1,7 +1,9 @@
-import {Model} from "sequelize"
+import { CreationOptional, Model } from 'sequelize';
 import {sequelize} from './connection';
 
-class TestModel extends Model<{ foo: string; bar: string }, {}> {
+class TestModel extends Model<TestModel> {
+  declare foo: CreationOptional<string>;
+  declare bar: CreationOptional<string>;
 }
 
 TestModel.init({

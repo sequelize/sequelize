@@ -1,18 +1,11 @@
-import { Model, Optional, DataTypes } from 'sequelize';
+import { Model, DataTypes, CreationOptional } from 'sequelize';
 import { sequelize } from '../connection';
 
-export interface UserPostAttributes {
-  id: number;
+export interface UserPostInstance extends Model<UserPostInstance> {
+  id: CreationOptional<number>;
   userId: number;
   text: string;
 }
-
-export interface UserPostCreationAttributes
-  extends Optional<UserPostAttributes, 'id'> {}
-
-export interface UserPostInstance
-  extends Model<UserPostAttributes, UserPostCreationAttributes>,
-    UserPostAttributes {}
 
 /**
  * This is a component defined using `sequelize.define` to ensure that various

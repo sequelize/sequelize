@@ -3,18 +3,15 @@ import {
   Attributes,
   CreationAttributes,
   CreationOptional,
-  InferAttributes,
-  InferCreationAttributes,
   Model,
   NonAttribute,
 } from 'sequelize';
 
-class Project extends Model<InferAttributes<Project>> {
+class Project extends Model<Project> {
   declare id: number;
 }
 
-class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>,
-  InferCreationAttributes<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }>> {
+class User extends Model<User, { omit: 'omittedAttribute' | 'omittedAttributeArray' }> {
   declare optionalAttribute: CreationOptional<number>;
   declare mandatoryAttribute: string;
 
