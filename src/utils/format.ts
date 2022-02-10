@@ -1,6 +1,6 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions } from '../..';
+import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
@@ -41,10 +41,10 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
  * @param options
  * @param Model
  */
-export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_attributes']>>(
+export function mapFinderOptions<M extends Model, T extends FinderOptions<Attributes<M>>>(
   options: T,
   Model: ModelStatic<Model>,
-): MappedFinderOptions<M['_attributes']> {
+): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes,
@@ -69,15 +69,15 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<M['_at
  * @param Model
  */
 export function mapOptionFieldNames<M extends Model>(
-  options: FinderOptions<M['_attributes']>,
+  options: FinderOptions<Attributes<M>>,
   Model: ModelStatic<Model>,
-): MappedFinderOptions<M['_attributes']> {
+): MappedFinderOptions<Attributes<M>> {
 
   // note: parts of Sequelize rely on this function mutating its inputs.
   //  be aware that these places need to be fixed before trying to make this a pure function.
   //  - ephys
 
-  const out: MappedFinderOptions<M['_attributes']> = options;
+  const out: MappedFinderOptions<Attributes<M>> = options;
 
   if (Array.isArray(options.attributes)) {
     out.attributes = options.attributes.map(attributeName => {
@@ -97,6 +97,7 @@ export function mapOptionFieldNames<M extends Model>(
   }
 
   if (options.where != null && isPlainObject(options.where)) {
+    // @ts-expect-error the work necessary to type the return type of mapWhereFieldNames is not worth it
     out.where = mapWhereFieldNames(options.where, Model);
   }
 

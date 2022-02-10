@@ -1,5 +1,5 @@
 import isObject from 'lodash/isObject';
-import type { AttributeType, LogicType } from '../..';
+import type { Op, WhereOperators, WhereLeftOperand } from '..';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -102,25 +102,33 @@ export class Json extends SequelizeMethod {
 /**
  * Do not use me directly. Use {@link Sequelize.where}
  */
-export class Where extends SequelizeMethod {
-  private readonly attribute: AttributeType;
-  private readonly comparator: string | symbol;
-  private readonly logic: LogicType;
+export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends SequelizeMethod {
+  // TODO [=7]: rename to leftOperand after typescript migration
+  private readonly attribute: WhereLeftOperand;
+  // TODO [=7]: rename to operator after typescript migration
+  private readonly comparator: string | Operator;
+  // TODO [=7]: rename to rightOperand after typescript migration
+  private readonly logic: WhereOperators[Operator] | any;
 
-  constructor(attribute: AttributeType, comparator: string | symbol, logic: LogicType);
-  constructor(attribute: AttributeType, logic: LogicType);
-  constructor(attribute: AttributeType, comparatorOrLogic: string | symbol | LogicType, logic?: LogicType) {
+  constructor(leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]);
+  constructor(leftOperand: WhereLeftOperand, operator: string, rightOperand: any);
+  constructor(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]);
+  constructor(
+    leftOperand: WhereLeftOperand,
+    operatorOrRightOperand: string | Operator | WhereOperators[Operator],
+    rightOperand?: WhereOperators[Operator] | any,
+  ) {
     super();
 
-    this.attribute = attribute;
+    this.attribute = leftOperand;
 
-    if (logic !== undefined) {
-      this.logic = logic;
-      // TypeScript is not smart enough to know that if `logic` is undefined, then `comparatorOrLogic` has to be `LogicType`
+    if (rightOperand !== undefined) {
+      this.logic = rightOperand;
+      // TypeScript is not smart enough to know that if `rightOperand` is undefined, then `operatorOrRightOperand` has to be a valid rightOperand
       // @ts-expect-error
-      this.comparator = comparatorOrLogic;
+      this.comparator = operatorOrRightOperand;
     } else {
-      this.logic = comparatorOrLogic;
+      this.logic = operatorOrRightOperand;
       this.comparator = '=';
     }
   }
