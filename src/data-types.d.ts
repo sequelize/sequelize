@@ -49,7 +49,7 @@ export type DataType = string | AbstractDataTypeConstructor | AbstractDataType;
 
 export const ABSTRACT: AbstractDataTypeConstructor;
 
-interface AbstractDataTypeConstructor extends Function {
+interface AbstractDataTypeConstructor {
   key: string;
   warn(link: string, text: string): void;
   new (): AbstractDataType;

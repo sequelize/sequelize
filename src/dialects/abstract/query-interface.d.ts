@@ -13,8 +13,8 @@ import {
   CreationAttributes,
   Attributes,
 } from '../../model';
-import { Sequelize, RetryOptions } from '../../sequelize';
 import { QueryTypes } from '../../query-types';
+import { Sequelize, RetryOptions } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';

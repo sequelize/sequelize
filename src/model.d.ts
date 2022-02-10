@@ -1677,7 +1677,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the attributes of the model
    */
   public static getAttributes<M extends Model>(this: ModelStatic<M>): {
-    readonly [Key in keyof Attributes<M>]: ModelAttributeColumnOptions
+    readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
 
   /**

@@ -185,7 +185,7 @@
     }
   },
   "lint-staged": {
-    "*!(d).[tj]s": "eslint --fix --report-unused-disable-directives"
+    "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   },
   "release": {
     "plugins": [
@@ -208,7 +208,7 @@
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
     "lint": "eslint . --fix --report-unused-disable-directives",
-    "lint-no-fix": "eslint . --quiet --fix --report-unused-disable-directives",
+    "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "lint-docs": "markdownlint docs",
     "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
