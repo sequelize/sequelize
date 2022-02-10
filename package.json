@@ -16,28 +16,25 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "homepage": "https://sequelize.org/",
-  "main": "./dist/index.js",
-  "types": "./dist",
+  "main": "./lib/index.js",
+  "types": "./types",
   "type": "commonjs",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
     },
-    "./lib/*": "./dist/lib/*.js",
-    "./lib/errors": "./dist/lib/errors/index.js",
+    "./lib/*": "./lib/*.js",
+    "./lib/errors": "./lib/errors/index.js",
     "./*": "./*"
   },
   "engines": {
     "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
   },
   "files": [
-    "dist",
     "lib",
-    "index.js",
-    "types/index.d.ts",
-    "types/lib",
-    "types/type-helpers"
+    "types",
+    "index.js"
   ],
   "license": "MIT",
   "dependencies": {
@@ -65,7 +62,7 @@
     "@types/chai": "4.3.0",
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.22",
-    "@types/sinon": "10.0.10",
+    "@types/sinon": "10.0.11",
     "@types/validator": "13.7.1",
     "acorn": "8.7.0",
     "chai": "4.3.6",
@@ -76,13 +73,13 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.19",
+    "esbuild": "0.14.21",
     "esdoc": "1.1.0",
     "esdoc-ecmascript-proposal-plugin": "1.0.0",
     "esdoc-inject-style-plugin": "1.0.0",
     "esdoc-standard-plugin": "1.0.0",
     "eslint": "8.8.0",
-    "eslint-plugin-jsdoc": "37.7.1",
+    "eslint-plugin-jsdoc": "37.8.1",
     "eslint-plugin-mocha": "10.0.3",
     "expect-type": "0.12.0",
     "fast-glob": "3.2.11",
@@ -91,7 +88,7 @@
     "lcov-result-merger": "3.1.0",
     "lint-staged": "12.3.3",
     "mariadb": "2.5.5",
-    "markdownlint-cli": "0.31.0",
+    "markdownlint-cli": "0.31.1",
     "mocha": "9.2.0",
     "module-alias": "2.2.2",
     "ibm_db": "2.8.1",
@@ -210,7 +207,7 @@
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "lint-docs": "markdownlint docs",
-    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json && tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
+    "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
     "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "----------------------------------------- tests ---------------------------------------------------": "",
