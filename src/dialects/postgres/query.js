@@ -85,7 +85,11 @@ class Query extends AbstractQuery {
       queryResult = await query;
     } catch (error) {
       // set the client so that it will be reaped if the connection resets while executing
-      if (error.code === 'ECONNRESET') {
+      if (error.code === 'ECONNRESET' ||
+        RegExp(/SSL SYSCALL error: EOF detected/i).test(err) ||
+        RegExp(/Unable to set non-blocking to true/i).test(err) ||
+        RegExp(/Local: Authentication failure/i).test(err)
+      ) {
         connection._invalid = true;
       }
 
