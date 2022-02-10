@@ -85,7 +85,13 @@ class Query extends AbstractQuery {
       queryResult = await query;
     } catch (error) {
       // set the client so that it will be reaped if the connection resets while executing
-      if (error.code === 'ECONNRESET') {
+      if (error.code === 'ECONNRESET'
+        // https://github.com/sequelize/sequelize/pull/14090
+        // pg-native throws custom exception or libpq formatted errors
+        || /Unable to set non-blocking to true/i.test(error)
+        || /SSL SYSCALL error: EOF detected/i.test(error)
+        || /Local: Authentication failure/i.test(error)
+      ) {
         connection._invalid = true;
       }
 
