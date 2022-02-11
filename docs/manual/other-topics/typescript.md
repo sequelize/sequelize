@@ -294,6 +294,7 @@ It will consider any declared public class field to be an attribute except:
 - Static fields and methods.
 - Methods (anything whose type is a function).
 - Fields whose type uses the branded type `NonAttribute`.
+
   ```typescript
   import { NonAttribute, Model } from 'sequelize';
 
@@ -306,7 +307,9 @@ It will consider any declared public class field to be an attribute except:
     declare projects?: NonAttribute<Project[]>;
   }
   ```
+
 - Those excluded by the 'omit' generic option.
+
   ```typescript
   import { Model } from 'sequelize';
 
@@ -322,6 +325,7 @@ It will consider any declared public class field to be an attribute except:
     declare address?: Address;
   }
   ```
+
 - Those inherited from Sequelize's `Model` class (but not intermediary classes!).
   If one of your attributes shares the same name as one of the properties of `Model`, change its name.
   Doing this is likely to cause issues anyway.
@@ -384,7 +388,6 @@ class User extends Model<User> {
 // No error! Since `id` has been marked as optional when creating an instance with `CreationOptional`.
 await User.create({});
 ```
-
 
 ## Utility Types
 
