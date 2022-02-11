@@ -16,7 +16,7 @@ if (nodeMajorVersion < 12) {
   const jsonFile = path.join(__dirname, '..', 'package.json');
   moduleAlias.addAlias('sequelize/package.json', jsonFile);
 
-  const distDir = path.join(__dirname, '../dist');
+  const distDir = path.join(__dirname, '..');
   // make imports from `sequelize/` go to `../dist/`
   moduleAlias.addAlias('sequelize', distDir);
 }
