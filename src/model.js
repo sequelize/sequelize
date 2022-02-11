@@ -820,14 +820,36 @@ class Model {
     return args[0];
   }
 
+  static _mergeWhereWithAndStrategy(objValue, srcValue) {
+    let objKeysToKeep;
+    if (objValue) {
+      const objKeys = Object.getOwnPropertyNames(objValue).concat(Object.getOwnPropertySymbols(objValue));
+      objKeysToKeep = _.filter(objKeys, key => key !== Op.and);
+    }
+
+    return {
+      [Op.and]: _.compact([
+        ...objValue?.[Op.and] ?? [],
+        !_.isEmpty(objKeysToKeep) && _.pick(objValue, objKeysToKeep),
+        srcValue
+      ])
+    };
+  }
+
   static _mergeFunction(objValue, srcValue, key) {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
     }
+
     if (['where', 'having'].includes(key)) {
+      if (this.options?.whereMergeStrategy === 'and') {
+        return this._mergeWhereWithAndStrategy(objValue, srcValue);
+      }
+
       if (srcValue instanceof Utils.SequelizeMethod) {
         srcValue = { [Op.and]: srcValue };
       }
+
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
         return Object.assign(objValue, srcValue);
       }
@@ -848,7 +870,7 @@ class Model {
   }
 
   static _assignOptions(...args) {
-    return this._baseMerge(...args, this._mergeFunction);
+    return this._baseMerge(...args, this._mergeFunction.bind(this));
   }
 
   static _defaultsOptions(target, opts) {
@@ -945,6 +967,7 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
+   * @param {'and'|'overwrite'}       [options.whereMergeStrategy] Specify the scopes merging strategy (default 'overwrite'). 'and' strategy will merge `where` properties of scopes together by adding `Op.and` at the top-most level. 'overwrite' strategy will overwrite similar attributes using the lastly defined one.
    *
    * @returns {Model}
    */
@@ -993,6 +1016,7 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
+      whereMergeStrategy: 'overwrite',
       ...options
     };
 
@@ -1025,6 +1049,11 @@ class Model {
         throw new Error(`Members of the validate option must be functions. Model: ${this.name}, error with validate member ${validatorType}`);
       }
     });
+
+    if (!_.includes(['and', 'overwrite'], this.options?.whereMergeStrategy)) {
+      throw new Error(`Invalid value ${this.options?.whereMergeStrategy} for whereMergeStrategy. Allowed values are 'and' and 'overwrite'.`);
+    }
+
 
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
