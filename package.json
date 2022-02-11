@@ -81,7 +81,7 @@
     "eslint": "8.8.0",
     "eslint-plugin-jsdoc": "37.8.2",
     "eslint-plugin-mocha": "10.0.3",
-    "expect-type": "0.12.0",
+    "expect-type": "0.13.0",
     "fast-glob": "3.2.11",
     "fs-jetpack": "4.3.1",
     "husky": "7.0.4",
