@@ -985,8 +985,21 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       ? column
       : this.quoteIdentifier(column);
 
-    const join = isJson ? '#>' : '#>>';
-    const pathStr = this.escape(`{${_.toPath(path).join(',')}}`);
+    const useSingular = !isJson && typeof path === 'string' || (Array.isArray(path) && path.length === 1);
+
+    const join = isJson
+      ? '#>'
+      : (useSingular
+        ? '->>'
+        : '#>>'
+      );
+
+    const pathStr = useSingular
+      ? (Array.isArray(path)
+        ? this.escape(path[0])
+        : this.escape(path)
+      )
+      : this.escape(`{${_.toPath(path).join(',')}}`);
 
     return `(${quotedColumn}${join}${pathStr})`;
   }

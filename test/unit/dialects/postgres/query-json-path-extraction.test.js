@@ -22,12 +22,20 @@ if (dialect === 'postgres') {
       expect(queryGenerator.jsonPathExtractionQuery('profile', 'id', true)).to.equal('("profile"#>\'{id}\')');
     });
 
-    it('should use default handling if isJson is false', async () => {
-      expect(queryGenerator.jsonPathExtractionQuery('profile', 'id', false)).to.equal('("profile"#>>\'{id}\')');
+    it('should use default handling if isJson is false with a string argument', async () => {
+      expect(queryGenerator.jsonPathExtractionQuery('profile', 'id', false)).to.equal('("profile"->>\'id\')');
+    });
+
+    it('should use default handling if isJson is false with a single array argument', async () => {
+      expect(queryGenerator.jsonPathExtractionQuery('profile', ['id'], false)).to.equal('("profile"->>\'id\')');
+    });
+
+    it('should use default handling if isJson is false with a multiple array argument', async () => {
+      expect(queryGenerator.jsonPathExtractionQuery('profile', ['id', 'value'], false)).to.equal('("profile"#>>\'{id,value}\')');
     });
 
     it('Should use default handling if isJson is not passed', async () => {
-      expect(queryGenerator.jsonPathExtractionQuery('profile', 'id')).to.equal('("profile"#>>\'{id}\')');
+      expect(queryGenerator.jsonPathExtractionQuery('profile', 'id')).to.equal('("profile"->>\'id\')');
     });
   });
 }

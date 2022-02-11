@@ -91,7 +91,7 @@ if (current.dialect.supports.JSON) {
 
         it('nested condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
-            postgres: '("profile"#>>\'{id}\') = \'1\'',
+            postgres: '("profile"->>\'id\') = \'1\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'1\'',
@@ -100,7 +100,7 @@ if (current.dialect.supports.JSON) {
 
         it('multiple condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } })), {
-            postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
+            postgres: '("property"->>\'value\') = \'1\' AND ("another"->>\'value\') = \'string\'',
             sqlite: 'json_extract(`property`,\'$.value\') = \'1\' AND json_extract(`another`,\'$.value\') = \'string\'',
             mariadb: 'json_unquote(json_extract(`property`,\'$.value\')) = \'1\' AND json_unquote(json_extract(`another`,\'$.value\')) = \'string\'',
             mysql: 'json_unquote(json_extract(`property`,\'$.\\"value\\"\')) = \'1\' AND json_unquote(json_extract(`another`,\'$.\\"value\\"\')) = \'string\'',
@@ -118,7 +118,7 @@ if (current.dialect.supports.JSON) {
 
         it('dot notation', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
-            postgres: '("profile"#>>\'{id}\') = \'1\'',
+            postgres: '("profile"->>\'id\') = \'1\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'1\'',

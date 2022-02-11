@@ -878,7 +878,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       describe('JSON', () => {
         it('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
-            postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
+            postgres: '("profile"->>\'id\') = CAST(\'12346-78912\' AS TEXT)',
             sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
@@ -887,7 +887,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         it('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json({ profile: { id: '12346-78912', name: 'test' } })), {
-            postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
+            postgres: '("profile"->>\'id\') = \'12346-78912\' AND ("profile"->>\'name\') = \'test\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
@@ -921,7 +921,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested\')) AS DECIMAL) IN (1, 2)',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\"\')) AS DECIMAL) IN (1, 2)',
-          postgres: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
+          postgres: 'CAST(("data"->>\'nested\') AS DOUBLE PRECISION) IN (1, 2)',
           sqlite: 'CAST(json_extract(`data`,\'$.nested\') AS DOUBLE PRECISION) IN (1, 2)',
         });
 
@@ -936,7 +936,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested\')) AS DECIMAL) BETWEEN 1 AND 2',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\"\')) AS DECIMAL) BETWEEN 1 AND 2',
-          postgres: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
+          postgres: 'CAST(("data"->>\'nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
           sqlite: 'CAST(json_extract(`data`,\'$.nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
         });
 
@@ -974,7 +974,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: '(json_unquote(json_extract(`User`.`data`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`data`,\'$.employment\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`data`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`data`,\'$.\\"employment\\"\')) != \'None\')',
-          postgres: '(("User"."data"#>>\'{name,last}\') = \'Simpson\' AND ("User"."data"#>>\'{employment}\') != \'None\')',
+          postgres: '(("User"."data"#>>\'{name,last}\') = \'Simpson\' AND ("User"."data"->>\'employment\') != \'None\')',
           sqlite: '(json_extract(`User`.`data`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`data`,\'$.employment\') != \'None\')',
         });
 
@@ -988,7 +988,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: '(CAST(json_unquote(json_extract(`data`,\'$.price\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,\'$.name\')) = \'Product\')',
           mysql: '(CAST(json_unquote(json_extract(`data`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,\'$.\\"name\\"\')) = \'Product\')',
-          postgres: '(CAST(("data"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("data"#>>\'{name}\') = \'Product\')',
+          postgres: '(CAST(("data"->>\'price\') AS DOUBLE PRECISION) = 5 AND ("data"->>\'name\') = \'Product\')',
           sqlite: '(CAST(json_extract(`data`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`data`,\'$.name\') = \'Product\')',
         });
 
