@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const DataTypes = require('sequelize/lib/data-types');
-const QueryTypes = require('sequelize/lib/query-types');
 
 const dialect = Support.getTestDialect();
 
