@@ -30,7 +30,6 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
  * in a db schema using the DEFAULT directive.
  *
  * @param value Any default value.
- * @returns yes / no.
  * @private
  */
 export function defaultValueSchemable(value: DataType): boolean {
@@ -56,7 +55,6 @@ export function defaultValueSchemable(value: DataType): boolean {
  *
  * @param obj
  * @returns
- * @private
  */
 export function isWhereEmpty(obj: object): boolean {
   return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
