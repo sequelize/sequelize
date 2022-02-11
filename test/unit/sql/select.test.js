@@ -875,26 +875,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER,
-        'status.label': DataTypes.STRING,
-      },
-      {
+        statuslabel: {
+          field: 'status.label',
+          type: DataTypes.STRING,
+        },
+      }, {
         freezeTableName: true,
       });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
-        'status.label': DataTypes.STRING,
-      },
-      {
+        statuslabel: {
+          field: 'status.label',
+          type: DataTypes.STRING,
+        },
+      }, {
         freezeTableName: true,
       });
 
       User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(sql.selectQuery('User', {
-        attributes: ['name', 'age', 'status.label'],
+        attributes: ['name', 'age', ['status.label', 'statuslabel']],
         include: Model._validateIncludedElements({
           include: [{
-            attributes: ['title', 'status.label'],
+            attributes: ['title', ['status.label', 'statuslabel']],
             association: User.Posts,
           }],
           model: User,
@@ -902,12 +906,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
         dotNotation: true,
       }, User), {
-        default: 'SELECT [User].[name], [User].[age], [User].[status.label], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS [Posts.status.label] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
-        postgres: 'SELECT "User".name, "User".age, "User"."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
-        snowflake: 'SELECT User.name, User.age, User."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
+        default: 'SELECT [User].[name], [User].[age], [User].[status.label] AS [statuslabel], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS [Posts.statuslabel] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        postgres: 'SELECT "User".name, "User".age, "User"."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
+        snowflake: 'SELECT User.name, User.age, User."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
       });
     });
-
   });
 
   describe('raw query', () => {

@@ -1069,6 +1069,14 @@ class Model {
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
 
+      if (Utils.isColString(name)) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot start and end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`);
+      }
+
+      if (name.includes('.')) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`);
+      }
+
       if (attribute.type === undefined) {
         throw new Error(`Unrecognized datatype for attribute "${this.name}.${name}"`);
       }
@@ -1729,8 +1737,7 @@ class Model {
    *
    * # WHERE `Model`.`name` = 'a project' AND (`Model`.`id` IN (1, 2, 3) OR (`Model`.`id` > 10 AND `Model`.`id` < 100));
    *
-   * @see
-   * {@link Operators} for possible operators
+   * @see {Sequelize.Op} for possible operators
    * __Alias__: _all_
    *
    * The promise is resolved with an array of Model instances if the query succeeds._
@@ -1773,8 +1780,7 @@ class Model {
    * @param  {boolean|Error}                                             [options.rejectOnEmpty=false] Throws an error when no records found
    * @param  {boolean}                                                   [options.dotNotation] Allows including tables having the same attribute/column names - which have a dot in them.
    *
-   * @see
-   * {@link Sequelize#query}
+   * @see {Sequelize#query}
    *
    * @returns {Promise<Array<Model>>}
    */
