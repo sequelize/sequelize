@@ -855,6 +855,54 @@ class Model {
     return args[0];
   }
 
+  static _mergeOverlappingAttributeConditions(objValue, srcValue) {
+    const srcValueKeys = Object.getOwnPropertyNames(srcValue).concat(Object.getOwnPropertySymbols(srcValue));
+    srcValueKeys.forEach(key => {
+      switch (key) {
+        case Op.or:
+          if (!objValue[Op.or] && !objValue[Op.and]) {
+            return;
+          }
+
+          objValue[Op.and] = _(objValue[Op.and] || [])
+            .concat([
+              objValue[Op.or] ? { [Op.or]: objValue[Op.or] } : null,
+              { [Op.or]: srcValue[Op.or] },
+            ])
+            .compact()
+            .value();
+          delete objValue[Op.or];
+          break;
+        case Op.and:
+          if (!objValue[key]) {
+            return;
+          }
+
+          objValue[key] = objValue[key].concat(srcValue[key]);
+
+          break;
+        default:
+          if (!objValue[key]) {
+            return;
+          }
+
+          if (objValue[key][Op.and]) {
+            objValue[key] = {
+              [Op.and]: (objValue[key][Op.and]).concat(srcValue[key]),
+            };
+          } else {
+            objValue[key] = {
+              [Op.and]: [objValue[key], srcValue[key]],
+            };
+          }
+
+          break;
+      }
+
+      delete srcValue[key];
+    });
+  }
+
   static _mergeFunction(objValue, srcValue, key) {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
@@ -866,6 +914,10 @@ class Model {
       }
 
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
+        if (this.options?.mergeWhereScopesWithAndOperator) {
+          this._mergeOverlappingAttributeConditions(objValue, srcValue);
+        }
+
         return Object.assign(objValue, srcValue);
       }
     } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
@@ -887,7 +939,7 @@ class Model {
   }
 
   static _assignOptions(...args) {
-    return this._baseMerge(...args, this._mergeFunction);
+    return this._baseMerge(...args, this._mergeFunction.bind(this));
   }
 
   static _defaultsOptions(target, opts) {
@@ -984,6 +1036,7 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
+   * @param {boolean}                 [options.mergeWhereScopesWithAndOperator] Merge `where` properties of scopes by merging similar attributes together with `Op.and`.
    *
    * @returns {Model}
    */
@@ -1033,6 +1086,7 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
+      mergeWhereScopesWithAndOperator: false,
       ...options,
     };
 

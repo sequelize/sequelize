@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const util = require('util');
 
 const expect = chai.expect;
 const Sequelize = require('@sequelize/core');
@@ -242,6 +243,175 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           active: true,
           other_value: 11,
         },
+      });
+    });
+
+    describe('merging scopes using `mergeWhereScopesWithAndOperator`', () => {
+      const scopes = {
+        whereAttributeIs1: {
+          where: {
+            field: 1,
+          },
+        },
+        whereAttributeIs2: {
+          where: {
+            field: 2,
+          },
+        },
+        whereAttributeIs3: {
+          where: {
+            field: 3,
+          },
+        },
+        whereOpAnd1: {
+          where: {
+            [Op.and]: [{ field: 1 }, { field: 1 }],
+          },
+        },
+        whereOpAnd2: {
+          where: {
+            [Op.and]: [{ field: 2 }, { field: 2 }],
+          },
+        },
+        whereOpAnd3: {
+          where: {
+            [Op.and]: [{ field: 3 }, { field: 3 }],
+          },
+        },
+        whereOpOr1: {
+          where: {
+            [Op.or]: [{ field: 1 }, { field: 1 }],
+          },
+        },
+        whereOpOr2: {
+          where: {
+            [Op.or]: [{ field: 2 }, { field: 2 }],
+          },
+        },
+        whereOpOr3: {
+          where: {
+            [Op.or]: [{ field: 3 }, { field: 3 }],
+          },
+        },
+      };
+
+      const TestModel = current.define('testModel', {}, {
+        mergeWhereScopesWithAndOperator: true,
+        scopes,
+      });
+
+      describe('attributes', () => {
+        it('should group 2 similar attributes with an Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
+          const expected = {
+            where: {
+              field: {
+                [Op.and]: [1, 2],
+              },
+            },
+          };
+          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+        });
+
+        it('should group multiple similar attributes with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
+          const expected = {
+            where: {
+              field: {
+                [Op.and]: [1, 2, 3],
+              },
+            },
+          };
+          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+        });
+      });
+
+      describe('and operators', () => {
+        it('should concatenate 2 Op.and into an unique one', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 }, { field: 1 },
+                { field: 2 }, { field: 2 },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+        });
+
+        it('should concatenate multiple Op.and into an unique one', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpAnd3'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 }, { field: 1 },
+                { field: 2 }, { field: 2 },
+                { field: 3 }, { field: 3 },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+        });
+      });
+
+      describe('or operators', () => {
+        it('should group 2 Op.or with an Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+        });
+
+        it('should group multiple Op.or with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpOr3'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+                { [Op.or]: [{ field: 3 }, { field: 3 }] },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+        });
+
+        it('should group multiple Op.or and Op.and with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpAnd1', 'whereOpAnd2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 }, { field: 1 },
+                { field: 2 }, { field: 2 },
+              ],
+            },
+          };
+          expect(util.inspect(scope)).to.deep.equal(util.inspect(expected));
+        });
+
+        it('should group multiple Op.and and Op.or with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpOr1', 'whereOpOr2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 }, { field: 1 },
+                { field: 2 }, { field: 2 },
+                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+        });
       });
     });
 
