@@ -11,7 +11,7 @@ sequelize.afterBulkSync((options: SyncOptions) => {
 async function test() {
   expectTypeOf(
     await sequelize.query('SELECT * FROM `test`', { type: QueryTypes.SELECT })
-  ).toEqualTypeOf<unknown[]>();
+  ).toEqualTypeOf<object[]>();
 
   expectTypeOf(
     await sequelize.query('INSERT into test set test=1', { type: QueryTypes.INSERT })
