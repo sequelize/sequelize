@@ -56,7 +56,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
-The Sequelize constructor accepts a lot of options. They are documented in the [API Reference](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
+The Sequelize constructor accepts a lot of options. They are documented in the [API Reference](../class/src/sequelize.js~Sequelize.html#instance-constructor-constructor).
 
 ### Testing the connection
 

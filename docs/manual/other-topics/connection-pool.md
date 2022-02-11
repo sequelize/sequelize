@@ -14,4 +14,4 @@ const sequelize = new Sequelize(/* ... */, {
 });
 ```
 
-Learn more in the [API Reference for the Sequelize constructor](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
+Learn more in the [API Reference for the Sequelize constructor](../class/src/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.

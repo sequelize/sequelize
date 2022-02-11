@@ -26,7 +26,7 @@ const User = sequelize.define("user", {
 
 ## Creating an instance
 
-Although a model is a class, you should not create instances by using the `new` operator directly. Instead, the [`build`](../class/lib/model.js~Model.html#static-method-build) method should be used:
+Although a model is a class, you should not create instances by using the `new` operator directly. Instead, the [`build`](../class/src/model.js~Model.html#static-method-build) method should be used:
 
 ```js
 const jane = User.build({ name: "Jane" });
@@ -34,7 +34,7 @@ console.log(jane instanceof User); // true
 console.log(jane.name); // "Jane"
 ```
 
-However, the code above does not communicate with the database at all (note that it is not even asynchronous)! This is because the [`build`](../class/lib/model.js~Model.html#static-method-build) method only creates an object that *represents* data that *can* be mapped to a database. In order to really save (i.e. persist) this instance in the database, the [`save`](../class/lib/model.js~Model.html#instance-method-save) method should be used:
+However, the code above does not communicate with the database at all (note that it is not even asynchronous)! This is because the [`build`](../class/src/model.js~Model.html#static-method-build) method only creates an object that *represents* data that *can* be mapped to a database. In order to really save (i.e. persist) this instance in the database, the [`save`](../class/src/model.js~Model.html#instance-method-save) method should be used:
 
 ```js
 await jane.save();
@@ -45,7 +45,7 @@ Note, from the usage of `await` in the snippet above, that `save` is an asynchro
 
 ### A very useful shortcut: the `create` method
 
-Sequelize provides the [`create`](../class/lib/model.js~Model.html#static-method-create) method, which combines the `build` and `save` methods shown above into a single method:
+Sequelize provides the [`create`](../class/src/model.js~Model.html#static-method-create) method, which combines the `build` and `save` methods shown above into a single method:
 
 ```js
 const jane = await User.create({ name: "Jane" });
@@ -87,7 +87,7 @@ await jane.save();
 // Now the name was updated to "Ada" in the database!
 ```
 
-You can update several fields at once with the [`set`](../class/lib/model.js~Model.html#instance-method-set) method:
+You can update several fields at once with the [`set`](../class/src/model.js~Model.html#instance-method-set) method:
 
 ```js
 const jane = await User.create({ name: "Jane" });
@@ -101,7 +101,7 @@ await jane.save();
 // The database now has "Ada" and "blue" for name and favorite color
 ```
 
-Note that the `save()` here will also persist any other changes that have been made on this instance, not just those in the previous `set` call. If you want to update a specific set of fields, you can use [`update`](../class/lib/model.js~Model.html#instance-method-update):
+Note that the `save()` here will also persist any other changes that have been made on this instance, not just those in the previous `set` call. If you want to update a specific set of fields, you can use [`update`](../class/src/model.js~Model.html#instance-method-update):
 
 ```js
 const jane = await User.create({ name: "Jane" });
@@ -114,7 +114,7 @@ await jane.save()
 
 ## Deleting an instance
 
-You can delete an instance by calling [`destroy`](../class/lib/model.js~Model.html#instance-method-destroy):
+You can delete an instance by calling [`destroy`](../class/src/model.js~Model.html#instance-method-destroy):
 
 ```js
 const jane = await User.create({ name: "Jane" });
@@ -125,7 +125,7 @@ await jane.destroy();
 
 ## Reloading an instance
 
-You can reload an instance from the database by calling [`reload`](../class/lib/model.js~Model.html#instance-method-reload):
+You can reload an instance from the database by calling [`reload`](../class/src/model.js~Model.html#instance-method-reload):
 
 ```js
 const jane = await User.create({ name: "Jane" });
@@ -168,7 +168,7 @@ Also, if only a few attributes have changed when you call `save`, only those fie
 
 ## Incrementing and decrementing integer values
 
-In order to increment/decrement values of an instance without running into concurrency issues, Sequelize provides the [`increment`](../class/lib/model.js~Model.html#instance-method-increment) and [`decrement`](../class/lib/model.js~Model.html#instance-method-decrement) instance methods.
+In order to increment/decrement values of an instance without running into concurrency issues, Sequelize provides the [`increment`](../class/src/model.js~Model.html#instance-method-increment) and [`decrement`](../class/src/model.js~Model.html#instance-method-decrement) instance methods.
 
 ```js
 const jane = await User.create({ name: "Jane", age: 100 });
