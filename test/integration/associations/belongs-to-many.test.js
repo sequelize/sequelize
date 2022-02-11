@@ -1223,7 +1223,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('hasAssociations with binary key', () => {
     beforeEach(function() {
-      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' ? 'BINARY(255)' : dialect === 'oracle' ? DataTypes.STRING(255, true) : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
