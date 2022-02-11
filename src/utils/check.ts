@@ -54,7 +54,6 @@ export function defaultValueSchemable(value: DataType): boolean {
  * Returns true if a where clause is empty, even with Symbols
  *
  * @param obj
- * @returns
  */
 export function isWhereEmpty(obj: object): boolean {
   return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
