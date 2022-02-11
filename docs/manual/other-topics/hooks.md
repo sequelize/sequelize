@@ -6,7 +6,7 @@ Hooks (also known as lifecycle events), are functions which are called before an
 
 ## Available hooks
 
-Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - lib/hooks.js](https://github.com/sequelize/sequelize/blob/v6/lib/hooks.js#L7).
+Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - src/hooks.js](https://github.com/sequelize/sequelize/blob/v6/src/hooks.js#L7).
 
 ## Hooks firing order
 
