@@ -266,6 +266,16 @@ function mapValueFieldNames(dataValues, fields, Model) {
 
 exports.mapValueFieldNames = mapValueFieldNames;
 
+/**
+ * Returns whether `value` is using the nested syntax for attributes.
+ *
+ * @param {string} value The attribute reference to check.
+ *
+ * @example
+ * isColString('$id$'); // true
+ * isColString('$project.name$'); // true
+ * isColString('name'); // false
+ */
 function isColString(value) {
   return typeof value === 'string' && value[0] === '$' && value[value.length - 1] === '$';
 }
