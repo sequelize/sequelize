@@ -16,6 +16,68 @@ As a result, the manual typings that were formerly best-effort guesses on top of
 have been removed and all typings are now directly retrieved from the actual TypeScript code.
 You'll likely find many tiny differences which however should be easy to fix.
 
+### Attributes cannot start and end with `$`, or include `.`
+
+`$attribute$` & `$nested.attribute$` is a special syntax used to reference nested attributes in Queries.
+The `.` character also has special meaning, being used to reference nested JSON object keys,
+the `$nested.attribute$` syntax, and in output names of eager-loaded associations in SQL queries.
+
+In Sequelize 6, it was possible to create an attribute that matched this special syntax, leading to subtle bugs.
+Starting with Sequelize 7, this is now considered reserved syntax, and it is no longer possible to
+use a string that both starts and ends with a `$` as the attribute name, or includes the `.` character.
+
+This only affects the attribute name, it is still possible to do this for the column name.
+
+Instead of doing this:
+
+```typescript
+import { DataTypes, Model } from 'sequelize';
+
+class User extends Model {
+  $myAttribute$: string;
+  'another.attribute': string;
+}
+
+User.init({
+  // this key sets the JavaScript name.
+  // It's not allowed to start & end with $ anymore.
+  '$myAttribute$': {
+    type: DataTypes.STRING,
+    // 'field' sets the column name
+    field: '$myAttribute$'
+  },
+  // The JavaScript name is not allowed to include a dot anymore.
+  'another.attribute': {
+    type: DataTypes.STRING,
+    field: 'another.attribute'
+  }
+}, { sequelize });
+```
+
+Do this:
+
+```typescript
+import { DataTypes, Model } from 'sequelize';
+
+class User extends Model {
+  $myAttribute$: string;
+  'another.attribute': string;
+}
+
+User.init({
+  'myAttribute': {
+    type: DataTypes.STRING,
+    // Column names are still allowed to start & end with $
+    field: '$myAttribute$'
+  },
+  'anotherAttribute': {
+    type: DataTypes.STRING,
+    // Column names are still allowed to include dots
+    field: 'another.attribute' // this sets the column name
+  }
+}, { sequelize });
+```
+
 ### Changes to `ConnectionManager`
 
 *This only impacts you if you used `ConnectionManager` directly.*
