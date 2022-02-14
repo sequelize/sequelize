@@ -1,7 +1,7 @@
 services:
   postgres-10:
     container_name: sequelize-postgres-10
-    image: sushantdhiman/postgres:10
+    image: sushantdhiman/postgres:12
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
