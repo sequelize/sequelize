@@ -3302,7 +3302,8 @@ class Model {
     // Get instances and run beforeUpdate hook on each record individually
     let instances;
     let updateDoneRowByRow = false;
-    if (options.individualHooks) {
+
+    if (options.individualHooks || options.returning) {
       instances = await this.findAll({
         where: options.where,
         transaction: options.transaction,
@@ -3311,63 +3312,67 @@ class Model {
         paranoid: options.paranoid,
       });
 
-      if (instances.length > 0) {
-        // Run beforeUpdate hooks on each record and check whether beforeUpdate hook changes values uniformly
-        // i.e. whether they change values for each record in the same way
-        let changedValues;
-        let different = false;
+      instances = await Promise.all(instances.map(async instance => {
+        // Record updates in instances dataValues
+        Object.assign(instance.dataValues, values);
+        // Set the changed fields on the instance
+        _.forIn(valuesUse, (newValue, attr) => {
+          if (newValue !== instance._previousDataValues[attr]) {
+            instance.setDataValue(attr, newValue);
+          }
+        });
 
-        instances = await Promise.all(instances.map(async instance => {
-          // Record updates in instances dataValues
-          Object.assign(instance.dataValues, values);
-          // Set the changed fields on the instance
-          _.forIn(valuesUse, (newValue, attr) => {
+        return instance;
+      }));
+    }
+
+    if (options.individualHooks && instances.length) {
+      // Run beforeUpdate hooks on each record and check whether beforeUpdate hook changes values uniformly
+      // i.e. whether they change values for each record in the same way
+      let changedValues;
+      let different = false;
+
+      instances = await Promise.all(instances.map(async instance => {
+        // Run beforeUpdate hook
+        await this.runHooks('beforeUpdate', instance, options);
+        if (!different) {
+          const thisChangedValues = {};
+          _.forIn(instance.dataValues, (newValue, attr) => {
             if (newValue !== instance._previousDataValues[attr]) {
-              instance.setDataValue(attr, newValue);
+              thisChangedValues[attr] = newValue;
             }
           });
 
-          // Run beforeUpdate hook
-          await this.runHooks('beforeUpdate', instance, options);
-          if (!different) {
-            const thisChangedValues = {};
-            _.forIn(instance.dataValues, (newValue, attr) => {
-              if (newValue !== instance._previousDataValues[attr]) {
-                thisChangedValues[attr] = newValue;
-              }
-            });
-
-            if (!changedValues) {
-              changedValues = thisChangedValues;
-            } else {
-              different = !_.isEqual(changedValues, thisChangedValues);
-            }
+          if (!changedValues) {
+            changedValues = thisChangedValues;
+          } else {
+            different = !_.isEqual(changedValues, thisChangedValues);
           }
-
-          return instance;
-        }));
-
-        if (!different) {
-          const keys = Object.keys(changedValues);
-          // Hooks do not change values or change them uniformly
-          if (keys.length > 0) {
-            // Hooks change values - record changes in valuesUse so they are executed
-            valuesUse = changedValues;
-            options.fields = _.union(options.fields, keys);
-          }
-        } else {
-          instances = await Promise.all(instances.map(async instance => {
-            const individualOptions = {
-              ...options,
-              hooks: false,
-              validate: false,
-            };
-            delete individualOptions.individualHooks;
-
-            return instance.save(individualOptions);
-          }));
-          updateDoneRowByRow = true;
         }
+
+        return instance;
+      }));
+
+      if (!different) {
+        const keys = Object.keys(changedValues);
+        // Hooks do not change values or change them uniformly
+        if (keys.length > 0) {
+          // Hooks change values - record changes in valuesUse so they are executed
+          valuesUse = changedValues;
+          options.fields = _.union(options.fields, keys);
+        }
+      } else {
+        instances = await Promise.all(instances.map(async instance => {
+          const individualOptions = {
+            ...options,
+            hooks: false,
+            validate: false,
+          };
+          delete individualOptions.individualHooks;
+
+          return instance.save(individualOptions);
+        }));
+        updateDoneRowByRow = true;
       }
     }
 
