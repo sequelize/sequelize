@@ -3390,8 +3390,7 @@ class Model {
 
       const affectedRows = await this.queryInterface.bulkUpdate(this.getTableName(options), valuesUse, options.where, options, this.tableAttributes);
       if (options.returning) {
-        result = [affectedRows.length, affectedRows];
-        instances = affectedRows;
+        result = [affectedRows.length, instances];
       } else {
         result = [affectedRows];
       }
