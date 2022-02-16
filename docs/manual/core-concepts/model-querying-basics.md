@@ -260,11 +260,11 @@ Post.findAll({
       [Op.iRegexp]: '^[h|a|t]',                // ~* '^[h|a|t]' (PG only)
       [Op.notIRegexp]: '^[h|a|t]',             // !~* '^[h|a|t]' (PG only)
 
-      [Op.any]: [2, 3],                        // ANY ARRAY[2, 3]::INTEGER (PG only)
+      [Op.any]: [2, 3],                        // ANY(ARRAY[2, 3]::INTEGER[]) (PG only)
       [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // match text search for strings 'fat' and 'rat' (PG only)
 
       // In Postgres, Op.like/Op.iLike/Op.notLike can be combined to Op.any:
-      [Op.like]: { [Op.any]: ['cat', 'hat'] }  // LIKE ANY ARRAY['cat', 'hat']
+      [Op.like]: { [Op.any]: ['cat', 'hat'] }  // LIKE ANY(ARRAY['cat', 'hat'])
 
       // There are more postgres-only range operators, see below
     }
