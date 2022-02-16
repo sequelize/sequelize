@@ -315,7 +315,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'oracle'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -384,7 +384,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'oracle'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);
@@ -469,7 +469,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'sqlite') {
+  if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'oracle') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', async function() {
       const Model = this.sequelize.define('model', {
