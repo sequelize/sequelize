@@ -263,6 +263,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             field: 3,
           },
         },
+        whereOtherAttributeIs4: {
+          where: {
+            otherField: 4,
+          },
+        },
         whereOpAnd1: {
           where: {
             [Op.and]: [{ field: 1 }, { field: 1 }],
@@ -305,9 +310,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
           const expected = {
             where: {
-              field: {
-                [Op.and]: [1, 2],
-              },
+              [Op.and]: [
+                { field: 1 },
+                { field: 2 },
+              ],
             },
           };
           expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
@@ -317,9 +323,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
           const expected = {
             where: {
-              field: {
-                [Op.and]: [1, 2, 3],
-              },
+              [Op.and]: [
+                { field: 1 },
+                { field: 2 },
+                { field: 3 },
+              ],
+            },
+          };
+          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+        });
+
+        it('should group different attributes with an Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereOtherAttributeIs4'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { otherField: 4 },
+              ],
             },
           };
           expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
@@ -332,12 +353,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { field: 1 }, { field: 1 },
-                { field: 2 }, { field: 2 },
+                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { [Op.and]: [{ field: 2 }, { field: 2 }] },
               ],
             },
           };
-          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
 
         it('should concatenate multiple Op.and into an unique one', () => {
@@ -345,13 +366,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { field: 1 }, { field: 1 },
-                { field: 2 }, { field: 2 },
-                { field: 3 }, { field: 3 },
+                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { [Op.and]: [{ field: 3 }, { field: 3 }] },
               ],
             },
           };
-          expect(util.inspect(scope, { depth: 3 })).to.deep.equal(util.inspect(expected, { depth: 3 }));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
       });
 
@@ -366,7 +387,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               ],
             },
           };
-          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
 
         it('should group multiple Op.or with an unique Op.and', () => {
@@ -374,13 +395,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
                 { [Op.or]: [{ field: 3 }, { field: 3 }] },
               ],
             },
           };
-          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
 
         it('should group multiple Op.or and Op.and with an unique Op.and', () => {
@@ -388,14 +409,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
-                { field: 1 }, { field: 1 },
-                { field: 2 }, { field: 2 },
+                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { [Op.and]: [{ field: 2 }, { field: 2 }] },
               ],
             },
           };
-          expect(util.inspect(scope)).to.deep.equal(util.inspect(expected));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
 
         it('should group multiple Op.and and Op.or with an unique Op.and', () => {
@@ -403,14 +424,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { field: 1 }, { field: 1 },
-                { field: 2 }, { field: 2 },
-                { [Op.or]: [{ field: 1 }, { field: 2 }] },
+                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
               ],
             },
           };
-          expect(util.inspect(scope, { depth: 4 })).to.deep.equal(util.inspect(expected, { depth: 4 }));
+          expect(util.inspect(scope, { depth: 5 })).to.deep.equal(util.inspect(expected, { depth: 5 }));
         });
       });
     });
