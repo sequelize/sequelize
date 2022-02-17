@@ -150,12 +150,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         style: 'ipa'
       }], {
         logging(sql) {
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'oracle') {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
-          } else if (dialect === 'oracle') {
-            expect(sql).to.include('INSERT ALL INTO "Beers" ("style","createdAt","updatedAt") ');
           } else { // mysql, sqlite
             expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
           }
