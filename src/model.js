@@ -997,7 +997,7 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
-   * @param {boolean}                 [options.mergeWhereScopesWithAndOperator] Merge `where` properties of scopes by merging similar attributes together with `Op.and`.
+   * @param {boolean}                 [options.mergeWhereScopesWithAndOperator] Merge `where` properties of scopes together by adding `Op.and` at the top-most level.
    *
    * @returns {Model}
    */
