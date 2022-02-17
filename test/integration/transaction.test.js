@@ -767,7 +767,8 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native'].includes(dialect)) {
+      // Serializibility is not supported in the Oracle dialect.
+      if (!['sqlite', 'postgres', 'postgres-native', 'oracle'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function() {
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING
