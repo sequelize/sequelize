@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
 
   describe('findOrBuild', () => {
-    (dialect !== 'oracle' ? it : it.skip)('initialize with includes', async function() {
+    it('initialize with includes', async function() {
       const [, user2] = await this.User.bulkCreate([
         { username: 'Mello', age: 10 },
         { username: 'Mello', age: 20 }

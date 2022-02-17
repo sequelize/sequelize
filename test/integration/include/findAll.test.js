@@ -293,6 +293,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    // On update cascade not supported in the Oracle dialect
     (dialect !== 'oracle' ? it : it.skip)('should support an include with multiple different association types', async function() {
       const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
@@ -1137,6 +1138,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
+    // On update cascade not supported in the Oracle dialect
     (dialect !== 'oracle' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
@@ -1307,6 +1309,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    // On update cascade not supported in the Oracle dialect
     (dialect !== 'oracle' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
       await this.fixtureA();
 
@@ -1523,6 +1526,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    // On update cascade not supported in the Oracle dialect
     (dialect !== 'oracle' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
       await this.fixtureA();
 
