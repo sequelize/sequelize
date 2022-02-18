@@ -16,7 +16,7 @@ const jane = await User.create({ firstName: "Jane", lastName: "Doe" });
 console.log("Jane's auto-generated ID:", jane.id);
 ```
 
-The [`Model.create()`](../class/lib/model.js~Model.html#static-method-create) method is a shorthand for building an unsaved instance with [`Model.build()`](../class/lib/model.js~Model.html#static-method-build) and saving the instance with [`instance.save()`](../class/lib/model.js~Model.html#instance-method-save).
+The [`Model.create()`](../class/src/model.js~Model.html#static-method-create) method is a shorthand for building an unsaved instance with [`Model.build()`](../class/src/model.js~Model.html#static-method-build) and saving the instance with [`instance.save()`](../class/src/model.js~Model.html#instance-method-save).
 
 It is also possible to define which attributes can be set in the `create` method. This can be especially useful if you create database entries based on a form which can be filled by a user. Using that would, for example, allow you to restrict the `User` model to set only an username but not an admin flag (i.e., `isAdmin`):
 
@@ -32,7 +32,7 @@ console.log(user.isAdmin); // false
 
 ## Simple SELECT queries
 
-You can read the whole table from the database with the [`findAll`](../class/lib/model.js~Model.html#static-method-findAll) method:
+You can read the whole table from the database with the [`findAll`](../class/src/model.js~Model.html#static-method-findAll) method:
 
 ```js
 // Find all users
@@ -71,7 +71,7 @@ Model.findAll({
 SELECT foo, bar AS baz, qux FROM ...
 ```
 
-You can use [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-method-fn) to do aggregations:
+You can use [`sequelize.fn`](../class/src/sequelize.js~Sequelize.html#static-method-fn) to do aggregations:
 
 ```js
 Model.findAll({
@@ -375,7 +375,7 @@ Post.findAll({
 // SELECT ... FROM "posts" AS "post" WHERE char_length("content") = 7
 ```
 
-Note the usage of the  [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-method-fn) and [`sequelize.col`](../class/lib/sequelize.js~Sequelize.html#static-method-col) methods, which should be used to specify an SQL function call and a table column, respectively. These methods should be used instead of passing a plain string (such as `char_length(content)`) because Sequelize needs to treat this situation differently (for example, using other symbol escaping approaches).
+Note the usage of the  [`sequelize.fn`](../class/src/sequelize.js~Sequelize.html#static-method-fn) and [`sequelize.col`](../class/src/sequelize.js~Sequelize.html#static-method-col) methods, which should be used to specify an SQL function call and a table column, respectively. These methods should be used instead of passing a plain string (such as `char_length(content)`) because Sequelize needs to treat this situation differently (for example, using other symbol escaping approaches).
 
 What if you need something even more complex?
 

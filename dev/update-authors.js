@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// original comes from https://github.com/nodejs/node/blob/master/tools/update-authors.js
+// original comes from https://github.com/nodejs/node/blob/c18ca140a12b543a3f970ef379f384ebd3297c3d/tools/update-authors.js
 
 // Usage: dev/update-author.js [--dry]
 // Passing --dry will redirect output to stdout rather than write to 'AUTHORS'.

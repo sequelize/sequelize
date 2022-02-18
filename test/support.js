@@ -12,7 +12,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
-const distDir = path.resolve(__dirname, '../dist');
+const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
@@ -185,7 +185,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(path.join(distDir, 'lib/dialects'))
+    return fs.readdirSync(path.join(distDir, 'dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -267,6 +267,21 @@ const Support = {
 
   isDeepEqualToOneOf(actual, expectedOptions) {
     return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
+  },
+
+  /**
+   * Reduces insignificant whitespace from SQL string.
+   *
+   * @param {string} sql the SQL string
+   * @returns {string} the SQL string with insignificant whitespace removed.
+   */
+  minifySql(sql) {
+    // replace all consecutive whitespaces with a single plain space character
+    return sql.replace(/\s+/g, ' ')
+      // remove space before coma
+      .replace(/ ,/g, ',')
+      // remove whitespace at start & end
+      .trim();
   },
 };
 
