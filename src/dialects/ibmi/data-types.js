@@ -135,27 +135,29 @@ module.exports = BaseTypes => {
     toSql() {
       let len = 0;
       if (this._length) {
-        switch (this._length.toLowerCase()) {
-          case 'tiny':
-            len = 256; // tiny = 2^8
-            break;
-          case 'medium':
-            len = 8192; // medium = 2^13 = 8k
-            break;
-          case 'long':
-            len = 65_536; // long = 64k
-            break;
-        }
-
         if (isNaN(this._length)) {
-          this._length = 32_672;
+          if (typeof this._length === 'string') {
+            switch (this._length.toLowerCase()) {
+              case 'tiny':
+                this._length = 256; // tiny = 2^8
+                break;
+              case 'medium':
+                this._length = 8192; // medium = 2^13 = 8k
+                break;
+              case 'long':
+                this._length = 65_536; // long = 64k
+                break;
+            }
+          } else {
+            this._length = 8192;
+          }
         }
 
         if (len > 0) {
           this._length = len;
         }
       } else {
-        this._length = 32_672;
+        this._length = 8192;
       }
 
       if (this._length > 32_672) {

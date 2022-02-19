@@ -134,7 +134,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               || error.message.match(/should be >=? 0 and < 65536/)
               || error.message.includes('Login failed for user')
               || error.message.includes('A communication error has been detected')
-              || error.message.includes('must be > 0 and < 65536'),
+              || error.message.includes('must be > 0 and < 65536')
+              || error.message.includes('Error connecting to the database'),
             ).to.be.ok;
           }
         });
@@ -439,14 +440,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
-        if (dialect === 'ibmi') {
-          const badOptions = {
-            odbcConnectionString: `${this.sequelize.options.odbcConnectionString};UID=omg;PWD=bar;`,
-          };
-          this.sequelizeWithInvalidCredentials = new Sequelize({ ...this.sequelize.options, ...badOptions });
-        } else {
-          this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
-        }
+        this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
@@ -467,7 +461,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(error.message).to.include('A communication error has been detected');
           } else if (dialect === 'ibmi') {
             expect(error.message).to.equal('[odbc] Error connecting to the database');
-            expect(error.original.odbcErrors[0].message).to.include('Communication link failure');
+            expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
           } else {
             expect(error.message.toString()).to.match(/.*Access denied.*/);
           }

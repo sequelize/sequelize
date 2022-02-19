@@ -298,7 +298,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    const format = (value === null && options.where === true);
+    const format = (value === null && options.where);
 
     return SqlString.escape(value, this.options.timezone, this.dialect, format);
   }

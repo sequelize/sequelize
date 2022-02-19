@@ -472,8 +472,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (dialect === 'sqlite' || dialect === 'db2') {
+      } else if (['sqlite', 'db2'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
+      } else if (dialect === 'ibmi') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(9);
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {

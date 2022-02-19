@@ -2670,7 +2670,7 @@ class QueryGenerator {
         }
 
         if (value.length > 0) {
-          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field)).join(', ')})`, comparator, options.prefix);
+          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field, { where: true })).join(', ')})`, comparator, options.prefix);
         }
 
         if (comparator === this.OperatorMap[Op.in]) {

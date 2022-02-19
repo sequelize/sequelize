@@ -490,7 +490,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: isMySQL8 ? 'ASC' : 'DESC',
+            order: dialect === 'ibmi' ? '' : `${isMySQL8 ? 'ASC' : 'DESC'}`,
             length: 5,
           },
         ],

@@ -10,7 +10,7 @@ const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Replication'), () => {
-  if (dialect === 'sqlite') {
+  if (['sqlite', 'ibmi'].includes(dialect)) {
     return;
   }
 

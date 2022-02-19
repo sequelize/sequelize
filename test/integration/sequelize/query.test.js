@@ -199,21 +199,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
         });
 
-        it('add parameters in log sql when use bind value', async function () {
-          let logSql;
-          let typeCast = dialect === 'postgres' ? '::text' : '';
-          if (['db2'].includes(dialect)) {
-            typeCast = '::VARCHAR';
-          }
+        if (dialect !== 'ibmi') {
+          it('add parameters in log sql when use bind value', async function () {
+            let logSql;
+            let typeCast = dialect === 'postgres' ? '::text' : '';
+            if (['db2'].includes(dialect)) {
+              typeCast = '::VARCHAR';
+            }
 
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-            bind: ['foo', 'bar'],
-            logging: s => {
-              logSql = s;
-            },
+            await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+              bind: ['foo', 'bar'],
+              logging: s => {
+                logSql = s;
+              },
+            });
+            expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
           });
-          expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
-        });
+        }
       });
     });
 
@@ -717,96 +719,100 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .to.eventually.deep.equal(expected);
     });
 
-    it('binds token with the passed array', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-        type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
-          logSql = s;
-        },
-      });
-      expect(result).to.deep.equal(expected);
-      if (['postgres', 'sqlite'].includes(dialect)) {
-        expect(logSql).to.include('$1');
-      }
-    });
-
-    it('binds named parameters with the passed object', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-        raw: true, bind: { one: 1, two: 2 }, logging(s) {
-          logSql = s;
-        },
-      });
-      expect(result[0]).to.deep.equal(expected);
-      if (dialect === 'postgres') {
-        expect(logSql).to.include('$1');
-      }
-
-      if (dialect === 'sqlite') {
-        expect(logSql).to.include('$one');
-      }
-    });
-
-    if (dialect !== 'db2') {
-      it('binds named parameters with the passed object using the same key twice', async function () {
-        const typeCast = dialect === 'postgres' ? '::int' : '';
+    // IBM i cannot bind parameter markers for selecting values like in theses
+    // tests
+    if (dialect !== 'ibmi') {
+      it('binds token with the passed array', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
         let logSql;
-        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+        const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+          type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
+            logSql = s;
+          },
+        });
+        expect(result).to.deep.equal(expected);
+        if (['postgres', 'sqlite'].includes(dialect)) {
+          expect(logSql).to.include('$1');
+        }
+      });
+
+      it('binds named parameters with the passed object', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        let logSql;
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: { one: 1, two: 2 }, logging(s) {
             logSql = s;
           },
         });
-        if (dialect === 'ibmi') {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
-        } else {
-          expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
-        }
-
+        expect(result[0]).to.deep.equal(expected);
         if (dialect === 'postgres') {
           expect(logSql).to.include('$1');
-          expect(logSql).to.include('$2');
-          expect(logSql).to.not.include('$3');
+        }
+
+        if (dialect === 'sqlite') {
+          expect(logSql).to.include('$one');
         }
       });
-    }
 
-    it('binds named parameters with the passed object having a null property', async function () {
-      const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1, two: null } });
-      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      if (dialect !== 'db2') {
+        it('binds named parameters with the passed object using the same key twice', async function () {
+          const typeCast = dialect === 'postgres' ? '::int' : '';
+          let logSql;
+          const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+            raw: true, bind: { one: 1, two: 2 }, logging(s) {
+              logSql = s;
+            },
+          });
+          if (dialect === 'ibmi') {
+            expect(result[0]).to.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
+          } else {
+            expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
+          }
 
-    it('binds named parameters array handles escaped $$', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-        raw: true, bind: [1], logging(s) {
-          logSql = s;
-        },
-      });
-      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $1' }] : [{ foo: 1, bar: '$ / $1' }];
-      expect(result[0]).to.deep.equal(expected);
-      if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
-        expect(logSql).to.include('$1');
+          if (dialect === 'postgres') {
+            expect(logSql).to.include('$1');
+            expect(logSql).to.include('$2');
+            expect(logSql).to.not.include('$3');
+          }
+        });
       }
-    });
 
-    it('binds named parameters object handles escaped $$', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
-      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      it('binds named parameters with the passed object having a null property', async function () {
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1, two: null } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
+        expect(result[0]).to.deep.equal(expected);
+      });
 
-    it('escape where has $ on the middle of characters', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
-      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      it('binds named parameters array handles escaped $$', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        let logSql;
+        const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+          raw: true, bind: [1], logging(s) {
+            logSql = s;
+          },
+        });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $1' }] : [{ foo: 1, bar: '$ / $1' }];
+        expect(result[0]).to.deep.equal(expected);
+        if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
+          expect(logSql).to.include('$1');
+        }
+      });
+
+      it('binds named parameters object handles escaped $$', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
+        expect(result[0]).to.deep.equal(expected);
+      });
+
+      it('escape where has $ on the middle of characters', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
+        expect(result[0]).to.deep.equal(expected);
+      });
+    }
 
     if (['postgres', 'sqlite', 'mssql'].includes(dialect)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {

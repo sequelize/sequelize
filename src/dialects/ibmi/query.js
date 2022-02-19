@@ -15,31 +15,18 @@ class Query extends AbstractQuery {
   }
 
   static formatBindParameters(sql, values, dialect) {
-    let bindParams;
-    if (Array.isArray(values)) {
-      bindParams = values.slice();
-    } else if (typeof values === 'object') {
-      bindParams = { ...values };
-    }
+    const bindParams = [];
 
     const replacementFunc = (match, key, values_) => {
+
       if (values_[key] !== undefined) {
-        delete bindParams[key];
-        if (values_[key] === null) {
-          return 'CAST(NULL AS INTEGER)';
-        }
+        bindParams.push(values_[key]);
 
-        return SqlString.escape(values_[key]);
+        return '?';
       }
-
     };
 
     sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    if (Array.isArray(bindParams)) {
-      bindParams = bindParams.filter(el => {
-        return el !== undefined;
-      });
-    }
 
     return [sql, bindParams];
   }

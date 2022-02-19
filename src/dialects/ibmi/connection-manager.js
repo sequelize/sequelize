@@ -29,7 +29,7 @@ class ConnectionManager extends AbstractConnectionManager {
     // Combine passed connection options into a connection string
     // config.port has no real meaning for this ODBC Driver
     const connectionKeywords = [];
-    if (config.dialectOptions.odbcConnectionString) {
+    if (config.dialectOptions && config.dialectOptions.odbcConnectionString) {
       connectionKeywords.push(config.dialectOptions.odbcConnectionString);
     }
 
