@@ -85,12 +85,14 @@ Add any other context and details here.
 
 ### Environment
 
+<!--- To find the version numbers for the three systems below use the following commands:
+- `npm list sequelize` / `yarn list --pattern sequelize`
+- `node -v`
+- `npm list typescript` / `yarn list --pattern typescript` --->
+
 - Sequelize version: XXX
-<!--- run `npm list sequelize` or `yarn list --pattern sequelize` to obtain this --->
 - Node.js version: XXX
-<!--- run `node -v` to obtain this --->
 - If TypeScript related: TypeScript version: XXX 
-<!--- run `npm list typescript` / `yarn list --pattern typescript` to obtain this --->
 
 ## Bug Report Checklist
 
