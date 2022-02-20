@@ -2,11 +2,12 @@ import { expectTypeOf } from 'expect-type';
 import {
   Attributes,
   CreationAttributes,
-  CreationOptional,
+  CreationOptional, DataTypes, ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
   NonAttribute,
+  Sequelize,
 } from 'sequelize';
 
 class Project extends Model<InferAttributes<Project>> {
@@ -31,6 +32,7 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   declare omittedAttributeArray: number[];
 
   declare joinedEntity?: NonAttribute<Project>;
+  declare projectId: CreationOptional<ForeignKey<number>>;
 
   instanceMethod() {
   }
@@ -38,6 +40,15 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   static staticMethod() {
   }
 }
+
+User.init({
+  mandatoryArrayAttribute: DataTypes.ARRAY(DataTypes.STRING),
+  mandatoryAttribute: DataTypes.STRING,
+  // projectId is omitted but still works, because it is branded with 'ForeignKey'
+  nullableOptionalAttribute: DataTypes.STRING,
+  optionalArrayAttribute: DataTypes.ARRAY(DataTypes.STRING),
+  optionalAttribute: DataTypes.INTEGER,
+}, { sequelize: new Sequelize() });
 
 type UserAttributes = Attributes<User>;
 type UserCreationAttributes = CreationAttributes<User>;
