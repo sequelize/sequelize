@@ -855,32 +855,26 @@ class Model {
     return args[0];
   }
 
-  static _mergeOverlappingAttributeConditions(objValue, srcValue) {
-    return {
-      [Op.and]: [
-        ...((objValue && objValue[Op.and]) || []),
-        srcValue,
-      ],
-    };
-  }
-
   static _mergeFunction(objValue, srcValue, key) {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
     }
 
     if (['where', 'having'].includes(key)) {
-      if (srcValue instanceof Utils.SequelizeMethod) {
-        srcValue = { [Op.and]: srcValue };
+      let objKeysToKeep;
+      if (objValue) {
+        const objKeys = Object.getOwnPropertyNames(objValue).concat(Object.getOwnPropertySymbols(objValue));
+        objKeysToKeep = _.filter(objKeys, key => key !== Op.and);
       }
 
-      if (this.options?.mergeWhereScopesWithAndOperator) {
-        return this._mergeOverlappingAttributeConditions(objValue, srcValue);
-      }
+      return {
+        [Op.and]: _.compact([
+          ...(objValue?.[Op.and] ?? []),
+          !_.isEmpty(objKeysToKeep) && _.pick(objValue, objKeysToKeep),
+          srcValue,
+        ]),
+      };
 
-      if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
-        return Object.assign(objValue, srcValue);
-      }
     } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
       return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
         if (Array.isArray(objValue) && Array.isArray(srcValue)) {
@@ -900,7 +894,7 @@ class Model {
   }
 
   static _assignOptions(...args) {
-    return this._baseMerge(...args, this._mergeFunction.bind(this));
+    return this._baseMerge(...args, this._mergeFunction);
   }
 
   static _defaultsOptions(target, opts) {
@@ -997,7 +991,6 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
-   * @param {boolean}                 [options.mergeWhereScopesWithAndOperator] Merge `where` properties of scopes together by adding `Op.and` at the top-most level.
    *
    * @returns {Model}
    */
@@ -1047,7 +1040,6 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
-      mergeWhereScopesWithAndOperator: false,
       ...options,
     };
 

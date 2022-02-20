@@ -1586,16 +1586,6 @@ export interface ModelOptions<M extends Model = Model> {
    * @default false
    */
   version?: boolean | string;
-
-  /**
-   * Enable where scopes merging using Op.and operator.
-   * When enabled, scopes containing the same attribute in a where clause will be grouped with the Op.and operator
-   * For instance merging scopes containing `{ where: { myField: 1 }}` and `{ where: { myField: 2 }}` will result in
-   * `{ where: { [Op.and]: [{ myField: 1 }, { myField: 2 }] } }`.
-   *
-   * @default false
-   */
-  mergeWhereScopesWithAndOperator?: boolean;
 }
 
 /**
