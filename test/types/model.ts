@@ -80,6 +80,30 @@ MyModel.count({ group: 'type' }).then((result) => {
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });
 
+MyModel.increment('num', { by: 1 }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
+MyModel.increment({ num: 2 }, {}).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
+MyModel.increment(['num'], { by: 3 }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
+MyModel.decrement('num', { by: 1 }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
+MyModel.decrement({ num: 2 }, {}).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
+MyModel.decrement(['num'], { by: 3 }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+});
+
 MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
@@ -88,7 +112,7 @@ MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-const model: typeof MyModel = MyModel.init({
+MyModel.init({
   virtual: {
     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
     get() {
