@@ -13,17 +13,10 @@ class IBMiDialect extends AbstractDialect {
   static supports = _.merge(
     _.cloneDeep(AbstractDialect.supports),
     {
-      DEFAULT: true,
-      'DEFAULT VALUES': false,
-      'UNION ALL': true,
       'VALUES ()': true,
       'ON DUPLICATE KEY': false,
       transactions: false,
-      transactionOptions: {
-        type: false,
-      },
 
-      inserts: {},
       bulkDefault: true,
       index: {
         using: false,
@@ -32,14 +25,12 @@ class IBMiDialect extends AbstractDialect {
         collate: false,
       },
       constraints: {
-        addConstraint: true,
-        dropConstraint: true,
+        onUpdate: false,
       },
-      joinTableDependent: false,
-      indexViaAlter: false,
       groupedLimit: false,
       JSON: false,
       upserts: false,
+      schemas: true,
     },
   );
 
@@ -52,9 +43,6 @@ class IBMiDialect extends AbstractDialect {
       sequelize,
     });
     this.queryInterface = new IBMiQueryInterface(this.sequelize, this.queryGenerator);
-    this.supports.autoIncrement.defaultValue = true;
-    this.supports.autoIncrement.update = true;
-    this.supports.schemas = true;
   }
 }
 

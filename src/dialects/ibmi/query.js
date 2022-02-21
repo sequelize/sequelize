@@ -197,7 +197,7 @@ class Query extends AbstractQuery {
 
   handleShowIndexesQuery(data) {
 
-    const indexes = {};
+    const indexes = Object.create(null);
 
     data.forEach(item => {
 

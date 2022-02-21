@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
         db2: 'VARCHAR(32672)',
-        ibmi: 'VARCHAR(32672)',
+        ibmi: 'VARCHAR(8192)',
         mssql: 'NVARCHAR(MAX)', // in mssql text is actually representing a non unicode text field
       });
 

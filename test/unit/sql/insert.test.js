@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES (?))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($1); SET IDENTITY_INSERT [ms] OFF;',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (?))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($1))',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);',
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES (?))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES (?))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.rawAttributes),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES (?))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',

@@ -721,7 +721,11 @@ class QueryGenerator {
         const referencesSnippet = `${this.quoteTable(references.table)} (${quotedReferences})`;
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
-        if (options.onUpdate && this._dialect.name !== 'ibmi') {
+        if (options.onUpdate) {
+          if (!this._dialect.supports.constraints.onUpdate) {
+            throw new Error(`Constraint onUpdate is not supported by ${this._dialect}`);
+          }
+
           constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
         }
 

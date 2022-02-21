@@ -135,26 +135,22 @@ module.exports = BaseTypes => {
     toSql() {
       let len = 0;
       if (this._length) {
-        if (isNaN(this._length)) {
-          if (typeof this._length === 'string') {
-            switch (this._length.toLowerCase()) {
-              case 'tiny':
-                this._length = 256; // tiny = 2^8
-                break;
-              case 'medium':
-                this._length = 8192; // medium = 2^13 = 8k
-                break;
-              case 'long':
-                this._length = 65_536; // long = 64k
-                break;
-            }
-          } else {
-            this._length = 8192;
+        if (typeof this._length === 'string') {
+          switch (this._length.toLowerCase()) {
+            case 'tiny':
+              this._length = 256; // tiny = 2^8
+              break;
+            case 'medium':
+              this._length = 8192; // medium = 2^13 = 8k
+              break;
+            case 'long':
+              this._length = 65_536; // long = 64k
+              break;
+            default:
+              throw new Error('Unknown length value passed for TEXT type. Valid values are: positive integers, "tiny", "medium", and "long"');
           }
-        }
-
-        if (len > 0) {
-          this._length = len;
+        } else if (!Number.isSafeInteger(this._length) || this._length <= 0) {
+          throw new Error('Unknown length for TEXT type. Valid values are: positive integers, "tiny", "medium", and "long"');
         }
       } else {
         this._length = 8192;
@@ -236,8 +232,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  class DOUBLE extends BaseTypes.DOUBLE {}
-
   class REAL extends BaseTypes.REAL {
     constructor(length) {
       super(length);
@@ -303,11 +297,11 @@ module.exports = BaseTypes => {
     }
   }
 
-  for (const floating of [FLOAT, DOUBLE, REAL]) {
+  for (const floating of [FLOAT, REAL]) {
     floating.parse = parseFloating;
   }
 
-  for (const num of [FLOAT, DOUBLE, REAL, SMALLINT, INTEGER]) {
+  for (const num of [FLOAT, REAL, SMALLINT, INTEGER]) {
     num.prototype.toSql = NUMBER.prototype.toSql;
   }
 

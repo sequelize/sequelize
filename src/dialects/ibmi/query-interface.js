@@ -15,8 +15,8 @@ const { QueryInterface } = require('../abstract/query-interface');
 class IBMiQueryInterface extends QueryInterface {
 
   startTransaction(transaction, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to start a transaction without transaction object!');
+    if (!(transaction instanceof Transaction)) {
+      throw new TypeError('Unable to start a transaction without transaction object!');
     }
 
     options = { ...options, transaction: transaction.parent || transaction };
@@ -27,13 +27,12 @@ class IBMiQueryInterface extends QueryInterface {
   }
 
   commitTransaction(transaction) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to commit a transaction without transaction object!');
+    if (!(transaction instanceof Transaction)) {
+      throw new TypeError('Unable to commit a transaction without transaction object!');
     }
 
     if (transaction.parent) {
-      // Savepoints cannot be committed
-      return Promise.resolve();
+      throw new Error('Unable to commit a transaction that has a parent transaction!');
     }
 
     const promise = transaction.connection.commit();
@@ -43,8 +42,8 @@ class IBMiQueryInterface extends QueryInterface {
   }
 
   rollbackTransaction(transaction, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to rollback a transaction without transaction object!');
+    if (!(transaction instanceof Transaction)) {
+      throw new TypeError('Unable to rollback a transaction without transaction object!');
     }
 
     options = {

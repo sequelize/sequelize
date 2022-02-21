@@ -2730,7 +2730,7 @@ class Model {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'ibmi')) {
+      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 

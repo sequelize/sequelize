@@ -40,7 +40,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
   // Table queries
   createTableQuery(tableName, attributes, options) {
     const primaryKeys = [];
-    const foreignKeys = {};
+    const foreignKeys = Object.create(null);
     const attrStr = [];
 
     for (const attr in attributes) {
@@ -91,9 +91,9 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    let tableObject = {};
+    let tableObject;
     if (typeof tableName === 'string') {
-      tableObject.table = tableName;
+      tableObject = { table: tableName };
     } else {
       tableObject = tableName;
     }
@@ -322,14 +322,13 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
       - rawTablename, the name of the table, without schema. Used to create the name of the index
    @private
   */
-  addIndexQuery(tableName, attributes, options, rawTablename) {
-    options = options || {};
+  addIndexQuery(tableName, _attributes, _options, rawTablename) {
+    let options = _options || Object.create(null);
 
-    if (!Array.isArray(attributes)) {
-      options = attributes;
-      attributes = undefined;
+    if (!Array.isArray(_attributes)) {
+      options = _attributes;
     } else {
-      options.fields = attributes;
+      options.fields = _attributes;
     }
 
     options.prefix = options.prefix || rawTablename || tableName;
@@ -417,19 +416,19 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
     return query.replace(/;$/, '');
   }
 
-  _toJSONValue(value) {
-    // true/false are stored as strings in mysql
-    if (typeof value === 'boolean') {
-      return value.toString();
-    }
+  // _toJSONValue(value) {
+  //   // true/false are stored as strings in mysql
+  //   if (typeof value === 'boolean') {
+  //     return value.toString();
+  //   }
 
-    // null is stored as a string in mysql
-    if (value === null) {
-      return 'null';
-    }
+  //   // null is stored as a string in mysql
+  //   if (value === null) {
+  //     return 'null';
+  //   }
 
-    return value;
-  }
+  //   return value;
+  // }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const aliasTable = `temp_${this.quoteTable(tableName)}`;
@@ -514,7 +513,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
     const limit = options.limit;
 
     if (offset) {
-      if (typeof offset === 'number' && Number.isInteger(offset)) {
+      if (typeof offset === 'number' && Number.isSafeInteger(offset)) {
         fragment += ` OFFSET ${offset} ROWS`;
       } else {
         console.warn('"offset" must be an integer. Offset is not added');
@@ -727,7 +726,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];

@@ -94,20 +94,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
-      - name: Install unixodbc
-        run: sudo apt-get install -y unixodbc unixodbc-dev
-      - name: Download IBM i ODBC driver
-        run: |
-          mkdir installer
-          wget --no-verbose https://public.dhe.ibm.com/software/ibmi/products/odbc/ibm-iaccess-1.1.0.15-1.0.amd64.deb -O installer/ibm-iaccess-1.1.0.15-1.0.amd64.deb
-      - name: Install IBM i ODBC driver
-        run: sudo dpkg -i installer/ibm-iaccess-1.1.0.15-1.0.amd64.deb
       - name: Unit Tests
         run: yarn test-unit
-      # Because of the need to access GitHub secrets, smoke tests must be run
-      # after the PR has been merged into the repository
-      # - name: Smoke Tests
-      #   run: yarn test-smoke
   test-sqlite:
     strategy:
       fail-fast: false
