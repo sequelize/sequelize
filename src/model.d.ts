@@ -109,6 +109,7 @@ export interface ScopeOptions {
 type AllowOrAnd<T> = T | { [Op.or]: T[] } | { [Op.and]: T[] };
 type AllowOrAndRecursive<T> = T | { [Op.or]: AllowArray<AllowOrAndRecursive<T>> } | { [Op.and]: AllowArray<AllowOrAndRecursive<T>> };
 type AllowArray<T> = T | T[];
+type AllowAnyAll<T> = T | { [Op.all]: T[] | Literal } | { [Op.any]: T[] | Literal };
 
 /**
  * The type accepted by every `where` option
@@ -123,20 +124,20 @@ export type WhereOptions<TAttributes = any> = AllowArray<
 >;
 
 /**
- * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
- *
- * _PG only_
+ * @deprecated unused
  */
 export interface AnyOperator {
-  [Op.any]: readonly (string | number)[];
+  [Op.any]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
-/** TODO: Undocumented? */
+/** @deprecated unused */
 export interface AllOperator {
-  [Op.all]: readonly (string | number | Date | Literal)[];
+  [Op.all]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
 export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
+
+type ColumnReference = Col | { [Op.col]: string };
 
 /**
  * Operators that can be used in WhereOptions
@@ -145,7 +146,7 @@ export type Rangable = readonly [number, number] | readonly [Date, Date] | reado
  */
 export interface WhereOperators {
    /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Buffer | Date | Literal | WhereOperators | Col;
+  [Op.eq]?: AllowAnyAll<null | boolean | string | number | Buffer | Date | Literal> | ColumnReference;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
   [Op.ne]?: WhereOperators[typeof Op.eq]; // accepts the same types as Op.eq
@@ -156,15 +157,8 @@ export interface WhereOperators {
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
   [Op.not]?: WhereOperators[typeof Op.is];
 
-  /**
-   * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
-   *
-   * _PG only_
-   */
-  [Op.any]?: readonly (string | number | Literal)[] | Literal; // TODO (@ephys): AllowOrAnd?
-
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date | Literal | Col;
+  [Op.gte]?: number | string | Date | Literal | ColumnReference;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
   [Op.lte]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
@@ -174,9 +168,6 @@ export interface WhereOperators {
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
-
-  /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: Fn;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: Rangable;
@@ -195,7 +186,7 @@ export interface WhereOperators {
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator | Fn;
+  [Op.like]?: AllowAnyAll<string | Literal | Fn>;
 
   /**
    * Examples:
@@ -292,6 +283,9 @@ export interface WhereOperators {
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: WhereOperators[typeof Op.regexp];
+
+  /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  [Op.match]?: Fn;
 
   /**
    * PG only
