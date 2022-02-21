@@ -61,7 +61,7 @@ The following fields may be passed to SQLite `dialectOptions`:
 
 ### PostgreSQL
 
-The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) npm package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
+The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) package (for Node 10 & 12, use pg version 7.0.0 or above. For Node 14 and above you need to use pg version 8.2.x or above, as per [the pg documentation](https://node-postgres.com/#version-compatibility)). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
