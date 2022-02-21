@@ -62,11 +62,21 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
+      // only need to sort primary keys once, don't do it in place
+      const sortedPrimaryKeys = [...primaryKeys];
+      sortedPrimaryKeys.sort();
+
       _.each(options.uniqueKeys, (columns, indexName) => {
+        // sort the columns for each unique key, so they can be easily compared
+        // with the sorted primary key fields
+        const sortedColumnFields = [...columns.fields];
+        sortedColumnFields.sort();
         // if primary keys === unique keys, then skip adding new constraint
-        const uniqueIsPrimary = columns.fields.length === primaryKeys.length && columns.fields.sort().every((value, index) => {
-          return value === primaryKeys.sort()[index];
-        });
+        const uniqueIsPrimary
+          = sortedColumnFields.length === primaryKeys.length
+          && sortedColumnFields.every((value, index) => {
+            return value === sortedPrimaryKeys[index];
+          });
         if (uniqueIsPrimary) {
           return true;
         }
