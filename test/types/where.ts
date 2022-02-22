@@ -95,10 +95,6 @@ expectTypeOf({
   [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
   [Op.in]: [1, 2, 3], // IN [1, 2]
   [Op.notIn]: [1, 2, 3], // NOT IN [1, 2]
-  [Op.like]: '%hat', // LIKE '%hat'
-  [Op.notLike]: '%hat', // NOT LIKE '%hat'
-  [Op.iLike]: '%hat', // ILIKE '%hat' (case insensitive) (PG only)
-  [Op.notILike]: '%hat', // NOT ILIKE '%hat'  (PG only)
   [Op.startsWith]: 'hat',
   [Op.endsWith]: 'hat',
   [Op.substring]: 'hat',
@@ -109,13 +105,6 @@ expectTypeOf({
   [Op.notRegexp]: '^[h|a|t]', // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
   [Op.iRegexp]: '^[h|a|t]',  // ~* '^[h|a|t]' (PG only)
   [Op.notIRegexp]: '^[h|a|t]', // !~* '^[h|a|t]' (PG only)
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.like]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
-  [Op.iLike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
-  [Op.notLike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
-  [Op.notILike]: { [Op.any]: ['cat', 'hat'] }, // LIKE ANY ARRAY['cat', 'hat']
 }).toMatchTypeOf<WhereOperators>();
 
 expectTypeOf({
@@ -276,10 +265,6 @@ MyModel.findAll({
       [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
       [Op.in]: [1, 2], // IN [1, 2]
       [Op.notIn]: [1, 2], // NOT IN [1, 2]
-      [Op.like]: '%hat', // LIKE '%hat'
-      [Op.notLike]: '%hat', // NOT LIKE '%hat'
-      [Op.iLike]: '%hat', // ILIKE '%hat' (case insensitive)  (PG only)
-      [Op.notILike]: '%hat', // NOT ILIKE '%hat'  (PG only)
       [Op.overlap]: [1, 2], // && [1, 2] (PG array overlap operator)
       [Op.contains]: [1, 2], // @> [1, 2] (PG array contains operator)
       [Op.contained]: [1, 2], // <@ [1, 2] (PG array contained by operator)
@@ -472,13 +457,9 @@ Sequelize.where(
     [Op.ne]: Sequelize.literal('LIT'),
     [Op.in]: Sequelize.literal('LIT'),
     [Op.notIn]: Sequelize.literal('LIT'),
-    [Op.like]: Sequelize.literal('LIT'),
-    [Op.notLike]: Sequelize.literal('LIT'),
-    [Op.iLike]: Sequelize.literal('LIT'),
     [Op.overlap]: Sequelize.literal('LIT'),
     [Op.contains]: Sequelize.literal('LIT'),
     [Op.contained]: Sequelize.literal('LIT'),
-    [Op.notILike]: Sequelize.literal('LIT'),
   },
 );
 

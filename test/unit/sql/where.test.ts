@@ -621,6 +621,74 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     // TODO: Op.between, notBetween
     // TODO: Op.in, notIn
 
+    function describeLikeSuite(
+      operator:
+        | typeof Op.like | typeof Op.notLike | typeof Op.iLike | typeof Op.notILike,
+      stringOperator: string,
+    ) {
+      describe(`Op.${operator.description}`, () => {
+        // TODO: this test is failing
+        testSql({ id: { [operator]: '%id' } }, {
+          default: `[id] ${stringOperator} '%id'`,
+        });
+
+        testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
+          default: `[col1] ${stringOperator} [col2]`,
+        });
+
+        testSql({ col1: { [operator]: col('col2') } }, {
+          default: `[col1] ${stringOperator} [col2]`,
+        });
+
+        testSql({ col: { [operator]: literal('literal') } }, {
+          default: `[col] ${stringOperator} literal`,
+        });
+
+        testSql({ col1: { [operator]: fn('UPPER', col('col2')) } }, {
+          default: `[col1] ${stringOperator} UPPER([col2])`,
+        });
+
+        testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
+          default: `[col] ${stringOperator} CAST("col" AS STRING)`,
+        });
+
+        if (dialectSupportsArray()) {
+          testSql({ col: { [operator]: { [Op.any]: ['a', 'b', 'c'] } } }, {
+            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+            postgres: `"col" ${stringOperator} ANY (ARRAY['a','b','c'])`,
+          });
+
+          testSql({ col: { [operator]: { [Op.any]: literal('literal') } } }, {
+            default: `[col] ${stringOperator} ANY (literal)`,
+          });
+
+          // TODO: this test is failing
+          // testSql({ col: { [operator]: { [Op.any]: [literal(`'a'`), literal(`'b'`)] } } }, {
+          //   default: `[col] ${stringOperator} ANY (ARRAY['a','b'])`,
+          // });
+
+          testSql({ col: { [operator]: { [Op.all]: ['a', 'b', 'c'] } } }, {
+            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+            postgres: `"col" ${stringOperator} ALL (ARRAY['a','b','c'])`,
+          });
+
+          testSql({ col: { [operator]: { [Op.all]: literal('literal') } } }, {
+            default: `[col] ${stringOperator} ALL (literal)`,
+          });
+
+          // TODO: this test is failing
+          // testSql({ col: { [operator]: { [Op.all]: [literal(`'a'`), literal(`'b'`)] } } }, {
+          //   default: `[col] ${stringOperator} ALL (ARRAY['a','b'])`,
+          // });
+        }
+      });
+    }
+
+    describeLikeSuite(Op.like, 'LIKE');
+    describeLikeSuite(Op.notLike, 'NOT LIKE');
+    describeLikeSuite(Op.iLike, 'ILIKE');
+    describeLikeSuite(Op.notILike, 'NOT ILIKE');
+
     // TODO: Op.like, etc
 
     // TODO: Op.overlap
@@ -734,103 +802,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[equipment] NOT IN (select order_id from product_orders where product_id = 3)',
       });
-    });
-
-    describe('Op.like', () => {
-      testSql({
-        username: {
-          [Op.like]: '%swagger',
-        },
-      }, {
-        default: '[username] LIKE \'%swagger\'',
-        mssql: '[username] LIKE N\'%swagger\'',
-      });
-
-      // TODO: don't disable test suites if the dialect doesn't support.
-      //  instead, ensure dialect throws an error if these operators are used.
-
-      if (dialectSupportsArray()) {
-        testSql({
-          userId: {
-            [Op.like]: {
-              [Op.any]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.iLike]: {
-              [Op.any]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.notLike]: {
-              [Op.any]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" NOT LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.notILike]: {
-              [Op.any]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" NOT ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.like]: {
-              [Op.all]: ['foo', 'bar', 'baz'],
-            },
-          },
-
-        }, {
-          postgres: '"userId" LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.iLike]: {
-              [Op.all]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.notLike]: {
-              [Op.all]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" NOT LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-
-        testSql({
-          userId: {
-            [Op.notILike]: {
-              [Op.all]: ['foo', 'bar', 'baz'],
-            },
-          },
-        }, {
-          postgres: '"userId" NOT ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-        });
-      }
     });
 
     // TODO: check that startsWith properly escape contents!
