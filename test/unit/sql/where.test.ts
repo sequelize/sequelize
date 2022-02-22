@@ -703,11 +703,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         }
 
         {
-          // @ts-expect-error
           const ignoreRight: WhereOptions = { id: { [Op.between]: literal('literal1 AND literal2') } };
           // TODO: this test fails
           testSql.skip({ id: { [operator]: literal('literal1 AND literal2') } }, {
-            default: new Error(`Op.${operator.description} expects an array of exactly 2 items.`),
+            default: `[id] ${sqlOperator} BETWEEN literal1 AND literal2`,
           });
         }
       });
@@ -716,7 +715,80 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describeBetweenSuite(Op.between, 'BETWEEN');
     describeBetweenSuite(Op.notBetween, 'NOT BETWEEN');
 
-    // TODO: Op.in, notIn
+    function describeInSuite(
+      operator: typeof Op.in | typeof Op.notIn,
+      sqlOperator: string,
+    ) {
+      // ensure between and notBetween support the same typings, so we only have to test their typings once.
+      // unfortunately, at time of writing (TS 4.5.5), TypeScript
+      //  does not detect an error in `{ [operator]: null }`
+      //  but it does detect an error in { [Op.gt]: null }`
+      expectTypeOf<WhereOperators[typeof Op.between]>().toEqualTypeOf<WhereOperators[typeof Op.notBetween]>();
+
+      describe(`Op.${operator.description}`, () => {
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [1, 2, 3] } };
+          testSql.skip({ id: { [operator]: [1, 2, 3] } }, {
+            default: `[id] ${sqlOperator} (1, 2, 3)`,
+          });
+        }
+
+        // TODO: this test does not pass
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.in]: 1 } };
+          testSql.skip({ id: { [operator]: 1 } }, {
+            default: new Error(`Op.${operator.description} expects an array.`),
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [col('col1'), col('col2')] } };
+          testSql({ id: { [operator]: [col('col1'), col('col2')] } }, {
+            default: `[id] ${sqlOperator} ([col1], [col2])`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [literal('literal1'), literal('literal2')] } };
+          testSql({ id: { [operator]: [literal('literal1'), literal('literal2')] } }, {
+            default: `[id] ${sqlOperator} (literal1, literal2)`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [fn('NOW'), fn('NOW')] } };
+          testSql({ id: { [operator]: [fn('NOW'), fn('NOW')] } }, {
+            default: `[id] ${sqlOperator} (NOW(), NOW())`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
+          // TODO: this test is failing!
+          testSql.skip({ id: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
+            default: `[id] ${sqlOperator} ("col1", "col2")`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [cast(col('col'), 'string'), cast(col('col'), 'string')] } };
+          testSql({ id: { [operator]: [cast(col('col'), 'string'), cast(col('col'), 'string')] } }, {
+            default: `[id] ${sqlOperator} (CAST([col] AS STRING), CAST([col] AS STRING))`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: literal('literal') } };
+          testSql({ id: { [operator]: literal('literal') } }, {
+            default: `[id] ${sqlOperator} literal`,
+          });
+        }
+      });
+    }
+
+    describeInSuite(Op.in, 'IN');
+    describeInSuite(Op.notIn, 'NOT IN');
 
     function describeLikeSuite(
       operator: typeof Op.like | typeof Op.notLike | typeof Op.iLike | typeof Op.notILike,

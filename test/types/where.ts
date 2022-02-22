@@ -36,8 +36,6 @@ expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.literal('1'), 2, 3], } }).not.toM
 expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.literal('1'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
 expectTypeOf({
-  [Op.in]: [1, 2, 3], // IN [1, 2]
-  [Op.notIn]: [1, 2, 3], // NOT IN [1, 2]
   [Op.startsWith]: 'hat',
   [Op.endsWith]: 'hat',
   [Op.substring]: 'hat',
@@ -204,8 +202,6 @@ MyModel.findAll({
       // casting here to check a missing operator is not accepted as field name
       [Op.and]: { a: 5 }, // AND (a = 5)
       [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
-      [Op.in]: [1, 2], // IN [1, 2]
-      [Op.notIn]: [1, 2], // NOT IN [1, 2]
       [Op.overlap]: [1, 2], // && [1, 2] (PG array overlap operator)
       [Op.contains]: [1, 2], // @> [1, 2] (PG array contains operator)
       [Op.contained]: [1, 2], // <@ [1, 2] (PG array contained by operator)
@@ -394,8 +390,6 @@ MyModel.findAll({
 Sequelize.where(
   Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),
   {
-    [Op.in]: Sequelize.literal('LIT'),
-    [Op.notIn]: Sequelize.literal('LIT'),
     [Op.overlap]: Sequelize.literal('LIT'),
     [Op.contains]: Sequelize.literal('LIT'),
     [Op.contained]: Sequelize.literal('LIT'),
