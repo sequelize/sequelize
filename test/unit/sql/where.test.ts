@@ -703,10 +703,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         }
 
         {
-          // TODO: this test fails
+          // @ts-expect-error
           const ignoreRight: WhereOptions = { id: { [Op.between]: literal('literal1 AND literal2') } };
+          // TODO: this test fails
           testSql.skip({ id: { [operator]: literal('literal1 AND literal2') } }, {
-            default: `[id] ${sqlOperator} BETWEEN literal1 AND literal2`,
+            default: new Error(`Op.${operator.description} expects an array of exactly 2 items.`),
           });
         }
       });
