@@ -5,7 +5,7 @@ const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('create', () => {

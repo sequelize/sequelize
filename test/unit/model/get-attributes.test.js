@@ -7,7 +7,7 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 const _ = require('lodash');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 function assertDataType(property, dataType) {
   expect(property.type.constructor.key).to.equal(dataType.key);

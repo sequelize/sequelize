@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
+const QueryGenerator = require('@sequelize/core/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] jsonPathExtractionQuery', () => {

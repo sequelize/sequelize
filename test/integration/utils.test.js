@@ -3,9 +3,9 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Utils = require('sequelize/lib/utils');
+const Utils = require('@sequelize/core/lib/utils');
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 const Sequelize = require('@sequelize/core');
 
 const Op = Sequelize.Op;

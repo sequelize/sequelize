@@ -8,7 +8,7 @@ const moment = require('moment');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const current = Support.sequelize;
 
