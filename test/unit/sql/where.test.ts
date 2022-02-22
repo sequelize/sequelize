@@ -3,7 +3,7 @@ import attempt from 'lodash/attempt';
 import type {
   WhereOptions,
   ModelAttributeColumnOptions,
-  Utils,
+  Utils, WhereOperators,
 } from 'sequelize';
 import {
   DataTypes,
@@ -72,6 +72,49 @@ describe(support.getTestDialectTeaser('SQL'), () => {
   });
 
   describe('whereItemsQuery', () => {
+
+    type IncludesType<Haystack, Needle> = Needle extends any
+      ? Extract<Haystack, Needle> extends never ? false : true
+      : never;
+
+    /**
+     * 'OperatorsSupportingSequelizeValueMethods' lists all operators
+     * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
+     */
+    type OperatorsSupportingSequelizeValueMethods = keyof {
+      [Key in keyof WhereOperators
+        as IncludesType<
+          WhereOperators[Key],
+          Utils.Col | Utils.Literal | Utils.Fn | Utils.Cast | { [Op.col]: string }
+        > extends true ? Key : never
+      ]: WhereOperators[Key]
+    };
+
+    function testSequelizeValueMethods(
+      operator: OperatorsSupportingSequelizeValueMethods,
+      stringOperator: string,
+    ): void {
+      testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
+        default: `[col1] ${stringOperator} [col2]`,
+      });
+
+      testSql({ col1: { [operator]: col('col2') } }, {
+        default: `[col1] ${stringOperator} [col2]`,
+      });
+
+      testSql({ col: { [operator]: literal('literal') } }, {
+        default: `[col] ${stringOperator} literal`,
+      });
+
+      testSql({ col1: { [operator]: fn('NOW') } }, {
+        default: `[col1] ${stringOperator} NOW()`,
+      });
+
+      testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
+        default: `[col] ${stringOperator} CAST("col" AS STRING)`,
+      });
+    }
+
     const testSql = createTester((it, whereObj: WhereOptions, expectations: Expectations, options?: Options) => {
       it(util.inspect(whereObj, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''), () => {
         const sqlOrError = attempt(sql.whereItemsQuery.bind(sql), whereObj, options);
@@ -282,25 +325,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[deleted] = true',
       });
 
-      testSql({ col1: { [Op.eq]: { [Op.col]: 'col2' } } }, {
-        default: '[col1] = [col2]',
-      });
-
-      testSql({ col1: { [Op.eq]: col('col2') } }, {
-        default: '[col1] = [col2]',
-      });
-
-      testSql({ col: { [Op.eq]: literal('literal') } }, {
-        default: '[col] = literal',
-      });
-
-      testSql({ col1: { [Op.eq]: fn('UPPER', col('col2')) } }, {
-        default: '[col1] = UPPER("col2")',
-      });
-
-      testSql({ col: { [Op.eq]: cast(col('col'), 'string') } }, {
-        default: '[col] = CAST("col" AS STRING)',
-      });
+      testSequelizeValueMethods(Op.eq, '=');
 
       if (dialectSupportsArray()) {
         testSql({ col: { [Op.eq]: { [Op.any]: [2, 3, 4] } } }, {
@@ -343,25 +368,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[deleted] != true',
       });
 
-      testSql({ col1: { [Op.ne]: { [Op.col]: 'col2' } } }, {
-        default: '[col1] != [col2]',
-      });
-
-      testSql({ col1: { [Op.ne]: col('col2') } }, {
-        default: '[col1] != [col2]',
-      });
-
-      testSql({ col: { [Op.ne]: literal('literal') } }, {
-        default: '[col] != literal',
-      });
-
-      testSql({ col1: { [Op.ne]: fn('UPPER', col('col2')) } }, {
-        default: '[col1] != UPPER("col2")',
-      });
-
-      testSql({ col: { [Op.ne]: cast(col('col'), 'string') } }, {
-        default: '[col] != CAST("col" AS STRING)',
-      });
+      testSequelizeValueMethods(Op.ne, '!=');
 
       if (dialectSupportsArray()) {
         testSql({ col: { [Op.ne]: { [Op.any]: [2, 3, 4] } } }, {
@@ -532,25 +539,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: new Error(`Op.${operator.description} cannot be used with null`),
         });
 
-        testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
-          default: `[col1] ${stringOperator} [col2]`,
-        });
-
-        testSql({ col1: { [operator]: col('col2') } }, {
-          default: `[col1] ${stringOperator} [col2]`,
-        });
-
-        testSql({ col: { [operator]: literal('literal') } }, {
-          default: `[col] ${stringOperator} literal`,
-        });
-
-        testSql({ col1: { [operator]: fn('NOW') } }, {
-          default: `[col1] ${stringOperator} NOW()`,
-        });
-
-        testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
-          default: `[col] ${stringOperator} CAST("col" AS STRING)`,
-        });
+        testSequelizeValueMethods(operator, stringOperator);
 
         if (dialectSupportsArray()) {
           testSql({ col: { [operator]: { [Op.any]: [2, 3, 4] } } }, {
@@ -591,25 +580,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: `[id] ${stringOperator} '%id'`,
         });
 
-        testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
-          default: `[col1] ${stringOperator} [col2]`,
-        });
-
-        testSql({ col1: { [operator]: col('col2') } }, {
-          default: `[col1] ${stringOperator} [col2]`,
-        });
-
-        testSql({ col: { [operator]: literal('literal') } }, {
-          default: `[col] ${stringOperator} literal`,
-        });
-
-        testSql({ col1: { [operator]: fn('UPPER', col('col2')) } }, {
-          default: `[col1] ${stringOperator} UPPER([col2])`,
-        });
-
-        testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
-          default: `[col] ${stringOperator} CAST("col" AS STRING)`,
-        });
+        testSequelizeValueMethods(operator, stringOperator);
 
         if (dialectSupportsArray()) {
           testSql({ col: { [operator]: { [Op.any]: ['a', 'b', 'c'] } } }, {
