@@ -4,13 +4,13 @@ In this tutorial you will learn to make a simple setup of Sequelize.
 
 ## Installing
 
-Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [yarn](https://yarnpkg.com/package/sequelize)).
+Sequelize is available via [npm](https://www.npmjs.com/package/@sequelize/core) (or [yarn](https://yarnpkg.com/package/@sequelize/core)).
 
 ```sh
 # using npm
-npm i sequelize # This will install latest version of Sequelize
+npm i @sequelize/core # This will install latest version of Sequelize
 # using yarn
-yarn add sequelize
+yarn add @sequelize/core
 ```
 
 You'll also have to manually install the driver for your database of choice:
