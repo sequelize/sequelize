@@ -231,18 +231,22 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       default: new Error('WHERE parameter "id" has invalid "undefined" value'),
     });
 
+    // @ts-expect-error user is not allowed to be undefined
     testSql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     });
 
+    // @ts-expect-error user is not allowed to be undefined
     testSql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.SELECT });
 
+    // @ts-expect-error user is not allowed to be undefined
     testSql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKDELETE });
 
+    // @ts-expect-error user is not allowed to be undefined
     testSql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKUPDATE });
