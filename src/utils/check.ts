@@ -13,6 +13,16 @@ export function isPrimitive(val: any): val is string | number | boolean {
   return ['string', 'number', 'boolean'].includes(type);
 }
 
+/**
+ * Returns whether `value` is using the nested syntax for attributes.
+ *
+ * @param value The attribute reference to check.
+ *
+ * @example
+ * isColString('$id$'); // true
+ * isColString('$project.name$'); // true
+ * isColString('name'); // false
+ */
 export function isColString(value: string): boolean {
   return (
     typeof value === 'string'
