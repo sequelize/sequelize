@@ -19,7 +19,7 @@ describe('ESM module', () => {
     // important: if you transpile this file, it's important
     //  that we still use both the native import() and the native require().
     //  don't transpile this import() to a require().
-    const sequelizeEsm = await import('sequelize');
+    const sequelizeEsm = await import('@sequelize/core');
     const sequelizeCjs = require('@sequelize/core');
 
     const esmKeys = Object.keys(sequelizeEsm);
