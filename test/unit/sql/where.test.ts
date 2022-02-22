@@ -32,7 +32,8 @@ const sql = sequelize.dialect.queryGenerator;
 // when there is no dialect specific expectation but only a default expectation
 
 // TODO:
-//  - test casting { 'firstName::string': 'zoe' }
+//  - add tests for using where() in wrong places
+//  - add tests for using cast() on a value
 
 type Options = {
   type?: QueryTypes,
@@ -126,7 +127,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
-        default: `[col] ${sqlOperator} CAST("col" AS STRING)`,
+        default: `[col] ${sqlOperator} CAST([col] AS STRING)`,
       });
     }
 
@@ -273,6 +274,21 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         sqlite: '`name` = \'here is a null char: \0\'',
       });
 
+      testSql({
+        date: 1_356_998_400_000,
+      }, {
+        default: '[date] = \'2013-01-01 00:00:00.000 +00:00\'',
+        mssql: '[date] = N\'2013-01-01 00:00:00.000 +00:00\'',
+      }, {
+        model: {
+          rawAttributes: {
+            date: {
+              type: new DataTypes.DATE(),
+            },
+          },
+        },
+      });
+
       describe('Buffer', () => {
         testSql({ field: Buffer.from('Sequelize') }, {
           postgres: '"field" = E\'\\\\x53657175656c697a65\'',
@@ -361,12 +377,12 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       testSql({ col1: fn('UPPER', col('col2')) }, {
-        default: '[col1] = UPPER("col2")',
+        default: '[col1] = UPPER([col2])',
       });
 
       // TODO: this test is failing!
       testSql.skip({ col: cast(col('col'), 'string') }, {
-        default: '[col] = CAST("col" AS STRING)',
+        default: '[col] = CAST([col] AS STRING)',
       });
 
       if (dialectSupportsArray()) {
@@ -380,7 +396,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         testSql({ col: { [Op.any]: { [Op.values]: [col('col')] } } }, {
-          default: '[col] = ANY (VALUES ("col"))',
+          default: '[col] = ANY (VALUES ([col]))',
         });
 
         testSql({ col: { [Op.all]: [2, 3, 4] } }, {
@@ -393,7 +409,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         testSql({ col: { [Op.all]: { [Op.values]: [col('col')] } } }, {
-          default: '[col] = ALL (VALUES ("col"))',
+          default: '[col] = ALL (VALUES ([col]))',
         });
 
         // e.g. "col" LIKE ANY (VALUES ("col2"))
@@ -548,26 +564,26 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       testSupportsAnyAll(Op.not, '!=', [2, 3, 4]);
 
       testSql({ [Op.not]: { col: 5 } }, {
-        default: 'NOT ("col" = 5)',
+        default: 'NOT ([col] = 5)',
       });
 
       testSql({ [Op.not]: { col: { [Op.gt]: 5 } } }, {
-        default: 'NOT ("col" > 5)',
+        default: 'NOT ([col] > 5)',
       });
 
       // TODO: this test is failing
       testSql.skip({ [Op.not]: where(col('col'), Op.eq, '5') }, {
-        default: 'NOT ("col" = 5)',
+        default: 'NOT ([col] = 5)',
       });
 
       // TODO: this test is failing
       testSql.skip({ [Op.not]: json('data.key', 10) }, {
-        default: 'NOT (("data"#>>\'{key}\') = 10)',
+        default: 'NOT (([data]#>>\'{key}\') = 10)',
       });
 
       // TODO: this test is failing
       testSql.skip({ col: { [Op.not]: { [Op.gt]: 5 } } }, {
-        default: 'NOT ("col" > 5)',
+        default: 'NOT ([col] > 5)',
       });
     });
 
@@ -604,7 +620,101 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describeComparisonSuite(Op.lt, '<');
     describeComparisonSuite(Op.lte, '<=');
 
-    // TODO: Op.between, notBetween
+    function describeBetweenSuite(
+      operator: typeof Op.between | typeof Op.notBetween,
+      sqlOperator: string,
+    ) {
+      // ensure between and notBetween support the same typings, so we only have to test their typings once.
+      // unfortunately, at time of writing (TS 4.5.5), TypeScript
+      //  does not detect an error in `{ [operator]: null }`
+      //  but it does detect an error in { [Op.gt]: null }`
+      expectTypeOf<WhereOperators[typeof Op.between]>().toEqualTypeOf<WhereOperators[typeof Op.notBetween]>();
+
+      describe(`Op.${operator.description}`, () => {
+        expectTypeOf({ id: { [Op.between]: [1, 2] } }).toMatchTypeOf<WhereOptions>();
+        expectTypeOf({ id: { [Op.between]: [new Date(), new Date()] } }).toMatchTypeOf<WhereOptions>();
+        expectTypeOf({ id: { [Op.between]: ['a', 'b'] } }).toMatchTypeOf<WhereOptions>();
+
+        // expectTypeOf doesn't work with this one:
+        {
+          const ignoreRight: WhereOptions = {
+            id: { [Op.between]: [1, 2] },
+          };
+
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = {
+            id: { [Op.between]: [1, 2, 3] },
+          };
+
+          // @ts-expect-error
+          const ignoreWrong2: WhereOptions = {
+            id: { [Op.between]: [1] },
+          };
+
+          // @ts-expect-error
+          const ignoreWrong3: WhereOptions = {
+            id: { [Op.between]: [] },
+          };
+        }
+
+        testSql({ id: { [operator]: [1, 2] } }, {
+          default: `[id] ${sqlOperator} 1 AND 2`,
+        });
+
+        // TODO: this test does not pass
+        testSql.skip({ id: { [operator]: [1] } }, {
+          default: new Error(`Op.${operator.description} expects an array of exactly 2 items.`),
+        });
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.between]: [col('col1'), col('col2')] } };
+          testSql({ id: { [operator]: [col('col1'), col('col2')] } }, {
+            default: `[id] ${sqlOperator} [col1] AND [col2]`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.between]: [literal('literal1'), literal('literal2')] } };
+          testSql({ id: { [operator]: [literal('literal1'), literal('literal2')] } }, {
+            default: `[id] ${sqlOperator} literal1 AND literal2`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.between]: [fn('NOW'), fn('NOW')] } };
+          testSql({ id: { [operator]: [fn('NOW'), fn('NOW')] } }, {
+            default: `[id] ${sqlOperator} NOW() AND NOW()`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.between]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
+          // TODO: this test is failing!
+          testSql.skip({ id: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
+            default: `[id] ${sqlOperator} "col1" AND "col2"`,
+          });
+        }
+
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.between]: [cast(col('col'), 'string'), cast(col('col'), 'string')] } };
+          testSql({ id: { [operator]: [cast(col('col'), 'string'), cast(col('col'), 'string')] } }, {
+            default: `[id] ${sqlOperator} CAST([col] AS STRING) AND CAST([col] AS STRING)`,
+          });
+        }
+
+        {
+          // TODO: this test fails
+          const ignoreRight: WhereOptions = { id: { [Op.between]: literal('literal1 AND literal2') } };
+          testSql.skip({ id: { [operator]: literal('literal1 AND literal2') } }, {
+            default: `[id] ${sqlOperator} BETWEEN literal1 AND literal2`,
+          });
+        }
+      });
+    }
+
+    describeBetweenSuite(Op.between, 'BETWEEN');
+    describeBetweenSuite(Op.notBetween, 'NOT BETWEEN');
+
     // TODO: Op.in, notIn
 
     function describeLikeSuite(
@@ -642,56 +752,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
     // TODO: Op.match
     // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
-
-    describe('Op.between', () => {
-      testSql({
-        date: {
-          [Op.between]: ['2013-01-01', '2013-01-11'],
-        },
-      }, {
-        default: '[date] BETWEEN \'2013-01-01\' AND \'2013-01-11\'',
-        mssql: '[date] BETWEEN N\'2013-01-01\' AND N\'2013-01-11\'',
-      });
-
-      testSql({
-        date: {
-          [Op.between]: [new Date('2013-01-01'), new Date('2013-01-11')],
-        },
-      }, {
-        default: '[date] BETWEEN \'2013-01-01 00:00:00.000 +00:00\' AND \'2013-01-11 00:00:00.000 +00:00\'',
-        mysql: '`date` BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
-        db2: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
-        snowflake: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
-        mariadb: '`date` BETWEEN \'2013-01-01 00:00:00.000\' AND \'2013-01-11 00:00:00.000\'',
-      });
-
-      testSql({
-        date: {
-          [Op.between]: [1_356_998_400_000, 1_357_862_400_000],
-        },
-      }, {
-        default: '[date] BETWEEN \'2013-01-01 00:00:00.000 +00:00\' AND \'2013-01-11 00:00:00.000 +00:00\'',
-        mssql: '[date] BETWEEN N\'2013-01-01 00:00:00.000 +00:00\' AND N\'2013-01-11 00:00:00.000 +00:00\'',
-      }, {
-        model: {
-          rawAttributes: {
-            date: {
-              type: new DataTypes.DATE(),
-            },
-          },
-        },
-      });
-
-      testSql({
-        date: {
-          [Op.between]: ['2012-12-10', '2013-01-02'],
-          [Op.notBetween]: ['2013-01-04', '2013-01-20'],
-        },
-      }, {
-        default: '([date] BETWEEN \'2012-12-10\' AND \'2013-01-02\' AND [date] NOT BETWEEN \'2013-01-04\' AND \'2013-01-20\')',
-        mssql: '([date] BETWEEN N\'2012-12-10\' AND N\'2013-01-02\' AND [date] NOT BETWEEN N\'2013-01-04\' AND N\'2013-01-20\')',
-      });
-    });
 
     describe('Op.notBetween', () => {
       testSql({
