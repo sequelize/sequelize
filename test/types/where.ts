@@ -28,17 +28,6 @@ expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions
 expectTypeOf({ [Op.eq]: { [Op.any]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 expectTypeOf({ [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
-expectTypeOf({
-  [Op.ne]: 6, // != 6
-  [Op.ne]: Sequelize.col('SOME_COL'), // != "SOME_COL"
-  [Op.ne]: { [Op.col]: 'SOME_COL' }, // != "SOME_COL"
-  [Op.ne]: Sequelize.literal('literal'), // != <column>
-  [Op.ne]: {
-    [Op.any]: [1,2,3],
-    [Op.all]: [1,2,3],
-  },
-}).toMatchTypeOf<WhereOperators>();
-
 expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
@@ -316,9 +305,6 @@ MyModel.findAll({
       [Op.noExtendRight]: [1, 2],
       [Op.values]: [1, 2],
     } as WhereOperators,
-    status: {
-      [Op.not]: false, // status NOT FALSE
-    },
   },
 });
 
@@ -502,7 +488,6 @@ Sequelize.where(
     [Op.lt]: Sequelize.literal('LIT'),
     [Op.lte]: Sequelize.literal('LIT'),
     [Op.ne]: Sequelize.literal('LIT'),
-    [Op.not]: null,
     [Op.in]: Sequelize.literal('LIT'),
     [Op.notIn]: Sequelize.literal('LIT'),
     [Op.like]: Sequelize.literal('LIT'),

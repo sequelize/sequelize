@@ -419,20 +419,131 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       }
     });
 
-    describe('Op.not', () => {
-      testSql({ deleted: { [Op.not]: true } }, {
-        default: '[deleted] IS NOT true',
-        mssql: '[deleted] IS NOT 1',
-        sqlite: '`deleted` IS NOT 1',
+    describe('Op.is', () => {
+      testSql({ deleted: { [Op.is]: null } }, {
+        default: '[deleted] IS NULL',
       });
 
+      testSql({ deleted: { [Op.is]: false } }, {
+        default: '[deleted] IS false',
+      });
+
+      testSql({ deleted: { [Op.is]: false } }, {
+        default: '[deleted] IS false',
+      });
+
+      // TODO: this test is failing
+      // testSql({ deleted: { [Op.is]: 1 } }, {
+      //   default: new Error('Op.is expected a boolean or null, but received 1'),
+      // });
+
+      // TODO: this test is failing
+      // testSql({ col1: { [Op.is]: { [Op.col]: 'col2' } } }, {
+      //   default: new Error('column references are not supported by Op.is'),
+      // });
+
+      // TODO: this test is failing
+      // testSql({ col1: { [Op.is]: col('col2') } }, {
+      //   default: new Error('column references are not supported by Op.is'),
+      // });
+
+      testSql({ col: { [Op.is]: literal('literal') } }, {
+        default: '[col] IS literal',
+      });
+
+      // TODO: this test is failing
+      // testSql({ col1: { [Op.is]: fn('UPPER', col('col2')) } }, {
+      //   default: new Error('SQL functions are not supported by Op.is'),
+      // });
+
+      // TODO: this test is failing
+      // testSql({ col: { [Op.is]: cast(col('col'), 'boolean') } }, {
+      //   default: new Error('CAST is not supported by Op.is'),
+      // });
+
+      if (dialectSupportsArray()) {
+        // TODO: this test is failing
+        // testSql({ col: { [Op.is]: { [Op.any]: [2, 3] } } }, {
+        //   default: new Error('Op.any is not supported by Op.is'),
+        // });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
+        //   // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+        //   default: new Error('Op.all is not supported by Op.is'),
+        // });
+      }
+    });
+
+    describe('Op.not', () => {
       testSql({ deleted: { [Op.not]: null } }, {
         default: '[deleted] IS NOT NULL',
       });
 
-      testSql({ muscles: { [Op.not]: 3 } }, {
-        default: '[muscles] != 3',
+      testSql({ deleted: { [Op.not]: false } }, {
+        default: '[deleted] IS NOT false',
       });
+
+      testSql({ deleted: { [Op.not]: false } }, {
+        default: '[deleted] IS NOT false',
+      });
+
+      testSql({ deleted: { [Op.not]: 1 } }, {
+        default: '[deleted] != 1',
+      });
+
+      testSql({ col1: { [Op.not]: { [Op.col]: 'col2' } } }, {
+        default: '[col1] != [col2]',
+      });
+
+      testSql({ col1: { [Op.not]: col('col2') } }, {
+        default: '[col1] != [col2]',
+      });
+
+      testSql({ col: { [Op.not]: literal('literal') } }, {
+        default: '[col] != literal',
+      });
+
+      testSql({ col1: { [Op.not]: fn('UPPER', col('col2')) } }, {
+        default: '[col1] != UPPER([col2])',
+      });
+
+      testSql({ col: { [Op.not]: cast(col('col'), 'boolean') } }, {
+        default: '[col] != CAST("col" AS BOOLEAN)',
+      });
+
+      if (dialectSupportsArray()) {
+        testSql({ col: { [Op.not]: { [Op.any]: [2, 3, 4] } } }, {
+          postgres: '"col" != ANY (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.not]: { [Op.all]: [2, 3, 4] } } }, {
+          postgres: '"col" != ALL (ARRAY[2,3,4])',
+        });
+      }
+
+      testSql({ [Op.not]: { col: 5 } }, {
+        default: 'NOT ("col" = 5)',
+      });
+
+      testSql({ [Op.not]: { col: { [Op.gt]: 5 } } }, {
+        default: 'NOT ("col" > 5)',
+      });
+
+      // TODO: this test is failing
+      // testSql({ [Op.not]: where(col('col'), Op.eq, '5') }, {
+      //   default: 'NOT ("col" = 5)',
+      // });
+
+      // TODO: this test is failing
+      // testSql({ [Op.not]: json('data.key', 10) }, {
+      //   default: 'NOT (("data"#>>\'{key}\') = 10)',
+      // });
+
+      // TODO: this test is failing
+      // testSql({ col: { [Op.not]: { [Op.gt]: 5 } } }, {
+      //   default: 'NOT ("col" > 5)',
+      // });
     });
 
     describe('Op.gt', () => {
