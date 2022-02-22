@@ -192,7 +192,7 @@ module.exports = {
     sourceType: 'script',
   },
   // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
-  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*'],
+  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*', '!dev/update-authors.js'],
   env: {
     node: true,
     mocha: true,
