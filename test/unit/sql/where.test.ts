@@ -34,6 +34,11 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO:
 //  - add tests for using where() in wrong places
 //  - add tests for using cast() on a value
+//  - accept arrays in Op.gt, Op.lt, etc
+//  - test Op.overlap on [date, date]
+//  - test Op.overlap with ANY & VALUES:
+//      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
+//      ANY (ARRAY[ARRAY[1,2]]) is not valid
 
 type Options = {
   type?: QueryTypes,
@@ -122,8 +127,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[col] ${sqlOperator} literal`,
       });
 
-      testSql({ col1: { [operator]: fn('NOW') } }, {
-        default: `[col1] ${sqlOperator} NOW()`,
+      testSql({ col: { [operator]: fn('NOW') } }, {
+        default: `[col] ${sqlOperator} NOW()`,
       });
 
       testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
@@ -732,7 +737,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     function describeInSuite(
       operator: typeof Op.in | typeof Op.notIn,
       sqlOperator: string,
-    ) {
+      extraTests: () => void,
+    ): void {
       // ensure between and notBetween support the same typings, so we only have to test their typings once.
       // unfortunately, at time of writing (TS 4.5.5), TypeScript
       //  does not detect an error in `{ [operator]: null }`
@@ -742,7 +748,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       describe(`Op.${operator.description}`, () => {
         {
           const ignoreRight: WhereOptions = { id: { [Op.in]: [1, 2, 3] } };
-          testSql.skip({ id: { [operator]: [1, 2, 3] } }, {
+          testSql({ id: { [operator]: [1, 2, 3] } }, {
             default: `[id] ${sqlOperator} (1, 2, 3)`,
           });
         }
@@ -798,11 +804,22 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             default: `[id] ${sqlOperator} literal`,
           });
         }
+
+        extraTests();
       });
     }
 
-    describeInSuite(Op.in, 'IN');
-    describeInSuite(Op.notIn, 'NOT IN');
+    describeInSuite(Op.in, 'IN', () => {
+      testSql({ equipment: { [Op.in]: [] } }, {
+        default: '[equipment] IN (NULL)',
+      });
+    });
+
+    describeInSuite(Op.notIn, 'NOT IN', () => {
+      testSql({ equipment: { [Op.notIn]: [] } }, {
+        default: '',
+      });
+    });
 
     function describeLikeSuite(
       operator: typeof Op.like | typeof Op.notLike | typeof Op.iLike | typeof Op.notILike,
@@ -832,68 +849,80 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describeLikeSuite(Op.iLike, 'ILIKE');
     describeLikeSuite(Op.notILike, 'NOT ILIKE');
 
-    // TODO: Op.overlap
-    // TODO: Op.contains, contained
+    function describeOverlapSuite(
+      operator: typeof Op.overlap | typeof Op.contains | typeof Op.contained,
+      sqlOperator: string,
+    ) {
+
+      if (!dialectSupportsArray()) {
+        return;
+      }
+
+      expectTypeOf<WhereOperators[typeof Op.contains]>().toEqualTypeOf<WhereOperators[typeof Op.overlap]>();
+      expectTypeOf<WhereOperators[typeof Op.contained]>().toEqualTypeOf<WhereOperators[typeof Op.overlap]>();
+
+      describe(`Op.${operator.description}`, () => {
+        {
+          const ignoreRight: WhereOptions = { id: { [Op.overlap]: [1, 2, 3] } };
+          testSql({ id: { [operator]: [1, 2, 3] } }, {
+            postgres: `"id" ${sqlOperator} ARRAY[1,2,3]`,
+          });
+        }
+
+        testSequelizeValueMethods(operator, sqlOperator);
+        // testSupportsAnyAll(operator, sqlOperator, [[1, 2], [1, 2]]);
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [col('col')] } };
+          // TODO: this test is failing
+          testSql.skip({ id: { [operator]: [col('col')] } }, {
+            default: new Error(`Op.${operator.description} does not support arrays of cols`),
+          });
+        }
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
+          testSql.skip({ id: { [operator]: [{ [Op.col]: 'col' }] } }, {
+            default: new Error(`Op.${operator.description} does not support arrays of cols`),
+          });
+        }
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [literal('literal')] } };
+          testSql.skip({ id: { [operator]: [literal('literal')] } }, {
+            default: new Error(`Op.${operator.description} does not support arrays of literals`),
+          });
+        }
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [fn('NOW')] } };
+          testSql.skip({ id: { [operator]: [fn('NOW')] } }, {
+            default: new Error(`Op.${operator.description} does not support arrays of fn`),
+          });
+        }
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [cast(col('col'), 'string')] } };
+          testSql.skip({ id: { [operator]: [cast(col('col'), 'string')] } }, {
+            default: new Error(`Op.${operator.description} does not support arrays of cast`),
+          });
+        }
+      });
+    }
+
+    describeOverlapSuite(Op.overlap, '&&');
+    describeOverlapSuite(Op.contains, '@>');
+    describeOverlapSuite(Op.contained, '<@');
 
     // TODO: Op.startsWith, Op.endsWith, Op.substring
     // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
     // TODO: Op.match
     // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
-
-    describe('Op.notBetween', () => {
-      testSql({
-        date: {
-          [Op.notBetween]: ['2013-01-01', '2013-01-11'],
-        },
-      }, {
-        default: '[date] NOT BETWEEN \'2013-01-01\' AND \'2013-01-11\'',
-        mssql: '[date] NOT BETWEEN N\'2013-01-01\' AND N\'2013-01-11\'',
-      });
-    });
-
-    describe('Op.in', () => {
-      testSql({ equipment: { [Op.in]: [1, 3] } }, {
-        default: '[equipment] IN (1, 3)',
-      });
-
-      testSql({ equipment: { [Op.in]: [] } }, {
-        default: '[equipment] IN (NULL)',
-      });
-
-      testSql({
-        equipment: {
-          [Op.in]: literal('(select order_id from product_orders where product_id = 3)'),
-        },
-      }, {
-        default: '[equipment] IN (select order_id from product_orders where product_id = 3)',
-      });
-    });
-
-    describe('Op.notIn', () => {
-      testSql({
-        equipment: {
-          [Op.notIn]: [],
-        },
-      }, {
-        default: '',
-      });
-
-      testSql({
-        equipment: {
-          [Op.notIn]: [4, 19],
-        },
-      }, {
-        default: '[equipment] NOT IN (4, 19)',
-      });
-
-      testSql({
-        equipment: {
-          [Op.notIn]: literal('(select order_id from product_orders where product_id = 3)'),
-        },
-      }, {
-        default: '[equipment] NOT IN (select order_id from product_orders where product_id = 3)',
-      });
-    });
 
     // TODO: check that startsWith properly escape contents!
 
@@ -1072,76 +1101,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     // TODO: don't disable test suites if the dialect doesn't support.
     //  instead, ensure dialect throws an error if these operators are used.
     if (dialectSupportsArray()) {
-      describe('Op.contains', () => {
-        testSql({
-          muscles: {
-            [Op.contains]: [2, 3],
-          },
-        }, {
-          postgres: '"muscles" @> ARRAY[2,3]',
-        });
-
-        testSql({
-          muscles: {
-            [Op.contains]: [2, 5],
-          },
-        }, {
-          postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]',
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.INTEGER),
-          },
-        });
-
-        testSql({
-          muscles: {
-            [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3'],
-          },
-        }, {
-          postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
-        });
-
-        testSql({
-          muscles: {
-            [Op.contains]: ['stringValue1', 'stringValue2'],
-          },
-        }, {
-          postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]',
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.STRING),
-          },
-        });
-      });
-
-      describe('Op.contained', () => {
-        testSql({
-          muscles: {
-            [Op.contained]: [6, 8],
-          },
-        }, {
-          postgres: '"muscles" <@ ARRAY[6,8]',
-        });
-
-        testSql({
-          muscles: {
-            [Op.contained]: ['stringValue1', 'stringValue2', 'stringValue3'],
-          },
-        }, {
-          postgres: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
-        });
-      });
-
-      describe('Op.overlap', () => {
-        testSql({
-          muscles: {
-            [Op.overlap]: [3, 11],
-          },
-        }, {
-          postgres: '"muscles" && ARRAY[3,11]',
-        });
-      });
-
       describe('Op.any', () => {
         testSql({
           userId: {
@@ -1632,7 +1591,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    // TODO: OR
+    // TODO: OR, AND
 
     testSql({
       name: 'a project',
