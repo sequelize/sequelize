@@ -13,47 +13,18 @@ import {
   and, or,
 } from 'sequelize';
 
+// NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
+
 class MyModel extends Model {
   declare hi: number;
-}
-
-// Simple options
-{
-  const a: WhereOptions = {
-    string: 'foo',
-    strings: ['foo'],
-    number: 1,
-    numbers: [1],
-    boolean: true,
-    buffer: Buffer.alloc(0),
-    buffers: [Buffer.alloc(0)],
-    null: null,
-    date: new Date(),
-    opCol: { [Op.col]: 'legacy-column-reference' },
-    col: Sequelize.col('column-reference'),
-    literal: Sequelize.literal('null'),
-    [Op.any]: [2, 3, 4], // = ANY ARRAY[2, 3, 4]::INTEGER (PG only)
-    [Op.any]: Sequelize.literal('abc'),
-  };
 }
 
 // Optional values
 expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions>();
 
 // Operators
-expectTypeOf({
-  [Op.eq]: 6, // = 6
-  [Op.eq]: Sequelize.col('SOME_COL'), // = "SOME_COL"
-  [Op.eq]: { [Op.col]: 'SOME_COL' }, // = "SOME_COL"
-  [Op.eq]: Sequelize.literal('literal'), // = literal
-  [Op.eq]: {
-    [Op.any]: [1, 2, 3],
-    [Op.all]: [1, 2, 3],
-    [Op.any]: Sequelize.literal('literal'),
-    [Op.all]: Sequelize.literal('literal'),
-  },
-}).toMatchTypeOf<WhereOperators>();
 
+// cannot use column references in Op.any
 expectTypeOf({ [Op.eq]: { [Op.any]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 expectTypeOf({ [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 

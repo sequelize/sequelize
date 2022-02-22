@@ -133,6 +133,46 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('value serialization', () => {
+      // string
+      testSql({ id: '1' }, {
+        default: `[id] = '1'`,
+        mssql: `[id] = N'1'`,
+      });
+
+      testSql({
+        name: 'here is a null char: \0',
+      }, {
+        default: '[name] = \'here is a null char: \\0\'',
+        snowflake: '"name" = \'here is a null char: \0\'',
+        mssql: '[name] = N\'here is a null char: \0\'',
+        db2: '"name" = \'here is a null char: \0\'',
+        sqlite: '`name` = \'here is a null char: \0\'',
+      });
+
+      describe('Buffer', () => {
+        testSql({ field: Buffer.from('Sequelize') }, {
+          postgres: '"field" = E\'\\\\x53657175656c697a65\'',
+          sqlite: '`field` = X\'53657175656c697a65\'',
+          mariadb: '`field` = X\'53657175656c697a65\'',
+          mysql: '`field` = X\'53657175656c697a65\'',
+          db2: '"field" = BLOB(\'Sequelize\')',
+          snowflake: '"field" = X\'53657175656c697a65\'',
+          mssql: '[field] = 0x53657175656c697a65',
+        });
+
+        testSql({ field: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
+          postgres: '"field" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
+          sqlite: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mariadb: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mysql: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          db2: '"field" IN (BLOB(\'Sequelize1\'), BLOB(\'Sequelize2\'))',
+          snowflake: '"field" IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mssql: '[field] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
+        });
+      });
+    });
+
     describe('implicit operator', () => {
       testSql({ id: 1 }, {
         default: '[id] = 1',
@@ -171,16 +211,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: '[name] = N\'a project\' AND ([id] IN (1, 2, 3) OR [id] > 10)',
       });
 
-      testSql({
-        name: 'here is a null char: \0',
-      }, {
-        default: '[name] = \'here is a null char: \\0\'',
-        snowflake: '"name" = \'here is a null char: \0\'',
-        mssql: '[name] = N\'here is a null char: \0\'',
-        db2: '"name" = \'here is a null char: \0\'',
-        sqlite: '`name` = \'here is a null char: \0\'',
-      });
-
       testSql({ deleted: null }, {
         default: '[deleted] IS NULL',
       });
@@ -203,42 +233,190 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       // });
 
       // TODO: this test is failing!
-      // testSql({ col1: literal('literal') }, {
-      //   default: '[col1] = literal',
+      // testSql({ col: literal('literal') }, {
+      //   default: '[col] = literal',
       // });
 
-      // TODO: Op.any, Op.all
-
-      describe('Buffer', () => {
-        testSql({ field: Buffer.from('Sequelize') }, {
-          postgres: '"field" = E\'\\\\x53657175656c697a65\'',
-          sqlite: '`field` = X\'53657175656c697a65\'',
-          mariadb: '`field` = X\'53657175656c697a65\'',
-          mysql: '`field` = X\'53657175656c697a65\'',
-          db2: '"field" = BLOB(\'Sequelize\')',
-          snowflake: '"field" = X\'53657175656c697a65\'',
-          mssql: '[field] = 0x53657175656c697a65',
-        });
-
-        testSql({ field: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
-          postgres: '"field" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
-          sqlite: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mariadb: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mysql: '`field` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: '"field" IN (BLOB(\'Sequelize1\'), BLOB(\'Sequelize2\'))',
-          snowflake: '"field" IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mssql: '[field] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
-        });
+      testSql({ col1: fn('UPPER', col('col2')) }, {
+        default: '[col1] = UPPER("col2")',
       });
+
+      // TODO: this test is failing!
+      // testSql({ col: cast(col('col'), 'string') }, {
+      //   default: '[col] = CAST("col" AS STRING)',
+      // });
+
+      if (dialectSupportsArray()) {
+        testSql({ col: { [Op.any]: [2, 3, 4] } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" = ANY (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.any]: literal('literal') } }, {
+          default: '[col] = ANY (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.any]: [literal('1'), literal('2')] } }, {
+        //   default: '[col] = ANY (ARRAY[1,2])',
+        // });
+
+        testSql({ col: { [Op.all]: [2, 3, 4] } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" = ALL (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.all]: literal('literal') } }, {
+          default: '[col] = ALL (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.all]: [literal('1'), literal('2')] } }, {
+        //   default: '[col] = ALL (ARRAY[1,2])',
+        // });
+      }
+    });
+
+    describe('Op.eq', () => {
+      testSql({ id: { [Op.eq]: 1 } }, {
+        default: '[id] = 1',
+      });
+
+      if (dialectSupportsArray()) {
+        testSql({ id: { [Op.eq]: [1, 2] } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"id" = ARRAY[1,2]',
+        });
+      }
+
+      testSql({ deleted: { [Op.eq]: null } }, {
+        default: '[deleted] IS NULL',
+      });
+
+      testSql({ deleted: { [Op.eq]: true } }, {
+        default: '[deleted] = true',
+      });
+
+      testSql({ col1: { [Op.eq]: { [Op.col]: 'col2' } } }, {
+        default: '[col1] = [col2]',
+      });
+
+      testSql({ col1: { [Op.eq]: col('col2') } }, {
+        default: '[col1] = [col2]',
+      });
+
+      testSql({ col: { [Op.eq]: literal('literal') } }, {
+        default: '[col] = literal',
+      });
+
+      testSql({ col1: { [Op.eq]: fn('UPPER', col('col2')) } }, {
+        default: '[col1] = UPPER("col2")',
+      });
+
+      testSql({ col: { [Op.eq]: cast(col('col'), 'string') } }, {
+        default: '[col] = CAST("col" AS STRING)',
+      });
+
+      if (dialectSupportsArray()) {
+        testSql({ col: { [Op.eq]: { [Op.any]: [2, 3, 4] } } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" = ANY (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.eq]: { [Op.any]: literal('literal') } } }, {
+          default: '[col] = ANY (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.eq]: { [Op.any]: [literal('1'), literal('2')] } } }, {
+        //   default: '[col] = ANY (ARRAY[1,2])',
+        // });
+
+        testSql({ col: { [Op.eq]: { [Op.all]: [2, 3, 4] } } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" = ALL (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.eq]: { [Op.all]: literal('literal') } } }, {
+          default: '[col] = ALL (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.eq]: { [Op.all]: [literal('1'), literal('2')] } } }, {
+        //   default: '[col] = ALL (ARRAY[1,2])',
+        // });
+      }
     });
 
     describe('Op.ne', () => {
-      testSql({
-        email: { [Op.ne]: 'jack.bauer@gmail.com' },
-      }, {
-        default: '[email] != \'jack.bauer@gmail.com\'',
-        mssql: '[email] != N\'jack.bauer@gmail.com\'',
+      testSql({ id: { [Op.ne]: 1 } }, {
+        default: '[id] != 1',
       });
+
+      if (dialectSupportsArray()) {
+        testSql({ id: { [Op.ne]: [1, 2] } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"id" != ARRAY[1,2]',
+        });
+      }
+
+      testSql({ deleted: { [Op.ne]: null } }, {
+        default: '[deleted] IS NOT NULL',
+      });
+
+      testSql({ deleted: { [Op.ne]: true } }, {
+        default: '[deleted] != true',
+      });
+
+      testSql({ col1: { [Op.ne]: { [Op.col]: 'col2' } } }, {
+        default: '[col1] != [col2]',
+      });
+
+      testSql({ col1: { [Op.ne]: col('col2') } }, {
+        default: '[col1] != [col2]',
+      });
+
+      testSql({ col: { [Op.ne]: literal('literal') } }, {
+        default: '[col] != literal',
+      });
+
+      testSql({ col1: { [Op.ne]: fn('UPPER', col('col2')) } }, {
+        default: '[col1] != UPPER("col2")',
+      });
+
+      testSql({ col: { [Op.ne]: cast(col('col'), 'string') } }, {
+        default: '[col] != CAST("col" AS STRING)',
+      });
+
+      if (dialectSupportsArray()) {
+        testSql({ col: { [Op.ne]: { [Op.any]: [2, 3, 4] } } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" != ANY (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.ne]: { [Op.any]: literal('literal') } } }, {
+          default: '[col] != ANY (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.ne]: { [Op.any]: [literal('1'), literal('2')] } } }, {
+        //   default: '[col] != ANY (ARRAY[1,2])',
+        // });
+
+        testSql({ col: { [Op.ne]: { [Op.all]: [2, 3, 4] } } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: '"col" != ALL (ARRAY[2,3,4])',
+        });
+
+        testSql({ col: { [Op.ne]: { [Op.all]: literal('literal') } } }, {
+          default: '[col] != ALL (literal)',
+        });
+
+        // TODO: this test is failing
+        // testSql({ col: { [Op.ne]: { [Op.all]: [literal('1'), literal('2')] } } }, {
+        //   default: '[col] != ALL (ARRAY[1,2])',
+        // });
+      }
     });
 
     describe('Op.not', () => {
