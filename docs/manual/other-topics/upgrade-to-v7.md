@@ -31,7 +31,7 @@ This only affects the attribute name, it is still possible to do this for the co
 Instead of doing this:
 
 ```typescript
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model } from "@sequelize/core";
 
 class User extends Model {
   $myAttribute$: string;
@@ -57,7 +57,7 @@ User.init({
 Do this:
 
 ```typescript
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model } from "@sequelize/core";
 
 class User extends Model {
   $myAttribute$: string;

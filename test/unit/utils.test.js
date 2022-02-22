@@ -7,7 +7,7 @@ const Support = require('./support');
 const DataTypes = require('sequelize/lib/data-types');
 const Utils = require('sequelize/lib/utils');
 const { logger } = require('sequelize/lib/utils/logger');
-const { Op } = require('sequelize');
+const { Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {

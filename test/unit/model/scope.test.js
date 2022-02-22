@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const Op = Sequelize.Op;
 const Support   = require('../support');

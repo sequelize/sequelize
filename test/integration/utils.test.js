@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Utils = require('sequelize/lib/utils');
 const Support = require('./support');
 const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const Op = Sequelize.Op;
 

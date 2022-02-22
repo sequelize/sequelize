@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Op } = require('sequelize');
+const { Op } = require('@sequelize/core');
 const Support = require('../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;

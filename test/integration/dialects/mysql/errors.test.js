@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 const DataTypes = require('sequelize/lib/data-types');
 
 if (dialect === 'mysql') {

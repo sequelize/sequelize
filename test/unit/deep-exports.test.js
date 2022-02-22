@@ -3,7 +3,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 /**
- * Tests whether users can import files deeper than "sequelize" (eg. "sequelize/package.json").
+ * Tests whether users can import files deeper than "@sequelize/core" (eg. "@sequelize/core/package.json").
  * Context: https://github.com/sequelize/sequelize/issues/13787
  */
 
@@ -18,14 +18,14 @@ describe('exports', () => {
     //   });
     // }
 
-    require('sequelize/package.json');
+    require('@sequelize/core/package.json');
   });
 
   it('exposes lib files', async () => {
     if (nodeMajorVersion >= 12) {
-      await import('sequelize/lib/model');
+      await import('@sequelize/core/lib/model');
     }
 
-    require('sequelize/lib/model');
+    require('@sequelize/core/lib/model');
   });
 });
