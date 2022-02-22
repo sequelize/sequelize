@@ -212,9 +212,6 @@ expectTypeOf([
   {
     [Op.and]: [{ id: [1, 2, 3] }, { array: { [Op.contains]: [3, 4, 5] } }],
   },
-  {
-    [Op.gt]: fn('NOW'),
-  },
   literal('true'),
   fn('LOWER', 'asd'),
   { [Op.lt]: Sequelize.literal('SOME_STRING') },
@@ -273,19 +270,8 @@ MyModel.findAll({
   where: {
     id: {
       // casting here to check a missing operator is not accepted as field name
-      [Op.eq]: 6, // id = 6
-      [Op.eq]: Sequelize.col('SOME_COL'), // id = <column>
       [Op.and]: { a: 5 }, // AND (a = 5)
       [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
-      [Op.gt]: 6, // id > 6
-      [Op.gt]: Sequelize.col('SOME_COL'), // id > <column>
-      [Op.gte]: 6, // id >= 6
-      [Op.gte]: Sequelize.col('SOME_COL'), // id >= <column>
-      [Op.lt]: 10, // id < 10
-      [Op.lt]: Sequelize.col('SOME_COL'), // id < <column>
-      [Op.lte]: 10, // id <= 10
-      [Op.lte]: Sequelize.col('SOME_COL'), // id <= <column>
-      [Op.ne]: 20, // id != 20
       [Op.between]: [6, 10] || [new Date(), new Date()] || ['2020-01-01', '2020-12-31'], // BETWEEN 6 AND 10
       [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
       [Op.in]: [1, 2], // IN [1, 2]
@@ -482,11 +468,7 @@ MyModel.findAll({
 Sequelize.where(
   Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),
   {
-    [Op.lt]: Sequelize.literal('LIT'),
     [Op.any]: Sequelize.literal('LIT'),
-    [Op.gte]: Sequelize.literal('LIT'),
-    [Op.lt]: Sequelize.literal('LIT'),
-    [Op.lte]: Sequelize.literal('LIT'),
     [Op.ne]: Sequelize.literal('LIT'),
     [Op.in]: Sequelize.literal('LIT'),
     [Op.notIn]: Sequelize.literal('LIT'),
@@ -496,7 +478,6 @@ Sequelize.where(
     [Op.overlap]: Sequelize.literal('LIT'),
     [Op.contains]: Sequelize.literal('LIT'),
     [Op.contained]: Sequelize.literal('LIT'),
-    [Op.gt]: Sequelize.literal('LIT'),
     [Op.notILike]: Sequelize.literal('LIT'),
   },
 );

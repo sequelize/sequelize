@@ -546,25 +546,90 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       // });
     });
 
-    describe('Op.gt', () => {
-      testSql({
-        rank: { [Op.gt]: 2 },
-      }, {
-        default: '[rank] > 2',
-      });
-    });
+    function describeComparisonSuite(
+      operator:
+        | typeof Op.gt | typeof Op.gte | typeof Op.lt | typeof Op.lte,
+      stringOperator: string,
+    ) {
+      describe(`Op.${operator.description}`, () => {
+        testSql({ id: { [operator]: 1 } }, {
+          default: `[id] ${stringOperator} 1`,
+        });
 
-    describe('Op.lt', () => {
-      testSql({
-        created_at: {
-          [Op.lt]: {
-            [Op.col]: 'updated_at',
-          },
-        },
-      }, {
-        default: '[created_at] < [updated_at]',
+        // TODO: this test is failing
+        // testSql({ deleted: { [operator]: null } }, {
+        //   default: new Error(`Op.${operator.description} cannot be used with null`),
+        // });
+
+        testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
+          default: `[col1] ${stringOperator} [col2]`,
+        });
+
+        testSql({ col1: { [operator]: col('col2') } }, {
+          default: `[col1] ${stringOperator} [col2]`,
+        });
+
+        testSql({ col: { [operator]: literal('literal') } }, {
+          default: `[col] ${stringOperator} literal`,
+        });
+
+        testSql({ col1: { [operator]: fn('NOW') } }, {
+          default: `[col1] ${stringOperator} NOW()`,
+        });
+
+        testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
+          default: `[col] ${stringOperator} CAST("col" AS STRING)`,
+        });
+
+        if (dialectSupportsArray()) {
+          testSql({ col: { [operator]: { [Op.any]: [2, 3, 4] } } }, {
+            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+            postgres: `"col" ${stringOperator} ANY (ARRAY[2,3,4])`,
+          });
+
+          testSql({ col: { [operator]: { [Op.any]: literal('literal') } } }, {
+            default: `[col] ${stringOperator} ANY (literal)`,
+          });
+
+          // TODO: this test is failing
+          // testSql({ col: { [operator]: { [Op.any]: [literal('1'), literal('2')] } } }, {
+          //   default: `[col] ${stringOperator} ANY (ARRAY[1,2])`,
+          // });
+
+          testSql({ col: { [operator]: { [Op.all]: [2, 3, 4] } } }, {
+            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+            postgres: `"col" ${stringOperator} ALL (ARRAY[2,3,4])`,
+          });
+
+          testSql({ col: { [operator]: { [Op.all]: literal('literal') } } }, {
+            default: `[col] ${stringOperator} ALL (literal)`,
+          });
+
+          // TODO: this test is failing
+          // testSql({ col: { [Op.eq]: { [Op.all]: [literal('1'), literal('2')] } } }, {
+          //   default: `[col] ${stringOperator} ALL (ARRAY[1,2])`,
+          // });
+        }
       });
-    });
+    }
+
+    describeComparisonSuite(Op.gt, '>');
+    describeComparisonSuite(Op.gte, '>=');
+    describeComparisonSuite(Op.lt, '<');
+    describeComparisonSuite(Op.lte, '<=');
+
+    // TODO: Op.between, notBetween
+    // TODO: Op.in, notIn
+
+    // TODO: Op.like, etc
+
+    // TODO: Op.overlap
+    // TODO: Op.contains, contained
+
+    // TODO: Op.startsWith, Op.endsWith, Op.substring
+    // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
+    // TODO: Op.match
+    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
 
     describe('Op.between', () => {
       testSql({
