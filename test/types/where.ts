@@ -36,67 +36,6 @@ expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.literal('1'), 2, 3], } }).not.toM
 expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.literal('1'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
 expectTypeOf({
-  [Op.gt]: 6, // > 6
-  [Op.gt]: Sequelize.col('SOME_COL'), // > "SOME_COL"
-  [Op.gt]: { [Op.col]: 'SOME_COL' }, // > "SOME_COL"
-  [Op.gt]: Sequelize.literal('literal'), // > literal
-  [Op.gt]: {
-    [Op.any]: [1,2,3],
-    [Op.all]: [1,2,3],
-  },
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.gte]: 6, // >= 6
-  [Op.gte]: Sequelize.col('SOME_COL'), // >= "SOME_COL"
-  [Op.gte]: { [Op.col]: 'SOME_COL' },
-  [Op.gte]: Sequelize.literal('literal'), // > literal
-  [Op.gte]: {
-    [Op.any]: [1,2,3],
-    [Op.all]: [1,2,3],
-  },
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.lt]: 10, // < 10
-  [Op.lt]: Sequelize.col('SOME_COL'), // < "SOME_COL"
-  [Op.lt]: { [Op.col]: 'SOME_COL' },
-  [Op.lt]: Sequelize.literal('literal'), // < literal
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.lte]: 10, // <= 10
-  [Op.lte]: Sequelize.col('SOME_COL'), // <= "SOME_COL"
-  [Op.lte]: { [Op.col]: 'SOME_COL' },
-  [Op.lte]: Sequelize.literal('literal'), // <= literal
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.is]: true, // IS TRUE
-  [Op.is]: null, // IS NULL
-  [Op.is]: Sequelize.col('SOME_COL'), // IS "SOME_COL"
-  [Op.is]: { [Op.col]: 'SOME_COL' }, // IS "SOME_COL"
-  [Op.is]: Sequelize.literal('literal'), // IS literal
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.not]: true, // IS NOT TRUE
-  [Op.not]: null, // IS NOT NULL
-  [Op.not]: Sequelize.col('SOME_COL'), // IS NOT "SOME_COL"
-  [Op.not]: { [Op.col]: 'SOME_COL' }, // IS NOT "SOME_COL"
-  [Op.not]: Sequelize.literal('literal'), // IS NOT literal
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.between]: [6, 10], // BETWEEN 6 AND 10
-  [Op.between]: [Sequelize.col('SOME_COL'), Sequelize.col('SOME_COL')], // BETWEEN "SOME_COL" AND "SOME_COL"
-  [Op.between]: [{ [Op.col]: 'SOME_COL' }, { [Op.col]: 'SOME_COL' }], // BETWEEN "SOME_COL" AND "SOME_COL"
-  [Op.between]: Sequelize.literal('literal'), // BETWEEN literal
-  [Op.between]: [Sequelize.literal('literal'), Sequelize.literal('literal')], // BETWEEN literal AND literal
-}).toMatchTypeOf<WhereOperators>();
-
-expectTypeOf({
-  [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
   [Op.in]: [1, 2, 3], // IN [1, 2]
   [Op.notIn]: [1, 2, 3], // NOT IN [1, 2]
   [Op.startsWith]: 'hat',
@@ -265,8 +204,6 @@ MyModel.findAll({
       // casting here to check a missing operator is not accepted as field name
       [Op.and]: { a: 5 }, // AND (a = 5)
       [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
-      [Op.between]: [6, 10] || [new Date(), new Date()] || ['2020-01-01', '2020-12-31'], // BETWEEN 6 AND 10
-      [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
       [Op.in]: [1, 2], // IN [1, 2]
       [Op.notIn]: [1, 2], // NOT IN [1, 2]
       [Op.overlap]: [1, 2], // && [1, 2] (PG array overlap operator)
@@ -457,8 +394,6 @@ MyModel.findAll({
 Sequelize.where(
   Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'),
   {
-    [Op.any]: Sequelize.literal('LIT'),
-    [Op.ne]: Sequelize.literal('LIT'),
     [Op.in]: Sequelize.literal('LIT'),
     [Op.notIn]: Sequelize.literal('LIT'),
     [Op.overlap]: Sequelize.literal('LIT'),
