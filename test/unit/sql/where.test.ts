@@ -35,6 +35,7 @@ const sql = sequelize.dialect.queryGenerator;
 //  - add tests for using where() in wrong places
 //  - add tests for using cast() on a value
 //  - accept arrays in Op.gt, Op.lt, etc
+//  - accept arrays in Op.in
 //  - test Op.overlap on [date, date]
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
@@ -757,11 +758,18 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           });
         }
 
-        // TODO: this test does not pass
         {
           // @ts-expect-error
           const ignoreWrong: WhereOptions = { id: { [Op.in]: 1 } };
           testSql.skip({ id: { [operator]: 1 } }, {
+            default: new Error(`Op.${operator.description} expects an array.`),
+          });
+        }
+
+        {
+          // @ts-expect-error
+          const ignoreWrong: WhereOptions = { id: { [Op.in]: col('col2') } };
+          testSql.skip({ id: { [operator]: col('col1') } }, {
             default: new Error(`Op.${operator.description} expects an array.`),
           });
         }

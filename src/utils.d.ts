@@ -105,6 +105,9 @@ export class Cast extends SequelizeMethod {
 }
 
 export class Literal extends SequelizeMethod {
+  /** this (type-only) brand prevents TypeScript from thinking Cast is assignable to Literal because they share the same shape */
+  private brand: 'literal';
+
   public val: unknown;
   constructor(val: unknown);
 }

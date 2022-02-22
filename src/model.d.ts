@@ -173,42 +173,61 @@ type WhereOperatorValue<AcceptableValues = WhereSerializableValue> =
 export interface WhereOperators {
    /**
     * @example: `[Op.eq]: 6,` becomes `= 6`
-    * @example: `[Op.eq]: [6, 7],` becomes `= ARRAY[6, 7]`
+    * @example: `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
+    * @example: `[Op.eq]: null` becomes `IS NULL`
+    * @example: `[Op.eq]: true` becomes `= true`
+    * @example: `[Op.eq]: literal('raw sql')` becomes `= raw sql`
+    * @example: `[Op.eq]: col('column')` becomes `= "column"`
+    * @example: `[Op.eq]: fn('NOW')` becomes `= NOW()`
     */
   [Op.eq]?: WhereOperatorValue<AllowArray<WhereSerializableValue>> | null;
 
   /**
    * @example: `[Op.ne]: 20,` becomes `!= 20`
-   * @example: `[Op.ne]: [20, 21],` becomes `!= ARRAY[20, 21]`
+   * @example: `[Op.ne]: [20, 21]` becomes `!= ARRAY[20, 21]`
+   * @example: `[Op.ne]: null` becomes `IS NOT NULL`
+   * @example: `[Op.ne]: true` becomes `!= true`
+   * @example: `[Op.ne]: literal('raw sql')` becomes `!= raw sql`
+   * @example: `[Op.ne]: col('column')` becomes `!= "column"`
+   * @example: `[Op.ne]: fn('NOW')` becomes `!= NOW()`
    */
   [Op.ne]?: WhereOperators[typeof Op.eq]; // accepts the same types as Op.eq
 
-  /** @example: `[Op.is]: null,` becomes `IS NULL` */
-  [Op.is]?: null | boolean;
+  /**
+   * @example: `[Op.is]: null` becomes `IS NULL`
+   * @example: `[Op.is]: true` becomes `IS TRUE`
+   * @example: `[Op.is]: literal('value')` becomes `IS value`
+   */
+  [Op.is]?: null | boolean | Literal;
 
-  /** @example: `[Op.not]: true,` becomes `IS NOT TRUE` */
+  /**
+   * @example: `[Op.not]: true` becomes `IS NOT TRUE`
+   * @example: `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
+   */
   [Op.not]?: WhereOperators[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
 
-  /** @example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: WhereOperatorValue;
+  /** @example: `[Op.gte]: 6` becomes `>= 6` */
+  [Op.gte]?: WhereOperatorValue<AllowArray<WhereSerializableValue>>;
 
-  /** @example: `[Op.lte]: 10,` becomes `<= 10` */
+  /** @example: `[Op.lte]: 10` becomes `<= 10` */
   [Op.lte]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
 
-  /** @example: `[Op.lt]: 10,` becomes `< 10` */
+  /** @example: `[Op.lt]: 10` becomes `< 10` */
   [Op.lt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
 
-  /** @example: `[Op.gt]: 6,` becomes `> 6` */
+  /** @example: `[Op.gt]: 6` becomes `> 6` */
   [Op.gt]?: WhereOperators[typeof Op.gte]; // accepts the same types as Op.gte
 
-  /** @example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: Rangable;
+  /**
+   * @example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10`
+   */
+  [Op.between]?: Rangable | [lower: Literal | Fn | Cast | ColumnReference, higher: Literal | Fn | Cast | ColumnReference] | Literal;
 
   /** @example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: WhereOperators[typeof Op.between];
 
   /** @example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: ReadonlyArray<WhereSerializableValue> | Literal | ColumnReference | Fn | Cast;
+  [Op.in]?: ReadonlyArray<WhereSerializableValue | ColumnReference | Fn | Cast | Literal> | Literal;
 
   /** @example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
   [Op.notIn]?: WhereOperators[typeof Op.in];
