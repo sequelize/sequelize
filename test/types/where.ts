@@ -31,6 +31,10 @@ expectTypeOf({ [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.
 expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.col('SOME_COL'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
+// cannot use literal inside the array of Op.any
+expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.literal('1'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
+expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.literal('1'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
+
 expectTypeOf({
   [Op.gt]: 6, // > 6
   [Op.gt]: Sequelize.col('SOME_COL'), // > "SOME_COL"
