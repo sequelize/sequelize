@@ -257,6 +257,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    testSql(literal('raw sql'), {
+      default: 'raw sql',
+    });
+
     describe('value serialization', () => {
       // string
       testSql({ id: '1' }, {
@@ -329,6 +333,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       testSql({ id: ['1', '2'] }, {
         default: `[id] IN ('1', '2')`,
         mssql: `[id] IN (N'1', N'2')`,
+      });
+
+      // TODO: this test fails
+      testSql.skip({ 'id::integer': 1 }, {
+        default: 'CAST([id] AS INTEGER) = 1',
       });
 
       testSql({ active: true }, {
@@ -436,6 +445,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describe('Op.eq', () => {
       testSql({ id: { [Op.eq]: 1 } }, {
         default: '[id] = 1',
+      });
+
+      // TODO: this test fails
+      testSql.skip({ 'id::integer': { [Op.eq]: 1 } }, {
+        default: 'CAST([id] AS INTEGER) = 1',
       });
 
       if (dialectSupportsArray()) {
