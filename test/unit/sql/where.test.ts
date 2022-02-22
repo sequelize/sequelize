@@ -1,4 +1,5 @@
 import util from 'util';
+import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
 import type {
   WhereOptions,
@@ -90,29 +91,117 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       ]: WhereOperators[Key]
     };
 
+    /**
+     * Tests whether an operator is compatible with the 5 sequelize methods that can be used as values:
+     * - col()
+     * - literal()
+     * - fn()
+     * - cast()
+     * - legacy Op.col
+     *
+     * If there is a typescript error on the operator passed to this function, then
+     * the typings in {@link WhereOperators} for the provided operator are incorrect.
+     *
+     * @param operator
+     * @param sqlOperator
+     */
     function testSequelizeValueMethods(
       operator: OperatorsSupportingSequelizeValueMethods,
-      stringOperator: string,
+      sqlOperator: string,
     ): void {
       testSql({ col1: { [operator]: { [Op.col]: 'col2' } } }, {
-        default: `[col1] ${stringOperator} [col2]`,
+        default: `[col1] ${sqlOperator} [col2]`,
       });
 
       testSql({ col1: { [operator]: col('col2') } }, {
-        default: `[col1] ${stringOperator} [col2]`,
+        default: `[col1] ${sqlOperator} [col2]`,
       });
 
       testSql({ col: { [operator]: literal('literal') } }, {
-        default: `[col] ${stringOperator} literal`,
+        default: `[col] ${sqlOperator} literal`,
       });
 
       testSql({ col1: { [operator]: fn('NOW') } }, {
-        default: `[col1] ${stringOperator} NOW()`,
+        default: `[col1] ${sqlOperator} NOW()`,
       });
 
       testSql({ col: { [operator]: cast(col('col'), 'string') } }, {
-        default: `[col] ${stringOperator} CAST("col" AS STRING)`,
+        default: `[col] ${sqlOperator} CAST("col" AS STRING)`,
       });
+    }
+
+    /**
+     * 'OperatorsSupportingSequelizeValueMethods' lists all operators
+     * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
+     */
+    type OperatorsSupportingAnyAll = keyof {
+      [Key in keyof WhereOperators
+        as IncludesType<
+          WhereOperators[Key],
+          | { [Op.all]: any[] | Utils.Literal | { [Op.values]: any[] } }
+          | { [Op.any]: any[] | Utils.Literal | { [Op.values]: any[] } }
+        > extends true ? Key : never
+      ]: WhereOperators[Key]
+    };
+
+    /**
+     * Tests whether an operator is compatible with:
+     * - Op.any (+ Op.values)
+     * - Op.all (+ Op.values)
+     *
+     * If there is a typescript error on the operator passed to this function, then
+     * the typings in {@link WhereOperators} for the provided operator are incorrect.
+     *
+     * @param operator
+     * @param sqlOperator
+     * @param testWithValues
+     */
+    function testSupportsAnyAll<TestWithValue>(
+      operator: OperatorsSupportingAnyAll,
+      sqlOperator: string,
+      testWithValues: TestWithValue[],
+    ) {
+      if (!dialectSupportsArray()) {
+        return;
+      }
+
+      const arrayOperators: Array<[jsOp: symbol, sqlOp: string]> = [
+        [Op.any, 'ANY'],
+        [Op.all, 'ALL'],
+      ];
+
+      for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
+        testSql({ col: { [operator]: { [arrayOperator]: testWithValues } } }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: `"col" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
+        });
+
+        testSql({ col: { [operator]: { [arrayOperator]: literal('literal') } } }, {
+          default: `[col] ${sqlOperator} ${arraySqlOperator} (literal)`,
+        });
+
+        // e.g. "col" LIKE ANY (VALUES ("col2"))
+        // TODO: this test fails!
+        testSql.skip({
+          col: {
+            [operator]: {
+              [arrayOperator]: {
+                [Op.values]: [
+                  literal('literal'),
+                  fn('UPPER', col('col2')),
+                  col('col3'),
+                  cast(col('col'), 'string'),
+                  'abc',
+                  12,
+                ],
+              },
+            },
+          },
+        }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: `"col" ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (12))`,
+        });
+      }
     }
 
     const testSql = createTester((it, whereObj: WhereOptions, expectations: Expectations, options?: Options) => {
@@ -290,7 +379,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: '[col] = ANY (literal)',
         });
 
-        testSql({ col: { [Op.any]: { [Op.values]: col('col') } } }, {
+        testSql({ col: { [Op.any]: { [Op.values]: [col('col')] } } }, {
           default: '[col] = ANY (VALUES ("col"))',
         });
 
@@ -301,6 +390,29 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         testSql({ col: { [Op.all]: literal('literal') } }, {
           default: '[col] = ALL (literal)',
+        });
+
+        testSql({ col: { [Op.all]: { [Op.values]: [col('col')] } } }, {
+          default: '[col] = ALL (VALUES ("col"))',
+        });
+
+        // e.g. "col" LIKE ANY (VALUES ("col2"))
+        testSql({
+          col: {
+            [Op.any]: {
+              [Op.values]: [
+                literal('literal'),
+                fn('UPPER', col('col2')),
+                col('col3'),
+                cast(col('col'), 'string'),
+                'abc',
+                1,
+              ],
+            },
+          },
+        }, {
+          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
+          postgres: `"col" = ANY (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (1))`,
         });
       }
     });
@@ -326,26 +438,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       testSequelizeValueMethods(Op.eq, '=');
-
-      if (dialectSupportsArray()) {
-        testSql({ col: { [Op.eq]: { [Op.any]: [2, 3, 4] } } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" = ANY (ARRAY[2,3,4])',
-        });
-
-        testSql({ col: { [Op.eq]: { [Op.any]: literal('literal') } } }, {
-          default: '[col] = ANY (literal)',
-        });
-
-        testSql({ col: { [Op.eq]: { [Op.all]: [2, 3, 4] } } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" = ALL (ARRAY[2,3,4])',
-        });
-
-        testSql({ col: { [Op.eq]: { [Op.all]: literal('literal') } } }, {
-          default: '[col] = ALL (literal)',
-        });
-      }
+      testSupportsAnyAll(Op.eq, '=', [2, 3, 4]);
     });
 
     describe('Op.ne', () => {
@@ -369,26 +462,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       testSequelizeValueMethods(Op.ne, '!=');
-
-      if (dialectSupportsArray()) {
-        testSql({ col: { [Op.ne]: { [Op.any]: [2, 3, 4] } } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" != ANY (ARRAY[2,3,4])',
-        });
-
-        testSql({ col: { [Op.ne]: { [Op.any]: literal('literal') } } }, {
-          default: '[col] != ANY (literal)',
-        });
-
-        testSql({ col: { [Op.ne]: { [Op.all]: [2, 3, 4] } } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" != ALL (ARRAY[2,3,4])',
-        });
-
-        testSql({ col: { [Op.ne]: { [Op.all]: literal('literal') } } }, {
-          default: '[col] != ALL (literal)',
-        });
-      }
+      testSupportsAnyAll(Op.ne, '!=', [2, 3, 4]);
     });
 
     describe('Op.is', () => {
@@ -470,35 +544,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[deleted] != 1',
       });
 
-      testSql({ col1: { [Op.not]: { [Op.col]: 'col2' } } }, {
-        default: '[col1] != [col2]',
-      });
-
-      testSql({ col1: { [Op.not]: col('col2') } }, {
-        default: '[col1] != [col2]',
-      });
-
-      testSql({ col: { [Op.not]: literal('literal') } }, {
-        default: '[col] != literal',
-      });
-
-      testSql({ col1: { [Op.not]: fn('UPPER', col('col2')) } }, {
-        default: '[col1] != UPPER([col2])',
-      });
-
-      testSql({ col: { [Op.not]: cast(col('col'), 'boolean') } }, {
-        default: '[col] != CAST("col" AS BOOLEAN)',
-      });
-
-      if (dialectSupportsArray()) {
-        testSql({ col: { [Op.not]: { [Op.any]: [2, 3, 4] } } }, {
-          postgres: '"col" != ANY (ARRAY[2,3,4])',
-        });
-
-        testSql({ col: { [Op.not]: { [Op.all]: [2, 3, 4] } } }, {
-          postgres: '"col" != ALL (ARRAY[2,3,4])',
-        });
-      }
+      testSequelizeValueMethods(Op.not, '!=');
+      testSupportsAnyAll(Op.not, '!=', [2, 3, 4]);
 
       testSql({ [Op.not]: { col: 5 } }, {
         default: 'NOT ("col" = 5)',
@@ -526,40 +573,29 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     function describeComparisonSuite(
       operator: typeof Op.gt | typeof Op.gte | typeof Op.lt | typeof Op.lte,
-      stringOperator: string,
+      sqlOperator: string,
     ) {
+      // ensure gte, gt, lte, lt support the same typings, so we only have to test their typings once.
+      // unfortunately, at time of writing (TS 4.5.5), TypeScript
+      //  does not detect an error in `{ [operator]: null }`
+      //  but it does detect an error in { [Op.gt]: null }`
+      expectTypeOf<WhereOperators[typeof Op.gte]>().toEqualTypeOf<WhereOperators[typeof Op.gt]>();
+      expectTypeOf<WhereOperators[typeof Op.lt]>().toEqualTypeOf<WhereOperators[typeof Op.gt]>();
+      expectTypeOf<WhereOperators[typeof Op.lte]>().toEqualTypeOf<WhereOperators[typeof Op.gt]>();
+
       describe(`Op.${operator.description}`, () => {
         testSql({ id: { [operator]: 1 } }, {
-          default: `[id] ${stringOperator} 1`,
+          default: `[id] ${sqlOperator} 1`,
         });
 
         // TODO: this test is failing
-        // @ts-expect-error
+        expectTypeOf({ col: { [Op.gt]: null } }).not.toMatchTypeOf<WhereOperators>();
         testSql.skip({ deleted: { [operator]: null } }, {
           default: new Error(`Op.${operator.description} cannot be used with null`),
         });
 
-        testSequelizeValueMethods(operator, stringOperator);
-
-        if (dialectSupportsArray()) {
-          testSql({ col: { [operator]: { [Op.any]: [2, 3, 4] } } }, {
-            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-            postgres: `"col" ${stringOperator} ANY (ARRAY[2,3,4])`,
-          });
-
-          testSql({ col: { [operator]: { [Op.any]: literal('literal') } } }, {
-            default: `[col] ${stringOperator} ANY (literal)`,
-          });
-
-          testSql({ col: { [operator]: { [Op.all]: [2, 3, 4] } } }, {
-            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-            postgres: `"col" ${stringOperator} ALL (ARRAY[2,3,4])`,
-          });
-
-          testSql({ col: { [operator]: { [Op.all]: literal('literal') } } }, {
-            default: `[col] ${stringOperator} ALL (literal)`,
-          });
-        }
+        testSequelizeValueMethods(operator, sqlOperator);
+        testSupportsAnyAll(operator, sqlOperator, [2, 3, 4]);
       });
     }
 
@@ -573,34 +609,24 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     function describeLikeSuite(
       operator: typeof Op.like | typeof Op.notLike | typeof Op.iLike | typeof Op.notILike,
-      stringOperator: string,
+      sqlOperator: string,
     ) {
+      // ensure like ops support the same typings, so we only have to test their typings once.
+      // unfortunately, at time of writing (TS 4.5.5), TypeScript
+      //  does not detect an error in `{ [operator]: null }`
+      //  but it does detect an error in { [Op.iLike]: null }`
+      expectTypeOf<WhereOperators[typeof Op.notLike]>().toEqualTypeOf<WhereOperators[typeof Op.like]>();
+      expectTypeOf<WhereOperators[typeof Op.iLike]>().toEqualTypeOf<WhereOperators[typeof Op.like]>();
+      expectTypeOf<WhereOperators[typeof Op.notILike]>().toEqualTypeOf<WhereOperators[typeof Op.like]>();
+
       describe(`Op.${operator.description}`, () => {
+        expectTypeOf({ id: { [Op.like]: '%id' } }).toMatchTypeOf<WhereOptions>();
         testSql({ id: { [operator]: '%id' } }, {
-          default: `[id] ${stringOperator} '%id'`,
+          default: `[id] ${sqlOperator} '%id'`,
         });
 
-        testSequelizeValueMethods(operator, stringOperator);
-
-        if (dialectSupportsArray()) {
-          testSql({ col: { [operator]: { [Op.any]: ['a', 'b', 'c'] } } }, {
-            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-            postgres: `"col" ${stringOperator} ANY (ARRAY['a','b','c'])`,
-          });
-
-          testSql({ col: { [operator]: { [Op.any]: literal('literal') } } }, {
-            default: `[col] ${stringOperator} ANY (literal)`,
-          });
-
-          testSql({ col: { [operator]: { [Op.all]: ['a', 'b', 'c'] } } }, {
-            // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-            postgres: `"col" ${stringOperator} ALL (ARRAY['a','b','c'])`,
-          });
-
-          testSql({ col: { [operator]: { [Op.all]: literal('literal') } } }, {
-            default: `[col] ${stringOperator} ALL (literal)`,
-          });
-        }
+        testSequelizeValueMethods(operator, sqlOperator);
+        testSupportsAnyAll(operator, sqlOperator, ['a', 'b', 'c']);
       });
     }
 
@@ -989,32 +1015,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             type: DataTypes.ARRAY(DataTypes.INTEGER),
           },
         });
-
-        describe('Op.values', () => {
-          testSql({
-            userId: {
-              [Op.any]: {
-                [Op.values]: [4, 5, 6],
-              },
-            },
-          }, {
-            postgres: '"userId" = ANY (VALUES (4), (5), (6))',
-          });
-
-          testSql({
-            userId: {
-              [Op.any]: {
-                [Op.values]: [2, 5],
-              },
-            },
-          }, {
-            postgres: '"userId" = ANY (VALUES (2), (5))',
-          }, {
-            field: {
-              type: DataTypes.ARRAY(DataTypes.INTEGER),
-            },
-          });
-        });
       });
 
       describe('Op.all', () => {
@@ -1036,32 +1036,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           field: {
             type: DataTypes.ARRAY(DataTypes.INTEGER),
           },
-        });
-
-        describe('Op.values', () => {
-          testSql({
-            userId: {
-              [Op.all]: {
-                [Op.values]: [4, 5, 6],
-              },
-            },
-          }, {
-            postgres: '"userId" = ALL (VALUES (4), (5), (6))',
-          });
-
-          testSql({
-            userId: {
-              [Op.all]: {
-                [Op.values]: [2, 5],
-              },
-            },
-          }, {
-            postgres: '"userId" = ALL (VALUES (2), (5))',
-          }, {
-            field: {
-              type: DataTypes.ARRAY(DataTypes.INTEGER),
-            },
-          });
         });
       });
     }
