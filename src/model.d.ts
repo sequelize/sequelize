@@ -106,14 +106,20 @@ export interface ScopeOptions {
   method: string | readonly [string, ...unknown[]];
 }
 
-type AllowOrAnd<T> = T | { [Op.or]: T[] } | { [Op.and]: T[] };
+type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
+
 type AllowNotOrAndRecursive<T> =
   | T
   | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
   | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
   | { [Op.not]: AllowArray<AllowNotOrAndRecursive<T>> };
 type AllowArray<T> = T | T[];
-type AllowAnyAll<T> = T | { [Op.all]: T[] | Literal } | { [Op.any]: T[] | Literal };
+type AllowAnyAll<T> =
+  | T
+  // Op.all: [x, z] results in ALL (ARRAY[x, z])
+  // Some things cannot go in ARRAY. Op.values must be used to support them.
+  | { [Op.all]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: T[] } }
+  | { [Op.any]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: T[] } };
 
 /**
  * The type accepted by every `where` option
@@ -158,12 +164,13 @@ type WhereSerializableValue = boolean | string | number | Buffer | Date;
  * Internal type - prone to changes. Do not export.
  * @private
  */
-type WhereOperatorValue<AcceptableValues = WhereSerializableValue> =
-  | AllowAnyAll<AcceptableValues>
+type WhereOperatorValue<AcceptableValues = WhereSerializableValue> = AllowAnyAll<
+  | AcceptableValues
   | Literal
   | ColumnReference
   | Fn
-  | Cast;
+  | Cast
+>;
 
 /**
  * Operators that can be used in {@link WhereOptions}
@@ -268,18 +275,22 @@ export interface WhereOperators {
   [Op.overlap]?: ReadonlyArray<WhereSerializableValue> | Literal | ColumnReference | Fn | Cast;
 
   /**
-   * PG array contains operator
+   * PG array & range contains operator
    *
    * @example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: WhereOperators[typeof Op.overlap];
+  [Op.contains]?:
+    // ARRAY or RANGE contains ARRAY or RANGE
+    | WhereOperators[typeof Op.overlap]
+    // RANGE contains ELEMENT
+    | WhereOperatorValue;
 
   /**
    * PG array contained by operator
    *
    * @example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: WhereOperators[typeof Op.overlap];
+  [Op.contained]?: WhereOperators[typeof Op.contains];
 
   /**
    * Strings starts with value.
