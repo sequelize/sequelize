@@ -11,7 +11,8 @@ Sequelize is available via [npm](https://www.npmjs.com/package/@sequelize/core) 
 npm i sequelize # This will install v6, the latest stable release of Sequelize
 npm i @sequelize/core # This will install v7, the latest alpha release of Sequelize
 # using yarn
-yarn add @sequelize/core
+yarn add sequelize # This will install v6, the latest stable release of Sequelize
+yarn add @sequelize/core # This will install v7, the latest alpha release of Sequelize
 ```
 
 You'll also have to manually install the driver for your database of choice:
