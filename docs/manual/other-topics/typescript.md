@@ -313,6 +313,7 @@ Some attributes don't actually need to be passed to `Model.init`, this is how yo
   the configuration of the necessary foreign keys attributes. It is not necessary to configure
   these foreign keys using `Model.init`.
   Use the `ForeignKey<>` branded type to make `Model.init` aware of the fact that it isn't necessary to configure the foreign key:
+
   ```typescript
   import { Model, InferAttributes, InferCreationAttributes, DataTypes, ForeignKey } from 'sequelize';
 
@@ -333,8 +334,10 @@ Some attributes don't actually need to be passed to `Model.init`, this is how yo
     },
   }, { sequelize });
   ```
+
 - Timestamp attributes managed by Sequelize (by default, `createdAt`, `updatedAt`, and `deletedAt`) don't need to be configured using `Model.init`,
   unfortunately `Model.init` has no way of knowing this. We recommend you use the minimum necessary configuration to silence this error:
+
   ```typescript
   import { Model, InferAttributes, InferCreationAttributes, DataTypes } from 'sequelize';
 
