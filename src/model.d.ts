@@ -441,15 +441,16 @@ export type WhereAttributeHash<TAttributes = any> = {
 }
 
 type WhereAttributeHashValue<TAttributes> =
-  | AllowOrAnd<
+  | AllowNotOrAndRecursive<
     // WhereOperators[Op.eq] is optional, we exclude undefined
     // because { id: undefined } is not valid
     | Exclude<WhereOperators[typeof Op.eq], undefined>
     // in v6, `{ attr: Array }` means "attr IN Array" instead of "attr = Array"
     // TODO (v7): Always normalize "no operator" to "equals" (https://github.com/sequelize/sequelize/pull/14020)
     | Exclude<WhereOperators[typeof Op.in], undefined>
+    | WhereOperators
   >
-  | AllowNotOrAndRecursive<WhereOperators>
+  // TODO: this needs a simplified version just for JSON columns
   | WhereAttributeHash<any> // for JSON columns
 
 /**
