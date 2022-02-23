@@ -89,7 +89,7 @@ import {
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
   HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
   Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
-} from "@sequelize/core";
+} from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
@@ -313,7 +313,7 @@ The typings for Sequelize v5 allowed you to define models without specifying typ
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes } from "@sequelize/core";
+import { Sequelize, Model, DataTypes } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -365,7 +365,7 @@ In Sequelize versions before v5, the default way of defining a model involved us
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes, Optional } from "@sequelize/core";
+import { Sequelize, Model, DataTypes, Optional } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -406,7 +406,7 @@ If you're comfortable with somewhat less strict typing for the attributes on a m
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes } from "@sequelize/core";
+import { Sequelize, Model, DataTypes } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -443,7 +443,7 @@ async function doStuff() {
 Here is an example of a utility method that requests a Model Class, and returns the list of primary keys defined in that class:
 
 ```typescript
-import { ModelStatic, ModelAttributeColumnOptions, Model, InferAttributes, InferCreationAttributes, CreationOptional } from "@sequelize/core";
+import { ModelStatic, ModelAttributeColumnOptions, Model, InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
 
 /**
  * Returns the list of attributes that are part of the model's primary key.
@@ -499,7 +499,7 @@ import {
   InferCreationAttributes,
   CreationOptional,
   Attributes
-} from "@sequelize/core";
+} from '@sequelize/core';
 
 export function getAttributeMetadata<M extends Model>(model: ModelStatic<M>, attributeName: keyof Attributes<M>): ModelAttributeColumnOptions {
   const attribute = model.rawAttributes[attributeName];

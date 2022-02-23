@@ -3,7 +3,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 /**
- * Tests whether users can import files deeper than "@sequelize/core" (eg. "@sequelize/core/package.json").
+ * Tests whether users can import files deeper than '@sequelize/core" (eg. "@sequelize/core/package.json').
  * Context: https://github.com/sequelize/sequelize/issues/13787
  */
 

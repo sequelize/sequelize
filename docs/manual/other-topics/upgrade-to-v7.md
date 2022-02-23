@@ -13,7 +13,7 @@ Starting with Sequelize v7, we are introducing scoped modules and renamed the fo
 As a result, you now use Sequelize as follows:
 
 ```javascript
-const { Sequelize } = require("@sequelize/core");
+const { Sequelize } = require('@sequelize/core');
 const sequelize = new Sequelize({ dialect: 'sqlite' });
 
 await sequelize.authenticate();
@@ -46,7 +46,7 @@ This only affects the attribute name, it is still possible to do this for the co
 Instead of doing this:
 
 ```typescript
-import { DataTypes, Model } from "@sequelize/core";
+import { DataTypes, Model } from '@sequelize/core';
 
 class User extends Model {
   $myAttribute$: string;
@@ -72,7 +72,7 @@ User.init({
 Do this:
 
 ```typescript
-import { DataTypes, Model } from "@sequelize/core";
+import { DataTypes, Model } from '@sequelize/core';
 
 class User extends Model {
   $myAttribute$: string;

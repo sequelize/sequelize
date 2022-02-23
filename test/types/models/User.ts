@@ -11,7 +11,7 @@ import {
   Model,
   ModelStatic,
   Op
-} from "@sequelize/core";
+} from '@sequelize/core';
 import { sequelize } from '../connection';
 
 type NonUserAttributes = 'group';

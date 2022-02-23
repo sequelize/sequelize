@@ -37,7 +37,7 @@ yarn add ibm_db # DB2
 To connect to the database, you must create a Sequelize instance. This can be done by either passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI:
 
 ```js
-const { Sequelize } = require("@sequelize/core");
+const { Sequelize } = require('@sequelize/core');
 
 // Option 1: Passing a connection URI
 const sequelize = new Sequelize('sqlite::memory:') // Example for sqlite
@@ -84,7 +84,7 @@ Observe that, in the examples above, `Sequelize` refers to the library itself wh
 You are encouraged to run code examples locally while reading the Sequelize docs. This will help you learn faster. The easiest way to do this is using the SQLite dialect:
 
 ```js
-const { Sequelize, Op, Model, DataTypes } = require("@sequelize/core");
+const { Sequelize, Op, Model, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize("sqlite::memory:");
 
 // Code here! It works!

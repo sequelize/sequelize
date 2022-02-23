@@ -10,7 +10,7 @@ const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 
 // for node >= 12, we use the package.json "export" property to
 //  map imports to dist (except package.json)
-//  so "@sequelize/core/lib/errors" is actually mapped to "@sequelize/core/dist/errors/index.js"
+//  so '@sequelize/core/lib/errors" is actually mapped to "@sequelize/core/dist/errors/index.js'
 //  (see package.json).
 if (nodeMajorVersion < 12) {
   const jsonFile = path.join(__dirname, '..', 'package.json');
