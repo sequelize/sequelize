@@ -289,11 +289,11 @@ export interface WhereOperators {
   /**
    * String ends with value.
    */
-  [Op.endsWith]?: string;
+  [Op.endsWith]?: string | Literal;
   /**
    * String contains value.
    */
-  [Op.substring]?: string;
+  [Op.substring]?: string | Literal;
 
   /**
    * MySQL/PG only

@@ -36,9 +36,6 @@ expectTypeOf({ [Op.ne]: { [Op.any]: [Sequelize.literal('1'), 2, 3], } }).not.toM
 expectTypeOf({ [Op.ne]: { [Op.all]: [Sequelize.literal('1'), 2, 3], } }).not.toMatchTypeOf<WhereOperators>();
 
 expectTypeOf({
-  [Op.startsWith]: 'hat',
-  [Op.endsWith]: 'hat',
-  [Op.substring]: 'hat',
   [Op.regexp]: '^[h|a|t]', // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
   [Op.notRegexp]: '^[h|a|t]', // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
   [Op.iRegexp]: '^[h|a|t]',  // ~* '^[h|a|t]' (PG only)

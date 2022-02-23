@@ -32,6 +32,7 @@ const sql = sequelize.dialect.queryGenerator;
 // when there is no dialect specific expectation but only a default expectation
 
 // TODO:
+//  - fix and resolve any .skip test
 //  - add tests for using where() in wrong places
 //  - add tests for using cast() on a value
 //  - accept arrays in Op.gt, Op.lt, etc
@@ -40,6 +41,10 @@ const sql = sequelize.dialect.queryGenerator;
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
+//  - restrict columns to valid attributes
+//  - test binding values
+// TODO: don't disable test suites if the dialect doesn't support.
+//  instead, ensure dialect throws an error if these operators are used.
 
 type Options = {
   type?: QueryTypes,
@@ -188,7 +193,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         // e.g. "col" LIKE ANY (VALUES ("col2"))
-        // TODO: this test fails!
         testSql.skip({
           col: {
             [operator]: {
@@ -345,7 +349,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[id] IN (N'1', N'2')`,
       });
 
-      // TODO: this test fails
       testSql.skip({ 'id::integer': 1 }, {
         default: 'CAST([id] AS INTEGER) = 1',
       });
@@ -385,12 +388,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[col1] = [col2]',
       });
 
-      // TODO: this test is failing!
       testSql.skip({ col1: col('col2') }, {
         default: '[col1] = [col2]',
       });
 
-      // TODO: this test is failing!
       testSql.skip({ col: literal('literal') }, {
         default: '[col] = literal',
       });
@@ -399,7 +400,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[col1] = UPPER([col2])',
       });
 
-      // TODO: this test is failing!
       testSql.skip({ col: cast(col('col'), 'string') }, {
         default: '[col] = CAST([col] AS STRING)',
       });
@@ -457,7 +457,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[id] = 1',
       });
 
-      // TODO: this test fails
       testSql.skip({ 'id::integer': { [Op.eq]: 1 } }, {
         default: 'CAST([id] AS INTEGER) = 1',
       });
@@ -518,19 +517,16 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[deleted] IS false',
       });
 
-      // TODO: this test is failing
       // @ts-expect-error
       testSql.skip({ deleted: { [Op.is]: 1 } }, {
         default: new Error('Op.is expected a boolean or null, but received 1'),
       });
 
-      // TODO: this test is failing
       // @ts-expect-error
       testSql.skip({ col1: { [Op.is]: { [Op.col]: 'col2' } } }, {
         default: new Error('column references are not supported by Op.is'),
       });
 
-      // TODO: this test is failing
       // @ts-expect-error
       testSql.skip({ col1: { [Op.is]: col('col2') } }, {
         default: new Error('column references are not supported by Op.is'),
@@ -540,26 +536,22 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[col] IS literal',
       });
 
-      // TODO: this test is failing
       // @ts-expect-error
       testSql.skip({ col1: { [Op.is]: fn('UPPER', col('col2')) } }, {
         default: new Error('SQL functions are not supported by Op.is'),
       });
 
-      // TODO: this test is failing
       // @ts-expect-error
       testSql.skip({ col: { [Op.is]: cast(col('col'), 'boolean') } }, {
         default: new Error('CAST is not supported by Op.is'),
       });
 
       if (dialectSupportsArray()) {
-        // TODO: this test is failing
         // @ts-expect-error
         testSql.skip({ col: { [Op.is]: { [Op.any]: [2, 3] } } }, {
           default: new Error('Op.any is not supported by Op.is'),
         });
 
-        // TODO: this test is failing
         // @ts-expect-error
         testSql.skip({ col: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
           default: new Error('Op.all is not supported by Op.is'),
@@ -595,17 +587,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: 'NOT ([col] > 5)',
       });
 
-      // TODO: this test is failing
       testSql.skip({ [Op.not]: where(col('col'), Op.eq, '5') }, {
         default: 'NOT ([col] = 5)',
       });
 
-      // TODO: this test is failing
       testSql.skip({ [Op.not]: json('data.key', 10) }, {
         default: 'NOT (([data]#>>\'{key}\') = 10)',
       });
 
-      // TODO: this test is failing
       testSql.skip({ col: { [Op.not]: { [Op.gt]: 5 } } }, {
         default: 'NOT ([col] > 5)',
       });
@@ -628,7 +617,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: `[id] ${sqlOperator} 1`,
         });
 
-        // TODO: this test is failing
         expectTypeOf({ col: { [Op.gt]: null } }).not.toMatchTypeOf<WhereOperators>();
         testSql.skip({ deleted: { [operator]: null } }, {
           default: new Error(`Op.${operator.description} cannot be used with null`),
@@ -685,7 +673,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: `[id] ${sqlOperator} 1 AND 2`,
         });
 
-        // TODO: this test does not pass
         testSql.skip({ id: { [operator]: [1] } }, {
           default: new Error(`Op.${operator.description} expects an array of exactly 2 items.`),
         });
@@ -713,7 +700,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: WhereOptions = { id: { [Op.between]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
-          // TODO: this test is failing!
           testSql.skip({ id: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
             default: `[id] ${sqlOperator} "col1" AND "col2"`,
           });
@@ -728,7 +714,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: WhereOptions = { id: { [Op.between]: literal('literal1 AND literal2') } };
-          // TODO: this test fails
           testSql.skip({ id: { [operator]: literal('literal1 AND literal2') } }, {
             default: `[id] ${sqlOperator} BETWEEN literal1 AND literal2`,
           });
@@ -797,7 +782,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: WhereOptions = { id: { [Op.in]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
-          // TODO: this test is failing!
           testSql.skip({ id: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
             default: `[id] ${sqlOperator} ("col1", "col2")`,
           });
@@ -887,7 +871,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         {
           // @ts-expect-error
           const ignoreWrong: WhereOptions = { id: { [Op.overlap]: [col('col')] } };
-          // TODO: this test is failing
           testSql.skip({ id: { [operator]: [col('col')] } }, {
             default: new Error(`Op.${operator.description} does not support arrays of cols`),
           });
@@ -931,34 +914,99 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describeOverlapSuite(Op.contains, '@>');
     describeOverlapSuite(Op.contained, '<@');
 
-    // TODO: Op.startsWith, Op.endsWith, Op.substring
-    // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
-    // TODO: Op.match
-    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
-
-    // TODO: check that startsWith properly escape contents!
-
     describe('Op.startsWith', () => {
       testSql({
         username: {
           [Op.startsWith]: 'swagger',
         },
       }, {
-        default: '[username] LIKE \'swagger%\'',
-        mssql: '[username] LIKE N\'swagger%\'',
+        default: `[username] LIKE 'swagger%'`,
+        mssql: `[username] LIKE N'swagger%'`,
       });
 
+      testSql({
+        username: {
+          [Op.startsWith]: 'sql\'injection',
+        },
+      }, {
+        default: `[username] LIKE 'sql''injection%'`,
+        mssql: `[username] LIKE N'sql''injection%'`,
+      });
+
+      // startsWith should escape anything that has special meaning in LIKE
+      testSql.skip({
+        username: {
+          [Op.startsWith]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[username] LIKE 'sql\%injection%' ESCAPE '\'`,
+        mssql: String.raw`[username] LIKE N'sql\%injection%' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
       testSql({
         username: {
           [Op.startsWith]: literal('swagger'),
         },
       }, {
-        default: '[username] LIKE \'swagger%\'',
-        mssql: '[username] LIKE N\'swagger%\'',
+        default: `[username] LIKE 'swagger%'`,
+        mssql: `[username] LIKE N'swagger%'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        username: {
+          [Op.startsWith]: literal('$bind'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT($bind, '%')`,
+        mssql: `[username] LIKE CONCAT($bind, N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.startsWith]: col('username'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT("username", '%')`,
+        mssql: `[username] LIKE CONCAT("username", N'%')`,
+      });
+
+      testSql.skip({
+        username: {
+          // @ts-expect-error not possible in v6 yet
+          [Op.startsWith]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[username] LIKE CONCAT("username", '%')`,
+        mssql: `[username] LIKE CONCAT("username", N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.startsWith]: fn('NOW'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT(NOW(), '%')`,
+        mssql: `[username] LIKE CONCAT(NOW(), N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.startsWith]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
+        mssql: `[username] LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
       });
     });
-
-    // TODO: check that endsWith properly escape contents!
 
     describe('Op.endsWith', () => {
       testSql({
@@ -966,21 +1014,93 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           [Op.endsWith]: 'swagger',
         },
       }, {
-        default: '[username] LIKE \'%swagger\'',
-        mssql: '[username] LIKE N\'%swagger\'',
+        default: `[username] LIKE '%swagger'`,
+        mssql: `[username] LIKE N'%swagger'`,
       });
 
+      testSql({
+        username: {
+          [Op.endsWith]: 'sql\'injection',
+        },
+      }, {
+        default: `[username] LIKE '%sql''injection'`,
+        mssql: `[username] LIKE N'%sql''injection'`,
+      });
+
+      // endsWith should escape anything that has special meaning in LIKE
+      testSql.skip({
+        username: {
+          [Op.endsWith]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[username] LIKE '%sql\%injection' ESCAPE '\'`,
+        mssql: String.raw`[username] LIKE N'%sql\%injection' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
       testSql({
         username: {
           [Op.endsWith]: literal('swagger'),
         },
       }, {
-        default: '[username] LIKE \'%swagger\'',
-        mssql: '[username] LIKE N\'%swagger\'',
+        default: `[username] LIKE '%swagger'`,
+        mssql: `[username] LIKE N'%swagger'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        username: {
+          [Op.endsWith]: literal('$bind'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', $bind)`,
+        mssql: `[username] LIKE CONCAT(N'%', $bind)`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.endsWith]: col('username'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', "username")`,
+        mssql: `[username] LIKE CONCAT(N'%', "username")`,
+      });
+
+      testSql.skip({
+        username: {
+          // @ts-expect-error not possible in v6 yet
+          [Op.endsWith]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', "username")`,
+        mssql: `[username] LIKE CONCAT(N'%', "username")`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.endsWith]: fn('NOW'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', NOW())`,
+        mssql: `[username] LIKE CONCAT(N'%', NOW())`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.endsWith]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', CAST(NOW() AS STRING))`,
+        mssql: `[username] LIKE CONCAT(N'%', CAST(NOW() AS STRING))`,
       });
     });
-
-    // TODO: check that substring properly escape contents (except literals)!
 
     describe('Op.substring', () => {
       testSql({
@@ -988,19 +1108,97 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           [Op.substring]: 'swagger',
         },
       }, {
-        default: '[username] LIKE \'%swagger%\'',
-        mssql: '[username] LIKE N\'%swagger%\'',
+        default: `[username] LIKE '%swagger%'`,
+        mssql: `[username] LIKE N'%swagger%'`,
       });
 
+      testSql({
+        username: {
+          [Op.substring]: 'sql\'injection',
+        },
+      }, {
+        default: `[username] LIKE '%sql''injection%'`,
+        mssql: `[username] LIKE N'%sql''injection%'`,
+      });
+
+      // substring should escape anything that has special meaning in LIKE
+      testSql.skip({
+        username: {
+          [Op.substring]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[username] LIKE '%sql\%injection%' ESCAPE '\'`,
+        mssql: String.raw`[username] LIKE N'%sql\%injection%' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
       testSql({
         username: {
           [Op.substring]: literal('swagger'),
         },
       }, {
-        default: '[username] LIKE \'%swagger%\'',
-        mssql: '[username] LIKE N\'%swagger%\'',
+        default: `[username] LIKE '%swagger%'`,
+        mssql: `[username] LIKE N'%swagger%'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        username: {
+          [Op.substring]: literal('$bind'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', $bind, '%')`,
+        mssql: `[username] LIKE CONCAT(N'%', $bind, N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.substring]: col('username'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', "username", '%')`,
+        mssql: `[username] LIKE CONCAT(N'%', "username", N'%')`,
+      });
+
+      testSql.skip({
+        username: {
+          // @ts-expect-error not possible in v6 yet
+          [Op.substring]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', "username", '%')`,
+        mssql: `[username] LIKE CONCAT(N'%', "username", N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.substring]: fn('NOW'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', NOW(), '%')`,
+        mssql: `[username] LIKE CONCAT(N'%', NOW(), N'%')`,
+      });
+
+      // @ts-expect-error not possible in v6 yet
+      testSql.skip({
+        username: {
+          [Op.substring]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[username] LIKE CONCAT('%', CAST(NOW() AS STRING), '%')`,
+        mssql: `[username] LIKE CONCAT(N'%', CAST(NOW() AS STRING), N'%')`,
       });
     });
+
+    // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
+    // TODO: Op.match
+    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
 
     if (sequelize.dialect.supports.REGEXP) {
       describe('Op.regexp', () => {
@@ -1110,8 +1308,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    // TODO: don't disable test suites if the dialect doesn't support.
-    //  instead, ensure dialect throws an error if these operators are used.
     if (dialectSupportsArray()) {
       describe('Op.any', () => {
         testSql({
