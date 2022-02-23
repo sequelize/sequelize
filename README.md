@@ -36,15 +36,26 @@ We have recently created an [OpenCollective based money pool](https://opencollec
 
 ## :computer: Installation
 
+### Installation of v6 (current stable version)
+
 ```sh
 # using npm
-npm i @sequelize/core # This will install latest version of Sequelize
+npm i sequelize
+# using yarn
+yarn add sequelize
+```
+
+### Installation of v7 (next-gen alpha version)
+
+```sh
+# using npm
+npm i @sequelize/core
 # using yarn
 yarn add @sequelize/core
 ```
 
 ```sh
-# Libraries used for supported dialects are :
+# Libraries used for supported dialects are:
 # using npm
 npm i pg pg-hstore # PostgreSQL
 npm i mysql2 # MySQL
