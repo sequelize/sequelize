@@ -38,9 +38,9 @@ We have recently created an [OpenCollective based money pool](https://opencollec
 
 ```sh
 # using npm
-npm i sequelize # This will install latest version of Sequelize
+npm i @sequelize/core # This will install latest version of Sequelize
 # using yarn
-yarn add sequelize
+yarn add @sequelize/core
 ```
 
 ```sh
