@@ -8,7 +8,7 @@ const Support = require('../../support');
 const Sequelize = Support.Sequelize;
 const Op = Sequelize.Op;
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {

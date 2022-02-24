@@ -1,13 +1,13 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
-const AggregateError = require('sequelize/lib/errors/aggregate-error');
+const Sequelize = require('@sequelize/core');
+const AggregateError = require('@sequelize/core/lib/errors/aggregate-error');
 
 const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;

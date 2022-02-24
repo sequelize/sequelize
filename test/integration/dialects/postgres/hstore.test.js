@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const hstore = require('sequelize/lib/dialects/postgres/hstore');
+const hstore = require('@sequelize/core/lib/dialects/postgres/hstore');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] hstore', () => {

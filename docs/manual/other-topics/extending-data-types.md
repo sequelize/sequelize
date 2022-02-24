@@ -11,7 +11,7 @@ To extend Sequelize datatypes, do it before any Sequelize instance is created.
 In this example, we will create a type called `SOMETYPE` that replicates the built-in datatype `DataTypes.INTEGER(11).ZEROFILL.UNSIGNED`.
 
 ```js
-const { Sequelize, DataTypes, Utils } = require('Sequelize');
+const { Sequelize, DataTypes, Utils } = require('@sequelize/core');
 createTheNewDataType();
 const sequelize = new Sequelize('sqlite::memory:');
 

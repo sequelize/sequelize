@@ -61,7 +61,7 @@ The following fields may be passed to SQLite `dialectOptions`:
 
 ### PostgreSQL
 
-The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
+The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) package. For usage in Node 14 and above you need to use pg version 8.2.x or above, as per [the documentation](https://node-postgres.com/#version-compatibility). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -239,7 +239,7 @@ The `tableHint` option can be used to define a table hint. The hint must be a va
 Table hints override the default behavior of MSSQL query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
 ```js
-const { TableHints } = require('sequelize');
+const { TableHints } = require('@sequelize/core');
 Project.findAll({
   // adding the table hint NOLOCK
   tableHint: TableHints.NOLOCK
@@ -254,7 +254,7 @@ The `indexHints` option can be used to define index hints. The hint type must be
 Index hints [override the default behavior of the MySQL query optimizer](https://dev.mysql.com/doc/refman/5.7/en/index-hints.html).
 
 ```js
-const { IndexHints } = require("sequelize");
+const { IndexHints } = require('@sequelize/core');
 Project.findAll({
   indexHints: [
     { type: IndexHints.USE, values: ['index_project_on_name'] }

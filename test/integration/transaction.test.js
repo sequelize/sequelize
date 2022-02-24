@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
-const { Sequelize, QueryTypes, DataTypes, Transaction } = require('sequelize');
+const { Sequelize, QueryTypes, DataTypes, Transaction } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
