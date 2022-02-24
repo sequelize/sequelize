@@ -13,7 +13,7 @@ describe('exports', () => {
   it('exposes /package.json', async () => {
     // TODO: uncomment test once https://nodejs.org/api/esm.html#json-modules are stable
     // if (nodeMajorVersion >= 16) {
-    //   await import('sequelize/package.json', {
+    //   await import('@sequelize/core/package.json', {
     //     assert: { type: 'json' }
     //   });
     // }
