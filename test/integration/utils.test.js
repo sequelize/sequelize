@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       ]);
     });
 
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (with cast)', async function () {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (auto casting)', async function () {
         const [airplane] = await Airplane.findAll({
           attributes: [

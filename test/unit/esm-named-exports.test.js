@@ -49,6 +49,7 @@ describe('ESM module', () => {
       'snowflake',
       'db2',
       'mssql',
+      'ibmi',
       '_setupHooks',
       'runHooks',
       'addHook',

@@ -12,7 +12,7 @@ const moment = require('moment');
 const { DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = Support.Sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
         qq('createdAt')}, ${qq('updatedAt')
       }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-      if (dialect === 'db2') {
+      if (['db2', 'ibmi'].includes(dialect)) {
         this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
           ("username", "email_address", ${qq('createdAt')}, ${qq('updatedAt')}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       }
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ],
           },
         })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-        expect(spy.callCount).to.eql(dialect === 'db2' ? 1 : 3);
+        expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialect) ? 1 : 3);
       });
     });
 
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true,
         });
 
-        await sequelize.query('select 1;');
+        await sequelize.query(`select 1${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`);
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
         expect(typeof logger.args[0][1] === 'number').to.be.true;
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('executes a query with benchmarking option and custom logger', async function () {
         const logger = sinon.spy();
 
-        await this.sequelize.query('select 1;', {
+        await this.sequelize.query(`select 1${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`, {
           logging: logger,
           benchmark: true,
         });
@@ -199,21 +199,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
         });
 
-        it('add parameters in log sql when use bind value', async function () {
-          let logSql;
-          let typeCast = dialect === 'postgres' ? '::text' : '';
-          if (dialect === 'db2') {
-            typeCast = '::VARCHAR';
-          }
+        if (dialect !== 'ibmi') {
+          it('add parameters in log sql when use bind value', async function () {
+            let logSql;
+            let typeCast = dialect === 'postgres' ? '::text' : '';
+            if (['db2'].includes(dialect)) {
+              typeCast = '::VARCHAR';
+            }
 
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, {
-            bind: ['foo', 'bar'],
-            logging: s => {
-              logSql = s;
-            },
+            await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+              bind: ['foo', 'bar'],
+              logging: s => {
+                logSql = s;
+              },
+            });
+            expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
           });
-          expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
-        });
+        }
       });
     });
 
@@ -285,7 +287,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
       });
     } else {
-      console.log('FIXME: I want to be supported in this dialect as well :-(');
+      console.log(': I want to be supported in this dialect as well :-(');
     }
 
     it('uses the passed model', async function () {
@@ -393,11 +395,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('emits full stacktraces for unique constraint error', async function () {
-          const query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
-            qq('createdAt')}, ${qq('updatedAt')
-          }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-          if (dialect === 'db2') {
-            this.query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
+          let query;
+          if (['db2', 'ibmi'].includes(dialect)) {
+            query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
+              qq('createdAt')}, ${qq('updatedAt')
+            }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+          } else {
+            query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
               qq('createdAt')}, ${qq('updatedAt')
             }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           }
@@ -423,14 +427,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('emits full stacktraces for constraint validation error', async function () {
           let error = null;
           try {
-            // Try inserting a row that has a really high userId to any existing username
-            const query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
-              'createdAt',
-            )}, ${qq(
-              'updatedAt',
-            )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-            if (dialect === 'db2') {
-              this.query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
+            let query;
+            if (['db2', 'ibmi'].includes(dialect)) {
+              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
+                'createdAt',
+              )}, ${qq(
+                'updatedAt',
+              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            } else {
+              query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
                 'createdAt',
               )}, ${qq(
                 'updatedAt',
@@ -575,6 +580,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let sql = 'select ? as number, ? as date,? as string,? as boolean,? as buffer';
       if (dialect === 'db2') {
         sql = 'select ? as "number", ? as "date",? as "string",? as "boolean",? as "buffer"';
+      } else if (dialect === 'ibmi') {
+        sql = `select ? as "number", ? as "date",? as "string",? as "boolean",? as "buffer" FROM SYSIBM.SYSDUMMY1`;
       }
 
       const result = await this.sequelize.query({
@@ -615,6 +622,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         get query() {
           if (dialect === 'db2') {
             return 'select ? as "foo", ? as "bar"';
+          } else if (dialect === 'ibmi') {
+            return 'select ? as "foo", ? as "bar" FROM SYSIBM.SYSDUMMY1';
           }
 
           return 'select ? as foo, ? as bar';
@@ -631,10 +640,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(logSql).to.not.include('?');
     });
 
-    const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2 }] : [{ foo: 1, bar: 2 }];
+    const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: 2 }] : [{ foo: 1, bar: 2 }];
     it('uses properties `query` and `values` if query is tagged', async function () {
       let logSql;
-      const result = await this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, {
+      const result = await this.sequelize.query({ query: `select ? as foo, ? as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, values: [1, 2] }, {
         type: this.sequelize.QueryTypes.SELECT, logging(s) {
           logSql = s;
         },
@@ -643,154 +652,167 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(logSql).to.not.include('?');
     });
 
-    it('uses properties `query` and `bind` if query is tagged', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, {
-        type: this.sequelize.QueryTypes.SELECT, logging(s) {
-          logSql = s;
-        },
+    // IBM i doesn't allow using parameter markers for constant values selected
+    // ad hoc like "SELECT ? AS col"
+    if (dialect !== 'ibmi') {
+      it('uses properties `query` and `bind` if query is tagged', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        let logSql;
+        const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, {
+          type: this.sequelize.QueryTypes.SELECT, logging(s) {
+            logSql = s;
+          },
+        });
+        expect(result).to.deep.equal(expected);
+        if (['postgres', 'sqlite'].includes(dialect)) {
+          expect(logSql).to.include('$1');
+          expect(logSql).to.include('$2');
+        } else if (dialect === 'mssql') {
+          expect(logSql).to.include('@0');
+          expect(logSql).to.include('@1');
+        } else if (dialect === 'mysql') {
+          expect(logSql.match(/\?/g).length).to.equal(2);
+        }
       });
-      expect(result).to.deep.equal(expected);
-      if (['postgres', 'sqlite'].includes(dialect)) {
-        expect(logSql).to.include('$1');
-        expect(logSql).to.include('$2');
-      } else if (dialect === 'mssql') {
-        expect(logSql).to.include('@0');
-        expect(logSql).to.include('@1');
-      } else if (dialect === 'mysql') {
-        expect(logSql.match(/\?/g).length).to.equal(2);
-      }
-    });
+    }
 
     it('dot separated attributes when doing a raw query without nest', async function () {
-      const tickChar = ['postgres', 'mssql', 'db2'].includes(dialect) ? '"' : '`';
-      const sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
+      const tickChar = ['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect) ? '"' : '`';
+      const sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
 
       await expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function () {
-      const tickChar = ['postgres', 'mssql', 'db2'].includes(dialect) ? '"' : '`';
-      const sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
+      const tickChar = ['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect) ? '"' : '`';
+      const sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
       expect(result).to.deep.equal([{ foo: { bar: { baz: 1 } } }]);
     });
 
     it('replaces token with the passed array', async function () {
-      const result = await this.sequelize.query('select ? as foo, ? as bar', { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] });
+      const result = await this.sequelize.query(`select ? as foo, ? as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] });
       expect(result).to.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object', async function () {
-      await expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      await expect(this.sequelize.query(`select :one as foo, :two as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', async function () {
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2, BAZ: '00:00' }] : [{ foo: 1, bar: 2, baz: '00:00' }];
-      await expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: 2, BAZ: '00:00' }] : [{ foo: 1, bar: 2, baz: '00:00' }];
+      await expect(this.sequelize.query(`select :one as foo, :two as bar, '00:00' as baz${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object using the same key twice', async function () {
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2, BAZ: 1 }] : [{ foo: 1, bar: 2, baz: 1 }];
-      await expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: 2, BAZ: 1 }] : [{ foo: 1, bar: 2, baz: 1 }];
+      await expect(this.sequelize.query(`select :one as foo, :two as bar, :one as baz${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object having a null property', async function () {
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
-      await expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
+      const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
+      await expect(this.sequelize.query(`select :one as foo, :two as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
-    it('binds token with the passed array', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, {
-        type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
-          logSql = s;
-        },
-      });
-      expect(result).to.deep.equal(expected);
-      if (['postgres', 'sqlite'].includes(dialect)) {
-        expect(logSql).to.include('$1');
-      }
-    });
-
-    it('binds named parameters with the passed object', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, {
-        raw: true, bind: { one: 1, two: 2 }, logging(s) {
-          logSql = s;
-        },
-      });
-      expect(result[0]).to.deep.equal(expected);
-      if (dialect === 'postgres') {
-        expect(logSql).to.include('$1');
-      }
-
-      if (dialect === 'sqlite') {
-        expect(logSql).to.include('$one');
-      }
-    });
-
-    if (dialect !== 'db2') {
-      it('binds named parameters with the passed object using the same key twice', async function () {
-        const typeCast = dialect === 'postgres' ? '::int' : '';
+    // IBM i cannot bind parameter markers for selecting values like in theses
+    // tests
+    if (dialect !== 'ibmi') {
+      it('binds token with the passed array', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
         let logSql;
-        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz`, {
+        const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+          type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
+            logSql = s;
+          },
+        });
+        expect(result).to.deep.equal(expected);
+        if (['postgres', 'sqlite'].includes(dialect)) {
+          expect(logSql).to.include('$1');
+        }
+      });
+
+      it('binds named parameters with the passed object', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        let logSql;
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: { one: 1, two: 2 }, logging(s) {
             logSql = s;
           },
         });
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
+        expect(result[0]).to.deep.equal(expected);
         if (dialect === 'postgres') {
           expect(logSql).to.include('$1');
-          expect(logSql).to.include('$2');
-          expect(logSql).to.not.include('$3');
+        }
+
+        if (dialect === 'sqlite') {
+          expect(logSql).to.include('$one');
         }
       });
-    }
 
-    it('binds named parameters with the passed object having a null property', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: null } });
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      if (dialect !== 'db2') {
+        it('binds named parameters with the passed object using the same key twice', async function () {
+          const typeCast = dialect === 'postgres' ? '::int' : '';
+          let logSql;
+          const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+            raw: true, bind: { one: 1, two: 2 }, logging(s) {
+              logSql = s;
+            },
+          });
+          if (dialect === 'ibmi') {
+            expect(result[0]).to.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
+          } else {
+            expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
+          }
 
-    it('binds named parameters array handles escaped $$', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      let logSql;
-      const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar`, {
-        raw: true, bind: [1], logging(s) {
-          logSql = s;
-        },
-      });
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: '$ / $1' }] : [{ foo: 1, bar: '$ / $1' }];
-      expect(result[0]).to.deep.equal(expected);
-      if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
-        expect(logSql).to.include('$1');
+          if (dialect === 'postgres') {
+            expect(logSql).to.include('$1');
+            expect(logSql).to.include('$2');
+            expect(logSql).to.not.include('$3');
+          }
+        });
       }
-    });
 
-    it('binds named parameters object handles escaped $$', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar`, { raw: true, bind: { one: 1 } });
-      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      it('binds named parameters with the passed object having a null property', async function () {
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1, two: null } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
+        expect(result[0]).to.deep.equal(expected);
+      });
 
-    it('escape where has $ on the middle of characters', async function () {
-      const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
-      const result = await this.sequelize.query(`select $one${typeCast} as foo$bar`, { raw: true, bind: { one: 1 } });
-      const expected = dialect === 'db2' ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
-      expect(result[0]).to.deep.equal(expected);
-    });
+      it('binds named parameters array handles escaped $$', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        let logSql;
+        const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+          raw: true, bind: [1], logging(s) {
+            logSql = s;
+          },
+        });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $1' }] : [{ foo: 1, bar: '$ / $1' }];
+        expect(result[0]).to.deep.equal(expected);
+        if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
+          expect(logSql).to.include('$1');
+        }
+      });
+
+      it('binds named parameters object handles escaped $$', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
+        expect(result[0]).to.deep.equal(expected);
+      });
+
+      it('escape where has $ on the middle of characters', async function () {
+        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
+        const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
+        expect(result[0]).to.deep.equal(expected);
+      });
+    }
 
     if (['postgres', 'sqlite', 'mssql'].includes(dialect)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
@@ -805,7 +827,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         datetime = 'GETDATE()';
       }
 
-      const [result] = await this.sequelize.query(`SELECT ${datetime} AS t`);
+      const [result] = await this.sequelize.query(`SELECT ${datetime} AS t${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`);
       expect(moment(result[0].t).isValid()).to.be.true;
     });
 

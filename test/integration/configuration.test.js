@@ -65,6 +65,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else if (dialect === 'db2') {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      } else if (dialect === 'ibmi') {
+        await expect(seq.query('select 1 as hello from SYSIBM.SYSDUMMY1')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'Error connecting to the database');
       } else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
@@ -73,7 +75,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2 and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.');
     });
   });
 

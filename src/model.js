@@ -1434,13 +1434,14 @@ class Model {
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
-              if (Boolean(constraintName)
+              if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === references.model
                 && foreignKeyReference.referencedColumnName === references.key
                 && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
-                && !removedConstraints[constraintName]) {
+                && !removedConstraints[constraintName])
+                || this.sequelize.options.dialect === 'ibmi') {
                 // Remove constraint on foreign keys.
                 await this.queryInterface.removeConstraint(tableName, constraintName, options);
                 removedConstraints[constraintName] = true;
@@ -2725,11 +2726,11 @@ class Model {
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {
+      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 

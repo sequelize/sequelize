@@ -380,7 +380,7 @@ function removeNullValuesFromHash(hash, omitNull, options) {
 
 exports.removeNullValuesFromHash = removeNullValuesFromHash;
 
-const dialects = new Set(['mariadb', 'mysql', 'postgres', 'sqlite', 'mssql', 'db2']);
+const dialects = new Set(['mariadb', 'mysql', 'postgres', 'sqlite', 'mssql', 'db2', 'ibmi']);
 
 function now(dialect) {
   const d = new Date();

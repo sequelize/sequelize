@@ -432,6 +432,11 @@ class BOOLEAN extends ABSTRACT {
       if (Buffer.isBuffer(value) && value.length === 1) {
         // Bit fields are returned as buffers
         value = value[0];
+      // By default, `odbc` connector used by `ibmi` dialect returns buffers
+      // in a JavaScript ArrayBuffer instead of a Node.js Buffer
+      } else if (value instanceof ArrayBuffer && value.byteLength === 1) {
+        const view1 = new Uint8Array(value);
+        value = view1[0];
       }
 
       const type = typeof value;
@@ -1150,6 +1155,7 @@ dialectMap.mysql = require('./dialects/mysql/data-types')(DataTypes);
 dialectMap.mariadb = require('./dialects/mariadb/data-types')(DataTypes);
 dialectMap.sqlite = require('./dialects/sqlite/data-types')(DataTypes);
 dialectMap.mssql = require('./dialects/mssql/data-types')(DataTypes);
+dialectMap.ibmi = require('./dialects/ibmi/data-types')(DataTypes);
 dialectMap.db2 = require('./dialects/db2/data-types')(DataTypes);
 dialectMap.snowflake = require('./dialects/snowflake/data-types')(DataTypes);
 

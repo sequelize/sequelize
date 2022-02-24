@@ -14,7 +14,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -134,7 +134,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               || error.message.match(/should be >=? 0 and < 65536/)
               || error.message.includes('Login failed for user')
               || error.message.includes('A communication error has been detected')
-              || error.message.includes('must be > 0 and < 65536'),
+              || error.message.includes('must be > 0 and < 65536')
+              || error.message.includes('Error connecting to the database'),
             ).to.be.ok;
           }
         });
@@ -458,6 +459,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(error.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
+          } else if (dialect === 'ibmi') {
+            expect(error.message).to.equal('[odbc] Error connecting to the database');
+            expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
           } else {
             expect(error.message.toString()).to.match(/.*Access denied.*/);
           }

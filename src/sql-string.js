@@ -24,6 +24,12 @@ exports.arrayToList = arrayToList;
 function escape(val, timeZone, dialect, format) {
   let prependN = false;
   if (val === undefined || val === null) {
+    // There are cases in Db2 for i where 'NULL' isn't accepted, such as
+    // comparison with a WHERE() statement. In those cases, we have to cast.
+    if (dialect === 'ibmi' && format) {
+      return 'cast(NULL as int)';
+    }
+
     return 'NULL';
   }
 
@@ -32,7 +38,7 @@ function escape(val, timeZone, dialect, format) {
     // SQLite doesn't have true/false support. MySQL aliases true/false to 1/0
     // for us. Postgres actually has a boolean type with true/false literals,
     // but sequelize doesn't use it yet.
-      if (['sqlite', 'mssql'].includes(dialect)) {
+      if (['sqlite', 'mssql', 'ibmi'].includes(dialect)) {
         return Number(Boolean(val));
       }
 
@@ -51,6 +57,10 @@ function escape(val, timeZone, dialect, format) {
   }
 
   if (Buffer.isBuffer(val)) {
+    if (dialect === 'ibmi') {
+      return dataTypes[dialect].STRING.prototype.stringify(val);
+    }
+
     if (dataTypes[dialect].BLOB) {
       return dataTypes[dialect].BLOB.prototype.stringify(val);
     }
@@ -71,7 +81,7 @@ function escape(val, timeZone, dialect, format) {
     throw new Error(`Invalid value ${logger.inspect(val)}`);
   }
 
-  if (['postgres', 'sqlite', 'mssql', 'snowflake', 'db2'].includes(dialect)) {
+  if (['postgres', 'sqlite', 'mssql', 'snowflake', 'db2', 'ibmi'].includes(dialect)) {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
     val = val.replace(/'/g, '\'\'');
