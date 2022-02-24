@@ -72,6 +72,24 @@ Important things to know about `InferAttributes` & `InferCreationAttributes` wor
 
 `InferCreationAttributes` works the same way as `AttributesOf` with one exception: Properties typed using the `CreationOptional` type
 will be marked as optional.
+Note that attributes that accept `null`, or `undefined` do not need to use `CreationOptional`:
+
+```typescript
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare firstName: string;
+
+  // there is no need to use CreationOptional on firstName because nullable attributes
+  // are always optional in User.create()
+  declare lastName: string | null;
+}
+
+// ...
+
+await User.create({
+  firstName: 'Zoé',
+  // last name omitted, but this is still valid!
+});
+```
 
 You only need to use `CreationOptional` & `NonAttribute` on class instance fields or getters.
 
@@ -106,7 +124,7 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
-  declare getProjects: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  declare getProjects: HasManyGetAssociationsMixin<Project>;
   declare addProject: HasManyAddAssociationMixin<Project, number>;
   declare addProjects: HasManyAddAssociationsMixin<Project, number>;
   declare setProjects: HasManySetAssociationsMixin<Project, number>;

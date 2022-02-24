@@ -6,7 +6,7 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeUndefinedOptional, AnyFunction } from './utils';
+import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction } from './utils';
 import { LOCK, Transaction, Op } from './index';
 import { SetRequired } from './utils/set-required';
 
@@ -2784,7 +2784,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param values an object of key value pairs
    */
-  constructor(values?: MakeUndefinedOptional<TCreationAttributes>, options?: BuildOptions);
+  constructor(values?: MakeNullishOptional<TCreationAttributes>, options?: BuildOptions);
 
   /**
    * Get an object representing the query for this instance, use with `options.where`
@@ -3174,7 +3174,7 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * @example
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  */
-export type CreationAttributes<M extends Model | Hooks> = MakeUndefinedOptional<M['_creationAttributes']>;
+export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M['_creationAttributes']>;
 
 /**
  * Returns the creation attributes of a given Model.
