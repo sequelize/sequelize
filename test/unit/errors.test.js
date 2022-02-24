@@ -1,6 +1,6 @@
 'use strict';
 
-const errors = require('sequelize/lib/errors');
+const errors = require('@sequelize/core/lib/errors');
 const expect = require('chai').expect;
 
 describe('errors', () => {

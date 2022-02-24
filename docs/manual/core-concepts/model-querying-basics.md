@@ -145,7 +145,7 @@ Post.findAll({
 Observe that no operator (from `Op`) was explicitly passed, so Sequelize assumed an equality comparison by default. The above code is equivalent to:
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 Post.findAll({
   where: {
     authorId: {
@@ -171,7 +171,7 @@ Post.findAll({
 Just like Sequelize inferred the `Op.eq` operator in the first example, here Sequelize inferred that the caller wanted an `AND` for the two checks. The code above is equivalent to:
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 Post.findAll({
   where: {
     [Op.and]: [
@@ -186,7 +186,7 @@ Post.findAll({
 An `OR` can be easily performed in a similar way:
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 Post.findAll({
   where: {
     [Op.or]: [
@@ -201,7 +201,7 @@ Post.findAll({
 Since the above was an `OR` involving the same field, Sequelize allows you to use a slightly different structure which is more readable and generates the same behavior:
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 Post.destroy({
   where: {
     authorId: {
@@ -217,7 +217,7 @@ Post.destroy({
 Sequelize provides several operators.
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 Post.findAll({
   where: {
     [Op.and]: [{ a: 5 }, { b: 6 }],            // (a = 5) AND (b = 6)
@@ -292,7 +292,7 @@ The operators `Op.and`, `Op.or` and `Op.not` can be used to create arbitrarily c
 #### Examples with `Op.and` and `Op.or`
 
 ```js
-const { Op } = require("sequelize");
+const { Op } = require('@sequelize/core');
 
 Foo.findAll({
   where: {
@@ -445,7 +445,7 @@ In Sequelize v4, it was possible to specify strings to refer to operators, inste
 For example:
 
 ```js
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:', {
   operatorsAliases: {
     $gt: Op.gt

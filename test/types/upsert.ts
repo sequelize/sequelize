@@ -1,4 +1,4 @@
-import {Model} from "sequelize"
+import {Model} from '@sequelize/core'
 import {sequelize} from './connection';
 
 class TestModel extends Model<{ foo: string; bar: string }, {}> {

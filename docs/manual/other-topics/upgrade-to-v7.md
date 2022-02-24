@@ -4,6 +4,21 @@ Sequelize v7 is the next major release after v6. Below is a list of breaking cha
 
 ## Breaking Changes
 
+### Main project renamed to @sequelize/core
+
+Starting with Sequelize v7, we are introducing scoped modules and renamed the following projects:
+
+- The former `sequelize` module is now available under `@sequelize/core`.
+
+As a result, you now use Sequelize as follows:
+
+```javascript
+const { Sequelize } = require('@sequelize/core');
+const sequelize = new Sequelize({ dialect: 'sqlite' });
+
+await sequelize.authenticate();
+```
+
 ### Support for Node 12 and up
 
 Sequelize v7 will only support those versions of Node.js that are compatible with the ES module specification,
@@ -31,7 +46,7 @@ This only affects the attribute name, it is still possible to do this for the co
 Instead of doing this:
 
 ```typescript
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model } from '@sequelize/core';
 
 class User extends Model {
   $myAttribute$: string;
@@ -57,7 +72,7 @@ User.init({
 Do this:
 
 ```typescript
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model } from '@sequelize/core';
 
 class User extends Model {
   $myAttribute$: string;

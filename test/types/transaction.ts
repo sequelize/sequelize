@@ -1,4 +1,4 @@
-import { Deferrable, Sequelize, Transaction } from 'sequelize';
+import { Deferrable, Sequelize, Transaction } from '@sequelize/core';
 import { User } from './models/User';
 
 export const sequelize = new Sequelize('uri');

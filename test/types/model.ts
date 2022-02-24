@@ -11,7 +11,7 @@ import {
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
-} from 'sequelize';
+} from '@sequelize/core';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {

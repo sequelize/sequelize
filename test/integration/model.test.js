@@ -1,14 +1,14 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
-const errors = require('sequelize/lib/errors');
+const errors = require('@sequelize/core/lib/errors');
 const sinon = require('sinon');
 const _ = require('lodash');
 const moment = require('moment');

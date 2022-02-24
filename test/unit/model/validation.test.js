@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const Op = Sequelize.Op;
 const Support = require('../support');

@@ -16,7 +16,7 @@ pooling within the same invocation** and **avoid pooling across invocations** (i
 connections at the end):
 
 ```js
-const { Sequelize } = require("sequelize");
+const { Sequelize } = require('@sequelize/core');
 
 let sequelize = null;
 
@@ -439,7 +439,7 @@ Given the fact that AWS Lambda containers process one request at a time, one wou
 configure `sequelize` as follows:
 
 ```js
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require('@sequelize/core');
 
 const sequelize = new Sequelize(/* (...) */, {
   // (...)

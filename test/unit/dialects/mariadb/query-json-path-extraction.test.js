@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('sequelize/lib/dialects/mariadb/query-generator');
+const QueryGenerator = require('@sequelize/core/lib/dialects/mariadb/query-generator');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] jsonPathExtractionQuery', () => {

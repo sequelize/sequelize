@@ -5,7 +5,7 @@ As you already know, a model is an [ES6 class](https://developer.mozilla.org/en-
 For this guide, the following setup will be assumed:
 
 ```js
-const { Sequelize, Model, DataTypes } = require("sequelize");
+const { Sequelize, Model, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize("sqlite::memory:");
 
 const User = sequelize.define("user", {

@@ -86,7 +86,8 @@ Add any other context and details here.
 ### Environment
 
 <!--- To find the version numbers for the three systems below use the following commands:
-- `npm list sequelize` / `yarn list --pattern sequelize`
+- `npm list sequelize` / `yarn list --pattern sequelize` (v6 stable)
+- `npm list @sequelize/core` / `yarn list --pattern @sequelize/core` (v7 alpha)
 - `node -v`
 - `npm list typescript` / `yarn list --pattern typescript` --->
 

@@ -26,7 +26,7 @@ Both ways to define this model are shown below. After being defined, we can acce
 ### Using [`sequelize.define`](../class/src/sequelize.js~Sequelize.html#instance-method-define):
 
 ```js
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:');
 
 const User = sequelize.define('User', {
@@ -50,7 +50,7 @@ console.log(User === sequelize.models.User); // true
 ### Extending [Model](../class/src/model.js~Model.html)
 
 ```js
-const { Sequelize, DataTypes, Model } = require('sequelize');
+const { Sequelize, DataTypes, Model } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
@@ -321,7 +321,7 @@ sequelize.define('Foo', {
 Every column you define in your model must have a data type. Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/src/data-types.js). To access a built-in data type, you must import `DataTypes`:
 
 ```js
-const { DataTypes } = require("sequelize"); // Import the built-in data types
+const { DataTypes } = require('@sequelize/core'); // Import the built-in data types
 ```
 
 ### Strings
@@ -405,7 +405,7 @@ There are other data types, covered in a [separate guide](other-data-types.html)
 When defining a column, apart from specifying the `type` of the column, and the `allowNull` and `defaultValue` options mentioned above, there are a lot more options that can be used. Some examples are below.
 
 ```js
-const { Model, DataTypes, Deferrable } = require("sequelize");
+const { Model, DataTypes, Deferrable } = require('@sequelize/core');
 
 class Foo extends Model {}
 Foo.init({

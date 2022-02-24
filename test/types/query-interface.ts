@@ -1,4 +1,4 @@
-import { DataTypes, Model, fn, literal, col, QueryInterface } from 'sequelize';
+import { DataTypes, Model, fn, literal, col, QueryInterface } from '@sequelize/core';
 
 declare let queryInterface: QueryInterface;
 

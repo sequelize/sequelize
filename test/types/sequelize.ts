@@ -1,4 +1,4 @@
-import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from 'sequelize';
+import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from '@sequelize/core';
 
 Sequelize.useCLS({
   get(key: string): unknown {

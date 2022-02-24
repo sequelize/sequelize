@@ -1,5 +1,5 @@
 {
-  "name": "sequelize",
+  "name": "@sequelize/core",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift and Snowflake’s Data Cloud. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
   "version": "0.0.0-development",
   "funding": [

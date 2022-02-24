@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const { QueryTypes, DataTypes } = require('sequelize');
+const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 

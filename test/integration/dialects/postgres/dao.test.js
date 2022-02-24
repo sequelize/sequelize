@@ -8,8 +8,8 @@ const Support = require('../../support');
 const Sequelize = Support.Sequelize;
 const Op = Sequelize.Op;
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
-const sequelize = require('sequelize/lib/sequelize');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const sequelize = require('@sequelize/core/lib/sequelize');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DAO', () => {

@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('sequelize/lib/dialects/db2/query-generator');
+const QueryGenerator = require('@sequelize/core/lib/dialects/db2/query-generator');
 
 if (dialect === 'db2') {
   describe('[DB2 Specific] jsonPathExtractionQuery', () => {
