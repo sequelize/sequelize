@@ -2207,7 +2207,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
     options: UpdateOptions<Attributes<M>> & { returning: true }
-  ): Promise<[affectedCount: number, affectedRows?: M[]]>;
+  ): Promise<[affectedCount: number, affectedRows: M[]]>;
 
   /**
    * Update multiple instances that match the where options. The promise returns an array with one or two
