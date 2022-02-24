@@ -486,13 +486,12 @@ export class QueryInterface {
   /**
    * Inserts or Updates a record in the database
    */
-  public upsert(
+  public upsert<M extends Model>(
     tableName: TableName,
     insertValues: object,
     updateValues: object,
     where: object,
-    model: ModelType,
-    options?: QueryOptions
+    options?: QueryOptionsWithModel<M>
   ): Promise<object>;
 
   /**
