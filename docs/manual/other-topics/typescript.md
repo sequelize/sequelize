@@ -10,10 +10,7 @@ A decent amount of manual type declarations are needed to make models workable.
 
 ## Installation
 
-In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
-
-- `@types/node` (this is universally required in node projects)
-- `@types/validator`
+In order to avoid clashes with different Node versions, the typings for Node are not included. You must install `@types/node` manually.
 
 ## Usage
 
