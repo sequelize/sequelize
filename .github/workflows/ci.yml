@@ -78,6 +78,24 @@ jobs:
         run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
+  test-ibmi:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [12, 16]
+    name: IBM i (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: test-typings
+    env:
+      DIALECT: ibmi
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Unit Tests
+        run: yarn test-unit
   test-sqlite:
     strategy:
       fail-fast: false

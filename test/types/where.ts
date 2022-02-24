@@ -1,5 +1,5 @@
 import { expectTypeOf } from "expect-type";
-import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn, Transaction } from 'sequelize';
+import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn, Transaction } from '@sequelize/core';
 
 class MyModel extends Model {
   public hi!: number;

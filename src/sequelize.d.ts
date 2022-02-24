@@ -161,7 +161,7 @@ export interface Config {
   readonly protocol: 'tcp';
   readonly native: boolean;
   readonly ssl: boolean;
-  readonly replication: boolean;
+  readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions?: {
@@ -170,7 +170,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -308,7 +308,7 @@ export interface Options extends Logging {
    *
    * @default false
    */
-  replication?: ReplicationOptions;
+  replication?: ReplicationOptions | false;
 
   /**
    * Connection pool options
@@ -410,7 +410,7 @@ export interface QueryOptionsTransactionRequired { }
  * import sequelize:
  *
  * ```js
- * const Sequelize = require('sequelize');
+ * const Sequelize = require('@sequelize/core');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -1402,7 +1402,7 @@ export class Sequelize extends Hooks {
    * ```js
    * const cls = require('cls-hooked');
    * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('sequelize');
+   * const Sequelize = require('@sequelize/core');
    * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace

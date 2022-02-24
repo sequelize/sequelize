@@ -2,7 +2,7 @@
 
 const sinon = require('sinon');
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -40,6 +40,7 @@ if (current.dialect.name !== 'sqlite') {
           allowNull: false,
         }).then(sql => {
           expectsql(sql, {
+            ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT NOT NULL',
             mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
             db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT ALTER COLUMN "level_id" SET NOT NULL;',
             mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
@@ -61,6 +62,7 @@ if (current.dialect.name !== 'sqlite') {
           onDelete: 'cascade',
         }).then(sql => {
           expectsql(sql, {
+            ibmi: 'ALTER TABLE "users" ADD CONSTRAINT "level_id" FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE',
             mssql: 'ALTER TABLE [users] ADD FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',
             db2: 'ALTER TABLE "users" ADD CONSTRAINT "level_id_foreign_idx" FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE;',
             mariadb: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
