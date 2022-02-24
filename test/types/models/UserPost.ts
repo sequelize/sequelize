@@ -1,4 +1,4 @@
-import { Model, Optional, DataTypes } from 'sequelize';
+import { Model, Optional, DataTypes } from '@sequelize/core';
 import { sequelize } from '../connection';
 
 export interface UserPostAttributes {

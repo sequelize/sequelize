@@ -3,12 +3,12 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 const Support = require('../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {

@@ -132,7 +132,7 @@ For example, let's say we have the `firstName` and `lastName` attributes for a U
 It would be nice to have a simple way to obtain the *full name* directly! We can combine the idea of `getters` with the special data type Sequelize provides for this kind of situation: `DataTypes.VIRTUAL`:
 
 ```js
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require('@sequelize/core');
 
 const User = sequelize.define('user', {
   firstName: DataTypes.TEXT,
@@ -163,7 +163,7 @@ Sequelize also provides the `getterMethods` and `setterMethods` options in the m
 Example:
 
 ```js
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:');
 
 const User = sequelize.define('user', {
