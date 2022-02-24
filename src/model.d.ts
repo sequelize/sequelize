@@ -2207,7 +2207,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
     options: UpdateOptions<Attributes<M>>
-  ): Promise<[number] | [number, M[]]>;
+  ): Promise<[affectedCount: number, affectedRows?: M[]]>;
 
   /**
    * Increments a single field.
