@@ -7,7 +7,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const Sequelize = Support.Sequelize;
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const current = Support.sequelize;
 const _ = require('lodash');

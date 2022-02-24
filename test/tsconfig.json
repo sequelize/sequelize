@@ -4,9 +4,9 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "sequelize": ["../types/index.d.ts"],
-      "sequelize/lib/*": ["../types/*"],
-      "sequelize/*": ["../*"]
+      "@sequelize/core": ["../types/index.d.ts"],
+      "@sequelize/core/lib/*": ["../types/*"],
+      "@sequelize/core/*": ["../*"]
     },
     "types": ["node", "mocha", "sinon", "chai"],
     "noEmit": true,

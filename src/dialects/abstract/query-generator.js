@@ -693,7 +693,7 @@ class QueryGenerator {
         break;
       case 'DEFAULT':
         if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specifed for DEFAULT CONSTRAINT');
+          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
         if (this._dialect.name !== 'mssql') {
@@ -722,6 +722,10 @@ class QueryGenerator {
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
         if (options.onUpdate) {
+          if (!this._dialect.supports.constraints.onUpdate) {
+            throw new Error(`Constraint onUpdate is not supported by ${this._dialect}`);
+          }
+
           constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
         }
 
@@ -2670,7 +2674,7 @@ class QueryGenerator {
         }
 
         if (value.length > 0) {
-          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field)).join(', ')})`, comparator, options.prefix);
+          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field, { where: true })).join(', ')})`, comparator, options.prefix);
         }
 
         if (comparator === this.OperatorMap[Op.in]) {
