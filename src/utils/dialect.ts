@@ -11,6 +11,7 @@ const dialects = new Set([
   'sqlite',
   'mssql',
   'db2',
+  'ibmi',
 ]);
 
 export function now(dialect: string): Date {

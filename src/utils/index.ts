@@ -29,32 +29,35 @@ export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T,
 export type AnyFunction = (...args: any[]) => any;
 
 /**
- * Returns all shallow properties that accept `undefined`.
- * Does not include Optional properties, only `undefined`.
+ * Returns all shallow properties that accept `undefined` or `null`.
+ * Does not include Optional properties, only `undefined` or `null`.
  *
  * @example
- * type UndefinedProps = UndefinedPropertiesOf<{
+ * type UndefinedProps = NullishPropertiesOf<{
  *   id: number | undefined,
  *   createdAt: string | undefined,
- *   firstName: string,
+ *   firstName: string | null, // nullable properties are included
  *   lastName?: string, // optional properties are not included.
  * }>;
  *
  * // is equal to
  *
- * type UndefinedProps = 'id' | 'createdAt';
+ * type UndefinedProps = 'id' | 'createdAt' | 'firstName';
  */
-export type UndefinedPropertiesOf<T> = {
-  [P in keyof T]-?: undefined extends T[P] ? P : never
+export type NullishPropertiesOf<T> = {
+  [P in keyof T]-?: undefined extends T[P] ? P
+    : null extends T[P] ? P
+      : never
 }[keyof T];
 
 /**
- * Makes all shallow properties of an object `optional` if they accept `undefined` as a value.
+ * Makes all shallow properties of an object `optional` if they accept `undefined` or `null` as a value.
  *
  * @example
  * type MyOptionalType = MakeUndefinedOptional<{
  *   id: number | undefined,
- *   name: string,
+ *   firstName: string,
+ *   lastName: string | null,
  * }>;
  *
  * // is equal to
@@ -62,7 +65,9 @@ export type UndefinedPropertiesOf<T> = {
  * type MyOptionalType = {
  *   // this property is optional.
  *   id?: number | undefined,
- *   name: string,
+ *   firstName: string,
+ *   // this property is optional.
+ *   lastName?: string | null,
  * };
  */
-export type MakeUndefinedOptional<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
+export type MakeNullishOptional<T extends object> = Optional<T, NullishPropertiesOf<T>>;

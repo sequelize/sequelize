@@ -1,12 +1,12 @@
-import { expect } from 'chai';
-import Sequelize from 'sequelize';
+import Sequelize from '@sequelize/core';
 import {
   canTreatArrayAsAnd,
   defaultValueSchemable,
   isColString,
   isPrimitive,
   isWhereEmpty,
-} from 'sequelize/lib/utils/check';
+} from '@sequelize/core/lib/utils/check';
+import { expect } from 'chai';
 
 describe('utils / check', () => {
   describe('isColString', () => {

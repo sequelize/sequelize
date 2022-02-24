@@ -1,6 +1,6 @@
 {
-  "name": "sequelize",
-  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift and Snowflake’s Data Cloud. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
+  "name": "@sequelize/core",
+  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
   "version": "0.0.0-development",
   "funding": [
     {
@@ -39,9 +39,10 @@
   "license": "MIT",
   "dependencies": {
     "@types/debug": "^4.1.7",
+    "@types/validator": "^13.7.1",
     "debug": "^4.3.3",
     "dottie": "^2.0.2",
-    "inflection": "^1.13.1",
+    "inflection": "^1.13.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
@@ -66,7 +67,6 @@
     "@types/node": "16.11.25",
     "@types/sinon": "10.0.11",
     "@types/uuid": "8.3.3",
-    "@types/validator": "13.7.1",
     "acorn": "8.7.0",
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
@@ -98,6 +98,7 @@
     "mysql2": "2.3.3",
     "node-hook": "1.0.0",
     "nyc": "15.1.0",
+    "odbc": "2.4.2",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
@@ -126,6 +127,9 @@
       "optional": true
     },
     "ibm_db": {
+      "optional": true
+    },
+    "odbc": {
       "optional": true
     },
     "snowflake-sdk": {
@@ -203,6 +207,7 @@
     ]
   },
   "publishConfig": {
+    "access": "public",
     "tag": "alpha"
   },
   "scripts": {
@@ -217,6 +222,7 @@
     "mocha": "mocha -r ./test/registerEsbuild",
     "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
+    "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "node test/teaser.js",
     "test": "yarn prepare && yarn test-typings && yarn teaser && yarn test-unit && yarn test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
@@ -250,8 +256,9 @@
     "test-unit-sqlite": "cross-env DIALECT=sqlite yarn test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql yarn test-unit",
     "test-unit-db2": "cross-env DIALECT=db2 yarn test-unit",
+    "test-unit-ibmi": "cross-env DIALECT=ibmi yarn test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake yarn test-unit",
-    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-postgres-native && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2",
+    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-postgres-native && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2 && test-unit-ibmi",
     "test-integration-mariadb": "cross-env DIALECT=mariadb yarn test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql yarn test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres yarn test-integration",
@@ -259,6 +266,7 @@
     "test-integration-sqlite": "cross-env DIALECT=sqlite yarn test-integration",
     "test-integration-mssql": "cross-env DIALECT=mssql yarn test-integration",
     "test-integration-db2": "cross-env DIALECT=db2 yarn test-integration",
+    "test-integration-ibmi": "cross-env DIALECT=ibmi yarn test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake yarn test-integration",
     "test-mariadb": "cross-env DIALECT=mariadb yarn test",
     "test-mysql": "cross-env DIALECT=mysql yarn test",
@@ -267,6 +275,7 @@
     "test-postgres-native": "cross-env DIALECT=postgres-native yarn test",
     "test-mssql": "cross-env DIALECT=mssql yarn test",
     "test-db2": "cross-env DIALECT=db2 yarn test",
+    "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "fix-commit": "export TMPFILE=$(mktemp) && grep -v '^#' $(git rev-parse --git-dir)/COMMIT_EDITMSG > $TMPFILE && git commit -e -F $TMPFILE",
     "sscce": "node sscce.js",
