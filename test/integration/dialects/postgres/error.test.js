@@ -3,7 +3,7 @@
 const chai      = require('chai');
 
 const expect    = chai.expect;
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 const Support   = require('../../support');
 
 const Sequelize = Support.Sequelize;
