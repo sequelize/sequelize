@@ -89,7 +89,7 @@ MyModel.update({}, { where: { foo: 'bar' }, paranoid: false}).then((result) => {
 });
 
 MyModel.update({}, { where: { foo: 'bar' }, returning: true}).then((result) => {
-  expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows?: MyModel[] | undefined]>();
+  expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows: MyModel[]]>();
 });
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
