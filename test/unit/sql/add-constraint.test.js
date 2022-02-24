@@ -108,7 +108,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: [{
                 attribute: 'myColumn',
               }],
-            })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
+            })).to.throw('Default value must be specified for DEFAULT CONSTRAINT');
           });
 
         });
