@@ -5,12 +5,12 @@ const path = require('path');
 const { isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
 
 const expect = chai.expect;
-const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
+const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
 
 const distDir = path.resolve(__dirname, '../lib');
 

@@ -536,7 +536,7 @@ GameTeam.hasMany(PlayerGameTeam);
 The above associations achieve precisely what we want. Here is a full runnable example of this:
 
 ```js
-const { Sequelize, Op, Model, DataTypes } = require('sequelize');
+const { Sequelize, Op, Model, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:', {
   define: { timestamps: false } // Just for less clutter in this example
 });
