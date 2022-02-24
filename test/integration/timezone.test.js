@@ -7,7 +7,7 @@ const Support = require('./support');
 
 const dialect = Support.getTestDialect();
 
-if (dialect !== 'sqlite') {
+if (dialect !== 'sqlite' && dialect !== 'ibmi') {
   // Sqlite does not support setting timezone
 
   describe(Support.getTestDialectTeaser('Timezone'), () => {

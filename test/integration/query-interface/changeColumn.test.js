@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
           expect(describedTable.level_id.allowNull).to.be.equal(true);
         });
-        if (dialect !== 'db2') {
+        if (!['db2', 'ibmi'].includes(dialect)) {
           it('should change the comment of column', async function () {
             const describedTable = await this.queryInterface.describeTable({
               tableName: 'users',

@@ -300,6 +300,10 @@ class Sequelize {
       throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
     }
 
+    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
+      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
+    }
+
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
@@ -343,6 +347,9 @@ class Sequelize {
       case 'sqlite':
         Dialect = require('./dialects/sqlite');
         break;
+      case 'ibmi':
+        Dialect = require('./dialects/ibmi');
+        break;
       case 'db2':
         Dialect = require('./dialects/db2');
         break;
@@ -350,7 +357,7 @@ class Sequelize {
         Dialect = require('./dialects/snowflake');
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2 and sqlite.`);
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
     }
 
     this.dialect = new Dialect(this);
@@ -900,7 +907,7 @@ class Sequelize {
       ...options,
     };
 
-    await this.query('SELECT 1+1 AS result', options);
+    await this.query(`SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, options);
 
   }
 

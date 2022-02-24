@@ -125,6 +125,7 @@ const Support = {
       pool: config.pool,
       dialectOptions: options.dialectOptions || config.dialectOptions || {},
       minifyAliases: options.minifyAliases || config.minifyAliases,
+      odbcConnectionString: config.odbcConnectionString || '',
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -243,6 +244,9 @@ const Support = {
           expectation = expectation
             .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
             .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          if (Support.sequelize.dialect.name === 'ibmi') {
+            expectation = expectation.replace(/;$/, '');
+          }
         }
       } else {
         throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);

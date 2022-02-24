@@ -105,23 +105,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(data).not.to.have.ownProperty('badgeNumber');
     });
 
-    it('should change a column if it exists in the model but is different in the database', async function () {
-      const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
-      });
-      await this.sequelize.sync();
+    // IBM i can't alter INTEGER -> STRING
+    if (dialect !== 'ibmi') {
+      it('should change a column if it exists in the model but is different in the database', async function () {
+        const testSync = this.sequelize.define('testSync', {
+          name: Sequelize.STRING,
+          age: Sequelize.INTEGER,
+        });
+        await this.sequelize.sync();
 
-      await this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.STRING,
-      });
+        await this.sequelize.define('testSync', {
+          name: Sequelize.STRING,
+          age: Sequelize.STRING,
+        });
 
-      await this.sequelize.sync({ alter: true });
-      const data = await testSync.describe();
-      expect(data).to.have.ownProperty('age');
-      expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
-    });
+        await this.sequelize.sync({ alter: true });
+        const data = await testSync.describe();
+        expect(data).to.have.ownProperty('age');
+        expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
+      });
+    }
 
     it('should not alter table if data type does not change', async function () {
       const testSync = this.sequelize.define('testSync', {
