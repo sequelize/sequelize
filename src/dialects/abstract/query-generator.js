@@ -700,7 +700,7 @@ class QueryGenerator {
         break;
       case 'DEFAULT':
         if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specifed for DEFAULT CONSTRAINT');
+          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
         if (this._dialect.name !== 'mssql') {
