@@ -677,7 +677,7 @@ export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttr
 
 export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
 
-interface GroupedCountResultItem {
+export interface GroupedCountResultItem {
   [key: string]: unknown // projected attributes
   count: number // the count for each group
 }
