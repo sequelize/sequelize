@@ -84,7 +84,13 @@ MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
-MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false}).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[affectedCount: number]>();
+});
+
+MyModel.update({}, { where: { foo: 'bar' }, returning: true}).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows: MyModel[]]>();
+});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 

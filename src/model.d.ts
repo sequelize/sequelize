@@ -6,7 +6,7 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeUndefinedOptional, AnyFunction } from './utils';
+import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction } from './utils';
 import { LOCK, Transaction, Op } from './index';
 import { SetRequired } from './utils/set-required';
 
@@ -2206,8 +2206,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
+    options: UpdateOptions<Attributes<M>> & { returning: true }
+  ): Promise<[affectedCount: number, affectedRows: M[]]>;
+
+  /**
+   * Update multiple instances that match the where options. The promise returns an array with one or two
+   * elements. The first element is always the number of affected rows, while the second element is the actual
+   * affected rows (only supported in postgres and mssql with `options.returning` true.)
+   */
+   public static update<M extends Model>(
+    this: ModelStatic<M>,
+    values: {
+        [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
+    },
     options: UpdateOptions<Attributes<M>>
-  ): Promise<[number, M[]]>;
+  ): Promise<[affectedCount: number]>;
 
   /**
    * Increments a single field.
@@ -2784,7 +2797,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param values an object of key value pairs
    */
-  constructor(values?: MakeUndefinedOptional<TCreationAttributes>, options?: BuildOptions);
+  constructor(values?: MakeNullishOptional<TCreationAttributes>, options?: BuildOptions);
 
   /**
    * Get an object representing the query for this instance, use with `options.where`
@@ -3174,7 +3187,7 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * @example
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  */
-export type CreationAttributes<M extends Model | Hooks> = MakeUndefinedOptional<M['_creationAttributes']>;
+export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M['_creationAttributes']>;
 
 /**
  * Returns the creation attributes of a given Model.
