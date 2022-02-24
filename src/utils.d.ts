@@ -163,4 +163,6 @@ export type UndefinedPropertiesOf<T> = {
  *   name: string,
  * };
  */
-export type MakeUndefinedOptional<T extends object> = Optional<T, UndefinedPropertiesOf<T>>;
+// 'T extends any' is done to support https://github.com/sequelize/sequelize/issues/14129
+// source: https://stackoverflow.com/questions/51691235/typescript-map-union-type-to-another-union-type
+export type MakeUndefinedOptional<T extends object> = T extends any ? Optional<T, UndefinedPropertiesOf<T>> : never;
