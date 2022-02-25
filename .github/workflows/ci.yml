@@ -39,7 +39,7 @@ jobs:
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
-    needs: install-and-build-node-16
+    needs: install-and-build
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
@@ -59,7 +59,7 @@ jobs:
         node-version: [12, 16]
     name: Unit test all dialects (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, lint ]
+    needs: [ install-and-build, lint ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
