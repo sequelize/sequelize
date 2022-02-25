@@ -302,6 +302,7 @@ jobs:
     needs:
       [
         docs,
+        test-typings,
         unit-test,
         test-sqlite,
         test-postgres,
