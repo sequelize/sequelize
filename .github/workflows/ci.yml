@@ -12,15 +12,31 @@ env:
   SEQ_PW: sequelize_test
 
 jobs:
+  install-and-build:
+    name: Upload install and build artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: yarn install --frozen-lockfile
+      - uses: actions/upload-artifact@v2
+        with:
+          name: install-build-artifact
+          path: |
+            lib
+            node_modules
+            types
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
+    needs: install-and-build
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact
       - run: yarn lint-no-fix
       - run: yarn lint-docs
   docs:
@@ -32,7 +48,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact
       - run: yarn docs
   test-typings:
     strategy:
@@ -47,7 +65,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-db2:
