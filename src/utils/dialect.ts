@@ -4,7 +4,7 @@ import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 
 const DataTypes = require('../data-types');
 
-const dialects = new Set([
+const dialectsSupportingMilliseconds = new Set([
   'mariadb',
   'mysql',
   'postgres',
@@ -14,9 +14,11 @@ const dialects = new Set([
   'ibmi',
 ]);
 
+// TODO: instead of receiving a dialect *name* here, require the actual AbstractDialect subclass
+//  and add a flag on AbstractDialect.supports to determine if the date should include milliseconds.
 export function now(dialect: string): Date {
   const d = new Date();
-  if (!dialects.has(dialect)) {
+  if (!dialectsSupportingMilliseconds.has(dialect)) {
     d.setMilliseconds(0);
   }
 
