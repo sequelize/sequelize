@@ -204,35 +204,35 @@ jobs:
       matrix:
         include:
           - name: MySQL 5.7
-            image: mysql:5.7
+            image: mysql:5.7.37
             dialect: mysql
             node-version: 12
           - name: MySQL 5.7
-            image: mysql:5.7
+            image: mysql:5.7.37
             dialect: mysql
             node-version: 16
           - name: MySQL 8.0
-            image: mysql:8.0
+            image: mysql:8.0.28
             dialect: mysql
             node-version: 12
           - name: MySQL 8.0
-            image: mysql:8.0
+            image: mysql:8.0.28
             dialect: mysql
             node-version: 16
           - name: MariaDB 10.3
-            image: mariadb:10.3
+            image: mariadb:10.3.34
             dialect: mariadb
             node-version: 12
           - name: MariaDB 10.3
-            image: mariadb:10.3
+            image: mariadb:10.3.34
             dialect: mariadb
             node-version: 16
           - name: MariaDB 10.5
-            image: mariadb:10.5
+            image: mariadb:10.5.14
             dialect: mariadb
             node-version: 12
           - name: MariaDB 10.5
-            image: mariadb:10.5
+            image: mariadb:10.5.14
             dialect: mariadb
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
