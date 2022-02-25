@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn lint-no-fix
       - run: yarn lint-docs
@@ -32,6 +33,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn docs
   test-typings:
@@ -47,6 +49,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
@@ -70,6 +73,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Install Local DB2 Copy
         run: yarn start-db2
@@ -92,6 +96,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -110,6 +115,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -146,6 +152,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
@@ -214,6 +221,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -253,6 +261,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -273,6 +282,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -296,6 +306,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn semantic-release
       - id: sequelize
