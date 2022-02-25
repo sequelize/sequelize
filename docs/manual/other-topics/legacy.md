@@ -52,7 +52,7 @@ Collection.init({
 }, { sequelize });
 ```
 
-And if your model has no primary key at all you can use `Model.removeAttribute('id');`
+And if your model has no primary key at all you can use `Model.removeAttribute('id');`.  Instances without primary keys, retrieved using `findOne()`, store the exact query criteria in the model class: once many instances are queried simultaneously, doing instance.save() on any of the instances, will always update the last retrieved instance.  The mitigation is to use `instance.update()` and provide there the search criteria.  [#13819](https://github.com/sequelize/sequelize/pull/13819) proposes a fix, storing the query per instance.
 
 ## Foreign keys
 
