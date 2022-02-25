@@ -12,21 +12,38 @@ env:
   SEQ_PW: sequelize_test
 
 jobs:
-  install-and-build:
+  install-and-build-node-12:
     name: Upload install and build artifact
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: yarn install --frozen-lockfile
-      - run: tar -cf install-build.tar ./lib ./node_modules ./types
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 12.x
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: tar -cf install-build-node-12.tar ./lib ./node_modules ./types
       - uses: actions/upload-artifact@v2
         with:
-          name: install-build-artifact
-          path: install-build.tar
+          name: install-build-artifact-node-12
+          path: install-build-node-12.tar
+  install-and-build-node-16:
+    name: Upload install and build artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile
+      - run: tar -cf install-build-node-16.tar ./lib ./node_modules ./types
+      - uses: actions/upload-artifact@v2
+        with:
+          name: install-build-artifact-node-16
+          path: install-build-node-16.tar
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
-    needs: install-and-build
+    needs: install-and-build-node-16
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
@@ -34,8 +51,8 @@ jobs:
           node-version: 16.x
       - uses: actions/download-artifact@v2
         with:
-          name: install-build-artifact
-      - run: tar -xf install-build.tar
+          name: install-build-artifact-node-16
+      - run: tar -xf install-build-node-16.tar
       - run: yarn lint-no-fix
       - run: yarn lint-docs
   docs:
@@ -49,8 +66,8 @@ jobs:
           node-version: 16.x
       - uses: actions/download-artifact@v2
         with:
-          name: install-build-artifact
-      - run: tar -xf install-build.tar
+          name: install-build-artifact-node-16
+      - run: tar -xf install-build-node-16.tar
       - run: yarn docs
   test-typings:
     strategy:
@@ -67,8 +84,8 @@ jobs:
           node-version: 16.x
       - uses: actions/download-artifact@v2
         with:
-          name: install-build-artifact
-      - run: tar -xf install-build.tar
+          name: install-build-artifact-node-16
+      - run: tar -xf install-build-node-16.tar
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-db2:
@@ -78,7 +95,7 @@ jobs:
         node-version: [12, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     env:
       DIALECT: db2
       SEQ_DB: testdb
@@ -91,7 +108,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install Local DB2 Copy
         run: yarn start-db2
       - name: Unit Tests
@@ -105,7 +125,7 @@ jobs:
         node-version: [12, 16]
     name: IBM i (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     env:
       DIALECT: ibmi
     steps:
@@ -113,7 +133,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit Tests
         run: yarn test-unit
   test-sqlite:
@@ -123,7 +146,7 @@ jobs:
         node-version: [12, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     env:
       DIALECT: sqlite
     steps:
@@ -131,7 +154,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -146,7 +172,7 @@ jobs:
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     services:
       postgres:
         image: sushantdhiman/postgres:${{ matrix.postgres-version }}
@@ -167,7 +193,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Unit Tests
@@ -214,7 +243,7 @@ jobs:
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     services:
       mysql:
         image: ${{ matrix.image }}
@@ -235,7 +264,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -248,7 +280,7 @@ jobs:
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
@@ -274,7 +306,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -286,7 +321,7 @@ jobs:
         node-version: [12, 16]
     name: SNOWFLAKE (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: test-typings
+    needs: [ install-and-build-node-12, test-typings ]
     env:
       DIALECT: snowflake
     steps:
@@ -294,7 +329,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit Tests
         run: yarn test-unit
   release:
@@ -317,7 +355,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
-      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-16
+      - run: tar -xf install-build-node-16.tar
       - run: yarn semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
