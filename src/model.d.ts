@@ -1421,6 +1421,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 }
 
+export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends ModelAttributeColumnOptions {
+  /**
+   * The name of the attribute (JS side).
+   */
+  fieldName: string;
+}
+
 /**
  * Interface for Attributes provided for all columns in a model
  */
@@ -1664,13 +1671,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @deprecated use {@link Model.getAttributes} for better typings.
    */
-  public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+  public static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumOptions };
 
   /**
    * Returns the attributes of the model
    */
   public static getAttributes<M extends Model>(this: ModelStatic<M>): {
-    readonly [Key in keyof Attributes<M>]: ModelAttributeColumnOptions
+    readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
 
   /**
@@ -2781,6 +2788,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static belongsToMany<M extends Model, T extends Model>(
     this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
+
+  public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+  public static _virtualAttributes: Set<string>;
 
   /**
    * Returns true if this instance has not yet been persisted to the database

@@ -160,7 +160,7 @@ class QueryGenerator {
       options.bindParam = false;
     }
 
-    valueHash = Utils.removeNullValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = Utils.removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
       if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
         const value = valueHash[key];
@@ -378,7 +378,7 @@ class QueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
     const bind = [];
@@ -469,7 +469,7 @@ class QueryGenerator {
     options = options || {};
     _.defaults(options, { returning: true });
 
-    extraAttributesToBeUpdated = Utils.removeNullValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
+    extraAttributesToBeUpdated = Utils.removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
     let outputFragment = '';
     let returningFragment = '';

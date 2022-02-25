@@ -1,4 +1,4 @@
-import { Config, Sequelize, Model, QueryTypes, ModelCtor, Op, Utils } from '@sequelize/core';
+import { Config, Sequelize, Model, QueryTypes, ModelStatic, Op, Utils } from '@sequelize/core';
 
 Sequelize.useCLS({
   get(key: string): unknown {
@@ -79,7 +79,7 @@ const rnd: Utils.Fn = sequelize.random();
 
 class Model1 extends Model{}
 class Model2 extends Model{}
-const myModel: ModelCtor<Model1> = sequelize.models.asd;
+const myModel: ModelStatic<Model1> = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 
