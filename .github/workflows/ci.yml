@@ -12,34 +12,30 @@ env:
   SEQ_PW: sequelize_test
 
 jobs:
-  install-and-build-node-12:
-    name: Upload install and build artifact (Node 12)
+  install-and-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [12, 16]
+    name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
         with:
-          node-version: 12.x
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - run: tar -cf install-build-node-12.tar ./lib ./node_modules ./types
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies and build sequelize
+        run: yarn install --frozen-lockfile --ignore-engines
+        if: ${{ matrix.node-version == 12 }}
+      - name: Install dependencies and build sequelize
+        run: yarn install --frozen-lockfile
+        if: ${{ matrix.node-version == 16 }}
+      - name: Compress artifact
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
       - uses: actions/upload-artifact@v2
         with:
-          name: install-build-artifact-node-12
-          path: install-build-node-12.tar
-  install-and-build-node-16:
-    name: Upload install and build artifact (Node 16)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - run: yarn install --frozen-lockfile
-      - run: tar -cf install-build-node-16.tar ./lib ./node_modules ./types
-      - uses: actions/upload-artifact@v2
-        with:
-          name: install-build-artifact-node-16
-          path: install-build-node-16.tar
+          name: install-build-artifact-node-${{ matrix.node-version }}
+          path: install-build-node-${{ matrix.node-version }}.tar
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
@@ -52,7 +48,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
-      - run: tar -xf install-build-node-16.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-16.tar
       - run: yarn lint-no-fix
       - run: yarn lint-docs
   unit-test:
@@ -71,8 +68,10 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - run: yarn test-unit-all
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Unit tests
+        run: yarn test-unit-all
   docs:
     name: Generate docs
     runs-on: ubuntu-latest
@@ -85,7 +84,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
-      - run: tar -xf install-build-node-16.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-16.tar
       - run: yarn docs
   test-typings:
     strategy:
@@ -103,7 +103,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
-      - run: tar -xf install-build-node-16.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-16.tar
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-db2:
@@ -129,7 +130,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install Local DB2 Copy
         run: yarn start-db2
       - name: Integration Tests
@@ -152,7 +154,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
   test-postgres:
@@ -189,7 +192,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
       - name: Integration Tests
@@ -257,7 +261,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
   test-mssql:
@@ -297,7 +302,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
   release:
@@ -323,7 +329,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
-      - run: tar -xf install-build-node-16.tar
+      - name: Extract artifact
+        run: tar -xf install-build-node-16.tar
       - run: yarn semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
