@@ -13,7 +13,7 @@ env:
 
 jobs:
   install-and-build-node-12:
-    name: Upload install and build artifact
+    name: Upload install and build artifact (Node 12)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
           name: install-build-artifact-node-12
           path: install-build-node-12.tar
   install-and-build-node-16:
-    name: Upload install and build artifact
+    name: Upload install and build artifact (Node 16)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -55,6 +55,20 @@ jobs:
       - run: tar -xf install-build-node-16.tar
       - run: yarn lint-no-fix
       - run: yarn lint-docs
+  unit-test:
+    name: Unit test all dialects
+    runs-on: ubuntu-latest
+    needs: install-and-build-node-16
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      - uses: actions/download-artifact@v2
+        with:
+          name: install-build-artifact-node-16
+      - run: tar -xf install-build-node-16.tar
+      - run: yarn test-unit-all
   docs:
     name: Generate docs
     runs-on: ubuntu-latest
@@ -95,7 +109,7 @@ jobs:
         node-version: [12, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
+    needs: [ install-and-build-node-12, unit-test ]
     env:
       DIALECT: db2
       SEQ_DB: testdb
@@ -114,31 +128,8 @@ jobs:
       - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install Local DB2 Copy
         run: yarn start-db2
-      - name: Unit Tests
-        run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
-  test-ibmi:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [12, 16]
-    name: IBM i (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
-    env:
-      DIALECT: ibmi
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit Tests
-        run: yarn test-unit
   test-sqlite:
     strategy:
       fail-fast: false
@@ -146,7 +137,7 @@ jobs:
         node-version: [12, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
+    needs: [ install-and-build-node-12, unit-test ]
     env:
       DIALECT: sqlite
     steps:
@@ -158,8 +149,6 @@ jobs:
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit Tests
-        run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
   test-postgres:
@@ -172,7 +161,7 @@ jobs:
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
+    needs: [ install-and-build-node-12, unit-test ]
     services:
       postgres:
         image: sushantdhiman/postgres:${{ matrix.postgres-version }}
@@ -199,9 +188,6 @@ jobs:
       - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
-      - name: Unit Tests
-        run: yarn test-unit
-        if: ${{ !matrix.minify-aliases }}
       - name: Integration Tests
         run: yarn test-integration
   test-mysql-mariadb:
@@ -243,7 +229,7 @@ jobs:
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
+    needs: [ install-and-build-node-12, unit-test ]
     services:
       mysql:
         image: ${{ matrix.image }}
@@ -268,8 +254,6 @@ jobs:
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit Tests
-        run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
   test-mssql:
@@ -280,7 +264,7 @@ jobs:
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
+    needs: [ install-and-build-node-12, unit-test ]
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
@@ -310,37 +294,15 @@ jobs:
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit Tests
-        run: yarn test-unit
       - name: Integration Tests
         run: yarn test-integration
-  test-snowflake:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [12, 16]
-    name: SNOWFLAKE (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ install-and-build-node-12, test-typings ]
-    env:
-      DIALECT: snowflake
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit Tests
-        run: yarn test-unit
   release:
     name: Release
     runs-on: ubuntu-latest
     needs:
       [
         docs,
+        unit-test,
         test-sqlite,
         test-postgres,
         test-mysql-mariadb,
