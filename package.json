@@ -39,6 +39,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/debug": "^4.1.7",
+    "@types/inflection": "^1.13.0",
     "@types/validator": "^13.7.1",
     "debug": "^4.3.3",
     "dottie": "^2.0.2",
@@ -61,7 +62,6 @@
     "@ephys/eslint-config-typescript": "14.1.1",
     "@rushstack/eslint-patch": "1.1.0",
     "@types/chai": "4.3.0",
-    "@types/inflection": "1.13.0",
     "@types/lodash": "4.14.178",
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.25",
