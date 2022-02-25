@@ -105,8 +105,10 @@ jobs:
           name: install-build-artifact-node-16
       - name: Extract artifact
         run: tar -xf install-build-node-16.tar
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
-      - run: yarn test-typings
+      - name: Install TypeScript
+        run: npm install --no-save --no-audit typescript@~${{ matrix.ts-version }}
+      - name: Typing Tests
+        run: yarn test-typings
   test-db2:
     strategy:
       fail-fast: false
