@@ -1,6 +1,6 @@
 import DataTypes = require('./data-types');
 import Deferrable = require('./deferrable');
-import Utils = require('./utils');
+import * as Utils from './utils';
 
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';

@@ -368,7 +368,7 @@ class Db2QueryGenerator extends AbstractQueryGenerator {
       return sql;
     }
 
-    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];

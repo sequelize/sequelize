@@ -39,6 +39,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/debug": "^4.1.7",
+    "@types/inflection": "^1.13.0",
     "@types/validator": "^13.7.1",
     "debug": "^4.3.3",
     "dottie": "^2.0.2",
@@ -56,14 +57,16 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "1.1.0",
     "@commitlint/cli": "16.2.1",
     "@commitlint/config-angular": "16.2.1",
     "@ephys/eslint-config-typescript": "14.1.1",
+    "@rushstack/eslint-patch": "1.1.0",
     "@types/chai": "4.3.0",
+    "@types/lodash": "4.14.178",
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.26",
     "@types/sinon": "10.0.11",
+    "@types/uuid": "8.3.3",
     "acorn": "8.7.0",
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",

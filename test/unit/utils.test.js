@@ -4,10 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Utils = require('@sequelize/core/lib/utils');
+const { DataTypes, Op } = require('@sequelize/core');
+const Utils = require('@sequelize/core/lib/utils/index');
 const { logger } = require('@sequelize/core/lib/utils/logger');
-const { Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {

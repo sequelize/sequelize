@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "commonjs",
     "moduleResolution": "node",
-    "allowJs": true,
+    "allowJs": false,
     "declaration": true,
     "emitDeclarationOnly": true,
     "sourceRoot": "",
