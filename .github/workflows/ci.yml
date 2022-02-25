@@ -18,13 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: yarn install --frozen-lockfile
+      - run: tar -cf install-build.tar ./lib ./node_modules ./types
       - uses: actions/upload-artifact@v2
         with:
           name: install-build-artifact
-          path: |
-            lib
-            node_modules
-            types
+          path: install-build.tar
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
@@ -37,6 +35,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact
+      - run: tar -xf install-build.tar
       - run: yarn lint-no-fix
       - run: yarn lint-docs
   docs:
@@ -51,6 +50,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact
+      - run: tar -xf install-build.tar
       - run: yarn docs
   test-typings:
     strategy:
@@ -68,6 +68,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact
+      - run: tar -xf install-build.tar
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-db2:
