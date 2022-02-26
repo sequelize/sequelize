@@ -21,7 +21,7 @@ export function createTester<Params extends any[]>(
     cb(it.skip, ...params);
   };
 
-  tester.only = function skippedTester(...params: Params) {
+  tester.only = function onlyTester(...params: Params) {
     cb(it.only, ...params);
   };
 
