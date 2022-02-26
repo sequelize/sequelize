@@ -33,7 +33,6 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO: Test nested OR & AND
 // TODO: test JSON syntax
 // TODO: check auto-cast happens for attributes referenced using $this.syntax$
-// TODO: restrict types (id: number can only be checked against types that are properly converted to number)
 
 type Options = {
   type?: QueryTypes,
@@ -51,6 +50,8 @@ const dialectSupportsRange = () => sequelize.dialect.supports.RANGE;
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
   declare intAttr2: number;
+
+  declare nullableIntAttr: number | null;
 
   declare intArrayAttr: number[];
 
@@ -71,6 +72,7 @@ type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
+  nullableIntAttr: DataTypes.INTEGER,
 
   intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
 
@@ -205,7 +207,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         [Op.any, 'ANY'],
         [Op.all, 'ALL'],
       ];
-
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
         // doesn't work at all
         testSql.skip({ intAttr1: { [operator]: { [arrayOperator]: testWithValues } } }, {
@@ -264,22 +265,22 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       default: new Error('WHERE parameter "intAttr1" has invalid "undefined" value'),
     });
 
-    // @ts-expect-error user is not allowed to be undefined
+    // @ts-expect-error user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     });
 
-    // @ts-expect-error user is not allowed to be undefined
+    // @ts-expect-error user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.SELECT });
 
-    // @ts-expect-error user is not allowed to be undefined
+    // @ts-expect-error user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKDELETE });
 
-    // @ts-expect-error user is not allowed to be undefined
+    // @ts-expect-error user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKUPDATE });
@@ -394,8 +395,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: '[stringAttr] = N\'a project\' AND ([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10)',
       });
 
-      testSql({ dateAttr: null }, {
-        default: '[dateAttr] IS NULL',
+      testSql({ nullableIntAttr: null }, {
+        default: '[nullableIntAttr] IS NULL',
       });
 
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
@@ -481,14 +482,23 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       if (dialectSupportsArray()) {
+        // @ts-expect-error - intArrayAttr is not an array
+        const ignore: TestModelWhere = { intAttr1: { [Op.eq]: [1, 2] } };
+
         testSql({ intArrayAttr: { [Op.eq]: [1, 2] } }, {
           default: '[intArrayAttr] = ARRAY[1,2]::INTEGER[]',
         });
       }
 
-      testSql({ intAttr1: { [Op.eq]: null } }, {
-        default: '[intAttr1] IS NULL',
-      });
+      {
+        // @ts-expect-error - intAttr1 is not nullable
+        const ignore: TestModelWhere = { intAttr1: { [Op.eq]: null } };
+
+        // this one is
+        testSql({ nullableIntAttr: { [Op.eq]: null } }, {
+          default: '[nullableIntAttr] IS NULL',
+        });
+      }
 
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
@@ -509,8 +519,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
       }
 
-      testSql({ intAttr1: { [Op.ne]: null } }, {
-        default: '[intAttr1] IS NOT NULL',
+      testSql({ nullableIntAttr: { [Op.ne]: null } }, {
+        default: '[nullableIntAttr] IS NOT NULL',
       });
 
       testSql({ booleanAttr: { [Op.ne]: true } }, {
@@ -525,8 +535,18 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Op.is', () => {
-      testSql({ intAttr1: { [Op.is]: null } }, {
-        default: '[intAttr1] IS NULL',
+      {
+        // @ts-expect-error -- intAttr is not nullable
+        const ignore: TestModelWhere = { intAttr: { [Op.is]: null } };
+      }
+
+      {
+        // @ts-expect-error -- stringAttr is not a boolean
+        const ignore: TestModelWhere = { stringAttr: { [Op.is]: true } };
+      }
+
+      testSql({ nullableIntAttr: { [Op.is]: null } }, {
+        default: '[nullableIntAttr] IS NULL',
       });
 
       testSql({ booleanAttr: { [Op.is]: false } }, {
@@ -586,8 +606,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Op.not', () => {
-      testSql({ intAttr1: { [Op.not]: null } }, {
-        default: '[intAttr1] IS NOT NULL',
+      testSql({ nullableIntAttr: { [Op.not]: null } }, {
+        default: '[nullableIntAttr] IS NOT NULL',
       });
 
       testSql({ booleanAttr: { [Op.not]: false } }, {
@@ -804,10 +824,21 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         }
 
         if (dialectSupportsArray()) {
-          const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.in]: [[1, 2], [3, 4]] } };
-          testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-            default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2]::INTEGER[], ARRAY[3,4]::INTEGER[])`,
-          });
+          {
+            // valid
+            const ignore: TestModelWhere = { intArrayAttr: { [Op.in]: [[1, 2], [3, 4]] } };
+            testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
+              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2]::INTEGER[], ARRAY[3,4]::INTEGER[])`,
+            });
+          }
+
+          {
+            // @ts-expect-error -- intAttr1 is not an array
+            const ignore: TestModelWhere = { intAttr1: { [Op.in]: [[1, 2], [3, 4]] } };
+            testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
+              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2]::INTEGER[], ARRAY[3,4]::INTEGER[])`,
+            });
+          }
         }
 
         {
@@ -871,6 +902,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           testSql({ intAttr1: { [operator]: literal('literal') } }, {
             default: `[intAttr1] ${sqlOperator} literal`,
           });
+        }
+
+        {
+          // @ts-expect-error -- Op.all is not compatible with Op.in
+          const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: { [Op.all]: [] } } };
         }
 
         extraTests();
