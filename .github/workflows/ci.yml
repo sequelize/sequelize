@@ -36,6 +36,7 @@ jobs:
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
+          retention-days: 1
   lint:
     name: Lint code and docs
     runs-on: ubuntu-latest
