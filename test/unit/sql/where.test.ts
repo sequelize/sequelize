@@ -33,18 +33,24 @@ const sql = sequelize.dialect.queryGenerator;
 
 // TODO:
 //  - fix and resolve any .skip test
+
+// TODO
 //  - add tests for using where() in wrong places
 //  - add tests for using cast() on a value
-//  - accept arrays in Op.gt, Op.lt, etc
-//  - accept arrays in Op.in
-//  - test Op.overlap on [date, date]
+//  - test Op.overlap on [date, date] where the value is not an array
+//  - test Op.overlap for ranges should not be more than 2 items
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
+//  - test Op.startsWith & co with ANY & VALUES
 //  - restrict columns to valid attributes
 //  - test binding values
 // TODO: don't disable test suites if the dialect doesn't support.
 //  instead, ensure dialect throws an error if these operators are used.
+// TODO: Test OR, AND
+// TODO: Test nested OR & AND
+// TODO: test JSON syntax
+// TODO: check auto-cast happens for attributes referenced using $this.syntax$
 
 type Options = {
   type?: QueryTypes,
@@ -621,9 +627,19 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       expectTypeOf<WhereOperators[typeof Op.lte]>().toEqualTypeOf<WhereOperators[typeof Op.gt]>();
 
       describe(`Op.${operator.description}`, () => {
-        testSql({ id: { [operator]: 1 } }, {
-          default: `[id] ${sqlOperator} 1`,
-        });
+        {
+          const ignore: WhereOptions = { col: { [Op.gt]: 1 } };
+          testSql({ id: { [operator]: 1 } }, {
+            default: `[id] ${sqlOperator} 1`,
+          });
+        }
+
+        if (dialectSupportsArray()) {
+          const ignore: WhereOptions = { col: { [Op.gt]: [1, 2] } };
+          testSql({ id: { [operator]: [1, 2] } }, {
+            default: `[id] ${sqlOperator} ARRAY[1,2]`,
+          });
+        }
 
         expectTypeOf({ col: { [Op.gt]: null } }).not.toMatchTypeOf<WhereOperators>();
         testSql.skip({ deleted: { [operator]: null } }, {
@@ -748,6 +764,13 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           const ignoreRight: WhereOptions = { id: { [Op.in]: [1, 2, 3] } };
           testSql({ id: { [operator]: [1, 2, 3] } }, {
             default: `[id] ${sqlOperator} (1, 2, 3)`,
+          });
+        }
+
+        if (dialectSupportsArray()) {
+          const ignoreRight: WhereOptions = { id: { [Op.in]: [[1, 2], [3, 4]] } };
+          testSql({ id: { [operator]: [[1, 2], [3, 4]] } }, {
+            default: `[id] ${sqlOperator} (ARRAY[1,2], ARRAY[3,4])`,
           });
         }
 
@@ -1760,8 +1783,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
       });
     }
-
-    // TODO: OR, AND
 
     testSql({
       name: 'a project',
