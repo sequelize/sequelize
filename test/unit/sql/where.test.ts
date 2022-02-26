@@ -1,11 +1,9 @@
 import util from 'util';
-import { expectTypeOf } from 'expect-type';
-import attempt from 'lodash/attempt';
 import type {
   WhereOptions,
   ModelAttributeColumnOptions,
   Utils, WhereOperators,
-} from 'sequelize';
+} from '@sequelize/core';
 import {
   DataTypes,
   QueryTypes,
@@ -18,7 +16,9 @@ import {
   cast,
   and,
   or,
-} from 'sequelize';
+} from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
+import attempt from 'lodash/attempt';
 // eslint-disable-next-line import/order -- issue with mixing require & import
 import { createTester } from '../../support2';
 
@@ -263,6 +263,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     it('{ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
       expectsql(sql.whereItemsQuery({ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: '[yolo.User].[id] = 1',
+        ibmi: 'WHERE "yolo"."User"."id" = 1',
         postgres: '"yolo"."User"."id" = 1',
         db2: '"yolo"."User"."id" = 1',
         snowflake: '"yolo"."User"."id" = 1',
@@ -289,6 +290,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         snowflake: '"name" = \'here is a null char: \0\'',
         mssql: '[name] = N\'here is a null char: \0\'',
         db2: '"name" = \'here is a null char: \0\'',
+        ibmi: 'WHERE "name" = \'here is a null char: \0\'',
         sqlite: '`name` = \'here is a null char: \0\'',
       });
 
@@ -309,6 +311,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       describe('Buffer', () => {
         testSql({ field: Buffer.from('Sequelize') }, {
+          ibmi: '"field" = BLOB(X\'53657175656c697a65\')',
           postgres: '"field" = E\'\\\\x53657175656c697a65\'',
           sqlite: '`field` = X\'53657175656c697a65\'',
           mariadb: '`field` = X\'53657175656c697a65\'',
@@ -511,10 +514,16 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql({ deleted: { [Op.is]: false } }, {
         default: '[deleted] IS false',
+        mssql: '[deleted] IS 0',
+        ibmi: '"deleted" IS 0',
+        sqlite: '`deleted` IS 0',
       });
 
-      testSql({ deleted: { [Op.is]: false } }, {
-        default: '[deleted] IS false',
+      testSql({ deleted: { [Op.is]: true } }, {
+        default: '[deleted] IS true',
+        mssql: '[deleted] IS 1',
+        ibmi: '"deleted" IS 1',
+        sqlite: '`deleted` IS 1',
       });
 
       // @ts-expect-error
@@ -566,10 +575,16 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql({ deleted: { [Op.not]: false } }, {
         default: '[deleted] IS NOT false',
+        mssql: '[deleted] IS NOT 0',
+        ibmi: '"deleted" IS NOT 0',
+        sqlite: '`deleted` IS NOT 0',
       });
 
-      testSql({ deleted: { [Op.not]: false } }, {
-        default: '[deleted] IS NOT false',
+      testSql({ deleted: { [Op.not]: true } }, {
+        default: '[deleted] IS NOT true',
+        mssql: '[deleted] IS NOT 1',
+        ibmi: '"deleted" IS NOT 1',
+        sqlite: '`deleted` IS NOT 1',
       });
 
       testSql({ deleted: { [Op.not]: 1 } }, {

@@ -11,7 +11,7 @@ import {
   literal,
   Transaction,
   and, or,
-} from 'sequelize';
+} from '@sequelize/core';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
 

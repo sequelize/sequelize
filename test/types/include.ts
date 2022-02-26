@@ -1,4 +1,4 @@
-import { Model, Sequelize, HasMany } from 'sequelize';
+import { Model, Sequelize, HasMany } from '@sequelize/core';
 
 class MyModel extends Model {
   public static associations: {

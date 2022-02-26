@@ -15,7 +15,7 @@ import {
   HasManySetAssociationsMixin,
   Model,
   NonAttribute,
-} from 'sequelize';
+} from '@sequelize/core';
 import { sequelize } from '../connection';
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
