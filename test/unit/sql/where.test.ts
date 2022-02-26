@@ -184,8 +184,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
         testSql({ col: { [operator]: { [arrayOperator]: testWithValues } } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: `"col" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
+          default: `[col] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
         });
 
         testSql({ col: { [operator]: { [arrayOperator]: literal('literal') } } }, {
@@ -209,8 +208,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: `"col" ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (12))`,
+          default: `[col] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (12))`,
         });
       }
     }
@@ -409,8 +407,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       if (dialectSupportsArray()) {
         testSql({ col: { [Op.any]: [2, 3, 4] } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" = ANY (ARRAY[2,3,4])',
+          default: '[col] = ANY (ARRAY[2,3,4])',
         });
 
         testSql({ col: { [Op.any]: literal('literal') } }, {
@@ -422,8 +419,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         testSql({ col: { [Op.all]: [2, 3, 4] } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"col" = ALL (ARRAY[2,3,4])',
+          default: '[col] = ALL (ARRAY[2,3,4])',
         });
 
         testSql({ col: { [Op.all]: literal('literal') } }, {
@@ -449,8 +445,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: `"col" = ANY (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (1))`,
+          default: `[col] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), ('abc'), (1))`,
         });
       }
     });
@@ -466,8 +461,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       if (dialectSupportsArray()) {
         testSql({ id: { [Op.eq]: [1, 2] } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"id" = ARRAY[1,2]',
+          default: '[id] = ARRAY[1,2]',
         });
       }
 
@@ -490,8 +484,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       if (dialectSupportsArray()) {
         testSql({ id: { [Op.ne]: [1, 2] } }, {
-          // 'default' is not used because ARRAY[2,3,4] is transformed into ARRAY"2,3,4"
-          postgres: '"id" != ARRAY[1,2]',
+          default: '[id] != ARRAY[1,2]',
         });
       }
 
@@ -876,7 +869,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         {
           const ignoreRight: WhereOptions = { id: { [Op.overlap]: [1, 2, 3] } };
           testSql({ id: { [operator]: [1, 2, 3] } }, {
-            postgres: `"id" ${sqlOperator} ARRAY[1,2,3]`,
+            default: `[id] ${sqlOperator} ARRAY[1,2,3]`,
           });
         }
 
@@ -1319,52 +1312,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           },
         }, {
           postgres: '[username] @@ to_tsvector(\'swagger\')',
-        });
-      });
-    }
-
-    if (dialectSupportsArray()) {
-      describe('Op.any', () => {
-        testSql({
-          userId: {
-            [Op.any]: [4, 5, 6],
-          },
-        }, {
-          postgres: '"userId" = ANY (ARRAY[4,5,6])',
-        });
-
-        testSql({
-          userId: {
-            [Op.any]: [2, 5],
-          },
-        }, {
-          postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])',
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.INTEGER),
-          },
-        });
-      });
-
-      describe('Op.all', () => {
-        testSql({
-          userId: {
-            [Op.all]: [4, 5, 6],
-          },
-        }, {
-          postgres: '"userId" = ALL (ARRAY[4,5,6])',
-        });
-
-        testSql({
-          userId: {
-            [Op.all]: [2, 5],
-          },
-        }, {
-          postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])',
-        }, {
-          field: {
-            type: DataTypes.ARRAY(DataTypes.INTEGER),
-          },
         });
       });
     }
