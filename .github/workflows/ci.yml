@@ -26,10 +26,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile --ignore-engines
-        if: ${{ matrix.node-version == 12 }}
+        if: matrix.node-version == 12
       - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile
-        if: ${{ matrix.node-version == 16 }}
+        if: matrix.node-version == 16
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
       - uses: actions/upload-artifact@v2
@@ -196,9 +196,12 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install pg-native
+      - name: Install pg-native (Node 12)
+        run: yarn add pg-native --ignore-scripts --ignore-engines
+        if: matrix.native && matrix.node-version == 12
+      - name: Install pg-native (Node 16)
         run: npm install --no-save --no-audit pg-native
-        if: matrix.native
+        if: matrix.native && matrix.node-version == 16
       - name: Integration Tests
         run: yarn test-integration
   test-mysql-mariadb:
