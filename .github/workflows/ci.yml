@@ -198,7 +198,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native (Node 12)
-        run: yarn add pg-native --ignore-scripts --ignore-engines
+        run: yarn add pg-native --ignore-engines
         if: matrix.native && matrix.node-version == 12
       - name: Install pg-native (Node 16)
         run: npm install --no-save --no-audit pg-native
