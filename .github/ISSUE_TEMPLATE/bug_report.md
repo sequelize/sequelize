@@ -100,7 +100,7 @@ To find the version numbers for the three systems below use the following comman
 - Node.js version:
 - If TypeScript related: TypeScript version:
 - Database & Version:
-- Connector library & Versions:
+- Connector library & Version:
 
 ## Would you be willing to resolve this issue by submitting a Pull Request?
 
