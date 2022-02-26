@@ -85,7 +85,9 @@ Add any other context and details here.
 
 ### Environment
 
-<!--- 
+<!---
+Please answer the questions below. If you don't, your issue may be closed.
+
 To find the version numbers for the three systems below use the following commands:
 - `npm list sequelize` / `yarn list --pattern sequelize` (v6 stable)
 - `npm list @sequelize/core` / `yarn list --pattern @sequelize/core` (v7 alpha)
