@@ -74,8 +74,22 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Unit tests
-        run: yarn test-unit-all
+      - name: Unit tests (mariadb)
+        run: yarn test-unit-mariadb
+      - name: Unit tests (mysql)
+        run: yarn test-unit-mysql
+      - name: Unit tests (postgres)
+        run: yarn test-unit-postgres
+      - name: Unit tests (postgres-native)
+        run: yarn test-unit-postgres-native
+      - name: Unit tests (mssql)
+        run: yarn test-unit-mssql
+      - name: Unit tests (db2)
+        run: yarn test-unit-db2
+      - name: Unit tests (ibmi)
+        run: yarn test-unit-ibmi
+      - name: Unit tests (snowflake)
+        run: yarn test-unit-snowflake
   docs:
     name: Generate docs
     runs-on: ubuntu-latest
