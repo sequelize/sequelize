@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile --ignore-engines
         if: matrix.node-version == 12
@@ -46,6 +47,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
@@ -66,6 +68,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -82,6 +85,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
@@ -101,6 +105,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
@@ -130,6 +135,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -154,6 +160,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -192,6 +199,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -265,6 +273,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -306,6 +315,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -333,6 +343,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: yarn
       - uses: actions/download-artifact@v2
         with:
           name: install-build-artifact-node-16
