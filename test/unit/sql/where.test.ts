@@ -29,11 +29,9 @@ const sql = sequelize.dialect.queryGenerator;
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
 
 // TODO
-//  - test Op.overlap with ANY & VALUES:
+//  - test Op.overlap, Op.adjacent with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
-//  - RANGE Op.contains ELEMENT
-//  - ELEMENT Op.contained RANGE
 
 // TODO:
 //  - test binding values
@@ -1630,78 +1628,122 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
-    // TODO: Op.adjacent, Op.placeholder
+    function describeAdjacentRangeSuite(
+      operator: typeof Op.adjacent | typeof Op.strictLeft | typeof Op.strictRight
+              | typeof Op.noExtendLeft | typeof Op.noExtendRight,
+      sqlOperator: string,
+    ) {
+      if (dialectSupportsRange()) {
+        return;
+      }
 
-    if (dialectSupportsRange()) {
-      describe('RANGE', () => {
+      expectTypeOf<WhereOperators[typeof Op.strictLeft]>().toEqualTypeOf<WhereOperators[typeof Op.adjacent]>();
+      expectTypeOf<WhereOperators[typeof Op.strictRight]>().toEqualTypeOf<WhereOperators[typeof Op.adjacent]>();
+      expectTypeOf<WhereOperators[typeof Op.noExtendLeft]>().toEqualTypeOf<WhereOperators[typeof Op.adjacent]>();
+      expectTypeOf<WhereOperators[typeof Op.noExtendRight]>().toEqualTypeOf<WhereOperators[typeof Op.adjacent]>();
 
-        testSql({
-          reservedSeats: {
-            [Op.adjacent]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" -|- \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
+      describe(`RANGE Op.${operator.description} RANGE`, () => {
+        {
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [1, 2] } };
+          testSql({ intRangeAttr: { [operator]: [1, 2] } }, {
+            default: `[intRangeAttr] ${sqlOperator} '[1,2)'`,
+          });
+        }
 
-        testSql({
-          reservedSeats: {
-            [Op.strictLeft]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" << \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
+        {
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [1, { value: 2, inclusive: true }] } };
+          testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
+            // used 'postgres' because otherwise range is transformed to "1,2"
+            postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+          });
+        }
 
-        testSql({
-          reservedSeats: {
-            [Op.strictRight]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" >> \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
+        {
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [{ value: 1, inclusive: false }, 2] } };
+          testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, 2] } }, {
+            default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+          });
+        }
 
-        testSql({
-          reservedSeats: {
-            [Op.noExtendRight]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" &< \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
+        {
+          const ignoreRight: TestModelWhere = {
+            intRangeAttr: { [Op.adjacent]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] },
+          };
+          testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] } }, {
+            default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+          });
+        }
 
-        testSql({
-          reservedSeats: {
-            [Op.noExtendLeft]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" &> \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
+        {
+          // unbounded range (right)
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [10, null] } };
+          testSql({
+            intRangeAttr: { [operator]: [10, null] },
+          }, {
+            postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+          });
+        }
+
+        {
+          // unbounded range (left)
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [null, 10] } };
+          testSql({
+            intRangeAttr: { [operator]: [null, 10] },
+          }, {
+            postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+          });
+        }
+
+        {
+          // unbounded range (left)
+          const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [null, null] } };
+          testSql({
+            intRangeAttr: { [operator]: [null, null] },
+          }, {
+            postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+          });
+        }
+
+        {
+          const ignoreRight: TestModelWhere = {
+            dateRangeAttr: { [Op.adjacent]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY] },
+          };
+
+          testSql({
+            dateRangeAttr: {
+              [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
+            },
+          }, {
+            postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+          });
+        }
+
+        {
+          // empty range
+          const ignoreRight: TestModelWhere = { dateRangeAttr: { [Op.adjacent]: [] } };
+
+          testSql({
+            dateRangeAttr: { [operator]: [] },
+          }, {
+            postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+          });
+        }
+
+        {
+          // @ts-expect-error 'intRangeAttr' is a range, but right-hand side is a regular Array
+          const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
+          testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
+            default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
+          });
+        }
       });
     }
+
+    describeAdjacentRangeSuite(Op.adjacent, '-|-');
+    describeAdjacentRangeSuite(Op.strictLeft, '<<');
+    describeAdjacentRangeSuite(Op.strictRight, '>>');
+    describeAdjacentRangeSuite(Op.noExtendLeft, '&>');
+    describeAdjacentRangeSuite(Op.noExtendRight, '&<');
 
     if (sequelize.dialect.supports.JSON) {
       describe('JSON', () => {

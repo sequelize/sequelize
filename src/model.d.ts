@@ -407,16 +407,32 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * PG only
    *
-   * Forces the operator to be strictly left eg. `<< [a, b)`
+   * Whether the range is strictly left of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.strictLeft]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" << [1, 2)
+   * ```
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.strictLeft]?: Rangable<any>;
+  [Op.strictLeft]?:
+    | AttributeType extends Range<infer RangeType> ? Rangable<RangeType> : never
+    | DynamicValues<AttributeType>;
 
   /**
    * PG only
    *
-   * Forces the operator to be strictly right eg. `>> [a, b)`
+   * Whether the range is strictly right of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.strictRight]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" >> [1, 2)
+   * ```
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
@@ -425,7 +441,14 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&> [1, 2)`
+   * Whether the range extends to the left of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.noExtendLeft]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" &> [1, 2)
+   * ```
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
@@ -434,11 +457,34 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&< [1, 2)`
+   * Whether the range extends to the right of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.noExtendRight]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" &< [1, 2)
+   * ```
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.noExtendRight]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
+
+  /**
+   * PG only
+   *
+   * Whether the two ranges are adjacent.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.adjacent]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" -|- [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
+   */
+  [Op.adjacent]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 }
 
 /**
