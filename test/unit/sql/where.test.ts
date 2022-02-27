@@ -248,6 +248,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           },
         }, {
           default: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (12))`,
+          mssql: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), (N'abc'), (12))`,
         });
       }
     }
@@ -309,6 +310,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         })),
       }), {
         default: '[yolo].[User].[id] = 1',
+
+        // FIXME (mysql): this does not sound right.
+        //  this should be '`yolo`.`User`.`id` = 1'
+        mysql: '`yolo.User`.`id` = 1',
       });
     });
 
@@ -337,8 +342,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       testSql({
         dateAttr: 1_356_998_400_000,
       }, {
-        default: '[dateAttr] = \'2013-01-01 00:00:00.000 +00:00\'',
-        mssql: '[dateAttr] = N\'2013-01-01 00:00:00.000 +00:00\'',
+        default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
+        mariadb: `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
+        mysql: `\`dateAttr\` = '2013-01-01 00:00:00'`,
+        mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
       });
 
       describe('Buffer', () => {
@@ -429,6 +436,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
         default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
+        mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
         mariadb: `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
         mysql: `\`dateAttr\` = '2021-01-01 00:00:00'`,
         snowflake: `"dateAttr" = '2021-01-01 00:00:00'`,
@@ -465,6 +473,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql.skip({ stringAttr: cast('abc', 'string') }, {
         default: `[stringAttr] = CAST('abc' AS STRING)`,
+        mssql: `[stringAttr] = CAST(N'abc' AS STRING)`,
       });
 
       if (dialectSupportsArray()) {
@@ -522,6 +531,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           },
         }, {
           default: `[intAttr1] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), ('abc'), (1))`,
+          mssql: `[intAttr1] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), (N'abc'), (1))`,
         });
       }
     });
@@ -572,6 +582,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
+        mssql: '[booleanAttr] = 1',
+        sqlite: '[booleanAttr] = 1',
       });
 
       testSequelizeValueMethods(Op.eq, '=');
@@ -759,6 +771,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           const ignore: TestModelWhere = { stringAttr: { [Op.gt]: 'abc' } };
           testSql({ stringAttr: { [operator]: 'abc' } }, {
             default: `[stringAttr] ${sqlOperator} 'abc'`,
+            mssql: `[stringAttr] ${sqlOperator} N'abc'`,
           });
         }
 
@@ -1019,6 +1032,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         expectTypeOf({ stringAttr: { [Op.like]: '%id' } }).toMatchTypeOf<TestModelWhere>();
         testSql({ stringAttr: { [operator]: '%id' } }, {
           default: `[stringAttr] ${sqlOperator} '%id'`,
+          mssql: `[stringAttr] ${sqlOperator} N'%id'`,
         });
 
         testSequelizeValueMethods(operator, sqlOperator);
@@ -1215,18 +1229,20 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     describeOverlapSuite(Op.overlap, '&&');
     describeOverlapSuite(Op.contains, '@>');
 
-    describe('RANGE Op.contains ELEMENT', () => {
-      testSql({
-        intRangeAttr: { [Op.contains]: 1 },
-      }, {
-        postgres: `"intRangeAttr" @> '1'::int4`,
-      });
+    if (dialectSupportsRange()) {
+      describe('RANGE Op.contains ELEMENT', () => {
+        testSql({
+          intRangeAttr: { [Op.contains]: 1 },
+        }, {
+          postgres: `"intRangeAttr" @> '1'::int4`,
+        });
 
-      // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
-      testSql.skip({ intArrayAttr: { [Op.contains]: 1 } }, {
-        default: new Error(`Op.contains doesn't support comparing with a non-array value.`),
+        // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
+        testSql.skip({ intArrayAttr: { [Op.contains]: 1 } }, {
+          default: new Error(`Op.contains doesn't support comparing with a non-array value.`),
+        });
       });
-    });
+    }
 
     describeOverlapSuite(Op.contained, '<@');
 
@@ -1274,6 +1290,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE 'sql''injection%'`,
+        mysql: `\`stringAttr\` LIKE 'sql\\'injection%'`,
+        mariadb: `\`stringAttr\` LIKE 'sql\\'injection%'`,
         mssql: `[stringAttr] LIKE N'sql''injection%'`,
       });
 
@@ -1385,6 +1403,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE '%sql''injection'`,
+        mysql: `\`stringAttr\` LIKE '%sql\\'injection'`,
+        mariadb: `\`stringAttr\` LIKE '%sql\\'injection'`,
         mssql: `[stringAttr] LIKE N'%sql''injection'`,
       });
 
@@ -1496,6 +1516,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE '%sql''injection%'`,
+        mysql: `\`stringAttr\` LIKE '%sql\\'injection%'`,
+        mariadb: `\`stringAttr\` LIKE '%sql\\'injection%'`,
         mssql: `[stringAttr] LIKE N'%sql''injection%'`,
       });
 
@@ -1645,7 +1667,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               | typeof Op.noExtendLeft | typeof Op.noExtendRight,
       sqlOperator: string,
     ) {
-      if (dialectSupportsRange()) {
+      if (!dialectSupportsRange()) {
         return;
       }
 
@@ -1774,7 +1796,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             attribute: 'value',
           },
         }, {
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
         testSql.skip({
@@ -1782,7 +1807,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             [Op.eq]: 'value',
           },
         }, {
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested')) = 'value'`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested}') = 'value'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'value'`,
         });
 
         testSql.skip({
@@ -1790,7 +1818,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             attribute: 'value',
           },
         }, {
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
         testSql.skip({
@@ -1798,19 +1829,28 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             attribute: 'value',
           },
         }, {
+          mariadb: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
+          mysql: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
         testSql({
           'jsonAttr.nested::STRING': 'value',
         }, {
+          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql.skip({
           '$jsonAttr$.nested::STRING': 'value',
         }, {
+          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql.skip({
@@ -1818,19 +1858,28 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             attribute: 'value',
           },
         }, {
-          postgres: `CAST(("association"."jsonAttr"#>>'{nested,attribute}') AS STRING) = 'value'`,
+          mariadb: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          mysql: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
+          postgres: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          sqlite: `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql.skip({
           $jsonAttr$: { nested: 'value' },
         }, {
-          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
+          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
         testSql.skip({
           $jsonAttr$: { 'nested::string': 'value' },
         }, {
+          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql({ 'jsonAttr.nested.attribute': 4 }, {
@@ -2100,7 +2149,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql(
         where(col('name'), { [Op.not]: '123' }),
-        { default: `[name] != '123'` },
+        {
+          default: `[name] != '123'`,
+          mssql: `[name] != N'123'`,
+        },
       );
 
       {
@@ -2204,6 +2256,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         // can pass an array
         testSql({ [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
           default: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = '')`,
+          mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N'')`,
         });
 
         // can be used on attribute
@@ -2238,6 +2291,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         // can pass an array
         testSql({ [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
           default: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = '')`,
+          mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N'')`,
         });
 
         // can be used on attribute
