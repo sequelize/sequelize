@@ -26,8 +26,6 @@ const sql = sequelize.dialect.queryGenerator;
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
-//  - test Op.regexp with ANY etc
-//  - test Op.match with ANY etc
 //  - test binding values
 // TODO: Test OR, AND
 // TODO: Test nested OR & AND
@@ -1417,6 +1415,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         testSequelizeValueMethods(operator, sqlOperator);
+        testSupportsAnyAll(operator, sqlOperator, ['^a$', '^b$']);
       });
     }
 
@@ -1433,10 +1432,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     if (sequelize.dialect.supports.TSVECTOR) {
       describe('Op.match', () => {
         testSql({ stringAttr: { [Op.match]: fn('to_tsvector', 'swagger') } }, {
-          default: '[stringAttr] @@ to_tsvector(\'swagger\')',
+          default: `[stringAttr] @@ to_tsvector('swagger')`,
         });
 
         testSequelizeValueMethods(Op.match, '@@');
+        testSupportsAnyAll(Op.match, '@@', [fn('to_tsvector', 'a'), fn('to_tsvector', 'b')]);
       });
     }
 
@@ -1610,7 +1610,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
         });
 
-        testSql({
+        testSql.skip({
           '$jsonAttr$.nested': {
             [Op.eq]: 'value',
           },
