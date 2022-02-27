@@ -121,12 +121,12 @@ describe(support.getTestDialectTeaser('SQL'), () => {
      * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
      */
     type OperatorsSupportingSequelizeValueMethods = keyof {
-      [Key in keyof WhereOperators
+      [Key in keyof WhereOperators<number>
         as IncludesType<
-          WhereOperators[Key],
+          WhereOperators<number>[Key],
           Utils.Col | Utils.Literal | Utils.Fn | Utils.Cast | { [Op.col]: string }
         > extends true ? Key : never
-      ]: WhereOperators[Key]
+      ]: WhereOperators<number>[Key]
     };
 
     /**
@@ -172,14 +172,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
      * 'OperatorsSupportingSequelizeValueMethods' lists all operators
      * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
      */
-    type OperatorsSupportingAnyAll = keyof {
-      [Key in keyof WhereOperators
+    type OperatorsSupportingAnyAll<AttributeType> = keyof {
+      [Key in keyof WhereOperators<AttributeType>
         as IncludesType<
-          WhereOperators[Key],
+          WhereOperators<AttributeType>[Key],
           | { [Op.all]: any[] | Utils.Literal | { [Op.values]: any[] } }
           | { [Op.any]: any[] | Utils.Literal | { [Op.values]: any[] } }
         > extends true ? Key : never
-      ]: WhereOperators[Key]
+      ]: WhereOperators<AttributeType>[Key]
     };
 
     /**
@@ -195,7 +195,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
      * @param testWithValues
      */
     function testSupportsAnyAll<TestWithValue>(
-      operator: OperatorsSupportingAnyAll,
+      operator: OperatorsSupportingAnyAll<TestWithValue>,
       sqlOperator: string,
       testWithValues: TestWithValue[],
     ) {
