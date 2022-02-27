@@ -166,7 +166,7 @@ type RangePart<T> = { value: T, inclusive: boolean };
  * Internal type - prone to changes. Do not export.
  * @private
  */
-type ColumnReference = Col | { [Op.col]: string };
+export type ColumnReference = Col | { [Op.col]: string };
 
 /**
  * Internal type - prone to changes. Do not export.

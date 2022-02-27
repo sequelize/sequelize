@@ -21,7 +21,7 @@ import {
   ModelType,
   CreationAttributes,
   Attributes,
-  WhereAttributeHash
+  WhereAttributeHash, ColumnReference,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';
@@ -1499,7 +1499,7 @@ export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | Col | Literal | Cast | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
 
 /**
  * A way of specifying "attr = condition".

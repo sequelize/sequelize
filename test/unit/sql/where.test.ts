@@ -171,7 +171,15 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[intAttr1] ${sqlOperator} NOW()`,
       });
 
+      testSql.skip({ intAttr1: { [operator]: fn('SUM', { [Op.col]: 'intAttr2' }) } }, {
+        default: `[intAttr1] ${sqlOperator} SUM([intAttr2])`,
+      });
+
       testSql({ intAttr1: { [operator]: cast(col('intAttr2'), 'string') } }, {
+        default: `[intAttr1] ${sqlOperator} CAST([intAttr2] AS STRING)`,
+      });
+
+      testSql.skip({ intAttr1: { [operator]: cast({ [Op.col]: 'intAttr2' }, 'string') } }, {
         default: `[intAttr1] ${sqlOperator} CAST([intAttr2] AS STRING)`,
       });
 
@@ -451,7 +459,15 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[stringAttr] = UPPER([stringAttr])',
       });
 
+      testSql({ stringAttr: fn('UPPER', { [Op.col]: col('stringAttr') }) }, {
+        default: '[stringAttr] = UPPER([stringAttr])',
+      });
+
       testSql.skip({ stringAttr: cast(col('intAttr1'), 'string') }, {
+        default: '[stringAttr] = CAST([intAttr1] AS STRING)',
+      });
+
+      testSql.skip({ stringAttr: cast({ [Op.col]: 'intAttr1' }, 'string') }, {
         default: '[stringAttr] = CAST([intAttr1] AS STRING)',
       });
 
@@ -2072,6 +2088,25 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: 'lower([name]) IS NULL',
       });
 
+      testSql(where(col('name'), Op.eq, fn('NOW')), {
+        default: '[name] = NOW()',
+      });
+
+      testSql.skip(
+        where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
+        { default: `[name] = '123' AND NOT ([name] = '456')` },
+      );
+
+      testSql.skip(
+        where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
+        { default: `[name] = '123' OR NOT ([name] = '456')` },
+      );
+
+      testSql(
+        where(col('name'), { [Op.not]: '123' }),
+        { default: `[name] != '123'` },
+      );
+
       {
         // @ts-expect-error -- 'intAttr1' is not a boolean and cannot be compared to the output of 'where'
         const ignore: TestModelWhere = { intAttr1: where(fn('lower', col('name')), null) };
@@ -2097,8 +2132,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: 'lower([name]) IS NOT NULL',
       });
 
-      testSql([where(fn('SUM', col('hours')), Op.gt, 0),
-        where(fn('lower', col('name')), null)], {
+      testSql([
+        where(fn('SUM', col('hours')), Op.gt, 0),
+        where(fn('lower', col('name')), null),
+      ], {
         default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)',
       });
 
@@ -2108,6 +2145,18 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql(where(col('hours'), Op.notBetween, [0, 5]), {
         default: '[hours] NOT BETWEEN 0 AND 5',
+      });
+
+      testSql.skip(where({ [Op.col]: 'hours' }, Op.notBetween, [0, 5]), {
+        default: '[hours] NOT BETWEEN 0 AND 5',
+      });
+
+      testSql.skip(where(cast({ [Op.col]: 'hours' }, 'integer'), Op.notBetween, [0, 5]), {
+        default: 'CAST([hours] AS INTEGER) NOT BETWEEN 0 AND 5',
+      });
+
+      testSql.skip(where(fn('SUM', { [Op.col]: 'hours' }), Op.notBetween, [0, 5]), {
+        default: 'SUM([hours]) NOT BETWEEN 0 AND 5',
       });
 
       testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
