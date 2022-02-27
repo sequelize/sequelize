@@ -164,16 +164,17 @@ type WhereSerializableValue = boolean | string | number | Buffer | Date;
  * Internal type - prone to changes. Do not export.
  * @private
  */
-type WhereOperatorValue<AcceptableValues> = AllowAnyAll<
-  | AcceptableValues
-  | DynamicValues
->;
+type OperatorValues<AcceptableValues> =
+  | StaticValues<AcceptableValues>
+  | DynamicValues<AcceptableValues>;
 
-type DynamicValues =
+type DynamicValues<AcceptableValues> =
   | Literal
   | ColumnReference
   | Fn
   | Cast
+  // where() can only be used on boolean attributes
+  | (AcceptableValues extends boolean ? Where : never)
 
 /**
  * Takes an attribute Type & adds other JS types that are compatible with it.
@@ -201,7 +202,7 @@ export interface WhereOperators<AttributeType = any> {
     * @example: `[Op.eq]: col('column')` becomes `= "column"`
     * @example: `[Op.eq]: fn('NOW')` becomes `= NOW()`
     */
-  [Op.eq]?: WhereOperatorValue<StaticValues<AttributeType>>;
+  [Op.eq]?: AllowAnyAll<OperatorValues<AttributeType>>;
 
   /**
    * @example: `[Op.ne]: 20,` becomes `!= 20`
@@ -228,7 +229,7 @@ export interface WhereOperators<AttributeType = any> {
   [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
 
   /** @example: `[Op.gte]: 6` becomes `>= 6` */
-  [Op.gte]?: WhereOperatorValue<StaticValues<NonNullable<AttributeType>>>;
+  [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
 
   /** @example: `[Op.lte]: 10` becomes `<= 10` */
   [Op.lte]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
@@ -244,8 +245,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.between]?:
     | [
-      lowerInclusive: StaticValues<NonNullable<AttributeType>> | DynamicValues,
-      higherInclusive: StaticValues<NonNullable<AttributeType>> | DynamicValues,
+      lowerInclusive: OperatorValues<NonNullable<AttributeType>>,
+      higherInclusive: OperatorValues<NonNullable<AttributeType>>,
     ]
     | Literal;
 
@@ -253,16 +254,16 @@ export interface WhereOperators<AttributeType = any> {
   [Op.notBetween]?: WhereOperators<AttributeType>[typeof Op.between];
 
   /** @example: `[Op.in]: [1, 2],` becomes `IN (1, 2)` */
-  [Op.in]?: ReadonlyArray<StaticValues<NonNullable<AttributeType>> | DynamicValues> | Literal;
+  [Op.in]?: ReadonlyArray<OperatorValues<NonNullable<AttributeType>>> | Literal;
 
   /** @example: `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)` */
   [Op.notIn]?: WhereOperators<AttributeType>[typeof Op.in];
 
   /**
    * @example: `[Op.like]: '%hat',` becomes `LIKE '%hat'`
-   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: WhereOperatorValue<Extract<AttributeType, string>>;
+  [Op.like]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
    * @example: `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
@@ -287,7 +288,7 @@ export interface WhereOperators<AttributeType = any> {
   [Op.notILike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
-   * PG array overlap operator
+   * PG array & range 'overlaps' operator
    *
    * @example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
@@ -295,11 +296,12 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-array.html array && array
   [Op.overlap]?:
     // only usable on array attributes
-    | WhereOperatorValue<AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>> : never>
-    | Literal;
+    | AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>> : never
+    | Literal
+    | DynamicValues<AttributeType>;
 
   /**
-   * PG array & range contains operator
+   * PG array & range 'contains' operator
    *
    * @example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
@@ -311,10 +313,10 @@ export interface WhereOperators<AttributeType = any> {
     // ARRAY or RANGE contains ARRAY or RANGE
     | WhereOperators<AttributeType>[typeof Op.overlap]
     // RANGE contains ELEMENT
-    | WhereOperatorValue<NonNullable<AttributeType>>;
+    | OperatorValues<NonNullable<AttributeType>>;
 
   /**
-   * PG array contained by operator
+   * PG array & range 'contained by' operator
    *
    * @example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
@@ -323,7 +325,7 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: Extract<AttributeType, string> | DynamicValues;
+  [Op.startsWith]?: OperatorValues<Extract<AttributeType, string>>;
 
   /**
    * String ends with value.
@@ -341,7 +343,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * @example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: WhereOperatorValue<Extract<AttributeType, string>> | Literal;
+  [Op.regexp]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
    * MySQL/PG only
@@ -371,20 +373,23 @@ export interface WhereOperators<AttributeType = any> {
   [Op.notIRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
   /** @example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: WhereOperatorValue<never>;
+  [Op.match]?: AllowAnyAll<DynamicValues<AttributeType>>;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly left eg. `<< [a, b)`
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
-  // TODO
   [Op.strictLeft]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly right eg. `>> [a, b)`
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.strictRight]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 
@@ -392,6 +397,8 @@ export interface WhereOperators<AttributeType = any> {
    * PG only
    *
    * Forces the operator to not extend the left eg. `&> [1, 2)`
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.noExtendLeft]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 
@@ -399,6 +406,8 @@ export interface WhereOperators<AttributeType = any> {
    * PG only
    *
    * Forces the operator to not extend the left eg. `&< [1, 2)`
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.noExtendRight]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 }
