@@ -454,22 +454,21 @@ export type WhereValue<TAttributes = any> =
 
 /**
  * A hash of attributes to describe your search.
+ *
+ * Possible key values:
+ *
+ * - An attribute name: `{ id: 1 }`
+ * - A nested attribute: `{ '$projects.id$': 1 }`
+ * - A JSON key: `{ 'object.key': 1 }`
+ *
+ * - A cast attribute name: `{ 'id::integer': 1 }`
+ * - A cast nested attribute: `{ '$projects.id$::integer': 1 }`
+ * - A cast JSON key: `{ 'object.key::integer': 1 }`
  */
 export type WhereAttributeHash<TAttributes = any> = {
-  /**
-   * Possible key values:
-   * - A simple attribute name
-   * - A nested key for JSON columns
-   *
-   *  {
-   *    "meta.audio.length": {
-   *      [Op.gt]: 20
-   *    }
-   *  }
-   *
-   * - An $attribute$ name
-   */
   [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
+} & {
+  [AttributeName in keyof TAttributes as AttributeName extends string ? `${AttributeName | `$${AttributeName}$`}::${string}` : never]?: WhereAttributeHashValue<any>;
 } & {
   /**
    * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
@@ -478,7 +477,7 @@ export type WhereAttributeHash<TAttributes = any> = {
   // TypeScript < 4.4 does not support using a Template Literal Type as a key.
   //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
   // @ts-ignore
-  [attribute: `$${string}.${string}$`]: WhereAttributeHashValue<any>;
+  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}`]: WhereAttributeHashValue<any>;
 }
 
 type WhereAttributeHashValue<AttributeType> =

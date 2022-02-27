@@ -18,6 +18,7 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO:
 //  - fix and resolve any .skip test
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
+//  - forbid using :: in attribute names
 
 // TODO
 //  - add tests for using where() in wrong places
@@ -32,6 +33,8 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO: Test nested OR & AND
 // TODO: test JSON syntax
 // TODO: check auto-cast happens for attributes referenced using $this.syntax$
+// TODO: test $nested.syntax$ & $syntax$
+// TODO: check syntax $attr$::cast, $nested.attr$::cast, json.path::cast
 
 type Options = {
   type?: QueryTypes,
