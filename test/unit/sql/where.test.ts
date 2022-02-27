@@ -59,10 +59,12 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
   declare intArrayAttr: number[];
   declare intRangeAttr: Range<number>;
+  declare dateRangeAttr: Range<Date>;
 
   declare stringAttr: string;
   declare dateAttr: Date;
   declare booleanAttr: boolean;
+  declare bigIntAttr: bigint;
 
   declare jsonAttr: object;
   declare jsonbAttr: object;
@@ -81,10 +83,12 @@ TestModel.init({
 
   intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
   intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
+  dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
 
   stringAttr: DataTypes.STRING,
   dateAttr: DataTypes.DATE,
   booleanAttr: DataTypes.BOOLEAN,
+  bigIntAttr: DataTypes.BIGINT,
 
   jsonAttr: { type: DataTypes.JSON },
   jsonbAttr: { type: DataTypes.JSONB },
@@ -1133,6 +1137,61 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           }
 
           {
+            // unbounded range (right)
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [10, null] } };
+            testSql({
+              intRangeAttr: { [operator]: [10, null] },
+            }, {
+              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+            });
+          }
+
+          {
+            // unbounded range (left)
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [null, 10] } };
+            testSql({
+              intRangeAttr: { [operator]: [null, 10] },
+            }, {
+              postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+            });
+          }
+
+          {
+            // unbounded range (left)
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [null, null] } };
+            testSql({
+              intRangeAttr: { [operator]: [null, null] },
+            }, {
+              postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+            });
+          }
+
+          {
+            const ignoreRight: TestModelWhere = {
+              dateRangeAttr: { [Op.overlap]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY] },
+            };
+
+            testSql({
+              dateRangeAttr: {
+                [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
+              },
+            }, {
+              postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+            });
+          }
+
+          {
+            // empty range
+            const ignoreRight: TestModelWhere = { dateRangeAttr: { [Op.overlap]: [] } };
+
+            testSql({
+              dateRangeAttr: { [operator]: [] },
+            }, {
+              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+            });
+          }
+
+          {
             // @ts-expect-error 'intRangeAttr' is a range, but right-hand side is a regular Array
             const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
             testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
@@ -1145,7 +1204,49 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     describeOverlapSuite(Op.overlap, '&&');
     describeOverlapSuite(Op.contains, '@>');
+
+    describe('RANGE Op.contains ELEMENT', () => {
+      testSql({
+        intRangeAttr: { [Op.contains]: 1 },
+      }, {
+        postgres: `"intRangeAttr" @> '1'::int4`,
+      });
+
+      // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
+      testSql.skip({ intArrayAttr: { [Op.contains]: 1 } }, {
+        default: new Error(`Op.contains doesn't support comparing with a non-array value.`),
+      });
+    });
+
     describeOverlapSuite(Op.contained, '<@');
+
+    describe('ELEMENT Op.contained RANGE', () => {
+      testSql.skip({
+        intAttr1: { [Op.contained]: [1, 2] },
+      }, {
+        postgres: '"intAttr1" <@ \'[1,2)\'::int4range',
+      });
+
+      testSql.skip({
+        bigIntAttr: { [Op.contained]: [1, 2] },
+      }, {
+        postgres: '"intAttr1" <@ \'[1,2)\'::int8range',
+      });
+
+      testSql.skip({
+        dateAttr: { [Op.contained]: [new Date('2020-01-01T00:00:00Z'), new Date('2021-01-01T00:00:00Z')] },
+      }, {
+        postgres: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
+      });
+
+      /*
+      TODO:
+      numrange — Range of numeric
+      tsrange — Range of timestamp without time zone
+      daterange — Range of date
+       */
+
+    });
 
     describe('Op.startsWith', () => {
       testSql({
@@ -1530,87 +1631,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     }
 
     // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
+    // TODO: Op.adjacent, Op.placeholder
 
     if (dialectSupportsRange()) {
       describe('RANGE', () => {
-
-        testSql({
-          range: {
-            [Op.contains]: new Date(Date.UTC(2000, 1, 1)),
-          },
-        }, {
-          postgres: '"Timeline"."range" @> \'2000-02-01 00:00:00.000 +00:00\'::timestamptz',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(DataTypes.DATE),
-          },
-          prefix: 'Timeline',
-        });
-
-        testSql({
-          range: {
-            [Op.contains]: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))],
-          },
-        }, {
-          postgres: '"Timeline"."range" @> \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(DataTypes.DATE),
-          },
-          prefix: 'Timeline',
-        });
-
-        testSql({
-          unboundedRange: {
-            [Op.contains]: [new Date(Date.UTC(2000, 1, 1)), null],
-          },
-        }, {
-          postgres: '"Timeline"."unboundedRange" @> \'["2000-02-01 00:00:00.000 +00:00",)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(DataTypes.DATE),
-          },
-          prefix: 'Timeline',
-        });
-
-        testSql({
-          unboundedRange: {
-            [Op.contains]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
-          },
-        }, {
-          postgres: '"Timeline"."unboundedRange" @> \'[-infinity,infinity)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(DataTypes.DATE),
-          },
-          prefix: 'Timeline',
-        });
-
-        testSql({
-          range: {
-            [Op.contained]: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))],
-          },
-        }, {
-          postgres: '"Timeline"."range" <@ \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(DataTypes.DATE),
-          },
-          prefix: 'Timeline',
-        });
-
-        testSql({
-          reservedSeats: {
-            [Op.overlap]: [1, 4],
-          },
-        }, {
-          postgres: '"Room"."reservedSeats" && \'[1,4)\'',
-        }, {
-          field: {
-            type: new DataTypes.postgres.RANGE(),
-          },
-          prefix: 'Room',
-        });
 
         testSql({
           reservedSeats: {
