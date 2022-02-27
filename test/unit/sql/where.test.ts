@@ -1,5 +1,13 @@
 import util from 'util';
-import type { WhereOptions, ModelAttributeColumnOptions, Utils, WhereOperators, InferAttributes, Attributes } from '@sequelize/core';
+import type {
+  WhereOptions,
+  ModelAttributeColumnOptions,
+  Utils,
+  WhereOperators,
+  InferAttributes,
+  Attributes,
+  Range,
+} from '@sequelize/core';
 import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
@@ -21,12 +29,11 @@ const sql = sequelize.dialect.queryGenerator;
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
 
 // TODO
-//  - test Op.overlap on [date, date] where the value is not an array
-//  - test Op.overlap for ranges should not be more than 2 items
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
-//  - range operators
+//  - RANGE Op.contains ELEMENT
+//  - ELEMENT Op.contained RANGE
 
 // TODO:
 //  - test binding values
@@ -51,6 +58,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare nullableIntAttr: number | null;
 
   declare intArrayAttr: number[];
+  declare intRangeAttr: Range<number>;
 
   declare stringAttr: string;
   declare dateAttr: Date;
@@ -72,6 +80,7 @@ TestModel.init({
   nullableIntAttr: DataTypes.INTEGER,
 
   intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
+  intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
 
   stringAttr: DataTypes.STRING,
   dateAttr: DataTypes.DATE,
@@ -1017,64 +1026,121 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       sqlOperator: string,
     ) {
 
-      if (!dialectSupportsArray()) {
-        return;
-      }
-
       expectTypeOf<WhereOperators[typeof Op.contains]>().toEqualTypeOf<WhereOperators[typeof Op.overlap]>();
       expectTypeOf<WhereOperators[typeof Op.contained]>().toEqualTypeOf<WhereOperators[typeof Op.overlap]>();
 
-      describe(`Op.${operator.description}`, () => {
-        {
-          const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, 2, 3] } };
-          testSql({ intArrayAttr: { [operator]: [1, 2, 3] } }, {
-            default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2,3]::INTEGER[]`,
-          });
-        }
+      if (dialectSupportsArray()) {
+        describe(`Op.${operator.description} on ARRAY`, () => {
+          {
+            const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, 2, 3] } };
+            testSql({ intArrayAttr: { [operator]: [1, 2, 3] } }, {
+              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2,3]::INTEGER[]`,
+            });
+          }
 
-        testSequelizeValueMethods(operator, sqlOperator);
-        // testSupportsAnyAll(operator, sqlOperator, [[1, 2], [1, 2]]);
+          testSequelizeValueMethods(operator, sqlOperator);
+          // testSupportsAnyAll(operator, sqlOperator, [[1, 2], [1, 2]]);
 
-        {
-          // @ts-expect-error
-          const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
-          testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
-            default: new Error(`Op.${operator.description} does not support arrays of cols`),
-          });
-        }
+          {
+            // @ts-expect-error -- cannot compare an array with a range!
+            const ignore: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
+            testSql.skip({ intArrayAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
+              default: new Error('"intArrayAttr" is an array and cannot be compared to a [1, { value: 2, inclusive: true }]'),
+            });
+          }
 
-        {
-          // @ts-expect-error
-          const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
-          testSql.skip({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
-            default: new Error(`Op.${operator.description} does not support arrays of cols`),
-          });
-        }
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
+            testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of cols`),
+            });
+          }
 
-        {
-          // @ts-expect-error
-          const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [literal('literal')] } };
-          testSql.skip({ intArrayAttr: { [operator]: [literal('literal')] } }, {
-            default: new Error(`Op.${operator.description} does not support arrays of literals`),
-          });
-        }
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
+            testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of cols`),
+            });
+          }
 
-        {
-          // @ts-expect-error
-          const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [fn('NOW')] } };
-          testSql.skip({ intArrayAttr: { [operator]: [fn('NOW')] } }, {
-            default: new Error(`Op.${operator.description} does not support arrays of fn`),
-          });
-        }
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
+            testSql.skip({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of cols`),
+            });
+          }
 
-        {
-          // @ts-expect-error
-          const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [cast(col('col'), 'string')] } };
-          testSql.skip({ intArrayAttr: { [operator]: [cast(col('col'), 'string')] } }, {
-            default: new Error(`Op.${operator.description} does not support arrays of cast`),
-          });
-        }
-      });
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [literal('literal')] } };
+            testSql.skip({ intArrayAttr: { [operator]: [literal('literal')] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of literals`),
+            });
+          }
+
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [fn('NOW')] } };
+            testSql.skip({ intArrayAttr: { [operator]: [fn('NOW')] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of fn`),
+            });
+          }
+
+          {
+            // @ts-expect-error
+            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [cast(col('col'), 'string')] } };
+            testSql.skip({ intArrayAttr: { [operator]: [cast(col('col'), 'string')] } }, {
+              default: new Error(`Op.${operator.description} does not support arrays of cast`),
+            });
+          }
+        });
+      }
+
+      if (dialectSupportsRange()) {
+        describe(`Op.${operator.description} on RANGE`, () => {
+          {
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2] } };
+            testSql({ intRangeAttr: { [operator]: [1, 2] } }, {
+              default: `[intRangeAttr] ${sqlOperator} '[1,2)'`,
+            });
+          }
+
+          {
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
+            testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
+              // used 'postgres' because otherwise range is transformed to "1,2"
+              postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+            });
+          }
+
+          {
+            const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [{ value: 1, inclusive: false }, 2] } };
+            testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, 2] } }, {
+              default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+            });
+          }
+
+          {
+            const ignoreRight: TestModelWhere = {
+              intRangeAttr: { [Op.overlap]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] },
+            };
+            testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] } }, {
+              default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+            });
+          }
+
+          {
+            // @ts-expect-error 'intRangeAttr' is a range, but right-hand side is a regular Array
+            const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
+            testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
+              default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
+            });
+          }
+        });
+      }
     }
 
     describeOverlapSuite(Op.overlap, '&&');

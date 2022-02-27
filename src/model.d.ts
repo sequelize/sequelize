@@ -146,7 +146,14 @@ export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
-export type Rangable = readonly [lowerInclusive: WhereSerializableValue, upperInclusive: WhereSerializableValue];
+export type Rangable<T> = [lower: T | RangePart<T>, higher: T | RangePart<T>];
+
+/**
+ * This type represents the output of the {@link RANGE} data type.
+ */
+export type Range<T> = readonly [lower: RangePart<T>, higher: RangePart<T>];
+
+type RangePart<T> = { value: T, inclusive: boolean };
 
 /**
  * Internal type - prone to changes. Do not export.
@@ -187,7 +194,8 @@ type DynamicValues<AcceptableValues> =
  * Static values, as opposed to {@link DynamicValues}. i.e. booleans, strings, etc...
  */
 type StaticValues<Type> =
-  Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]>}
+  Type extends Range<infer RangeType> ? [lower: RangeType | RangePart<RangeType>, higher: RangeType | RangePart<RangeType>]
+  : Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]>}
   : Type extends null ? Type | WhereSerializableValue | null
   : Type | WhereSerializableValue;
 
@@ -302,7 +310,11 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-array.html array && array
   [Op.overlap]?:
     // only usable on array attributes
-    | AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>> : never
+    | (
+      AttributeType extends Range<infer RangeType> ? Rangable<RangeType>
+      : AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>>
+      : never
+    )
     | Literal
     | DynamicValues<AttributeType>;
 
@@ -388,7 +400,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.strictLeft]?: Rangable;
+  [Op.strictLeft]?: Rangable<any>;
 
   /**
    * PG only
