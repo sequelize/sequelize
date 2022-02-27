@@ -127,8 +127,6 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
 
     if (rightOperand !== undefined) {
       this.logic = rightOperand;
-      // TypeScript is not smart enough to know that if `rightOperand` is undefined, then `operatorOrRightOperand` has to be a valid rightOperand
-      // @ts-expect-error
       this.comparator = operatorOrRightOperand;
     } else {
       this.logic = operatorOrRightOperand;

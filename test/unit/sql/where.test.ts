@@ -29,9 +29,6 @@ const sql = sequelize.dialect.queryGenerator;
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
 //  - drop Op.values & automatically determine if Op.any & Op.all need to use Op.values?
 
-// TODO:
-//  - test binding values
-
 type Options = {
   type?: QueryTypes,
   prefix?: string | Utils.Literal,
