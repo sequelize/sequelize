@@ -146,12 +146,19 @@ export interface AllOperator {
   [Op.all]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
-export type Rangable<T> = [lower: T | RangePart<T>, higher: T | RangePart<T>];
+// number is always allowed because -Infinity & +Infinity are valid
+export type Rangable<T> = readonly [
+  lower: T | RangePart<T | number> | number | null,
+  higher: T | RangePart<T | number> | number | null
+] | EmptyRange;
 
 /**
  * This type represents the output of the {@link RANGE} data type.
  */
-export type Range<T> = readonly [lower: RangePart<T>, higher: RangePart<T>];
+// number is always allowed because -Infinity & +Infinity are valid
+export type Range<T> = readonly [lower: RangePart<T | number>, higher: RangePart<T | number>] | EmptyRange;
+
+type EmptyRange = [];
 
 type RangePart<T> = { value: T, inclusive: boolean };
 
@@ -323,22 +330,26 @@ export interface WhereOperators<AttributeType = any> {
    *
    * @example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  // TODO: how are ranges represented in sequelize
   // https://www.postgresql.org/docs/14/functions-json.html jsonb @> jsonb
   // https://www.postgresql.org/docs/14/functions-range.html range @> range ; range @> element
   // https://www.postgresql.org/docs/14/functions-array.html array @> array
   [Op.contains]?:
-    // ARRAY or RANGE contains ARRAY or RANGE
-    | WhereOperators<AttributeType>[typeof Op.overlap]
-    // RANGE contains ELEMENT
-    | OperatorValues<NonNullable<AttributeType>>;
+    // RANGE @> ELEMENT
+    | AttributeType extends Range<infer RangeType> ? OperatorValues<NonNullable<RangeType>> : never
+    // ARRAY @> ARRAY ; RANGE @> RANGE
+    | WhereOperators<AttributeType>[typeof Op.overlap];
 
   /**
    * PG array & range 'contained by' operator
    *
    * @example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: WhereOperators<AttributeType>[typeof Op.contains];
+  [Op.contained]?:
+    AttributeType extends any[]
+      // ARRAY <@ ARRAY ; RANGE <@ RANGE
+      ? WhereOperators<AttributeType>[typeof Op.overlap]
+      // ELEMENT <@ RANGE
+      : Rangable<AttributeType>;
 
   /**
    * Strings starts with value.
