@@ -1,6 +1,7 @@
 import util from 'util';
 import type { WhereOptions, ModelAttributeColumnOptions, Utils, WhereOperators, InferAttributes, Attributes } from '@sequelize/core';
 import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
+import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
 // eslint-disable-next-line import/order -- issue with mixing require & import
@@ -29,10 +30,6 @@ const sql = sequelize.dialect.queryGenerator;
 
 // TODO:
 //  - test binding values
-// TODO: Test OR, AND
-// TODO: Test nested OR & AND
-// TODO: check auto-cast happens for attributes referenced using $nested.syntax$
-// TODO: check syntax $nested.attr$::cast, $nested.attr$.json.path, $nested.attr$.json.path::cast
 
 type Options = {
   type?: QueryTypes,
@@ -388,6 +385,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: 'CAST([stringAttr] AS INTEGER) = 1',
       });
 
+      testSql({ '$association.attribute$': 1 }, {
+        default: '[association].[attribute] = 1',
+      });
+
+      testSql.skip({ '$association.attribute$::integer': 1 }, {
+        default: 'CAST([association].[attribute] AS INTEGER) = 1',
+      });
+
       testSql({ booleanAttr: true }, {
         default: `[booleanAttr] = true`,
         mssql: '[booleanAttr] = 1',
@@ -517,6 +522,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql.skip({ '$intAttr1$::integer': { [Op.eq]: 1 } }, {
         default: 'CAST([intAttr1] AS INTEGER) = 1',
+      });
+
+      testSql({ '$association.attribute$': { [Op.eq]: 1 } }, {
+        default: '[association].[attribute] = 1',
+      });
+
+      testSql.skip({ '$association.attribute$::integer': { [Op.eq]: 1 } }, {
+        default: 'CAST([association].[attribute] AS INTEGER) = 1',
       });
 
       if (dialectSupportsArray()) {
@@ -1636,6 +1649,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
         });
 
+        testSql.skip({
+          '$association.jsonAttr$.nested': {
+            attribute: 'value',
+          },
+        }, {
+          postgres: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
+        });
+
         testSql({
           'jsonAttr.nested::STRING': 'value',
         }, {
@@ -1646,6 +1667,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           '$jsonAttr$.nested::STRING': 'value',
         }, {
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+        });
+
+        testSql.skip({
+          '$association.jsonAttr$.nested::STRING': {
+            attribute: 'value',
+          },
+        }, {
+          postgres: `CAST(("association"."jsonAttr"#>>'{nested,attribute}') AS STRING) = 'value'`,
         });
 
         testSql.skip({
@@ -1974,193 +2003,111 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       // testSql.skip(where('string', Op.eq, col('col')), {
       //   default: `'string' = [col]`,
       // });
-    });
-  });
-
-  describe('whereItemQuery', () => {
-    function testSql(key: string | undefined, value, options, expectation) {
-      if (expectation === undefined) {
-        expectation = options;
-        options = undefined;
-      }
-
-      it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, () => {
-        return expectsql(sql.whereItemQuery(key, value, options), expectation);
-      });
-    }
-
-    testSql(undefined, 'lol=1', {
-      default: 'lol=1',
-    });
-
-    describe('Op.and/Op.or/Op.not', () => {
-      describe('Op.or', () => {
-        testSql('email', {
-          [Op.or]: ['maker@mhansen.io', 'janzeh@gmail.com'],
-        }, {
-          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
-          mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')',
-        });
-
-        testSql('rank', {
-          [Op.or]: {
-            [Op.lt]: 100,
-            [Op.eq]: null,
-          },
-        }, {
-          default: '([rank] < 100 OR [rank] IS NULL)',
-        });
-
-        testSql(Op.or, [
-          { email: 'maker@mhansen.io' },
-          { email: 'janzeh@gmail.com' },
-        ], {
-          default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
-          mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')',
-        });
-
-        testSql(Op.or, {
-          email: 'maker@mhansen.io',
-          name: 'Mick Hansen',
-        }, {
-          default: '([email] = \'maker@mhansen.io\' OR [name] = \'Mick Hansen\')',
-          mssql: '([email] = N\'maker@mhansen.io\' OR [name] = N\'Mick Hansen\')',
-        });
-
-        testSql(Op.or, {
-          equipment: [1, 3],
-          muscles: {
-            [Op.in]: [2, 4],
-          },
-        }, {
-          default: '([equipment] IN (1, 3) OR [muscles] IN (2, 4))',
-        });
-
-        testSql(Op.or, [
-          {
-            roleName: 'NEW',
-          }, {
-            roleName: 'CLIENT',
-            type: 'CLIENT',
-          },
-        ], {
-          default: '([roleName] = \'NEW\' OR ([roleName] = \'CLIENT\' AND [type] = \'CLIENT\'))',
-          mssql: '([roleName] = N\'NEW\' OR ([roleName] = N\'CLIENT\' AND [type] = N\'CLIENT\'))',
-        });
-
-        it('or({group_id: 1}, {user_id: 2})', () => {
-          expectsql(sql.whereItemQuery(undefined, or({ group_id: 1 }, { user_id: 2 })), {
-            default: '([group_id] = 1 OR [user_id] = 2)',
-          });
-        });
-
-        it('or({group_id: 1}, {user_id: 2, role: \'admin\'})', () => {
-          expectsql(sql.whereItemQuery(undefined, or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
-            default: '([group_id] = 1 OR ([user_id] = 2 AND [role] = \'admin\'))',
-            mssql: '([group_id] = 1 OR ([user_id] = 2 AND [role] = N\'admin\'))',
-          });
-        });
-
-        testSql(Op.or, [], {
-          default: '0 = 1',
-        });
-
-        testSql(Op.or, {}, {
-          default: '0 = 1',
-        });
-
-        it('or()', () => {
-          expectsql(sql.whereItemQuery(undefined, or()), {
-            default: '0 = 1',
-          });
-        });
-      });
 
       describe('Op.and', () => {
-        testSql(Op.and, {
-          [Op.or]: {
-            group_id: 1,
-            user_id: 2,
-          },
-          shared: 1,
-        }, {
-          default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)',
+        it('and() is the same as Op.and', () => {
+          expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
         });
 
-        testSql(Op.and, [
-          {
-            name: {
-              [Op.like]: '%hello',
+        // by default: it already is Op.and
+        testSql({ intAttr1: 1, intAttr2: 2 }, {
+          default: `[intAttr1] = 1 AND [intAttr2] = 2`,
+        });
+
+        // $intAttr1$ doesn't override intAttr1
+        testSql({ intAttr1: 1, $intAttr1$: 2 }, {
+          default: `[intAttr1] = 1 AND [intAttr1] = 2`,
+        });
+
+        // can pass a simple object
+        testSql({ [Op.and]: { intAttr1: 1, intAttr2: 2 } }, {
+          default: `([intAttr1] = 1 AND [intAttr2] = 2)`,
+        });
+
+        // can pass an array
+        testSql({ [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
+          default: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = '')`,
+        });
+
+        // can be used on attribute
+        testSql({ intAttr1: { [Op.and]: [1, { [Op.gt]: 1 }] } }, {
+          default: `([intAttr1] = 1 AND [intAttr1] > 1)`,
+        });
+
+        // @ts-expect-error -- cannot be used after operator
+        testSql.skip({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
+          default: new Error('Op.and cannot be used inside Op.gt'),
+        });
+      });
+
+      describe('Op.or', () => {
+        it('or() is the same as Op.or', () => {
+          expect(util.inspect(or('a', 'b'))).to.deep.equal(util.inspect({ [Op.or]: ['a', 'b'] }));
+        });
+
+        testSql(or([]), {
+          default: '0 = 1',
+        });
+
+        testSql(or({}), {
+          default: '0 = 1',
+        });
+
+        // can pass a simple object
+        testSql({ [Op.or]: { intAttr1: 1, intAttr2: 2 } }, {
+          default: `([intAttr1] = 1 OR [intAttr2] = 2)`,
+        });
+
+        // can pass an array
+        testSql({ [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
+          default: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = '')`,
+        });
+
+        // can be used on attribute
+        testSql({ intAttr1: { [Op.or]: [1, { [Op.gt]: 1 }] } }, {
+          default: `([intAttr1] = 1 OR [intAttr1] > 1)`,
+        });
+
+        // @ts-expect-error -- cannot be used after operator
+        testSql.skip({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
+          default: new Error('Op.or cannot be used inside Op.gt'),
+        });
+
+        testSql({
+          [Op.or]: {
+            intAttr1: [1, 3],
+            intAttr2: {
+              [Op.in]: [2, 4],
             },
           },
-          {
-            name: {
-              [Op.like]: 'hello%',
+        }, {
+          default: '([intAttr1] IN (1, 3) OR [intAttr2] IN (2, 4))',
+        });
+      });
+
+      describe('Op.{and,or,not} combinations', () => {
+        // both can be used in the same object
+        testSql({
+          [Op.and]: { intAttr1: 1, intAttr2: 2 },
+          [Op.or]: { intAttr1: 1, intAttr2: 2 },
+        }, {
+          default: `([intAttr1] = 1 AND [intAttr2] = 2) AND ([intAttr1] = 1 OR [intAttr2] = 2)`,
+        });
+
+        // can be nested
+        testSql({
+          [Op.not]: {
+            [Op.and]: {
+              [Op.or]: {
+                [Op.and]: {
+                  intAttr1: 1,
+                  intAttr2: 2,
+                },
+              },
             },
           },
-        ], {
-          default: '([name] LIKE \'%hello\' AND [name] LIKE \'hello%\')',
-          mssql: '([name] LIKE N\'%hello\' AND [name] LIKE N\'hello%\')',
-        });
-
-        testSql('rank', {
-          [Op.and]: {
-            [Op.ne]: 15,
-            [Op.between]: [10, 20],
-          },
         }, {
-          default: '([rank] != 15 AND [rank] BETWEEN 10 AND 20)',
-        });
-
-        testSql('name', {
-          [Op.and]: [
-            { [Op.like]: '%someValue1%' },
-            { [Op.like]: '%someValue2%' },
-          ],
-        }, {
-          default: '([name] LIKE \'%someValue1%\' AND [name] LIKE \'%someValue2%\')',
-          mssql: '([name] LIKE N\'%someValue1%\' AND [name] LIKE N\'%someValue2%\')',
-        });
-
-        it('and({shared: 1, or({group_id: 1}, {user_id: 2}))', () => {
-          expectsql(sql.whereItemQuery(undefined, and({ shared: 1 }, or({ group_id: 1 }, { user_id: 2 }))), {
-            default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))',
-          });
-        });
-      });
-
-      describe('Op.not', () => {
-        testSql(Op.not, {
-          [Op.or]: {
-            group_id: 1,
-            user_id: 2,
-          },
-          shared: 1,
-        }, {
-          default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)',
-        });
-      });
-    });
-
-    describe('Op.col', () => {
-      testSql('$organization.id$', {
-        [Op.col]: 'user.organizationId',
-      }, {
-        default: '[organization].[id] = [user].[organizationId]',
-      });
-
-      testSql('$offer.organization.id$', {
-        [Op.col]: 'offer.user.organizationId',
-      }, {
-        default: '[offer->organization].[id] = [offer->user].[organizationId]',
-      });
-    });
-
-    describe('fn', () => {
-      it('{name: fn(\'LOWER\', \'DERP\')}', () => {
-        expectsql(sql.whereQuery({ name: fn('LOWER', 'DERP') }), {
-          default: 'WHERE [name] = LOWER(\'DERP\')',
-          mssql: 'WHERE [name] = LOWER(N\'DERP\')',
+          default: 'NOT (((([intAttr1] = 1 AND [intAttr2] = 2))))',
         });
       });
     });

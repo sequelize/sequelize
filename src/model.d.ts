@@ -118,8 +118,8 @@ type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
-  | { [Op.all]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: T[] } }
-  | { [Op.any]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: T[] } };
+  | { [Op.all]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
+  | { [Op.any]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
 
 /**
  * The type accepted by every `where` option
@@ -168,6 +168,11 @@ type OperatorValues<AcceptableValues> =
   | StaticValues<AcceptableValues>
   | DynamicValues<AcceptableValues>;
 
+/**
+ * Represents acceptable Dynamic values.
+ *
+ * Dynamic values, as opposed to {@link StaticValues}. i.e. column references, functions, etc...
+ */
 type DynamicValues<AcceptableValues> =
   | Literal
   | ColumnReference
@@ -177,8 +182,9 @@ type DynamicValues<AcceptableValues> =
   | (AcceptableValues extends boolean ? Where : never)
 
 /**
- * Takes an attribute Type & adds other JS types that are compatible with it.
- * For instance, if a type is a Date, then sequelize supports comparing it to string & numbers too.
+ * Represents acceptable Static values.
+ *
+ * Static values, as opposed to {@link DynamicValues}. i.e. booleans, strings, etc...
  */
 type StaticValues<Type> =
   Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]>}
