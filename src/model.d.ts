@@ -315,15 +315,16 @@ export interface WhereOperators<AttributeType = any> {
    */
   // https://www.postgresql.org/docs/14/functions-range.html range && range
   // https://www.postgresql.org/docs/14/functions-array.html array && array
-  [Op.overlap]?:
-    // only usable on array attributes
+  [Op.overlap]?: AllowAnyAll<
     | (
+      // RANGE && RANGE
       AttributeType extends Range<infer RangeType> ? Rangable<RangeType>
+      // ARRAY && ARRAY
       : AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>>
       : never
     )
-    | Literal
-    | DynamicValues<AttributeType>;
+    | DynamicValues<AttributeType>
+  >;
 
   /**
    * PG array & range 'contains' operator
@@ -335,7 +336,7 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-array.html array @> array
   [Op.contains]?:
     // RANGE @> ELEMENT
-    | AttributeType extends Range<infer RangeType> ? OperatorValues<NonNullable<RangeType>> : never
+    | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>> : never
     // ARRAY @> ARRAY ; RANGE @> RANGE
     | WhereOperators<AttributeType>[typeof Op.overlap];
 
@@ -349,7 +350,7 @@ export interface WhereOperators<AttributeType = any> {
       // ARRAY <@ ARRAY ; RANGE <@ RANGE
       ? WhereOperators<AttributeType>[typeof Op.overlap]
       // ELEMENT <@ RANGE
-      : Rangable<AttributeType>;
+      : AllowAnyAll<OperatorValues<Rangable<AttributeType>>>;
 
   /**
    * Strings starts with value.

@@ -27,11 +27,7 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO:
 //  - fix and resolve any .skip test
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
-
-// TODO
-//  - test Op.overlap, Op.adjacent with ANY & VALUES:
-//      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
-//      ANY (ARRAY[ARRAY[1,2]]) is not valid
+//  - drop Op.values & automatically determine if Op.any & Op.all need to use Op.values?
 
 // TODO:
 //  - test binding values
@@ -280,7 +276,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       default: '',
     });
 
-    // @ts-expect-error id is not allowed to be undefined
     testSql({ intAttr1: undefined }, {
       default: new Error('WHERE parameter "intAttr1" has invalid "undefined" value'),
     });
@@ -1057,6 +1052,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           }
 
           testSequelizeValueMethods(operator, sqlOperator);
+          // ARRAY Overlap ARRAY doesn't support ANY or ALL, except with VALUES
           // testSupportsAnyAll(operator, sqlOperator, [[1, 2], [1, 2]]);
 
           {
@@ -1212,6 +1208,9 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
             });
           }
+
+          testSequelizeValueMethods(operator, sqlOperator);
+          testSupportsAnyAll(operator, sqlOperator, [1, 2]);
         });
       }
     }
