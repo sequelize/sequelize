@@ -311,9 +311,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       }), {
         default: '[yolo].[User].[id] = 1',
 
-        // FIXME (mysql): this does not sound right.
+        // FIXME: mysql, sqlite - this does not sound right.
         //  this should be '`yolo`.`User`.`id` = 1'
         mysql: '`yolo.User`.`id` = 1',
+        sqlite: '`yolo.User`.`id` = 1',
       });
     });
 
@@ -346,11 +347,15 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mariadb: `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mysql: `\`dateAttr\` = '2013-01-01 00:00:00'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
+        db2: `"dateAttr" = '2013-01-01 00:00:00'`,
+        snowflake: `"dateAttr" = '2013-01-01 00:00:00'`,
+        ibmi: `"dateAttr" = '2013-01-01 00:00:00.000'`,
       });
 
       describe('Buffer', () => {
         testSql({ stringAttr: Buffer.from('Sequelize') }, {
-          ibmi: '"stringAttr" = BLOB(X\'53657175656c697a65\')',
+          // TODO: (ibmi) - is this correct?
+          ibmi: `"stringAttr" = 'BLOB(X''53657175656c697a65'')'`,
           postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
           sqlite: '`stringAttr` = X\'53657175656c697a65\'',
           mariadb: '`stringAttr` = X\'53657175656c697a65\'',
@@ -361,6 +366,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         });
 
         testSql({ stringAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
+          // TODO: (ibmi) - is this correct?
+          ibmi: `"stringAttr" IN ('BLOB(X''53657175656c697a6531'')', 'BLOB(X''53657175656c697a6532'')')`,
           postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
           sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
           mariadb: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
@@ -415,6 +422,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[booleanAttr] = true`,
         mssql: '[booleanAttr] = 1',
         sqlite: '`booleanAttr` = 1',
+        ibmi: '"booleanAttr" = 1',
       });
 
       testSql({
@@ -441,6 +449,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mysql: `\`dateAttr\` = '2021-01-01 00:00:00'`,
         snowflake: `"dateAttr" = '2021-01-01 00:00:00'`,
         db2: `"dateAttr" = '2021-01-01 00:00:00'`,
+        ibmi: `"dateAttr" = '2021-01-01 00:00:00.000'`,
       });
 
       testSql({ intAttr1: { [Op.col]: 'intAttr2' } }, {
@@ -583,7 +592,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
         mssql: '[booleanAttr] = 1',
-        sqlite: '[booleanAttr] = 1',
+        sqlite: '`booleanAttr` = 1',
+        ibmi: '"booleanAttr" = 1',
       });
 
       testSequelizeValueMethods(Op.eq, '=');
