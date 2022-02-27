@@ -1530,7 +1530,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     if (sequelize.dialect.supports.JSON) {
       describe('JSON', () => {
-
         {
           // @ts-expect-error -- attribute 'doesNotExist' does not exist.
           const ignore: TestModelWhere = { 'doesNotExist.nested': 'value' };
@@ -1609,7 +1608,12 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     if (sequelize.dialect.supports.JSONB) {
       describe('JSONB', () => {
 
-        // TODO: specifying field: jsonb here should not be necessary!
+        // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
+        testSql({ id: { [Op.eq]: json('profile.id') } }, {
+          default: '"id" = ("profile"#>>\'{id}\')',
+        });
+
+        // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
           postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
           sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
@@ -1622,7 +1626,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           prefix: 'User',
         });
 
-        // TODO: specifying field: jsonb here should not be necessary!
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
           postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
           sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
