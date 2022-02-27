@@ -323,7 +323,7 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: WhereOperatorValue<Extract<AttributeType, string>> | Literal;
+  [Op.startsWith]?: Extract<AttributeType, string> | DynamicValues;
 
   /**
    * String ends with value.
@@ -341,7 +341,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * @example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  [Op.regexp]?: WhereOperatorValue<Extract<AttributeType, string>> | Literal;
 
   /**
    * MySQL/PG only

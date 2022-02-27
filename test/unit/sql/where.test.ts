@@ -26,13 +26,12 @@ const sql = sequelize.dialect.queryGenerator;
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
-//  - test Op.startsWith & co with ANY & VALUES
 //  - test Op.regexp with ANY etc
 //  - test Op.match with ANY etc
 //  - test binding values
 // TODO: Test OR, AND
 // TODO: Test nested OR & AND
-// TODO: check auto-cast happens for attributes referenced using $this.syntax$
+// TODO: check auto-cast happens for attributes referenced using $nested.syntax$
 // TODO: check syntax $nested.attr$::cast, $nested.attr$.json.path, $nested.attr$.json.path::cast
 
 type Options = {
@@ -1149,6 +1148,27 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[username] LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
         mssql: `[username] LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
       });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
+      // @ts-expect-error -- startsWith is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.startsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.startsWith is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.startsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.startsWith is not compatible with Op.all'),
+      });
     });
 
     describe('Op.endsWith', () => {
@@ -1239,6 +1259,27 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[stringAttr] LIKE CONCAT('%', CAST(NOW() AS STRING))`,
         mssql: `[stringAttr] LIKE CONCAT(N'%', CAST(NOW() AS STRING))`,
       });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
+      // @ts-expect-error -- startsWith is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.endsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.endsWith is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.endsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.endsWith is not compatible with Op.all'),
+      });
     });
 
     describe('Op.substring', () => {
@@ -1328,6 +1369,27 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `[stringAttr] LIKE CONCAT('%', CAST(NOW() AS STRING), '%')`,
         mssql: `[stringAttr] LIKE CONCAT(N'%', CAST(NOW() AS STRING), N'%')`,
+      });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
+      // @ts-expect-error -- startsWith is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.substring is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.substring is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.substring]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.substring is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.substring]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.substring is not compatible with Op.all'),
       });
     });
 
