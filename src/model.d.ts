@@ -372,7 +372,7 @@ export interface WhereOperators<AttributeType = any> {
 
   // TODO
   /** @example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: Fn;
+  [Op.match]?: DynamicValues;
 
   /**
    * PG only
@@ -460,24 +460,27 @@ export type WhereValue<TAttributes = any> =
  * - An attribute name: `{ id: 1 }`
  * - A nested attribute: `{ '$projects.id$': 1 }`
  * - A JSON key: `{ 'object.key': 1 }`
+ * - A cast: `{ 'id::integer': 1 }`
  *
- * - A cast attribute name: `{ 'id::integer': 1 }`
- * - A cast nested attribute: `{ '$projects.id$::integer': 1 }`
- * - A cast JSON key: `{ 'object.key::integer': 1 }`
+ * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
  */
 export type WhereAttributeHash<TAttributes = any> = {
+  // support 'attribute' & '$attribute$'
   [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
 } & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ? `${AttributeName | `$${AttributeName}$`}::${string}` : never]?: WhereAttributeHashValue<any>;
+  [AttributeName in keyof TAttributes as AttributeName extends string ?
+    // support 'json.path', '$json$.path'
+    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
+    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
+    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
+  : never]?: WhereAttributeHashValue<any>;
 } & {
-  /**
-   * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
-   */
+  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
   // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
   // TypeScript < 4.4 does not support using a Template Literal Type as a key.
   //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
   // @ts-ignore
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}`]: WhereAttributeHashValue<any>;
+  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>;
 }
 
 type WhereAttributeHashValue<AttributeType> =

@@ -18,7 +18,6 @@ const sql = sequelize.dialect.queryGenerator;
 // TODO:
 //  - fix and resolve any .skip test
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
-//  - forbid using :: in attribute names
 
 // TODO
 //  - add tests for using where() in wrong places
@@ -28,13 +27,13 @@ const sql = sequelize.dialect.queryGenerator;
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
 //  - test Op.startsWith & co with ANY & VALUES
+//  - test Op.regexp with ANY etc
+//  - test Op.match with ANY etc
 //  - test binding values
 // TODO: Test OR, AND
 // TODO: Test nested OR & AND
-// TODO: test JSON syntax
 // TODO: check auto-cast happens for attributes referenced using $this.syntax$
-// TODO: test $nested.syntax$ & $syntax$
-// TODO: check syntax $attr$::cast, $nested.attr$::cast, json.path::cast
+// TODO: check syntax $nested.attr$::cast, $nested.attr$.json.path, $nested.attr$.json.path::cast
 
 type Options = {
   type?: QueryTypes,
@@ -382,6 +381,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: 'CAST([stringAttr] AS INTEGER) = 1',
       });
 
+      testSql({ $intAttr1$: 1 }, {
+        default: '[intAttr1] = 1',
+      });
+
+      testSql.skip({ '$stringAttr$::integer': 1 }, {
+        default: 'CAST([stringAttr] AS INTEGER) = 1',
+      });
+
       testSql({ booleanAttr: true }, {
         default: `[booleanAttr] = true`,
         mssql: '[booleanAttr] = 1',
@@ -502,6 +509,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
 
       testSql.skip({ 'intAttr1::integer': { [Op.eq]: 1 } }, {
+        default: 'CAST([intAttr1] AS INTEGER) = 1',
+      });
+
+      testSql({ $intAttr1$: { [Op.eq]: 1 } }, {
+        default: '[intAttr1] = 1',
+      });
+
+      testSql.skip({ '$intAttr1$::integer': { [Op.eq]: 1 } }, {
         default: 'CAST([intAttr1] AS INTEGER) = 1',
       });
 
@@ -1353,20 +1368,17 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       describeRegexpSuite(Op.notIRegexp, '!~*');
     }
 
-    // TODO: Op.match
-    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
-
-    if (sequelize.dialect.supports.TSVESCTOR) {
+    if (sequelize.dialect.supports.TSVECTOR) {
       describe('Op.match', () => {
-        testSql({
-          stringAttr: {
-            [Op.match]: fn('to_tsvector', 'swagger'),
-          },
-        }, {
-          postgres: '[stringAttr] @@ to_tsvector(\'swagger\')',
+        testSql({ stringAttr: { [Op.match]: fn('to_tsvector', 'swagger') } }, {
+          default: '[stringAttr] @@ to_tsvector(\'swagger\')',
         });
+
+        testSequelizeValueMethods(Op.match, '@@');
       });
     }
+
+    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
 
     if (dialectSupportsRange()) {
       describe('RANGE', () => {
@@ -1518,6 +1530,65 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     if (sequelize.dialect.supports.JSON) {
       describe('JSON', () => {
+
+        {
+          // @ts-expect-error -- attribute 'doesNotExist' does not exist.
+          const ignore: TestModelWhere = { 'doesNotExist.nested': 'value' };
+        }
+
+        {
+          // @ts-expect-error -- attribute 'doesNotExist' does not exist.
+          const ignore: TestModelWhere = { '$doesNotExist$.nested': 'value' };
+        }
+
+        testSql({
+          'jsonAttr.nested': {
+            attribute: 'value',
+          },
+        }, {
+          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+        });
+
+        testSql({
+          '$jsonAttr$.nested': {
+            [Op.eq]: 'value',
+          },
+        }, {
+          postgres: `("jsonAttr"#>>'{nested}') = 'value'`,
+        });
+
+        testSql.skip({
+          '$jsonAttr$.nested': {
+            attribute: 'value',
+          },
+        }, {
+          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+        });
+
+        testSql({
+          'jsonAttr.nested::STRING': 'value',
+        }, {
+          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+        });
+
+        testSql.skip({
+          '$jsonAttr$.nested::STRING': 'value',
+        }, {
+          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+        });
+
+        testSql.skip({
+          $jsonAttr$: { nested: 'value' },
+        }, {
+          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+        });
+
+        testSql.skip({
+          $jsonAttr$: { 'nested::string': 'value' },
+        }, {
+          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+        });
+
         testSql({ 'jsonAttr.nested.attribute': 4 }, {
           mariadb: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
@@ -1651,10 +1722,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mysql: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.\\"name\\"\')) = \'Product\')',
           postgres: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
           sqlite: '(CAST(json_extract(`jsonbAttr`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`jsonbAttr`,\'$.name\') = \'Product\')',
-        }, {
-          field: {
-            type: new DataTypes.JSONB(),
-          },
         });
 
         testSql({
