@@ -20,12 +20,14 @@ const sql = sequelize.dialect.queryGenerator;
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
 
 // TODO
-//  - add tests for using where() in wrong places
 //  - test Op.overlap on [date, date] where the value is not an array
 //  - test Op.overlap for ranges should not be more than 2 items
 //  - test Op.overlap with ANY & VALUES:
 //      ANY (VALUES (ARRAY[1]), (ARRAY[2])) is valid
 //      ANY (ARRAY[ARRAY[1,2]]) is not valid
+//  - range operators
+
+// TODO:
 //  - test binding values
 // TODO: Test OR, AND
 // TODO: Test nested OR & AND
@@ -642,6 +644,14 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Op.not', () => {
+      testSql({ [Op.not]: {} }, {
+        default: '0 = 1',
+      });
+
+      testSql({ [Op.not]: [] }, {
+        default: '0 = 1',
+      });
+
       testSql({ nullableIntAttr: { [Op.not]: null } }, {
         default: '[nullableIntAttr] IS NOT NULL',
       });
@@ -1895,6 +1905,76 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       default: '([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = \'a project\'',
       mssql: '([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = N\'a project\'',
     });
+
+    describe('where()', () => {
+      testSql(where(fn('lower', col('name')), null), {
+        default: 'lower([name]) IS NULL',
+      });
+
+      {
+        // @ts-expect-error -- 'intAttr1' is not a boolean and cannot be compared to the output of 'where'
+        const ignore: TestModelWhere = { intAttr1: where(fn('lower', col('name')), null) };
+      }
+
+      testSql.skip({ booleanAttr: where(fn('lower', col('name')), null) }, {
+        default: `[booleanAttr] = (lower([name]) IS NULL)`,
+      });
+
+      testSql(where(fn('SUM', col('hours')), '>', 0), {
+        default: 'SUM([hours]) > 0',
+      });
+
+      testSql(where(fn('SUM', col('hours')), Op.gt, 0), {
+        default: 'SUM([hours]) > 0',
+      });
+
+      testSql(where(fn('lower', col('name')), Op.ne, null), {
+        default: 'lower([name]) IS NOT NULL',
+      });
+
+      testSql(where(fn('lower', col('name')), Op.not, null), {
+        default: 'lower([name]) IS NOT NULL',
+      });
+
+      testSql([where(fn('SUM', col('hours')), Op.gt, 0),
+        where(fn('lower', col('name')), null)], {
+        default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)',
+      });
+
+      testSql(where(col('hours'), Op.between, [0, 5]), {
+        default: '[hours] BETWEEN 0 AND 5',
+      });
+
+      testSql(where(col('hours'), Op.notBetween, [0, 5]), {
+        default: '[hours] NOT BETWEEN 0 AND 5',
+      });
+
+      testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
+        default: `'hours' = 'hours'`,
+        mssql: `'hours' = N'hours'`,
+      });
+
+      testSql(where(TestModel.getAttributes().intAttr1, Op.eq, 1), {
+        default: '[TestModel].[intAttr1] = 1',
+      });
+
+      // TODO - v7
+      // testSql.skip(where(1, 1), {
+      //   default: new Error('The operator must be specified when comparing two literals in where()'),
+      // });
+      //
+      // testSql.skip(where(1, Op.eq, 1), {
+      //   default: '1 = 1',
+      // });
+      //
+      // testSql.skip(where(1, Op.eq, col('col')), {
+      //   default: '1 = [col]',
+      // });
+      //
+      // testSql.skip(where('string', Op.eq, col('col')), {
+      //   default: `'string' = [col]`,
+      // });
+    });
   });
 
   describe('whereItemQuery', () => {
@@ -2059,47 +2139,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         }, {
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)',
         });
-
-        testSql(Op.not, [], {
-          default: '0 = 1',
-        });
-
-        testSql(Op.not, {}, {
-          default: '0 = 1',
-        });
       });
     });
 
     describe('Op.col', () => {
-      testSql('userId', {
-        [Op.col]: 'user.id',
-      }, {
-        default: '[userId] = [user].[id]',
-      });
-
-      testSql('userId', {
-        [Op.eq]: {
-          [Op.col]: 'user.id',
-        },
-      }, {
-        default: '[userId] = [user].[id]',
-      });
-
-      testSql('userId', {
-        [Op.gt]: {
-          [Op.col]: 'user.id',
-        },
-      }, {
-        default: '[userId] > [user].[id]',
-      });
-
-      testSql(Op.or, [
-        { ownerId: { [Op.col]: 'user.id' } },
-        { ownerId: { [Op.col]: 'organization.id' } },
-      ], {
-        default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])',
-      });
-
       testSql('$organization.id$', {
         [Op.col]: 'user.organizationId',
       }, {
@@ -2120,69 +2163,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mssql: 'WHERE [name] = LOWER(N\'DERP\')',
         });
       });
-    });
-  });
-
-  describe('getWhereConditions', () => {
-    function testSql(value, expectation) {
-      const User = sequelize.define('user', {});
-
-      it(util.inspect(value, { depth: 10 }), () => {
-        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
-      });
-    }
-
-    testSql(where(fn('lower', col('name')), null), {
-      default: 'lower([name]) IS NULL',
-    });
-
-    testSql(where(fn('SUM', col('hours')), '>', 0), {
-      default: 'SUM([hours]) > 0',
-    });
-
-    testSql(where(fn('SUM', col('hours')), Op.gt, 0), {
-      default: 'SUM([hours]) > 0',
-    });
-
-    testSql(where(fn('lower', col('name')), Op.ne, null), {
-      default: 'lower([name]) IS NOT NULL',
-    });
-
-    testSql(where(fn('lower', col('name')), Op.not, null), {
-      default: 'lower([name]) IS NOT NULL',
-    });
-
-    testSql([where(fn('SUM', col('hours')), Op.gt, 0),
-      where(fn('lower', col('name')), null)], {
-      default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)',
-    });
-
-    testSql(where(col('hours'), Op.between, [0, 5]), {
-      default: '[hours] BETWEEN 0 AND 5',
-    });
-
-    testSql(where(col('hours'), Op.notBetween, [0, 5]), {
-      default: '[hours] NOT BETWEEN 0 AND 5',
-    });
-
-    testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
-      default: `'hours' = 'hours'`,
-      mssql: `'hours' = N'hours'`,
-    });
-
-    it('where(left: ModelAttributeColumnOptions, op, right)', () => {
-      const User = sequelize.define('user', {
-        id: {
-          type: DataTypes.INTEGER,
-          field: 'internal_id',
-          primaryKey: true,
-        },
-      });
-
-      const whereObj = where(User.getAttributes().id, Op.eq, 1);
-      const expectations = { default: '[user].[internal_id] = 1' };
-
-      return expectsql(sql.getWhereConditions(whereObj, User.tableName, User), expectations);
     });
   });
 });
