@@ -62,6 +62,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.');
     });
 
+    it('should throw when the attribute name is ambiguous with casting syntax', () => {
+      expect(() => {
+        current.define('foo', {
+          'id::int': DataTypes.INTEGER,
+        });
+      }).to.throw('Name of attribute "id::int" in model "foo" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.');
+    });
+
     it('should defend against null or undefined "unique" attributes', () => {
       expect(() => {
         current.define('baz', {

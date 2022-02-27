@@ -1077,6 +1077,10 @@ class Model {
         throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`);
       }
 
+      if (name.includes('::')) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.`);
+      }
+
       if (attribute.type === undefined) {
         throw new Error(`Unrecognized datatype for attribute "${this.name}.${name}"`);
       }
