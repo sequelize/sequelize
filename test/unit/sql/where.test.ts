@@ -21,7 +21,6 @@ const sql = sequelize.dialect.queryGenerator;
 
 // TODO
 //  - add tests for using where() in wrong places
-//  - add tests for using cast() on a value
 //  - test Op.overlap on [date, date] where the value is not an array
 //  - test Op.overlap for ranges should not be more than 2 items
 //  - test Op.overlap with ANY & VALUES:
@@ -165,6 +164,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql({ intAttr1: { [operator]: cast(col('intAttr2'), 'string') } }, {
         default: `[intAttr1] ${sqlOperator} CAST([intAttr2] AS STRING)`,
+      });
+
+      testSql({ intAttr1: { [operator]: cast(12, 'string') } }, {
+        default: `[intAttr1] ${sqlOperator} CAST(12 AS STRING)`,
       });
     }
 
@@ -427,7 +430,25 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[stringAttr] = CAST([intAttr1] AS STRING)',
       });
 
+      testSql.skip({ stringAttr: cast('abc', 'string') }, {
+        default: `[stringAttr] = CAST('abc' AS STRING)`,
+      });
+
       if (dialectSupportsArray()) {
+        testSql({ intArrayAttr: [1, 2] }, {
+          default: `[intArrayAttr] = ARRAY[1,2]::INTEGER[]`,
+        });
+
+        testSql({ intArrayAttr: [] }, {
+          default: `[intArrayAttr] = ARRAY[]::INTEGER[]`,
+        });
+
+        // when using arrays, Op.in is never included
+        // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
+        testSql.skip({ intArrayAttr: [[1, 2]] }, {
+          default: new Error(`"intArrayAttr" cannot be compared to [[1, 2]], did you mean to use Op.in?`),
+        });
+
         testSql.skip({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
           default: '[intAttr1] = ANY (ARRAY[2,3,4])',
         });

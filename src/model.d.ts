@@ -483,14 +483,17 @@ export type WhereAttributeHash<TAttributes = any> = {
 
 type WhereAttributeHashValue<AttributeType> =
   | AllowNotOrAndRecursive<
-    // WhereOperators[Op.eq] is optional, we exclude undefined
-    // because { id: undefined } is not valid
-    | Exclude<WhereOperators<AttributeType>[typeof Op.eq], undefined>
-    // in v6, `{ attr: Array }` means "attr IN Array" instead of "attr = Array"
-    // TODO (v7): Always normalize "no operator" to "equals" (https://github.com/sequelize/sequelize/pull/14020)
-    | Exclude<WhereOperators<AttributeType>[typeof Op.in], undefined>
-    | WhereOperators<AttributeType>
-  >
+    // if the right-hand side is an array, it will be equal to Op.in
+    // otherwise it will be equal to Op.eq
+    // Exception: array attribtues always use Op.eq, never Op.in.
+    | AttributeType extends any[]
+      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
+      : (
+        | WhereOperators<AttributeType>[typeof Op.in]
+        | WhereOperators<AttributeType>[typeof Op.eq]
+        | WhereOperators<AttributeType>
+      )
+    >
   // TODO: this needs a simplified version just for JSON columns
   | WhereAttributeHash<any> // for JSON columns
 
