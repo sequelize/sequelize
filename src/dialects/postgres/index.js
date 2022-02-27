@@ -42,6 +42,7 @@ class PostgresDialect extends AbstractDialect {
     RANGE: true,
     GEOMETRY: true,
     REGEXP: true,
+    IREGEXP: true,
     GEOGRAPHY: true,
     JSON: true,
     JSONB: true,

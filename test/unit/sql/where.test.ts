@@ -1099,7 +1099,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT($bind, N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.startsWith]: col('username'),
@@ -1111,7 +1110,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql.skip({
         stringAttr: {
-          // @ts-expect-error not possible in v6 yet
           [Op.startsWith]: { [Op.col]: 'username' },
         },
       }, {
@@ -1119,7 +1117,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT("username", N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.startsWith]: fn('NOW'),
@@ -1129,7 +1126,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(NOW(), N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.startsWith]: cast(fn('NOW'), 'string'),
@@ -1193,7 +1189,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', $bind)`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.endsWith]: col('username'),
@@ -1205,7 +1200,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql.skip({
         stringAttr: {
-          // @ts-expect-error not possible in v6 yet
           [Op.endsWith]: { [Op.col]: 'username' },
         },
       }, {
@@ -1213,7 +1207,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', "username")`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.endsWith]: fn('NOW'),
@@ -1223,7 +1216,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', NOW())`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.endsWith]: cast(fn('NOW'), 'string'),
@@ -1287,7 +1279,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', $bind, N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.substring]: col('username'),
@@ -1299,7 +1290,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       testSql.skip({
         stringAttr: {
-          // @ts-expect-error not possible in v6 yet
           [Op.substring]: { [Op.col]: 'username' },
         },
       }, {
@@ -1307,7 +1297,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', "username", N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.substring]: fn('NOW'),
@@ -1317,7 +1306,6 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', NOW(), N'%')`,
       });
 
-      // @ts-expect-error not possible in v6 yet
       testSql.skip({
         stringAttr: {
           [Op.substring]: cast(fn('NOW'), 'string'),
@@ -1328,105 +1316,45 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    // TODO: Op.regexp, Op.notRegexp, Op.iRegexp, Op.notIRegexp
-    // TODO: Op.match
-    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
+    function describeRegexpSuite(
+      operator: typeof Op.regexp | typeof Op.iRegexp | typeof Op.notRegexp | typeof Op.notIRegexp,
+      sqlOperator: string,
+    ) {
+      expectTypeOf<WhereOperators[typeof Op.iRegexp]>().toEqualTypeOf<WhereOperators[typeof Op.regexp]>();
+      expectTypeOf<WhereOperators[typeof Op.notRegexp]>().toEqualTypeOf<WhereOperators[typeof Op.regexp]>();
+      expectTypeOf<WhereOperators[typeof Op.notIRegexp]>().toEqualTypeOf<WhereOperators[typeof Op.regexp]>();
+
+      describe(`Op.${operator.description}`, () => {
+        {
+          const ignore: TestModelWhere = { stringAttr: { [Op.regexp]: '^sw.*r$' } };
+        }
+
+        testSql({ stringAttr: { [operator]: '^sw.*r$' } }, {
+          default: `[stringAttr] ${sqlOperator} '^sw.*r$'`,
+        });
+
+        testSql({ stringAttr: { [operator]: '^new\nline$' } }, {
+          default: `[stringAttr] ${sqlOperator} '^new\nline$'`,
+          mariadb: `\`stringAttr\` ${sqlOperator} '^new\\nline$'`,
+          mysql: `\`stringAttr\` ${sqlOperator} '^new\\nline$'`,
+        });
+
+        testSequelizeValueMethods(operator, sqlOperator);
+      });
+    }
 
     if (sequelize.dialect.supports.REGEXP) {
-      describe('Op.regexp', () => {
-        testSql({
-          stringAttr: {
-            [Op.regexp]: '^sw.*r$',
-          },
-        }, {
-          mariadb: '`stringAttr` REGEXP \'^sw.*r$\'',
-          mysql: '`stringAttr` REGEXP \'^sw.*r$\'',
-          snowflake: '"stringAttr" REGEXP \'^sw.*r$\'',
-          postgres: '"stringAttr" ~ \'^sw.*r$\'',
-        });
-      });
-
-      describe('Op.regexp', () => {
-        testSql({
-          stringAttr: {
-            [Op.regexp]: '^new\nline$',
-          },
-        }, {
-          mariadb: '`stringAttr` REGEXP \'^new\\nline$\'',
-          mysql: '`stringAttr` REGEXP \'^new\\nline$\'',
-          snowflake: '"stringAttr" REGEXP \'^new\nline$\'',
-          postgres: '"stringAttr" ~ \'^new\nline$\'',
-        });
-      });
-
-      describe('Op.notRegexp', () => {
-        testSql({
-          stringAttr: {
-            [Op.notRegexp]: '^sw.*r$',
-          },
-        }, {
-          mariadb: '`stringAttr` NOT REGEXP \'^sw.*r$\'',
-          mysql: '`stringAttr` NOT REGEXP \'^sw.*r$\'',
-          snowflake: '"stringAttr" NOT REGEXP \'^sw.*r$\'',
-          postgres: '"stringAttr" !~ \'^sw.*r$\'',
-        });
-      });
-
-      describe('Op.notRegexp', () => {
-        testSql({
-          stringAttr: {
-            [Op.notRegexp]: '^new\nline$',
-          },
-        }, {
-          mariadb: '`stringAttr` NOT REGEXP \'^new\\nline$\'',
-          mysql: '`stringAttr` NOT REGEXP \'^new\\nline$\'',
-          snowflake: '"stringAttr" NOT REGEXP \'^new\nline$\'',
-          postgres: '"stringAttr" !~ \'^new\nline$\'',
-        });
-      });
-
-      if (sequelize.dialect.name === 'postgres') {
-        describe('Op.iRegexp', () => {
-          testSql({
-            stringAttr: {
-              [Op.iRegexp]: '^sw.*r$',
-            },
-          }, {
-            postgres: '"stringAttr" ~* \'^sw.*r$\'',
-          });
-        });
-
-        describe('Op.iRegexp', () => {
-          testSql({
-            stringAttr: {
-              [Op.iRegexp]: '^new\nline$',
-            },
-          }, {
-            postgres: '"stringAttr" ~* \'^new\nline$\'',
-          });
-        });
-
-        describe('Op.notIRegexp', () => {
-          testSql({
-            stringAttr: {
-              [Op.notIRegexp]: '^sw.*r$',
-            },
-          }, {
-            postgres: '"stringAttr" !~* \'^sw.*r$\'',
-          });
-        });
-
-        describe('Op.notIRegexp', () => {
-          testSql({
-            stringAttr: {
-              [Op.notIRegexp]: '^new\nline$',
-            },
-          }, {
-            postgres: '"stringAttr" !~* \'^new\nline$\'',
-          });
-        });
-      }
+      describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
+      describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
     }
+
+    if (sequelize.dialect.supports.IREGEXP) {
+      describeRegexpSuite(Op.iRegexp, '~*');
+      describeRegexpSuite(Op.notIRegexp, '!~*');
+    }
+
+    // TODO: Op.match
+    // TODO: Op.strictLeft, strictRight, noExtendLeft, noExtendRight
 
     if (sequelize.dialect.supports.TSVESCTOR) {
       describe('Op.match', () => {
