@@ -1,24 +1,16 @@
 'use strict';
 
 const chai = require('chai');
-const util = require('util');
 
 const expect = chai.expect;
-const Sequelize = require('@sequelize/core');
+const { Sequelize, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const Support   = require('../support');
 const DataTypes = require('@sequelize/core/lib/data-types');
 
 const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  // Using util.inspect to correctly assert objects with symbols
-  // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-  chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
-    expect(util.inspect(this._obj, { depth })).to.deep.equal(util.inspect(expected, { depth }));
-  });
-
   const Project = current.define('project');
   const User = current.define('user');
 
@@ -167,17 +159,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(scoped1._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { something: true, somethingElse: 42 },
-          ],
+          something: true,
+          somethingElse: 42,
         },
         limit: 5,
       });
       expect(scoped2._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { something: false },
-          ],
+          something: false,
         },
       });
     });
@@ -185,17 +174,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should work with function scopes', () => {
       expect(Company.scope({ method: ['actualValue', 11] })._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { other_value: 11 },
-          ],
+          other_value: 11,
         },
       });
 
       expect(Company.scope('noArgs')._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { other_value: 7 },
-          ],
+          other_value: 7,
         },
       });
     });
@@ -204,17 +189,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const scope = { method: ['actualValue', 11] };
       expect(Company.scope(scope)._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { other_value: 11 },
-          ],
+          other_value: 11,
         },
       });
 
       expect(Company.scope(scope)._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { other_value: 11 },
-          ],
+          other_value: 11,
         },
       });
     });
@@ -244,7 +225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deepEqual({
         include: [
           { model: Project },
-          { model: User, where: { [Op.and]: [{ something: 42 }] } },
+          { model: User, where: { something: 42 } },
         ],
       });
 
@@ -264,9 +245,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should be able to override the default scope', () => {
       expect(Company.scope('somethingTrue')._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { something: true, somethingElse: 42 },
-          ],
+          something: true,
+          somethingElse: 42,
         },
         limit: 5,
       });
@@ -397,8 +377,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
               ],
             },
           };
@@ -410,9 +392,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
-                { [Op.and]: [{ field: 3 }, { field: 3 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
+                { field: 3 },
+                { field: 3 },
               ],
             },
           };
@@ -455,8 +440,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               [Op.and]: [
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
               ],
             },
           };
@@ -468,8 +455,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
               ],
@@ -499,7 +488,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: {
               [Op.and]: [
                 { field: 1 },
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { field: 1 },
+                { field: 1 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 Sequelize.where('field', Op.is, 1),
               ],
@@ -512,11 +502,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to use raw queries', () => {
       expect(Company.scope([{ method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
-        where: {
-          [Op.and]: [
-            ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
-          ],
-        },
+        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
       });
     });
 
@@ -526,7 +512,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           [Op.and]: [
             { active: true },
-            ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
+            'qux IN (SELECT foobar FROM some_sql_function(foo.bar))',
           ],
         },
       });
@@ -569,9 +555,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Company.scope('newScope')._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { this: 'that' },
-          ],
+          this: 'that',
         },
         include: [{ model: Project }],
       });
@@ -592,9 +576,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Company.scope('somethingTrue')._scope).to.deepEqual({
         where: {
-          [Op.and]: [
-            { something: false },
-          ],
+          something: false,
         },
       });
     });

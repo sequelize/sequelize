@@ -1,23 +1,14 @@
 'use strict';
 
 const chai = require('chai');
-const util = require('util');
 
 const expect = chai.expect;
 const Support   = require('../support');
-const Sequelize = require('@sequelize/core');
-
-const Op = Sequelize.Op;
+const { Sequelize, Op, Utils } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  // Using util.inspect to correctly assert objects with symbols
-  // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-  chai.Assertion.addMethod('deepEquals', function (expected, depth = 5) {
-    expect(util.inspect(this._obj, { depth })).to.deep.equal(util.inspect(expected, { depth }));
-  });
-
   describe('all', () => {
     const Referral = current.define('referal');
 
@@ -188,7 +179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deepEquals({ [Op.and]: [{ active: true }] });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: true });
       });
 
       it('adds the where from a scoped model', function () {
@@ -197,7 +188,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project.scope('that') }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deepEquals({ [Op.and]: [{ that: false }] });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ that: false });
         expect(options.include[0]).to.have.property('limit').which.equals(12);
       });
 
@@ -207,7 +198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project.scope('attr') }],
         });
 
-        expect(options.include[0]).to.have.property('attributes').which.deepEquals(['baz']);
+        expect(options.include[0]).to.have.property('attributes').which.deep.equals(['baz']);
       });
 
       it('merges where with the where from a scoped model', function () {
@@ -216,7 +207,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ where: { active: false }, model: this.Project.scope('that') }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deepEquals({ [Op.and]: [{ that: false }, { active: false }] });
+        // TODO [chai>5]: simplify once '.deep.equals' includes support for symbols (https://github.com/chaijs/chai/issues/1054)
+        expect(options.include[0]).to.have.property('where');
+        expect(Utils.getComplexKeys(options.include[0].where)).to.deep.equal([Op.and]);
+        expect(options.include[0].where[Op.and]).to.deep.equal([{ that: false }, { active: false }]);
       });
 
       it('add the where from a scoped associated model', function () {
@@ -225,7 +219,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project, as: 'thisProject' }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deepEquals({ [Op.and]: [{ this: true }] });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ this: true });
       });
 
       it('handles a scope with an aliased column (.field)', function () {
@@ -234,7 +228,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project.scope('foobar') }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deepEquals({ [Op.and]: [{ foo: 42 }] });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ foo: 42 });
       });
     });
 

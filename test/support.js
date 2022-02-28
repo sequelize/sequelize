@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { isDeepStrictEqual } = require('util');
+const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
 const Sequelize = require('@sequelize/core');
@@ -17,6 +17,12 @@ const distDir = path.resolve(__dirname, '../lib');
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+
+// Using util.inspect to correctly assert objects with symbols
+// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
+chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
+  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
+});
 
 chai.config.includeStack = true;
 chai.should();
