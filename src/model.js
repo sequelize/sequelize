@@ -820,22 +820,6 @@ class Model {
     return args[0];
   }
 
-  static _mergeWhereWithAndStrategy(objValue, srcValue) {
-    let objKeysToKeep;
-    if (objValue) {
-      const objKeys = Object.getOwnPropertyNames(objValue).concat(Object.getOwnPropertySymbols(objValue));
-      objKeysToKeep = _.filter(objKeys, key => key !== Op.and);
-    }
-
-    return {
-      [Op.and]: _.compact([
-        ...objValue?.[Op.and] ?? [],
-        !_.isEmpty(objKeysToKeep) && _.pick(objValue, objKeysToKeep),
-        srcValue
-      ])
-    };
-  }
-
   static _mergeFunction(objValue, srcValue, key) {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
@@ -843,7 +827,7 @@ class Model {
 
     if (['where', 'having'].includes(key)) {
       if (this.options?.whereMergeStrategy === 'and') {
-        return this._mergeWhereWithAndStrategy(objValue, srcValue);
+        return combineWheresWithAnd(objValue, srcValue);
       }
 
       if (srcValue instanceof Utils.SequelizeMethod) {
@@ -4589,6 +4573,58 @@ class Model {
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
   static belongsTo(target, options) {} // eslint-disable-line
+}
+
+/**
+ * Unpacks an object that only contains a single Op.and key to the value of Op.and
+ *
+ * Internal method used by {@link combineWheresWithAnd}
+ *
+ * @param {WhereOptions} where The object to unpack
+ * @example `{ [Op.and]: [a, b] }` becomes `[a, b]`
+ * @example `{ [Op.and]: { key: val } }` becomes `{ key: val }`
+ * @example `{ [Op.or]: [a, b] }` remains as `{ [Op.or]: [a, b] }`
+ * @example `{ [Op.and]: [a, b], key: c }` remains as `{ [Op.and]: [a, b], key: c }`
+ * @private
+ */
+function unpackAnd(where) {
+  if (!_.isObject(where)) {
+    return where;
+  }
+
+  const keys = Utils.getComplexKeys(where);
+
+  // object is empty, remove it.
+  if (keys.length === 0) {
+    return;
+  }
+
+  // we have more than just Op.and, keep as-is
+  if (keys.length !== 1 || keys[0] !== Op.and) {
+    return where;
+  }
+
+  const andParts = where[Op.and];
+
+  return andParts;
+}
+
+function combineWheresWithAnd(whereA, whereB) {
+  const unpackedA = unpackAnd(whereA);
+
+  if (unpackedA === undefined) {
+    return whereB;
+  }
+
+  const unpackedB = unpackAnd(whereB);
+
+  if (unpackedB === undefined) {
+    return whereA;
+  }
+
+  return {
+    [Op.and]: _.flatten([unpackedA, unpackedB])
+  };
 }
 
 Object.assign(Model, associationsMixin);

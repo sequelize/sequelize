@@ -6,16 +6,9 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   Support   = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
-  current   = Support.sequelize,
-  util      = require('util');
+  current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  // Using util.inspect to correctly assert objects with symbols
-  // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-  chai.Assertion.addMethod('deepEqual', function(expected, depth = 5) {
-    expect(util.inspect(this._obj, { depth })).to.deep.equal(util.inspect(expected, { depth }));
-  });
-
   const Project = current.define('project'),
     User = current.define('user');
 
@@ -362,8 +355,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] }
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 }
               ]
             }
           };
@@ -375,9 +370,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
-                { [Op.and]: [{ field: 3 }, { field: 3 }] }
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
+                { field: 3 },
+                { field: 3 }
               ]
             }
           };
@@ -420,8 +418,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               [Op.and]: [
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] },
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] }
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 }
               ]
             }
           };
@@ -433,8 +433,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
-                { [Op.and]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 { [Op.or]: [{ field: 2 }, { field: 2 }] }
               ]
@@ -464,7 +466,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: {
               [Op.and]: [
                 { field: 1 },
-                { [Op.and]: [{ field: 1 }, { field: 1 }] },
+                { field: 1 },
+                { field: 1 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
                 Sequelize.where('field', Op.is, 1)
               ]
