@@ -82,6 +82,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(result.count).to.equal(1);
       });
 
+      it('should be able to merge multiple scopes', async function () {
+        const result = await this.ScopeMe.scope('defaultScope', 'lowAccess')
+          .findAndCountAll();
+
+        expect(result.count).to.equal(1);
+      });
+
       it('should ignore the order option if it is found within the scope', async function () {
         const result = await this.ScopeMe.scope('withOrder').findAndCountAll();
         expect(result.count).to.equal(4);

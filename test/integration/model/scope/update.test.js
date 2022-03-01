@@ -54,14 +54,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].get('email')).to.equal('dan@sequelizejs.com');
       });
 
-      it('should be able to override default scope', async function () {
-        await this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { [Op.lt]: 5 } } });
-        const users = await this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
-        expect(users).to.have.length(2);
-        expect(users[0].get('email')).to.equal('tony@sequelizejs.com');
-        expect(users[1].get('email')).to.equal('fred@foobar.com');
-      });
-
       it('should be able to unscope destroy', async function () {
         await this.ScopeMe.unscoped().update({ username: 'ruben' }, { where: {} });
         const rubens = await this.ScopeMe.unscoped().findAll();
@@ -78,6 +70,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to merge scopes with where', async function () {
         await this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: { username: 'dan' } });
         const users = await this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
+        expect(users).to.have.length(1);
+        expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
+      });
+
+      it('should be able to merge scopes with similar where', async function () {
+        await this.ScopeMe.scope('defaultScope', 'lowAccess').update({ username: 'fakeName' });
+        const users = await this.ScopeMe.unscoped().findAll({ where: { username: 'fakeName' } });
         expect(users).to.have.length(1);
         expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
       });
