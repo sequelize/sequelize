@@ -2213,7 +2213,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: UpdateOptions<Attributes<M>> & { returning: true }
+    options: UpdateOptions<Attributes<M>> & { returning: true | (keyof Attributes<M>)[] }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
 
   /**
