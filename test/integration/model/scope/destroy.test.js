@@ -54,14 +54,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].get('username')).to.equal('fred');
       });
 
-      it('should be able to override default scope', async function () {
-        await this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 } } });
-        const users = await this.ScopeMe.unscoped().findAll();
-        expect(users).to.have.length(2);
-        expect(users[0].get('username')).to.equal('tobi');
-        expect(users[1].get('username')).to.equal('dan');
-      });
-
       it('should be able to unscope destroy', async function () {
         await this.ScopeMe.unscoped().destroy({ where: {} });
         await expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
@@ -76,6 +68,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to merge scopes with where', async function () {
         await this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(3);
+        expect(users[0].get('username')).to.equal('tony');
+        expect(users[1].get('username')).to.equal('tobi');
+        expect(users[2].get('username')).to.equal('fred');
+      });
+
+      it('should be able to merge scopes with similar where', async function () {
+        await this.ScopeMe.scope('defaultScope', 'lowAccess').destroy();
         const users = await this.ScopeMe.unscoped().findAll();
         expect(users).to.have.length(3);
         expect(users[0].get('username')).to.equal('tony');
