@@ -114,7 +114,7 @@
     "source-map-support": "0.5.21",
     "sqlite3": "npm:@vscode/sqlite3@5.0.7",
     "tedious": "14.3.0",
-    "typescript": "4.5.5"
+    "typescript": "4.6.2"
   },
   "peerDependenciesMeta": {
     "pg": {
