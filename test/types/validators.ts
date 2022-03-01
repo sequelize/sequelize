@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize } from 'sequelize';
+import { DataTypes, Model, Sequelize } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 

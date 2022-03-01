@@ -2,21 +2,27 @@
 
 const fs = require('fs');
 const path = require('path');
-const { isDeepStrictEqual } = require('util');
+const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
 
 const expect = chai.expect;
-const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
+const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
 
 const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+
+// Using util.inspect to correctly assert objects with symbols
+// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
+chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
+  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
+});
 
 chai.config.includeStack = true;
 chai.should();
@@ -125,6 +131,7 @@ const Support = {
       pool: config.pool,
       dialectOptions: options.dialectOptions || config.dialectOptions || {},
       minifyAliases: options.minifyAliases || config.minifyAliases,
+      odbcConnectionString: config.odbcConnectionString || '',
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -243,6 +250,9 @@ const Support = {
           expectation = expectation
             .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
             .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          if (Support.sequelize.dialect.name === 'ibmi') {
+            expectation = expectation.replace(/;$/, '');
+          }
         }
       } else {
         throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);

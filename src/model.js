@@ -861,13 +861,7 @@ class Model {
     }
 
     if (['where', 'having'].includes(key)) {
-      if (srcValue instanceof Utils.SequelizeMethod) {
-        srcValue = { [Op.and]: srcValue };
-      }
-
-      if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
-        return Object.assign(objValue, srcValue);
-      }
+      return combineWheresWithAnd(objValue, srcValue);
     } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
       return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
         if (Array.isArray(objValue) && Array.isArray(srcValue)) {
@@ -1434,13 +1428,14 @@ class Model {
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
-              if (Boolean(constraintName)
+              if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === references.model
                 && foreignKeyReference.referencedColumnName === references.key
                 && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
-                && !removedConstraints[constraintName]) {
+                && !removedConstraints[constraintName])
+                || this.sequelize.options.dialect === 'ibmi') {
                 // Remove constraint on foreign keys.
                 await this.queryInterface.removeConstraint(tableName, constraintName, options);
                 removedConstraints[constraintName] = true;
@@ -2725,11 +2720,11 @@ class Model {
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {
+      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
@@ -4762,6 +4757,58 @@ class Model {
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
   static belongsTo(target, options) {}
+}
+
+/**
+ * Unpacks an object that only contains a single Op.and key to the value of Op.and
+ *
+ * Internal method used by {@link combineWheresWithAnd}
+ *
+ * @param {WhereOptions} where The object to unpack
+ * @example `{ [Op.and]: [a, b] }` becomes `[a, b]`
+ * @example `{ [Op.and]: { key: val } }` becomes `{ key: val }`
+ * @example `{ [Op.or]: [a, b] }` remains as `{ [Op.or]: [a, b] }`
+ * @example `{ [Op.and]: [a, b], key: c }` remains as `{ [Op.and]: [a, b], key: c }`
+ * @private
+ */
+function unpackAnd(where) {
+  if (!_.isObject(where)) {
+    return where;
+  }
+
+  const keys = Utils.getComplexKeys(where);
+
+  // object is empty, remove it.
+  if (keys.length === 0) {
+    return;
+  }
+
+  // we have more than just Op.and, keep as-is
+  if (keys.length !== 1 || keys[0] !== Op.and) {
+    return where;
+  }
+
+  const andParts = where[Op.and];
+
+  return andParts;
+}
+
+function combineWheresWithAnd(whereA, whereB) {
+  const unpackedA = unpackAnd(whereA);
+
+  if (unpackedA === undefined) {
+    return whereB;
+  }
+
+  const unpackedB = unpackAnd(whereB);
+
+  if (unpackedB === undefined) {
+    return whereA;
+  }
+
+  return {
+    [Op.and]: [unpackedA, unpackedB].flat(),
+  };
 }
 
 Object.assign(Model, associationsMixin);

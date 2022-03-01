@@ -7,7 +7,7 @@ const sinon = require('sinon');
 const Support = require('../support');
 
 const Op = Support.Sequelize.Op;
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {

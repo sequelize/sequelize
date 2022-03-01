@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Op = Sequelize.Op;
@@ -85,6 +85,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users).to.have.length(2);
       expect(['tony', 'fred'].includes(users[0].username)).to.be.true;
       expect(['tony', 'fred'].includes(users[1].username)).to.be.true;
+    });
+
+    it('should be able to combine multiple scopes', async function () {
+      const users = await this.ScopeMe.scope('defaultScope', 'highValue').findAll();
+      expect(users).to.have.length(2);
+      expect(['tobi', 'dan'].includes(users[0].username)).to.be.true;
+      expect(['tobi', 'dan'].includes(users[1].username)).to.be.true;
     });
 
     it('should be able to use a defaultScope if declared', async function () {
