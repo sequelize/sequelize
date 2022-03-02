@@ -2,7 +2,7 @@
 
 Sequelize provides its own TypeScript definitions.
 
-Please note that only **TypeScript >= 4.1** is supported.
+Please note that only **TypeScript >= 4.4** is supported.
 Our TypeScript support does not follow SemVer. We will support TypeScript releases for at least one year, after which they may be dropped in a SemVer MINOR release.
 
 As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
