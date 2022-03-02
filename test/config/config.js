@@ -82,4 +82,16 @@ module.exports = {
       idle: process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000,
     },
   },
+  ibmi: {
+    database: env.SEQ_IBMI_DB || env.SEQ_DB,
+    username: process.env.SEQ_IBMI_USER || process.env.SEQ_USER,
+    password: process.env.SEQ_IBMI_PW || process.env.SEQ_PW,
+    pool: {
+      max: env.SEQ_IBMI_POOL_MAX || env.SEQ_POOL_MAX || env.SEQ_POOL_MAX || 5,
+      idle: env.SEQ_IBMI_POOL_IDLE || env.SEQ_POOL_IDLE || 3000,
+    },
+    dialectOptions: {
+      odbcConnectionString: env.SEQ_IBMI_CONN_STR,
+    },
+  },
 };

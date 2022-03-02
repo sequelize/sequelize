@@ -60,6 +60,7 @@ export type DialectSupports = {
     check: boolean,
     foreignKey: boolean,
     primaryKey: boolean,
+    onUpdate: boolean,
   },
   index: {
     collate: boolean,
@@ -144,6 +145,7 @@ export abstract class AbstractDialect {
       check: true,
       foreignKey: true,
       primaryKey: true,
+      onUpdate: true,
     },
     index: {
       collate: true,

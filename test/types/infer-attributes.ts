@@ -8,7 +8,7 @@ import {
   Model,
   NonAttribute,
   Sequelize,
-} from 'sequelize';
+} from '@sequelize/core';
 
 class Project extends Model<InferAttributes<Project>> {
   declare id: number;
@@ -22,6 +22,7 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   declare optionalArrayAttribute: CreationOptional<string[]>;
   declare mandatoryArrayAttribute: string[];
 
+  // note: using CreationOptional here is unnecessary, but we still ensure that it works.
   declare nullableOptionalAttribute: CreationOptional<string | null>;
 
   declare nonAttribute: NonAttribute<string>;
@@ -128,4 +129,13 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 {
   // ensure branding does not break null
   const brandedString: NonAttribute<string | null> = null;
+}
+
+{
+  class User2 extends Model<InferAttributes<User2>, InferCreationAttributes<User2>> {
+    declare nullableAttribute: string | null;
+  }
+
+  // this should work, all null attributes are optional in Model.create
+  User2.create({});
 }

@@ -12,7 +12,7 @@ const [results, metadata] = await sequelize.query("UPDATE users SET y = 42 WHERE
 In cases where you don't need to access the metadata you can pass in a query type to tell sequelize how to format the results. For example, for a simple select query you could do:
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 const users = await sequelize.query("SELECT * FROM `users`", { type: QueryTypes.SELECT });
 // We didn't need to destructure the result here - the results were returned directly
 ```
@@ -33,7 +33,7 @@ const projects = await sequelize.query('SELECT * FROM projects', {
 See more options in the [query API reference](../class/src/sequelize.js~Sequelize.html#instance-method-query). Some examples:
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 await sequelize.query('SELECT 1', {
   // A function (or false) for logging your queries
   // Will get called for every SQL query that gets sent
@@ -64,7 +64,7 @@ If an attribute name of the table contains dots, the resulting objects can becom
 * Without `nest: true`:
 
   ```js
-  const { QueryTypes } = require('sequelize');
+  const { QueryTypes } = require('@sequelize/core');
   const records = await sequelize.query('select 1 as `foo.bar.baz`', {
     type: QueryTypes.SELECT
   });
@@ -80,7 +80,7 @@ If an attribute name of the table contains dots, the resulting objects can becom
 * With `nest: true`:
 
   ```js
-  const { QueryTypes } = require('sequelize');
+  const { QueryTypes } = require('@sequelize/core');
   const records = await sequelize.query('select 1 as `foo.bar.baz`', {
     nest: true,
     type: QueryTypes.SELECT
@@ -106,7 +106,7 @@ Replacements in a query can be done in two different ways, either using named pa
 * If an object is passed, `:key` will be replaced with the keys from that object. If the object contains keys not found in the query or vice versa, an exception will be thrown.
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 
 await sequelize.query(
   'SELECT * FROM projects WHERE status = ?',
@@ -128,7 +128,7 @@ await sequelize.query(
 Array replacements will automatically be handled, the following query searches for projects where the status matches an array of values.
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 
 await sequelize.query(
   'SELECT * FROM projects WHERE status IN(:status)',
@@ -142,7 +142,7 @@ await sequelize.query(
 To use the wildcard operator `%`, append it to your replacement. The following query matches users with names that start with 'ben'.
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 
 await sequelize.query(
   'SELECT * FROM users WHERE name LIKE :search_name',
@@ -166,7 +166,7 @@ The array or object must contain all bound values or Sequelize will throw an exc
 The database may add further restrictions to this. Bind parameters cannot be SQL keywords, nor table or column names. They are also ignored in quoted text or data. In PostgreSQL it may also be needed to typecast them, if the type cannot be inferred from the context `$1::varchar`.
 
 ```js
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('@sequelize/core');
 
 await sequelize.query(
   'SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $1',

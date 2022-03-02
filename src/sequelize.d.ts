@@ -24,12 +24,10 @@ import {
   Attributes
 } from './model';
 import { ModelManager } from './model-manager';
-import { PartlyRequired, Op } from './index.js';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
-import { QueryTypes } from './query-types';
-import { Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS } from './transaction';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
 
 /**
@@ -410,7 +408,7 @@ export interface QueryOptionsTransactionRequired { }
  * import sequelize:
  *
  * ```js
- * const Sequelize = require('sequelize');
+ * const Sequelize = require('@sequelize/core');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -1402,7 +1400,7 @@ export class Sequelize extends Hooks {
    * ```js
    * const cls = require('cls-hooked');
    * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('sequelize');
+   * const Sequelize = require('@sequelize/core');
    * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
@@ -1501,19 +1499,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
-
-// TODO [>6]: Remove
-/**
- * @deprecated use {@link WhereLeftOperand} instead.
- */
-export type AttributeType = WhereLeftOperand;
-
-// TODO [>6]: Remove
-/**
- * @deprecated this is not used anymore, typing definitions for {@link where} have changed to more accurately reflect reality.
- */
-export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> | WhereOperators | string | symbol | null;
+export type WhereLeftOperand = Fn | Col | Literal | Cast | ModelAttributeColumnOptions;
 
 /**
  * A way of specifying "attr = condition".
