@@ -2,7 +2,9 @@ import { expectTypeOf } from 'expect-type';
 import {
   Attributes,
   CreationAttributes,
-  CreationOptional, DataTypes, ForeignKey,
+  CreationOptional,
+  DataTypes,
+  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,

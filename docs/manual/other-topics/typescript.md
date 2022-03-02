@@ -176,7 +176,7 @@ class Project extends Model<
 class Address extends Model<
   InferAttributes<Address>,
   InferCreationAttributes<Address>
-  > {
+> {
   declare userId: ForeignKey<User['id']>;
   declare address: string;
 
