@@ -32,17 +32,21 @@ have been removed and all typings are now directly retrieved from the actual Typ
 
 You'll likely find many tiny differences which however should be easy to fix.
 
-### Attributes cannot start and end with `$`, include `.`, or include `::`
+### Attribute names cannot use syntax reserved by Sequelize
+
+*Attributes cannot start or end with `$`, include `.`, include `::`, or include `->`. Column names are not impacted.*
 
 `$attribute$` & `$nested.attribute$` is a special syntax used to reference nested attributes in Queries.\
 The `.` character also has special meaning, being used to reference nested JSON object keys,
 the `$nested.attribute$` syntax, and in output names of eager-loaded associations in SQL queries.
 
+The `->` character sequence is [used internally to reference nested associations](https://github.com/sequelize/sequelize/pull/14181#issuecomment-1053591214).
+
 Finally, the `::` character sequence has special meaning in queries as it allows you to tell sequelize to cast an attribute.
 
 In Sequelize 6, it was possible to create an attribute that matched these special syntaxes, leading to subtle bugs.\
 Starting with Sequelize 7, this is now considered reserved syntax, and it is no longer possible to
-use a string that both starts and ends with a `$` as the attribute name, includes the `.` character, or includes `::`.
+use a string that both starts or ends with a `$` as the attribute name, includes the `.` character, or includes `::`.
 
 This only affects the attribute name, it is still possible to do this for the column name.
 
@@ -59,7 +63,7 @@ class User extends Model {
 
 User.init({
   // this key sets the JavaScript name.
-  // It's not allowed to start & end with $ anymore.
+  // It's not allowed to start or end with $ anymore.
   '$myAttribute$': {
     type: DataTypes.STRING,
     // 'field' sets the column name
