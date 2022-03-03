@@ -434,7 +434,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const res = result[0] || {};
       res.date = res.date && new Date(res.date);
       res.boolean = res.boolean && true;
-      if (typeof res.buffer === 'string' && res.buffer.startsWith('\\x')) {
+
+      // For Oracle dialect BLOB data doesn't begin with \\x hence we need to convert whole buffer to hex type
+      if (typeof res.buffer === 'string' && dialect === 'oracle') {
+        res.buffer = Buffer.from(res.buffer, 'hex');
+      } else if (typeof res.buffer === 'string' && res.buffer.startsWith('\\x')) {
         res.buffer = Buffer.from(res.buffer.substring(2), 'hex');
       }
       expect(res).to.deep.equal({
