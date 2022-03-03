@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 1
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 1
                 AND [project_user].[status] = 1
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -187,7 +187,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
                 AND [project_user].[status] = 1
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                  ON [user].[id_user] = [project_user].[user_id]
                  AND [project_user].[project_id] = 1
                WHERE [user].[age] >= 21
-               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+               ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -234,7 +234,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
               WHERE [user].[age] >= 21
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -418,6 +418,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+      });
+
+      const includeWithoutAttributes = Model._validateIncludedElements({
+        include: [{
+          attributes: [],
+          association: User.Posts,
+        }],
+        model: User,
+      }).include;
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include: includeWithoutAttributes,
+        attributes: [
+          [Support.sequelize.col('user.first_name'), 'userName'],
+          [Support.sequelize.fn('count', '*'), 'count'],
+        ],
+        order: [[Support.sequelize.fn('count', '*'), 'DESC']],
+        group: ['user.first_name'],
+        limit: 5,
+      }, {
+        default: 'SELECT [user].[first_name] AS [userName], count(\'*\') AS [count] FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] GROUP BY [user].[first_name] ORDER BY count(\'*\') DESC LIMIT 5;',
+        mssql: 'SELECT [user].[first_name] AS [userName], count(N\'*\') AS [count] FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] GROUP BY [user].[first_name] ORDER BY count(N\'*\') DESC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;',
       });
     }());
 

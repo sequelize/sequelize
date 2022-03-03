@@ -976,6 +976,10 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       return '';
     }
 
+    if (!options.limit && !options.offset) {
+      return '';
+    }
+
     const offset = options.offset || 0;
     const isSubQuery = options.subQuery === undefined
       ? options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation
@@ -988,31 +992,18 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       orders = this.getQueryOrders(options, model, isSubQuery);
     }
 
-    if (options.limit || options.offset) {
-      // TODO: document why this is adding the primary key of the model in ORDER BY
-      //  if options.include is set
-      if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
-        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
-        if (!options.order || options.order.length === 0) {
-          fragment += ` ORDER BY ${tablePkFragment}`;
-        } else {
-          const orderFieldNames = _.map(options.order, order => order[0]);
-          const primaryKeyFieldAlreadyPresent = _.includes(orderFieldNames, model.primaryKeyField);
+    // Add needed order by clause when it is not provided
+    if (!orders.mainQueryOrder?.length || isSubQuery && !orders.subQueryOrder?.length) {
+      const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
+      fragment += ` ORDER BY ${tablePkFragment}`;
+    }
 
-          if (!primaryKeyFieldAlreadyPresent) {
-            fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';
-            fragment += tablePkFragment;
-          }
-        }
-      }
+    if (options.offset || options.limit) {
+      fragment += ` OFFSET ${this.escape(offset, undefined, options)} ROWS`;
+    }
 
-      if (options.offset || options.limit) {
-        fragment += ` OFFSET ${this.escape(offset, undefined, options)} ROWS`;
-      }
-
-      if (options.limit) {
-        fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
-      }
+    if (options.limit) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
     }
 
     return fragment;
