@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // mssql has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql' || dialect === 'db2') {
+    if (['mssql', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
