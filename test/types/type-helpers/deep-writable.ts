@@ -12,7 +12,7 @@ import {
   ModelCtor,
   ModelDefined,
   ModelStatic,
-} from 'sequelize';
+} from '@sequelize/core';
 
 type Builtin =
   | string

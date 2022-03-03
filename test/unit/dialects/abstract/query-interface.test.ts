@@ -1,7 +1,9 @@
+// eslint-disable-next-line import/order
 import { expect } from 'chai';
-import Support from '../../support';
 
-const { sequelize } = Support as any;
+const Support = require('../../support');
+
+const { sequelize } = Support;
 
 describe('QueryInterface', () => {
   describe('quoteIdentifier', () => {

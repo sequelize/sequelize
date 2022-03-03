@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 
@@ -224,8 +224,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
         expect(describedTable.level_id.allowNull).to.be.equal(true);
       });
-      // sqlite does support comments but current sequelize version does not support sqlite comments
-      if (dialect !== 'db2' && dialect !== 'sqlite') {
+
+      if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
         it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
@@ -244,128 +244,128 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
-    it('should not remove unique constraints when adding or modifying columns', async function () {
-      await this.queryInterface.createTable({
-        tableName: 'Foos',
-      }, {
-        id: {
-          allowNull: false,
-          autoIncrement: true,
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-        },
-        name: {
-          allowNull: false,
-          unique: true,
-          type: DataTypes.STRING,
-        },
-        email: {
-          allowNull: false,
-          unique: true,
-          type: DataTypes.STRING,
-        },
-      });
-
-      await this.queryInterface.addColumn('Foos', 'phone', {
-        type: DataTypes.STRING,
-        defaultValue: null,
-        allowNull: true,
-      });
-
-      let table = await this.queryInterface.describeTable({
-        tableName: 'Foos',
-      });
-      expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
-      expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
-      expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
-      expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
-
-      await this.queryInterface.changeColumn('Foos', 'email', {
-        type: DataTypes.STRING,
-        allowNull: true,
-      });
-
-      table = await this.queryInterface.describeTable({
-        tableName: 'Foos',
-      });
-      expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
-      expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
-      expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
-    });
-
-    it('should add unique constraints to 2 columns and keep allowNull', async function () {
-      await this.queryInterface.createTable({
-        tableName: 'Foos',
-      }, {
-        id: {
-          allowNull: false,
-          autoIncrement: true,
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-        },
-        name: {
-          allowNull: false,
-          type: DataTypes.STRING,
-        },
-        email: {
-          allowNull: true,
-          type: DataTypes.STRING,
-        },
-      });
-
-      await this.queryInterface.changeColumn('Foos', 'name', {
-        type: DataTypes.STRING,
-        unique: true,
-      });
-      await this.queryInterface.changeColumn('Foos', 'email', {
-        type: DataTypes.STRING,
-        unique: true,
-      });
-
-      const table = await this.queryInterface.describeTable({
-        tableName: 'Foos',
-      });
-      expect(table.name.allowNull).to.equal(false);
-      expect(table.name.unique).to.equal(true);
-      expect(table.email.allowNull).to.equal(true);
-      expect(table.email.unique).to.equal(true);
-    });
-
-    it('should not remove foreign keys when adding or modifying columns', async function () {
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      User.hasOne(Task);
-
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-
-      await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
-      let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
-      expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
-      expect(refs[0].columnName).to.equal('UserId');
-      expect(refs[0].referencedTableName).to.equal('Users');
-      expect(refs[0].referencedColumnName).to.equal('id');
-
-      await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
-      refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
-      expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
-      expect(refs[0].columnName).to.equal('UserId');
-      expect(refs[0].referencedTableName).to.equal('Users');
-      expect(refs[0].referencedColumnName).to.equal('id');
-
-      await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
-      refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
-      expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
-      expect(refs[0].columnName).to.equal('UserId');
-      expect(refs[0].referencedTableName).to.equal('Users');
-      expect(refs[0].referencedColumnName).to.equal('id');
-    });
-
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.
     // The tests below address these problems
     if (dialect === 'sqlite') {
+      it('should not remove unique constraints when adding or modifying columns', async function () {
+        await this.queryInterface.createTable({
+          tableName: 'Foos',
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+          },
+          name: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING,
+          },
+          email: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING,
+          },
+        });
+
+        await this.queryInterface.addColumn('Foos', 'phone', {
+          type: DataTypes.STRING,
+          defaultValue: null,
+          allowNull: true,
+        });
+
+        let table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+        expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+        expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+        expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
+
+        await this.queryInterface.changeColumn('Foos', 'email', {
+          type: DataTypes.STRING,
+          allowNull: true,
+        });
+
+        table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+        expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
+        expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
+      });
+
+      it('should add unique constraints to 2 columns and keep allowNull', async function () {
+        await this.queryInterface.createTable({
+          tableName: 'Foos',
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+          },
+          name: {
+            allowNull: false,
+            type: DataTypes.STRING,
+          },
+          email: {
+            allowNull: true,
+            type: DataTypes.STRING,
+          },
+        });
+
+        await this.queryInterface.changeColumn('Foos', 'name', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+        await this.queryInterface.changeColumn('Foos', 'email', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+        expect(table.name.allowNull).to.equal(false);
+        expect(table.name.unique).to.equal(true);
+        expect(table.email.allowNull).to.equal(true);
+        expect(table.email.unique).to.equal(true);
+      });
+
+      it('should not remove foreign keys when adding or modifying columns', async function () {
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        const User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+        User.hasOne(Task);
+
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
+
+        await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
+        let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+
+        await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+
+        await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+      });
+
       it('should retain ON UPDATE and ON DELETE constraints after a column is changed', async function () {
         await this.queryInterface.createTable('users', {
           id: {

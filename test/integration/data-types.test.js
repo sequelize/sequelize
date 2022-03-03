@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -12,7 +12,7 @@ const moment = require('moment');
 const current = Support.sequelize;
 const Op = Sequelize.Op;
 const uuid = require('uuid');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const semver = require('semver');
@@ -312,7 +312,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type

@@ -185,7 +185,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
