@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -125,18 +125,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(result[0].dataValues.toString).to.equal('Jozef');
         expect(result[0].get('toString')).to.equal('Jozef');
         expect(result[0].get('computers')[0].hostname).to.equal('laptop');
-      });
-    });
-
-    describe('quote', () => {
-      it('allows for an attribute with dots', async function () {
-        const User = this.sequelize.define('user', {
-          'foo.bar.baz': Sequelize.TEXT,
-        });
-
-        await this.sequelize.sync({ force: true });
-        const result = await User.findAll();
-        expect(result.length).to.equal(0);
       });
     });
   });

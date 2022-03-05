@@ -339,56 +339,59 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     }
 
-    it('Supports newlines in keys', async function () {
-      const spy = sinon.spy();
-      const User = this.sequelize.define('user', {
-        name: {
-          type: Sequelize.STRING,
-          unique: 'unique \n unique',
-        },
-      });
+    // IBM i doesn't support newlines in identifiers
+    if (dialect !== 'ibmi') {
+      it('Supports newlines in keys', async function () {
+        const spy = sinon.spy();
+        const User = this.sequelize.define('user', {
+          name: {
+            type: Sequelize.STRING,
+            unique: 'unique \n unique',
+          },
+        });
 
-      await this.sequelize.sync({ force: true });
-      await User.create({ name: 'jan' });
-
-      try {
+        await this.sequelize.sync({ force: true });
         await User.create({ name: 'jan' });
-      } catch (error) {
-        if (!(error instanceof Sequelize.UniqueConstraintError)) {
-          throw error;
+
+        try {
+          await User.create({ name: 'jan' });
+        } catch (error) {
+          if (!(error instanceof Sequelize.UniqueConstraintError)) {
+            throw error;
+          }
+
+          await spy(error);
         }
 
-        await spy(error);
-      }
+        expect(spy).to.have.been.calledOnce;
+      });
 
-      expect(spy).to.have.been.calledOnce;
-    });
+      it('Works when unique keys are not defined in sequelize', async function () {
+        let User = this.sequelize.define('user', {
+          name: {
+            type: Sequelize.STRING,
+            unique: 'unique \n unique',
+          },
+        }, { timestamps: false });
 
-    it('Works when unique keys are not defined in sequelize', async function () {
-      let User = this.sequelize.define('user', {
-        name: {
-          type: Sequelize.STRING,
-          unique: 'unique \n unique',
-        },
-      }, { timestamps: false });
+        await this.sequelize.sync({ force: true });
+        // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
+        User = this.sequelize.define('user', {
+          name: Sequelize.STRING,
+        }, { timestamps: false });
 
-      await this.sequelize.sync({ force: true });
-      // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
-      User = this.sequelize.define('user', {
-        name: Sequelize.STRING,
-      }, { timestamps: false });
+        await User.create({ name: 'jan' });
+        // It should work even though the unique key is not defined in the model
+        await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
-      await User.create({ name: 'jan' });
-      // It should work even though the unique key is not defined in the model
-      await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-
-      // And when the model is not passed at all
-      if (dialect === 'db2') {
-        await expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-      } else {
-        await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-      }
-    });
+        // And when the model is not passed at all
+        if (['db2', 'ibmi'].includes(dialect)) {
+          await expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+        } else {
+          await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+        }
+      });
+    }
 
     it('adds parent and sql properties', async function () {
       const User = this.sequelize.define('user', {

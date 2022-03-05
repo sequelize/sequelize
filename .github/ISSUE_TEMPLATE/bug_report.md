@@ -15,7 +15,7 @@ https://stackoverflow.com/questions/tagged/sequelize.js
 
 ## Issue Creation Checklist
 
-[ ] I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
+- [ ] I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)
 
 ## Bug Description
 
@@ -23,7 +23,7 @@ https://stackoverflow.com/questions/tagged/sequelize.js
 
 <!--
 We have a repository dedicated to make it easy for you to create an SSCCE.
-https://github.com/papb/sequelize-sscce
+https://github.com/sequelize/sequelize-sscce
 Please consider using it, everyone wins!
 -->
 
@@ -85,23 +85,26 @@ Add any other context and details here.
 
 ### Environment
 
-- Sequelize version: XXX <!-- run `npm list sequelize` to obtain this -->
-- Node.js version: XXX <!-- run `node -v` to obtain this -->
-- If TypeScript related: TypeScript version: XXX <!-- run `npm list typescript` to obtain this -->
+<!---
+Please answer the questions below. If you don't, your issue may be closed.
 
-## Bug Report Checklist
+To find the version numbers for the three systems below use the following commands:
+- `npm list sequelize` / `yarn list --pattern sequelize` (v6 stable)
+- `npm list @sequelize/core` / `yarn list --pattern @sequelize/core` (v7 alpha)
+- `node -v`
+- `npm list typescript` / `yarn list --pattern typescript` 
+- 'Database' is which actual database system you're using. e.g. 'PostgreSQL 14', 'MariaDB 8', etc…
+- 'Connector library' is the dependency sequelize requires you to install to interact with a given database type. 
+  e.g. 'pg' or 'pg-native' for PostgreSQL, 'mysql2' for MySQL, 'tedious' for SQL Server, etc… (see README for complete list).
+--->
 
-<!-- Please answer the questions below. If you don't, your issue may be closed. -->
+- Sequelize version:
+- Node.js version:
+- If TypeScript related: TypeScript version:
+- Database & Version:
+- Connector library & Version:
 
-### How does this problem relate to dialects?
-
-<!-- Choose one. -->
-
-- [ ] I think this problem happens regardless of the dialect.
-- [ ] I think this problem happens only for the following dialect(s): <!-- Put dialect(s) here -->
-- [ ] I don't know, I was using PUT-YOUR-DIALECT-HERE, with connector library version XXX and database version XXX
-
-### Would you be willing to resolve this issue by submitting a Pull Request?
+## Would you be willing to resolve this issue by submitting a Pull Request?
 
 <!-- Remember that first contributors are welcome! -->
 

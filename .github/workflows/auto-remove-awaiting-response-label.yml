@@ -6,6 +6,7 @@ on:
 jobs:
   auto-remove-awaiting-response-label:
     name: Run
+    if: "${{ contains(github.event.issue.labels.*.name, 'status: awaiting response') }}"
     runs-on: ubuntu-latest
     env:
       # Case insensitive. Replace spaces with `%20`.

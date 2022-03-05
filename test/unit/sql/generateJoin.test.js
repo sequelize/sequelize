@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize/lib/sequelize');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Sequelize = require('@sequelize/core/lib/sequelize');
 const util = require('util');
 const _ = require('lodash');
 
@@ -117,6 +117,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
+        ibmi: 'INNER JOIN "company" AS "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1',
         sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
         mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
       },
