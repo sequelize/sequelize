@@ -799,6 +799,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 permissions: 'admin',
               },
               {
+                fields: ['user_id', 'group_id'],
                 conflictFields: ['other_id'],
               },
             );
