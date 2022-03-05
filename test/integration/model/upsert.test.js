@@ -784,7 +784,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 permissions: 'member',
               },
               {
-                conflictFields: ['unique'],
+                conflictFields: ['other_id'],
               },
             );
 
@@ -799,7 +799,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 permissions: 'admin',
               },
               {
-                conflictFields: ['user_id', 'group_id'],
+                conflictFields: ['other_id'],
               },
             );
 
