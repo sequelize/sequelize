@@ -697,9 +697,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             group_id: DataTypes.INTEGER,
             otherID: {
               type: DataTypes.INTEGER,
-              allowNull: false,
-              autoIncrement: true,
               unique: true,
+              allowNull: true,
               field: 'other_id',
             },
             permissions: DataTypes.ENUM('admin', 'member'),
@@ -720,6 +719,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 user_id: 1,
                 group_id: 1,
                 permissions: 'member',
+                otherID: 26,
               },
               {
                 conflictFields: ['user_id', 'group_id'],
