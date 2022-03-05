@@ -695,6 +695,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Memberships = current.define('memberships', {
             user_id: DataTypes.INTEGER,
             group_id: DataTypes.INTEGER,
+            otherID: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              autoIncrement: true,
+              unique: true,
+              field: 'other_id',
+            },
             permissions: DataTypes.ENUM('admin', 'member'),
           });
 
@@ -767,6 +774,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(otherMembership).to.not.eq(null);
             expect(otherMembership.permissions).to.eq('member');
             expect(otherMembership.id).to.not.eq(originalMembership.id);
+          });
+
+          it('maps aliased fields to their column names', async () => {
+            const [originalMembership] = await Memberships.upsert(
+              {
+                user_id: 2,
+                group_id: 4,
+                permissions: 'member',
+              },
+              {
+                conflictFields: ['unique'],
+              },
+            );
+
+            expect(originalMembership).to.not.eq(null);
+            expect(originalMembership.permissions).to.eq('member');
+
+            const [updatedMembership] = await Memberships.upsert(
+              {
+                user_id: 1,
+                group_id: 6,
+                otherID: originalMembership.otherID,
+                permissions: 'admin',
+              },
+              {
+                conflictFields: ['user_id', 'group_id'],
+              },
+            );
+
+            expect(updatedMembership).to.not.eq(null);
+            expect(updatedMembership.permissions).to.eq('admin');
+            expect(updatedMembership.id).to.eq(originalMembership.id);
+            expect(updatedMembership.user_id).to.eq(originalMembership.user_id);
+            expect(updatedMembership.group_id).to.eq(originalMembership.group_id);
           });
         });
       }
