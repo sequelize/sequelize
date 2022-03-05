@@ -806,8 +806,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(updatedMembership).to.not.eq(null);
             expect(updatedMembership.permissions).to.eq('admin');
             expect(updatedMembership.id).to.eq(originalMembership.id);
-            expect(updatedMembership.user_id).to.eq(originalMembership.user_id);
-            expect(updatedMembership.group_id).to.eq(originalMembership.group_id);
+            expect(updatedMembership.user_id).to.eq(1);
+            expect(updatedMembership.group_id).to.eq(6);
           });
         });
       }
