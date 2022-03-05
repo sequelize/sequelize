@@ -278,9 +278,9 @@ type StringConstructorParams =
 
 class _STRING extends ABSTRACT<string | Buffer, string> {
   public static readonly key: string = 'STRING';
-  protected readonly options: StringTypeOptions;
-  protected readonly _binary?: boolean;
-  protected readonly _length?: number;
+  protected readonly options: Required<StringTypeOptions>;
+  protected readonly _binary: boolean;
+  protected readonly _length: number;
 
   /**
    * @param {StringTypeOptions} options hm
