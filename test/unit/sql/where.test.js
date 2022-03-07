@@ -51,6 +51,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({ id: 1 }, { prefix: 'User' }, {
+      oracle: `WHERE "User".id = 1`,
       default: 'WHERE [User].[id] = 1'
     });
 
@@ -61,6 +62,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'WHERE "yolo"."User"."id" = 1',
         snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
+        oracle: `WHERE yolo."User".id = 1`,
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
@@ -170,6 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
+        oracle: 'deleted IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -269,6 +272,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         ], {
           default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))",
+          oracle: `(roleName = 'NEW' OR (roleName = 'CLIENT' AND type = 'CLIENT'))`,
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
@@ -281,6 +285,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         it("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
+            oracle: `(group_id = 1 OR (user_id = 2 AND role = 'admin'))`,
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
@@ -308,6 +313,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
+          oracle:`((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -348,6 +354,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         it('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
+            oracle: `(shared = 1 AND (group_id = 1 OR user_id = 2))`,
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
@@ -361,6 +368,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
+          oracle: `NOT ((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -378,6 +386,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('userId', {
         [Op.col]: 'user.id'
       }, {
+        oracle: `userId = "user".id`,
         default: '[userId] = [user].[id]'
       });
 
@@ -386,6 +395,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [Op.col]: 'user.id'
         }
       }, {
+        oracle: `userId = "user".id`,
         default: '[userId] = [user].[id]'
       });
 
@@ -394,6 +404,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [Op.col]: 'user.id'
         }
       }, {
+        oracle: `userId > "user".id`,
         default: '[userId] > [user].[id]'
       });
 
@@ -401,18 +412,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         { 'ownerId': { [Op.col]: 'user.id' } },
         { 'ownerId': { [Op.col]: 'organization.id' } }
       ], {
+        oracle: `(ownerId = "user".id OR ownerId = organization.id)`,
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
 
       testsql('$organization.id$', {
         [Op.col]: 'user.organizationId'
       }, {
+        oracle: `organization.id = "user".organizationId`,
         default: '[organization].[id] = [user].[organizationId]'
       });
 
       testsql('$offer.organization.id$', {
         [Op.col]: 'offer.user.organizationId'
       }, {
+        oracle: `"offer->organization".id = "offer->user".organizationId`,
         default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
     });
@@ -495,6 +509,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.between]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
+        oracle: `"date" BETWEEN '2013-01-01' AND '2013-01-11'`,
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
@@ -514,13 +529,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: {
           rawAttributes: {
             date: {
-              type: new DataTypes.DATE()
+              // We need to convert timestamp to a dialect specific date format to work as expected
+              // For example: Oracle database expects TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')
+              // from a timestamp instead of '2013-01-01 00:00:00.000 +00:00' which is returned by default DATE class
+              
+              // We cannot use - type: new current.dialect.DataTypes.Date - because when dialect is set to 'mysql' 
+              // mysql DATE class returns '2013-01-01 00:00:00' instead of '2013-01-01 00:00:00.000 +00:00'(expected)
+              // and that would cause this test to fail when dialect is set to 'mysql'
+              // So we're using - new current.dialect.DataTypes.Date - only in case when dialect is set to 'oracle' as of now
+              type: (current.dialect.name === 'oracle') ? new current.dialect.DataTypes.DATE() : new DataTypes.DATE()
             }
           }
         }
       },
       {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        oracle: `"date" BETWEEN TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM') AND TO_TIMESTAMP_TZ('2013-01-11 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
         mssql: "[date] BETWEEN N'2013-01-01 00:00:00.000 +00:00' AND N'2013-01-11 00:00:00.000 +00:00'"
       });
 
@@ -529,6 +553,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.notBetween]: ['2013-01-04', '2013-01-20']
       }, {
         default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
+        oracle: `("date" BETWEEN '2012-12-10' AND '2013-01-02' AND "date" NOT BETWEEN '2013-01-04' AND '2013-01-20')`,   
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
@@ -538,6 +563,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.notBetween]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
+        oracle: `"date" NOT BETWEEN '2013-01-01' AND '2013-01-11'`,
         mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
     });

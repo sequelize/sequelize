@@ -656,6 +656,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
           [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
         ];
+      } else if (dialect === 'oracle') {
+        findAttributes = [
+          Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "PostComments.someProperty"'),
+          [Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'), 'someProperty2']
+        ];
       } else {
         findAttributes = [
           Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),

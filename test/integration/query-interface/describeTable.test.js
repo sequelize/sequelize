@@ -73,6 +73,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       let assertVal = 'VARCHAR(255)';
       switch (dialect) {
+        case 'oracle':
+          assertVal = 'NVARCHAR2';
+          break;
         case 'postgres':
           assertVal = 'CHARACTER VARYING(255)';
           break;
@@ -87,6 +90,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(username.allowNull).to.be.true;
 
       switch (dialect) {
+        case 'oracle':
         case 'sqlite':
           expect(username.defaultValue).to.be.undefined;
           break;
@@ -102,6 +106,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       assertVal = 'TINYINT(1)';
       switch (dialect) {
+        case 'oracle':
+          assertVal = 'CHAR';
+          break;
         case 'postgres':
         case 'db2':
           assertVal = 'BOOLEAN';
@@ -113,6 +120,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(isAdmin.type).to.equal(assertVal);
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
+        case 'oracle':
         case 'sqlite':
           expect(isAdmin.defaultValue).to.be.undefined;
           break;

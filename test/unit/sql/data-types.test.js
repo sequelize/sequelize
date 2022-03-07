@@ -25,17 +25,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('STRING', () => {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
-        mssql: 'NVARCHAR(255)'
+        mssql: 'NVARCHAR(255)',
+        oracle: 'NVARCHAR2(255)'
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
@@ -43,7 +46,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'VARCHAR(1234) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(1234)'
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
@@ -51,7 +55,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'VARCHAR(255) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(255)'
       });
 
       describe('validate', () => {
@@ -77,6 +82,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(256)',
         db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -85,6 +91,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(256)',
         db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -93,6 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(MAX)',
         db2: 'VARCHAR(8192)',
         mariadb: 'MEDIUMTEXT',
+        oracle: 'CLOB',
         mysql: 'MEDIUMTEXT'
       });
 
@@ -101,6 +109,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(MAX)',
         db2: 'CLOB(65536)',
         mariadb: 'LONGTEXT',
+        oracle: 'CLOB',
         mysql: 'LONGTEXT'
       });
 
@@ -846,7 +855,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('BIGINT', () => {
       testsql('BIGINT', DataTypes.BIGINT, {
-        default: 'BIGINT'
+        default: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
@@ -854,7 +864,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
@@ -862,7 +873,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
@@ -1256,51 +1268,61 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.NUMERIC) {
       testsql('NUMERIC', DataTypes.NUMERIC, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
-        default: 'DECIMAL(15,5)'
+        default: 'DECIMAL(15,5)',
+        oracle: 'NUMBER'
       });
     }
 
     describe('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
         mariadb: 'DECIMAL UNSIGNED',
         mysql: 'DECIMAL UNSIGNED',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
         mariadb: 'DECIMAL UNSIGNED ZEROFILL',
         mysql: 'DECIMAL UNSIGNED ZEROFILL',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
         mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       describe('validate', () => {

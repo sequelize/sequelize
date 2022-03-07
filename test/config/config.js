@@ -81,5 +81,17 @@ module.exports = {
       max: process.env.SEQ_DB2_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       idle: process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
     }
+  },
+
+  oracle: {
+    database: env.SEQ_ORACLE_DB || env.SEQ_DB || 'sequelize_test',
+    username: env.SEQ_ORACLE_USER || env.SEQ_USER || 'sequelize_test',
+    password: env.SEQ_ORACLE_PW || env.SEQ_PW || 'sequelize_test',
+    host: env.SEQ_ORACLE_HOST || env.SEQ_HOST || 'localhost',
+    port: env.SEQ_ORACLE_PORT || env.SEQ_PORT || 1521,
+    pool: {
+      max: env.SEQ_ORACLE_POOL_MAX || env.SEQ_POOL_MAX || 5,
+      idle: env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000
+    }
   }
 };

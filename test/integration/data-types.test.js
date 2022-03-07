@@ -30,7 +30,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
-      return value.format('YYYY-MM-DD HH:mm:ss');
+      let ret = value.format('YYYY-MM-DD HH:mm:ss');
+      if (dialect === 'oracle') {
+        // For ORACLE, use TO_DATE()
+        const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
+        const format = 'YYYY-MM-DD HH24:mi:ss';
+        ret = `TO_DATE('${formatedDate}', '${format}')`;
+      }
+      return ret;
     });
 
     current.refreshTypes();
@@ -308,7 +315,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'oracle', 'db2'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -377,7 +384,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres', 'db2'].includes(dialect)) {
+    if (['postgres', 'oracle', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);
@@ -462,7 +469,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (['postgres', 'sqlite'].includes(dialect)) {
+  if (['postgres', 'sqlite', 'oracle'].includes(dialect)) {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', async function() {
       const Model = this.sequelize.define('model', {

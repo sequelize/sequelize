@@ -49,7 +49,10 @@ if (current.dialect.name !== 'sqlite') {
         });
       });
 
-      it('properly generate alter queries for foreign keys', () => {
+      it('properly generate alter queries for foreign keys', function() {
+        if (current.dialect.name === 'oracle') {
+          this.skip();
+        }
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.INTEGER,
           references: {

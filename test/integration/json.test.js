@@ -26,7 +26,8 @@ describe('model', () => {
       it('should tell me that a column is json', async function() {
         const table = await this.sequelize.queryInterface.describeTable('Users');
         // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-        if (dialect !== 'mariadb') {
+        // oracledb 19c doesn't support JSON and the DB datatype is BLOB
+        if (dialect !== 'mariadb' && dialect !== 'oracle') {
           expect(table.emergency_contact.type).to.equal('JSON');
         }
       });
@@ -40,6 +41,8 @@ describe('model', () => {
           logging: sql => {
             if (dialect.match(/^mysql|mariadb/)) {
               expect(sql).to.include('?');
+            } else if (dialect === 'oracle') {
+              expect(sql).to.include(':1');
             } else {
               expect(sql).to.include('$1');
             }

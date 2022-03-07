@@ -22,8 +22,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        //TBD: WHY WAS THIS SKIPPED FOR ORACLE?
         if (current.dialect.name !== 'mssql') {
-          const email = current.dialect.name === 'db2' ? '"email"' : 'email';
+          const email = current.dialect.name === 'db2' || current.dialect.name !== 'oracle' ? '"email"' : 'email';
           it('should work with order: literal()', async function() {
             const users = await this.User.findAll({
               order: this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)

@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         style: 'ipa'
       }], {
         logging(sql) {
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'oracle') {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
           } else if (dialect === 'db2') {
             expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');

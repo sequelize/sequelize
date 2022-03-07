@@ -48,6 +48,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -82,6 +84,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }

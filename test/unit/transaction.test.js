@@ -46,6 +46,9 @@ describe('Transaction', () => {
       ],
       mssql: [
         'BEGIN TRANSACTION;'
+        ],
+      oracle: [
+      'BEGIN TRANSACTION'
       ]
     };
 
@@ -73,7 +76,11 @@ describe('Transaction', () => {
       ],
       mssql: [
         'BEGIN TRANSACTION;'
-      ]
+      ],
+      oracle: [
+        'BEGIN TRANSACTION',
+        'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;'
+      ],
     };
 
     await current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
