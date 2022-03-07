@@ -1,6 +1,4 @@
 {
-  "name": "documentation",
-  "version": "0.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -12,19 +10,18 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "typedoc": "typedoc"
   },
   "dependencies": {
     "@docusaurus/core": "2.0.0-beta.14",
     "@docusaurus/preset-classic": "2.0.0-beta.14",
     "@mdx-js/react": "^1.6.21",
     "clsx": "^1.1.1",
-    "docusaurus-plugin-typedoc": "^0.16.6",
     "prism-react-renderer": "^1.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "typedoc": "^0.22.10",
-    "typedoc-plugin-markdown": "^3.11.9"
+    "typedoc": "^0.22.10"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.0.0-beta.14",

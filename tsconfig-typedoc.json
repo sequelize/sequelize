@@ -18,5 +18,5 @@
     "checkJs": false,
     "removeComments": false
   },
-  "include": ["./dist/**/*.ts", "./dist/**/*.d.ts"]
+  "include": ["./types/**/*.ts", "./types/**/*.d.ts"]
 }

@@ -35,18 +35,6 @@ const config = {
     ],
   ],
 
-  plugins: [
-    [
-      'docusaurus-plugin-typedoc',
-
-      // Plugin / TypeDoc options
-      {
-        entryPoints: ['../dist/index.d.ts'],
-        tsconfig: '../tsconfig.json',
-      },
-    ],
-  ],
-
   themeConfig:
   /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     {
@@ -62,6 +50,12 @@ const config = {
             docId: 'intro',
             position: 'left',
             label: 'Guides',
+          },
+          {
+            href: '/api/',
+            position: 'left',
+            label: 'API Reference',
+            target: '_blank',
           },
           { href: 'https://sequelize-slack.herokuapp.com/', label: 'Slack', position: 'right' },
           {
