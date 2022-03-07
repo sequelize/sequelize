@@ -6,9 +6,11 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
+const siteTitle = 'Sequelize v7 (alpha)';
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Sequelize',
+  title: siteTitle,
   tagline: 'Promise-based ORM',
   url: 'https://sequelize.org',
   baseUrl: '/',
@@ -26,7 +28,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          editUrl: 'https://github.com/sequelize/sequelize/tree/main/documentation/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -39,7 +41,7 @@ const config = {
   /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     {
       navbar: {
-        title: 'Sequelize',
+        title: siteTitle,
         logo: {
           alt: 'Sequelize Logo',
           src: 'img/logo.svg',
@@ -82,11 +84,11 @@ const config = {
             items: [
               {
                 label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                href: 'https://stackoverflow.com/questions/tagged/sequelize.js',
               },
               {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
+                label: 'Slack',
+                href: 'https://sequelize-slack.herokuapp.com/',
               },
               {
                 label: 'Twitter',
@@ -103,12 +105,16 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                href: 'https://github.com/sequelize/sequelize',
+              },
+              {
+                label: 'Changelog',
+                href: 'https://github.com/sequelize/sequelize/releases',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Sequelize Contributors. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,
