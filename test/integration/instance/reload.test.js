@@ -1,27 +1,29 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require('sequelize'),
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  sinon = require('sinon'),
-  current = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Sequelize = require('@sequelize/core');
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const sinon = require('sinon');
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.clock.reset();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -34,23 +36,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true }
+        validate: { isInt: true },
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
-      }
+        defaultValue: false,
+      },
     });
 
     await this.User.sync({ force: true });
@@ -58,7 +60,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('reload', () => {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
@@ -74,14 +76,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    it('should return a reference to the same DAO instead of creating a new one', async function() {
+    it('should return a reference to the same DAO instead of creating a new one', async function () {
       const originalUser = await this.User.create({ username: 'John Doe' });
       await originalUser.update({ username: 'Doe John' });
       const updatedUser = await originalUser.reload();
       expect(originalUser === updatedUser).to.be.true;
     });
 
-    it('should use default internal where', async function() {
+    it('should use default internal where', async function () {
       const user = await this.User.create({ username: 'Balak Bukhara' });
       const anotherUser = await this.User.create({ username: 'John Smith' });
 
@@ -95,7 +97,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.get('id')).to.equal(primaryKey).and.not.equal(anotherUser.get('id'));
     });
 
-    it('should update the values on all references to the DAO', async function() {
+    it('should update the values on all references to the DAO', async function () {
       const originalUser = await this.User.create({ username: 'John Doe' });
       const updater = await this.User.findByPk(originalUser.id);
       await updater.update({ username: 'Doe John' });
@@ -106,31 +108,31 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(updatedUser.username).to.equal('Doe John');
     });
 
-    it('should support updating a subset of attributes', async function() {
+    it('should support updating a subset of attributes', async function () {
       const user1 = await this.User.create({
         aNumber: 1,
-        bNumber: 1
+        bNumber: 1,
       });
 
       await this.User.update({
-        bNumber: 2
+        bNumber: 2,
       }, {
         where: {
-          id: user1.get('id')
-        }
+          id: user1.get('id'),
+        },
       });
 
       const user0 = user1;
 
       const user = await user0.reload({
-        attributes: ['bNumber']
+        attributes: ['bNumber'],
       });
 
       expect(user.get('aNumber')).to.equal(1);
       expect(user.get('bNumber')).to.equal(2);
     });
 
-    it('should update read only attributes as well (updatedAt)', async function() {
+    it('should update read only attributes as well (updatedAt)', async function () {
       const originalUser = await this.User.create({ username: 'John Doe' });
       this.originallyUpdatedAt = originalUser.updatedAt;
       this.originalUser = originalUser;
@@ -145,9 +147,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(this.updatedUser.updatedAt).to.be.above(this.originallyUpdatedAt);
     });
 
-    it('should update the associations as well', async function() {
-      const Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
-        Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
+    it('should update the associations as well', async function () {
+      const Book = this.sequelize.define('Book', { title: DataTypes.STRING });
+      const Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
 
       Book.hasMany(Page);
       Page.belongsTo(Book);
@@ -160,7 +162,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const leBook = await Book.findOne({
         where: { id: book.id },
-        include: [Page]
+        include: [Page],
       });
 
       const page0 = await page.update({ content: 'something totally different' });
@@ -173,9 +175,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(page0.content).to.equal('something totally different');
     });
 
-    it('should update internal options of the instance', async function() {
-      const Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
-        Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
+    it('should update internal options of the instance', async function () {
+      const Book = this.sequelize.define('Book', { title: DataTypes.STRING });
+      const Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
 
       Book.hasMany(Page);
       Page.belongsTo(Book);
@@ -187,13 +189,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await book.setPages([page]);
 
       const leBook = await Book.findOne({
-        where: { id: book.id }
+        where: { id: book.id },
       });
 
       const oldOptions = leBook._options;
 
       const leBook0 = await leBook.reload({
-        include: [Page]
+        include: [Page],
       });
 
       expect(oldOptions).not.to.equal(leBook0._options);
@@ -202,19 +204,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(leBook0.get({ plain: true }).Pages.length).to.equal(1);
     });
 
-    it('should return an error when reload fails', async function() {
+    it('should return an error when reload fails', async function () {
       const user = await this.User.create({ username: 'John Doe' });
       await user.destroy();
 
       await expect(user.reload()).to.be.rejectedWith(
         Sequelize.InstanceError,
-        'Instance could not be reloaded because it does not exist anymore (find call returned null)'
+        'Instance could not be reloaded because it does not exist anymore (find call returned null)',
       );
     });
 
-    it('should set an association to null after deletion, 1-1', async function() {
-      const Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING }),
-        Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+    it('should set an association to null after deletion, 1-1', async function () {
+      const Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING });
+      const Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Player.hasOne(Shoe);
       Shoe.belongsTo(Player);
@@ -224,13 +226,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const shoe = await Shoe.create({
         brand: 'the brand',
         Player: {
-          name: 'the player'
-        }
+          name: 'the player',
+        },
       }, { include: [Player] });
 
       const lePlayer1 = await Player.findOne({
         where: { id: shoe.Player.id },
-        include: [Shoe]
+        include: [Shoe],
       });
 
       expect(lePlayer1.Shoe).not.to.be.null;
@@ -240,9 +242,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(lePlayer.Shoe).to.be.null;
     });
 
-    it('should set an association to empty after all deletion, 1-N', async function() {
-      const Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
-        Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+    it('should set an association to empty after all deletion, 1-N', async function () {
+      const Team = this.sequelize.define('Team', { name: DataTypes.STRING });
+      const Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Team.hasMany(Player);
       Player.belongsTo(Team);
@@ -252,15 +254,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const team = await Team.create({
         name: 'the team',
         Players: [{
-          name: 'the player1'
+          name: 'the player1',
         }, {
-          name: 'the player2'
-        }]
+          name: 'the player2',
+        }],
       }, { include: [Player] });
 
       const leTeam1 = await Team.findOne({
         where: { id: team.id },
-        include: [Player]
+        include: [Player],
       });
 
       expect(leTeam1.Players).not.to.be.empty;
@@ -271,28 +273,27 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(leTeam.Players).to.be.empty;
     });
 
-    it('should update the associations after one element deleted', async function() {
-      const Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
-        Player = this.sequelize.define('Player', { name: DataTypes.STRING });
+    it('should update the associations after one element deleted', async function () {
+      const Team = this.sequelize.define('Team', { name: DataTypes.STRING });
+      const Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Team.hasMany(Player);
       Player.belongsTo(Team);
-
 
       await this.sequelize.sync({ force: true });
 
       const team = await Team.create({
         name: 'the team',
         Players: [{
-          name: 'the player1'
+          name: 'the player1',
         }, {
-          name: 'the player2'
-        }]
+          name: 'the player2',
+        }],
       }, { include: [Player] });
 
       const leTeam1 = await Team.findOne({
         where: { id: team.id },
-        include: [Player]
+        include: [Player],
       });
 
       expect(leTeam1.Players).to.have.length(2);
@@ -302,17 +303,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(leTeam.Players).to.have.length(1);
     });
 
-    it('should inject default scope when reloading', async function() {
+    it('should inject default scope when reloading', async function () {
       const Bar = this.sequelize.define('Bar', {
-        name: DataTypes.TEXT
+        name: DataTypes.TEXT,
       });
 
       const Foo = this.sequelize.define('Foo', {
-        name: DataTypes.TEXT
+        name: DataTypes.TEXT,
       }, {
         defaultScope: {
-          include: [{ model: Bar }]
-        }
+          include: [{ model: Bar }],
+        },
       });
 
       Bar.belongsTo(Foo);

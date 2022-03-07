@@ -1,12 +1,14 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Sequelize', () => {
     async function checkTimezoneParsing(baseOptions) {
       const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
@@ -18,7 +20,7 @@ if (dialect.match(/^postgres/)) {
       expect(row).to.be.not.null;
     }
 
-    it('should correctly parse the moment based timezone while fetching hstore oids', async function() {
+    it('should correctly parse the moment based timezone while fetching hstore oids', async function () {
       await checkTimezoneParsing(this.sequelize.options);
     });
 
@@ -55,9 +57,9 @@ if (dialect.match(/^postgres/)) {
 
     it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
       const sequelize = Support.createSequelizeInstance({
-        dialectOptions: { query_timeout: 100 }
+        dialectOptions: { query_timeout: 100 },
       });
-      const error = await sequelize.query('select pg_sleep(2)').catch(e => e);
+      const error = await sequelize.query('select pg_sleep(2)').catch(error_ => error_);
       expect(error.message).to.equal('Query read timeout');
     });
 
@@ -74,7 +76,7 @@ if (dialect.match(/^postgres/)) {
       DataTypes.GEOMETRY,
       DataTypes.HSTORE,
       DataTypes.GEOGRAPHY,
-      DataTypes.CITEXT
+      DataTypes.CITEXT,
     ];
 
     // Expect at least these
@@ -83,7 +85,7 @@ if (dialect.match(/^postgres/)) {
       decimal: 'numeric',
       date: 'timestamptz',
       dateonly: 'date',
-      bigint: 'int8'
+      bigint: 'int8',
     };
 
     function reloadDynamicOIDs(sequelize) {
@@ -93,7 +95,7 @@ if (dialect.match(/^postgres/)) {
 
       // Force start of connection manager to reload dynamic OIDs
       const User = sequelize.define('User', {
-        perms: DataTypes.ENUM(['foo', 'bar'])
+        perms: DataTypes.ENUM(['foo', 'bar']),
       });
 
       return User.sync({ force: true });
@@ -102,7 +104,7 @@ if (dialect.match(/^postgres/)) {
     it('should fetch regular dynamic oids and create parsers', async () => {
       const sequelize = Support.sequelize;
       await reloadDynamicOIDs(sequelize);
-      dynamicTypesToCheck.forEach(type => {
+      for (const type of dynamicTypesToCheck) {
         expect(type.types.postgres,
           `DataType.${type.key}.types.postgres`).to.not.be.empty;
 
@@ -119,7 +121,7 @@ if (dialect.match(/^postgres/)) {
             `oidParserMap.get(nameOidMap[${name}].arrayOid)`).to.be.a('function');
         }
 
-      });
+      }
     });
 
     it('should fetch enum dynamic oids and create parsers', async () => {
@@ -134,6 +136,7 @@ if (dialect.match(/^postgres/)) {
       for (const oid of enumOids.oids) {
         expect(oidParserMap.get(oid), 'oidParserMap.get(enumOids.oids)').to.be.a('function');
       }
+
       for (const arrayOid of enumOids.arrayOids) {
         expect(oidParserMap.get(arrayOid), 'oidParserMap.get(enumOids.arrayOids)').to.be.a('function');
       }

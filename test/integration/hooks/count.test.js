@@ -1,36 +1,37 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral']
-      }
+        values: ['happy', 'sad', 'neutral'],
+      },
     });
     await this.sequelize.sync({ force: true });
   });
 
   describe('#count', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.User.bulkCreate([
         { username: 'adam', mood: 'happy' },
         { username: 'joe', mood: 'sad' },
-        { username: 'joe', mood: 'happy' }
+        { username: 'joe', mood: 'happy' },
       ]);
     });
 
     describe('on success', () => {
-      it('hook runs', async function() {
+      it('hook runs', async function () {
         let beforeHook = false;
 
         this.User.beforeCount(() => {
@@ -42,7 +43,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(beforeHook).to.be.true;
       });
 
-      it('beforeCount hook can change options', async function() {
+      it('beforeCount hook can change options', async function () {
         this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
@@ -52,7 +53,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('in beforeCount hook returns error', async function() {
+      it('in beforeCount hook returns error', async function () {
         this.User.beforeCount(() => {
           throw new Error('Oops!');
         });

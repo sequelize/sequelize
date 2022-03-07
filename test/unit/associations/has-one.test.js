@@ -1,12 +1,14 @@
 'use strict';
 
-const chai  = require('chai'),
-  expect    = chai.expect,
-  sinon = require('sinon'),
-  _         = require('lodash'),
-  Support   = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  current   = Support.sequelize;
+const chai  = require('chai');
+
+const expect    = chai.expect;
+const sinon = require('sinon');
+const _         = require('lodash');
+const Support   = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasOne'), () => {
   it('throws when invalid model is passed', () => {
@@ -27,8 +29,8 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
   });
 
   it('properly use the `as` key to generate foreign key name', () => {
-    const User = current.define('User', { username: DataTypes.STRING }),
-      Task = current.define('Task', { title: DataTypes.STRING });
+    const User = current.define('User', { username: DataTypes.STRING });
+    const Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasOne(Task);
     expect(Task.rawAttributes.UserId).not.to.be.empty;
@@ -41,15 +43,16 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     const methods = {
       getTask: 'get',
       setTask: 'set',
-      createTask: 'create'
+      createTask: 'create',
     };
     const User = current.define('User');
     const Task = current.define('Task');
 
     _.each(methods, (alias, method) => {
-      User.prototype[method] = function() {
+      User.prototype[method] = function () {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
+
         return realMethod;
       };
     });
@@ -63,12 +66,12 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     });
   });
   describe('association hooks', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
     describe('beforeHasOneAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: true });
@@ -79,14 +82,14 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
 
         expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: false });
@@ -94,7 +97,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
       });
     });
     describe('afterHasOneAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: true });
@@ -106,7 +109,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
@@ -114,7 +117,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: false });

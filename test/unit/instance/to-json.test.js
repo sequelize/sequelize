@@ -1,16 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support   = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  current   = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support   = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     it('returns copy of json', () => {
       const User = current.define('User', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
       const user = User.build({ name: 'my-name' });
       const json1 = user.toJSON();
@@ -26,7 +28,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns clone of JSON data-types', () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
-        permissions: DataTypes.JSON
+        permissions: DataTypes.JSON,
       });
       const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
       const json = user.toJSON();

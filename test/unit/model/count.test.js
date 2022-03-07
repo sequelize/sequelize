@@ -1,16 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  Sequelize = Support.Sequelize,
-  current = Support.sequelize,
-  sinon = require('sinon'),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+
+const Sequelize = Support.Sequelize;
+const current = Support.sequelize;
+const sinon = require('sinon');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
-    before(function() {
+    before(function () {
       this.oldFindAll = Sequelize.Model.findAll;
       this.oldAggregate = Sequelize.Model.aggregate;
 
@@ -18,29 +20,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.User = current.define('User', {
         username: DataTypes.STRING,
-        age: DataTypes.INTEGER
+        age: DataTypes.INTEGER,
       });
       this.Project = current.define('Project', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
 
       this.User.hasMany(this.Project);
       this.Project.belongsTo(this.User);
     });
 
-    after(function() {
+    after(function () {
       Sequelize.Model.findAll = this.oldFindAll;
       Sequelize.Model.aggregate = this.oldAggregate;
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.stub = Sequelize.Model.aggregate = sinon.stub().resolves();
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
-      it('with includes', async function() {
+      it('with includes', async function () {
         const queryObject = {
-          include: [this.Project]
+          include: [this.Project],
         };
         await this.User.count(queryObject);
         await this.User.findAndCountAll(queryObject);
@@ -49,9 +51,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(count).to.eql(findAndCountAll);
       });
 
-      it('attributes should be stripped in case of findAndCountAll', async function() {
+      it('attributes should be stripped in case of findAndCountAll', async function () {
         const queryObject = {
-          attributes: ['username']
+          attributes: ['username'],
         };
         await this.User.count(queryObject);
         await this.User.findAndCountAll(queryObject);

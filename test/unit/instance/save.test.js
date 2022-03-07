@@ -1,39 +1,40 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
-  Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support   = require('../support');
+
+const current   = Support.sequelize;
+const Sequelize = Support.Sequelize;
+const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     it('should disallow saves if no primary key values is present', async () => {
-      const Model = current.define('User', {
-
-        }),
-        instance = Model.build({}, { isNewRecord: false });
+      const Model = current.define('User', {});
+      const instance = Model.build({}, { isNewRecord: false });
 
       await expect(instance.save()).to.be.rejected;
     });
 
     describe('options tests', () => {
-      let stub, instance;
+      let stub;
+      let instance;
       const Model = current.define('User', {
         id: {
           type: Sequelize.BIGINT,
           primaryKey: true,
-          autoIncrement: true
-        }
+          autoIncrement: true,
+        },
       });
 
       before(() => {
         stub = sinon.stub(current, 'query').resolves(
           [{
             _previousDataValues: {},
-            dataValues: { id: 1 }
-          }, 1]
+            dataValues: { id: 1 },
+          }, 1],
         );
       });
 

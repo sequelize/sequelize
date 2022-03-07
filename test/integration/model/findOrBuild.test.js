@@ -1,18 +1,19 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
-      age: DataTypes.INTEGER
+      age: DataTypes.INTEGER,
     });
     this.Project = this.sequelize.define('Project', {
-      name: DataTypes.STRING
+      name: DataTypes.STRING,
     });
 
     this.User.hasMany(this.Project);
@@ -21,16 +22,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     await this.sequelize.sync({ force: true });
   });
 
-
   describe('findOrBuild', () => {
-    it('initialize with includes', async function() {
+    it('initialize with includes', async function () {
       const [, user2] = await this.User.bulkCreate([
         { username: 'Mello', age: 10 },
-        { username: 'Mello', age: 20 }
+        { username: 'Mello', age: 20 },
       ], { returning: true });
 
       const project = await this.Project.create({
-        name: 'Investigate'
+        name: 'Investigate',
       });
 
       await user2.setProjects([project]);
@@ -38,14 +38,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const [user, created] = await this.User.findOrBuild({
         defaults: {
           username: 'Mello',
-          age: 10
+          age: 10,
         },
         where: {
-          age: 20
+          age: 20,
         },
         include: [{
-          model: this.Project
-        }]
+          model: this.Project,
+        }],
       });
 
       expect(created).to.be.false;

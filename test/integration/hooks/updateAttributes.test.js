@@ -1,33 +1,34 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  sinon = require('sinon');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral']
-      }
+        values: ['happy', 'sad', 'neutral'],
+      },
     });
     await this.sequelize.sync({ force: true });
   });
 
   describe('#update', () => {
     describe('on success', () => {
-      it('should run hooks', async function() {
-        const beforeHook = sinon.spy(),
-          afterHook = sinon.spy(),
-          beforeSave = sinon.spy(),
-          afterSave = sinon.spy();
+      it('should run hooks', async function () {
+        const beforeHook = sinon.spy();
+        const afterHook = sinon.spy();
+        const beforeSave = sinon.spy();
+        const afterSave = sinon.spy();
 
         this.User.beforeUpdate(beforeHook);
         this.User.afterUpdate(afterHook);
@@ -45,11 +46,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
-        const beforeHook = sinon.spy(),
-          afterHook = sinon.spy(),
-          beforeSave = sinon.spy(),
-          afterSave = sinon.spy();
+      it('should return an error from before', async function () {
+        const beforeHook = sinon.spy();
+        const afterHook = sinon.spy();
+        const beforeSave = sinon.spy();
+        const afterSave = sinon.spy();
 
         this.User.beforeUpdate(() => {
           beforeHook();
@@ -67,11 +68,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(afterSave).to.have.been.calledOnce;
       });
 
-      it('should return an error from after', async function() {
-        const beforeHook = sinon.spy(),
-          afterHook = sinon.spy(),
-          beforeSave = sinon.spy(),
-          afterSave = sinon.spy();
+      it('should return an error from after', async function () {
+        const beforeHook = sinon.spy();
+        const afterHook = sinon.spy();
+        const beforeSave = sinon.spy();
+        const afterSave = sinon.spy();
 
         this.User.beforeUpdate(beforeHook);
         this.User.afterUpdate(() => {
@@ -91,7 +92,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('preserves changes to instance', () => {
-      it('beforeValidate', async function() {
+      it('beforeValidate', async function () {
         this.User.beforeValidate(user => {
           user.mood = 'happy';
         });
@@ -102,7 +103,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
-      it('afterValidate', async function() {
+      it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
         });
@@ -113,7 +114,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('sad');
       });
 
-      it('beforeSave', async function() {
+      it('beforeSave', async function () {
         let hookCalled = 0;
 
         this.User.beforeSave(user => {
@@ -128,7 +129,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hookCalled).to.equal(2);
       });
 
-      it('beforeSave with beforeUpdate', async function() {
+      it('beforeSave with beforeUpdate', async function () {
         let hookCalled = 0;
 
         this.User.beforeUpdate(user => {

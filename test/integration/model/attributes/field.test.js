@@ -1,26 +1,28 @@
 'use strict';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  Sequelize = require('sequelize'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  dialect = Support.getTestDialect();
+const chai = require('chai');
+const sinon = require('sinon');
+const Sequelize = require('@sequelize/core');
+
+const expect = chai.expect;
+const Support = require('../../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
 
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
   describe('attributes', () => {
     describe('field', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         const queryInterface = this.sequelize.getQueryInterface();
 
         this.User = this.sequelize.define('user', {
@@ -29,21 +31,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-            field: 'userId'
+            field: 'userId',
           },
           name: {
             type: DataTypes.STRING,
-            field: 'full_name'
+            field: 'full_name',
           },
           taskCount: {
             type: DataTypes.INTEGER,
             field: 'task_count',
             defaultValue: 0,
-            allowNull: false
-          }
+            allowNull: false,
+          },
         }, {
           tableName: 'users',
-          timestamps: false
+          timestamps: false,
         });
 
         this.Task = this.sequelize.define('task', {
@@ -52,15 +54,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-            field: 'taskId'
+            field: 'taskId',
           },
           title: {
             type: DataTypes.STRING,
-            field: 'name'
-          }
+            field: 'name',
+          },
         }, {
           tableName: 'tasks',
-          timestamps: false
+          timestamps: false,
         });
 
         this.Comment = this.sequelize.define('comment', {
@@ -69,35 +71,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-            field: 'commentId'
+            field: 'commentId',
           },
           text: { type: DataTypes.STRING, field: 'comment_text' },
           notes: { type: DataTypes.STRING, field: 'notes' },
           likes: { type: DataTypes.INTEGER, field: 'like_count' },
           createdAt: { type: DataTypes.DATE, field: 'created_at', allowNull: false },
-          updatedAt: { type: DataTypes.DATE, field: 'updated_at', allowNull: false }
+          updatedAt: { type: DataTypes.DATE, field: 'updated_at', allowNull: false },
         }, {
           tableName: 'comments',
-          timestamps: true
+          timestamps: true,
         });
 
         this.User.hasMany(this.Task, {
-          foreignKey: 'user_id'
+          foreignKey: 'user_id',
         });
         this.Task.belongsTo(this.User, {
-          foreignKey: 'user_id'
+          foreignKey: 'user_id',
         });
         this.Task.hasMany(this.Comment, {
-          foreignKey: 'task_id'
+          foreignKey: 'task_id',
         });
         this.Comment.belongsTo(this.Task, {
-          foreignKey: 'task_id'
+          foreignKey: 'task_id',
         });
 
         this.User.belongsToMany(this.Comment, {
           foreignKey: 'userId',
           otherKey: 'commentId',
-          through: 'userComments'
+          through: 'userComments',
         });
 
         await Promise.all([
@@ -106,84 +108,84 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               type: DataTypes.INTEGER,
               allowNull: false,
               primaryKey: true,
-              autoIncrement: true
+              autoIncrement: true,
             },
             full_name: {
-              type: DataTypes.STRING
+              type: DataTypes.STRING,
             },
             task_count: {
               type: DataTypes.INTEGER,
               allowNull: false,
-              defaultValue: 0
-            }
+              defaultValue: 0,
+            },
           }),
           queryInterface.createTable('tasks', {
             taskId: {
               type: DataTypes.INTEGER,
               allowNull: false,
               primaryKey: true,
-              autoIncrement: true
+              autoIncrement: true,
             },
             user_id: {
-              type: DataTypes.INTEGER
+              type: DataTypes.INTEGER,
             },
             name: {
-              type: DataTypes.STRING
-            }
+              type: DataTypes.STRING,
+            },
           }),
           queryInterface.createTable('comments', {
             commentId: {
               type: DataTypes.INTEGER,
               allowNull: false,
               primaryKey: true,
-              autoIncrement: true
+              autoIncrement: true,
             },
             task_id: {
-              type: DataTypes.INTEGER
+              type: DataTypes.INTEGER,
             },
             comment_text: {
-              type: DataTypes.STRING
+              type: DataTypes.STRING,
             },
             notes: {
-              type: DataTypes.STRING
+              type: DataTypes.STRING,
             },
             like_count: {
-              type: DataTypes.INTEGER
+              type: DataTypes.INTEGER,
             },
             created_at: {
               type: DataTypes.DATE,
-              allowNull: false
+              allowNull: false,
             },
             updated_at: {
-              type: DataTypes.DATE
-            }
+              type: DataTypes.DATE,
+            },
           }),
           queryInterface.createTable('userComments', {
             commentId: {
-              type: DataTypes.INTEGER
+              type: DataTypes.INTEGER,
             },
             userId: {
-              type: DataTypes.INTEGER
-            }
-          })
+              type: DataTypes.INTEGER,
+            },
+          }),
         ]);
       });
 
       describe('primaryKey', () => {
         describe('in combination with allowNull', () => {
-          beforeEach(async function() {
+          beforeEach(async function () {
             this.ModelUnderTest = this.sequelize.define('ModelUnderTest', {
               identifier: {
                 primaryKey: true,
                 type: Sequelize.STRING,
-                allowNull: false
-              }
+                allowNull: false,
+              },
             });
 
             await this.ModelUnderTest.sync({ force: true });
           });
 
-          it('sets the column to not allow null', async function() {
+          it('sets the column to not allow null', async function () {
             const fields = await this
               .ModelUnderTest
               .describe();
@@ -192,48 +194,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should support instance.destroy()', async function() {
+        it('should support instance.destroy()', async function () {
           const user = await this.User.create();
           await user.destroy();
         });
 
-        it('should support Model.destroy()', async function() {
+        it('should support Model.destroy()', async function () {
           const user = await this.User.create();
 
           await this.User.destroy({
             where: {
-              id: user.get('id')
-            }
+              id: user.get('id'),
+            },
           });
         });
       });
 
       describe('field and attribute name is the same', () => {
-        beforeEach(async function() {
+        beforeEach(async function () {
           await this.Comment.bulkCreate([
             { notes: 'Number one' },
-            { notes: 'Number two' }
+            { notes: 'Number two' },
           ]);
         });
 
-        it('bulkCreate should work', async function() {
+        it('bulkCreate should work', async function () {
           const comments = await this.Comment.findAll();
           expect(comments[0].notes).to.equal('Number one');
           expect(comments[1].notes).to.equal('Number two');
         });
 
-        it('find with where should work', async function() {
+        it('find with where should work', async function () {
           const comments = await this.Comment.findAll({ where: { notes: 'Number one' } });
           expect(comments).to.have.length(1);
           expect(comments[0].notes).to.equal('Number one');
         });
 
-        it('reload should work', async function() {
+        it('reload should work', async function () {
           const comment = await this.Comment.findByPk(1);
           await comment.reload();
         });
 
-        it('save should work', async function() {
+        it('save should work', async function () {
           const comment1 = await this.Comment.create({ notes: 'my note' });
           comment1.notes = 'new note';
           const comment0 = await comment1.save();
@@ -242,7 +244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('increment should work', async function() {
+      it('increment should work', async function () {
         await this.Comment.destroy({ truncate: true });
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.increment('likes');
@@ -250,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(comment.likes).to.be.equal(24);
       });
 
-      it('decrement should work', async function() {
+      it('decrement should work', async function () {
         await this.Comment.destroy({ truncate: true });
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.decrement('likes');
@@ -258,38 +260,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(comment.likes).to.be.equal(22);
       });
 
-      it('sum should work', async function() {
+      it('sum should work', async function () {
         await this.Comment.destroy({ truncate: true });
         await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const likes = await this.Comment.sum('likes');
         expect(likes).to.be.equal(23);
       });
 
-      it('should create, fetch and update with alternative field names from a simple model', async function() {
+      it('should create, fetch and update with alternative field names from a simple model', async function () {
         await this.User.create({
-          name: 'Foobar'
+          name: 'Foobar',
         });
 
         const user0 = await this.User.findOne({
-          limit: 1
+          limit: 1,
         });
 
         expect(user0.get('name')).to.equal('Foobar');
 
         await user0.update({
-          name: 'Barfoo'
+          name: 'Barfoo',
         });
 
         const user = await this.User.findOne({
-          limit: 1
+          limit: 1,
         });
 
         expect(user.get('name')).to.equal('Barfoo');
       });
 
-      it('should bulk update', async function() {
+      it('should bulk update', async function () {
         const Entity = this.sequelize.define('Entity', {
-          strField: { type: Sequelize.STRING, field: 'str_field' }
+          strField: { type: Sequelize.STRING, field: 'str_field' },
         });
 
         await this.sequelize.sync({ force: true });
@@ -297,20 +299,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Entity.update(
           { strField: 'bar' },
-          { where: { strField: 'foo' } }
+          { where: { strField: 'foo' } },
         );
 
         const entity = await Entity.findOne({
           where: {
-            strField: 'bar'
-          }
+            strField: 'bar',
+          },
         });
 
         expect(entity).to.be.ok;
         expect(entity.get('strField')).to.equal('bar');
       });
 
-      it('should not contain the field properties after create', async function() {
+      it('should not contain the field properties after create', async function () {
         const Model = this.sequelize.define('test', {
           id: {
             type: Sequelize.INTEGER,
@@ -318,18 +320,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             autoIncrement: true,
             primaryKey: true,
             validate: {
-              min: 1
-            }
+              min: 1,
+            },
           },
           title: {
             allowNull: false,
             type: Sequelize.STRING(255),
-            field: 'test_title'
-          }
+            field: 'test_title',
+          },
         }, {
           timestamps: true,
           underscored: true,
-          freezeTableName: true
+          freezeTableName: true,
         });
 
         await Model.sync({ force: true });
@@ -338,33 +340,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(data.get('test_id')).to.be.an('undefined');
       });
 
-      it('should make the aliased auto incremented primary key available after create', async function() {
+      it('should make the aliased auto incremented primary key available after create', async function () {
         const user = await this.User.create({
-          name: 'Barfoo'
+          name: 'Barfoo',
         });
 
         expect(user.get('id')).to.be.ok;
       });
 
-      it('should work with where on includes for find', async function() {
+      it('should work with where on includes for find', async function () {
         const user = await this.User.create({
-          name: 'Barfoo'
+          name: 'Barfoo',
         });
 
         const task0 = await user.createTask({
-          title: 'DatDo'
+          title: 'DatDo',
         });
 
         await task0.createComment({
-          text: 'Comment'
+          text: 'Comment',
         });
 
         const task = await this.Task.findOne({
           include: [
             { model: this.Comment },
-            { model: this.User }
+            { model: this.User },
           ],
-          where: { title: 'DatDo' }
+          where: { title: 'DatDo' },
         });
 
         expect(task.get('title')).to.equal('DatDo');
@@ -372,87 +374,89 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(task.get('user')).to.be.ok;
       });
 
-      it('should work with where on includes for findAll', async function() {
+      it('should work with where on includes for findAll', async function () {
         const user = await this.User.create({
-          name: 'Foobar'
+          name: 'Foobar',
         });
 
         const task = await user.createTask({
-          title: 'DoDat'
+          title: 'DoDat',
         });
 
         await task.createComment({
-          text: 'Comment'
+          text: 'Comment',
         });
 
         const users = await this.User.findAll({
           include: [
-            { model: this.Task, where: { title: 'DoDat' }, include: [
-              { model: this.Comment }
-            ] }
-          ]
+            {
+              model: this.Task, where: { title: 'DoDat' }, include: [
+                { model: this.Comment },
+              ],
+            },
+          ],
         });
 
-        users.forEach(user => {
+        for (const user of users) {
           expect(user.get('name')).to.be.ok;
           expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
           expect(user.get('tasks')[0].get('comments')).to.be.ok;
-        });
+        }
       });
 
-      it('should work with increment', async function() {
+      it('should work with increment', async function () {
         const user = await this.User.create();
         await user.increment('taskCount');
       });
 
-      it('should work with a simple where', async function() {
+      it('should work with a simple where', async function () {
         await this.User.create({
-          name: 'Foobar'
+          name: 'Foobar',
         });
 
         const user = await this.User.findOne({
           where: {
-            name: 'Foobar'
-          }
+            name: 'Foobar',
+          },
         });
 
         expect(user).to.be.ok;
       });
 
-      it('should work with a where or', async function() {
+      it('should work with a where or', async function () {
         await this.User.create({
-          name: 'Foobar'
+          name: 'Foobar',
         });
 
         const user = await this.User.findOne({
           where: this.sequelize.or({
-            name: 'Foobar'
+            name: 'Foobar',
           }, {
-            name: 'Lollerskates'
-          })
+            name: 'Lollerskates',
+          }),
         });
 
         expect(user).to.be.ok;
       });
 
-      it('should work with bulkCreate and findAll', async function() {
+      it('should work with bulkCreate and findAll', async function () {
         await this.User.bulkCreate([{
-          name: 'Abc'
+          name: 'Abc',
         }, {
-          name: 'Bcd'
+          name: 'Bcd',
         }, {
-          name: 'Cde'
+          name: 'Cde',
         }]);
 
         const users = await this.User.findAll();
-        users.forEach(user => {
+        for (const user of users) {
           expect(['Abc', 'Bcd', 'Cde'].includes(user.get('name'))).to.be.true;
-        });
+        }
       });
 
-      it('should support renaming of sequelize method fields', async function() {
+      it('should support renaming of sequelize method fields', async function () {
         const Test = this.sequelize.define('test', {
-          someProperty: Sequelize.VIRTUAL // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+          someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
         });
 
         await this.sequelize.sync({ force: true });
@@ -461,70 +465,70 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (dialect === 'mssql') {
           findAttributes = [
             Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
-            [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
+            [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
           ];
-        } else if (dialect === 'db2') {
+        } else if (['db2', 'ibmi'].includes(dialect)) {
           findAttributes = [
             Sequelize.literal('1 AS "someProperty"'),
-            [Sequelize.literal('1'), 'someProperty2']
+            [Sequelize.literal('1'), 'someProperty2'],
           ];
         } else {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
-            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
           ];
         }
 
         const tests = await Test.findAll({
-          attributes: findAttributes
+          attributes: findAttributes,
         });
 
         expect(tests[0].get('someProperty')).to.be.ok;
         expect(tests[0].get('someProperty2')).to.be.ok;
       });
 
-      it('should sync foreign keys with custom field names', async function() {
+      it('should sync foreign keys with custom field names', async function () {
         await this.sequelize.sync({ force: true });
         const attrs = this.Task.tableAttributes;
         expect(attrs.user_id.references.model).to.equal('users');
         expect(attrs.user_id.references.key).to.equal('userId');
       });
 
-      it('should find the value of an attribute with a custom field name', async function() {
+      it('should find the value of an attribute with a custom field name', async function () {
         await this.User.create({ name: 'test user' });
         const user = await this.User.findOne({ where: { name: 'test user' } });
         expect(user.name).to.equal('test user');
       });
 
-      it('field names that are the same as property names should create, update, and read correctly', async function() {
+      it('field names that are the same as property names should create, update, and read correctly', async function () {
         await this.Comment.create({
-          notes: 'Foobar'
+          notes: 'Foobar',
         });
 
         const comment0 = await this.Comment.findOne({
-          limit: 1
+          limit: 1,
         });
 
         expect(comment0.get('notes')).to.equal('Foobar');
 
         await comment0.update({
-          notes: 'Barfoo'
+          notes: 'Barfoo',
         });
 
         const comment = await this.Comment.findOne({
-          limit: 1
+          limit: 1,
         });
 
         expect(comment.get('notes')).to.equal('Barfoo');
       });
 
-      it('should work with a belongsTo association getter', async function() {
-        const userId = Math.floor(Math.random() * 100000);
+      it('should work with a belongsTo association getter', async function () {
+        const userId = Math.floor(Math.random() * 100_000);
 
         const [user, task] = await Promise.all([this.User.create({
-          id: userId
+          id: userId,
         }), this.Task.create({
-          user_id: userId
+          user_id: userId,
         })]);
 
         const [userA, userB] = await Promise.all([user, task.getUser()]);
@@ -533,15 +537,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(userB.get('id')).to.equal(userId);
       });
 
-      it('should work with paranoid instance.destroy()', async function() {
+      it('should work with paranoid instance.destroy()', async function () {
         const User = this.sequelize.define('User', {
           deletedAt: {
             type: DataTypes.DATE,
-            field: 'deleted_at'
-          }
+            field: 'deleted_at',
+          },
         }, {
           timestamps: true,
-          paranoid: true
+          paranoid: true,
         });
 
         await User.sync({ force: true });
@@ -552,15 +556,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users.length).to.equal(0);
       });
 
-      it('should work with paranoid Model.destroy()', async function() {
+      it('should work with paranoid Model.destroy()', async function () {
         const User = this.sequelize.define('User', {
           deletedAt: {
             type: DataTypes.DATE,
-            field: 'deleted_at'
-          }
+            field: 'deleted_at',
+          },
         }, {
           timestamps: true,
-          paranoid: true
+          paranoid: true,
         });
 
         await User.sync({ force: true });
@@ -570,18 +574,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users.length).to.equal(0);
       });
 
-      it('should work with `belongsToMany` association `count`', async function() {
+      it('should work with `belongsToMany` association `count`', async function () {
         const user = await this.User.create({
-          name: 'John'
+          name: 'John',
         });
 
         const commentCount = await user.countComments();
         await expect(commentCount).to.equal(0);
       });
 
-      it('should work with `hasMany` association `count`', async function() {
+      it('should work with `hasMany` association `count`', async function () {
         const user = await this.User.create({
-          name: 'John'
+          name: 'John',
         });
 
         const taskCount = await user.countTasks();

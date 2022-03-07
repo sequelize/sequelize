@@ -1,15 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  stub = sinon.stub,
-  _ = require('lodash'),
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  HasMany = require('sequelize/lib/associations/has-many'),
-  Op = require('sequelize/lib/operators'),
-  current = Support.sequelize;
+const chai = require('chai');
+const sinon = require('sinon');
+
+const expect = chai.expect;
+const stub = sinon.stub;
+const _ = require('lodash');
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const HasMany = require('@sequelize/core/lib/associations/has-many');
+const { Op } = require('@sequelize/core/lib/operators');
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -21,43 +23,44 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    const User = current.define('User', { username: DataTypes.STRING }),
-      Task = current.define('Task', { title: DataTypes.STRING });
+    const User = current.define('User', { username: DataTypes.STRING });
+    const Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasMany(Task);
 
     const user = User.build({
-        id: 42
-      }),
-      task1 = Task.build({
-        id: 15
-      }),
-      task2 = Task.build({
-        id: 16
-      });
+      id: 42,
+    });
+    const task1 = Task.build({
+      id: 15,
+    });
+    const task2 = Task.build({
+      id: 16,
+    });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.findAll = stub(Task, 'findAll').resolves([]);
       this.update = stub(Task, 'update').resolves([]);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.findAll.restore();
       this.update.restore();
     });
 
-    it('uses one update statement for addition', async function() {
+    it('uses one update statement for addition', async function () {
       await user.setTasks([task1, task2]);
       expect(this.findAll).to.have.been.calledOnce;
       expect(this.update).to.have.been.calledOnce;
     });
 
-    it('uses one delete from statement', async function() {
+    it('uses one delete from statement', async function () {
       this.findAll
         .onFirstCall().resolves([])
-        .onSecondCall().resolves([
+        .onSecondCall()
+        .resolves([
           { userId: 42, taskId: 15 },
-          { userId: 42, taskId: 16 }
+          { userId: 42, taskId: 16 },
         ]);
 
       await user.setTasks([task1, task2]);
@@ -69,13 +72,13 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('mixin', () => {
-    const User = current.define('User'),
-      Task = current.define('Task');
+    const User = current.define('User');
+    const Task = current.define('Task');
 
     it('should mixin association methods', () => {
-      const as = Math.random().toString(),
-        association = new HasMany(User, Task, { as }),
-        obj = {};
+      const as = Math.random().toString();
+      const association = new HasMany(User, Task, { as });
+      const obj = {};
 
       association.mixin(obj);
 
@@ -101,13 +104,14 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         addTasks: 'add',
         removeTask: 'remove',
         removeTasks: 'remove',
-        createTask: 'create'
+        createTask: 'create',
       };
 
       _.each(methods, (alias, method) => {
-        User.prototype[method] = function() {
+        User.prototype[method] = function () {
           const realMethod = this.constructor.associations.task[alias];
           expect(realMethod).to.be.a('function');
+
           return realMethod;
         };
       });
@@ -133,24 +137,24 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('get', () => {
-    const User = current.define('User', {}),
-      Task = current.define('Task', {}),
-      idA = Math.random().toString(),
-      idB = Math.random().toString(),
-      idC = Math.random().toString(),
-      foreignKey = 'user_id';
+    const User = current.define('User', {});
+    const Task = current.define('Task', {});
+    const idA = Math.random().toString();
+    const idB = Math.random().toString();
+    const idC = Math.random().toString();
+    const foreignKey = 'user_id';
 
     it('should fetch associations for a single instance', async () => {
       const findAll = stub(Task, 'findAll').resolves([
         Task.build({}),
-        Task.build({})
+        Task.build({}),
       ]);
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get(User.build({ id: idA }));
 
       const where = {
-        [foreignKey]: idA
+        [foreignKey]: idA,
       };
 
       expect(findAll).to.have.been.calledOnce;
@@ -169,24 +173,25 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       const findAll = stub(Task, 'findAll').returns(
         Promise.resolve([
           Task.build({
-            'user_id': idA
+            user_id: idA,
           }),
           Task.build({
-            'user_id': idA
+            user_id: idA,
           }),
           Task.build({
-            'user_id': idA
+            user_id: idA,
           }),
           Task.build({
-            'user_id': idB
-          })
-        ]));
+            user_id: idB,
+          }),
+        ]),
+      );
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([
         User.build({ id: idA }),
         User.build({ id: idB }),
-        User.build({ id: idC })
+        User.build({ id: idC }),
       ]);
 
       expect(findAll).to.have.been.calledOnce;
@@ -208,12 +213,12 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
   });
   describe('association hooks', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
     describe('beforeHasManyAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasMany(this.Tasks, { hooks: true });
@@ -224,13 +229,13 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasMany');
         expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasMany(this.Tasks, { hooks: false });
@@ -238,7 +243,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       });
     });
     describe('afterHasManyAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasMany(this.Tasks, { hooks: true });
@@ -249,7 +254,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasMany');
@@ -257,7 +262,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasMany(this.Tasks, { hooks: false });

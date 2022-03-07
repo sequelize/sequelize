@@ -1,10 +1,12 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  current = Support.sequelize,
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+
+const current = Support.sequelize;
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('indexes', () => {
@@ -13,8 +15,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         eventData: {
           type: DataTypes.JSONB,
           index: true,
-          field: 'data'
-        }
+          field: 'data',
+        },
       });
 
       expect(Model.rawAttributes.eventData.index).not.to.equal(true);
@@ -28,13 +30,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         indexes: [
           {
             type: 'unique',
-            fields: ['name']
+            fields: ['name'],
           },
           {
             type: 'UNIQUE',
-            fields: ['name']
-          }
-        ]
+            fields: ['name'],
+          },
+        ],
       });
 
       expect(Model._indexes[0].unique).to.eql(true);
@@ -43,12 +45,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not set rawAttributes when indexes are defined via options', () => {
       const User = current.define('User', {
-        username: DataTypes.STRING
+        username: DataTypes.STRING,
       }, {
         indexes: [{
           unique: true,
-          fields: ['username']
-        }]
+          fields: ['username'],
+        }],
       });
 
       expect(User.rawAttributes.username.unique).to.be.undefined;
@@ -57,12 +59,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not set rawAttributes when composite unique indexes are defined via options', () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
-        address: DataTypes.STRING
+        address: DataTypes.STRING,
       }, {
         indexes: [{
           unique: 'users_name_address',
-          fields: ['name', 'address']
-        }]
+          fields: ['name', 'address'],
+        }],
       });
 
       expect(User.rawAttributes.name.unique).to.be.undefined;

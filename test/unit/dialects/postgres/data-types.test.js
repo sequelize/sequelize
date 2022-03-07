@@ -1,24 +1,26 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  BaseTypes = require('sequelize/lib/data-types'),
-  DataTypes = require('sequelize/lib/dialects/postgres/data-types')(BaseTypes),
-  QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator');
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const BaseTypes = require('@sequelize/core/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/dialects/postgres/data-types')(BaseTypes);
+const QueryGenerator = require('@sequelize/core/lib/dialects/postgres/query-generator');
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DataTypes', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect
+        _dialect: this.sequelize.dialect,
       });
     });
 
     describe('GEOMETRY', () => {
-      it('should use bindParam fn', function() {
+      it('should use bindParam fn', function () {
         const value = { type: 'Point' };
         const bind = [];
         const bindParam = this.queryGenerator.bindParam(bind);
@@ -29,7 +31,7 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('GEOGRAPHY', () => {
-      it('should use bindParam fn', function() {
+      it('should use bindParam fn', function () {
         const value = { type: 'Point' };
         const bind = [];
         const bindParam = this.queryGenerator.bindParam(bind);

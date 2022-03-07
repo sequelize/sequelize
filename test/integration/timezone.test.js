@@ -1,24 +1,26 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('./support'),
-  dialect = Support.getTestDialect();
+const chai = require('chai');
 
-if (dialect !== 'sqlite') {
+const expect = chai.expect;
+const Support = require('./support');
+
+const dialect = Support.getTestDialect();
+
+if (dialect !== 'sqlite' && dialect !== 'ibmi') {
   // Sqlite does not support setting timezone
 
   describe(Support.getTestDialectTeaser('Timezone'), () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
-        timezone: '+07:00'
+        timezone: '+07:00',
       });
       this.sequelizeWithNamedTimezone = Support.createSequelizeInstance({
-        timezone: 'America/New_York'
+        timezone: 'America/New_York',
       });
     });
 
-    it('returns the same value for current timestamp', async function() {
+    it('returns the same value for current timestamp', async function () {
       let now = 'now()';
       const startQueryTime = Date.now();
 
@@ -30,9 +32,10 @@ if (dialect !== 'sqlite') {
       if (dialect === 'db2') {
         query = `SELECT ${now} as "now"`;
       }
+
       const [now1, now2] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
-        this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
+        this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT }),
       ]);
 
       const elapsedQueryTime = Date.now() - startQueryTime + 1001;
@@ -40,9 +43,9 @@ if (dialect !== 'sqlite') {
     });
 
     if (['mysql', 'mariadb'].includes(dialect)) {
-      it('handles existing timestamps', async function() {
-        const NormalUser = this.sequelize.define('user', {}),
-          TimezonedUser = this.sequelizeWithTimezone.define('user', {});
+      it('handles existing timestamps', async function () {
+        const NormalUser = this.sequelize.define('user', {});
+        const TimezonedUser = this.sequelizeWithTimezone.define('user', {});
 
         await this.sequelize.sync({ force: true });
         const normalUser = await NormalUser.create({});
@@ -54,16 +57,16 @@ if (dialect !== 'sqlite') {
         expect(this.normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 7 * 1000, 1000);
       });
 
-      it('handles named timezones', async function() {
-        const NormalUser = this.sequelize.define('user', {}),
-          TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
+      it('handles named timezones', async function () {
+        const NormalUser = this.sequelize.define('user', {});
+        const TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
 
         await this.sequelize.sync({ force: true });
         const timezonedUser0 = await TimezonedUser.create({});
 
         const [normalUser, timezonedUser] = await Promise.all([
           NormalUser.findByPk(timezonedUser0.id),
-          TimezonedUser.findByPk(timezonedUser0.id)
+          TimezonedUser.findByPk(timezonedUser0.id),
         ]);
 
         // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST

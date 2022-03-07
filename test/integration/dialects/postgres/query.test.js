@@ -1,12 +1,14 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
 
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
@@ -33,17 +35,17 @@ if (dialect.match(/^postgres/)) {
         include: [
           {
             model: Task,
-            as: taskAlias
+            as: taskAlias,
           },
           {
             model: Team,
-            as: teamAlias
-          }
-        ]
+            as: teamAlias,
+          },
+        ],
       }));
     };
 
-    it('should throw due to alias being truncated', async function() {
+    it('should throw due to alias being truncated', async function () {
       const options = { ...this.sequelize.options, minifyAliases: false };
 
       await executeTest(options, res => {
@@ -51,7 +53,7 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    it('should be able to retrieve include due to alias minifying', async function() {
+    it('should be able to retrieve include due to alias minifying', async function () {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
       await executeTest(options, res => {
@@ -65,28 +67,25 @@ if (dialect.match(/^postgres/)) {
       const User = sequelize.define('user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
           name: DataTypes.STRING,
-          email: DataTypes.STRING
+          email: DataTypes.STRING,
         },
         {
-          tableName: 'user'
-        }
-      );
+          tableName: 'user',
+        });
       const Project = sequelize.define('project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
-          name: DataTypes.STRING
+          name: DataTypes.STRING,
         },
         {
-          tableName: 'project'
-        }
-      );
+          tableName: 'project',
+        });
       const Company = sequelize.define('company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
-          name: DataTypes.STRING
+          name: DataTypes.STRING,
         },
         {
-          tableName: 'company'
-        }
-      );
+          tableName: 'company',
+        });
       User.hasMany(Project, { foreignKey: 'userId' });
       Project.belongsTo(Company, { foreignKey: 'companyId' });
 
@@ -98,8 +97,8 @@ if (dialect.match(/^postgres/)) {
       await User.findAll({
         include: {
           model: Project,
-          include: Company
-        }
+          include: Company,
+        },
       });
     });
   });

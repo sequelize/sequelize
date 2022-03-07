@@ -1,26 +1,28 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  Support = require('../support'),
-  Op = Support.Sequelize.Op,
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const sinon = require('sinon');
+const Support = require('../support');
+
+const Op = Support.Sequelize.Op;
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
   describe('findAndCountAll', () => {
-    it('should be able to include two required models with a limit. Result rows should match limit.', async function() {
-      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) }),
-        Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER }),
-        Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
+    it('should be able to include two required models with a limit. Result rows should match limit.', async function () {
+      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) });
+      const Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
+      const Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
 
       Project.hasMany(Task, { foreignKey: 'fk', constraints: false  });
       Project.hasMany(Employee, { foreignKey: 'fk', constraints: false  });
@@ -38,47 +40,47 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         { id: 3, name: 'No employees' },
         { id: 4, name: 'In progress A' },
         { id: 5, name: 'In progress B' },
-        { id: 6, name: 'In progress C' }
+        { id: 6, name: 'In progress C' },
       ]), Task.bulkCreate([
         { name: 'Important task', fk: 3 },
         { name: 'Important task', fk: 4 },
         { name: 'Important task', fk: 5 },
-        { name: 'Important task', fk: 6 }
+        { name: 'Important task', fk: 6 },
       ]), Employee.bulkCreate([
         { name: 'Jane Doe', fk: 1 },
         { name: 'John Doe', fk: 4 },
         { name: 'Jane John Doe', fk: 5 },
-        { name: 'John Jane Doe', fk: 6 }
+        { name: 'John Jane Doe', fk: 6 },
       ])]);
 
-      //Find all projects with tasks and employees
+      // Find all projects with tasks and employees
       const availableProjects = 3;
       const limit = 2;
 
       const result = await Project.findAndCountAll({
         include: [{
-          model: Task, required: true
+          model: Task, required: true,
         },
         {
-          model: Employee, required: true
+          model: Employee, required: true,
         }],
-        limit
+        limit,
       });
 
       expect(result.count).to.be.equal(availableProjects);
       expect(result.rows.length).to.be.equal(limit, 'Complete set of available rows were not returned.');
     });
 
-    it('should be able to include a required model. Result rows should match count', async function() {
-      const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        SomeConnection = this.sequelize.define('SomeConnection', {
-          m: DataTypes.STRING(40),
-          fk: DataTypes.INTEGER,
-          u: DataTypes.INTEGER
-        }, { paranoid: true }),
-        A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
+    it('should be able to include a required model. Result rows should match count', async function () {
+      const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true });
+      const SomeConnection = this.sequelize.define('SomeConnection', {
+        m: DataTypes.STRING(40),
+        fk: DataTypes.INTEGER,
+        u: DataTypes.INTEGER,
+      }, { paranoid: true });
+      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true });
+      const B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true });
+      const C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
@@ -102,7 +104,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         { name: 'Facebook' },
         { name: 'Google' },
         { name: 'Yahoo' },
-        { name: '404' }
+        { name: '404' },
       ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
         { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
         { u: 2, m: 'A', fk: 1 },
@@ -127,26 +129,28 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         { u: 3, m: 'A', fk: 3 },
         { u: 2, m: 'B', fk: 2 },
         { u: 1, m: 'A', fk: 4 }, // 4
-        { u: 4, m: 'A', fk: 2 }
+        { u: 4, m: 'A', fk: 2 },
       ]), A.bulkCreate([
         { name: 'Just' },
         { name: 'for' },
         { name: 'testing' },
         { name: 'proposes' },
-        { name: 'only' }
+        { name: 'only' },
       ]), B.bulkCreate([
         { name: 'this should not' },
-        { name: 'be loaded' }
+        { name: 'be loaded' },
       ]), C.bulkCreate([
-        { name: 'because we only want A' }
+        { name: 'because we only want A' },
       ])]);
 
       // Delete some of conns to prove the concept
-      await SomeConnection.destroy({ where: {
-        m: 'A',
-        u: 1,
-        fk: [1, 2]
-      } });
+      await SomeConnection.destroy({
+        where: {
+          m: 'A',
+          u: 1,
+          fk: [1, 2],
+        },
+      });
 
       this.clock.tick(1000);
 
@@ -156,25 +160,25 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           model: SomeConnection, required: true,
           where: {
             m: 'A', // Pseudo Polymorphy
-            u: 1
-          }
+            u: 1,
+          },
         }],
-        limit: 5
+        limit: 5,
       });
 
       expect(result.count).to.be.equal(2);
       expect(result.rows.length).to.be.equal(2);
     });
 
-    it('should count on a where and not use an uneeded include', async function() {
+    it('should count on a where and not use an uneeded include', async function () {
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        project_name: { type: DataTypes.STRING }
+        project_name: { type: DataTypes.STRING },
       });
 
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        user_name: { type: DataTypes.STRING }
+        user_name: { type: DataTypes.STRING },
       });
 
       User.hasMany(Project);
@@ -191,7 +195,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const result = await User.findAndCountAll({
         where: { id: userId },
         include: [Project],
-        distinct: true
+        distinct: true,
       });
 
       expect(result.rows.length).to.equal(1);
@@ -199,10 +203,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result.count).to.equal(1);
     });
 
-    it('should return the correct count and rows when using a required belongsTo and a limit', async function() {
-      const s = this.sequelize,
-        Foo = s.define('Foo', {}),
-        Bar = s.define('Bar', {});
+    it('should return the correct count and rows when using a required belongsTo and a limit', async function () {
+      const s = this.sequelize;
+      const Foo = s.define('Foo', {});
+      const Bar = s.define('Bar', {});
 
       Foo.hasMany(Bar);
       Bar.belongsTo(Foo);
@@ -211,17 +215,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Make five instances of Foo
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the last four instances of Foo
-      await Bar.bulkCreate([{ 'FooId': 2 }, { 'FooId': 3 }, { 'FooId': 4 }, { 'FooId': 5 }]);
+      await Bar.bulkCreate([{ FooId: 2 }, { FooId: 3 }, { FooId: 4 }, { FooId: 5 }]);
 
       // Query for the first two instances of Foo which have related Bars
       const result0 = await Foo.findAndCountAll({
         include: [{ model: Bar, required: true }],
-        limit: 2
+        limit: 2,
       });
 
       const items = await Foo.findAll({
         include: [{ model: Bar, required: true }],
-        limit: 2
+        limit: 2,
       });
 
       expect(items.length).to.equal(2);
@@ -234,9 +238,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result.rows.length).to.equal(2);
     });
 
-    it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', async function() {
-      const Foo = this.sequelize.define('Foo', {}),
-        Bar = this.sequelize.define('Bar', { m: DataTypes.STRING(40) });
+    it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', async function () {
+      const Foo = this.sequelize.define('Foo', {});
+      const Bar = this.sequelize.define('Bar', { m: DataTypes.STRING(40) });
 
       Foo.hasMany(Bar);
       Bar.belongsTo(Foo);
@@ -244,13 +248,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the first two instances of Foo
-      await Bar.bulkCreate([{ 'FooId': 1, m: 'yes' }, { 'FooId': 1, m: 'yes' }, { 'FooId': 1, m: 'no' }, { 'FooId': 2, m: 'yes' }]);
+      await Bar.bulkCreate([{ FooId: 1, m: 'yes' }, { FooId: 1, m: 'yes' }, { FooId: 1, m: 'no' }, { FooId: 2, m: 'yes' }]);
 
       // Query for the first instance of Foo which have related Bars with m === 'yes'
       const result = await Foo.findAndCountAll({
         include: [{ model: Bar, where: { m: 'yes' } }],
         limit: 1,
-        distinct: true
+        distinct: true,
       });
 
       // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
@@ -260,29 +264,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result.rows.length).to.equal(1);
     });
 
-    it('should correctly filter, limit and sort when multiple includes and types of associations are present.', async function() {
+    it('should correctly filter, limit and sort when multiple includes and types of associations are present.', async function () {
       const TaskTag = this.sequelize.define('TaskTag', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
       });
 
       const Tag = this.sequelize.define('Tag', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
       });
 
       const Task = this.sequelize.define('Task', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
       });
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        m: { type: DataTypes.STRING }
+        m: { type: DataTypes.STRING },
       });
 
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
       });
 
       Project.belongsTo(User);
@@ -295,19 +299,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Create an enviroment
       await User.bulkCreate([
         { name: 'user-name-1' },
-        { name: 'user-name-2' }
+        { name: 'user-name-2' },
       ]);
 
       await Project.bulkCreate([
         { m: 'A', UserId: 1 },
-        { m: 'A', UserId: 2 }
+        { m: 'A', UserId: 2 },
       ]);
 
       await Task.bulkCreate([
         { ProjectId: 1, name: 'Just' },
         { ProjectId: 1, name: 'for' },
         { ProjectId: 2, name: 'testing' },
-        { ProjectId: 2, name: 'proposes' }
+        { ProjectId: 2, name: 'proposes' },
       ]);
 
       // Find All Tasks with Project(m=a) and User(name=user-name-2)
@@ -321,29 +325,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             where: { [Op.and]: [{ m: 'A' }] },
             include: [{
               model: User,
-              where: { [Op.and]: [{ name: 'user-name-2' }] }
-            }
-            ]
+              where: { [Op.and]: [{ name: 'user-name-2' }] },
+            },
+            ],
           },
-          { model: Tag }
-        ]
+          { model: Tag },
+        ],
       });
 
       expect(result.count).to.equal(2);
       expect(result.rows.length).to.equal(1);
     });
 
-    it('should properly work with sequelize.function', async function() {
+    it('should properly work with sequelize.function', async function () {
       const sequelize = this.sequelize;
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         first_name: { type: DataTypes.STRING },
-        last_name: { type: DataTypes.STRING }
+        last_name: { type: DataTypes.STRING },
       });
 
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING },
       });
 
       User.hasMany(Project);
@@ -353,13 +357,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await User.bulkCreate([
         { first_name: 'user-fname-1', last_name: 'user-lname-1' },
         { first_name: 'user-fname-2', last_name: 'user-lname-2' },
-        { first_name: 'user-xfname-1', last_name: 'user-xlname-1' }
+        { first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
       ]);
 
       await Project.bulkCreate([
         { name: 'naam-satya', UserId: 1 },
         { name: 'guru-satya', UserId: 2 },
-        { name: 'app-satya', UserId: 2 }
+        { name: 'app-satya', UserId: 2 },
       ]);
 
       const result = await User.findAndCountAll({
@@ -367,17 +371,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         offset: 1,
         where: sequelize.or(
           { first_name: { [Op.like]: '%user-fname%' } },
-          { last_name: { [Op.like]: '%user-lname%' } }
+          { last_name: { [Op.like]: '%user-lname%' } },
         ),
         include: [
           {
             model: Project,
             required: true,
-            where: { name: {
-              [Op.in]: ['naam-satya', 'guru-satya']
-            } }
-          }
-        ]
+            where: {
+              name: {
+                [Op.in]: ['naam-satya', 'guru-satya'],
+              },
+            },
+          },
+        ],
       });
 
       expect(result.count).to.equal(2);
