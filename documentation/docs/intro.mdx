@@ -31,7 +31,7 @@ import TabItem from '@theme/TabItem';
 <TabItem value="ts" label="TypeScript">
 
 ```javascript
-import { Sequelize, Model, DataTypes } from 'sequelize';
+import { Sequelize, Model, DataTypes, InferAttributes, InferCreationAttributes } from 'sequelize';
 
 const sequelize = new Sequelize('sqlite::memory:');
 
