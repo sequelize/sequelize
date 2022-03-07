@@ -5,5 +5,5 @@ module.exports = {
   plugin: ['typedoc-plugin-markdown'],
 
   // typedoc-plugin-markdown
-  entryDocument: ['../docs/index.md']
+  entryDocument: ['../docs/index.md'],
 };
