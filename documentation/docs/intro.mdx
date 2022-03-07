@@ -23,7 +23,41 @@ You are currently looking at the **Tutorials and Guides** for Sequelize. You mig
 
 ## Quick example
 
-```js
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```javascript
+import { Sequelize, Model, DataTypes } from 'sequelize';
+
+const sequelize = new Sequelize('sqlite::memory:');
+
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare username: string | null,
+  declare birthday: Date | null,
+}
+
+User.init({
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE
+}, { sequelize, modelName: 'user' });
+
+(async () => {
+  await sequelize.sync();
+  const jane = await User.create({
+    username: 'janedoe',
+    birthday: new Date(1980, 6, 20),
+  });
+  console.log(jane.toJSON());
+})();
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript">
+
+```javascript
 const { Sequelize, Model, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('sqlite::memory:');
 
@@ -37,11 +71,14 @@ User.init({
   await sequelize.sync();
   const jane = await User.create({
     username: 'janedoe',
-    birthday: new Date(1980, 6, 20)
+    birthday: new Date(1980, 6, 20),
   });
   console.log(jane.toJSON());
 })();
 ```
+
+</TabItem>
+</Tabs>
 
 To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started.html).
 
