@@ -507,7 +507,7 @@ export class QueryInterface {
    * Updates a row
    */
   public update<M extends Model>(
-    instance: M,
+    instance: M | null,
     tableName: TableName,
     values: object,
     identifier: WhereOptions<Attributes<M>>,
