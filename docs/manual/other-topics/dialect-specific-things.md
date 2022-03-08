@@ -208,7 +208,7 @@ const sequelize = new Sequelize('database', null, null, {
 
 For running integration test:
 
-```sh
+```bash
 # using npm
 SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse npm run test-integration-snowflake
 # using yarn
