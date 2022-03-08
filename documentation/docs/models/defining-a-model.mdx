@@ -36,7 +36,7 @@ Both ways to define this model are shown below. After being defined, we can acce
 <Tabs>
 <TabItem value="ts" label="TypeScript">
 
-Learn more about using Sequelize with TypeScript in [our TypeScript guide](./typescript.md).
+Learn more about using Sequelize with TypeScript in [our TypeScript guide](./typescript).
 
 ```typescript
 import { Sequelize, DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
@@ -67,7 +67,6 @@ User.init({
 }, {
   // Other model options go here
   sequelize, // We need to pass the connection instance
-  modelName: 'User', // We need to choose the model name
 });
 
 // Once init has been called, the model also becomes available through sequelize.models
@@ -96,7 +95,6 @@ User.init({
 }, {
   // Other model options go here
   sequelize, // We need to pass the connection instance
-  modelName: 'User', // We need to choose the model name
 });
 
 // Once init has been called, the model also becomes available through sequelize.models
@@ -105,6 +103,30 @@ console.log(User === sequelize.models.User); // true
 
 </TabItem>
 </Tabs>
+
+:::caution Model Names & Minification
+
+When defining a model using the class-based approach, the name of the model will, by default, be the name of your class.
+In the above example, the name of the model is `User`.
+
+If you minify your code, it is possible that the class' name — and therefore its model name — will be changed by your minifier.
+This can be an issue, as many systems use your modelName, from [Sequelize#models](pathname:///api/classes/Sequelize.html#models)
+to [the name of your Database table name](./sql-name-inference).
+
+The solution to prevent this issue is to explicitly set the `modelName` option:
+
+```typescript
+class User extends Model {}
+
+User.init({ /* attributes */ }, {
+  /* other model options */
+
+  // by specifying 'modelName' explicitely, the name of this model can be safely minified.
+  modelName: 'User',
+});
+```
+
+:::
 
 #### Caveat with Public Class Fields
 
@@ -313,7 +335,6 @@ Foo.init({
   }
 }, {
   sequelize,
-  modelName: 'foo',
 
   // Using `unique: true` in an attribute above is exactly the same as creating the index in the model's options:
   indexes: [{ unique: true, fields: ['someUnique'] }]
