@@ -53,7 +53,7 @@ export interface JoinTableAttributes {
 }
 
 /**
- * Options provided when associating models with belongsToMany relationship
+ * Options provided when associating models with {@link Model.belongsToMany} relationship
  */
 export interface BelongsToManyOptions extends ManyToManyOptions {
   /**

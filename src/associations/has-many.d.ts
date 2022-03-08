@@ -12,7 +12,7 @@ import {
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
 /**
- * Options provided when associating models with hasMany relationship
+ * Options provided when associating models with {@link Model.hasMany} relationship
  */
 export interface HasManyOptions extends ManyToManyOptions {
 

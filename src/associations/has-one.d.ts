@@ -3,7 +3,7 @@ import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveO
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 /**
- * Options provided when associating models with hasOne relationship
+ * Options provided when associating models with {@link Model.hasOne} relationship
  */
 export interface HasOneOptions extends AssociationOptions {
 

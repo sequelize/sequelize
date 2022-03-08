@@ -39,6 +39,8 @@ export interface ForeignKeyOptions extends ColumnOptions {
   name?: string;
 }
 
+export type OnDeleteUpdateAction = 'RESTRICT' | 'CASCADE' | 'NO ACTION' | 'SET DEFAULT' | 'SET NULL';
+
 /**
  * Options provided when associating models
  */
@@ -66,14 +68,14 @@ export interface AssociationOptions extends Hookable {
    *
    * @default 'SET NULL' or 'CASCADE'
    */
-  onDelete?: string;
+  onDelete?: OnDeleteUpdateAction;
 
   /**
    * What happens when update occurs
    *
    * @default 'CASCADE'
    */
-  onUpdate?: string;
+  onUpdate?: OnDeleteUpdateAction;
 
   /**
    * Should on update and on delete constraints be enabled on the foreign key.

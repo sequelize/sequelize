@@ -4,7 +4,7 @@ import { Association, AssociationOptions, SingleAssociationAccessors } from './b
 
 // type ModelCtor<M extends Model> = InstanceType<typeof M>;
 /**
- * Options provided when associating models with belongsTo relationship
+ * Options provided when associating models with {@link Model.belongsTo} relationship
  *
  * @see Association class belongsTo method
  */
