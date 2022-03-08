@@ -7,34 +7,71 @@ sidebar_position: 2
 Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/src/data-types.js). To access a built-in data type, you must import `DataTypes`:
 
 ```js
-const { DataTypes } = require('@sequelize/core'); // Import the built-in data types
+// Import the built-in data types
+import { DataTypes } from '@sequelize/core';
 ```
+
+Below is a series of support table describing which SQL Type is used for each Sequelize DataType.
+
+A ❌ means the dialect does not support that DataType.
 
 ## Strings
 
-```js
-DataTypes.STRING             // VARCHAR(255)
-DataTypes.STRING(1234)       // VARCHAR(1234)
-DataTypes.STRING.BINARY      // VARCHAR BINARY
-DataTypes.TEXT               // TEXT
-DataTypes.TEXT('tiny')       // TINYTEXT
-DataTypes.CITEXT             // CITEXT          PostgreSQL and SQLite only.
-DataTypes.TSVECTOR           // TSVECTOR        PostgreSQL only.
-```
+| Sequelize DataType   | PostgreSQL     | MariaDB | MySQL | MSSQL | SQLite                | Snowflake | db2 | ibmi |
+|----------------------|----------------|---------|-------|-------|-----------------------|-----------|-----|------|
+| `STRING`             | `VARCHAR(255)` |         |       |       |                       |           |     |      |
+| `STRING(100)`        | `VARCHAR(100)` |         |       |       |                       |           |     |      |
+| `STRING.BINARY`      | `BYTEA`        |         |       |       |                       |           |     |      |
+| `STRING(100).BINARY` | `BYTEA`        |         |       |       |                       |           |     |      |
+| `TEXT`               | `TEXT`         |         |       |       |                       |           |     |      |
+| `TEXT('tiny')`       | `TEXT`         |         |       |       |                       |           |     |      |
+| `TEXT('medium')`     | `TEXT`         |         |       |       |                       |           |     |      |
+| `TEXT('long')`       | `TEXT`         |         |       |       |                       |           |     |      |
+| `CHAR`               | `CHAR(255)`    |         |       |       |                       |           |     |      |
+| `CHAR(100)`          | `CHAR(100)`    |         |       |       |                       |           |     |      |
+| `CHAR.BINARY`        | `BYTEA`        |         |       |       |                       |           |     |      |
+| `CHAR(100).BINARY`   | `BYTEA`        |         |       |       |                       |           |     |      |
+| `CITEXT`             | `CITEXT`       | ❌       | ❌     | ❌     | `TEXT COLLATE NOCASE` | ❌         | ❌   | ❌    |
+| `TSVECTOR`           | `TSVECTOR`     | ❌       | ❌     | ❌     | ❌                     | ❌         | ❌   | ❌    |
 
 ## Boolean
 
+| Sequelize DataType | PostgreSQL | MariaDB      | MySQL        | MSSQL | SQLite       | Snowflake | db2       | ibmi       |
+|--------------------|------------|--------------|--------------|-------|--------------|-----------|-----------|------------|
+| `BOOLEAN`          | `BOOLEAN`  | `TINYINT(1)` | `TINYINT(1)` | `BIT` | `TINYINT(1)` | `BOOLEAN` | `BOOLEAN` | `SMALLINT` |
+
+## Integers
+
+| Sequelize DataType   | PostgreSQL | MariaDB | MySQL | MSSQL | SQLite | Snowflake | db2 | ibmi |
+|----------------------|------------|---------|-------|-------|--------|-----------|-----|------|
+| `TINYINT`            | ❌          |         |       |       |        |           |     |      |
+| `TINYINT(1)`         | ❌          |         |       |       |        |           |     |      |
+| `TINYINT.UNSIGNED`   | ❌          |         |       |       |        |           |     |      |
+| `TINYINT.ZEROFILL`   | ❌          |         |       |       |        |           |     |      |
+| `SMALLINT`           | `SMALLINT` |         |       |       |        |           |     |      |
+| `SMALLINT(1)`        | ❌          |         |       |       |        |           |     |      |
+| `SMALLINT.UNSIGNED`  | ❌          |         |       |       |        |           |     |      |
+| `SMALLINT.ZEROFILL`  | ❌          |         |       |       |        |           |     |      |
+| `MEDIUMINT`          | ❌          |         |       |       |        |           |     |      |
+| `MEDIUMINT.UNSIGNED` | ❌          |         |       |       |        |           |     |      |
+| `MEDIUMINT.ZEROFILL` | ❌          |         |       |       |        |           |     |      |
+| `INTEGER`            | `INTEGER`  |         |       |       |        |           |     |      |
+| `INTEGER.UNSIGNED`   | ❌          |         |       |       |        |           |     |      |
+| `INTEGER.ZEROFILL`   | ❌          |         |       |       |        |           |     |      |
+| `BIGINT`             | `BIGINT`   |         |       |       |        |           |     |      |
+| `BIGINT.UNSIGNED`    | ❌          |         |       |       |        |           |     |      |
+| `BIGINT.ZEROFILL`    | ❌          |         |       |       |        |           |     |      |
+
+:::info
+
+Numeric options can be combined:<br/>
+`DataTypes.INTEGER(1).UNSIGNED.ZEROFILL`will result in a column of type `INTEGER(1) UNSIGNED ZEROFILL` in MySQL.
+
+:::
+
+## Decimal Numbers
+
 ```js
-DataTypes.BOOLEAN            // TINYINT(1)
-```
-
-## Numbers
-
-```js
-DataTypes.INTEGER            // INTEGER
-DataTypes.BIGINT             // BIGINT
-DataTypes.BIGINT(11)         // BIGINT(11)
-
 DataTypes.FLOAT              // FLOAT
 DataTypes.FLOAT(11)          // FLOAT(11)
 DataTypes.FLOAT(11, 10)      // FLOAT(11,10)
@@ -69,6 +106,7 @@ DataTypes.INTEGER.UNSIGNED.ZEROFILL
 DataTypes.DATE       // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
 DataTypes.DATE(6)    // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
 DataTypes.DATEONLY   // DATE without time
+DataTypes.TIME
 ```
 
 ## UUIDs
@@ -269,4 +307,16 @@ DataTypes.MACADDR                     // MACADDR               PostgreSQL only
 DataTypes.GEOMETRY                    // Spatial column. PostgreSQL (with PostGIS) or MySQL only.
 DataTypes.GEOMETRY('POINT')           // Spatial column with geometry type. PostgreSQL (with PostGIS) or MySQL only.
 DataTypes.GEOMETRY('POINT', 4326)     // Spatial column with geometry type and SRID. PostgreSQL (with PostGIS) or MySQL only.
+
+DataTypes.GEOGRAPHY
+
+DataTypes.HSTORE
+
+DataTypes.VIRTUAL
+```
+
+## Default values
+
+```typescript
+DataTypes.NOW
 ```
