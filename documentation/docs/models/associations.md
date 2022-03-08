@@ -11,7 +11,7 @@ To do this, Sequelize provides **four** types of associations that should be com
 
 The guide will start explaining how to define these four types of associations, and then will follow up to explain how to combine those to define the three standard association types ([One-To-One](https://en.wikipedia.org/wiki/One-to-one_%28data_model%29), [One-To-Many](https://en.wikipedia.org/wiki/One-to-many_%28data_model%29) and [Many-To-Many](https://en.wikipedia.org/wiki/Many-to-many_%28data_model%29)).
 
-## Defining the Sequelize associations
+## Defining associations
 
 The four association types are defined in a very similar way. Let's say we have two models, `A` and `B`. Telling Sequelize that you want an association between the two needs just a function call:
 
