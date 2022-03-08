@@ -887,7 +887,7 @@ class QueryInterface {
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance.constructor.rawAttributes);
+    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance && instance.constructor.rawAttributes);
 
     options.type = QueryTypes.UPDATE;
 
