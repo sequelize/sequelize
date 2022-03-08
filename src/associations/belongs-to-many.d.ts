@@ -117,7 +117,7 @@ export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions<an
 }
 
 /**
- * The getAssociations mixin applied to models with belongsToMany.
+ * The getAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -138,7 +138,6 @@ export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions<an
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyGetAssociationsMixin<TModel> = (
@@ -158,7 +157,7 @@ export interface BelongsToManySetAssociationsMixinOptions
 }
 
 /**
- * The setAssociations mixin applied to models with belongsToMany.
+ * The setAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -179,7 +178,6 @@ export interface BelongsToManySetAssociationsMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -200,7 +198,7 @@ export interface BelongsToManyAddAssociationsMixinOptions
 }
 
 /**
- * The addAssociations mixin applied to models with belongsToMany.
+ * The addAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -221,7 +219,6 @@ export interface BelongsToManyAddAssociationsMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -242,7 +239,7 @@ export interface BelongsToManyAddAssociationMixinOptions
 }
 
 /**
- * The addAssociation mixin applied to models with belongsToMany.
+ * The addAssociation mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -263,7 +260,6 @@ export interface BelongsToManyAddAssociationMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -279,7 +275,7 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
   through?: JoinTableAttributes;
 }
 /**
- * The createAssociation mixin applied to models with belongsToMany.
+ * The createAssociation mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -300,7 +296,6 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
@@ -315,7 +310,7 @@ export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
 export interface BelongsToManyRemoveAssociationMixinOptions extends InstanceDestroyOptions {}
 
 /**
- * The removeAssociation mixin applied to models with belongsToMany.
+ * The removeAssociation mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -336,7 +331,6 @@ export interface BelongsToManyRemoveAssociationMixinOptions extends InstanceDest
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -351,7 +345,7 @@ export type BelongsToManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
 export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDestroyOptions, InstanceDestroyOptions {}
 
 /**
- * The removeAssociations mixin applied to models with belongsToMany.
+ * The removeAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -372,7 +366,6 @@ export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDes
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -387,7 +380,7 @@ export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
 export interface BelongsToManyHasAssociationMixinOptions extends BelongsToManyGetAssociationsMixinOptions {}
 
 /**
- * The hasAssociation mixin applied to models with belongsToMany.
+ * The hasAssociation mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -408,7 +401,6 @@ export interface BelongsToManyHasAssociationMixinOptions extends BelongsToManyGe
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -423,7 +415,7 @@ export type BelongsToManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
 export interface BelongsToManyHasAssociationsMixinOptions extends BelongsToManyGetAssociationsMixinOptions {}
 
 /**
- * The removeAssociations mixin applied to models with belongsToMany.
+ * The removeAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -444,7 +436,6 @@ export interface BelongsToManyHasAssociationsMixinOptions extends BelongsToManyG
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -464,7 +455,7 @@ export interface BelongsToManyCountAssociationsMixinOptions extends Transactiona
 }
 
 /**
- * The countAssociations mixin applied to models with belongsToMany.
+ * The countAssociations mixin applied to models with {@link Model.belongsToMany}.
  * An example of usage is as follows:
  *
  * ```js
@@ -485,7 +476,6 @@ export interface BelongsToManyCountAssociationsMixinOptions extends Transactiona
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
  * @see Instance
  */
 export type BelongsToManyCountAssociationsMixin = (
