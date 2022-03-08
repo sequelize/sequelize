@@ -2789,7 +2789,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
+  /**
+   * @private
+   */
   public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+
+  /**
+   * @private
+   */
   public static _virtualAttributes: Set<string>;
 
   /**
