@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Data Types
 
 Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/src/data-types.js). To access a built-in data type, you must import `DataTypes`:

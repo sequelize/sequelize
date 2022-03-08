@@ -320,56 +320,42 @@ Foo.init({
 });
 ```
 
-## Auto-generated Timestamps
+## Model Methods
 
-By default, Sequelize automatically adds the fields `createdAt` and `updatedAt` to every model, using the data type `DataTypes.DATE`. Those fields are automatically managed as well - whenever you use Sequelize to create or update something, those fields will be set correctly. The `createdAt` field will contain the timestamp representing the moment of creation, and the `updatedAt` will contain the timestamp of the latest update.
+Sequelize models are [classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
+You can very easily add custom instance or class level methods.
 
-**Note:** This is done by Sequelize in JavaScript (i.e. not done with *SQL triggers*). This means that direct SQL queries (for example queries performed without Sequelize by any other means) will not cause these fields to be updated automatically.
+:::info
 
-This behavior can be disabled for a model with the `timestamps: false` option:
+`Model` provides a suite of built-in static & instance methods that can be used to interact with the database.
 
-```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  timestamps: false
-});
-```
+[Take a look at the API Reference for `Model`](pathname:///api/classes/Model.html) for more information
 
-It is also possible to enable only one of `createdAt`/`updatedAt`, and to provide a custom name for these columns:
+:::
 
-```js
-class Foo extends Model {}
-Foo.init({ /* attributes */ }, {
-  sequelize,
+<Tabs>
+<TabItem value="ts" label="TypeScript">
 
-  // don't forget to enable timestamps!
-  timestamps: true,
+```typescript
+import { InferCreationAttributes, InferAttributes, Model } from '@sequelize/core';
 
-  // I don't want createdAt
-  createdAt: false,
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare firstname: string | null;
+  declare lastname: string | null;
 
-  // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
-});
-```
-
-## Taking advantage of Models being classes
-
-The Sequelize models are [ES6 classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes). You can very easily add custom instance or class level methods.
-
-```js
-class User extends Model {
-  static classLevelMethod() {
-    return 'foo';
-  }
   instanceLevelMethod() {
     return 'bar';
   }
+
   getFullname() {
     return [this.firstname, this.lastname].join(' ');
   }
+
+  static classLevelMethod() {
+    return 'foo';
+  }
 }
+
 User.init({
   firstname: Sequelize.TEXT,
   lastname: Sequelize.TEXT
@@ -381,49 +367,36 @@ console.log(user.instanceLevelMethod()); // 'bar'
 console.log(user.getFullname()); // 'Jane Doe'
 ```
 
+</TabItem>
+<TabItem value="js" label="JavaScript">
 
-## Table name inference
+```typescript
+import { Model } from '@sequelize/core';
 
-Observe that, in both methods above, the table name (`Users`) was never explicitly defined. However, the model name was given (`User`).
-
-By default, when the table name is not given, Sequelize automatically pluralizes the model name and uses that as the table name. This pluralization is done under the hood by a library called [inflection](https://www.npmjs.com/package/inflection), so that irregular plurals (such as `person -> people`) are computed correctly.
-
-Of course, this behavior is easily configurable.
-
-### Enforcing the table name to be equal to the model name
-
-You can stop the auto-pluralization performed by Sequelize using the `freezeTableName: true` option. This way, Sequelize will infer the table name to be equal to the model name, without any modifications:
-
-```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  freezeTableName: true
-});
-```
-
-The example above will create a model named `User` pointing to a table also named `User`.
-
-This behavior can also be defined globally for the sequelize instance, when it is created:
-
-```js
-const sequelize = new Sequelize('sqlite::memory:', {
-  define: {
-    freezeTableName: true
+class User extends Model {
+  instanceLevelMethod() {
+    return 'bar';
   }
-});
+
+  getFullname() {
+    return [this.firstname, this.lastname].join(' ');
+  }
+
+  static classLevelMethod() {
+    return 'foo';
+  }
+}
+
+User.init({
+  firstname: Sequelize.TEXT,
+  lastname: Sequelize.TEXT
+}, { sequelize });
+
+console.log(User.classLevelMethod()); // 'foo'
+const user = User.build({ firstname: 'Jane', lastname: 'Doe' });
+console.log(user.instanceLevelMethod()); // 'bar'
+console.log(user.getFullname()); // 'Jane Doe'
 ```
 
-This way, all tables will use the same name as the model name.
-
-### Providing the table name directly
-
-You can simply tell Sequelize the name of the table directly as well:
-
-```js
-sequelize.define('User', {
-  // ... (attributes)
-}, {
-  tableName: 'Employees'
-});
-```
+</TabItem>
+</Tabs>
