@@ -347,7 +347,8 @@ export interface HasManyHasAssociationsMixinOptions extends HasManyGetAssociatio
  * }
  * ```
  *
- * @see Instance
+ * This method returns true if all provided targets are associated to the source model, and false if
+ * any of the provided targets are not.
  */
 export type HasManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
   targets: (TModel | TModelPrimaryKey)[],
