@@ -53,12 +53,15 @@ A ❌ means the dialect does not support that DataType.
 | `SMALLINT.UNSIGNED`  | ❌          |         |       |       |        |           |     |      |
 | `SMALLINT.ZEROFILL`  | ❌          |         |       |       |        |           |     |      |
 | `MEDIUMINT`          | ❌          |         |       |       |        |           |     |      |
+| `MEDIUMINT(1)`       | ❌          |         |       |       |        |           |     |      |
 | `MEDIUMINT.UNSIGNED` | ❌          |         |       |       |        |           |     |      |
 | `MEDIUMINT.ZEROFILL` | ❌          |         |       |       |        |           |     |      |
 | `INTEGER`            | `INTEGER`  |         |       |       |        |           |     |      |
+| `INTEGER(1)`         | ❌          |         |       |       |        |           |     |      |
 | `INTEGER.UNSIGNED`   | ❌          |         |       |       |        |           |     |      |
 | `INTEGER.ZEROFILL`   | ❌          |         |       |       |        |           |     |      |
 | `BIGINT`             | `BIGINT`   |         |       |       |        |           |     |      |
+| `BIGINT(1)`          | ❌          |         |       |       |        |           |     |      |
 | `BIGINT.UNSIGNED`    | ❌          |         |       |       |        |           |     |      |
 | `BIGINT.ZEROFILL`    | ❌          |         |       |       |        |           |     |      |
 
