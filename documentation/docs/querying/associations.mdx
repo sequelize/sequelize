@@ -1,1 +1,108 @@
 # Querying Associations
+
+## Basics of queries involving associations
+
+With the basics of defining associations covered, we can look at queries involving associations. The most common queries on this matter are the *read* queries (i.e. SELECTs). Later on, other types of queries will be shown.
+
+In order to study this, we will consider an example in which we have Ships and Captains, and a one-to-one relationship between them. We will allow null on foreign keys (the default), meaning that a Ship can exist without a Captain and vice-versa.
+
+```js
+// This is the setup of our models for the examples below
+const Ship = sequelize.define('ship', {
+  name: DataTypes.TEXT,
+  crewCapacity: DataTypes.INTEGER,
+  amountOfSails: DataTypes.INTEGER
+}, { timestamps: false });
+const Captain = sequelize.define('captain', {
+  name: DataTypes.TEXT,
+  skillLevel: {
+    type: DataTypes.INTEGER,
+    validate: { min: 1, max: 10 }
+  }
+}, { timestamps: false });
+Captain.hasOne(Ship);
+Ship.belongsTo(Captain);
+```
+
+### Fetching associations - Eager Loading vs Lazy Loading
+
+The concepts of Eager Loading and Lazy Loading are fundamental to understand how fetching associations work in Sequelize. Lazy Loading refers to the technique of fetching the associated data only when you really want it; Eager Loading, on the other hand, refers to the technique of fetching everything at once, since the beginning, with a larger query.
+
+#### Lazy Loading example
+
+```js
+const awesomeCaptain = await Captain.findOne({
+  where: {
+    name: "Jack Sparrow"
+  }
+});
+// Do stuff with the fetched captain
+console.log('Name:', awesomeCaptain.name);
+console.log('Skill Level:', awesomeCaptain.skillLevel);
+// Now we want information about his ship!
+const hisShip = await awesomeCaptain.getShip();
+// Do stuff with the ship
+console.log('Ship Name:', hisShip.name);
+console.log('Amount of Sails:', hisShip.amountOfSails);
+```
+
+Observe that in the example above, we made two queries, only fetching the associated ship when we wanted to use it. This can be especially useful if we may or may not need the ship, perhaps we want to fetch it conditionally, only in a few cases; this way we can save time and memory by only fetching it when necessary.
+
+Note: the `getShip()` instance method used above is one of the methods Sequelize automatically adds to `Captain` instances. There are others. You will learn more about them later in this guide.
+
+#### Eager Loading Example
+
+```js
+const awesomeCaptain = await Captain.findOne({
+  where: {
+    name: "Jack Sparrow"
+  },
+  include: Ship
+});
+// Now the ship comes with it
+console.log('Name:', awesomeCaptain.name);
+console.log('Skill Level:', awesomeCaptain.skillLevel);
+console.log('Ship Name:', awesomeCaptain.ship.name);
+console.log('Amount of Sails:', awesomeCaptain.ship.amountOfSails);
+```
+
+As shown above, Eager Loading is performed in Sequelize by using the `include` option. Observe that here only one query was performed to the database (which brings the associated data along with the instance).
+
+This was just a quick introduction to Eager Loading in Sequelize. There is a lot more to it, which you can learn at [the dedicated guide on Eager Loading](eager-loading.html).
+
+### Creating, updating and deleting
+
+The above showed the basics on queries for fetching data involving associations. For creating, updating and deleting, you can either:
+
+* Use the standard model queries directly:
+
+  ```js
+  // Example: creating an associated model using the standard methods
+  Bar.create({
+    name: 'My Bar',
+    fooId: 5
+  });
+  // This creates a Bar belonging to the Foo of ID 5 (since fooId is
+  // a regular column, after all). Nothing very clever going on here.
+  ```
+
+* Or use the *[special methods/mixins](#special-methods-mixins-added-to-instances)* available for associated models, which are explained later on this page.
+
+**Note:** The [`save()` instance method](pathname:///api/classes/Model.html#save) is not aware of associations. In other words, if you change a value from a *child* object that was eager loaded along a *parent* object, calling `save()` on the parent will completely ignore the change that happened on the child.
+
+### Fetching through tables
+
+For belongsToMany relationships, by default `getBars()` will return all fields from the join table. Note that any `include` options will apply to the target `Bar` object, so trying to set options for the join table as you would when eager loading with `find` methods is not possible. To choose what attributes of the join table to include, `getBars()` supports a `joinTableAttributes` option that can be used similarly to setting `through.attributes` in an `include`. As an example, given Foo belongsToMany Bar, the following will both output results without join table fields:
+
+```js
+const foo = Foo.findByPk(id, {
+  include: [{
+    model: Bar,
+    through: { attributes: [] }
+  }]
+})
+console.log(foo.bars)
+
+const foo = Foo.findByPk(id)
+console.log(foo.getBars({ joinTableAttributes: [] }))
+```

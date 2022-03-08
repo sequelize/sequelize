@@ -1,0 +1,117 @@
+---
+sidebar_position: 5
+sidebar_label: Advanced Topics
+---
+
+# Associations: Advanced Topics
+
+## Referencing a field which is not the primary key
+
+In all the examples above, the associations were defined by referencing the primary keys of the involved models (in our case, their IDs). However, Sequelize allows you to define an association that uses another field, instead of the primary key field, to establish the association.
+
+This other field must have a unique constraint on it (otherwise, it wouldn't make sense).
+
+### For `belongsTo` relationships
+
+First, recall that the `A.belongsTo(B)` association places the foreign key in the *source model* (i.e., in `A`).
+
+Let's again use the example of Ships and Captains. Additionally, we will assume that Captain names are unique:
+
+```js
+const Ship = sequelize.define('ship', { name: DataTypes.TEXT }, { timestamps: false });
+const Captain = sequelize.define('captain', {
+  name: { type: DataTypes.TEXT, unique: true }
+}, { timestamps: false });
+```
+
+This way, instead of keeping the `captainId` on our Ships, we could keep a `captainName` instead and use it as our association tracker. In other words, instead of referencing the `id` from the target model (Captain), our relationship will reference another column on the target model: the `name` column. To specify this, we have to define a *target key*. We will also have to specify a name for the foreign key itself:
+
+```js
+Ship.belongsTo(Captain, { targetKey: 'name', foreignKey: 'captainName' });
+// This creates a foreign key called `captainName` in the source model (Ship)
+// which references the `name` field from the target model (Captain).
+```
+
+Now we can do things like:
+
+```js
+await Captain.create({ name: "Jack Sparrow" });
+const ship = await Ship.create({ name: "Black Pearl", captainName: "Jack Sparrow" });
+console.log((await ship.getCaptain()).name); // "Jack Sparrow"
+```
+
+### For `hasOne` and `hasMany` relationships
+
+The exact same idea can be applied to the `hasOne` and `hasMany` associations, but instead of providing a `targetKey`, we provide a `sourceKey` when defining the association. This is because unlike `belongsTo`, the `hasOne` and `hasMany` associations keep the foreign key on the target model:
+
+```js
+const Foo = sequelize.define('foo', {
+  name: { type: DataTypes.TEXT, unique: true }
+}, { timestamps: false });
+const Bar = sequelize.define('bar', {
+  title: { type: DataTypes.TEXT, unique: true }
+}, { timestamps: false });
+const Baz = sequelize.define('baz', { summary: DataTypes.TEXT }, { timestamps: false });
+Foo.hasOne(Bar, { sourceKey: 'name', foreignKey: 'fooName' });
+Bar.hasMany(Baz, { sourceKey: 'title', foreignKey: 'barTitle' });
+// [...]
+await Bar.setFoo("Foo's Name Here");
+await Baz.addBar("Bar's Title Here");
+```
+
+### For `belongsToMany` relationships
+
+The same idea can also be applied to `belongsToMany` relationships. However, unlike the other situations, in which we have only one foreign key involved, the `belongsToMany` relationship involves two foreign keys which are kept on an extra table (the junction table).
+
+Consider the following setup:
+
+```js
+const Foo = sequelize.define('foo', {
+  name: { type: DataTypes.TEXT, unique: true }
+}, { timestamps: false });
+const Bar = sequelize.define('bar', {
+  title: { type: DataTypes.TEXT, unique: true }
+}, { timestamps: false });
+```
+
+There are four cases to consider:
+
+* We might want a many-to-many relationship using the default primary keys for both `Foo` and `Bar`:
+
+```js
+Foo.belongsToMany(Bar, { through: 'foo_bar' });
+// This creates a junction table `foo_bar` with fields `fooId` and `barId`
+```
+
+* We might want a many-to-many relationship using the default primary key for `Foo` but a different field for `Bar`:
+
+```js
+Foo.belongsToMany(Bar, { through: 'foo_bar', targetKey: 'title' });
+// This creates a junction table `foo_bar` with fields `fooId` and `barTitle`
+```
+
+* We might want a many-to-many relationship using the a different field for `Foo` and the default primary key for `Bar`:
+
+```js
+Foo.belongsToMany(Bar, { through: 'foo_bar', sourceKey: 'name' });
+// This creates a junction table `foo_bar` with fields `fooName` and `barId`
+```
+
+* We might want a many-to-many relationship using different fields for both `Foo` and `Bar`:
+
+```js
+Foo.belongsToMany(Bar, { through: 'foo_bar', sourceKey: 'name', targetKey: 'title' });
+// This creates a junction table `foo_bar` with fields `fooName` and `barTitle`
+```
+
+### Notes
+
+Don't forget that the field referenced in the association must have a unique constraint placed on it. Otherwise, an error will be thrown (and sometimes with a mysterious error message - such as `SequelizeDatabaseError: SQLITE_ERROR: foreign key mismatch - "ships" referencing "captains"` for SQLite).
+
+The trick to deciding between `sourceKey` and `targetKey` is just to remember where each relationship places its foreign key. As mentioned in the beginning of this guide:
+
+* `A.belongsTo(B)` keeps the foreign key in the source model (`A`), therefore the referenced key is in the target model, hence the usage of `targetKey`.
+
+* `A.hasOne(B)` and `A.hasMany(B)` keep the foreign key in the target model (`B`), therefore the referenced key is in the source model, hence the usage of `sourceKey`.
+
+* `A.belongsToMany(B)` involves an extra table (the junction table), therefore both `sourceKey` and `targetKey` are usable, with `sourceKey` corresponding to some field in `A` (the source) and `targetKey` corresponding to some field in `B` (the target).

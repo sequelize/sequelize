@@ -2,13 +2,232 @@
 sidebar_position: 4
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Many-To-Many Relationship
 
-[Many-To-Many](https://en.wikipedia.org/wiki/Many-to-many_%28data_model%29)
+In sequelize, Many-To-Many relationships are defined using [`BelongsToMany`](pathname:///api/classes/Model.html#belongsToMany) associations.
 
-The `A.belongsToMany(B, { through: 'C' })` association means that a Many-To-Many relationship exists between `A` and `B`, using table `C` as [junction table](https://en.wikipedia.org/wiki/Associative_entity), which will have the foreign keys (`aId` and `bId`, for example). Sequelize will automatically create this model `C` (unless it already exists) and define the appropriate foreign keys on it.
+:::note
 
-*Note: In the examples above for `belongsToMany`, a string (`'C'`) was passed to the through option. In this case, Sequelize automatically generates a model with this name. However, you can also pass a model directly, if you have already defined it.*
+Unlike the other association types, `BelongsToMany` is the only association whose symmetric counterpart is itself.
 
-* To create a **Many-To-Many** relationship, two `belongsToMany` calls are used together.
-  * Note: there is also a *Super Many-To-Many* relationship, which uses six associations at once, and will be discussed in the [Advanced Many-to-Many relationships guide](advanced-many-to-many.html).
+i.e. Where other relationships use two associations, `Many-To-Many` relationships only uses `BelongsToMany`.
+
+:::
+
+## Philosophy
+
+[**Resource: About Many-To-Many Relationships**](https://en.wikipedia.org/wiki/Many-to-many_%28data_model%29)
+
+Many-To-Many associations connect one source with multiple targets, while all these targets can in turn be connected to other sources beyond the first.
+
+This cannot be represented by adding one foreign key to one of the tables, like the other relationships did. Instead, the concept of a [Junction Model](https://en.wikipedia.org/wiki/Associative_entity) is used. This will be an extra model (and extra table in the database) which will have two foreign key columns and will keep track of the associations. The junction table is also sometimes called *join table* or *through table*.
+
+## In practice
+
+For the rest of this example, let's assume that we have two models, `Movie` and `Actor`.
+
+An actor can play in many movies, and a movie (typically) includes many actors.
+
+To create this relationship, `belongsToMany` must be used:
+
+```typescript
+Movie.belongsToMany(Actor, { through: 'ActorMovie' });
+Actor.belongsToMany(Movie, { through: 'ActorMovie' });
+```
+
+`Many-To-Many` relationships always need a [junction table](https://en.wikipedia.org/wiki/Associative_entity). In Sequelize,
+this table is defined using the `through` option. **This option is mandatory**.
+
+:::tip
+
+The `through` option is not the name of a _table_, but the name of a _model_. If a model with that name does not already
+exist, Sequelize will automatically create one for you.
+
+This means that the name you use in `through` will not be used as-is for the table name.
+[The Table Name will be generated following the same rules as other table names](../models/sql-name-inference.mdx#table-names).
+
+:::
+
+Sequelize will automatically add the necessary Foreign Keys on the *junction table* (e.g. ActorMovie).
+
+Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will execute the following SQL:
+
+```sql
+-- dialect: PostgreSQL
+CREATE TABLE IF NOT EXISTS "ActorMovies" (
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "MovieId" INTEGER REFERENCES "Movies" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "ActorId" INTEGER REFERENCES "Actors" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY ("MovieId","ActorId")
+);
+```
+
+### Customizing the [Junction Model](https://en.wikipedia.org/wiki/Associative_entity)
+
+In the previous example, the junction model was configured using a string
+which caused Sequelize to create a Model with the same name and use it as the junction model.
+
+It is also possible to provide your own `Model` subclass to the `through` option,
+giving you complete control over the junction model.
+
+You can for instance add extra attributes on the junction model.
+
+[//]: # (TODO: add TypeScript example)
+
+```js
+import { Model, DataTypes } from '@sequelize/core';
+
+class ActorMovie extends Model {}
+
+ActorMovie.init({
+  // the role of the actor in this movie
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+
+  // foreign keys are added automatically by 'belongsToMany'.
+})
+
+Movie.belongsToMany(Actor, { through: ActorMovie });
+Actor.belongsToMany(Movie, { through: ActorMovie });
+```
+
+Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will execute the following SQL:
+
+```sql
+-- dialect: PostgreSQL
+CREATE TABLE IF NOT EXISTS "ActorMovies" (
+  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "role" VARCHAR(255) NOT NULL,
+  "MovieId" INTEGER REFERENCES "Movies" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "ActorId" INTEGER REFERENCES "Actors" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY ("MovieId","ActorId")
+);
+```
+
+### Options
+
+[//]: # (TODO: expand this section!)
+
+:::info
+
+All options for `Model.belongsToMany` are documented in the [API Reference for `BelongsToManyOptions`](pathname:///api/interfaces/BelongsToManyOptions.html)
+
+:::
+
+Unlike [One-To-One](./one-to-one.mdx#ondelete-and-onupdate) and [One-To-Many](./one-to-many.mdx#options) relationships,
+the defaults for both `ON UPDATE` and `ON DELETE` are `CASCADE` for Many-To-Many relationships.
+
+Belongs-To-Many creates a unique key on through model.
+This unique key name can be overridden using **uniqueKey** option. To prevent creating this unique key, use the ***unique: false*** option.
+
+```js
+Movie.belongsToMany(Actor, { through: ActorMovie, uniqueKey: 'my_custom_unique' })
+```
+
+## Model Association Methods
+
+[//]: # (There is only one sub-chapter here but the structure is kept to be symetrical with the other two relationship types)
+
+### `belongsToMany`
+
+Calling `SourceModel.belongsToMany(TargetModel)` adds a series of Association-related methods to the source Model.
+
+[//]: # (TODO (ephys): 'the name of the association' must be a link to a resource explaining how the association name is determined).
+
+The name of these methods is dynamically generated based on the name of the association.
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin, BelongsToManyAddAssociationsMixin, BelongsToManyAddAssociationMixin, BelongsToManyCreateAssociationMixin, BelongsToManyRemoveAssociationMixin, BelongsToManyRemoveAssociationsMixin, BelongsToManyHasAssociationMixin, BelongsToManyHasAssociationsMixin, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+
+class Actor extends Model<InferAttributes<Actor>, InferCreationAttributes<Actor>> {
+  // These methods will be added by Actor.belongsToMany(Movie)
+  // Declare their typings like this:
+
+  // returns the list of movies associated to this instance
+  declare getMovies: BelongsToManyGetAssociationsMixin<Movie>;
+
+  // associates a single movie to this instance
+  declare addMovie: BelongsToManyAddAssociationsMixin<Movie, /* foreign key type */ Movie['id']>;
+
+  // associates multiple movies to this instance
+  declare addMovies: BelongsToManyAddAssociationsMixin<Movie, Movie['id']>;
+
+  // replaces all movies associated to this instance
+  declare setMovies: BelongsToManySetAssociationsMixin<Movie, Movie['id']>;
+
+  // dissociates a single movie from this instance
+  declare removeMovie: BelongsToManyRemoveAssociationMixin<Movie, Movie['id']>;
+
+  // dissociates a set of movie from this instance
+  declare removeMovies: BelongsToManyRemoveAssociationsMixin<Movie, Movie['id']>;
+
+  // returns whether the movie is associated to this instance
+  declare hasMovie: BelongsToManyHasAssociationMixin<Movie, Movie['id']>;
+
+  // returns whether all movie in the set are associated to this instance
+  declare hasMovies: BelongsToManyHasAssociationsMixin<Movie, Movie['id']>;
+
+  // counts how many movies are associated to this instance
+  declare countMovies: BelongsToManyCountAssociationsMixin;
+
+  // creates a new movie entity and associates it to this instance
+  declare createMovie: BelongsToManyCreateAssociationMixin<Movie>;
+
+  // All foreign keys are on ActorMovie, and must not be declared here.
+}
+
+Actor.init(/* options */);
+
+Actor.belongsToMany(Movie, { through: 'ActorMovie' });
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript (CJS)">
+
+```typescript
+import { Model } from '@sequelize/core';
+
+class Team extends Model {}
+
+Team.init(/* options */);
+
+// this adds foreign keys 'MovieId' and 'ActorId' on ActorMovie
+// it also adds the following instance methods:
+//
+// - getMovies: returns the list of Movies associated to the Team instance
+// - addMovie: associates a single Movie to the Team instance
+// - addMovies: associates multiple Movies to the Team instance
+// - setMovies: replaces all Movies associated to the Team instance
+// - removeMovie: dissociates a single Movie from the Team instance
+// - removeMovies: dissociates a set of Movie from the Team instance
+// - hasMovie: returns whether the Movie is associated to the Team instance
+// - hasMovies: returns whether all Movie in the set are associated to the Team instance
+// - countMovies: counts how many Movies are associated to the Team instance
+// - createMovie: creates a new Movie entity and associates it to the Team instance
+Actor.belongsToMany(Movie, { through: ActorMovie });
+```
+
+</TabItem>
+</Tabs>
+
+## Querying
+
+The association getter method (e.g. `getMovies`) functions identically to other entity finder methods (such as `findAll`).
+[Read more about how to query associations here](../querying/associations.mdx).
+
+## Closing notes
+
+`Many-To-Many` relationships are simply 3 tables, two of them having a [`One-To-Many`](./one-to-many.mdx) relationship with the third one.
+
+There is also a *Super Many-To-Many* relationship, which uses six associations at once,
+and will be discussed in the [Advanced Many-to-Many relationships guide](advanced-many-to-many.html).

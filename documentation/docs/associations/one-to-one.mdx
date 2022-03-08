@@ -41,7 +41,7 @@ Foo.hasOne(Bar);
 Bar.belongsTo(Foo);
 ```
 
-Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will yield the following SQL:
+Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will execute the following SQL:
 
 ```sql
 -- dialect: PostgreSQL
@@ -224,3 +224,7 @@ await foo.createBar({ /* creation attributes for Bar */ });
 import BelongsToMethods from './_belongs-to-methods.mdx';
 
 <BelongsToMethods />
+
+## Querying
+
+[Read more about how to query associations here](../querying/associations.mdx).

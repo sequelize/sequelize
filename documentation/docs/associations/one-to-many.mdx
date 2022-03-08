@@ -21,7 +21,8 @@ The opposite is impossible, since one Foo has many Bars.
 
 ## In practice
 
-In this example, we have the models `Team` and `Player`.
+For the rest of this example, let's assume that we have two models, `Team` and `Player`.
+
 We want to tell Sequelize that there is a One-To-Many relationship between them, meaning that one Team has many Players,
 while each Player belongs to a single Team.
 
@@ -35,7 +36,7 @@ Team.hasMany(Player);
 Player.belongsTo(Team);
 ```
 
-Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will yield the following SQL:
+Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will execute the following SQL:
 
 ```sql
 -- dialect: PostgreSQL
@@ -149,11 +150,13 @@ Team.hasMany(Player);
 </TabItem>
 </Tabs>
 
-The getter method (e.g. `getPlayers`) functions identically to other entity finder methods (such as `findAll`).
-Read more about finders in [the chapter about querying](../querying/associations.mdx).
-
 ### `belongsTo`
 
 import BelongsToMethods from './_belongs-to-methods.mdx';
 
 <BelongsToMethods />
+
+## Querying
+
+The getter method (e.g. `getPlayers`) functions identically to other entity finder methods (such as `findAll`).
+[Read more about how to query associations here](../querying/associations.mdx).
