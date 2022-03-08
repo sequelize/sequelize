@@ -17,7 +17,7 @@ This means that direct SQL queries (for example queries performed without Sequel
 
 :::info
 
-A third Auto-generated Timestamp called `deletedAt` exists. It is used by [Paranoid Models](./paranoid) to mark a row as deleted.
+A third Auto-generated Timestamp called `deletedAt` exists. It is used by [Paranoid Models](./paranoid.md) to mark a row as deleted.
 
 :::
 
@@ -133,7 +133,7 @@ You may also be interested in renaming the attributes. There are two parts to th
 
 ### Changing the Attribute Name
 
-Changing the *attribute name* is done by setting the `createdAt`, `updatedAt`, or [`deletedAt`](./paranoid) Model option to a String.
+Changing the *attribute name* is done by setting the `createdAt`, `updatedAt`, or [`deletedAt`](./paranoid.md) Model option to a String.
 
 <Tabs>
 <TabItem value="ts" label="TypeScript">
@@ -195,7 +195,7 @@ Changing the Column Name is done by setting the `field` option on the attribute 
 
 If the `field` option is not set, the Column Name will be automatically inferred from the Attribute Name.
 
-Read more on this in [Configuring Column & Table names](./sql-name-inference)
+Read more on this in [Configuring Column & Table names](./sql-name-inference.mdx)
 
 :::
 

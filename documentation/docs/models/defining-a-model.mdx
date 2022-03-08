@@ -31,12 +31,12 @@ To learn with an example, we will consider that we want to create a model to rep
 
 Both ways to define this model are shown below. After being defined, we can access our model with `sequelize.models.User`.
 
-### Extending [Model](../class/src/model.js~Model.html) (recommended)
+### Extending [Model](pathname:///api/classes/Model.html) (recommended)
 
 <Tabs>
 <TabItem value="ts" label="TypeScript">
 
-Learn more about using Sequelize with TypeScript in [our TypeScript guide](./typescript).
+Learn more about using Sequelize with TypeScript in [our TypeScript guide](../typescript.md).
 
 ```typescript
 import { Sequelize, DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
@@ -111,7 +111,7 @@ In the above example, the name of the model is `User`.
 
 If you minify your code, it is possible that the class' name — and therefore its model name — will be changed by your minifier.
 This can be an issue, as many systems use your modelName, from [Sequelize#models](pathname:///api/classes/Sequelize.html#models)
-to [the name of your Database table name](./sql-name-inference).
+to [the name of your Database table name](./sql-name-inference.mdx).
 
 The solution to prevent this issue is to explicitly set the `modelName` option:
 
@@ -193,7 +193,7 @@ const user = new User({ id: 1 });
 user.id; // 1
 ```
 
-### Using [`sequelize.define`](../class/src/sequelize.js~Sequelize.html#instance-method-define)
+### Using [`sequelize.define`](pathname:///api/classes/Sequelize.html#define)
 
 Internally, `sequelize.define` calls `Model.init`, so both approaches are essentially equivalent.
 
@@ -268,7 +268,7 @@ sequelize.define('Foo', {
 Every attribute you define in your model must have a data type.
 e.g. an attribute with a type `DataTypes.INTEGER` will result in a column of type `integer`.
 
-[The list of supported Data Types is available here](./datatypes).
+[The list of supported Data Types is available here](./datatypes.md).
 
 ## Column Options
 

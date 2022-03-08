@@ -10,7 +10,7 @@ In Sequelize, Models are the JavaScript classes that represent [Database Tables]
 
 Some ORM call these Entities. By convention, they are called Models in Sequelize.
 
-Learn more about Models in [Defining a Model](./models/defining-a-model)
+Learn more about Models in [Defining a Model](./models/defining-a-model.mdx)
 
 ## Attributes & Columns
 
@@ -18,4 +18,4 @@ An attribute is the JavaScript representation of a [Table Column](https://en.wik
 
 In this documentation, if *column* is used, it references the SQL column. If *attribute* is used, it references the JavaScript representation of a column.
 
-Learn more about Attributes in [Defining a Model](./models/defining-a-model)
+Learn more about Attributes in [Defining a Model](./models/defining-a-model.mdx)
