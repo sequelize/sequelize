@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # One-To-One Relationship
 
-In sequelize, One-To-One relationships are defined using [`HasOne`](pathname:///api/classes/Model.html#hasOne) & [`BelongsTo`](pathname:///api/classes/Model.html#belongsTo) relationships.
+In sequelize, One-To-One relationships are defined using [`HasOne`](pathname:///api/classes/Model.html#hasOne) & [`BelongsTo`](pathname:///api/classes/Model.html#belongsTo) associations.
 
 ## Philosophy
 
@@ -31,7 +31,7 @@ In other words, can a Foo exist without a Bar? Can a Bar exist without a Foo? Th
 For the rest of this example, let's assume that we have two models, `Foo` and `Bar`.
 We want to set up a One-To-One relationship between them such that `Bar` gets a `fooId` column.
 
-To create a relationship, the `hasOne` and `belongsTo` associations are used together:
+To create this relationship, the `hasOne` and `belongsTo` associations are used together:
 
 ```javascript
 // SourceModel.hasOne(TargetModel) adds the foreignKey on TargetModel
@@ -41,9 +41,10 @@ Foo.hasOne(Bar);
 Bar.belongsTo(Foo);
 ```
 
-Calling [`Bar.sync()`](pathname:///api/classes/Model.html#sync) after the above will yield the following SQL (on PostgreSQL, for example):
+Calling [`sequelize.sync()`](pathname:///api/classes/Sequelize.html#sync) after the above will yield the following SQL:
 
 ```sql
+-- dialect: PostgreSQL
 CREATE TABLE IF NOT EXISTS "foos" (
   /* ... */
 );
@@ -154,7 +155,6 @@ Foo.hasOne(Bar, {
 // "fooId" INTEGER NOT NULL REFERENCES "foos" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
 ```
 
-
 ## Model Association Methods
 
 ### `hasOne`
@@ -201,6 +201,7 @@ class Foo extends Model {}
 Foo.init(/* options */);
 
 // this adds 'getBar', 'setBar' and 'createBar' instance methods on Foo
+// it also adds a foreign key 'FooId' on Bar
 Foo.hasOne(Bar);
 
 const foo = await Foo.create({});

@@ -1,6 +1,8 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+*`belongsTo` functions identically in both [One-To-One relationships](./one-to-one.mdx#belongsto), and [One-To-Many](./one-to-many.mdx#belongsto) relationships*
+
 Calling `SourceModel.belongsTo(TargetModel)` adds a series of Association-related methods to the source Model.
 
 The name of these methods is dynamically generated based on the name of the association.
@@ -45,6 +47,7 @@ class Bar extends Model {}
 Bar.init(/* options */);
 
 // this adds 'getFoo', 'setFoo' and 'createFoo' instance methods on Bar
+// it also adds a foreign key 'FooId' on Bar
 Bar.belongsTo(Foo);
 
 const bar = await Bar.create({});
