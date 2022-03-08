@@ -1,0 +1,14 @@
+---
+sidebar_position: 4
+---
+
+# Many-To-Many Relationship
+
+[Many-To-Many](https://en.wikipedia.org/wiki/Many-to-many_%28data_model%29)
+
+The `A.belongsToMany(B, { through: 'C' })` association means that a Many-To-Many relationship exists between `A` and `B`, using table `C` as [junction table](https://en.wikipedia.org/wiki/Associative_entity), which will have the foreign keys (`aId` and `bId`, for example). Sequelize will automatically create this model `C` (unless it already exists) and define the appropriate foreign keys on it.
+
+*Note: In the examples above for `belongsToMany`, a string (`'C'`) was passed to the through option. In this case, Sequelize automatically generates a model with this name. However, you can also pass a model directly, if you have already defined it.*
+
+* To create a **Many-To-Many** relationship, two `belongsToMany` calls are used together.
+  * Note: there is also a *Super Many-To-Many* relationship, which uses six associations at once, and will be discussed in the [Advanced Many-to-Many relationships guide](advanced-many-to-many.html).

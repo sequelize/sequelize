@@ -1,0 +1,63 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+Calling `SourceModel.belongsTo(TargetModel)` adds a series of Association-related methods to the source Model.
+
+The name of these methods is dynamically generated based on the name of the association.
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { BelongsToGetAssociationMixin, BelongsToSetAssociationMixin, BelongsToCreateAssociationMixin, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+
+class Bar extends Model<InferAttributes<Bar>, InferCreationAttributes<Bar>> {
+  // These methods will be added by Bar.belongsTo(Foo)
+  // Declare their typings like this:
+
+  // returns the Foo instance associated to this instance
+  declare getFoo: BelongsToGetAssociationMixin<Foo>;
+
+  // sets which Foo instance is associated to this instance
+  declare setFoo: BelongsToSetAssociationMixin<Foo, /* primary key type */ Foo['id']>;
+
+  // creates a new Foo instance & associates it to this instance.
+  declare createFoo: BelongsToCreateAssociationMixin<Foo>;
+
+  // 'belongsTo' adds a Foreign Key on the source model, we need to declare it too:
+  // "Foo['id']" is the type of the field 'id' of the class 'Foo'
+  declare FooId: Foo['id'];
+}
+
+Bar.init(/* options */);
+
+Bar.belongsTo(Foo);
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript (CJS)">
+
+```typescript
+import { Model } from '@sequelize/core';
+
+class Bar extends Model {}
+
+Bar.init(/* options */);
+
+// this adds 'getFoo', 'setFoo' and 'createFoo' instance methods on Bar
+Bar.belongsTo(Foo);
+
+const bar = await Bar.create({});
+
+// returns the Foo instance associated to bar
+await bar.getFoo();
+
+// sets which Foo instance is associated to bar
+await bar.setFoo(foo);
+
+// creates a new Foo instance & associates it to the bar instance.
+await bar.createFoo({ /* creation attributes for Foo */ });
+```
+
+</TabItem>
+</Tabs>

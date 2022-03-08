@@ -1,0 +1,225 @@
+---
+sidebar_position: 2
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# One-To-One Relationship
+
+In sequelize, One-To-One relationships are defined using [`HasOne`](pathname:///api/classes/Model.html#hasOne) & [`BelongsTo`](pathname:///api/classes/Model.html#belongsTo) relationships.
+
+## Philosophy
+
+[**Resource: About One-To-One Relationships**](https://en.wikipedia.org/wiki/One-to-one_%28data_model%29)
+
+Before digging into the aspects of using Sequelize, it is useful to take a step back to consider what happens with a One-To-One relationship.
+
+Let's say we have two models, `Foo` and `Bar`.
+We want to establish a One-To-One relationship between Foo and Bar.
+We know that in a relational database, this will be done by establishing a foreign key in one of the tables.
+
+So in this case, a very relevant question is: in which table do we want this foreign key to be? In other words,
+do we want `Foo` to have a `barId` column, or should `Bar` have a `fooId` column instead?
+
+In principle, both options are a valid way to establish a One-To-One relationship between Foo and Bar.
+However, when we say something like *"there is a One-To-One relationship between Foo and Bar"*, it is unclear whether the relationship is *mandatory* or optional.
+In other words, can a Foo exist without a Bar? Can a Bar exist without a Foo? The answers to these questions helps to figure out where we want the foreign key column to be.
+
+## In practice
+
+For the rest of this example, let's assume that we have two models, `Foo` and `Bar`.
+We want to set up a One-To-One relationship between them such that `Bar` gets a `fooId` column.
+
+To create a relationship, the `hasOne` and `belongsTo` associations are used together:
+
+```javascript
+// SourceModel.hasOne(TargetModel) adds the foreignKey on TargetModel
+Foo.hasOne(Bar);
+
+// SourceModel.hasOne(TargetModel) adds the foreignKey on SourceModel
+Bar.belongsTo(Foo);
+```
+
+Calling [`Bar.sync()`](pathname:///api/classes/Model.html#sync) after the above will yield the following SQL (on PostgreSQL, for example):
+
+```sql
+CREATE TABLE IF NOT EXISTS "foos" (
+  /* ... */
+);
+
+CREATE TABLE IF NOT EXISTS "bars" (
+  /* ... */
+  "fooId" INTEGER REFERENCES "foos" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+  /* ... */
+);
+```
+
+## Options
+
+Various options can be passed as a second parameter of the association call.
+
+:::info
+
+All options for `Model.hasOne` are documented in the [API Reference for `HasOneOptions`](pathname:///api/interfaces/HasOneOptions.html)
+
+All options for `Model.belongsTo` are documented in the [API Reference for `BelongsToOptions`](pathname:///api/interfaces/BelongsToOptions.html)
+
+:::
+
+### `onDelete` and `onUpdate`
+
+For example, to configure the `ON DELETE` and `ON UPDATE` behaviors, you can do:
+
+```js
+Foo.hasOne(Bar, {
+  onDelete: 'RESTRICT',
+  onUpdate: 'RESTRICT'
+});
+Bar.belongsTo(Foo);
+```
+
+The possible choices are:
+
+- `RESTRICT`
+- `CASCADE`
+- `NO ACTION`
+- `SET DEFAULT`
+- `SET NULL`
+
+Refer to your database's documentation for details on the behavior of each option.
+
+The defaults for One-To-One relationships are `{ onDelete: 'SET NULL', onUpdate: 'CASCADE' }`.
+
+### Customizing the foreign key
+
+Both the `hasOne` and `belongsTo` calls shown above will infer that the foreign key to be created should be called `fooId`. To use a different name, such as `myFooId`:
+
+```js
+// Option 1
+Foo.hasOne(Bar, {
+  foreignKey: 'myFooId'
+});
+Bar.belongsTo(Foo);
+
+// Option 2
+Foo.hasOne(Bar, {
+  foreignKey: {
+    name: 'myFooId'
+  }
+});
+Bar.belongsTo(Foo);
+
+// Option 3
+Foo.hasOne(Bar);
+Bar.belongsTo(Foo, {
+  foreignKey: 'myFooId'
+});
+
+// Option 4
+Foo.hasOne(Bar);
+Bar.belongsTo(Foo, {
+  foreignKey: {
+    name: 'myFooId'
+  }
+});
+```
+
+As shown above, the `foreignKey` option accepts a string or an object. When receiving an object, this object will be used as the definition for the column just like it would do in a standard `sequelize.define` call. Therefore, specifying options such as `type`, `allowNull`, `defaultValue`, etc, just  work.
+
+For example, to use `UUID` as the foreign key data type instead of the default (`INTEGER`), you can simply do:
+
+```js
+const { DataTypes } = require('@sequelize/core');
+
+Foo.hasOne(Bar, {
+  foreignKey: {
+    // name: 'myFooId'
+    type: DataTypes.UUID
+  }
+});
+Bar.belongsTo(Foo);
+```
+
+### Mandatory versus optional associations
+
+By default, the association is considered optional. In other words, in our example, the `fooId` is allowed to be null, meaning that one Bar can exist without a Foo. Changing this is just a matter of specifying `allowNull: false` in the foreign key options:
+
+```js
+Foo.hasOne(Bar, {
+  foreignKey: {
+    allowNull: false
+  }
+});
+// "fooId" INTEGER NOT NULL REFERENCES "foos" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT
+```
+
+
+## Model Association Methods
+
+### `hasOne`
+
+Calling `SourceModel.hasOne(TargetModel)` adds a series of Association-related methods to the source Model.
+
+The name of these methods is dynamically generated based on the name of the association.
+
+<Tabs>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { HasOneGetAssociationMixin, HasOneSetAssociationMixin, HasOneCreateAssociationMixin, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+
+class Foo extends Model<InferAttributes<Foo>, InferCreationAttributes<Foo>> {
+  // These methods will be added by Foo.hasOne(Bar)
+  // Declare their typings like this:
+
+  // returns the Bar instance associated to this instance
+  declare getBar: HasOneGetAssociationMixin<Bar>;
+
+  // sets which Bar instance is associated to this instance
+  declare setBar: HasOneSetAssociationMixin<Bar, /* primary key type */ Bar['id']>;
+
+  // creates a new Bar instance & associates it to this instance.
+  declare createBar: HasOneCreateAssociationMixin<Bar>;
+
+  // 'hasOne' adds a Foreign Key on the Target model (in this case: Bar), so no foreign key to declare here.
+}
+
+Foo.init(/* options */);
+
+Foo.hasOne(Bar);
+```
+
+</TabItem>
+<TabItem value="js" label="JavaScript (CJS)">
+
+```typescript
+import { Model } from '@sequelize/core';
+
+class Foo extends Model {}
+
+Foo.init(/* options */);
+
+// this adds 'getBar', 'setBar' and 'createBar' instance methods on Foo
+Foo.hasOne(Bar);
+
+const foo = await Foo.create({});
+
+// returns the Bar instance associated to foo
+await foo.getBar();
+
+// sets which Bar instance is associated to foo
+await foo.setBar(bar);
+
+// creates a new Bar instance & associates it to the foo instance.
+await foo.createBar({ /* creation attributes for Bar */ });
+```
+
+</TabItem>
+</Tabs>
+
+### `belongsTo`
+
+import BelongsToMethods from './_belongs-to-methods.mdx';
+
+<BelongsToMethods />
