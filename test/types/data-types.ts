@@ -1,7 +1,13 @@
 import { expectTypeOf } from 'expect-type';
 import { DataTypes } from '@sequelize/core';
 
-const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB, CITEXT, MACADDR, TSVECTOR, CIDR, INET } = DataTypes;
+const { TIME, TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB, CITEXT, MACADDR, TSVECTOR, CIDR, INET } = DataTypes;
+
+// TIME
+expectTypeOf(TIME()).toEqualTypeOf<DataTypes.TimeDataType>();
+expectTypeOf(new TIME()).toEqualTypeOf<DataTypes.TimeDataType>();
+expectTypeOf(TIME.ZONED()).toEqualTypeOf<DataTypes.TimeDataType>();
+expectTypeOf(new TIME.ZONED()).toEqualTypeOf<DataTypes.TimeDataType>();
 
 // TINYINT
 expectTypeOf(TINYINT()).toEqualTypeOf<DataTypes.TinyIntegerDataType>();
