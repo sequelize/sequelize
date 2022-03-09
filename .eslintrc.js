@@ -135,7 +135,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js', 'docs/**/*.js'],
+    files: ['test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
@@ -150,7 +150,7 @@ module.exports = {
     },
   }, {
     // Disable slow rules that are not important in tests & docs (perf)
-    files: ['test/**/*', 'docs/**/*'],
+    files: ['test/**/*', 'documentation/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -158,6 +158,16 @@ module.exports = {
       'jsdoc/valid-types': 'off',
       'jsdoc/newline-after-description': 'off',
       'jsdoc/check-tag-names': 'off',
+    },
+  }, {
+    files: ['documentation/**/_category_.json'],
+    rules: {
+      'unicorn/filename-case': 'off',
+    },
+  }, {
+    files: ['documentation/**'],
+    parserOptions: {
+      project: ['./documentation/tsconfig.json'],
     },
   }, {
     // Enable test-specific rules (perf)
@@ -179,6 +189,11 @@ module.exports = {
     parserOptions: {
       project: ['./test/tsconfig.json'],
     },
+  }, {
+    files: ['**/tsconfig.json'],
+    rules: {
+      'json/*': ['error', { allowComments: true }],
+    },
   }],
   settings: {
     jsdoc: {
@@ -192,7 +207,19 @@ module.exports = {
     sourceType: 'script',
   },
   // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
-  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*', '!dev/update-authors.js'],
+  ignorePatterns: [
+    'lib/**/*',
+    'types/**/*',
+    'test/types/**/*',
+    'src/**/*.d.ts',
+    'dev/**/*',
+    '!dev/update-authors.js',
+    'documentation/.docusaurus',
+    'documentation/build',
+    'documentation/node_modules',
+    // typedoc (auto-generated)
+    'documentation/static/api',
+  ],
   env: {
     node: true,
     mocha: true,

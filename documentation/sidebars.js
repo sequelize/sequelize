@@ -9,8 +9,6 @@
  Create as many sidebars as you want.
  */
 
-/* eslint-disable jsdoc/valid-types -- broken when used with import() */
-
 // @ts-check
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
