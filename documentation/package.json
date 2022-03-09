@@ -3,15 +3,16 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "yarn build:typedoc && yarn build:docusaurus",
+    "build:typedoc": "typedoc",
+    "build:docusaurus": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc",
-    "typedoc": "typedoc"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@docusaurus/core": "2.0.0-beta.14",
