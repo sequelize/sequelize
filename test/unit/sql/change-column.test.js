@@ -42,16 +42,13 @@ if (current.dialect.name !== 'sqlite') {
             mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
             mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
             mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
-            oracle: `BEGIN EXECUTE IMMEDIATE 'ALTER TABLE users MODIFY (level_id FLOAT NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE users MODIFY (level_id FLOAT )'; ELSE RAISE; END IF; END;`,
+            oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY ("level_id" BINARY_FLOAT NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY ("level_id" BINARY_FLOAT )'; ELSE RAISE; END IF; END; END;`,
             postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;'
           });
         });
       });
 
       it('properly generate alter queries for foreign keys', function() {
-        if (current.dialect.name === 'oracle') {
-          this.skip();
-        }
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.INTEGER,
           references: {
@@ -62,6 +59,7 @@ if (current.dialect.name !== 'sqlite') {
           onDelete: 'cascade'
         }).then(sql => {
           expectsql(sql, {
+            oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN select constraint_name into cons_name from ( select distinct cc.owner, cc.table_name, cc.constraint_name, cc.column_name as cons_columns from all_cons_columns cc, all_constraints c where cc.owner = c.owner and cc.table_name = c.table_name and cc.constraint_name = c.constraint_name and c.constraint_type = 'R' group by cc.owner, cc.table_name, cc.constraint_name, cc.column_name ) where owner = USER and table_name = 'users' and cons_columns = 'level_id' ; EXCEPTION WHEN NO_DATA_FOUND THEN CONS_NAME := NULL; END; IF CONS_NAME IS NOT NULL THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" DROP CONSTRAINT "'||CONS_NAME||'"'; END IF; EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE'; END;`,
             mssql: 'ALTER TABLE [users] ADD FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',
             mariadb: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
