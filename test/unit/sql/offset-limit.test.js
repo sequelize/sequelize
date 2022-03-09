@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       model: { primaryKeyField: 'id', name: 'tableRef' }
     }, {
       default: ' LIMIT 10',
-      oracle: ' ORDER BY tableRef.id OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
+      oracle: ' ORDER BY "tableRef"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
     });
 

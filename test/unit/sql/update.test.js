@@ -26,6 +26,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes),
         {
           query: {
+            oracle: 'UPDATE "users" SET "user_name"=:1 WHERE "id" = :2',
             default: 'UPDATE [users] SET [user_name]=$1 WHERE [id] = $2'
           },
           bind: {
@@ -54,7 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
             postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
-            oracle: 'UPDATE users SET user_name=$1 WHERE id = $2',
+            oracle: 'UPDATE "users" SET "user_name"=:1 WHERE "id" = :2',
             default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
           },
           bind: {
@@ -81,7 +82,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
           mysql: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
           sqlite: 'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
-          oracle: 'UPDATE Users SET username=$1 WHERE username = $2 LIMIT 1',
+          oracle: 'UPDATE "Users" SET "username"=:1 WHERE "username" = :2 AND rownum <= 1',
           default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2'
         },
         bind: {

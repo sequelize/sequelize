@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
       postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-      oracle: 'SELECT * FROM Users "User" GROUP BY name;',
+      oracle: 'SELECT * FROM "Users" "User" GROUP BY "name";',
       mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];'
     });
 
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User`;',
       postgres: 'SELECT * FROM "Users" AS "User";',
-      oracle: 'SELECT * FROM Users "User";',
+      oracle: 'SELECT * FROM "Users" "User";',
       mssql: 'SELECT * FROM [Users] AS [User];'
     });
   });
