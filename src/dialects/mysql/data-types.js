@@ -104,8 +104,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  delete TIME.parse;
-
   class UUID extends BaseTypes.UUID {
     toSql() {
       return 'CHAR(36) BINARY';

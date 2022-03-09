@@ -88,8 +88,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  delete TIME.parse;
-
   class UUID extends BaseTypes.UUID {
     toSql() {
       // https://community.snowflake.com/s/question/0D50Z00009LH2fl/what-is-the-best-way-to-store-uuids

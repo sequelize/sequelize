@@ -101,8 +101,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  delete TIME.parse;
-
   class BOOLEAN extends BaseTypes.BOOLEAN {
     toSql() {
       return 'SMALLINT';

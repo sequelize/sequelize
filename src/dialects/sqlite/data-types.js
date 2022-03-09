@@ -77,8 +77,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  delete TIME.parse;
-
   class STRING extends BaseTypes.STRING {
     toSql() {
       if (this._binary) {

@@ -153,8 +153,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  delete TIME.parse;
-
   class INTEGER extends BaseTypes.INTEGER {
     constructor(length) {
       super(length);
