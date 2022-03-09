@@ -94,7 +94,6 @@ module.exports = BaseTypes => {
 
       if (this._zoned) {
         warn('MariaDB does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
-        this.options.zoned = undefined;
         this._zoned = undefined;
       }
     }
