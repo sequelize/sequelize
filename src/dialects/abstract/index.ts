@@ -89,6 +89,7 @@ export type DialectSupports = {
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
+  TIME_WITH_TIME_ZONE: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -174,6 +175,7 @@ export abstract class AbstractDialect {
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
+    TIME_WITH_TIME_ZONE: false,
   };
 
   get supports(): DialectSupports {

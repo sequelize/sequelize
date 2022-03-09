@@ -49,6 +49,7 @@ class PostgresDialect extends AbstractDialect {
     TSVECTOR: true,
     deferrableConstraints: true,
     searchPath: true,
+    TIME_WITH_TIME_ZONE: true,
   });
 
   constructor(sequelize) {
