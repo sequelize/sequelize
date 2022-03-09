@@ -245,6 +245,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         snowflake: 'TIME',
       });
 
+      testsql('TIME.ZONED', DataTypes.TIME({ zoned: true }), {
+        ibmi: 'TIME',
+        postgres: 'TIME WITH TIME ZONE',
+        mssql: 'TIME',
+        mariadb: 'TIME',
+        mysql: 'TIME',
+        db2: 'TIME',
+        sqlite: 'TIME',
+        snowflake: 'TIME',
+      });
+
       testsql('TIME.ZONED', DataTypes.TIME.ZONED, {
         ibmi: 'TIME',
         postgres: 'TIME WITH TIME ZONE',
