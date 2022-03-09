@@ -220,7 +220,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(describedTable.level_id.allowNull).to.be.equal(true);
         });
 
-        it('should change the comment of column', async function() {
+        // In Oracle dialect we can add comment using COMMENT ON rather than alter query command
+        (dialect !== 'oracle' ? it : it.skip)('should change the comment of column', async function() {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users'
           });

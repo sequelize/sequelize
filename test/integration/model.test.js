@@ -229,7 +229,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.deletedAtThisTime).to.exist;
     });
 
-    it('returns proper defaultValues after save when setter is set', async function() {
+    // The Oracle dialect doesn't support empty string in a non-null column
+    (dialect !== 'oracle' ? it : it.skip)('returns proper defaultValues after save when setter is set', async function() {
       const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
           title: {
@@ -1748,7 +1749,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
-    if (dialect !== 'mssql') {
+    // In Oracle dialect we cannot group by an alias
+    if (dialect !== 'mssql' && dialect !== 'oracle') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
