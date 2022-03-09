@@ -464,12 +464,12 @@ BOOLEAN.parse = BOOLEAN.prototype._sanitize;
 class TIME extends ABSTRACT {
   /**
    * @param {object} options type options
-   * @param {object} [options.zoned] Is zero filled?
+   * @param {object} [options.zoned] Is zoned?
    */
   constructor(options = {}) {
     super();
 
-    this.options = options;
+    this._zoned = options?.zoned ?? false;
   }
 
   toSql() {
