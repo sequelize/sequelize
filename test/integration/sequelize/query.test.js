@@ -59,7 +59,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
     });
 
-    it('executes a query if a placeholder value is an array', async function() {
+    // Oracle dialect doesn't support insert of multiple rows using insert into statement
+    // INSERT ALL INTO statement can be used instead
+    (dialect !== 'oracle' ? it : it.skip)('executes a query if a placeholder value is an array', async function() {
       await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (username, email_address, ` +
         `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
         replacements: [[

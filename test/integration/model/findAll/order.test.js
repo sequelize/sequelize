@@ -85,11 +85,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function() {
-          await this.User.findAll({
-            order: [
-              ['id', this.sequelize.literal('ASC, name DESC')]
-            ]
-          });
+          // In Oracle dialect by default quoteIdentifier option is true so every identifier would be quoted
+          if (current.dialect.name === 'oracle') {
+            await this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, "name" DESC')]
+              ]
+            });
+          } else {
+            await this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, name DESC')]
+              ]
+            });
+          }
         });
 
         it('should not throw with include when last order argument is a field', async function() {
