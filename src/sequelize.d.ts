@@ -76,7 +76,9 @@ export interface SyncOptions extends Logging, Hookable {
 export interface DefaultSetOptions { }
 
 /**
- * Connection Pool options
+ * Connection Pool options.
+ *
+ * Used in {@link Options.pool}
  */
 export interface PoolOptions {
   /**
@@ -176,7 +178,7 @@ export interface RetryOptions {
 }
 
 /**
- * Options for the constructor of Sequelize main class
+ * Options for the constructor of the {@link Sequelize} main class.
  */
 export interface Options extends Logging {
   /**

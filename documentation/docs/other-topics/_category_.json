@@ -1,0 +1,9 @@
+{
+  "position": 4,
+  "label": "Other topics",
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index"
+  }
+}

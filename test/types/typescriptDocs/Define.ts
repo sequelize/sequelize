@@ -1,9 +1,3 @@
-/**
- * Keep this file in sync with the code in the "Usage of `sequelize.define`"
- * section in /docs/manual/other-topics/typescript.md
- *
- * Don't include this comment in the md file.
- */
 import { Sequelize, Model, DataTypes, Optional } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
