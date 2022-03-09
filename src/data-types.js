@@ -484,7 +484,6 @@ class TIME extends ABSTRACT {
 
   get ZONED() {
     this._zoned = true;
-    this.options.zoned = true;
 
     return this;
   }
