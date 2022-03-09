@@ -61,6 +61,7 @@
     "@commitlint/config-angular": "16.2.1",
     "@ephys/eslint-config-typescript": "14.1.1",
     "@rushstack/eslint-patch": "1.1.0",
+    "@tsconfig/docusaurus": "^1.0.4",
     "@types/chai": "4.3.0",
     "@types/lodash": "4.14.179",
     "@types/mocha": "9.1.0",
