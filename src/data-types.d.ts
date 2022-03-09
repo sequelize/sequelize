@@ -324,7 +324,6 @@ export const BOOLEAN: AbstractDataTypeConstructor;
 /**
  * A time column
  */
-// export const TIME: AbstractDataTypeConstructor;
 export const TIME: TimeDataTypeConstructor;
 
 interface TimeDataTypeConstructor extends AbstractDataTypeConstructor {
@@ -338,7 +337,7 @@ export interface TimeDataType extends AbstractDataType {
 }
 
 export interface TimeDataTypeOptions {
-  zoned?: string
+  zoned?: boolean;
 }
 
 /**
