@@ -1579,6 +1579,19 @@ export interface ModelOptions<M extends Model = Model> {
    * @default false
    */
   version?: boolean | string;
+
+  /**
+   * Specify the scopes merging strategy (default 'overwrite'). Valid values are 'and' and 'overwrite'.
+   * When the 'and' strategy is set, scopes will be grouped using the Op.and operator.
+   * For instance merging scopes containing `{ where: { myField: 1 }}` and `{ where: { myField: 2 }}` will result in
+   * `{ where: { [Op.and]: [{ myField: 1 }, { myField: 2 }] } }`.
+   * When the 'overwrite' strategy is set, scopes containing the same attribute in a where clause will be overwritten by the lastly defined one.
+   * For instance merging scopes containing `{ where: { myField: 1 }}` and `{ where: { myField: 2 }}` will result in
+   * `{ where: { myField: 2 } }`.
+   *
+   * @default false
+   */
+  whereMergeStrategy?: 'and' | 'overwrite';
 }
 
 /**
