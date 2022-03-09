@@ -189,4 +189,6 @@ DataTypes.MACADDR                     // MACADDR               PostgreSQL only
 DataTypes.GEOMETRY                    // Spatial column. PostgreSQL (with PostGIS) or MySQL only.
 DataTypes.GEOMETRY('POINT')           // Spatial column with geometry type. PostgreSQL (with PostGIS) or MySQL only.
 DataTypes.GEOMETRY('POINT', 4326)     // Spatial column with geometry type and SRID. PostgreSQL (with PostGIS) or MySQL only.
+
+DateTypes.TIME.ZONED                  // TIME WITH TIMEZONE    PostgreSQL only
 ```
