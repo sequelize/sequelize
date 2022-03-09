@@ -265,6 +265,20 @@ module.exports = BaseTypes => {
     }
   }
 
+  class TIME extends BaseTypes.TIME {
+    constructor() {
+      super();
+
+      if (this._zoned) {
+        warn('DB2 does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        this.options.zoned = undefined;
+        this._zoned = undefined;
+      }
+    }
+  }
+
+  delete TIME.parse;
+
   class INTEGER extends BaseTypes.INTEGER {
     constructor(length) {
       super(length);
@@ -368,6 +382,7 @@ module.exports = BaseTypes => {
     UUID,
     DATE,
     DATEONLY,
+    TIME,
     NOW,
     TINYINT,
     SMALLINT,

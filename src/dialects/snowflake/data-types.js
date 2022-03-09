@@ -4,6 +4,7 @@ const momentTz = require('moment-timezone');
 const moment = require('moment');
 
 module.exports = BaseTypes => {
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
 
   /**
@@ -76,6 +77,20 @@ module.exports = BaseTypes => {
     }
   }
 
+  class TIME extends BaseTypes.TIME {
+    constructor() {
+      super();
+
+      if (this._zoned) {
+        warn('Snowflake does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        this.options.zoned = undefined;
+        this._zoned = undefined;
+      }
+    }
+  }
+
+  delete TIME.parse;
+
   class UUID extends BaseTypes.UUID {
     toSql() {
       // https://community.snowflake.com/s/question/0D50Z00009LH2fl/what-is-the-best-way-to-store-uuids
@@ -106,6 +121,7 @@ module.exports = BaseTypes => {
     DATE,
     BOOLEAN,
     DATEONLY,
+    TIME,
     UUID,
     JSON: JSONTYPE,
   };

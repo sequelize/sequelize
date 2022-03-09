@@ -6,6 +6,7 @@ const momentTz = require('moment-timezone');
 const moment = require('moment');
 
 module.exports = BaseTypes => {
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
 
   /**
@@ -92,6 +93,20 @@ module.exports = BaseTypes => {
     }
   }
 
+  class TIME extends BaseTypes.TIME {
+    constructor() {
+      super();
+
+      if (this._zoned) {
+        warn('SQLite does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        this.options.zoned = undefined;
+        this._zoned = undefined;
+      }
+    }
+  }
+
+  delete TIME.parse;
+
   class UUID extends BaseTypes.UUID {
     toSql() {
       return 'CHAR(36) BINARY';
@@ -153,6 +168,7 @@ module.exports = BaseTypes => {
     ENUM,
     DATE,
     DATEONLY,
+    TIME,
     UUID,
     GEOMETRY,
     DECIMAL,

@@ -90,6 +90,20 @@ module.exports = BaseTypes => {
     }
   }
 
+  class TIME extends BaseTypes.TIME {
+    constructor() {
+      super();
+
+      if (this._zoned) {
+        warn('ibmi does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        this.options.zoned = undefined;
+        this._zoned = undefined;
+      }
+    }
+  }
+
+  delete TIME.parse;
+
   class BOOLEAN extends BaseTypes.BOOLEAN {
     toSql() {
       return 'SMALLINT';
@@ -309,6 +323,7 @@ module.exports = BaseTypes => {
     BOOLEAN,
     DATE,
     DATEONLY,
+    TIME,
     STRING,
     CHAR,
     NUMBER,

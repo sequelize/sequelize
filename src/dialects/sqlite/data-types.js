@@ -66,6 +66,20 @@ module.exports = BaseTypes => {
     }
   }
 
+  class TIME extends BaseTypes.TIME {
+    constructor() {
+      super();
+
+      if (this._zoned) {
+        warn('SQLite does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        this.options.zoned = undefined;
+        this._zoned = undefined;
+      }
+    }
+  }
+
+  delete TIME.parse;
+
   class STRING extends BaseTypes.STRING {
     toSql() {
       if (this._binary) {
@@ -203,6 +217,7 @@ module.exports = BaseTypes => {
   return {
     DATE,
     DATEONLY,
+    TIME,
     STRING,
     CHAR,
     NUMBER,
