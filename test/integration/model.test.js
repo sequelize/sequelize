@@ -458,15 +458,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined }
         ]);
       } else if (dialect === 'oracle') {
-        // Oracle returns indexes in alphabetical order
         primary = args[0];
         idx1 = args[1];
         idx2 = args[2];
         idx3 = args[3];
 
         expect(idx1.fields).to.deep.equal([
-          { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined },
-          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined }
+          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+          { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined }
         ]);
 
         expect(idx2.fields).to.deep.equal([
