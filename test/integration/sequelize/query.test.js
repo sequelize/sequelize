@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('add parameters in log sql when use bind value', async function() {
           let logSql;
           const typeCast = dialect === 'postgres' ? '::text' : '';
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s });
+          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}` , { bind: ['foo', 'bar'], logging: s=>logSql = s });
           expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
         });
       });
