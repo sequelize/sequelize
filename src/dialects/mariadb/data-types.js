@@ -6,7 +6,7 @@ const momentTz = require('moment-timezone');
 const moment = require('moment');
 
 module.exports = BaseTypes => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx');
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://mariadb.com/kb/en/data-types/');
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://mariadb.com/kb/en/library/resultset/#field-types';
 
   /**

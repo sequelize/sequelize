@@ -6,7 +6,7 @@ const momentTz = require('moment-timezone');
 const moment = require('moment');
 
 module.exports = BaseTypes => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html');
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
 
   /**
@@ -98,7 +98,7 @@ module.exports = BaseTypes => {
       super();
 
       if (this._zoned) {
-        warn('SQLite does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
+        warn('MySQL does not support TIME WITH TIMEZONE. Plain `TIME` will be used instead.');
         this.options.zoned = undefined;
         this._zoned = undefined;
       }

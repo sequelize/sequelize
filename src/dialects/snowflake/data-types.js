@@ -4,7 +4,7 @@ const momentTz = require('moment-timezone');
 const moment = require('moment');
 
 module.exports = BaseTypes => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://docs.snowflake.com/en/sql-reference/data-types.html');
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
 
   /**
