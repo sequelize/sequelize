@@ -324,7 +324,22 @@ export const BOOLEAN: AbstractDataTypeConstructor;
 /**
  * A time column
  */
-export const TIME: AbstractDataTypeConstructor;
+// export const TIME: AbstractDataTypeConstructor;
+export const TIME: TimeDataTypeConstructor;
+
+interface TimeDataTypeConstructor extends AbstractDataTypeConstructor {
+  ZONED: this;
+  new (options?: TimeDataTypeOptions): TimeDataType;
+  (options?: TimeDataTypeOptions): TimeDataType;
+}
+
+export interface TimeDataType extends AbstractDataType {
+  options: TimeDataTypeOptions;
+}
+
+export interface TimeDataTypeOptions {
+  zoned?: string
+}
 
 /**
  * A datetime column

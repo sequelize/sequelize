@@ -462,8 +462,35 @@ BOOLEAN.parse = BOOLEAN.prototype._sanitize;
  *
  */
 class TIME extends ABSTRACT {
+  /**
+   * @param {object} options type options
+   * @param {object} [options.zoned] Is zero filled?
+   */
+  constructor(options = {}) {
+    super();
+
+    this.options = options;
+  }
+
   toSql() {
-    return 'TIME';
+    let result = this.key;
+
+    if (this._zoned) {
+      result += ' WITH TIME ZONE';
+    }
+
+    return result;
+  }
+
+  get ZONED() {
+    this._zoned = true;
+    this.options.zoned = true;
+
+    return this;
+  }
+
+  static get ZONED() {
+    return new this().ZONED;
   }
 }
 
