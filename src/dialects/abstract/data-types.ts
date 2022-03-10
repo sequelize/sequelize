@@ -139,9 +139,13 @@ class _ABSTRACT<
     return constructor.key;
   }
 
-  public static readonly escape: boolean = true;
+  public static readonly escape:
+    | boolean
+    | ((str: string, opts: StringifyOptions) => string) = true;
 
-  public get escape(): boolean {
+  public get escape():
+    | boolean
+    | ((str: string, opts: StringifyOptions) => string) {
     const proto = Reflect.getPrototypeOf(this);
 
     if (proto === ABSTRACT.prototype) {
@@ -155,15 +159,15 @@ class _ABSTRACT<
     }
 
     // The usage of Function here is intentional.  This is casting `this.constructor` to any
-    // callable value (including classes) with the property `key`.
+    // callable value (including classes) with the property `escape`.
 
     const constructor = proto.constructor as Function & {
-      escape: boolean,
+      escape: boolean | ((str: string, opts: StringifyOptions) => string),
     };
 
     // Since proto must extend ABSTRACT.prototype, we'll assume that its constructor extends ABSTRACT.
     // This will be used instead of the getter any time the type is used.
-    Reflect.defineProperty(proto, 'key', {
+    Reflect.defineProperty(proto, 'escape', {
       writable: false,
       enumerable: false,
       configurable: false,
@@ -336,8 +340,8 @@ class _STRING extends ABSTRACT<string | Buffer, string> {
 
   get BINARY() {
     return this._construct<typeof STRING>({
-      binary: true,
       ...this.options,
+      binary: true,
     });
   }
 
@@ -1099,7 +1103,7 @@ interface BlobOptions {
 
 class _BLOB extends ABSTRACT<AcceptedBlob, Buffer> {
   public static readonly key = 'BLOB';
-  public static readonly escape = false;
+  public static escape: typeof ABSTRACT['escape'] = false;
   protected options: BlobOptions;
   protected _length?: string;
 
