@@ -1328,6 +1328,9 @@ export interface ModelAttributeColumnReferencesOptions {
   deferrable?: Deferrable;
 }
 
+export type OnDeleteAction = 'RESTRICT' | 'CASCADE' | 'NO ACTION' | 'SET DEFAULT' | 'SET NULL';
+export type OnUpdateAction = 'RESTRICT' | 'CASCADE' | 'NO ACTION' | 'SET DEFAULT' | 'SET NULL';
+
 /**
  * Column options for the model schema attributes
  */
@@ -1373,13 +1376,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * What should happen when the referenced key is updated. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
    * NO ACTION
    */
-  onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
+  onUpdate?: OnUpdateAction;
 
   /**
    * What should happen when the referenced key is deleted. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
    * NO ACTION
    */
-  onDelete?: 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
+  onDelete?: OnDeleteAction;
 
 
   /**
