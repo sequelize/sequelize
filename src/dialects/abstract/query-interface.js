@@ -12,8 +12,15 @@ const { QueryTypes } = require('../../query-types');
  */
 class QueryInterface {
   constructor(sequelize, queryGenerator) {
-    this.sequelize = sequelize;
+    this._sequelize = sequelize;
     this.queryGenerator = queryGenerator;
+  }
+  
+  /**
+   * Get the sequelize instance
+   */
+  get sequelize() {
+    return this._sequelize;
   }
 
   /**
