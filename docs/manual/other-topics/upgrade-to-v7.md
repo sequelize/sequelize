@@ -133,3 +133,45 @@ class User extends Model {
 // but it works in v7
 User.findByPk(1);
 ```
+
+### `where` clauses of scopes are merged using the `and` operator
+
+In Sequelize v6, using multiple scopes sharing where conditions on the same attributes were merged by overwriting those very conditions.
+
+For instance:
+
+```js
+YourModel.addScope('scope1', {
+  where: {
+    firstName: 'bob',
+    age: {
+      [Op.gt]: 20,
+    },
+  },
+  limit: 2,
+});
+YourModel.addScope('scope2', {
+  where: {
+    age: {
+      [Op.lt]: 30,
+    },
+  },
+  limit: 10,
+});
+```
+
+Using `.scope('scope1', 'scope2')` would have yielded the following WHERE clause:
+
+```sql
+WHERE firstName = 'bob' AND age < 30 LIMIT 10
+```
+
+The condition `age > 20` would have been overwritten. Starting with Sequelize v7, where conditions in scopes are merged using the `and` operator.
+
+Using `.scope('scope1', 'scope2')` will now yield:
+
+```sql
+WHERE firstName = 'bob' AND age > 20 AND age < 30 LIMIT 10
+```
+
+**Note**: The flag `whereMergeStrategy` was introduced in the v6.18.0 to switch between these two behaviors. This flag has been dropped because only the `and` merging option is supported in Sequelize v7.
