@@ -1373,13 +1373,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * What should happen when the referenced key is updated. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
    * NO ACTION
    */
-  onUpdate?: string;
+  onUpdate?: 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
   /**
    * What should happen when the referenced key is deleted. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
    * NO ACTION
    */
-  onDelete?: string;
+  onDelete?: 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
 
   /**
