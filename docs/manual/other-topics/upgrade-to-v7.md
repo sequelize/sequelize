@@ -75,8 +75,8 @@ Do this:
 import { DataTypes, Model } from '@sequelize/core';
 
 class User extends Model {
-  $myAttribute$: string;
-  'another.attribute': string;
+  myAttribute: string;
+  anotherAttribute: string;
 }
 
 User.init({
