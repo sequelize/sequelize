@@ -784,7 +784,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 permissions: 'member',
               },
               {
-                conflictFields: ['other_id'],
+                conflictFields: ['otherID'],
               },
             );
 
@@ -800,12 +800,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
               {
                 fields: ['user_id', 'group_id'],
-                conflictFields: ['other_id'],
+                conflictFields: ['otherID'],
               },
             );
 
             expect(updatedMembership).to.not.eq(null);
-            expect(updatedMembership.permissions).to.eq('admin');
+            expect(updatedMembership.permissions).to.eq(originalMembership.permissions);
             expect(updatedMembership.id).to.eq(originalMembership.id);
             expect(updatedMembership.user_id).to.eq(1);
             expect(updatedMembership.group_id).to.eq(6);
