@@ -39,7 +39,7 @@ jobs:
           path: install-build-node-${{ matrix.node-version }}.tar
           retention-days: 1
   lint:
-    name: Lint code and docs
+    name: Lint code
     runs-on: ubuntu-latest
     needs: install-and-build
     steps:
@@ -54,7 +54,6 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-16.tar
       - run: yarn lint-no-fix
-      - run: yarn lint-docs
   unit-test:
     strategy:
       fail-fast: false
@@ -91,7 +90,7 @@ jobs:
       - name: Unit tests (snowflake)
         run: yarn test-unit-snowflake
   docs:
-    name: Generate docs
+    name: Generate TypeDoc
     runs-on: ubuntu-latest
     needs: lint
     steps:

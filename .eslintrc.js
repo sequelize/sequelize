@@ -149,8 +149,8 @@ module.exports = {
       'no-multi-spaces': 'off',
     },
   }, {
-    // Disable slow rules that are not important in tests & docs (perf)
-    files: ['test/**/*', 'documentation/**/*'],
+    // Disable slow rules that are not important in tests (perf)
+    files: ['test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -158,16 +158,6 @@ module.exports = {
       'jsdoc/valid-types': 'off',
       'jsdoc/newline-after-description': 'off',
       'jsdoc/check-tag-names': 'off',
-    },
-  }, {
-    files: ['documentation/**/_category_.json'],
-    rules: {
-      'unicorn/filename-case': 'off',
-    },
-  }, {
-    files: ['documentation/**'],
-    parserOptions: {
-      project: ['./documentation/tsconfig.json'],
     },
   }, {
     // Enable test-specific rules (perf)
@@ -214,11 +204,7 @@ module.exports = {
     'src/**/*.d.ts',
     'dev/**/*',
     '!dev/update-authors.js',
-    'documentation/.docusaurus',
-    'documentation/build',
-    'documentation/node_modules',
-    // typedoc (auto-generated)
-    'documentation/static/api',
+    '.typedoc-build',
   ],
   env: {
     node: true,
