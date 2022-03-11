@@ -13,8 +13,8 @@ do
     echo "$1 is healthy!"
     exit 0
   fi
-  sleep 0.4
+  sleep 30
 done
 
->&2 echo "Timeout of 20s exceeded when waiting for container to be healthy: $1"
+>&2 echo "Timeout of 25m exceeded when waiting for container to be healthy: $1"
 exit 1

@@ -17,12 +17,12 @@ docker-compose -p oraclexedb21c down --remove-orphans
 docker-compose -p oraclexedb21c up -d
 
 # Wait until Oracle DB is set up and docker state is healthy
-./../../wait-until-healthy.sh oraclexedb21c
+./wait-until-healthy.sh oraclexedb21c
 
 # Create user test/password and grant all privileges to it
 sqlplus system/password@localhost:51521/XEPDB1 << EOF
-create user test identified by password; 
-grant all privileges to test identified by password; 
+create user sequelizetest identified by sequelizepassword; 
+grant all privileges to sequelizetest identified by sequelizepassword; 
 exit;
 EOF
 
