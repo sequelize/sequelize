@@ -514,14 +514,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
 
         await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, '$1' as baz`, {  raw: true, bind: { one: 1, two: 2 } })
           .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when binds passed as array and $alpha is also present', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
 
         await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, '$foo' as baz`, { raw: true, bind: [1, 2] })
           .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
@@ -656,7 +656,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     // ad hoc like "SELECT ? AS col"
     if (dialect !== 'ibmi') {
       it('uses properties `query` and `bind` if query is tagged', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, {
           type: this.sequelize.QueryTypes.SELECT, logging(s) {
@@ -723,7 +723,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     // tests
     if (dialect !== 'ibmi') {
       it('binds token with the passed array', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
@@ -737,7 +737,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('binds named parameters with the passed object', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: { one: 1, two: 2 }, logging(s) {
@@ -785,7 +785,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('binds named parameters array handles escaped $$', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: [1], logging(s) {
@@ -800,14 +800,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('binds named parameters object handles escaped $$', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
         const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
         expect(result[0]).to.deep.equal(expected);
       });
 
       it('escape where has $ on the middle of characters', async function () {
-        const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
         const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
         expect(result[0]).to.deep.equal(expected);
