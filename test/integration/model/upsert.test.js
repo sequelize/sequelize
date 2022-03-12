@@ -796,7 +796,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 user_id: 1,
                 group_id: 6,
-                otherID: originalMembership.otherID,
               },
               {
                 fields: ['user_id', 'group_id'],
@@ -805,7 +804,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             );
 
             expect(updatedMembership).to.not.eq(null);
-            expect(updatedMembership.permissions).to.eq(originalMembership.permissions);
             expect(updatedMembership.id).to.eq(originalMembership.id);
             expect(updatedMembership.user_id).to.eq(1);
             expect(updatedMembership.group_id).to.eq(6);
