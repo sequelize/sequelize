@@ -2694,6 +2694,7 @@ class Model {
    * @param  {boolean}        [options.benchmark=false]        Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param  {boolean|Array}  [options.returning=false]        If true, append RETURNING <model columns> to get back all defined values; if an array of column names, append RETURNING <columns> to get back specific columns (Postgres only)
    * @param  {string}         [options.searchPath=DEFAULT]     An optional parameter to specify the schema search_path (Postgres only)
+   * @param {Array<string>}  [options.conflictFields]          Optional override for the conflict fields in the ON CONFLICT part of the query. Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    *
    * @returns {Promise<Array<Model>>}
    */
@@ -2872,23 +2873,35 @@ class Model {
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
 
-          const upsertKeys = [];
+          if (options.conflictFields) {
+            options.upsertKeys = options.conflictFields.map(
+              attr => (Object.prototype.hasOwnProperty.call(this.rawAttributes, attr)
+                ? this.rawAttributes[attr].field || attr
+                : attr),
+            );
+          } else {
+            const upsertKeys = [];
 
-          for (const i of model._indexes) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model._indexes) {
+              if (i.unique && !i.where) {
+                // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
             }
+
+            const firstUniqueKey = Object.values(model.uniqueKeys).find(
+              c => c.fields.length > 0,
+            );
+
+            if (firstUniqueKey && firstUniqueKey.fields) {
+              upsertKeys.push(...firstUniqueKey.fields);
+            }
+
+            options.upsertKeys
+              = upsertKeys.length > 0
+                ? upsertKeys
+                : Object.values(model.primaryKeys).map(x => x.field);
           }
-
-          const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
-
-          if (firstUniqueKey && firstUniqueKey.fields) {
-            upsertKeys.push(...firstUniqueKey.fields);
-          }
-
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
         }
 
         // Map returning attributes to fields
