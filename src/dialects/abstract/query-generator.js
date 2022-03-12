@@ -330,7 +330,21 @@ class QueryGenerator {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')}) DO UPDATE SET ${updateKeys.join(',')}`;
+
+        const hasConflictWhere
+          = this._dialect.supports.inserts.onConflictWhere
+          && options.conflictWhere;
+
+        // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
+        onDuplicateKeyUpdate = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+          hasConflictWhere && this.whereQuery(options.conflictWhere, options),
+          'DO UPDATE SET',
+          updateKeys.join(','),
+        ];
       } else { // mysql / maria
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         onDuplicateKeyUpdate = `${this._dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;

@@ -748,6 +748,139 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.User.bulkCreate(data, { updateOnDuplicate: [] }),
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
+
+        if (
+          current.dialect.supports.inserts.onConflictWhere
+          && current.dialect.supports.inserts.updateOnDuplicate
+        ) {
+          describe('conflictWhere', () => {
+            const Memberships = current.define(
+              'memberships',
+              {
+                // ID of the member (no foreign key constraint for testing purposes)
+                user_id: DataTypes.INTEGER,
+                // ID of what the member is a member of
+                foreign_id: DataTypes.INTEGER,
+                time_deleted: DataTypes.DATE,
+              },
+              {
+                createdAt: false,
+                updatedAt: false,
+                deletedAt: 'time_deleted',
+                indexes: [
+                  {
+                    fields: ['user_id', 'foreign_id'],
+                    unique: true,
+                    where: { time_deleted: null },
+                  },
+                ],
+              },
+            );
+
+            const options = {
+              conflictWhere: { time_deleted: null },
+              conflictFields: ['user_id', 'foreign_id'],
+              updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted'],
+            };
+
+            beforeEach(() => Memberships.sync({ force: true }));
+
+            it('should insert items with conflictWhere', async () => {
+              const memberships = [...new Array(10)].map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: null,
+              }));
+
+              const results = await Memberships.bulkCreate(
+                memberships,
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+            });
+
+            it('should not conflict with soft deleted memberships', async () => {
+              const memberships = [...new Array(10)].map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: new Date(),
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.not.eq(null);
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null,
+                })),
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count();
+
+              expect(count).to.eq(20);
+            });
+
+            it('should upsert existing memberships', async () => {
+              const memberships = [...new Array(10)].map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: i % 2 ? new Date() : null,
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                if (i % 2) {
+                  expect(results[i].time_deleted).to.not.eq(null);
+                } else {
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+              }
+
+              for (const membership of memberships) {
+                membership.time_deleted;
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null,
+                })),
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count({ paranoid: false });
+
+              expect(count).to.eq(15);
+            });
+          });
+        }
       });
     }
 

@@ -2694,6 +2694,7 @@ class Model {
    * @param  {boolean}        [options.benchmark=false]        Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param  {boolean|Array}  [options.returning=false]        If true, append RETURNING <model columns> to get back all defined values; if an array of column names, append RETURNING <columns> to get back specific columns (Postgres only)
    * @param  {string}         [options.searchPath=DEFAULT]     An optional parameter to specify the schema search_path (Postgres only)
+   * @param  {object}         [options.conflictWhere]          An optional paramater to specify a where clause for partial unique indexes (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).  Only works in Postgres >= 9.5 and squlite >= 9.5
    *
    * @returns {Promise<Array<Model>>}
    */

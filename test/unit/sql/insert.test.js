@@ -229,5 +229,74 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         });
     });
+
+    if (
+      current.dialect.supports.inserts.updateOnDuplicate
+      && current.dialect.supports.inserts.onConflictWhere
+    ) {
+      it('correctly generates SQL for conflictWhere', () => {
+        const User = Support.sequelize.define(
+          'user',
+          {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
+            },
+            password: {
+              type: DataTypes.STRING,
+              field: 'pass_word',
+            },
+            createdAt: {
+              type: DataTypes.DATE,
+              field: 'created_at',
+            },
+            updatedAt: {
+              type: DataTypes.DATE,
+              field: 'updated_at',
+            },
+            deletedAt: {
+              type: DataTypes.DATE,
+              field: 'deleted_at',
+            },
+          },
+          {
+            timestamps: true,
+          },
+        );
+
+        // mapping primary keys to their "field" override values
+        const primaryKeys = User.primaryKeyAttributes.map(
+          attr => User.rawAttributes[attr].field || attr,
+        );
+
+        expectsql(
+          sql.bulkInsertQuery(
+            User.tableName,
+            [{ user_name: 'testuser', pass_word: '12345' }],
+            {
+              updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+              upsertKeys: primaryKeys,
+              conflictWhere: { deleted_at: null },
+            },
+            User.fieldRawAttributesMap,
+          ),
+          {
+            default:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+            postgres:
+              'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") WHERE "deleted_at" IS NULL DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+            mssql:
+              'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
+            mariadb:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+            mysql:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+            sqlite:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) WHERE `deleted_at` IS NULL DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
+          },
+        );
+      });
+    }
   });
 });
