@@ -35,6 +35,7 @@ class PostgresDialect extends AbstractDialect {
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
+      onConflictWhere: true,
       conflictFields: true,
     },
     NUMERIC: true,

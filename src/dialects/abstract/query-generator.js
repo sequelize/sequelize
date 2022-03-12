@@ -200,9 +200,30 @@ class QueryGenerator {
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
         onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')})`;
+
+        const fragments = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+        ];
+
+        if (
+          this._dialect.supports.inserts.onConflictWhere
+          && options.conflictWhere
+        ) {
+          fragments.push(this.whereQuery(options.conflictWhere, options));
+        }
+
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
         // do an update.  Instead, fall back to DO NOTHING.
-        onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
+        if (_.isEmpty(updateKeys)) {
+          fragments.push('DO NOTHING');
+        } else {
+          fragments.push('DO UPDATE SET', updateKeys.join(','));
+        }
+
+        onDuplicateKeyUpdate = ` ${Utils.joinSQLFragments(fragments)}`;
       } else {
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id

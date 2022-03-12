@@ -2593,6 +2593,7 @@ class Model {
    * @param  {Function}      [options.logging=false]                       A function that gets executed while running the query to log the sql.
    * @param  {boolean}       [options.benchmark=false]                     Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param  {string}        [options.searchPath=DEFAULT]                  An optional parameter to specify the schema search_path (Postgres only)
+   * @param  {object}        [options.conflictWhere]                       An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query (in particular: for applying to partial unique indexes). Only supported in Postgres >= 9.5 and SQLite >= 3.24.0.
    * @param  {Array<string>} [options.conflictFields]                      Optional override for the conflict fields in the ON CONFLICT part of the query. Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    *
    * @returns {Promise<Array<Model, boolean | null>>} returns an array with two elements, the first being the new record and the second being `true` if it was just created or `false` if it already existed (except on Postgres and SQLite, which can't detect this and will always return `null` instead of a boolean).

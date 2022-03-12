@@ -794,6 +794,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    */
   validate?: boolean;
   /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -2213,7 +2219,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: Omit<UpdateOptions<Attributes<M>>, 'returning'> 
+    options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
 

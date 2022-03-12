@@ -17,6 +17,7 @@ class SqliteDialect extends AbstractDialect {
     inserts: {
       ignoreDuplicates: ' OR IGNORE',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
+      onConflictWhere: true,
       conflictFields: true,
     },
     index: {
