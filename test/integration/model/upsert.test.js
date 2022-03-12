@@ -781,6 +781,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 user_id: 2,
                 group_id: 4,
+                otherID: 24,
                 permissions: 'member',
               },
               {
