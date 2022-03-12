@@ -796,6 +796,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 user_id: 1,
                 group_id: 6,
+                otherID: originalMembership.otherID,
               },
               {
                 fields: ['user_id', 'group_id'],
