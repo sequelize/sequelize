@@ -59,7 +59,6 @@ export type DialectTypeMeta =
       castTypes: { [name: string]: string },
     }
   | string[]
-  | number[]
   | [null]
   | false;
 
