@@ -21,7 +21,8 @@ import {
   ModelType,
   CreationAttributes,
   Attributes,
-  WhereAttributeHash, ColumnReference,
+  WhereAttributeHash, 
+  ColumnReference,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';

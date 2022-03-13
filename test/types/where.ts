@@ -6,7 +6,11 @@ import {
   OrOperator,
   Sequelize,
   WhereOptions,
-  and, or, Attributes, InferAttributes, Transaction,
+  and,
+  or,
+  Attributes,
+  InferAttributes,
+  Transaction,
 } from '@sequelize/core';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
