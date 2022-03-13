@@ -2,9 +2,10 @@
 
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
-const { QueryInterface } = require('../abstract/query-interface');
+const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
 const { cloneDeep } = require('../../utils');
 const _ = require('lodash');
+const uuid = require('uuid').v4;
 
 /**
  * The interface that Sequelize uses to talk with SQLite database
@@ -23,42 +24,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const fields = await this.describeTable(tableName, options);
     delete fields[attributeName];
 
-    const savepointName = 'remove_column_savepoint';
-
-    // Disable foreign key constraints for the next sequence of operations
-    await this.sequelize.query('PRAGMA foreign_keys = OFF;', options);
-    // Use SAVEPOINT to allow for nested transactions
-    await this.sequelize.query(`SAVEPOINT ${savepointName};`, options);
-
-    try {
-      const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
-      const subQueries = sql.split(';').filter(q => q !== '');
-
-      for (const subQuery of subQueries) {
-        await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
-      }
-
-      // Run a foreign keys integrity check
-      const foreignKeyCheckResult = await this.sequelize.query(this.queryGenerator.foreignKeyCheckQuery(tableName), {
-        ...options,
-        type: QueryTypes.SELECT,
-      });
-
-      if (foreignKeyCheckResult.length > 0) {
-        // There are foreign key violations, exit
-        throw new sequelizeErrors.ForeignKeyConstraintError({
-          message: `Foreign key violations detected: ${JSON.stringify(foreignKeyCheckResult, null, 2)}`,
-          table: tableName,
-        });
-      }
-
-      await this.sequelize.query(`RELEASE ${savepointName};`, options);
-    } catch (error) {
-      await this.sequelize.query(`ROLLBACK TO ${savepointName};`, options);
-      throw error;
-    } finally {
-      await this.sequelize.query('PRAGMA foreign_keys = ON;', options);
-    }
+    return this.alterTableInternal(tableName, fields, options);
   }
 
   /**
@@ -74,42 +40,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const fields = await this.describeTable(tableName, options);
     Object.assign(fields[attributeName], this.normalizeAttribute(dataTypeOrOptions));
 
-    const savepointName = 'change_column_savepoint';
-
-    // Disable foreign key constraints for the next sequence of operations
-    await this.sequelize.query('PRAGMA foreign_keys = OFF;', options);
-    // Use SAVEPOINT to allow for nested transactions
-    await this.sequelize.query(`SAVEPOINT ${savepointName};`, options);
-
-    try {
-      const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
-      const subQueries = sql.split(';').filter(q => q !== '');
-
-      for (const subQuery of subQueries) {
-        await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
-      }
-
-      // Run a foreign keys integrity check
-      const foreignKeyCheckResult = await this.sequelize.query(this.queryGenerator.foreignKeyCheckQuery(tableName), {
-        ...options,
-        type: QueryTypes.SELECT,
-      });
-
-      if (foreignKeyCheckResult.length > 0) {
-        // There are foreign key violations, exit
-        throw new sequelizeErrors.ForeignKeyConstraintError({
-          message: `Foreign key violations detected: ${JSON.stringify(foreignKeyCheckResult, null, 2)}`,
-          table: tableName,
-        });
-      }
-
-      await this.sequelize.query(`RELEASE ${savepointName};`, options);
-    } catch (error) {
-      await this.sequelize.query(`ROLLBACK TO ${savepointName};`, options);
-      throw error;
-    } finally {
-      await this.sequelize.query('PRAGMA foreign_keys = ON;', options);
-    }
+    return this.alterTableInternal(tableName, fields, options);
   }
 
   /**
@@ -315,6 +246,80 @@ class SQLiteQueryInterface extends QueryInterface {
 
       throw error;
     }
+  }
+
+  /**
+   * Alters a table in sqlite.
+   * Workaround for sqlite's limited alter table support.
+   *
+   * @param {string} tableName - The table's name
+   * @param {ColumnsDescription} fields - The table's description
+   * @param {QueryOptions} options - Query options
+   * @private
+   */
+  async alterTableInternal(tableName, fields, options) {
+    return this.withForeignKeysOff(options, async () => {
+      const savepointName = this.getSavepointName();
+      await this.sequelize.query(`SAVEPOINT ${savepointName};`, options);
+
+      try {
+        const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
+        const subQueries = sql.split(';').filter(q => q !== '');
+
+        for (const subQuery of subQueries) {
+          await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+        }
+
+        // Run a foreign keys integrity check
+        const foreignKeyCheckResult = await this.sequelize.query(this.queryGenerator.foreignKeyCheckQuery(tableName), {
+          ...options,
+          type: QueryTypes.SELECT,
+        });
+
+        if (foreignKeyCheckResult.length > 0) {
+          // There are foreign key violations, exit
+          throw new sequelizeErrors.ForeignKeyConstraintError({
+            message: `Foreign key violations detected: ${JSON.stringify(foreignKeyCheckResult, null, 2)}`,
+            table: tableName,
+          });
+        }
+
+        await this.sequelize.query(`RELEASE ${savepointName};`, options);
+      } catch (error) {
+        await this.sequelize.query(`ROLLBACK TO ${savepointName};`, options);
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Runs the provided callback with foreign keys disabled.
+   *
+   * @param {QueryOptions} [options]
+   * @param {Function<Promise<any>>} cb
+   * @private
+   */
+  async withForeignKeysOff(options, cb) {
+    await this.sequelize.query('PRAGMA foreign_keys = OFF;', options);
+
+    try {
+      return await cb();
+    } finally {
+      await this.sequelize.query('PRAGMA foreign_keys = ON;', options);
+    }
+  }
+
+  /**
+   * Returns a randomly generated savepoint name
+   *
+   * @param {string} prefix
+   * @returns {string}
+   */
+  getSavepointName(prefix = 'sequelize') {
+    // sqlite does not support "-" (dashes) in transaction's name
+    const suffix = uuid().replace(/-/g, '_');
+
+    return `${prefix}_${suffix}`;
   }
 }
 
