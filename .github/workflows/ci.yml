@@ -33,7 +33,7 @@ jobs:
         if: matrix.node-version == 16
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
