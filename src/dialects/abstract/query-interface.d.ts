@@ -632,11 +632,6 @@ export class QueryInterface {
   ): Promise<void>;
 
   /**
-   * Escape a table name
-   */
-  public quoteTable(identifier: TableName): string;
-
-  /**
    * Escape an identifier (e.g. a table or attribute name). If force is true, the identifier will be quoted
    * even if the `quoteIdentifiers` option is false.
    */
@@ -646,11 +641,6 @@ export class QueryInterface {
    * Split an identifier into .-separated tokens and quote each part.
    */
   public quoteIdentifiers(identifiers: string): string;
-
-  /**
-   * Escape a value (e.g. a string, number or date)
-   */
-  public escape(value?: string | number | Date): string;
 
   /**
    * Set option for autocommit of a transaction

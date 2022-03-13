@@ -65,7 +65,7 @@ function assertNewConnection(newConnection, oldConnection) {
 }
 
 function attachMSSQLUniqueId(connection) {
-  if (dialect === 'mssql' || dialect === 'ibmi') {
+  if (['mssql', 'ibmi'].includes(dialect)) {
     connection.dummyId = Math.random();
   }
 
@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should obtain new connection when old connection is abruptly closed', async () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
-        if (dialect === 'mssql' || dialect === 'ibmi') {
+        if (['mssql', 'ibmi'].includes(dialect)) {
           connection = attachMSSQLUniqueId(connection);
         }
 
