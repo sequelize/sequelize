@@ -62,7 +62,7 @@
     "@ephys/eslint-config-typescript": "16.0.2",
     "@rushstack/eslint-patch": "1.1.0",
     "@types/chai": "4.3.0",
-    "@types/lodash": "4.14.179",
+    "@types/lodash": "4.14.180",
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.26",
     "@types/sinon": "10.0.11",
