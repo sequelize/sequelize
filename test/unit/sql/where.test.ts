@@ -2365,7 +2365,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             ],
           },
         }, {
-          default: '("intAttr1" = 1 AND "intAttr1" = 2 AND ("intAttr1" = 3 OR "intAttr1" = 4) AND "intAttr1" != 5 AND "intAttr1" IN (6, 7))',
+          default: '([intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND [intAttr1] != 5 AND [intAttr1] IN (6, 7))',
         });
 
         // can be nested
