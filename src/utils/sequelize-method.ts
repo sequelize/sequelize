@@ -1,6 +1,5 @@
 import isObject from 'lodash/isObject';
-import { Op } from '..';
-import type { WhereOperators, WhereLeftOperand } from '..';
+import type { WhereOperators, WhereLeftOperand, WhereAttributeHashValue, Op } from '..';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -104,33 +103,29 @@ export class Json extends SequelizeMethod {
  * Do not use me directly. Use {@link Sequelize.where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends SequelizeMethod {
-  // TODO [=7]: rename to leftOperand after typescript migration
-  private readonly attribute: WhereLeftOperand;
-  // TODO [=7]: rename to operator after typescript migration
-  private readonly comparator: string | Operator;
-  // TODO [=7]: rename to rightOperand after typescript migration
-  private readonly logic: WhereOperators[Operator] | any;
+  private readonly leftOperand: WhereLeftOperand;
+  private readonly whereValue: WhereAttributeHashValue<any>;
 
   constructor(leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]);
-  constructor(leftOperand: WhereLeftOperand, operator: string, rightOperand: any);
-  constructor(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]);
+  constructor(leftOperand: WhereLeftOperand, whereOptions: WhereAttributeHashValue<any>);
   constructor(
     leftOperand: WhereLeftOperand,
-    operatorOrRightOperand: string | Operator | WhereOperators[Operator],
+    operatorOrRightOperand: Operator | WhereAttributeHashValue<any>,
     rightOperand?: WhereOperators[Operator] | any,
   ) {
     super();
 
-    this.attribute = leftOperand;
+    this.leftOperand = leftOperand;
 
     if (rightOperand !== undefined) {
-      this.logic = rightOperand;
-      // TypeScript is not smart enough to know that if `rightOperand` is undefined, then `operatorOrRightOperand` has to be a valid rightOperand
-      // @ts-expect-error
-      this.comparator = operatorOrRightOperand;
+      // normalize where(col, op, val)
+      // to where(col, { [op]: val })
+
+      this.whereValue = {
+        [operatorOrRightOperand]: rightOperand,
+      };
     } else {
-      this.logic = operatorOrRightOperand;
-      this.comparator = Op.eq;
+      this.whereValue = operatorOrRightOperand;
     }
   }
 }
