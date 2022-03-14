@@ -4,9 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const InstanceValidator = require('sequelize/lib/instance-validator');
+const InstanceValidator = require('@sequelize/core/lib/instance-validator');
 const sinon = require('sinon');
-const SequelizeValidationError = require('sequelize/lib/errors').ValidationError;
+const SequelizeValidationError = require('@sequelize/core/lib/errors').ValidationError;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   beforeEach(function () {

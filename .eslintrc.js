@@ -140,6 +140,13 @@ module.exports = {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
       'import/order': 'off',
+
+      'no-invalid-this': 'off',
+      'no-unused-expressions': 'off',
+      camelcase: 'off',
+      'no-console': 'off',
+      'no-prototype-builtins': 'off',
+      'no-multi-spaces': 'off',
     },
   }, {
     // Disable slow rules that are not important in tests & docs (perf)
@@ -184,7 +191,8 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'script',
   },
-  ignorePatterns: ['dist/**/*', 'types/**/*', 'dev/**/*'],
+  // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
+  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*', '!dev/update-authors.js'],
   env: {
     node: true,
     mocha: true,

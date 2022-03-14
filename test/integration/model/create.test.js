@@ -2,11 +2,11 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const Op = Sequelize.Op;
@@ -160,7 +160,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       } catch (error) {
         expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        expect(error.errors[0].path).to.be.a('string', 'username');
+        if (dialect !== 'ibmi') {
+          expect(error.errors[0].path).to.be.a('string', 'username');
+        }
       }
     });
 
@@ -187,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql', 'db2'].includes(current.dialect.name)) {
+    if (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function () {
         const User = this.sequelize.define('User', {
           email: {
@@ -461,7 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+      (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialect) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -1094,7 +1096,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await User.sync({ force: true });
           const tableName = User.getTableName();
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower(username)))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

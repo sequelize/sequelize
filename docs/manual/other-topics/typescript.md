@@ -2,7 +2,7 @@
 
 Sequelize provides its own TypeScript definitions.
 
-Please note that only **TypeScript >= 4.1** is supported.
+Please note that only **TypeScript >= 4.4** is supported.
 Our TypeScript support does not follow SemVer. We will support TypeScript releases for at least one year, after which they may be dropped in a SemVer MINOR release.
 
 As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
@@ -10,10 +10,7 @@ A decent amount of manual type declarations are needed to make models workable.
 
 ## Installation
 
-In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
-
-- `@types/node` (this is universally required in node projects)
-- `@types/validator`
+In order to avoid clashes with different Node versions, the typings for Node are not included. You must install `@types/node` manually.
 
 ## Usage
 
@@ -23,7 +20,7 @@ See [Caveat with Public Class Fields](./model-basics.html#caveat-with-public-cla
 Sequelize Models accept two generic types to define what the model's Attributes & Creation Attributes are like:
 
 ```typescript
-import { Model, Optional } from 'sequelize';
+import { Model, Optional } from '@sequelize/core';
 
 // We don't recommend doing this. Read on for the new way of declaring Model typings.
 
@@ -49,7 +46,7 @@ of boilerplate necessary: `InferAttributes`, and `InferCreationAttributes`. They
 directly from the Model:
 
 ```typescript
-import { Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import { Model, InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
 
 // order of InferAttributes & InferCreationAttributes is important.
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -75,6 +72,24 @@ Important things to know about `InferAttributes` & `InferCreationAttributes` wor
 
 `InferCreationAttributes` works the same way as `AttributesOf` with one exception: Properties typed using the `CreationOptional` type
 will be marked as optional.
+Note that attributes that accept `null`, or `undefined` do not need to use `CreationOptional`:
+
+```typescript
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare firstName: string;
+
+  // there is no need to use CreationOptional on firstName because nullable attributes
+  // are always optional in User.create()
+  declare lastName: string | null;
+}
+
+// ...
+
+await User.create({
+  firstName: 'Zoé',
+  // last name omitted, but this is still valid!
+});
+```
 
 You only need to use `CreationOptional` & `NonAttribute` on class instance fields or getters.
 
@@ -89,7 +104,7 @@ import {
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
   HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
   Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
-} from 'sequelize';
+} from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
@@ -109,7 +124,7 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
   // Since TS cannot determine model association at compile time
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
-  declare getProjects: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  declare getProjects: HasManyGetAssociationsMixin<Project>;
   declare addProject: HasManyAddAssociationMixin<Project, number>;
   declare addProjects: HasManyAddAssociationsMixin<Project, number>;
   declare setProjects: HasManySetAssociationsMixin<Project, number>;
@@ -313,7 +328,7 @@ The typings for Sequelize v5 allowed you to define models without specifying typ
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes } from "sequelize";
+import { Sequelize, Model, DataTypes } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -365,7 +380,7 @@ In Sequelize versions before v5, the default way of defining a model involved us
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
+import { Sequelize, Model, DataTypes, Optional } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -406,7 +421,7 @@ If you're comfortable with somewhat less strict typing for the attributes on a m
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes } from "sequelize";
+import { Sequelize, Model, DataTypes } from '@sequelize/core';
 
 const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
@@ -443,7 +458,7 @@ async function doStuff() {
 Here is an example of a utility method that requests a Model Class, and returns the list of primary keys defined in that class:
 
 ```typescript
-import { ModelStatic, ModelAttributeColumnOptions, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import { ModelStatic, ModelAttributeColumnOptions, Model, InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
 
 /**
  * Returns the list of attributes that are part of the model's primary key.
@@ -499,7 +514,7 @@ import {
   InferCreationAttributes,
   CreationOptional,
   Attributes
-} from 'sequelize';
+} from '@sequelize/core';
 
 export function getAttributeMetadata<M extends Model>(model: ModelStatic<M>, attributeName: keyof Attributes<M>): ModelAttributeColumnOptions {
   const attribute = model.rawAttributes[attributeName];

@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('sequelize/lib/dialects/mysql/query-generator');
+const QueryGenerator = require('@sequelize/core/lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] jsonPathExtractionQuery', () => {

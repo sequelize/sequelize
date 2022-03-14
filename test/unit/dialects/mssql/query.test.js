@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const Query = require('sequelize/lib/dialects/mssql/query');
+const Query = require('@sequelize/core/lib/dialects/mssql/query');
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();

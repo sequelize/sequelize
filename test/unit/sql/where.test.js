@@ -1,8 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const { QueryTypes } = require('sequelize/lib/query-types');
+const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 
@@ -59,6 +58,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
       expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
+        ibmi: 'WHERE "yolo"."User"."id" = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         db2: 'WHERE "yolo"."User"."id" = 1',
         snowflake: 'WHERE "yolo"."User"."id" = 1',
@@ -98,6 +98,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       snowflake: 'WHERE "name" = \'here is a null char: \0\'',
       mssql: 'WHERE [name] = N\'here is a null char: \0\'',
       db2: 'WHERE "name" = \'here is a null char: \0\'',
+      ibmi: 'WHERE "name" = \'here is a null char: \0\'',
       sqlite: 'WHERE `name` = \'here is a null char: \0\'',
     });
   });
@@ -120,6 +121,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
+      ibmi: '"deleted" IS NULL',
       db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
       snowflake: '"deleted" IS NULL',
@@ -156,6 +158,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('Buffer', () => {
       testsql('field', Buffer.from('Sequelize'), {
+        ibmi: '"field" = BLOB(X\'53657175656c697a65\')',
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: '`field` = X\'53657175656c697a65\'',
         mariadb: '`field` = X\'53657175656c697a65\'',
@@ -172,6 +175,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
+        ibmi: '"deleted" IS NOT 1',
         sqlite: '`deleted` IS NOT 1',
       });
 
@@ -508,6 +512,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
         snowflake: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
         mariadb: '`date` BETWEEN \'2013-01-01 00:00:00.000\' AND \'2013-01-11 00:00:00.000\'',
+        ibmi: '"date" BETWEEN \'2013-01-01 00:00:00.000\' AND \'2013-01-11 00:00:00.000\'',
       });
 
       testsql('date', {
@@ -1310,5 +1315,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       { default: `[users].[first_name] ILIKE 'Lily' AND [users].[first_name] ILIKE 'Lily2'` },
     );
+
+    testsql(current.where(current.literal(`'hours'`), Op.eq, 'hours'), {
+      default: `'hours' = 'hours'`,
+      mssql: `'hours' = N'hours'`,
+    });
+
+    it('where(left: ModelAttributeColumnOptions, op, right)', () => {
+      const User = current.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'internal_id',
+          primaryKey: true,
+        },
+      });
+
+      const where = current.where(User.rawAttributes.id, Op.eq, 1);
+      const expectations = { default: '[user].[internal_id] = 1' };
+
+      return expectsql(sql.getWhereConditions(where, User.tableName, User), expectations);
+    });
   });
 });

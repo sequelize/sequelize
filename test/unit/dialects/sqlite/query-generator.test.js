@@ -4,13 +4,13 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const moment = require('moment');
-const { Op } = require('sequelize/lib/operators');
-const QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
+const { Op } = require('@sequelize/core/lib/operators');
+const QueryGenerator = require('@sequelize/core/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {

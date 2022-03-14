@@ -181,6 +181,6 @@ header a {
 }
 
 a[href="source.html"],
-a[href^="file/lib/"] {
+a[href^="file/src/"] {
   display: none;
 }

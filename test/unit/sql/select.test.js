@@ -1,8 +1,8 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const Model = require('sequelize/lib/model');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Model = require('@sequelize/core/lib/model');
 const util = require('util');
 const chai = require('chai');
 
@@ -16,10 +16,10 @@ const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('select', () => {
-    const testsql = function (options, expectation) {
+    const testsql = function (options, expectation, testFunction = it) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      testFunction(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -30,6 +30,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
       });
     };
+
+    testsql.only = (options, expectation) => testsql(options, expectation, it.only);
 
     testsql({
       table: 'User',
@@ -48,6 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: 'SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = \'jon.snow@gmail.com\' ORDER BY [email] DESC LIMIT 10;',
       db2: 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\' ORDER BY "email" DESC FETCH NEXT 10 ROWS ONLY;',
       mssql: 'SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N\'jon.snow@gmail.com\' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
+      ibmi: 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\' ORDER BY "email" DESC FETCH NEXT 10 ROWS ONLY',
     });
 
     testsql({
@@ -298,6 +301,36 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                        + 'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC'}${
           sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;`,
+        ibmi: `${'SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM ('
+                       + 'SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."last_name" ASC'}${
+          sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
+        }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."last_name" ASC`,
+      });
+
+      // By default, SELECT with include of a multi association & limit will be ran as a subQuery
+      //  This checks the result when the query is forced to be ran without a subquery
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include,
+        attributes: [
+          ['id_user', 'id'],
+          'email',
+          ['first_name', 'firstName'],
+          ['last_name', 'lastName'],
+        ],
+        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        limit: 30,
+        offset: 10,
+        hasMultiAssociation: true, // must be set only for mssql dialect here
+        subQuery: false,
+      }, {
+        default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
+          ON [user].[id_user] = [POSTS].[user_id]
+          ORDER BY [user].[last_name] ASC
+          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
+        `),
       });
 
       const nestedInclude = Model._validateIncludedElements({
@@ -371,6 +404,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User,
       }, User), {
+        ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
       });
     });
@@ -586,6 +620,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           data: ['123'],
         },
       }, User), {
+        ibmi: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB(\'123\'))',
         postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
         snowflake: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X\'313233\');',
         mariadb: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
@@ -606,6 +641,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ],
         }), {
           default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
+          ibmi: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User"',
           db2: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
           snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
           mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];',
@@ -617,6 +653,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attributes: ['* FROM User; DELETE FROM User;SELECT id'],
         }), {
           default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          ibmi: 'SELECT "* FROM User; DELETE FROM User;SELECT id" FROM "User"',
         });
       });
 
@@ -626,6 +663,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           default: 'SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];',
           mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          ibmi: 'SELECT "a\', * FROM User; DELETE FROM User;SELECT id" FROM "User"',
         });
       });
 
@@ -634,6 +672,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attributes: ['*, COUNT(*) FROM User; DELETE FROM User;SELECT id'],
         }), {
           default: 'SELECT [*, COUNT(*) FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          ibmi: 'SELECT "*, COUNT(*) FROM User; DELETE FROM User;SELECT id" FROM "User"',
         });
       });
 
@@ -644,6 +683,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ],
         }), {
           default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];',
+          ibmi: 'SELECT "* FROM User; DELETE FROM User;SELECT id" AS "myCol" FROM "User"',
         });
       });
 
@@ -654,6 +694,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ],
         }), {
           default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];',
+          ibmi: 'SELECT "* FROM User; DELETE FROM User;SELECT id" AS "myCol" FROM "User"',
         });
       });
 
@@ -664,6 +705,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ],
         }), {
           default: 'SELECT [id] AS [* FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          ibmi: 'SELECT "id" AS "* FROM User; DELETE FROM User;SELECT id" FROM "User"',
         });
       });
 
@@ -700,6 +742,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           model: User,
         }, User), {
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.* FROM User; DELETE FROM User;SELECT id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM User; DELETE FROM User;SELECT id" AS "Posts.* FROM User; DELETE FROM User;SELECT id" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         });
 
         expectsql(sql.selectQuery('User', {
@@ -716,6 +759,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           model: User,
         }, User), {
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM User; DELETE FROM User;SELECT id" AS "Posts.data" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         });
 
         expectsql(sql.selectQuery('User', {
@@ -731,6 +775,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User,
         }, User), {
+          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM User; DELETE FROM User;SELECT id" AS "Posts.data" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
         });
       });
@@ -748,6 +793,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('*', () => {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
+        ibmi: 'SELECT * FROM "User"',
         postgres: 'SELECT * FROM "User";',
         snowflake: 'SELECT * FROM User;',
       });
@@ -758,6 +804,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         attributes: ['name', 'age'],
       }), {
         default: 'SELECT [name], [age] FROM [User];',
+        ibmi: 'SELECT "name", "age" FROM "User"',
         postgres: 'SELECT name, age FROM "User";',
         snowflake: 'SELECT name, age FROM User;',
       });
@@ -792,6 +839,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         postgres: 'SELECT "User".name, "User".age, Posts.id AS "Posts.id", Posts.title AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
         snowflake: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
       });
@@ -838,6 +886,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts->Comments].[id] AS [Posts.Comments.id], [Posts->Comments].[title] AS [Posts.Comments.title], [Posts->Comments].[createdAt] AS [Posts.Comments.createdAt], [Posts->Comments].[updatedAt] AS [Posts.Comments.updatedAt], [Posts->Comments].[post_id] AS [Posts.Comments.post_id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id] LEFT OUTER JOIN [Comment] AS [Posts->Comments] ON [Posts].[id] = [Posts->Comments].[post_id];',
+        ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title", "Posts->Comments"."id" AS "Posts.Comments.id", "Posts->Comments"."title" AS "Posts.Comments.title", "Posts->Comments"."createdAt" AS "Posts.Comments.createdAt", "Posts->Comments"."updatedAt" AS "Posts.Comments.updatedAt", "Posts->Comments"."post_id" AS "Posts.Comments.post_id" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id" LEFT OUTER JOIN "Comment" AS "Posts->Comments" ON "Posts"."id" = "Posts->Comments"."post_id"',
         postgres: 'SELECT "User".name, "User".age, Posts.id AS "Posts.id", Posts.title AS "Posts.title", "Posts->Comments".id AS "Posts.Comments.id", "Posts->Comments".title AS "Posts.Comments.title", "Posts->Comments".createdAt AS "Posts.Comments.createdAt", "Posts->Comments".updatedAt AS "Posts.Comments.updatedAt", "Posts->Comments".post_id AS "Posts.Comments.post_id" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id LEFT OUTER JOIN Comment AS "Posts->Comments" ON Posts.id = "Posts->Comments".post_id;',
         snowflake: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title", "Posts->Comments".id AS "Posts.Comments.id", "Posts->Comments".title AS "Posts.Comments.title", "Posts->Comments".createdAt AS "Posts.Comments.createdAt", "Posts->Comments".updatedAt AS "Posts.Comments.updatedAt", "Posts->Comments".post_id AS "Posts.Comments.post_id" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id LEFT OUTER JOIN Comment AS "Posts->Comments" ON Posts.id = "Posts->Comments".post_id;',
       });
@@ -847,26 +896,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER,
-        'status.label': DataTypes.STRING,
-      },
-      {
+        statuslabel: {
+          field: 'status.label',
+          type: DataTypes.STRING,
+        },
+      }, {
         freezeTableName: true,
       });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
-        'status.label': DataTypes.STRING,
-      },
-      {
+        statuslabel: {
+          field: 'status.label',
+          type: DataTypes.STRING,
+        },
+      }, {
         freezeTableName: true,
       });
 
       User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(sql.selectQuery('User', {
-        attributes: ['name', 'age', 'status.label'],
+        attributes: ['name', 'age', ['status.label', 'statuslabel']],
         include: Model._validateIncludedElements({
           include: [{
-            attributes: ['title', 'status.label'],
+            attributes: ['title', ['status.label', 'statuslabel']],
             association: User.Posts,
           }],
           model: User,
@@ -874,12 +927,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
         dotNotation: true,
       }, User), {
-        default: 'SELECT [User].[name], [User].[age], [User].[status.label], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS [Posts.status.label] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
-        postgres: 'SELECT "User".name, "User".age, "User"."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
-        snowflake: 'SELECT User.name, User.age, User."status.label", Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.status.label" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
+        default: 'SELECT [User].[name], [User].[age], [User].[status.label] AS [statuslabel], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[status.label] AS [Posts.statuslabel] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        postgres: 'SELECT "User".name, "User".age, "User"."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
+        snowflake: 'SELECT User.name, User.age, User."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
       });
     });
-
   });
 
   describe('raw query', () => {

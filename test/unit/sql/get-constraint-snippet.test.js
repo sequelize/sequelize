@@ -122,20 +122,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      it('uses onDelete, onUpdate', () => {
-        expectsql(sql.getConstraintSnippet('myTable', {
-          type: 'foreign key',
-          fields: ['myColumn'],
-          references: {
-            table: 'myOtherTable',
-            field: 'id',
-          },
-          onUpdate: 'cascade',
-          onDelete: 'cascade',
-        }), {
-          default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+      if (current.dialect.name !== 'ibmi') {
+        it('uses onDelete, onUpdate', () => {
+          expectsql(sql.getConstraintSnippet('myTable', {
+            type: 'foreign key',
+            fields: ['myColumn'],
+            references: {
+              table: 'myOtherTable',
+              field: 'id',
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          }), {
+            default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+          });
         });
-      });
+      }
 
       it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {

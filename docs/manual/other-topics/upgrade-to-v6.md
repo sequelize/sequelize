@@ -13,9 +13,9 @@ Sequelize v6 will only support Node 10 and up [#10821](https://github.com/sequel
 You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) package for CLS support.
 
 ```js
-const cls = require("cls-hooked");
-const namespace = cls.createNamespace("....");
-const Sequelize = require("sequelize");
+const cls = require('cls-hooked');
+const namespace = cls.createNamespace('....');
+const Sequelize = require('sequelize');
 
 Sequelize.useCLS(namespace);
 ```

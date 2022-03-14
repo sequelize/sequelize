@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
@@ -664,6 +664,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         findAttributes = [
           Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
           [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
+        ];
+      } else if (dialect === 'ibmi') {
+        findAttributes = [
+          Sequelize.literal('1 AS "PostComments.someProperty"'),
+          [Sequelize.literal('1'), 'someProperty2'],
         ];
       } else if (dialect === 'db2') {
         findAttributes = [

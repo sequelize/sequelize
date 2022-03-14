@@ -4,7 +4,7 @@ In this tutorial you will learn what models are in Sequelize and how to use them
 
 ## Concept
 
-Models are the essence of Sequelize. A model is an abstraction that represents a table in your database. In Sequelize, it is a class that extends [Model](../class/lib/model.js~Model.html).
+Models are the essence of Sequelize. A model is an abstraction that represents a table in your database. In Sequelize, it is a class that extends [Model](../class/src/model.js~Model.html).
 
 The model tells Sequelize several things about the entity it represents, such as the name of the table in the database and which columns it has (and their data types).
 
@@ -14,8 +14,8 @@ A model in Sequelize has a name. This name does not have to be the same name of 
 
 Models can be defined in two equivalent ways in Sequelize:
 
-* Calling [`sequelize.define(modelName, attributes, options)`](../class/lib/sequelize.js~Sequelize.html#instance-method-define)
-* Extending [Model](../class/lib/model.js~Model.html) and calling [`init(attributes, options)`](../class/lib/model.js~Model.html#static-method-init)
+* Calling [`sequelize.define(modelName, attributes, options)`](../class/src/sequelize.js~Sequelize.html#instance-method-define)
+* Extending [Model](../class/src/model.js~Model.html) and calling [`init(attributes, options)`](../class/src/model.js~Model.html#static-method-init)
 
 After a model is defined, it is available within `sequelize.models` by its model name.
 
@@ -23,10 +23,10 @@ To learn with an example, we will consider that we want to create a model to rep
 
 Both ways to define this model are shown below. After being defined, we can access our model with `sequelize.models.User`.
 
-### Using [`sequelize.define`](../class/lib/sequelize.js~Sequelize.html#instance-method-define):
+### Using [`sequelize.define`](../class/src/sequelize.js~Sequelize.html#instance-method-define):
 
 ```js
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:');
 
 const User = sequelize.define('User', {
@@ -47,10 +47,10 @@ const User = sequelize.define('User', {
 console.log(User === sequelize.models.User); // true
 ```
 
-### Extending [Model](../class/lib/model.js~Model.html)
+### Extending [Model](../class/src/model.js~Model.html)
 
 ```js
-const { Sequelize, DataTypes, Model } = require('sequelize');
+const { Sequelize, DataTypes, Model } = require('@sequelize/core');
 const sequelize = new Sequelize('sqlite::memory:');
 
 class User extends Model {}
@@ -190,7 +190,7 @@ sequelize.define('User', {
 
 When you define a model, you're telling Sequelize a few things about its table in the database. However, what if the table actually doesn't even exist in the database? What if it exists, but it has different columns, less columns, or any other difference?
 
-This is where model synchronization comes in. A model can be synchronized with the database by calling [`model.sync(options)`](https://sequelize.org/master/class/lib/model.js~Model.html#static-method-sync), an asynchronous function (that returns a Promise). With this call, Sequelize will automatically perform an SQL query to the database. Note that this changes only the table in the database, not the model in the JavaScript side.
+This is where model synchronization comes in. A model can be synchronized with the database by calling [`model.sync(options)`](https://sequelize.org/master/class/src/model.js~Model.html#static-method-sync), an asynchronous function (that returns a Promise). With this call, Sequelize will automatically perform an SQL query to the database. Note that this changes only the table in the database, not the model in the JavaScript side.
 
 * `User.sync()` - This creates the table if it doesn't exist (and does nothing if it already exists)
 * `User.sync({ force: true })` - This creates the table, dropping it first if it already existed
@@ -205,7 +205,7 @@ console.log("The table for the User model was just (re)created!");
 
 ### Synchronizing all models at once
 
-You can use [`sequelize.sync()`](../class/lib/sequelize.js~Sequelize.html#instance-method-sync) to automatically synchronize all models. Example:
+You can use [`sequelize.sync()`](../class/src/sequelize.js~Sequelize.html#instance-method-sync) to automatically synchronize all models. Example:
 
 ```js
 await sequelize.sync({ force: true });
@@ -318,10 +318,10 @@ sequelize.define('Foo', {
 
 ## Data Types
 
-Every column you define in your model must have a data type. Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/lib/data-types.js). To access a built-in data type, you must import `DataTypes`:
+Every column you define in your model must have a data type. Sequelize provides [a lot of built-in data types](https://github.com/sequelize/sequelize/blob/main/src/data-types.js). To access a built-in data type, you must import `DataTypes`:
 
 ```js
-const { DataTypes } = require("sequelize"); // Import the built-in data types
+const { DataTypes } = require('@sequelize/core'); // Import the built-in data types
 ```
 
 ### Strings
@@ -405,7 +405,7 @@ There are other data types, covered in a [separate guide](other-data-types.html)
 When defining a column, apart from specifying the `type` of the column, and the `allowNull` and `defaultValue` options mentioned above, there are a lot more options that can be used. Some examples are below.
 
 ```js
-const { Model, DataTypes, Deferrable } = require("sequelize");
+const { Model, DataTypes, Deferrable } = require('@sequelize/core');
 
 class Foo extends Model {}
 Foo.init({

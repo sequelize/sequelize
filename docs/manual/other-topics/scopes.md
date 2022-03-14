@@ -51,7 +51,7 @@ Project.init({
 });
 ```
 
-You can also add scopes after a model has been defined by calling [`YourModel.addScope`](../class/lib/model.js~Model.html#static-method-addScope). This is especially useful for scopes with includes, where the model in the include might not be defined at the time the other model is being defined.
+You can also add scopes after a model has been defined by calling [`YourModel.addScope`](../class/src/model.js~Model.html#static-method-addScope). This is especially useful for scopes with includes, where the model in the include might not be defined at the time the other model is being defined.
 
 The default scope is always applied. This means, that with the model definition above, `Project.findAll()` will create the following query:
 
@@ -156,7 +156,7 @@ YourMode.addScope('scope1', {
 YourMode.addScope('scope2', {
   where: {
     age: {
-      [Op.gt]: 30
+      [Op.lt]: 30
     }
   },
   limit: 10
@@ -166,10 +166,10 @@ YourMode.addScope('scope2', {
 Using `.scope('scope1', 'scope2')` will yield the following WHERE clause:
 
 ```sql
-WHERE firstName = 'bob' AND age > 30 LIMIT 10
+WHERE firstName = 'bob' AND age > 20 AND age < 30 LIMIT 10
 ```
 
-Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` is shallowly merged (meaning that identical keys will be overwritten). The merge strategy for `include` will be discussed later on.
+Note how `limit` is overwritten by `scope2`, while `firstName` and both conditions on `age` are preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` fields are merged using the `AND` operator. The merge strategy for `include` will be discussed later on.
 
 Note that `attributes` keys of multiple applied scopes are merged in such a way that `attributes.exclude` are always preserved. This allows merging several scopes and never leaking sensitive fields in final scope.
 

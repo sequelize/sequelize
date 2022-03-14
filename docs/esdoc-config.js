@@ -5,9 +5,10 @@ const { getDeclaredManuals, checkManuals } = require('./manual-utils');
 checkManuals();
 
 module.exports = {
-  source: './lib',
+  source: './src',
   destination: './esdoc',
   includes: ['\\.[tj]s$'],
+  excludes: ['\\.d.ts$'],
   plugins: [
     {
       name: 'esdoc-ecmascript-proposal-plugin',

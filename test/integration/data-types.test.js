@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -12,7 +12,7 @@ const moment = require('moment');
 const current = Support.sequelize;
 const Op = Sequelize.Op;
 const uuid = require('uuid');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const semver = require('semver');
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // mssql has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql' || dialect === 'db2') {
+    if (['mssql', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -312,7 +312,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type

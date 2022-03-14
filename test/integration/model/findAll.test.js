@@ -2,13 +2,13 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
 
 const Op = Sequelize.Op;
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -269,46 +269,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(theTruePassport[0].isActive).to.be.true;
       });
 
-      it('should be able to handle binary values through associations as well...', async function () {
-        const User = this.User;
-        const Binary = this.sequelize.define('Binary', {
-          id: {
-            type: DataTypes.STRING(16, true),
-            primaryKey: true,
-          },
+      // On IBM i, can't have a primaryKey that is a *LOB data type
+      if (dialect !== 'ibmi') {
+        it('should be able to handle binary values through associations as well...', async function () {
+          const User = this.User;
+          const Binary = this.sequelize.define('Binary', {
+            id: {
+              type: DataTypes.STRING(16, true),
+              primaryKey: true,
+            },
+          });
+
+          const buf1 = this.buf;
+          const buf2 = Buffer.alloc(16);
+          buf2.fill('\u0002');
+
+          User.belongsTo(Binary, { foreignKey: 'binary' });
+
+          await this.sequelize.sync({ force: true });
+
+          await User.bulkCreate([
+            { username: 'boo5', aBool: false },
+            { username: 'boo6', aBool: true },
+          ]);
+
+          await Binary.bulkCreate([
+            { id: buf1 },
+            { id: buf2 },
+          ]);
+
+          const user = await User.findByPk(1);
+          const binary = await Binary.findByPk(buf1);
+          await user.setBinary(binary);
+          const _user = await User.findByPk(2);
+          const _binary = await Binary.findByPk(buf2);
+          await _user.setBinary(_binary);
+          const _binaryRetrieved = await _user.getBinary();
+          const binaryRetrieved = await user.getBinary();
+          expect(binaryRetrieved.id).to.have.length(16);
+          expect(_binaryRetrieved.id).to.have.length(16);
+          expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString());
+          expect(_binaryRetrieved.id.toString()).to.be.equal(buf2.toString());
         });
-
-        const buf1 = this.buf;
-        const buf2 = Buffer.alloc(16);
-        buf2.fill('\u0002');
-
-        User.belongsTo(Binary, { foreignKey: 'binary' });
-
-        await this.sequelize.sync({ force: true });
-
-        await User.bulkCreate([
-          { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
-        ]);
-
-        await Binary.bulkCreate([
-          { id: buf1 },
-          { id: buf2 },
-        ]);
-
-        const user = await User.findByPk(1);
-        const binary = await Binary.findByPk(buf1);
-        await user.setBinary(binary);
-        const _user = await User.findByPk(2);
-        const _binary = await Binary.findByPk(buf2);
-        await _user.setBinary(_binary);
-        const _binaryRetrieved = await _user.getBinary();
-        const binaryRetrieved = await user.getBinary();
-        expect(binaryRetrieved.id).to.have.length(16);
-        expect(_binaryRetrieved.id).to.have.length(16);
-        expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString());
-        expect(_binaryRetrieved.id.toString()).to.be.equal(buf2.toString());
-      });
+      }
 
       it('should be able to find a row between a certain date', async function () {
         const users = await this.User.findAll({

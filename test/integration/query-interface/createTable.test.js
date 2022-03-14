@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 
@@ -84,6 +84,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
           expect(indexes[1].fields[1].attribute).to.equal('email');
+
+          // name
+          expect(indexes[2].unique).to.be.true;
+          expect(indexes[2].fields[0].attribute).to.equal('name');
+          break;
+        case 'ibmi':
+          // name + email
+          expect(indexes[1].unique).to.be.true;
+          expect(indexes[1].fields[0].attribute).to.equal('email');
+          expect(indexes[1].fields[1].attribute).to.equal('name');
 
           // name
           expect(indexes[2].unique).to.be.true;

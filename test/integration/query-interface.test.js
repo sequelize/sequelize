@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : 'CREATE VIEW V_Fail AS SELECT 1 Id';
+      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialect) ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2') {
+    if (!['sqlite', 'postgres', 'db2', 'ibmi'].includes(dialect)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function () {
@@ -214,101 +214,101 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   });
 
-  describe('renameColumn', () => {
-    it('rename a simple column', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.STRING,
-      }, { freezeTableName: true });
+  if (dialect !== 'ibmi') {
+    describe('renameColumn', () => {
+      it('rename a simple column', async function () {
+        const Users = this.sequelize.define('_Users', {
+          username: DataTypes.STRING,
+        }, { freezeTableName: true });
 
-      await Users.sync({ force: true });
-      await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
-      const table = await this.queryInterface.describeTable('_Users');
-      expect(table).to.have.property('pseudo');
-      expect(table).to.not.have.property('username');
-    });
-
-    it('works with schemas', async function () {
-      await this.sequelize.createSchema('archive');
-      const Users = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-      }, {
-        tableName: 'Users',
-        schema: 'archive',
+        await Users.sync({ force: true });
+        await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
+        const table = await this.queryInterface.describeTable('_Users');
+        expect(table).to.have.property('pseudo');
+        expect(table).to.not.have.property('username');
       });
-      await Users.sync({ force: true });
-      await this.queryInterface.renameColumn({
-        schema: 'archive',
-        tableName: 'Users',
-      }, 'username', 'pseudo');
-      const table = await this.queryInterface.describeTable({
-        schema: 'archive',
-        tableName: 'Users',
+
+      it('works with schemas', async function () {
+        await this.sequelize.createSchema('archive');
+        const Users = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+        }, {
+          tableName: 'Users',
+          schema: 'archive',
+        });
+        await Users.sync({ force: true });
+        await this.queryInterface.renameColumn({
+          schema: 'archive',
+          tableName: 'Users',
+        }, 'username', 'pseudo');
+        const table = await this.queryInterface.describeTable({
+          schema: 'archive',
+          tableName: 'Users',
+        });
       });
-      expect(table).to.have.property('pseudo');
-      expect(table).to.not.have.property('username');
-    });
 
-    it('rename a column non-null without default value', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-      }, { freezeTableName: true });
-
-      await Users.sync({ force: true });
-      await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
-      const table = await this.queryInterface.describeTable('_Users');
-      expect(table).to.have.property('pseudo');
-      expect(table).to.not.have.property('username');
-    });
-
-    it('rename a boolean column non-null without default value', async function () {
-      const Users = this.sequelize.define('_Users', {
-        active: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
-          defaultValue: false,
-        },
-      }, { freezeTableName: true });
-
-      await Users.sync({ force: true });
-      await this.queryInterface.renameColumn('_Users', 'active', 'enabled');
-      const table = await this.queryInterface.describeTable('_Users');
-      expect(table).to.have.property('enabled');
-      expect(table).to.not.have.property('active');
-    });
-
-    if (dialect !== 'db2') { // Db2 does not allow rename of a primary key column
-      it('renames a column primary key autoIncrement column', async function () {
-        const Fruits = this.sequelize.define('Fruit', {
-          fruitId: {
-            type: DataTypes.INTEGER,
+      it('rename a column non-null without default value', async function () {
+        const Users = this.sequelize.define('_Users', {
+          username: {
+            type: DataTypes.STRING,
             allowNull: false,
-            primaryKey: true,
-            autoIncrement: true,
           },
         }, { freezeTableName: true });
 
-        await Fruits.sync({ force: true });
-        await this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
-        const table = await this.queryInterface.describeTable('Fruit');
-        expect(table).to.have.property('fruit_id');
-        expect(table).to.not.have.property('fruitId');
+        await Users.sync({ force: true });
+        await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
+        const table = await this.queryInterface.describeTable('_Users');
+        expect(table).to.have.property('pseudo');
+        expect(table).to.not.have.property('username');
       });
-    }
 
-    it('shows a reasonable error message when column is missing', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.STRING,
-      }, { freezeTableName: true });
+      it('rename a boolean column non-null without default value', async function () {
+        const Users = this.sequelize.define('_Users', {
+          active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+          },
+        }, { freezeTableName: true });
 
-      await Users.sync({ force: true });
-      await expect(
-        this.queryInterface.renameColumn('_Users', 'email', 'pseudo'),
-      ).to.be.rejectedWith('Table _Users doesn\'t have the column email');
+        await Users.sync({ force: true });
+        await this.queryInterface.renameColumn('_Users', 'active', 'enabled');
+        const table = await this.queryInterface.describeTable('_Users');
+        expect(table).to.have.property('enabled');
+        expect(table).to.not.have.property('active');
+      });
+
+      if (dialect !== 'db2') { // Db2 does not allow rename of a primary key column
+        it('renames a column primary key autoIncrement column', async function () {
+          const Fruits = this.sequelize.define('Fruit', {
+            fruitId: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+          }, { freezeTableName: true });
+
+          await Fruits.sync({ force: true });
+          await this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
+          const table = await this.queryInterface.describeTable('Fruit');
+          expect(table).to.have.property('fruit_id');
+          expect(table).to.not.have.property('fruitId');
+        });
+      }
+
+      it('shows a reasonable error message when column is missing', async function () {
+        const Users = this.sequelize.define('_Users', {
+          username: DataTypes.STRING,
+        }, { freezeTableName: true });
+
+        await Users.sync({ force: true });
+        await expect(
+          this.queryInterface.renameColumn('_Users', 'email', 'pseudo'),
+        ).to.be.rejectedWith('Table _Users doesn\'t have the column email');
+      });
     });
-  });
+  }
 
   describe('addColumn', () => {
     beforeEach(async function () {
@@ -472,8 +472,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (dialect === 'sqlite' || dialect === 'db2') {
+      } else if (['sqlite', 'db2'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
+      } else if (dialect === 'ibmi') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(9);
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
@@ -666,7 +668,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          expect(error.table).to.equal('users');
+          if (dialect !== 'ibmi') {
+            expect(error.table).to.equal('users');
+          }
+
           expect(error.constraint).to.equal('unknown__constraint__name');
         }
       });
