@@ -728,6 +728,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] != 1',
       });
 
+      testSql({ intAttr1: { [Op.not]: [1, 2] } }, {
+        default: '[intAttr1] NOT IN (1, 2)',
+      });
+
       testSequelizeValueMethods(Op.not, '!=');
       testSupportsAnyAll(Op.not, '!=', [2, 3, 4]);
 
@@ -2338,6 +2342,30 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           [Op.or]: { intAttr1: 1, intAttr2: 2 },
         }, {
           default: `([intAttr1] = 1 AND [intAttr2] = 2) AND ([intAttr1] = 1 OR [intAttr2] = 2)`,
+        });
+
+        // Op.or only applies to its direct Array, the nested array is still Op.and
+        testSql({
+          [Op.or]: [
+            [{ intAttr1: 1 }, { intAttr1: 2 }],
+            { intAttr1: 3 },
+          ],
+        }, {
+          default: '((([intAttr1] = 1 AND [intAttr1] = 2)) OR [intAttr1] = 3)',
+        });
+
+        // can be nested *after* attribute
+        testSql({
+          intAttr1: {
+            [Op.and]: [
+              1, 2,
+              { [Op.or]: [3, 4] },
+              { [Op.not]: 5 },
+              [6, 7],
+            ],
+          },
+        }, {
+          default: '("intAttr1" = 1 AND "intAttr1" = 2 AND ("intAttr1" = 3 OR "intAttr1" = 4) AND "intAttr1" != 5 AND "intAttr1" IN (6, 7))',
         });
 
         // can be nested

@@ -108,11 +108,38 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
+/**
+ * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
+ * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
+ *
+ * Example of plain-array treated as `Op.and`:
+ * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
+ *
+ * Meant to be used by {@link WhereOptions}.
+ */
+type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
+  // this is the equivalent of Op.and
+  | T
+  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
+  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
+  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
+>;
+
+/**
+ * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
+ * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
+ *
+ * Example of plain-array NOT treated as Op.and:
+ * User.findAll({ where: { id: [1, 2] } });
+ *
+ * Meant to be used by {@link WhereAttributeHashValue}.
+ */
 type AllowNotOrAndRecursive<T> =
   | T
   | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
   | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowArray<AllowNotOrAndRecursive<T>> };
+  | { [Op.not]: AllowNotOrAndRecursive<T> };
+
 type AllowArray<T> = T | T[];
 type AllowAnyAll<T> =
   | T
@@ -124,14 +151,12 @@ type AllowAnyAll<T> =
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions<TAttributes = any> = AllowArray<
-  AllowNotOrAndRecursive<
-    | WhereAttributeHash<TAttributes>
-    | Literal
-    | Fn
-    | Where
-    | Json
-  >
+export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
+  | WhereAttributeHash<TAttributes>
+  | Literal
+  | Fn
+  | Where
+  | Json
 >;
 
 /**
@@ -2410,7 +2435,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: Omit<UpdateOptions<Attributes<M>>, 'returning'> 
+    options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
 
