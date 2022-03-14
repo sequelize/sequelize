@@ -2355,6 +2355,26 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         }, {
           default: 'NOT (((([intAttr1] = 1 AND [intAttr2] = 2))))',
         });
+
+        // Op.not, Op.and, Op.or can reside on the same object as attributes
+        testSql({
+          intAttr1: 1,
+          [Op.not]: {
+            intAttr1: { [Op.eq]: 2 },
+            [Op.and]: {
+              intAttr1: 3,
+              [Op.or]: {
+                intAttr1: 4,
+                [Op.and]: {
+                  intAttr1: 5,
+                  intAttr2: 6,
+                },
+              },
+            },
+          },
+        }, {
+          default: 'NOT (((([intAttr1] = 5 AND [intAttr2] = 6) OR [intAttr1] = 4) AND [intAttr1] = 3) AND [intAttr1] = 2) AND [intAttr1] = 1',
+        });
       });
     });
   });
