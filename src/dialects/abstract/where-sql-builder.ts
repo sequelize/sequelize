@@ -170,6 +170,10 @@ class WhereSqlBuilder {
           return '';
         }
 
+        if (generatedResult.startsWith('(') && generatedResult.endsWith(')')) {
+          return `NOT ${generatedResult}`;
+        }
+
         return `NOT (${generatedResult})`;
       }
 
