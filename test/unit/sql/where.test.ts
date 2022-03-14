@@ -2253,6 +2253,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: `[intAttr1] = 1 AND [intAttr2] = 2`,
         });
 
+        // top-level array is Op.and
+        testSql([{ intAttr1: 1 }, { intAttr1: 2 }], {
+          default: `([intAttr1] = 1 AND [intAttr1] = 2)`,
+        });
+
         // $intAttr1$ doesn't override intAttr1
         testSql({ intAttr1: 1, $intAttr1$: 2 }, {
           default: `[intAttr1] = 1 AND [intAttr1] = 2`,
