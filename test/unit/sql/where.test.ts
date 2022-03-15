@@ -2449,6 +2449,24 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
+        testSql(
+          // Note: using `col()`, the following is not treated as a json.path.
+          //   (yes, it's inconsistant with regular attribute notation. attr could be a good replacement)
+          where(col('json.path'), 10),
+          {
+            default: '[attribute].[path] = 10',
+          },
+        );
+
+        testSql(
+          // Note: using `col()`, the following is not treated as a nested.attribute.path.
+          //   (yes, it's inconsistant with regular attribute notation. attr could be a good replacement)
+          where(col('$attribute.path$'), 10),
+          {
+            default: '[$attribute].[path$] = 10',
+          },
+        );
+
         testSql(where(col('col'), { [Op.and]: [1, 2] }), {
           default: '([col] = 1 AND [col] = 2)',
         });
