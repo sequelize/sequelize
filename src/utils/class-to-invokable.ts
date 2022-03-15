@@ -1,7 +1,7 @@
 /**
  * Utility type for a class which can be called in addion to being used as a constructor.
  */
-interface Invokeable<Args extends any[], Instance> {
+export interface Invokeable<Args extends any[], Instance> {
   (...args: Args): Instance;
   new (...args: Args): Instance;
 }
