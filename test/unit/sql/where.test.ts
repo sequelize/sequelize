@@ -2452,7 +2452,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         testSql(
           // Note: using `col()`, the following is not treated as a json.path.
           //   (yes, it's inconsistant with regular attribute notation. attr could be a good replacement)
-          where(col('json.path'), 10),
+          where(col('attribute.path'), 10),
           {
             default: '[attribute].[path] = 10',
           },
@@ -2469,6 +2469,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         testSql(where(col('col'), { [Op.and]: [1, 2] }), {
           default: '([col] = 1 AND [col] = 2)',
+        });
+
+        // TODO: Either allow json.path.syntax here, or remove WhereAttributeHash from what this version of where() accepts.
+        testSql.skip(where(col('col'), { jsonPath: 'value' }), {
+          default: new Error('Unexpected key "nested" found, expected an operator.'),
         });
       });
     });
