@@ -2431,6 +2431,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           default: 'CAST([name] AS INT) = 10',
         });
 
+        testSql(where(literal('abc'), { [Op.eq]: 10 }), {
+          default: 'abc = 10',
+        });
+
         testSql.skip(
           where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
           { default: `[name] = '123' AND NOT ([name] = '456')` },
