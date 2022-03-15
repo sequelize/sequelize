@@ -274,6 +274,11 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       default: '',
     });
 
+    // @ts-expect-error
+    testSql.skip(10, {
+      default: new Error('Unexpected value "10" received. Expected an object, array or a literal()'),
+    });
+
     testSql({ intAttr1: undefined }, {
       default: new Error('WHERE parameter "intAttr1" has invalid "undefined" value'),
     });
