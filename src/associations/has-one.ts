@@ -1,10 +1,13 @@
-'use strict';
+import upperFirst from 'lodash/upperFirst';
+import type { DataType } from '../data-types.js';
+import type { CreateOptions, CreationAttributes, FindOptions, SaveOptions, Model, ModelStatic, Attributes } from '../model';
+import { Op } from '../operators';
+import * as Utils from '../utils';
+import type { AssociationOptions } from './base';
+// eslint-disable-next-line import/order -- error due to require('./helpers')
+import { Association } from './base';
 
-const Utils = require('./../utils');
 const Helpers = require('./helpers');
-const _ = require('lodash');
-const Association = require('./base');
-const { Op } = require('../operators');
 
 /**
  * One-to-one association
@@ -14,43 +17,22 @@ const { Op } = require('../operators');
  *
  * @see {@link Model.hasOne}
  */
-class HasOne extends Association {
-  constructor(source, target, options) {
+export class HasOne<S extends Model = Model, T extends Model = Model> extends Association<S, T, HasOneOptions<S>> {
+  associationType = 'HasOne';
+  isSingleAssociation = true;
+
+  readonly accessors: {
+    get: string,
+    set: string,
+    create: string,
+  };
+
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasOneOptions<S>) {
     super(source, target, options);
-
-    this.associationType = 'HasOne';
-    this.isSingleAssociation = true;
-    this.foreignKeyAttribute = {};
-
-    if (this.as) {
-      this.isAliased = true;
-      this.options.name = {
-        singular: this.as,
-      };
-    } else {
-      this.as = this.target.options.name.singular;
-      this.options.name = this.target.options.name;
-    }
-
-    if (_.isObject(this.options.foreignKey)) {
-      this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
-    } else if (this.options.foreignKey) {
-      this.foreignKey = this.options.foreignKey;
-    }
-
-    if (!this.foreignKey) {
-      this.foreignKey = Utils.camelize(
-        [
-          Utils.singularize(this.options.as || this.source.name),
-          this.source.primaryKeyAttribute,
-        ].join('_'),
-      );
-    }
 
     if (
       this.options.sourceKey
-      && !this.source.rawAttributes[this.options.sourceKey]
+      && !this.source.getAttributes()[this.options.sourceKey]
     ) {
       throw new Error(`Unknown attribute "${this.options.sourceKey}" passed as sourceKey, define this attribute on model "${this.source.name}" first`);
     }
@@ -67,7 +49,7 @@ class HasOne extends Association {
     }
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
-    const singular = _.upperFirst(this.options.name.singular);
+    const singular = upperFirst(this.options.name.singular);
 
     this.accessors = {
       get: `get${singular}`,
@@ -113,15 +95,15 @@ class HasOne extends Association {
   /**
    * Get the associated instance.
    *
-   * @param {Model|Array<Model>} instances source instances
-   * @param {object}         [options] find options
-   * @param {string|boolean} [options.scope] Apply a scope on the related model, or remove its default scope by passing false
-   * @param {string} [options.schema] Apply a schema on the related model
+   * @param instances source instances
+   * @param         [options] find options
+   * @param [options.scope] Apply a scope on the related model, or remove its default scope by passing false
+   * @param [options.schema] Apply a schema on the related model
    *
    * @see
    * {@link Model.findOne} for a full explanation of options
    *
-   * @returns {Promise<Model>}
+   * @returns
    */
   async get(instances, options) {
     const where = {};
@@ -184,11 +166,11 @@ class HasOne extends Association {
   /**
    * Set the associated model.
    *
-   * @param {Model} sourceInstance the source instance
-   * @param {?Model|string|number} [associatedInstance] An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
-   * @param {object} [options] Options passed to getAssociation and `target.save`
+   * @param sourceInstance the source instance
+   * @param [associatedInstance] An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
+   * @param [options] Options passed to getAssociation and `target.save`
    *
-   * @returns {Promise}
+   * @returns
    */
   async set(sourceInstance, associatedInstance, options) {
     options = { ...options, scope: false };
@@ -229,14 +211,14 @@ class HasOne extends Association {
   /**
    * Create a new instance of the associated model and associate it with this.
    *
-   * @param {Model} sourceInstance the source instance
-   * @param {object} [values={}] values to create associated model instance with
-   * @param {object} [options] Options passed to `target.create` and setAssociation.
+   * @param sourceInstance the source instance
+   * @param [values={}] values to create associated model instance with
+   * @param [options] Options passed to `target.create` and setAssociation.
    *
    * @see
    * {@link Model#create} for a full explanation of options
    *
-   * @returns {Promise<Model>} The created target model
+   * @returns The created target model
    */
   async create(sourceInstance, values, options) {
     values = values || {};
@@ -256,7 +238,7 @@ class HasOne extends Association {
       options.fields.push(this.foreignKey);
     }
 
-    return await this.target.create(values, options);
+    return this.target.create(values, options);
   }
 
   verifyAssociationAlias(alias) {
@@ -272,4 +254,118 @@ class HasOne extends Association {
   }
 }
 
-module.exports = HasOne;
+/**
+ * Options provided when associating models with hasOne relationship
+ */
+export interface HasOneOptions<Source extends Model> extends AssociationOptions {
+
+  /**
+   * The name of the field to use as the key for the association in the source table. Defaults to the primary
+   * key of the source table.
+   *
+   * This is the attribute the foreign key will target. Not to be confused with {@link AssociationOptions.foreignKey}.
+   */
+  sourceKey?: keyof Attributes<Source>;
+
+  /**
+   * A string or a data type to represent the identifier in the table
+   */
+  keyType?: DataType;
+}
+
+/**
+ * The options for the getAssociation mixin of the hasOne association.
+ *
+ * @see HasOneGetAssociationMixin
+ */
+export interface HasOneGetAssociationMixinOptions extends FindOptions<any> {
+  /**
+   * Apply a scope on the related model, or remove its default scope by passing false.
+   */
+  scope?: string | string[] | boolean;
+}
+
+/**
+ * The getAssociation mixin applied to models with hasOne.
+ * An example of usage is as follows:
+ *
+ * ```js
+ *
+ * User.hasOne(Role);
+ *
+ * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
+ *  getRole: Sequelize.HasOneGetAssociationMixin<RoleInstance>;
+ *  // setRole...
+ *  // createRole...
+ * }
+ * ```
+ *
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+ * @see Instance
+ */
+export type HasOneGetAssociationMixin<TModel> = (options?: HasOneGetAssociationMixinOptions) => Promise<TModel>;
+
+/**
+ * The options for the setAssociation mixin of the hasOne association.
+ *
+ * @see HasOneSetAssociationMixin
+ */
+export interface HasOneSetAssociationMixinOptions extends HasOneGetAssociationMixinOptions, SaveOptions<any> {
+  /**
+   * Skip saving this after setting the foreign key if false.
+   */
+  save?: boolean;
+}
+
+/**
+ * The setAssociation mixin applied to models with hasOne.
+ * An example of usage is as follows:
+ *
+ * ```js
+ *
+ * User.hasOne(Role);
+ *
+ * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
+ *  // getRole...
+ *  setRole: Sequelize.HasOneSetAssociationMixin<RoleInstance, RoleId>;
+ *  // createRole...
+ * }
+ * ```
+ *
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+ * @see Instance
+ */
+export type HasOneSetAssociationMixin<TModel, TModelPrimaryKey> = (
+  newAssociation?: TModel | TModelPrimaryKey,
+  options?: HasOneSetAssociationMixinOptions
+) => Promise<void>;
+
+/**
+ * The options for the createAssociation mixin of the hasOne association.
+ *
+ * @see HasOneCreateAssociationMixin
+ */
+export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociationMixinOptions, CreateOptions<any> {}
+
+/**
+ * The createAssociation mixin applied to models with hasOne.
+ * An example of usage is as follows:
+ *
+ * ```js
+ *
+ * User.hasOne(Role);
+ *
+ * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
+ *  // getRole...
+ *  // setRole...
+ *  createRole: Sequelize.HasOneCreateAssociationMixin<RoleAttributes>;
+ * }
+ * ```
+ *
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+ * @see Instance
+ */
+export type HasOneCreateAssociationMixin<TModel extends Model> = (
+  values?: CreationAttributes<TModel>,
+  options?: HasOneCreateAssociationMixinOptions
+) => Promise<TModel>;

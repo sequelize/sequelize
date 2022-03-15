@@ -35,23 +35,6 @@ class HasMany extends Association {
       this.targetAssociation = this;
     }
 
-    if (this.as) {
-      this.isAliased = true;
-
-      if (_.isPlainObject(this.as)) {
-        this.options.name = this.as;
-        this.as = this.as.plural;
-      } else {
-        this.options.name = {
-          plural: this.as,
-          singular: Utils.singularize(this.as),
-        };
-      }
-    } else {
-      this.as = this.target.options.name.plural;
-      this.options.name = this.target.options.name;
-    }
-
     /*
      * Foreign key setup
      */

@@ -7,7 +7,7 @@ import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction } from './utils';
-import { LOCK, Transaction, Op } from './index';
+import { LOCK, Transaction, Op, PartlyRequired } from './index';
 import { SetRequired } from './utils/set-required';
 
 export interface Logging {
@@ -1663,7 +1663,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * The options that the model was initialized with
    */
-  public static readonly options: InitOptions;
+  public static readonly options: Omit<InitOptions, 'name'> & {
+    name: Required<PartlyRequired<InitOptions, 'name'>['name']>,
+  };
 
   // TODO [>7]: Remove `rawAttributes` in v8
   /**
@@ -1732,6 +1734,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: MS,
     attributes: ModelAttributes<M, Attributes<M>>, options: InitOptions<M>
   ): MS;
+
+  /**
+   * Checks whether an association with this name has already been registered.
+   *
+   * @param {string} alias
+   * @return {boolean}
+   */
+  static hasAlias(alias: string): boolean;
 
   /**
    * Remove attribute from model definition
@@ -2213,7 +2223,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: Omit<UpdateOptions<Attributes<M>>, 'returning'> 
+    options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
 
@@ -2664,7 +2674,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options Options for the association
    */
   public static hasOne<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasOneOptions
+    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasOneOptions<M>
   ): HasOne<M, T>;
 
   /**
