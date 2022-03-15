@@ -2142,33 +2142,165 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       mssql: '([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = N\'a project\'',
     });
 
-    describe('where()', () => {
-      testSql(where(fn('lower', col('name')), null), {
-        default: 'lower([name]) IS NULL',
+    describe('Op.and', () => {
+      it('and() is the same as Op.and', () => {
+        expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
       });
 
-      testSql(where(col('name'), Op.eq, fn('NOW')), {
-        default: '[name] = NOW()',
+      // by default: it already is Op.and
+      testSql({ intAttr1: 1, intAttr2: 2 }, {
+        default: `[intAttr1] = 1 AND [intAttr2] = 2`,
       });
 
-      testSql.skip(
-        where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
-        { default: `[name] = '123' AND NOT ([name] = '456')` },
-      );
+      // top-level array is Op.and
+      testSql([{ intAttr1: 1 }, { intAttr1: 2 }], {
+        default: `([intAttr1] = 1 AND [intAttr1] = 2)`,
+      });
 
-      testSql.skip(
-        where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
-        { default: `[name] = '123' OR NOT ([name] = '456')` },
-      );
+      // $intAttr1$ doesn't override intAttr1
+      testSql({ intAttr1: 1, $intAttr1$: 2 }, {
+        default: `[intAttr1] = 1 AND [intAttr1] = 2`,
+      });
 
-      testSql(
-        where(col('name'), { [Op.not]: '123' }),
-        {
-          default: `[name] != '123'`,
-          mssql: `[name] != N'123'`,
+      // can pass a simple object
+      testSql({ [Op.and]: { intAttr1: 1, intAttr2: 2 } }, {
+        default: `([intAttr1] = 1 AND [intAttr2] = 2)`,
+      });
+
+      // can pass an array
+      testSql({ [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
+        default: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = '')`,
+        mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N'')`,
+      });
+
+      // can be used on attribute
+      testSql({ intAttr1: { [Op.and]: [1, { [Op.gt]: 1 }] } }, {
+        default: `([intAttr1] = 1 AND [intAttr1] > 1)`,
+      });
+
+      // @ts-expect-error -- cannot be used after operator
+      testSql.skip({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
+        default: new Error('Op.and cannot be used inside Op.gt'),
+      });
+    });
+
+    describe('Op.or', () => {
+      it('or() is the same as Op.or', () => {
+        expect(util.inspect(or('a', 'b'))).to.deep.equal(util.inspect({ [Op.or]: ['a', 'b'] }));
+      });
+
+      testSql(or([]), {
+        default: '0 = 1',
+      });
+
+      testSql(or({}), {
+        default: '0 = 1',
+      });
+
+      // can pass a simple object
+      testSql({ [Op.or]: { intAttr1: 1, intAttr2: 2 } }, {
+        default: `([intAttr1] = 1 OR [intAttr2] = 2)`,
+      });
+
+      // can pass an array
+      testSql({ [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
+        default: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = '')`,
+        mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N'')`,
+      });
+
+      // can be used on attribute
+      testSql({ intAttr1: { [Op.or]: [1, { [Op.gt]: 1 }] } }, {
+        default: `([intAttr1] = 1 OR [intAttr1] > 1)`,
+      });
+
+      // @ts-expect-error -- cannot be used after operator
+      testSql.skip({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
+        default: new Error('Op.or cannot be used inside Op.gt'),
+      });
+
+      testSql({
+        [Op.or]: {
+          intAttr1: [1, 3],
+          intAttr2: {
+            [Op.in]: [2, 4],
+          },
         },
-      );
+      }, {
+        default: '([intAttr1] IN (1, 3) OR [intAttr2] IN (2, 4))',
+      });
+    });
 
+    describe('Op.{and,or,not} combinations', () => {
+      // both can be used in the same object
+      testSql({
+        [Op.and]: { intAttr1: 1, intAttr2: 2 },
+        [Op.or]: { intAttr1: 1, intAttr2: 2 },
+      }, {
+        default: `([intAttr1] = 1 AND [intAttr2] = 2) AND ([intAttr1] = 1 OR [intAttr2] = 2)`,
+      });
+
+      // Op.or only applies to its direct Array, the nested array is still Op.and
+      testSql({
+        [Op.or]: [
+          [{ intAttr1: 1 }, { intAttr1: 2 }],
+          { intAttr1: 3 },
+        ],
+      }, {
+        default: '((([intAttr1] = 1 AND [intAttr1] = 2)) OR [intAttr1] = 3)',
+      });
+
+      // can be nested *after* attribute
+      testSql({
+        intAttr1: {
+          [Op.and]: [
+            1, 2,
+            { [Op.or]: [3, 4] },
+            { [Op.not]: 5 },
+            [6, 7],
+          ],
+        },
+      }, {
+        default: '([intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND [intAttr1] != 5 AND [intAttr1] IN (6, 7))',
+      });
+
+      // can be nested
+      testSql({
+        [Op.not]: {
+          [Op.and]: {
+            [Op.or]: {
+              [Op.and]: {
+                intAttr1: 1,
+                intAttr2: 2,
+              },
+            },
+          },
+        },
+      }, {
+        default: 'NOT (((([intAttr1] = 1 AND [intAttr2] = 2))))',
+      });
+
+      // Op.not, Op.and, Op.or can reside on the same object as attributes
+      testSql({
+        intAttr1: 1,
+        [Op.not]: {
+          intAttr1: { [Op.eq]: 2 },
+          [Op.and]: {
+            intAttr1: 3,
+            [Op.or]: {
+              intAttr1: 4,
+              [Op.and]: {
+                intAttr1: 5,
+                intAttr2: 6,
+              },
+            },
+          },
+        },
+      }, {
+        default: 'NOT (((([intAttr1] = 5 AND [intAttr2] = 6) OR [intAttr1] = 4) AND [intAttr1] = 3) AND [intAttr1] = 2) AND [intAttr1] = 1',
+      });
+    });
+
+    describe('where()', () => {
       {
         // @ts-expect-error -- 'intAttr1' is not a boolean and cannot be compared to the output of 'where'
         const ignore: TestModelWhere = { intAttr1: where(fn('lower', col('name')), null) };
@@ -2178,230 +2310,147 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         default: `[booleanAttr] = (lower([name]) IS NULL)`,
       });
 
-      testSql(where(fn('SUM', col('hours')), '>', 0), {
-        default: 'SUM([hours]) > 0',
-      });
-
-      testSql(where(fn('SUM', col('hours')), Op.gt, 0), {
-        default: 'SUM([hours]) > 0',
-      });
-
-      testSql(where(fn('lower', col('name')), Op.ne, null), {
-        default: 'lower([name]) IS NOT NULL',
-      });
-
-      testSql(where(fn('lower', col('name')), Op.not, null), {
-        default: 'lower([name]) IS NOT NULL',
-      });
-
-      testSql([
-        where(fn('SUM', col('hours')), Op.gt, 0),
-        where(fn('lower', col('name')), null),
-      ], {
-        default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)',
-      });
-
-      testSql(where(col('hours'), Op.between, [0, 5]), {
-        default: '[hours] BETWEEN 0 AND 5',
-      });
-
-      testSql(where(col('hours'), Op.notBetween, [0, 5]), {
-        default: '[hours] NOT BETWEEN 0 AND 5',
-      });
-
-      testSql.skip(where({ [Op.col]: 'hours' }, Op.notBetween, [0, 5]), {
-        default: '[hours] NOT BETWEEN 0 AND 5',
-      });
-
-      testSql.skip(where(cast({ [Op.col]: 'hours' }, 'integer'), Op.notBetween, [0, 5]), {
-        default: 'CAST([hours] AS INTEGER) NOT BETWEEN 0 AND 5',
-      });
-
-      testSql.skip(where(fn('SUM', { [Op.col]: 'hours' }), Op.notBetween, [0, 5]), {
-        default: 'SUM([hours]) NOT BETWEEN 0 AND 5',
-      });
-
-      testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
-        default: `'hours' = 'hours'`,
-        mssql: `'hours' = N'hours'`,
-      });
-
-      testSql(where(TestModel.getAttributes().intAttr1, Op.eq, 1), {
-        default: '[TestModel].[intAttr1] = 1',
-      });
-
-      // TODO - v7
-      // testSql.skip(where(1, 1), {
-      //   default: new Error('The operator must be specified when comparing two literals in where()'),
-      // });
-      //
-      // testSql.skip(where(1, Op.eq, 1), {
-      //   default: '1 = 1',
-      // });
-      //
-      // testSql.skip(where(1, Op.eq, col('col')), {
-      //   default: '1 = [col]',
-      // });
-      //
-      // testSql.skip(where('string', Op.eq, col('col')), {
-      //   default: `'string' = [col]`,
-      // });
-
-      describe('Op.and', () => {
-        it('and() is the same as Op.and', () => {
-          expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
+      describe('where(leftOperand, operator, rightOperand)', () => {
+        testSql(where(col('name'), Op.eq, fn('NOW')), {
+          default: '[name] = NOW()',
         });
 
-        // by default: it already is Op.and
-        testSql({ intAttr1: 1, intAttr2: 2 }, {
-          default: `[intAttr1] = 1 AND [intAttr2] = 2`,
+        // some dialects support having a filter inside aggregate functions:
+        //  https://github.com/sequelize/sequelize/issues/6666
+        testSql(where(fn('sum', { id: 1 }), Op.eq, 1), {
+          default: 'sum([id] = 1) = 1',
         });
 
-        // top-level array is Op.and
-        testSql([{ intAttr1: 1 }, { intAttr1: 2 }], {
-          default: `([intAttr1] = 1 AND [intAttr1] = 2)`,
+        // some dialects support having a filter inside aggregate functions, but require casting:
+        //  https://github.com/sequelize/sequelize/issues/6666
+        testSql(where(fn('sum', cast({ id: 1 }, 'int')), Op.eq, 1), {
+          default: 'sum(CAST([id] = 1 AS INT)) = 1',
         });
 
-        // $intAttr1$ doesn't override intAttr1
-        testSql({ intAttr1: 1, $intAttr1$: 2 }, {
-          default: `[intAttr1] = 1 AND [intAttr1] = 2`,
-        });
-
-        // can pass a simple object
-        testSql({ [Op.and]: { intAttr1: 1, intAttr2: 2 } }, {
-          default: `([intAttr1] = 1 AND [intAttr2] = 2)`,
-        });
-
-        // can pass an array
-        testSql({ [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
-          default: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = '')`,
-          mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N'')`,
-        });
-
-        // can be used on attribute
-        testSql({ intAttr1: { [Op.and]: [1, { [Op.gt]: 1 }] } }, {
-          default: `([intAttr1] = 1 AND [intAttr1] > 1)`,
-        });
-
-        // @ts-expect-error -- cannot be used after operator
-        testSql.skip({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
-          default: new Error('Op.and cannot be used inside Op.gt'),
-        });
-      });
-
-      describe('Op.or', () => {
-        it('or() is the same as Op.or', () => {
-          expect(util.inspect(or('a', 'b'))).to.deep.equal(util.inspect({ [Op.or]: ['a', 'b'] }));
-        });
-
-        testSql(or([]), {
-          default: '0 = 1',
-        });
-
-        testSql(or({}), {
-          default: '0 = 1',
-        });
-
-        // can pass a simple object
-        testSql({ [Op.or]: { intAttr1: 1, intAttr2: 2 } }, {
-          default: `([intAttr1] = 1 OR [intAttr2] = 2)`,
-        });
-
-        // can pass an array
-        testSql({ [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
-          default: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = '')`,
-          mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N'')`,
-        });
-
-        // can be used on attribute
-        testSql({ intAttr1: { [Op.or]: [1, { [Op.gt]: 1 }] } }, {
-          default: `([intAttr1] = 1 OR [intAttr1] > 1)`,
-        });
-
-        // @ts-expect-error -- cannot be used after operator
-        testSql.skip({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
-          default: new Error('Op.or cannot be used inside Op.gt'),
-        });
-
-        testSql({
-          [Op.or]: {
-            intAttr1: [1, 3],
-            intAttr2: {
-              [Op.in]: [2, 4],
-            },
+        // comparing the output of `where` to `where`
+        testSql.skip(
+          where(
+            where(col('col'), Op.eq, '1'),
+            Op.eq,
+            where(col('col'), Op.eq, '2'),
+          ),
+          {
+            default: '([col] = 1) = ([col] = 2)',
           },
-        }, {
-          default: '([intAttr1] IN (1, 3) OR [intAttr2] IN (2, 4))',
+        );
+
+        // TODO: v7
+        // comparing literals
+        // testSql(
+        //   // @ts-expect-error -- not yet supported
+        //   where(1, Op.eq, 2),
+        //   {
+        //     default: '1 = 2',
+        //   },
+        // );
+
+        // testSql.skip(where(1, Op.eq, col('col')), {
+        //   default: '1 = [col]',
+        // });
+        //
+        // testSql.skip(where('string', Op.eq, col('col')), {
+        //   default: `'string' = [col]`,
+        // });
+
+        testSql.skip(
+          // @ts-expect-error -- not yet supported
+          where('a', Op.eq, 'b'),
+          {
+            default: `N'a' = N'b'`,
+          },
+        );
+
+        // TODO: remove support for string operators.
+        //  They're inconsistent. It's better to use a literal or a supported Operator.
+        testSql(where(fn('SUM', col('hours')), '>', 0), {
+          default: 'SUM([hours]) > 0',
+        });
+
+        testSql(where(fn('SUM', col('hours')), Op.gt, 0), {
+          default: 'SUM([hours]) > 0',
+        });
+
+        testSql(where(fn('lower', col('name')), Op.ne, null), {
+          default: 'lower([name]) IS NOT NULL',
+        });
+
+        testSql(where(fn('lower', col('name')), Op.not, null), {
+          default: 'lower([name]) IS NOT NULL',
+        });
+
+        testSql(where(col('hours'), Op.between, [0, 5]), {
+          default: '[hours] BETWEEN 0 AND 5',
+        });
+
+        testSql(where(col('hours'), Op.notBetween, [0, 5]), {
+          default: '[hours] NOT BETWEEN 0 AND 5',
+        });
+
+        testSql.skip(where({ [Op.col]: 'hours' }, Op.notBetween, [0, 5]), {
+          default: '[hours] NOT BETWEEN 0 AND 5',
+        });
+
+        testSql.skip(where(cast({ [Op.col]: 'hours' }, 'integer'), Op.notBetween, [0, 5]), {
+          default: 'CAST([hours] AS INTEGER) NOT BETWEEN 0 AND 5',
+        });
+
+        testSql.skip(where(fn('SUM', { [Op.col]: 'hours' }), Op.notBetween, [0, 5]), {
+          default: 'SUM([hours]) NOT BETWEEN 0 AND 5',
+        });
+
+        testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
+          default: `'hours' = 'hours'`,
+          mssql: `'hours' = N'hours'`,
+        });
+
+        // TODO: remove support for this:
+        //   - it only works as the first argument of where when 3 parameters are used.
+        //   - it's inconsistent with other ways to reference attributes.
+        //   - the following variant does not work: where(TestModel.getAttributes().intAttr1, { [Op.eq]: 1 })
+        //  to be replaced with Sequelize.attr()
+        testSql(where(TestModel.getAttributes().intAttr1, Op.eq, 1), {
+          default: '[TestModel].[intAttr1] = 1',
+        });
+
+        testSql.skip(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
+          default: new Error('Unexpected operator Op.in'),
         });
       });
 
-      describe('Op.{and,or,not} combinations', () => {
-        // both can be used in the same object
-        testSql({
-          [Op.and]: { intAttr1: 1, intAttr2: 2 },
-          [Op.or]: { intAttr1: 1, intAttr2: 2 },
-        }, {
-          default: `([intAttr1] = 1 AND [intAttr2] = 2) AND ([intAttr1] = 1 OR [intAttr2] = 2)`,
+      describe('where(leftOperand, whereAttributeHashValue)', () => {
+        testSql(where(fn('lower', col('name')), null), {
+          default: 'lower([name]) IS NULL',
         });
 
-        // Op.or only applies to its direct Array, the nested array is still Op.and
-        testSql({
-          [Op.or]: [
-            [{ intAttr1: 1 }, { intAttr1: 2 }],
-            { intAttr1: 3 },
-          ],
-        }, {
-          default: '((([intAttr1] = 1 AND [intAttr1] = 2)) OR [intAttr1] = 3)',
+        testSql(where(cast(col('name'), 'int'), { [Op.eq]: 10 }), {
+          default: 'CAST([name] AS INT) = 10',
         });
 
-        // can be nested *after* attribute
-        testSql({
-          intAttr1: {
-            [Op.and]: [
-              1, 2,
-              { [Op.or]: [3, 4] },
-              { [Op.not]: 5 },
-              [6, 7],
-            ],
+        testSql.skip(
+          where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
+          { default: `[name] = '123' AND NOT ([name] = '456')` },
+        );
+
+        testSql.skip(
+          where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
+          { default: `[name] = '123' OR NOT ([name] = '456')` },
+        );
+
+        testSql(
+          where(col('name'), { [Op.not]: '123' }),
+          {
+            default: `[name] != '123'`,
+            mssql: `[name] != N'123'`,
           },
-        }, {
-          default: '([intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND [intAttr1] != 5 AND [intAttr1] IN (6, 7))',
-        });
+        );
 
-        // can be nested
-        testSql({
-          [Op.not]: {
-            [Op.and]: {
-              [Op.or]: {
-                [Op.and]: {
-                  intAttr1: 1,
-                  intAttr2: 2,
-                },
-              },
-            },
-          },
-        }, {
-          default: 'NOT (((([intAttr1] = 1 AND [intAttr2] = 2))))',
-        });
-
-        // Op.not, Op.and, Op.or can reside on the same object as attributes
-        testSql({
-          intAttr1: 1,
-          [Op.not]: {
-            intAttr1: { [Op.eq]: 2 },
-            [Op.and]: {
-              intAttr1: 3,
-              [Op.or]: {
-                intAttr1: 4,
-                [Op.and]: {
-                  intAttr1: 5,
-                  intAttr2: 6,
-                },
-              },
-            },
-          },
-        }, {
-          default: 'NOT (((([intAttr1] = 5 AND [intAttr2] = 6) OR [intAttr1] = 4) AND [intAttr1] = 3) AND [intAttr1] = 2) AND [intAttr1] = 1',
+        testSql(where(col('col'), { [Op.and]: [1, 2] }), {
+          default: '([col] = 1 AND [col] = 2)',
         });
       });
     });

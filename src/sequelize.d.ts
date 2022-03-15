@@ -21,12 +21,12 @@ import {
   ModelType,
   CreationAttributes,
   Attributes,
-  WhereAttributeHash, 
-  ColumnReference,
+  WhereAttributeHash,
+  ColumnReference, WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';
-import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, SequelizeMethod, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
@@ -1451,7 +1451,10 @@ export class Sequelize extends Hooks {
  * @param fn The function you want to call
  * @param args All further arguments will be passed as arguments to the function
  */
-export function fn(fn: string, ...args: unknown[]): Fn;
+export function fn(
+  fn: string,
+  ...args: Fn['args']
+): Fn;
 
 /**
  * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -1537,9 +1540,9 @@ export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttr
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq] | WhereAttributeHash): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand | Where, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: any, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
 
 type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;

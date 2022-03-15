@@ -238,6 +238,7 @@ type StaticValues<Type> =
  *
  * See https://sequelize.org/master/en/v3/docs/querying/#operators
  */
+// TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
    /**
     * @example: `[Op.eq]: 6,` becomes `= 6`
@@ -592,7 +593,10 @@ export type WhereAttributeHash<TAttributes = any> = {
   [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>;
 }
 
-type WhereAttributeHashValue<AttributeType> =
+/**
+ * Types that can be compared to an attribute in a WHERE context.
+ */
+export type WhereAttributeHashValue<AttributeType> =
   | AllowNotOrAndRecursive<
     // if the right-hand side is an array, it will be equal to Op.in
     // otherwise it will be equal to Op.eq
