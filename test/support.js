@@ -249,7 +249,7 @@ const Support = {
   },
 
   addDualInSelect() { 
-    return this.getTestDialect() === 'oracle'? ' FROM DUAL': '';
+    return this.getTestDialect() === 'oracle' ? ' FROM DUAL' : '';
   }
 };
 

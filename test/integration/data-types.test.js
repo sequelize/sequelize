@@ -39,13 +39,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     let bindParam;
     if (dialect === 'oracle') {
       bindParam = Sequelize.DATE.prototype.bindParam = sinon.spy(function(value, options) {
-          if (!moment.isMoment(value)) {
-            value = this._applyTimezone(value, options);
-          }
-          // For ORACLE, use TO_DATE()
-          const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
-          const format = 'YYYY-MM-DD HH24:mi:ss';
-          return `TO_DATE('${formatedDate}', '${format}')`;
+        if (!moment.isMoment(value)) {
+          value = this._applyTimezone(value, options);
+        }
+        // For ORACLE, use TO_DATE()
+        const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
+        const format = 'YYYY-MM-DD HH24:mi:ss';
+        return `TO_DATE('${formatedDate}', '${format}')`;
       });
     }
 
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       // the boolean param (if so it outputs a Buffer bind param). This override
       // isn't needed for other dialects
       if (dialect === 'oracle') {
-        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } }, {useBindParam: true});
+        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } }, { useBindParam: true });
       } else {
         await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
       }
@@ -212,7 +212,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'oracle') {
-      await testSuccess(Type, 'foobar', {useBindParam: true});
+      await testSuccess(Type, 'foobar', { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
     }

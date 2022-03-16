@@ -45,10 +45,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             '  V_COUNT INTEGER;',
             'BEGIN',
             '  V_COUNT := 0;',
-            `  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = 'V_FAIL';`,
+            '  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = \'V_FAIL\';',
             '  IF V_COUNT != 0 THEN',
             '    EXECUTE IMMEDIATE ',
-            `'DROP VIEW V_Fail'`,
+            '\'DROP VIEW V_Fail\'',
             ';',
             '  END IF;',
             'END;'
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      await this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id' + Support.addDualInSelect());
+      await this.sequelize.query(`CREATE VIEW V_Fail AS SELECT 1 Id${  Support.addDualInSelect()}`);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
       if (tableNames[0] && tableNames[0].tableName) {
@@ -639,7 +639,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: (dialect !== 'oracle') ?  'cascade' : null,
+          onUpdate: dialect !== 'oracle' ?  'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');

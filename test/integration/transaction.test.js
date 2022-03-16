@@ -88,7 +88,7 @@ if (current.dialect.supports.transactions) {
           await this.sequelize.transaction(t => {
             transaction = t;
             transaction.afterCommit(hook);
-            return this.sequelize.query('SELECT 1+1' + Support.addDualInSelect(), { transaction, type: QueryTypes.SELECT });
+            return this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction, type: QueryTypes.SELECT });
           });
 
           expect(hook).to.have.been.calledOnce;
@@ -189,24 +189,24 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries after commit', async function() {
       const t = await this.sequelize.transaction();
-      await this.sequelize.query('SELECT 1+1' + Support.addDualInSelect(), { transaction: t, raw: true });
+      await this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true });
       await t.commit();
-      await expect(this.sequelize.query('SELECT 1+1' + Support.addDualInSelect(), { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+      await expect(this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
         Error,
         /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
-      ).and.have.deep.property('sql').that.equal('SELECT 1+1' + Support.addDualInSelect());
+      ).and.have.deep.property('sql').that.equal(`SELECT 1+1${  Support.addDualInSelect()}`);
     });
 
     it('does not allow queries immediately after commit call', async function() {
       await expect((async () => {
         const t = await this.sequelize.transaction();
-        await this.sequelize.query('SELECT 1+1' + Support.addDualInSelect(), { transaction: t, raw: true });
+        await this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true });
         await Promise.all([
           expect(t.commit()).to.eventually.be.fulfilled,
-          expect(this.sequelize.query('SELECT 1+1' + Support.addDualInSelect(), { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+          expect(this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
             Error,
             /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
-          ).and.have.deep.property('sql').that.equal('SELECT 1+1' + Support.addDualInSelect())
+          ).and.have.deep.property('sql').that.equal(`SELECT 1+1${  Support.addDualInSelect()}`)
         ]);
       })()).to.be.eventually.fulfilled;
     });

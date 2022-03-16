@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\'',
             sqlite: "DELETE FROM `public.test_users` WHERE `name` = 'foo'",
-            oracle: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'`,
+            oracle: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql: "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;"
           }
         );
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mariadb: "DELETE FROM `public`.`test_users` WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
             sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
             mssql: "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
-            oracle: `DELETE FROM "public"."test_users" WHERE rowid IN (SELECT rowid FROM "public"."test_users" WHERE rownum <= 10 AND "name" = 'foo'';DROP TABLE mySchema.myTable;')`,
+            oracle: 'DELETE FROM "public"."test_users" WHERE rowid IN (SELECT rowid FROM "public"."test_users" WHERE rownum <= 10 AND "name" = \'foo\'\';DROP TABLE mySchema.myTable;\')',
             default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
         );
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mariadb: "DELETE FROM `public`.`test_users` WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
             sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
             mssql: "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
-            oracle: `DELETE FROM "public"."test_users" WHERE rowid IN (SELECT rowid FROM "public"."test_users" WHERE rownum <= 10 AND "name" = 'foo'';DROP TABLE mySchema.myTable;')`,
+            oracle: 'DELETE FROM "public"."test_users" WHERE rowid IN (SELECT rowid FROM "public"."test_users" WHERE rownum <= 10 AND "name" = \'foo\'\';DROP TABLE mySchema.myTable;\')',
             default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
         );
