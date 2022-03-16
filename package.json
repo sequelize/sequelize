@@ -60,7 +60,7 @@
     "@commitlint/cli": "16.2.3",
     "@commitlint/config-angular": "16.2.3",
     "@ephys/eslint-config-typescript": "16.0.2",
-    "@rushstack/eslint-patch": "1.1.0",
+    "@rushstack/eslint-patch": "1.1.1",
     "@types/chai": "4.3.0",
     "@types/lodash": "4.14.180",
     "@types/mocha": "9.1.0",
