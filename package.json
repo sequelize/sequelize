@@ -57,8 +57,8 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "16.2.1",
-    "@commitlint/config-angular": "16.2.1",
+    "@commitlint/cli": "16.2.3",
+    "@commitlint/config-angular": "16.2.3",
     "@ephys/eslint-config-typescript": "16.0.2",
     "@rushstack/eslint-patch": "1.1.0",
     "@types/chai": "4.3.0",
