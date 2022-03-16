@@ -346,7 +346,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
         mssql: 'GETDATE()',
-        oracle: "SYSDATE"
+        oracle: 'SYSDATE'
       });
     });
 
