@@ -1562,15 +1562,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let sql = (dialect !== 'oracle') ? 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'' : 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'';
+      let sql = dialect !== 'oracle' ? 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'' : 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'';
       let result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      sql = (dialect !== 'oracle') ? 'SELECT * FROM paranoidusers WHERE username=\'Tony\'' : 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'';
+      sql = dialect !== 'oracle' ? 'SELECT * FROM paranoidusers WHERE username=\'Tony\'' : 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'';
       result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      sql = (dialect !== 'oracle') ? 'SELECT * FROM paranoidusers' : 'SELECT * FROM "paranoidusers"';
+      sql = dialect !== 'oracle' ? 'SELECT * FROM paranoidusers' : 'SELECT * FROM "paranoidusers"';
       const [users] = await this.sequelize.query(sql, { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
@@ -2148,7 +2148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else if (dialect === 'mssql') {
             expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
           } else if (dialect === 'oracle') {
-            expect(sql).to.match(/REFERENCES\s+\"prefix\"\.\"UserPubs\" \(\"id\"\)/);
+            expect(sql).to.match(/REFERENCES\s+"prefix"."UserPubs" \("id"\)/);
           } else if (dialect === 'mariadb') {
             expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
           } else {
@@ -2259,7 +2259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'oracle') {
-          expect(sql).to.match(/FOREIGN KEY \(\"authorId\"\) REFERENCES \"authors\" \(\"id\"\)/);
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else {
@@ -2287,7 +2287,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'oracle') {
-          expect(sql).to.match(/FOREIGN KEY \(\"authorId\"\) REFERENCES \"authors\" \(\"id\"\)/);
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else {
           throw new Error('Undefined dialect!');
         }

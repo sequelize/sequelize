@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        oracle: `LEFT OUTER JOIN "company" "Company" ON "User"."company_id" = "Company"."id"`,
+        oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."company_id" = "Company"."id"',
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]'
       }
     );
@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
         sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
-        oracle: `INNER JOIN "company" "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = '1'`,
+        oracle: 'INNER JOIN "company" "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = \'1\'',
         mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1'
       }
     );
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       {
         default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
-        oracle: `LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id" AND "Company"."name" = 'ABC'`,
+        oracle: 'LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id" AND "Company"."name" = \'ABC\'',
         mssql: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'"
         
       }
@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       { 
         oracle: 'LEFT OUTER JOIN "profession" "Company->Owner->Profession" ON "Company->Owner"."professionId" = "Company->Owner->Profession"."id"',
         default: 'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]'
-     }
+      }
     );
 
     testsql(
@@ -324,8 +324,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       }, 
       {
-         oracle: 'LEFT OUTER JOIN "task" "Tasks" ON ("User"."id_user" = "Tasks"."user_id" OR "Tasks"."user_id" = 2)',
-         default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)' 
+        oracle: 'LEFT OUTER JOIN "task" "Tasks" ON ("User"."id_user" = "Tasks"."user_id" OR "Tasks"."user_id" = 2)',
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)' 
       }
     );
 

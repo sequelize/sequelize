@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: " LIMIT ''';DELETE FROM user'",
       mariadb: " LIMIT '\\';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user'",
-      oracle: " OFFSET 0 ROWS FETCH NEXT ''';DELETE FROM user\' ROWS ONLY",
+      oracle: " OFFSET 0 ROWS FETCH NEXT ''';DELETE FROM user' ROWS ONLY",
       mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
     });
 

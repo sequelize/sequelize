@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const moment = require('moment');
 
 const qq = str => {
-  if (dialect === 'postgres' || dialect === 'mssql' || (dialect === 'oracle')) {
+  if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') {
     return `"${str}"`;
   }
   if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
@@ -22,7 +22,7 @@ const dateLiteral = str => {
   if (dialect === 'oracle') {
     return `to_date('${str}','YYYY-MM-DD HH24:MI:SS')`;
   }
-  return `'${str}'`
+  return `'${str}'`;
 };
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('add parameters in log sql when use bind value', async function() {
           let logSql;
           const typeCast = dialect === 'postgres' ? '::text' : '';
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}` , { bind: ['foo', 'bar'], logging: s=>logSql = s });
+          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}`, { bind: ['foo', 'bar'], logging: s=>logSql = s });
           expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
         });
       });
@@ -460,7 +460,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           this.values = [1, 2];
         }
         get query() {
-          return (dialect !== 'oracle') ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
+          return dialect !== 'oracle' ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
         }
       }
       const result = await this.sequelize.query(new SQLStatement(), { type: this.sequelize.QueryTypes.SELECT, logging: s => logSql = s } );
@@ -470,7 +470,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('uses properties `query` and `values` if query is tagged', async function() {
       let logSql;
-      const sql = (dialect !== 'oracle') ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
+      const sql = dialect !== 'oracle' ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
       const result = await this.sequelize.query({ query: sql, values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
       expect(logSql).to.not.include('?');
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
       const result = await this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: 2 } : { FOO: 1, BAR : 2 };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: 2 } : { FOO: 1, BAR: 2 };
       expect(result).to.deep.equal([expectedData]);
       if (dialect === 'postgres' || dialect === 'sqlite') {
         expect(logSql).to.include('$1');
@@ -509,31 +509,31 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('replaces token with the passed array', async function() {
-      const sql = (dialect !== 'oracle') ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
+      const sql = dialect !== 'oracle' ? 'select ? as foo, ? as bar' : 'select ? as "foo", ? as "bar" from dual';
       const result = await this.sequelize.query(sql, { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] });
       expect(result[0]).to.deep.equal({ foo: 1, bar: 2 });
     });
 
     it('replaces named parameters with the passed object', async function() {
-      const sql = (dialect === 'oracle') ?  'select :one as "foo", :two as "bar" from dual' : 'select :one as foo, :two as bar';
+      const sql = dialect === 'oracle' ?  'select :one as "foo", :two as "bar" from dual' : 'select :one as foo, :two as bar';
       await expect(this.sequelize.query(sql, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', async function() {
-      const sql = (dialect === 'oracle') ?  'select :one as "foo", :two as "bar", \'00:00\' as "baz" from dual' : 'select :one as foo, :two as bar, \'00:00\' as baz';
+      const sql = dialect === 'oracle' ?  'select :one as "foo", :two as "bar", \'00:00\' as "baz" from dual' : 'select :one as foo, :two as bar, \'00:00\' as baz';
       await expect(this.sequelize.query(sql, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
     it('replaces named parameters with the passed object using the same key twice', async function() {
-      const sql = (dialect === 'oracle') ?  'select :one as "foo", :two as "bar", :one as "baz" from dual' : 'select :one as foo, :two as bar, :one as baz';
+      const sql = dialect === 'oracle' ?  'select :one as "foo", :two as "bar", :one as "baz" from dual' : 'select :one as foo, :two as bar, :one as baz';
       await expect(this.sequelize.query(sql, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
     it('replaces named parameters with the passed object having a null property', async function() {
-      const sql = (dialect === 'oracle') ?  'select :one as "foo", :two as "bar" from dual' : 'select :one as foo, :two as bar';
+      const sql = dialect === 'oracle' ?  'select :one as "foo", :two as "bar" from dual' : 'select :one as foo, :two as bar';
       await expect(this.sequelize.query(sql, { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
@@ -542,7 +542,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: 2 } : { FOO: 1, BAR : 2 };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: 2 } : { FOO: 1, BAR: 2 };
       expect(result[0]).to.deep.equal(expectedData);
       if (dialect === 'postgres' || dialect === 'sqlite') {
         expect(logSql).to.include('$1');
@@ -553,7 +553,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
       const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${Support.addDualInSelect()}`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: 2 } : { FOO: 1, BAR : 2 };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: 2 } : { FOO: 1, BAR: 2 };
       expect(result[0]).to.deep.equal([expectedData]);
       if (dialect === 'postgres') {
         expect(logSql).to.include('$1');
@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
       const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${Support.addDualInSelect()}`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: 2, baz: 1 } : { FOO: 1, BAR: 2, BAZ: 1 };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: 2, baz: 1 } : { FOO: 1, BAR: 2, BAZ: 1 };
       expect(result[0]).to.deep.equal([expectedData]);
       if (dialect === 'postgres') {
         expect(logSql).to.include('$1');
@@ -579,7 +579,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters with the passed object having a null property', async function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${Support.addDualInSelect()}`, { raw: true, bind: { one: 1, two: null } });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: null } : { FOO: 1, BAR: null };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: null } : { FOO: 1, BAR: null };
       expect(result[0]).to.deep.equal([expectedData]);
     });
 
@@ -587,7 +587,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
       const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${Support.addDualInSelect()}`, { raw: true, bind: [1], logging(s) { logSql = s;} });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: '$ / $1' } : { FOO: 1, BAR: '$ / $1' };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: '$ / $1' } : { FOO: 1, BAR: '$ / $1' };
       expect(result[0]).to.deep.equal([expectedData]);
       if (dialect === 'postgres' || dialect === 'sqlite') {
         expect(logSql).to.include('$1');
@@ -597,21 +597,21 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters object handles escaped $$', async function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${Support.addDualInSelect()}`, { raw: true, bind: { one: 1 } });
-      const expectedData = (dialect !== 'oracle') ? { foo: 1, bar: '$ / $one' } : { FOO: 1, BAR: '$ / $one' };
+      const expectedData = dialect !== 'oracle' ? { foo: 1, bar: '$ / $one' } : { FOO: 1, BAR: '$ / $one' };
       expect(result[0]).to.deep.equal([expectedData]);
     });
 
     it('escape where has $ on the middle of characters', async function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${Support.addDualInSelect()}`, { raw: true, bind: { one: 1 } });
-      const expectedData = (dialect !== 'oracle') ? { foo$bar: 1 } : { FOO$BAR: 1 };
+      const expectedData = dialect !== 'oracle' ? { foo$bar: 1 } : { FOO$BAR: 1 };
       expect(result[0]).to.deep.equal([expectedData]);
     });
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql' || dialect === 'oracle') {
       it('does not improperly escape arrays of strings bound to named parameters', async function() {
-        const result = await this.sequelize.query('select :stringArray as foo' + Support.addDualInSelect(), { raw: true, replacements: { stringArray: ['"string"'] } });
-        const expectedData = (dialect !== 'oracle') ? { foo: '"string"' } : { FOO: '"string"' };
+        const result = await this.sequelize.query(`select :stringArray as foo${  Support.addDualInSelect()}`, { raw: true, replacements: { stringArray: ['"string"'] } });
+        const expectedData = dialect !== 'oracle' ? { foo: '"string"' } : { FOO: '"string"' };
         expect(result[0]).to.deep.equal([expectedData]);
       });
     }

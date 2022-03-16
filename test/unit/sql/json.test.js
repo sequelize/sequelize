@@ -84,7 +84,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("id"#>>\'{}\') = \'1\'',
             sqlite: "json_extract(`id`,'$') = '1'",
             mariadb: "json_unquote(json_extract(`id`,'$')) = '1'",
-            oracle: `json_value("id",'$') = '1'`,
+            oracle: 'json_value("id",\'$\') = \'1\'',
             mysql: "json_unquote(json_extract(`id`,'$')) = '1'"
           });
         });
@@ -94,7 +94,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`,'$.id') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-            oracle: `json_value("profile",'$."id"') = '1'`,
+            oracle: 'json_value("profile",\'$."id"\') = \'1\'',
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'"
           });
         });
@@ -104,7 +104,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
             sqlite: "json_extract(`property`,'$.value') = '1' AND json_extract(`another`,'$.value') = 'string'",
             mariadb: "json_unquote(json_extract(`property`,'$.value')) = '1' AND json_unquote(json_extract(`another`,'$.value')) = 'string'",
-            oracle: `json_value("property",'$."value"') = '1' AND json_value("another",'$."value"') = 'string'`,
+            oracle: 'json_value("property",\'$."value"\') = \'1\' AND json_value("another",\'$."value"\') = \'string\'',
             mysql: "json_unquote(json_extract(`property`,'$.\\\"value\\\"')) = '1' AND json_unquote(json_extract(`another`,'$.\\\"value\\\"')) = 'string'"
           });
         });
@@ -114,7 +114,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
             sqlite: "json_extract(`property`,'$[0][0]') = '4' AND json_extract(`property`,'$[0][1]') = '6' AND json_extract(`property`,'$[1][0]') = '8'",
             mariadb: "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'",
-            oracle: `json_value("property",'$[0][0]') = '4' AND json_value("property",'$[0][1]') = '6' AND json_value("property",'$[1][0]') = '8'`,
+            oracle: 'json_value("property",\'$[0][0]\') = \'4\' AND json_value("property",\'$[0][1]\') = \'6\' AND json_value("property",\'$[1][0]\') = \'8\'',
             mysql: "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'"
           });
         });
@@ -124,7 +124,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`,'$.id') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-            oracle: `json_value("profile",'$."id"') = '1'`,
+            oracle: 'json_value("profile",\'$."id"\') = \'1\'',
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'"
           });
         });
@@ -134,7 +134,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("profile"#>>\'{id,0,1}\') = \'1\'',
             sqlite: "json_extract(`profile`,'$.id[0][1]') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id[0][1]')) = '1'",
-            oracle: `json_value("profile",'$."id"[0][1]') = '1'`,
+            oracle: 'json_value("profile",\'$."id"[0][1]\') = \'1\'',
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"[0][1]')) = '1'"
           });
         });
@@ -144,7 +144,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("json"#>>\'{}\') = \'{}\'',
             sqlite: "json_extract(`json`,'$') = '{}'",
             mariadb: "json_unquote(json_extract(`json`,'$')) = '{}'",
-            oracle: `json_value("json",'$') = '{}'`,
+            oracle: 'json_value("json",\'$\') = \'{}\'',
             mysql: "json_unquote(json_extract(`json`,'$')) = '{}'"
           });
         });
@@ -166,9 +166,9 @@ if (current.dialect.supports.JSON) {
         });
 
         it('nested json functions', () => {
-          let rawJSON = current.dialect.name === 'oracle' ? 'json_value(json_object(\'{"profile":null}\'), "profile")' : 'json_extract(json_object(\'{"profile":null}\'), "profile")';
+          const rawJSON = current.dialect.name === 'oracle' ? 'json_value(json_object(\'{"profile":null}\'), "profile")' : 'json_extract(json_object(\'{"profile":null}\'), "profile")';
           expectsql(sql.handleSequelizeMethod(Sequelize.json(rawJSON)), {
-            oracle: `json_value(json_object('{"profile":null}'), "profile")`,
+            oracle: 'json_value(json_object(\'{"profile":null}\'), "profile")',
             default: 'json_extract(json_object(\'{"profile":null}\'), "profile")'
           });
         });
