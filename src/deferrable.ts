@@ -95,8 +95,6 @@ export class Deferrable {
   /**
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to immediately.
-   *
-   * @param constraints An array of constraint names. Will defer all constraints by default.
    */
   static readonly SET_IMMEDIATE = classToInvokable(class SET_IMMEDIATE extends Deferrable {
     readonly #constraints: string[];
