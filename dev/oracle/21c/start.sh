@@ -5,7 +5,7 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 # Cloning the docker-images repo from git
 if [ ! -d docker-images ]
 then
-    git clone git@github.com:oracle/docker-images.git
+    git clone https://github.com/oracle/docker-images.git
 fi
 # Building the Oracle DB container in docker
 ./docker-images/OracleDatabase/SingleInstance/dockerfiles/buildContainerImage.sh -v 21.3.0 -x

@@ -176,10 +176,38 @@ jobs:
         run: npm run test-unit
       - name: Integration Tests
         run: npm run test-integration
+  test-oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [12]
+    name: Oracle DB 21c (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: oracle
+      SEQ_ORACLE_USER: sequelizetest
+      SEQ_ORACLE_PW: sequelizepassword
+      SEQ_ORACLE_DB: XEPDB1
+      SEQ_ORACLE_HOST: localhost
+      SEQ_ORACLE_PORT: 51521
+      UV_THREADPOOL_SIZE: 128
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm run start-oracle
+      - run: npm install
+      - name: Unit Tests
+        run: npm run test-unit
+        continue-on-error: true
+      - name: Integration Tests
+        run: npm run test-integration
+        continue-on-error: true
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
+    needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql, test-oracle]
     if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
