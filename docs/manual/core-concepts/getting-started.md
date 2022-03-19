@@ -52,12 +52,13 @@ The Sequelize constructor accepts a lot of options. They are documented in the [
 You can use the `.authenticate()` function to test if the connection is OK:
 
 ```js
+(async () =>{
 try {
   await sequelize.authenticate();
   console.log('Connection has been established successfully.');
 } catch (error) {
   console.error('Unable to connect to the database:', error);
-}
+}})();
 ```
 
 ### Closing the connection
