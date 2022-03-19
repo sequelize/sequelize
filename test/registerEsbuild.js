@@ -1,13 +1,25 @@
 'use strict';
+
 const path = require('path');
 const hook = require('node-hook');
 const esbuild = require('esbuild');
 const moduleAlias = require('module-alias');
 const sourceMapSupport = require('source-map-support');
 
-const distDir = path.join(__dirname, '../dist');
-// make imports from `sequelize/` go to `../dist/`
-moduleAlias.addAlias('sequelize', distDir);
+const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
+
+// for node >= 12, we use the package.json "export" property to
+//  map imports to dist (except package.json)
+//  so '@sequelize/core/lib/errors" is actually mapped to "@sequelize/core/dist/errors/index.js'
+//  (see package.json).
+if (nodeMajorVersion < 12) {
+  const jsonFile = path.join(__dirname, '..', 'package.json');
+  moduleAlias.addAlias('@sequelize/core/package.json', jsonFile);
+
+  const distDir = path.join(__dirname, '..');
+  // make imports from `@sequelize/core/` go to `../dist/`
+  moduleAlias.addAlias('@sequelize/core', distDir);
+}
 
 const maps = {};
 
@@ -21,12 +33,12 @@ function installSourceMapSupport() {
       if (map) {
         return {
           url: null,
-          map
+          map,
         };
       }
 
       return null;
-    }
+    },
   });
 }
 
@@ -37,7 +49,7 @@ function compileFor(loader) {
       target: 'node10',
       format: 'cjs',
       sourcefile,
-      loader
+      loader,
     });
 
     if (Object.keys(maps).length === 0) {

@@ -12,10 +12,11 @@ const transformFiles = jetpack.find('./docs/transforms', { matching: '*.js' });
 const transforms = transformFiles.map(file => require(jetpack.path('.', file)));
 
 for (const htmlFile of htmlFiles) {
-  console.log(`Transform: ${htmlFile}`);
+  console.debug(`Transform: ${htmlFile}`);
   const $ = cheerio.load(jetpack.read(htmlFile));
   for (const transform of transforms) {
     transform($, htmlFile);
   }
+
   jetpack.write(htmlFile, $.html());
 }

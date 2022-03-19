@@ -1,8 +1,9 @@
 'use strict';
 
 const Support = require('../../support');
+
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 const moment = require('moment');
 
 if (dialect === 'snowflake') {
@@ -18,9 +19,10 @@ if (dialect === 'snowflake') {
             type: DataTypes.DATE,
             get() {
               const value = this.getDataValue('lastActivity');
+
               return value ? value.valueOf() : 0;
-            }
-          }
+            },
+          },
         });
 
         await User.sync({ force: true });
@@ -28,7 +30,7 @@ if (dialect === 'snowflake') {
         await User.create({ id: 2, username: 'jeff', lastActivity: moment(Date.UTC(2021, 5, 22)).format('YYYY-MM-DD HH:mm:ss Z') });
       });
 
-      after(async () =>{
+      after(async () => {
         await User.drop();
       });
 
@@ -36,8 +38,8 @@ if (dialect === 'snowflake') {
         const user = await User.findOne({
           where:
           {
-            username: 'jeff'
-          }
+            username: 'jeff',
+          },
         });
         user.id.should.equal(2);
       });
@@ -46,8 +48,8 @@ if (dialect === 'snowflake') {
         const user = await User.findOne({
           where:
           {
-            username: 'jeff'
-          }
+            username: 'jeff',
+          },
         });
         // user.lastActivity.should.be.equalTime(new Date(Date.UTC(2021, 5, 22)));
         user.lastActivity.should.equal(Date.UTC(2021, 5, 22));
@@ -57,22 +59,21 @@ if (dialect === 'snowflake') {
         const username = 'test';
         await User.create({ id: 3, username });
         const users = await User.findAll({
-          order: [['createdAt', 'ASC']]
+          order: [['createdAt', 'ASC']],
         });
-        await users[users.length - 1].username.should.equal(username);
+        await users.at(-1).username.should.equal(username);
       });
 
       it('Update', async () => {
         const res = await User.update({ username: 'jozef1' }, {
           where: {
-            id: 1
-          }
+            id: 1,
+          },
         });
         // https://github.com/sequelize/sequelize/issues/7184
         await res[0].should.equal(1);
       });
     });
-
 
     describe('[SNOWFLAKE Specific] Test for auto_increment', () => {
       let Task;
@@ -83,9 +84,9 @@ if (dialect === 'snowflake') {
           id: {
             type: 'INTEGER',
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
           },
-          taskName: DataTypes.STRING
+          taskName: DataTypes.STRING,
         });
 
         await Task.sync({ force: true });
@@ -93,7 +94,7 @@ if (dialect === 'snowflake') {
         await Task.create({ taskName: 'task2' });
       });
 
-      after(async () =>{
+      after(async () => {
         await Task.drop();
       });
 
@@ -101,8 +102,8 @@ if (dialect === 'snowflake') {
         const user = await Task.findOne({
           where:
           {
-            taskName: 'task2'
-          }
+            taskName: 'task2',
+          },
         });
         user.id.should.equal(2);
       });

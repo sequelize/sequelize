@@ -1,12 +1,15 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  current = Support.sequelize,
-  cls = require('cls-hooked'),
-  sinon = require('sinon'),
-  stub = sinon.stub;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+
+const current = Support.sequelize;
+const cls = require('cls-hooked');
+const sinon = require('sinon');
+
+const stub = sinon.stub;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOrCreate', () => {
@@ -19,9 +22,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       delete current.constructor._cls;
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.User = current.define('User', {}, {
-        name: 'John'
+        name: 'John',
       });
 
       this.transactionStub = stub(this.User.sequelize, 'transaction').rejects(new Error('abort'));
@@ -29,40 +32,46 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.clsStub = stub(current.constructor._cls, 'get').returns({ id: 123 });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.transactionStub.restore();
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', async function() {
+    it('should use transaction from cls if available', async function () {
       const options = {
         where: {
-          name: 'John'
-        }
+          name: 'John',
+        },
       };
 
       try {
         await this.User.findOrCreate(options);
         expect.fail('expected to fail');
-      } catch (err) {
-        if (!/abort/.test(err.message)) throw err;
+      } catch (error) {
+        if (!/abort/.test(error.message)) {
+          throw error;
+        }
+
         expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
       }
     });
 
-    it('should not use transaction from cls if provided as argument', async function() {
+    it('should not use transaction from cls if provided as argument', async function () {
       const options = {
         where: {
-          name: 'John'
+          name: 'John',
         },
-        transaction: { id: 123 }
+        transaction: { id: 123 },
       };
 
       try {
         await this.User.findOrCreate(options);
         expect.fail('expected to fail');
-      } catch (err) {
-        if (!/abort/.test(err.message)) throw err;
+      } catch (error) {
+        if (!/abort/.test(error.message)) {
+          throw error;
+        }
+
         expect(this.clsStub.called).to.equal(false);
       }
     });

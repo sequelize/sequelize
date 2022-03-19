@@ -1,13 +1,13 @@
 'use strict';
 
-const _ = require('lodash');
 const jetpack = require('fs-jetpack');
 const { normalize } = require('path');
 const assert = require('assert');
 
 function getDeclaredManuals() {
   const declaredManualGroups = require('./manual-groups.json');
-  return _.flatten(Object.values(declaredManualGroups)).map(file => {
+
+  return Object.values(declaredManualGroups).flat().map(file => {
     return normalize(`./docs/manual/${file}`);
   });
 }
@@ -29,7 +29,7 @@ function checkManuals() {
   for (const manualRelativePath of all) {
     assert(
       /^#[^#]/.test(jetpack.read(manualRelativePath)),
-      `Manual '${manualRelativePath}' must begin with a single '#'`
+      `Manual '${manualRelativePath}' must begin with a single '#'`,
     );
   }
 }

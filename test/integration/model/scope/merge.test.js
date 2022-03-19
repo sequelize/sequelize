@@ -1,15 +1,15 @@
 'use strict';
 
-const chai = require('chai'),
-  Sequelize = require('sequelize'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  combinatorics = require('js-combinatorics');
+const chai = require('chai');
+const Sequelize = require('@sequelize/core');
+
+const expect = chai.expect;
+const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('simple merge', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
         this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
         this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
@@ -20,12 +20,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.createEntries = async () => {
           const baz = await this.Baz.create({ name: 'The Baz' });
           const foo = await this.Foo.create({ name: 'The Foo', bazId: baz.id });
+
           return this.Bar.create({ name: 'The Bar', fooId: foo.id });
         };
 
         this.scopes = {
           includeBar: { include: this.Bar },
-          includeBaz: { include: this.Baz }
+          includeBaz: { include: this.Baz },
         };
 
         this.Foo.addScope('includeBar', this.scopes.includeBar);
@@ -34,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.createEntries(await this.sequelize.sync({ force: true }));
       });
 
-      it('should merge simple scopes correctly', async function() {
+      it('should merge simple scopes correctly', async function () {
         const result = await this.Foo.scope('includeBar', 'includeBaz').findOne();
         const json = result.toJSON();
         expect(json.bar).to.be.ok;
@@ -45,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     });
     describe('complex merge', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
         this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
         this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
@@ -61,31 +62,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             name: 'bar1',
             bazs: [{
               name: 'baz1',
-              quxes: [{ name: 'qux1' }, { name: 'qux2' }]
+              quxes: [{ name: 'qux1' }, { name: 'qux2' }],
             }, {
               name: 'baz2',
-              quxes: [{ name: 'qux3' }, { name: 'qux4' }]
-            }]
+              quxes: [{ name: 'qux3' }, { name: 'qux4' }],
+            }],
           }, {
             name: 'bar2',
             bazs: [{
               name: 'baz3',
-              quxes: [{ name: 'qux5' }, { name: 'qux6' }]
+              quxes: [{ name: 'qux5' }, { name: 'qux6' }],
             }, {
               name: 'baz4',
-              quxes: [{ name: 'qux7' }, { name: 'qux8' }]
-            }]
-          }]
+              quxes: [{ name: 'qux7' }, { name: 'qux8' }],
+            }],
+          }],
         }, {
           include: [{
             model: this.Bar,
             include: [{
               model: this.Baz,
               include: [{
-                model: this.Qux
-              }]
-            }]
-          }]
+                model: this.Qux,
+              }],
+            }],
+          }],
         });
 
         this.scopes = {
@@ -94,24 +95,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               model: this.Bar,
               include: [{
                 model: this.Baz,
-                include: this.Qux
-              }]
-            }
+                include: this.Qux,
+              }],
+            },
           },
           limitedBars: {
             include: [{
               model: this.Bar,
-              limit: 2
-            }]
+              limit: 2,
+            }],
           },
           limitedBazs: {
             include: [{
               model: this.Bar,
               include: [{
                 model: this.Baz,
-                limit: 2
-              }]
-            }]
+                limit: 2,
+              }],
+            }],
           },
           excludeBazName: {
             include: [{
@@ -119,11 +120,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               include: [{
                 model: this.Baz,
                 attributes: {
-                  exclude: ['name']
-                }
-              }]
-            }]
-          }
+                  exclude: ['name'],
+                },
+              }],
+            }],
+          },
         };
 
         this.Foo.addScope('includeEverything', this.scopes.includeEverything);
@@ -131,17 +132,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Foo.addScope('limitedBazs', this.scopes.limitedBazs);
         this.Foo.addScope('excludeBazName', this.scopes.excludeBazName);
 
-        this.scopePermutations = combinatorics.permutation([
-          'includeEverything',
-          'limitedBars',
-          'limitedBazs',
-          'excludeBazName'
-        ]).toArray();
+        this.scopePermutations = [
+          ['includeEverything', 'limitedBars', 'limitedBazs', 'excludeBazName'],
+          ['includeEverything', 'limitedBars', 'excludeBazName', 'limitedBazs'],
+          ['includeEverything', 'limitedBazs', 'limitedBars', 'excludeBazName'],
+          ['includeEverything', 'limitedBazs', 'excludeBazName', 'limitedBars'],
+          ['includeEverything', 'excludeBazName', 'limitedBars', 'limitedBazs'],
+          ['includeEverything', 'excludeBazName', 'limitedBazs', 'limitedBars'],
+          ['limitedBars', 'includeEverything', 'limitedBazs', 'excludeBazName'],
+          ['limitedBars', 'includeEverything', 'excludeBazName', 'limitedBazs'],
+          ['limitedBars', 'limitedBazs', 'includeEverything', 'excludeBazName'],
+          ['limitedBars', 'limitedBazs', 'excludeBazName', 'includeEverything'],
+          ['limitedBars', 'excludeBazName', 'includeEverything', 'limitedBazs'],
+          ['limitedBars', 'excludeBazName', 'limitedBazs', 'includeEverything'],
+          ['limitedBazs', 'includeEverything', 'limitedBars', 'excludeBazName'],
+          ['limitedBazs', 'includeEverything', 'excludeBazName', 'limitedBars'],
+          ['limitedBazs', 'limitedBars', 'includeEverything', 'excludeBazName'],
+          ['limitedBazs', 'limitedBars', 'excludeBazName', 'includeEverything'],
+          ['limitedBazs', 'excludeBazName', 'includeEverything', 'limitedBars'],
+          ['limitedBazs', 'excludeBazName', 'limitedBars', 'includeEverything'],
+          ['excludeBazName', 'includeEverything', 'limitedBars', 'limitedBazs'],
+          ['excludeBazName', 'includeEverything', 'limitedBazs', 'limitedBars'],
+          ['excludeBazName', 'limitedBars', 'includeEverything', 'limitedBazs'],
+          ['excludeBazName', 'limitedBars', 'limitedBazs', 'includeEverything'],
+          ['excludeBazName', 'limitedBazs', 'includeEverything', 'limitedBars'],
+          ['excludeBazName', 'limitedBazs', 'limitedBars', 'includeEverything'],
+        ];
 
         await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });
 
-      it('should merge complex scopes correctly regardless of their order', async function() {
+      it('[Flaky] should merge complex scopes correctly regardless of their order', async function () {
+        // flaky test - sometimes it gets to:
+        // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
+        // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
         const results = await Promise.all(this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()));
         const first = results.shift().toJSON();
         for (const result of results) {
@@ -149,9 +173,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      it('should merge complex scopes with findAll options correctly regardless of their order', async function() {
+      it('should merge complex scopes with findAll options correctly regardless of their order', async function () {
         const results = await Promise.all(this.scopePermutations.map(async ([a, b, c, d]) => {
           const x = await this.Foo.scope(a, b, c).findAll(this.scopes[d]);
+
           return x[0];
         }));
 
@@ -161,10 +186,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      it('should merge complex scopes with findOne options correctly regardless of their order', async function() {
+      it('[Flaky] should merge complex scopes with findOne options correctly regardless of their order', async function () {
         const results = await Promise.all(this.scopePermutations.map(([a, b, c, d]) => this.Foo.scope(a, b, c).findOne(this.scopes[d])));
         const first = results.shift().toJSON();
         for (const result of results) {
+          // flaky test - sometimes it gets to:
+          // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
+          // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
           expect(result.toJSON()).to.deep.equal(first);
         }
       });

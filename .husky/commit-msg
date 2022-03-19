@@ -1,4 +1,20 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn commitlint --edit $1
+BOLD_RED="\033[1;31m"
+BOLD_WHITE="\033[1;37m"
+YELLOW="\033[33m"
+WHITE="\033[37m"
+RESET="\033[0m"
+
+exitCode=0
+yarn commitlint --edit $1 || exitCode="$?"
+
+if [ $exitCode -ne 0 ]; then
+	echo "${BOLD_RED}!${BOLD_WHITE} Linting errors found in commit message!${RESET}"
+	echo "${YELLOW}❯${RESET} Commit stored in .git/COMMIT_EDITMESSAGE"
+	echo "${YELLOW}❯${RESET} You can run the following command to update your commit message:"
+	echo "yarn fix-commit"
+fi
+
+exit $exitCode

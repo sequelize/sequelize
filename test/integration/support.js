@@ -7,11 +7,11 @@ const { setTimeout, clearTimeout } = global;
 const pTimeout = require('p-timeout');
 const Support = require('../support');
 
-const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 10000;
+const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 10_000;
 
 let runningQueries = new Set();
 
-before(function() {
+before(function () {
   this.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
@@ -20,11 +20,11 @@ before(function() {
   });
 });
 
-beforeEach(async function() {
+beforeEach(async function () {
   await Support.clearDatabase(this.sequelize);
 });
 
-afterEach(async function() {
+afterEach(async function () {
   // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
 
   let runningQueriesProblem;
@@ -45,13 +45,14 @@ afterEach(async function() {
       Support.clearDatabase(this.sequelize),
       CLEANUP_TIMEOUT,
       `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
-      { customTimers: { setTimeout, clearTimeout } }
+      { customTimers: { setTimeout, clearTimeout } },
     );
   } catch (error) {
     let message = error.message;
     if (runningQueriesProblem) {
       message += `\n\n     Also, ${runningQueriesProblem}`;
     }
+
     message += `\n\n     Full test name:\n       ${this.currentTest.fullTitle()}`;
 
     // Throw, aborting the entire Mocha execution

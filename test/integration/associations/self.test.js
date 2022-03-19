@@ -1,17 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Self'), () => {
-  it('supports freezeTableName', async function() {
+  it('supports freezeTableName', async function () {
     const Group = this.sequelize.define('Group', {}, {
       tableName: 'user_group',
       timestamps: false,
       underscored: true,
-      freezeTableName: true
+      freezeTableName: true,
     });
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
@@ -20,12 +21,12 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     await Group.findAll({
       include: [{
         model: Group,
-        as: 'Parent'
-      }]
+        as: 'Parent',
+      }],
     });
   });
 
-  it('can handle 1:m associations', async function() {
+  it('can handle 1:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id' });
@@ -37,13 +38,13 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' })
+      Person.create({ name: 'Chris' }),
     ]);
 
     await mary.setChildren([john, chris]);
   });
 
-  it('can handle n:m associations', async function() {
+  it('can handle n:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
@@ -63,7 +64,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' })
+      Person.create({ name: 'Chris' }),
     ]);
 
     await mary.setParents([john]);
@@ -72,17 +73,17 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(children.map(v => v.id)).to.have.members([mary.id, chris.id]);
   });
 
-  it('can handle n:m associations with pre-defined through table', async function() {
+  it('can handle n:m associations with pre-defined through table', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
     const Family = this.sequelize.define('Family', {
       preexisting_child: {
         type: DataTypes.INTEGER,
-        primaryKey: true
+        primaryKey: true,
       },
       preexisting_parent: {
         type: DataTypes.INTEGER,
-        primaryKey: true
-      }
+        primaryKey: true,
+      },
     }, { timestamps: false });
 
     Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent' });
@@ -103,7 +104,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' })
+      Person.create({ name: 'Chris' }),
     ]);
 
     this.mary = mary;
@@ -112,22 +113,22 @@ describe(Support.getTestDialectTeaser('Self'), () => {
 
     await mary.setParents([john], {
       logging(sql) {
-        if (sql.match(/INSERT/)) {
+        if (/INSERT/.test(sql)) {
           count++;
           expect(sql).to.have.string('preexisting_child');
           expect(sql).to.have.string('preexisting_parent');
         }
-      }
+      },
     });
 
     await this.mary.addParent(this.chris, {
       logging(sql) {
-        if (sql.match(/INSERT/)) {
+        if (/INSERT/.test(sql)) {
           count++;
           expect(sql).to.have.string('preexisting_child');
           expect(sql).to.have.string('preexisting_parent');
         }
-      }
+      },
     });
 
     const children = await this.john.getChildren({
@@ -137,7 +138,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
         // look only in the whereClause
         expect(whereClause).to.have.string('preexisting_child');
         expect(whereClause).to.have.string('preexisting_parent');
-      }
+      },
     });
 
     expect(count).to.be.equal(3);

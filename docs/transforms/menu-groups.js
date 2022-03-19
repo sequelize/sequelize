@@ -5,18 +5,20 @@ const path = require('path');
 const _ = require('lodash');
 const manualGroups = require('./../manual-groups.json');
 
-function extractFileNameFromPath(path) {
-  if (/\.\w+$/.test(path)) {
-    return /([^/]*)\.\w+$/.exec(path)[1];
+function extractFileNameFromPath(pathName) {
+  if (/\.\w+$/.test(pathName)) {
+    return /([^/]*)\.\w+$/.exec(pathName)[1];
   }
-  return /[^/]*$/.exec(path)[0];
+
+  return /[^/]*$/.exec(pathName)[0];
 }
 
-const hiddenManualNames = manualGroups.__hidden__.map(extractFileNameFromPath);
+const hiddenManualNames = new Set(manualGroups.__hidden__.map(extractFileNameFromPath));
 
 function isLinkToHiddenManual(link) {
   const linkTargetName = extractFileNameFromPath(link);
-  return hiddenManualNames.includes(linkTargetName);
+
+  return hiddenManualNames.has(linkTargetName);
 }
 
 module.exports = function transform($, filePath) {
@@ -39,11 +41,12 @@ module.exports = function transform($, filePath) {
       const groupTitleElement = $(`<div class="manual-group no-mouse">${groupName}</div>`);
       $(sidebarManualDivs.get(count)).before(groupTitleElement);
     }
+
     count += manuals.length;
   });
 
   // Remove links to hidden manuals
-  sidebarManualDivs.each(/* @this */ function() {
+  sidebarManualDivs.each(/* @this */ function () {
     const link = $(this).find('li.indent-h1').data('link');
     if (isLinkToHiddenManual(link)) {
       $(this).remove();
@@ -52,7 +55,7 @@ module.exports = function transform($, filePath) {
 
   // Remove previews for hidden manuals in index.html
   if (filePath.endsWith('index.html') && $('div.manual-cards').length > 0) {
-    $('div.manual-card-wrap').each(/* @this */ function() {
+    $('div.manual-card-wrap').each(/* @this */ function () {
       const link = $(this).find('a').attr('href');
       if (isLinkToHiddenManual(link)) {
         $(this).remove();

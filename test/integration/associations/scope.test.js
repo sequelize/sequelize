@@ -1,15 +1,19 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  Sequelize = require('sequelize'),
-  Op = Sequelize.Op;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Sequelize = require('@sequelize/core');
+
+const current = Support.sequelize;
+const Op = Sequelize.Op;
+const semver = require('semver');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.Post = this.sequelize.define('post', {});
       this.Image = this.sequelize.define('image', {});
       this.Question = this.sequelize.define('question', {});
@@ -21,96 +25,96 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         isMain: {
           field: 'is_main',
           type: Sequelize.BOOLEAN,
-          defaultValue: false
-        }
+          defaultValue: false,
+        },
       });
 
-      this.Comment.prototype.getItem = function() {
-        return this[`get${this.get('commentable').substr(0, 1).toUpperCase()}${this.get('commentable').substr(1)}`]();
+      this.Comment.prototype.getItem = function () {
+        return this[`get${this.get('commentable').slice(0, 1).toUpperCase()}${this.get('commentable').slice(1)}`]();
       };
 
       this.Post.addScope('withComments', {
-        include: [this.Comment]
+        include: [this.Comment],
       });
       this.Post.addScope('withMainComment', {
         include: [{
           model: this.Comment,
-          as: 'mainComment'
-        }]
+          as: 'mainComment',
+        }],
       });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
-          commentable: 'post'
+          commentable: 'post',
         },
-        constraints: false
+        constraints: false,
       });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         as: 'coloredComments',
         scope: {
           commentable: 'post',
-          type: { [Op.in]: ['blue', 'green'] }
+          type: { [Op.in]: ['blue', 'green'] },
         },
-        constraints: false
+        constraints: false,
       });
       this.Post.hasOne(this.Comment, {
         foreignKey: 'commentable_id',
         as: 'mainComment',
         scope: {
           commentable: 'post',
-          isMain: true
+          isMain: true,
         },
-        constraints: false
+        constraints: false,
       });
       this.Comment.belongsTo(this.Post, {
         foreignKey: 'commentable_id',
         as: 'post',
-        constraints: false
+        constraints: false,
       });
 
       this.Image.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
-          commentable: 'image'
+          commentable: 'image',
         },
-        constraints: false
+        constraints: false,
       });
       this.Comment.belongsTo(this.Image, {
         foreignKey: 'commentable_id',
         as: 'image',
-        constraints: false
+        constraints: false,
       });
 
       this.Question.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
         scope: {
-          commentable: 'question'
+          commentable: 'question',
         },
-        constraints: false
+        constraints: false,
       });
       this.Comment.belongsTo(this.Question, {
         foreignKey: 'commentable_id',
         as: 'question',
-        constraints: false
+        constraints: false,
       });
     });
 
     describe('1:1', () => {
-      it('should create, find and include associations with scope values', async function() {
+      it('should create, find and include associations with scope values', async function () {
         await this.sequelize.sync({ force: true });
 
         const [post1] = await Promise.all([this.Post.create(), this.Comment.create({
-          title: 'I am a comment'
+          title: 'I am a comment',
         }), this.Comment.create({
           title: 'I am a main comment',
-          isMain: true
+          isMain: true,
         })]);
 
         this.post = post1;
 
         const comment0 = await post1.createComment({
-          title: 'I am a post comment'
+          title: 'I am a post comment',
         });
 
         expect(comment0.get('commentable')).to.equal('post');
@@ -119,7 +123,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(post0.mainComment).to.be.null;
 
         const mainComment1 = await post0.createMainComment({
-          title: 'I am a main post comment'
+          title: 'I am a main post comment',
         });
 
         this.mainComment = mainComment1;
@@ -132,7 +136,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(mainComment0.get('isMain')).to.be.true;
 
         const comment = await this.Comment.create({
-          title: 'I am a future main comment'
+          title: 'I am a future main comment',
         });
 
         await this.post.setMainComment(comment);
@@ -141,15 +145,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(mainComment.get('isMain')).to.be.true;
         expect(mainComment.get('title')).to.equal('I am a future main comment');
       });
-      it('should create included association with scope values', async function() {
+      it('should create included association with scope values', async function () {
         await this.sequelize.sync({ force: true });
 
         const post0 = await this.Post.create({
           mainComment: {
-            title: 'I am a main comment created with a post'
-          }
+            title: 'I am a main comment created with a post',
+          },
         }, {
-          include: [{ model: this.Comment, as: 'mainComment' }]
+          include: [{ model: this.Comment, as: 'mainComment' }],
         });
 
         expect(post0.mainComment.get('commentable')).to.equal('post');
@@ -161,7 +165,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
     });
 
     describe('1:M', () => {
-      it('should create, find and include associations with scope values', async function() {
+      it('should create, find and include associations with scope values', async function () {
         await this.sequelize.sync({ force: true });
 
         const [post1, image1, question1, commentA, commentB] = await Promise.all([
@@ -169,11 +173,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           this.Image.create(),
           this.Question.create(),
           this.Comment.create({
-            title: 'I am a image comment'
+            title: 'I am a image comment',
           }),
           this.Comment.create({
-            title: 'I am a question comment'
-          })
+            title: 'I am a question comment',
+          }),
         ]);
 
         this.post = post1;
@@ -181,13 +185,14 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         this.question = question1;
 
         await Promise.all([post1.createComment({
-          title: 'I am a post comment'
+          title: 'I am a post comment',
         }), image1.addComment(commentA), question1.setComments([commentB])]);
 
         const comments = await this.Comment.findAll();
-        comments.forEach(comment => {
+        for (const comment of comments) {
           expect(comment.get('commentable')).to.be.ok;
-        });
+        }
+
         expect(comments.map(comment => {
           return comment.get('commentable');
         }).sort()).to.deep.equal(['image', 'post', 'question']);
@@ -195,7 +200,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         const [postComments, imageComments, questionComments] = await Promise.all([
           this.post.getComments(),
           this.image.getComments(),
-          this.question.getComments()
+          this.question.getComments(),
         ]);
 
         expect(postComments.length).to.equal(1);
@@ -212,11 +217,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(question0).to.be.instanceof(this.Question);
 
         const [post, image, question] = await Promise.all([this.Post.findOne({
-          include: [this.Comment]
+          include: [this.Comment],
         }), this.Image.findOne({
-          include: [this.Comment]
+          include: [this.Comment],
         }), this.Question.findOne({
-          include: [this.Comment]
+          include: [this.Comment],
         })]);
 
         expect(post.comments.length).to.equal(1);
@@ -226,62 +231,63 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(question.comments.length).to.equal(1);
         expect(question.comments[0].get('title')).to.equal('I am a question comment');
       });
-      it('should make the same query if called multiple time (#4470)', async function() {
+      it('should make the same query if called multiple time (#4470)', async function () {
         const logs = [];
-        const logging = function(log) {
-          //removing 'executing(<uuid> || 'default'}) :' from logs
-          logs.push(log.substring(log.indexOf(':') + 1));
+        const logging = function (log) {
+          // removing 'executing(<uuid> || 'default'}) :' from logs
+          logs.push(log.slice(Math.max(0, log.indexOf(':') + 1)));
         };
 
         await this.sequelize.sync({ force: true });
         const post = await this.Post.create();
 
         await post.createComment({
-          title: 'I am a post comment'
+          title: 'I am a post comment',
         });
 
         await this.Post.scope('withComments').findAll({
-          logging
+          logging,
         });
 
         await this.Post.scope('withComments').findAll({
-          logging
+          logging,
         });
 
         expect(logs[0]).to.equal(logs[1]);
       });
-      it('should created included association with scope values', async function() {
+      it('should created included association with scope values', async function () {
         await this.sequelize.sync({ force: true });
         let post = await this.Post.create({
           comments: [{
-            title: 'I am a comment created with a post'
+            title: 'I am a comment created with a post',
           }, {
-            title: 'I am a second comment created with a post'
-          }]
+            title: 'I am a second comment created with a post',
+          }],
         }, {
-          include: [{ model: this.Comment, as: 'comments' }]
+          include: [{ model: this.Comment, as: 'comments' }],
         });
         this.post = post;
-        for (const comment of  post.comments) {
+        for (const comment of post.comments) {
           expect(comment.get('commentable')).to.equal('post');
         }
+
         post = await this.Post.scope('withComments').findByPk(this.post.id);
-        for (const comment of  post.comments) {
+        for (const comment of post.comments) {
           expect(comment.get('commentable')).to.equal('post');
         }
       });
-      it('should include associations with operator scope values', async function() {
+      it('should include associations with operator scope values', async function () {
         await this.sequelize.sync({ force: true });
 
         const [post0, commentA, commentB, commentC] = await Promise.all([this.Post.create(), this.Comment.create({
           title: 'I am a blue comment',
-          type: 'blue'
+          type: 'blue',
         }), this.Comment.create({
           title: 'I am a red comment',
-          type: 'red'
+          type: 'red',
         }), this.Comment.create({
           title: 'I am a green comment',
-          type: 'green'
+          type: 'green',
         })]);
 
         this.post = post0;
@@ -290,8 +296,8 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         const post = await this.Post.findByPk(this.post.id, {
           include: [{
             model: this.Comment,
-            as: 'coloredComments'
-          }]
+            as: 'coloredComments',
+          }],
         });
 
         expect(post.coloredComments.length).to.equal(2);
@@ -299,7 +305,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(comment.type).to.match(/blue|green/);
         }
       });
-      it('should not mutate scope when running SELECT query (#12868)', async function() {
+      it('should not mutate scope when running SELECT query (#12868)', async function () {
         await this.sequelize.sync({ force: true });
         await this.Post.findOne({ where: {}, include: [{ association: this.Post.associations.mainComment, attributes: ['id'], required: true, where: {} }] });
         expect(this.Post.associations.mainComment.scope.isMain).to.equal(true);
@@ -309,10 +315,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
     if (Support.getTestDialect() !== 'sqlite') {
       describe('N:M', () => {
         describe('on the target', () => {
-          beforeEach(function() {
+          beforeEach(function () {
             this.Post = this.sequelize.define('post', {});
             this.Tag = this.sequelize.define('tag', {
-              type: DataTypes.STRING
+              type: DataTypes.STRING,
             });
             this.PostTag = this.sequelize.define('post_tag');
 
@@ -321,7 +327,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
-          it('[Flaky] should create, find and include associations with scope values', async function() {
+          it('should create, find and include associations with scope values', async function () {
+            // We don't know the databaseVersion outside of the tests
+            const isMySQL8 = Support.getTestDialect() === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
+            if (isMySQL8) {
+              return;
+            }
+
             await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
             await this.PostTag.sync({ force: true });
 
@@ -332,7 +344,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.Tag.create({ type: 'category' }),
               this.Tag.create({ type: 'category' }),
               this.Tag.create({ type: 'tag' }),
-              this.Tag.create({ type: 'tag' })
+              this.Tag.create({ type: 'tag' }),
             ]);
 
             this.postA = postA0;
@@ -345,7 +357,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               postB0.setCategories([categoryB]),
               postB0.addTag(tagA),
               postC0.createCategory(),
-              postC0.setTags([tagB])
+              postC0.setTags([tagB]),
             ]);
 
             const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
@@ -354,10 +366,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.postC.getCategories(),
               this.postA.getTags(),
               this.postB.getTags(),
-              this.postC.getTags()
+              this.postC.getTags(),
             ]);
 
-            // Flaky test: randomly one of the value on B will be 0 sometimes, for
+            // Flaky test on MySQL8: randomly some values will be 0 sometimes, for
             // now no solution. Not reproducible at local or cloud with logging enabled
             expect([
               postACategories.length,
@@ -365,7 +377,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               postBCategories.length,
               postBTags.length,
               postCCategories.length,
-              postCTags.length
+              postCTags.length,
             ]).to.eql([1, 1, 1, 1, 1, 1]);
 
             expect([
@@ -374,33 +386,33 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               postBCategories[0].get('type'),
               postBTags[0].get('type'),
               postCCategories[0].get('type'),
-              postCTags[0].get('type')
+              postCTags[0].get('type'),
             ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
 
             const [postA, postB, postC] = await Promise.all([this.Post.findOne({
               where: {
-                id: this.postA.get('id')
+                id: this.postA.get('id'),
               },
               include: [
                 { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
+                { model: this.Tag, as: 'categories' },
+              ],
             }), this.Post.findOne({
               where: {
-                id: this.postB.get('id')
+                id: this.postB.get('id'),
               },
               include: [
                 { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
+                { model: this.Tag, as: 'categories' },
+              ],
             }), this.Post.findOne({
               where: {
-                id: this.postC.get('id')
+                id: this.postC.get('id'),
               },
               include: [
                 { model: this.Tag, as: 'tags' },
-                { model: this.Tag, as: 'categories' }
-              ]
+                { model: this.Tag, as: 'categories' },
+              ],
             })]);
 
             expect(postA.get('categories').length).to.equal(1);
@@ -420,7 +432,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         });
 
         describe('on the through model', () => {
-          beforeEach(function() {
+          beforeEach(function () {
             this.Post = this.sequelize.define('post', {});
             this.Image = this.sequelize.define('image', {});
             this.Question = this.sequelize.define('question', {});
@@ -429,24 +441,24 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
-                autoIncrement: true
+                autoIncrement: true,
               },
               tag_id: {
                 type: DataTypes.INTEGER,
-                unique: 'item_tag_taggable'
+                unique: 'item_tag_taggable',
               },
               taggable: {
                 type: DataTypes.STRING,
-                unique: 'item_tag_taggable'
+                unique: 'item_tag_taggable',
               },
               taggable_id: {
                 type: DataTypes.INTEGER,
                 unique: 'item_tag_taggable',
-                references: null
-              }
+                references: null,
+              },
             });
             this.Tag = this.sequelize.define('tag', {
-              name: DataTypes.STRING
+              name: DataTypes.STRING,
             });
 
             this.Post.belongsToMany(this.Tag, {
@@ -454,18 +466,18 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 model: this.ItemTag,
                 unique: false,
                 scope: {
-                  taggable: 'post'
-                }
+                  taggable: 'post',
+                },
               },
               foreignKey: 'taggable_id',
-              constraints: false
+              constraints: false,
             });
             this.Tag.belongsToMany(this.Post, {
               through: {
                 model: this.ItemTag,
-                unique: false
+                unique: false,
               },
-              foreignKey: 'tag_id'
+              foreignKey: 'tag_id',
             });
 
             this.Image.belongsToMany(this.Tag, {
@@ -473,18 +485,18 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 model: this.ItemTag,
                 unique: false,
                 scope: {
-                  taggable: 'image'
-                }
+                  taggable: 'image',
+                },
               },
               foreignKey: 'taggable_id',
-              constraints: false
+              constraints: false,
             });
             this.Tag.belongsToMany(this.Image, {
               through: {
                 model: this.ItemTag,
-                unique: false
+                unique: false,
               },
-              foreignKey: 'tag_id'
+              foreignKey: 'tag_id',
             });
 
             this.Question.belongsToMany(this.Tag, {
@@ -492,27 +504,27 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 model: this.ItemTag,
                 unique: false,
                 scope: {
-                  taggable: 'question'
-                }
+                  taggable: 'question',
+                },
               },
               foreignKey: 'taggable_id',
-              constraints: false
+              constraints: false,
             });
             this.Tag.belongsToMany(this.Question, {
               through: {
                 model: this.ItemTag,
-                unique: false
+                unique: false,
               },
-              foreignKey: 'tag_id'
+              foreignKey: 'tag_id',
             });
           });
 
-          it('should create, find and include associations with scope values', async function() {
+          it('should create, find and include associations with scope values', async function () {
             await Promise.all([
               this.Post.sync({ force: true }),
               this.Image.sync({ force: true }),
               this.Question.sync({ force: true }),
-              this.Tag.sync({ force: true })
+              this.Tag.sync({ force: true }),
             ]);
 
             await this.ItemTag.sync({ force: true });
@@ -523,7 +535,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.Question.create(),
               this.Tag.create({ name: 'tagA' }),
               this.Tag.create({ name: 'tagB' }),
-              this.Tag.create({ name: 'tagC' })
+              this.Tag.create({ name: 'tagC' }),
             ]);
 
             this.post = post0;
@@ -557,13 +569,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             const [post, image, question] = await Promise.all([this.Post.findOne({
               where: {},
-              include: [this.Tag]
+              include: [this.Tag],
             }), this.Image.findOne({
               where: {},
-              include: [this.Tag]
+              include: [this.Tag],
             }), this.Question.findOne({
               where: {},
-              include: [this.Tag]
+              include: [this.Tag],
             })]);
 
             expect(post.tags.length).to.equal(3);

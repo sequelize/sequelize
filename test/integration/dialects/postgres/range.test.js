@@ -1,13 +1,15 @@
 'use strict';
 
-const chai    = require('chai'),
-  expect  = chai.expect,
-  Support = require('../../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  dialect = Support.getTestDialect(),
-  range   = require('sequelize/lib/dialects/postgres/range');
+const chai    = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect  = chai.expect;
+const Support = require('../../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const dialect = Support.getTestDialect();
+const range   = require('@sequelize/core/lib/dialects/postgres/range');
+
+if (dialect.startsWith('postgres')) {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
 
@@ -24,22 +26,32 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle Infinity/-Infinity as infinity/-infinity bounds', () => {
-        expect(range.stringify([Infinity, 1])).to.equal('[infinity,1)');
-        expect(range.stringify([1, Infinity])).to.equal('[1,infinity)');
-        expect(range.stringify([-Infinity, 1])).to.equal('[-infinity,1)');
-        expect(range.stringify([1, -Infinity])).to.equal('[1,-infinity)');
-        expect(range.stringify([-Infinity, Infinity])).to.equal('[-infinity,infinity)');
+        expect(range.stringify([Number.POSITIVE_INFINITY, 1])).to.equal('[infinity,1)');
+        expect(range.stringify([1, Number.POSITIVE_INFINITY])).to.equal('[1,infinity)');
+        expect(range.stringify([Number.NEGATIVE_INFINITY, 1])).to.equal('[-infinity,1)');
+        expect(range.stringify([1, Number.NEGATIVE_INFINITY])).to.equal('[1,-infinity)');
+        expect(range.stringify([Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY])).to.equal('[-infinity,infinity)');
       });
 
       it('should throw error when array length is no 0 or 2', () => {
-        expect(() => { range.stringify([1]); }).to.throw();
-        expect(() => { range.stringify([1, 2, 3]); }).to.throw();
+        expect(() => {
+          range.stringify([1]);
+        }).to.throw();
+        expect(() => {
+          range.stringify([1, 2, 3]);
+        }).to.throw();
       });
 
       it('should throw error when non-array parameter is passed', () => {
-        expect(() => { range.stringify({}); }).to.throw();
-        expect(() => { range.stringify('test'); }).to.throw();
-        expect(() => { range.stringify(undefined); }).to.throw();
+        expect(() => {
+          range.stringify({});
+        }).to.throw();
+        expect(() => {
+          range.stringify('test');
+        }).to.throw();
+        expect(() => {
+          range.stringify();
+        }).to.throw();
       });
 
       it('should handle array of objects with `inclusive` and `value` properties', () => {
@@ -85,7 +97,7 @@ if (dialect.match(/^postgres/)) {
 
       describe('with null range bounds', () => {
         const infiniteRange = [null, null];
-        const infiniteRangeSQL = "'[,)'";
+        const infiniteRangeSQL = '\'[,)\'';
 
         it('should stringify integer range to infinite range', () => {
           const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
@@ -120,8 +132,8 @@ if (dialect.match(/^postgres/)) {
       });
 
       describe('with infinite range bounds', () => {
-        const infiniteRange = [-Infinity, Infinity];
-        const infiniteRangeSQL = "'[-infinity,infinity)'";
+        const infiniteRange = [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY];
+        const infiniteRangeSQL = '\'[-infinity,infinity)\'';
 
         it('should stringify integer range to infinite range', () => {
           const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
@@ -173,11 +185,11 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle infinity/-infinity bounds correctly', () => {
-        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Infinity, inclusive: false }, { value: 1, inclusive: false }]);
-        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Infinity, inclusive: false }]);
-        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: 1, inclusive: false }]);
-        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: -Infinity, inclusive: false }]);
-        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: Infinity, inclusive: false }]);
+        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Number.POSITIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
+        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.NEGATIVE_INFINITY, inclusive: false }]);
+        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
       });
 
       it('should return raw value if not range is returned', () => {
@@ -190,9 +202,9 @@ if (dialect.match(/^postgres/)) {
 
         Support.sequelize.connectionManager.releaseConnection(connection);
 
-        const tsName = DataTypes.postgres.DATE.types.postgres[0],
-          tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid,
-          parser = pg.types.getTypeParser(tsOid);
+        const tsName = DataTypes.postgres.DATE.types.postgres[0];
+        const tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid;
+        const parser = pg.types.getTypeParser(tsOid);
         expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
       });
 
@@ -203,7 +215,7 @@ if (dialect.match(/^postgres/)) {
         const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
 
         let stringified = Range.stringify(testRange, {});
-        stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
+        stringified = stringified.slice(1, 1 + stringified.length - 2); // Remove the escaping ticks
 
         expect(DataTypes.postgres.RANGE.parse(stringified, { parser: DataTypes.postgres.INTEGER.parse })).to.deep.equal(testRange);
       });

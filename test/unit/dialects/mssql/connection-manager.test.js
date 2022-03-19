@@ -1,15 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require('sequelize'),
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  sinon = require('sinon');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Sequelize = require('@sequelize/core');
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const sinon = require('sinon');
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Connection Manager', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.config = {
         dialect: 'mssql',
         database: 'none',
@@ -19,29 +21,29 @@ if (dialect === 'mssql') {
         port: 2433,
         pool: {},
         dialectOptions: {
-          domain: 'TEST.COM'
-        }
+          domain: 'TEST.COM',
+        },
       };
       this.instance = new Sequelize(
         this.config.database,
         this.config.username,
         this.config.password,
-        this.config
+        this.config,
       );
       this.Connection = {};
       const self = this;
       this.connectionStub = sinon.stub(this.instance.connectionManager, 'lib').value({
         Connection: function FakeConnection() {
           return self.Connection;
-        }
+        },
       });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function() {
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -53,7 +55,7 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {}
+        on: () => {},
       };
 
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
@@ -61,7 +63,7 @@ if (dialect === 'mssql') {
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', async function() {
+    it('connectionManager._connect() should reject if end was called and connect was not', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -73,18 +75,18 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {}
+        on: () => {},
       };
 
       try {
         await this.instance.dialect.connectionManager._connect(this.config);
-      } catch (err) {
-        expect(err.name).to.equal('SequelizeConnectionError');
-        expect(err.parent.message).to.equal('Connection was closed by remote server');
+      } catch (error) {
+        expect(error.name).to.equal('SequelizeConnectionError');
+        expect(error.parent.message).to.equal('Connection was closed by remote server');
       }
     });
 
-    it('connectionManager._connect() should call connect if state is initialized', async function() {
+    it('connectionManager._connect() should call connect if state is initialized', async function () {
       const connectStub = sinon.stub();
       const INITIALIZED = { name: 'INITIALIZED' };
       this.Connection = {
@@ -99,7 +101,7 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {}
+        on: () => {},
       };
 
       await this.instance.dialect.connectionManager._connect(this.config);

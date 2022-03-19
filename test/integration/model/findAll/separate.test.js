@@ -1,9 +1,11 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -29,12 +31,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const [project, level21, level22] = await Promise.all([
               Project.create({ name: 'testProject' }),
               LevelTwo.create({ name: 'testL21' }),
-              LevelTwo.create({ name: 'testL22' })
+              LevelTwo.create({ name: 'testL22' }),
             ]);
 
             await Promise.all([
               project.addLevelTwo(level21),
-              project.addLevelTwo(level22)
+              project.addLevelTwo(level22),
             ]);
 
             // one include case
@@ -50,18 +52,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       where: { type: 0 },
                       separate: true,
                       limit: 1,
-                      order: [['createdAt', 'DESC']]
-                    }
-                  ]
-                }
-              ]
+                      order: [['createdAt', 'DESC']],
+                    },
+                  ],
+                },
+              ],
             });
 
             expect(projects0).to.have.length(1);
             expect(projects0[0].LevelTwos).to.have.length(2);
             expect(projects0[0].LevelTwos[0].type_ones).to.have.length(0);
             expect(projects0[0].LevelTwos[1].type_ones).to.have.length(0);
-          } catch (err) {
+          } catch {
             expect.fail();
           }
 
@@ -78,7 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     where: { type: 0 },
                     separate: true,
                     limit: 1,
-                    order: [['createdAt', 'DESC']]
+                    order: [['createdAt', 'DESC']],
                   },
                   {
                     model: LevelThree,
@@ -86,18 +88,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     where: { type: 1 },
                     separate: true,
                     limit: 1,
-                    order: [['createdAt', 'DESC']]
-                  }
-                ]
-              }
-            ]
+                    order: [['createdAt', 'DESC']],
+                  },
+                ],
+              },
+            ],
           });
 
           expect(projects).to.have.length(1);
           expect(projects[0].LevelTwos).to.have.length(2);
           expect(projects[0].LevelTwos[0].type_ones).to.have.length(0);
           expect(projects[0].LevelTwos[1].type_ones).to.have.length(0);
-        } catch (err) {
+        } catch {
           expect.fail();
         }
       });

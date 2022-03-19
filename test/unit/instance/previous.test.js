@@ -1,9 +1,11 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -18,8 +20,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           },
           get() {
             this.getDataValue('textCustom');
-          }
-        }
+          },
+        },
       });
 
       const instance = Model.build({ text: 'a', textCustom: 'abc' });

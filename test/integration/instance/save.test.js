@@ -1,27 +1,29 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require('sequelize'),
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  sinon = require('sinon'),
-  current = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Sequelize = require('@sequelize/core');
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const sinon = require('sinon');
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.clock.reset();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -34,23 +36,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true }
+        validate: { isInt: true },
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
-      }
+        defaultValue: false,
+      },
     });
 
     await this.User.sync({ force: true });
@@ -58,7 +60,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('save', () => {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
         await User.sync({ force: true });
@@ -72,12 +74,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    it('only updates fields in passed array', async function() {
+    it('only updates fields in passed array', async function () {
       const date = new Date(1990, 1, 1);
 
       const user = await this.User.create({
         username: 'foo',
-        touchedAt: new Date()
+        touchedAt: new Date(),
       });
 
       user.username = 'fizz';
@@ -92,11 +94,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user2.birthDate).not.to.equal(date);
     });
 
-    it('should work on a model with an attribute named length', async function() {
+    it('should work on a model with an attribute named length', async function () {
       const Box = this.sequelize.define('box', {
         length: DataTypes.INTEGER,
         width: DataTypes.INTEGER,
-        height: DataTypes.INTEGER
+        height: DataTypes.INTEGER,
       });
 
       await Box.sync({ force: true });
@@ -104,13 +106,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const box0 = await Box.create({
         length: 1,
         width: 2,
-        height: 3
+        height: 3,
       });
 
       await box0.update({
         length: 4,
         width: 5,
-        height: 6
+        height: 6,
       });
 
       const box = await Box.findOne({});
@@ -119,21 +121,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(box.get('height')).to.equal(6);
     });
 
-    it('only validates fields in passed array', async function() {
+    it('only validates fields in passed array', async function () {
       await this.User.build({
         validateTest: 'cake', // invalid, but not saved
-        validateCustom: '1'
+        validateCustom: '1',
       }).save({
-        fields: ['validateCustom']
+        fields: ['validateCustom'],
       });
     });
 
     describe('hooks', () => {
-      it('should update attributes added in hooks when default fields are used', async function() {
+      it('should update attributes added in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING
+          email: DataTypes.STRING,
         });
 
         User.beforeUpdate(instance => {
@@ -145,12 +147,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A'
+          email: 'A',
         });
 
         await user0.set({
           name: 'B',
-          bio: 'B'
+          bio: 'B',
         }).save();
 
         const user = await User.findOne({});
@@ -159,11 +161,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.get('email')).to.equal('B');
       });
 
-      it('should update attributes changed in hooks when default fields are used', async function() {
+      it('should update attributes changed in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING
+          email: DataTypes.STRING,
         });
 
         User.beforeUpdate(instance => {
@@ -175,13 +177,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A'
+          email: 'A',
         });
 
         await user0.set({
           name: 'B',
           bio: 'B',
-          email: 'B'
+          email: 'B',
         }).save();
 
         const user = await User.findOne({});
@@ -190,16 +192,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.get('email')).to.equal('C');
       });
 
-      it('should validate attributes added in hooks when default fields are used', async function() {
+      it('should validate attributes added in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true
-            }
-          }
+              isEmail: true,
+            },
+          },
         });
 
         User.beforeUpdate(instance => {
@@ -211,27 +213,27 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com'
+          email: 'valid.email@gmail.com',
         });
 
         await expect(user0.set({
-          name: 'B'
+          name: 'B',
         }).save()).to.be.rejectedWith(Sequelize.ValidationError);
 
         const user = await User.findOne({});
         expect(user.get('email')).to.equal('valid.email@gmail.com');
       });
 
-      it('should validate attributes changed in hooks when default fields are used', async function() {
+      it('should validate attributes changed in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true
-            }
-          }
+              isEmail: true,
+            },
+          },
         });
 
         User.beforeUpdate(instance => {
@@ -243,12 +245,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com'
+          email: 'valid.email@gmail.com',
         });
 
         await expect(user0.set({
           name: 'B',
-          email: 'still.valid.email@gmail.com'
+          email: 'still.valid.email@gmail.com',
         }).save()).to.be.rejectedWith(Sequelize.ValidationError);
 
         const user = await User.findOne({});
@@ -256,13 +258,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('stores an entry in the database', async function() {
-      const username = 'user',
-        User = this.User,
-        user = this.User.build({
-          username,
-          touchedAt: new Date(1984, 8, 23)
-        });
+    it('stores an entry in the database', async function () {
+      const username = 'user';
+      const User = this.User;
+      const user = this.User.build({
+        username,
+        touchedAt: new Date(1984, 8, 23),
+      });
 
       const users = await User.findAll();
       expect(users).to.have.length(0);
@@ -274,18 +276,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(users0[0].touchedAt).to.equalDate(new Date(1984, 8, 23));
     });
 
-    it('handles an entry with primaryKey of zero', async function() {
-      const username = 'user',
-        newUsername = 'newUser',
-        User2 = this.sequelize.define('User2',
-          {
-            id: {
-              type: DataTypes.INTEGER.UNSIGNED,
-              autoIncrement: false,
-              primaryKey: true
-            },
-            username: { type: DataTypes.STRING }
-          });
+    it('handles an entry with primaryKey of zero', async function () {
+      const username = 'user';
+      const newUsername = 'newUser';
+      const User2 = this.sequelize.define('User2',
+        {
+          id: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            autoIncrement: false,
+            primaryKey: true,
+          },
+          username: { type: DataTypes.STRING },
+        });
 
       await User2.sync();
       const user = await User2.create({ id: 0, username });
@@ -302,7 +304,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.username).to.equal(newUsername);
     });
 
-    it('updates the timestamps', async function() {
+    it('updates the timestamps', async function () {
       const now = new Date();
       now.setMilliseconds(0);
 
@@ -317,23 +319,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(updatedUser).have.property('updatedAt').afterTime(now);
     });
 
-    it('does not update timestamps when passing silent=true', async function() {
+    it('does not update timestamps when passing silent=true', async function () {
       const user = await this.User.create({ username: 'user' });
       const updatedAt = user.updatedAt;
 
       this.clock.tick(1000);
 
       await expect(user.update({
-        username: 'userman'
+        username: 'userman',
       }, {
-        silent: true
+        silent: true,
       })).to.eventually.have.property('updatedAt').equalTime(updatedAt);
     });
 
-    it('does not update timestamps when passing silent=true in a bulk update', async function() {
+    it('does not update timestamps when passing silent=true in a bulk update', async function () {
       const data = [
         { username: 'Paul' },
-        { username: 'Peter' }
+        { username: 'Peter' },
       ];
 
       await this.User.bulkCreate(data);
@@ -344,7 +346,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       await this.User.update(
         { aNumber: 1 },
-        { where: {}, silent: true }
+        { where: {}, silent: true },
       );
 
       const users = await this.User.findAll();
@@ -353,7 +355,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('when nothing changed', () => {
-      it('does not update timestamps', async function() {
+      it('does not update timestamps', async function () {
         await this.User.create({ username: 'John' });
         const user = await this.User.findOne({ where: { username: 'John' } });
         const updatedAt = user.updatedAt;
@@ -364,15 +366,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(newlySavedUser0.updatedAt).to.equalTime(updatedAt);
       });
 
-      it('should not throw ER_EMPTY_QUERY if changed only virtual fields', async function() {
+      it('should not throw ER_EMPTY_QUERY if changed only virtual fields', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           name: DataTypes.STRING,
           bio: {
             type: DataTypes.VIRTUAL,
-            get: () => 'swag'
-          }
+            get: () => 'swag',
+          },
         }, {
-          timestamps: false
+          timestamps: false,
         });
         await User.sync({ force: true });
         const user = await User.create({ name: 'John', bio: 'swag 1' });
@@ -380,9 +382,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('updates with function and column value', async function() {
+    it('updates with function and column value', async function () {
       const user = await this.User.create({
-        aNumber: 42
+        aNumber: 42,
       });
 
       user.bNumber = this.sequelize.col('aNumber');
@@ -393,7 +395,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user2.bNumber).to.equal(42);
     });
 
-    it('updates with function that contains escaped dollar symbol', async function() {
+    it('updates with function that contains escaped dollar symbol', async function () {
       const user = await this.User.create({});
       user.username = this.sequelize.fn('upper', '$sequelize');
       await user.save();
@@ -402,10 +404,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('without timestamps option', () => {
-      it("doesn't update the updatedAt column", async function() {
+      it('doesn\'t update the updatedAt column', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
-          updatedAt: DataTypes.DATE
+          updatedAt: DataTypes.DATE,
         }, { timestamps: false });
         await User2.sync();
         const johnDoe = await User2.create({ username: 'john doe' });
@@ -415,12 +417,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('with custom timestamp options', () => {
-      it('updates the createdAt column if updatedAt is disabled', async function() {
+      it('updates the createdAt column if updatedAt is disabled', async function () {
         const now = new Date();
         this.clock.tick(1000);
 
         const User2 = this.sequelize.define('User2', {
-          username: DataTypes.STRING
+          username: DataTypes.STRING,
         }, { updatedAt: false });
 
         await User2.sync();
@@ -429,12 +431,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(now).to.be.beforeTime(johnDoe.createdAt);
       });
 
-      it('updates the updatedAt column if createdAt is disabled', async function() {
+      it('updates the updatedAt column if createdAt is disabled', async function () {
         const now = new Date();
         this.clock.tick(1000);
 
         const User2 = this.sequelize.define('User2', {
-          username: DataTypes.STRING
+          username: DataTypes.STRING,
         }, { createdAt: false });
 
         await User2.sync();
@@ -443,92 +445,92 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(now).to.be.beforeTime(johnDoe.updatedAt);
       });
 
-      it('works with `allowNull: false` on createdAt and updatedAt columns', async function() {
+      it('works with `allowNull: false` on createdAt and updatedAt columns', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
           createdAt: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: false,
           },
           updatedAt: {
             type: DataTypes.DATE,
-            allowNull: false
-          }
+            allowNull: false,
+          },
         }, { timestamps: true });
 
         await User2.sync();
         const johnDoe = await User2.create({ username: 'john doe' });
         expect(johnDoe.createdAt).to.be.an.instanceof(Date);
-        expect( ! isNaN(johnDoe.createdAt.valueOf()) ).to.be.ok;
+        expect(!isNaN(johnDoe.createdAt.valueOf())).to.be.ok;
         expect(johnDoe.createdAt).to.equalTime(johnDoe.updatedAt);
       });
     });
 
-    it('should fail a validation upon creating', async function() {
+    it('should fail a validation upon creating', async function () {
       try {
         await this.User.create({ aNumber: 0, validateTest: 'hello' });
-      } catch (err) {
-        expect(err).to.exist;
-        expect(err).to.be.instanceof(Object);
-        expect(err.get('validateTest')).to.be.instanceof(Array);
-        expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+      } catch (error) {
+        expect(error).to.exist;
+        expect(error).to.be.instanceof(Object);
+        expect(error.get('validateTest')).to.be.instanceof(Array);
+        expect(error.get('validateTest')[0]).to.exist;
+        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
-    it('should fail a validation upon creating with hooks false', async function() {
+    it('should fail a validation upon creating with hooks false', async function () {
       try {
         await this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false });
-      } catch (err) {
-        expect(err).to.exist;
-        expect(err).to.be.instanceof(Object);
-        expect(err.get('validateTest')).to.be.instanceof(Array);
-        expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+      } catch (error) {
+        expect(error).to.exist;
+        expect(error).to.be.instanceof(Object);
+        expect(error.get('validateTest')).to.be.instanceof(Array);
+        expect(error.get('validateTest')[0]).to.exist;
+        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
-    it('should fail a validation upon building', async function() {
+    it('should fail a validation upon building', async function () {
       try {
         await this.User.build({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save();
-      } catch (err) {
-        expect(err).to.exist;
-        expect(err).to.be.instanceof(Object);
-        expect(err.get('validateCustom')).to.exist;
-        expect(err.get('validateCustom')).to.be.instanceof(Array);
-        expect(err.get('validateCustom')[0]).to.exist;
-        expect(err.get('validateCustom')[0].message).to.equal('Length failed.');
+      } catch (error) {
+        expect(error).to.exist;
+        expect(error).to.be.instanceof(Object);
+        expect(error.get('validateCustom')).to.exist;
+        expect(error.get('validateCustom')).to.be.instanceof(Array);
+        expect(error.get('validateCustom')[0]).to.exist;
+        expect(error.get('validateCustom')[0].message).to.equal('Length failed.');
       }
     });
 
-    it('should fail a validation when updating', async function() {
+    it('should fail a validation when updating', async function () {
       const user = await this.User.create({ aNumber: 0 });
 
       try {
         await user.update({ validateTest: 'hello' });
-      } catch (err) {
-        expect(err).to.exist;
-        expect(err).to.be.instanceof(Object);
-        expect(err.get('validateTest')).to.exist;
-        expect(err.get('validateTest')).to.be.instanceof(Array);
-        expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+      } catch (error) {
+        expect(error).to.exist;
+        expect(error).to.be.instanceof(Object);
+        expect(error.get('validateTest')).to.exist;
+        expect(error.get('validateTest')).to.be.instanceof(Array);
+        expect(error.get('validateTest')[0]).to.exist;
+        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
-    it('takes zero into account', async function() {
+    it('takes zero into account', async function () {
       const user = await this.User.build({ aNumber: 0 }).save({
-        fields: ['aNumber']
+        fields: ['aNumber'],
       });
 
       expect(user.aNumber).to.equal(0);
     });
 
-    it('saves a record with no primary key', async function() {
+    it('saves a record with no primary key', async function () {
       const HistoryLog = this.sequelize.define('HistoryLog', {
         someText: { type: DataTypes.STRING },
         aNumber: { type: DataTypes.INTEGER },
-        aRandomId: { type: DataTypes.INTEGER }
+        aRandomId: { type: DataTypes.INTEGER },
       });
       await HistoryLog.sync();
       const log = await HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 });
@@ -537,15 +539,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('eagerly loaded objects', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.UserEager = this.sequelize.define('UserEagerLoadingSaves', {
           username: DataTypes.STRING,
-          age: DataTypes.INTEGER
+          age: DataTypes.INTEGER,
         }, { timestamps: false });
 
         this.ProjectEager = this.sequelize.define('ProjectEagerLoadingSaves', {
           title: DataTypes.STRING,
-          overdue_days: DataTypes.INTEGER
+          overdue_days: DataTypes.INTEGER,
         }, { timestamps: false });
 
         this.UserEager.hasMany(this.ProjectEager, { as: 'Projects', foreignKey: 'PoobahId' });
@@ -556,7 +558,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await this.ProjectEager.sync({ force: true });
       });
 
-      it('saves one object that has a collection of eagerly loaded objects', async function() {
+      it('saves one object that has a collection of eagerly loaded objects', async function () {
         const user = await this.UserEager.create({ username: 'joe', age: 1 });
         const project1 = await this.ProjectEager.create({ title: 'project-joe1', overdue_days: 0 });
         const project2 = await this.ProjectEager.create({ title: 'project-joe2', overdue_days: 0 });
@@ -575,7 +577,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user0.Projects.length).to.equal(2);
       });
 
-      it('saves many objects that each a have collection of eagerly loaded objects', async function() {
+      it('saves many objects that each a have collection of eagerly loaded objects', async function () {
         const bart = await this.UserEager.create({ username: 'bart', age: 20 });
         const lisa = await this.UserEager.create({ username: 'lisa', age: 20 });
         const detention1 = await this.ProjectEager.create({ title: 'detention1', overdue_days: 0 });
@@ -608,7 +610,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(savedlisa.age).to.equal(20);
       });
 
-      it('saves many objects that each has one eagerly loaded object (to which they belong)', async function() {
+      it('saves many objects that each has one eagerly loaded object (to which they belong)', async function () {
         const user = await this.UserEager.create({ username: 'poobah', age: 18 });
         const homework = await this.ProjectEager.create({ title: 'homework', overdue_days: 10 });
         const party = await this.ProjectEager.create({ title: 'party', overdue_days: 2 });

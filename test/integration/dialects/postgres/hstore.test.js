@@ -1,16 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  hstore = require('sequelize/lib/dialects/postgres/hstore');
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const hstore = require('@sequelize/core/lib/dialects/postgres/hstore');
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] hstore', () => {
     describe('stringify', () => {
       it('should handle empty objects correctly', () => {
-        expect(hstore.stringify({ })).to.equal('');
+        expect(hstore.stringify({})).to.equal('');
       });
 
       it('should handle null values correctly', () => {
@@ -34,7 +36,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle a string with single quotes correctly', () => {
-        expect(hstore.stringify({ foo: "''a'" })).to.equal('"foo"=>"\'\'\'\'a\'\'"');
+        expect(hstore.stringify({ foo: '\'\'a\'' })).to.equal('"foo"=>"\'\'\'\'a\'\'"');
       });
 
       it('should handle simple objects correctly', () => {
@@ -57,7 +59,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle a string with single quotes correctly', () => {
-        expect(hstore.parse('"foo"=>"\'\'\'\'a\'\'"')).to.deep.equal({ foo: "''a'" });
+        expect(hstore.parse('"foo"=>"\'\'\'\'a\'\'"')).to.deep.equal({ foo: '\'\'a\'' });
       });
 
       it('should handle a string with backslashes correctly', () => {
@@ -65,7 +67,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle empty objects correctly', () => {
-        expect(hstore.parse('')).to.deep.equal({ });
+        expect(hstore.parse('')).to.deep.equal({});
       });
 
       it('should handle simple objects correctly', () => {

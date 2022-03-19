@@ -10,8 +10,11 @@ A Migration in Sequelize is javascript file which exports two functions, `up` an
 
 To install the Sequelize CLI:
 
-```text
+```sh
+# using npm
 npm install --save-dev sequelize-cli
+# using yarn
+yarn add sequelize-cli --dev
 ```
 
 For details see the [CLI GitHub repository](https://github.com/sequelize/cli).
@@ -20,8 +23,11 @@ For details see the [CLI GitHub repository](https://github.com/sequelize/cli).
 
 To create an empty project you will need to execute `init` command
 
-```text
+```sh
+# using npm
 npx sequelize-cli init
+# using yarn
+yarn sequelize-cli init
 ```
 
 This will create following folders
@@ -80,8 +86,11 @@ We will use `model:generate` command. This command requires two options:
 
 Let's create a model named `User`.
 
-```text
+```sh
+# using npm
 npx sequelize-cli model:generate --name User --attributes firstName:string,lastName:string,email:string
+# using yarn
+yarn sequelize-cli model:generate --name User --attributes firstName:string,lastName:string,email:string
 ```
 
 This will:
@@ -95,8 +104,11 @@ This will:
 
 Until this step, we haven't inserted anything into the database. We have just created the required model and migration files for our first model, `User`. Now to actually create that table in the database you need to run `db:migrate` command.
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:migrate
+# using yarn
+yarn sequelize-cli db:migrate
 ```
 
 This command will execute these steps:
@@ -111,14 +123,20 @@ Now our table has been created and saved in the database. With migration you can
 
 You can use `db:migrate:undo`, this command will revert most the recent migration.
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:migrate:undo
+# using yarn
+yarn sequelize-cli db:migrate:undo
 ```
 
 You can revert back to the initial state by undoing all migrations with the `db:migrate:undo:all` command. You can also revert back to a specific migration by passing its name with the `--to` option.
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
+# using yarn
+yarn sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
 ```
 
 ### Creating the first Seed
@@ -129,8 +147,11 @@ To manage all data migrations you can use seeders. Seed files are some change in
 
 Let's create a seed file which will add a demo user to our `User` table.
 
-```text
+```sh
+# using npm
 npx sequelize-cli seed:generate --name demo-user
+# using yarn
+yarn sequelize-cli seed:generate --name demo-user
 ```
 
 This command will create a seed file in `seeders` folder. File name will look something like `XXXXXXXXXXXXXX-demo-user.js`. It follows the same `up / down` semantics as the migration files.
@@ -158,8 +179,11 @@ module.exports = {
 
 In last step you created a seed file; however, it has not been committed to the database. To do that we run a simple command.
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:seed:all
+# using yarn
+yarn sequelize-cli db:seed:all
 ```
 
 This will execute that seed file and a demo user will be inserted into the `User` table.
@@ -172,20 +196,29 @@ Seeders can be undone if they are using any storage. There are two commands avai
 
 If you wish to undo the most recent seed:
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:seed:undo
+# using yarn
+yarn sequelize-cli db:seed:undo
 ```
 
 If you wish to undo a specific seed:
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data
+# using yarn
+yarn sequelize-cli db:seed:undo --seed name-of-seed-as-in-data
 ```
 
 If you wish to undo all seeds:
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:seed:undo:all
+# using yarn
+yarn sequelize-cli db:seed:undo:all
 ```
 
 ## Migration Skeleton
@@ -205,8 +238,11 @@ module.exports = {
 
 We can generate this file using `migration:generate`. This will create `xxx-migration-skeleton.js` in your migration folder.
 
-```text
+```sh
+# using npm
 npx sequelize-cli migration:generate --name migration-skeleton
+# using yarn
+yarn sequelize-cli migration:generate --name migration-skeleton
 ```
 
 The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
@@ -346,7 +382,7 @@ module.exports = {
         'Person',
         ['name', 'bool'],
         {
-          indicesType: 'UNIQUE',
+          type: 'UNIQUE',
           where: { bool : 'true' },
         }
       );
@@ -467,8 +503,11 @@ The example above also shows how to add custom dialect options to the configurat
 
 To enable more modern constructions in your migrations and seeders, you can simply install `babel-register` and require it at the beginning of `.sequelizerc`:
 
-```text
+```sh
+# using npm
 npm i --save-dev babel-register
+# using yarn
+yarn add babel-register --dev
 ```
 
 ```js
@@ -556,8 +595,11 @@ By default the CLI will not save any seed that is executed. If you choose to cha
 
 As an alternative to the `--config` option with configuration files defining your database, you can use the `--url` option to pass in a connection string. For example:
 
-```text
+```sh
+# using npm
 npx sequelize-cli db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
+# using yarn
+yarn sequelize-cli db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
 ```
 
 ### Programmatic usage

@@ -1,19 +1,20 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  DataTypes = require('sequelize/lib/data-types'),
-  Support = require('../../support'),
-  Sequelize = require('sequelize/lib/sequelize'),
-  ConnectionError = require('sequelize/lib/errors/connection-error'),
-  { AsyncQueueError } = require('sequelize/lib/dialects/mssql/async-queue'),
-  dialect = Support.getTestDialect();
+const chai = require('chai');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Support = require('../../support');
+const Sequelize = require('@sequelize/core/lib/sequelize');
+const ConnectionError = require('@sequelize/core/lib/errors/connection-error');
+const { AsyncQueueError } = require('@sequelize/core/lib/dialects/mssql/async-queue');
 
-if (dialect.match(/^mssql/)) {
+const expect = chai.expect;
+const dialect = Support.getTestDialect();
+
+if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Query Queue', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       const User = this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING
+        username: DataTypes.STRING,
       });
 
       await this.sequelize.sync({ force: true });
@@ -21,96 +22,76 @@ if (dialect.match(/^mssql/)) {
       await User.create({ username: 'John' });
     });
 
-    it('should queue concurrent requests to a connection', async function() {
+    it('should queue concurrent requests to a connection', async function () {
       const User = this.User;
 
       await expect(this.sequelize.transaction(async t => {
         return Promise.all([
           User.findOne({
-            transaction: t
+            transaction: t,
           }),
           User.findOne({
-            transaction: t
-          })
+            transaction: t,
+          }),
         ]);
       })).not.to.be.rejected;
     });
 
-    it('requests that reject should not affect future requests', async function() {
+    it('requests that reject should not affect future requests', async function () {
       const User = this.User;
 
       await expect(this.sequelize.transaction(async t => {
         await expect(User.create({
-          username: new Date()
+          username: new Date(),
         })).to.be.rejected;
         await expect(User.findOne({
-          transaction: t
+          transaction: t,
         })).not.to.be.rejected;
       })).not.to.be.rejected;
     });
 
-    it('closing the connection should reject pending requests', async function() {
+    it('closing the connection should reject pending requests', async function () {
       const User = this.User;
 
       let promise;
 
-      await expect(this.sequelize.transaction(t =>
+      await expect(this.sequelize.transaction(transaction => {
         promise = Promise.all([
-          expect(this.sequelize.dialect.connectionManager.disconnect(t.connection)).to.be.fulfilled,
-          expect(User.findOne({
-            transaction: t
-          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+          expect(this.sequelize.dialect.connectionManager.disconnect(transaction.connection)).to.be.fulfilled,
+          expect(User.findOne({ transaction })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
             .and.have.property('parent').that.instanceOf(AsyncQueueError),
-          expect(User.findOne({
-            transaction: t
-          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
-            .and.have.property('parent').that.instanceOf(AsyncQueueError)
-        ])
-      )).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');
+          expect(User.findOne({ transaction })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+            .and.have.property('parent').that.instanceOf(AsyncQueueError),
+        ]);
+
+        return promise;
+      })).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');
 
       await expect(promise).not.to.be.rejected;
     });
 
-    it('closing the connection should reject in-progress requests', async function() {
-      const User = this.User;
+    it('closing the connection should reject in-progress requests', async function () {
+      const { User, sequelize } = this;
 
       let promise;
 
-      await expect(this.sequelize.transaction(async t => {
-        const wrappedExecSql = t.connection.execSql;
-        t.connection.execSql = (...args) => {
-          this.sequelize.dialect.connectionManager.disconnect(t.connection);
-          return wrappedExecSql(...args);
+      await expect(sequelize.transaction(async transaction => {
+        const wrappedExecSql = transaction.connection.execSql;
+        transaction.connection.execSql = async function execSql(...args) {
+          await sequelize.dialect.connectionManager.disconnect(transaction.connection);
+
+          return wrappedExecSql.call(this, ...args);
         };
-        return promise = expect(User.findOne({
-          transaction: t
-        })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could finish executing')
+
+        promise = expect(User.findOne({ transaction }))
+          .to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could finish executing')
           .and.have.property('parent').that.instanceOf(AsyncQueueError);
+
+        return promise;
       })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
         .and.have.property('parent').that.instanceOf(AsyncQueueError);
 
       await expect(promise).not.to.be.rejected;
-    });
-
-    describe('unhandled rejections', () => {
-      it("unhandled rejection should occur if user doesn't catch promise returned from query", async function() {
-        const User = this.User;
-        const rejectionPromise = Support.nextUnhandledRejection();
-        User.create({
-          username: new Date()
-        });
-        await expect(rejectionPromise).to.be.rejectedWith(
-          Sequelize.ValidationError, 'string violation: username cannot be an array or an object');
-      });
-
-      it('no unhandled rejections should occur as long as user catches promise returned from query', async function() {
-        const User = this.User;
-        const unhandledRejections = Support.captureUnhandledRejections();
-        await expect(User.create({
-          username: new Date()
-        })).to.be.rejectedWith(Sequelize.ValidationError);
-        expect(unhandledRejections).to.deep.equal([]);
-      });
     });
   });
 }

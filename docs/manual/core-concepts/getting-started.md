@@ -4,21 +4,36 @@ In this tutorial you will learn to make a simple setup of Sequelize.
 
 ## Installing
 
-Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [yarn](https://yarnpkg.com/package/sequelize)).
+Sequelize is available via [npm](https://www.npmjs.com/package/@sequelize/core) (or [yarn](https://yarnpkg.com/package/@sequelize/core)).
 
 ```sh
-npm install --save sequelize
+# using npm
+npm i sequelize # This will install v6, the latest stable release of Sequelize
+npm i @sequelize/core # This will install v7, the latest alpha release of Sequelize
+# using yarn
+yarn add sequelize # This will install v6, the latest stable release of Sequelize
+yarn add @sequelize/core # This will install v7, the latest alpha release of Sequelize
 ```
 
 You'll also have to manually install the driver for your database of choice:
 
 ```sh
-# One of the following:
-$ npm install --save pg pg-hstore # Postgres
-$ npm install --save mysql2
-$ npm install --save mariadb
-$ npm install --save sqlite3
-$ npm install --save tedious # Microsoft SQL Server
+# using npm
+npm i pg pg-hstore # PostgreSQL
+npm i mysql2 # MySQL
+npm i mariadb # MariaDB
+npm i sqlite3 # SQLite
+npm i tedious # Microsoft SQL Server
+npm i ibm_db # DB2
+npm i odbc # IBM i
+# using yarn
+yarn add pg pg-hstore # PostgreSQL
+yarn add mysql2 # MySQL
+yarn add mariadb # MariaDB
+yarn add sqlite3 # SQLite
+yarn add tedious # Microsoft SQL Server
+yarn add ibm_db # DB2
+yarn add odbc # IBM i
 ```
 
 ## Connecting to a database
@@ -26,7 +41,7 @@ $ npm install --save tedious # Microsoft SQL Server
 To connect to the database, you must create a Sequelize instance. This can be done by either passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI:
 
 ```js
-const { Sequelize } = require('sequelize');
+const { Sequelize } = require('@sequelize/core');
 
 // Option 1: Passing a connection URI
 const sequelize = new Sequelize('sqlite::memory:') // Example for sqlite
@@ -45,7 +60,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
-The Sequelize constructor accepts a lot of options. They are documented in the [API Reference](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
+The Sequelize constructor accepts a lot of options. They are documented in the [API Reference](../class/src/sequelize.js~Sequelize.html#instance-constructor-constructor).
 
 ### Testing the connection
 
@@ -74,7 +89,7 @@ Observe that, in the examples above, `Sequelize` refers to the library itself wh
 You are encouraged to run code examples locally while reading the Sequelize docs. This will help you learn faster. The easiest way to do this is using the SQLite dialect:
 
 ```js
-const { Sequelize, Op, Model, DataTypes } = require("sequelize");
+const { Sequelize, Op, Model, DataTypes } = require('@sequelize/core');
 const sequelize = new Sequelize("sqlite::memory:");
 
 // Code here! It works!

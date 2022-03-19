@@ -1,26 +1,28 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  sinon = require('sinon'),
-  current = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const sinon = require('sinon');
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.clock.reset();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -34,35 +36,35 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true }
+        validate: { isInt: true },
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true
+        allowNull: true,
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
-      }
+        defaultValue: false,
+      },
     });
 
     await this.User.sync({ force: true });
   });
 
   describe('increment', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.User.create({ id: 1, aNumber: 0, bNumber: 0, cNumber: 0 });
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
@@ -79,7 +81,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     if (current.dialect.supports.returnValues.returning) {
-      it('supports returning', async function() {
+      it('supports returning', async function () {
         const user1 = await this.User.findByPk(1);
         await user1.increment('aNumber', { by: 2 });
         expect(user1.aNumber).to.be.equal(2);
@@ -88,41 +90,41 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    it('supports where conditions', async function() {
+    it('supports where conditions', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(0);
     });
 
-    it('with array', async function() {
+    it('with array', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment(['aNumber'], { by: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(2);
     });
 
-    it('with single field', async function() {
+    it('with single field', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment('aNumber', { by: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(2);
     });
 
-    it('with single field and no value', async function() {
+    it('with single field and no value', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment('aNumber');
       const user2 = await this.User.findByPk(1);
       expect(user2.aNumber).to.be.equal(1);
     });
 
-    it('should still work right with other concurrent updates', async function() {
+    it('should still work right with other concurrent updates', async function () {
       const user1 = await this.User.findByPk(1);
       // Select the user again (simulating a concurrent query)
       const user2 = await this.User.findByPk(1);
 
       await user2.update({
-        aNumber: user2.aNumber + 1
+        aNumber: user2.aNumber + 1,
       });
 
       await user1.increment(['aNumber'], { by: 2 });
@@ -130,51 +132,51 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user5.aNumber).to.be.equal(3);
     });
 
-    it('should still work right with other concurrent increments', async function() {
+    it('should still work right with other concurrent increments', async function () {
       const user1 = await this.User.findByPk(1);
 
       await Promise.all([
         user1.increment(['aNumber'], { by: 2 }),
         user1.increment(['aNumber'], { by: 2 }),
-        user1.increment(['aNumber'], { by: 2 })
+        user1.increment(['aNumber'], { by: 2 }),
       ]);
 
       const user2 = await this.User.findByPk(1);
       expect(user2.aNumber).to.equal(6);
     });
 
-    it('with key value pair', async function() {
+    it('with key value pair', async function () {
       const user1 = await this.User.findByPk(1);
-      await user1.increment({ 'aNumber': 1, 'bNumber': 2 });
+      await user1.increment({ aNumber: 1, bNumber: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(1);
       expect(user3.bNumber).to.be.equal(2);
     });
 
-    it('single value should work when field name is different from database column name', async function() {
+    it('single value should work when field name is different from database column name', async function () {
       const user = await this.User.findByPk(1);
       await user.increment('cNumber');
       const user2 = await this.User.findByPk(1);
       expect(user2.cNumber).to.be.equal(1);
     });
 
-    it('array should work when field name is different from database column name', async function() {
+    it('array should work when field name is different from database column name', async function () {
       const user = await this.User.findByPk(1);
       await user.increment(['cNumber']);
       const user2 = await this.User.findByPk(1);
       expect(user2.cNumber).to.be.equal(1);
     });
 
-    it('key value should work when field name is different from database column name', async function() {
+    it('key value should work when field name is different from database column name', async function () {
       const user = await this.User.findByPk(1);
       await user.increment({ cNumber: 1 });
       const user2 = await this.User.findByPk(1);
       expect(user2.cNumber).to.be.equal(1);
     });
 
-    it('with timestamps set to true', async function() {
+    it('with timestamps set to true', async function () {
       const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
+        aNumber: DataTypes.INTEGER,
       }, { timestamps: true });
 
       await User.sync({ force: true });
@@ -188,9 +190,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await expect(user).to.have.property('updatedAt').afterTime(oldDate);
     });
 
-    it('with timestamps set to true and options.silent set to true', async function() {
+    it('with timestamps set to true and options.silent set to true', async function () {
       const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
+        aNumber: DataTypes.INTEGER,
       }, { timestamps: true });
 
       await User.sync({ force: true });

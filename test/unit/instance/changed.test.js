@@ -1,28 +1,30 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support   = require('../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  current   = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support   = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('changed', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.User = current.define('User', {
         name: DataTypes.STRING,
         birthday: DataTypes.DATE,
         yoj: DataTypes.DATEONLY,
-        meta: DataTypes.JSON
+        meta: DataTypes.JSON,
       });
     });
 
-    it('should return true for changed primitive', function() {
+    it('should return true for changed primitive', function () {
       const user = this.User.build({
-        name: 'a'
+        name: 'a',
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       expect(user.changed('meta')).to.equal(false);
@@ -32,13 +34,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.changed('meta')).to.equal(true);
     });
 
-    it('should return falsy for unchanged primitive', function() {
+    it('should return falsy for unchanged primitive', function () {
       const user = this.User.build({
         name: 'a',
-        meta: null
+        meta: null,
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       user.set('name', 'a');
@@ -47,13 +49,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.changed('meta')).to.equal(false);
     });
 
-    it('should return true for multiple changed values', function() {
+    it('should return true for multiple changed values', function () {
       const user = this.User.build({
         name: 'a',
-        birthday: new Date(new Date() - 10)
+        birthday: new Date(Date.now() - 10),
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       user.set('name', 'b');
@@ -62,29 +64,29 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.changed('birthday')).to.equal(true);
     });
 
-    it('should return false for two instances with same value', function() {
-      const milliseconds = 1436921941088;
+    it('should return false for two instances with same value', function () {
+      const milliseconds = 1_436_921_941_088;
       const firstDate = new Date(milliseconds);
       const secondDate = new Date(milliseconds);
 
       const user = this.User.build({
-        birthday: firstDate
+        birthday: firstDate,
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       user.set('birthday', secondDate);
       expect(user.changed('birthday')).to.equal(false);
     });
 
-    it('should not detect changes when equal', function() {
+    it('should not detect changes when equal', function () {
       for (const value of [null, 1, 'asdf', new Date(), [], {}, Buffer.from('')]) {
         const t = new this.User({
-          json: value
+          json: value,
         }, {
           isNewRecord: false,
-          raw: true
+          raw: true,
         });
         t.json = value;
         expect(t.changed('json')).to.be.false;
@@ -92,63 +94,63 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       }
     });
 
-    it('should return true for JSON dot.separated key with changed values', function() {
+    it('should return true for JSON dot.separated key with changed values', function () {
       const user = this.User.build({
         meta: {
-          city: 'Stockholm'
-        }
+          city: 'Stockholm',
+        },
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       user.set('meta.city', 'Gothenburg');
       expect(user.changed('meta')).to.equal(true);
     });
 
-    it('should return false for JSON dot.separated key with same value', function() {
+    it('should return false for JSON dot.separated key with same value', function () {
       const user = this.User.build({
         meta: {
-          city: 'Gothenburg'
-        }
+          city: 'Gothenburg',
+        },
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       user.set('meta.city', 'Gothenburg');
       expect(user.changed('meta')).to.equal(false);
     });
 
-    it('should return true for JSON dot.separated key with object', function() {
+    it('should return true for JSON dot.separated key with object', function () {
       const user = this.User.build({
         meta: {
-          address: { street: 'Main street', number: '40' }
-        }
+          address: { street: 'Main street', number: '40' },
+        },
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
-      user.set('meta.address', { street: 'Second street', number: '1' } );
+      user.set('meta.address', { street: 'Second street', number: '1' });
       expect(user.changed('meta')).to.equal(true);
     });
 
-    it('should return false for JSON dot.separated key with same object', function() {
+    it('should return false for JSON dot.separated key with same object', function () {
       const user = this.User.build({
         meta: {
-          address: { street: 'Main street', number: '40' }
-        }
+          address: { street: 'Main street', number: '40' },
+        },
       }, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
-      user.set('meta.address', { street: 'Main street', number: '40' } );
+      user.set('meta.address', { street: 'Main street', number: '40' });
       expect(user.changed('meta')).to.equal(false);
     });
 
-    it('should return false when changed from null to null', function() {
+    it('should return false when changed from null to null', function () {
       const attributes = {};
       for (const attr in this.User.rawAttributes) {
         attributes[attr] = null;
@@ -156,7 +158,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user = this.User.build(attributes, {
         isNewRecord: false,
-        raw: true
+        raw: true,
       });
 
       for (const attr in this.User.rawAttributes) {
@@ -169,13 +171,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('setDataValue', () => {
-      it('should return falsy for unchanged primitive', function() {
+      it('should return falsy for unchanged primitive', function () {
         const user = this.User.build({
           name: 'a',
-          meta: null
+          meta: null,
         }, {
           isNewRecord: false,
-          raw: true
+          raw: true,
         });
 
         user.setDataValue('name', 'a');

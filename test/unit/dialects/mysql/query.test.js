@@ -1,7 +1,8 @@
 'use strict';
 
 const path = require('path');
-const Query = require('sequelize/lib/dialects/mysql/query.js');
+const Query = require('@sequelize/core/lib/dialects/mysql/query');
+
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
 const sinon = require('sinon');
@@ -12,11 +13,11 @@ const expect = chai.expect;
 describe('[MYSQL/MARIADB Specific] Query', () => {
   describe('logWarnings', () => {
     beforeEach(() => {
-      sinon.spy(console, 'log');
+      sinon.spy(console, 'debug');
     });
 
     afterEach(() => {
-      console.log.restore();
+      console.debug.restore();
     });
 
     it('check iterable', async () => {
@@ -30,7 +31,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
 
       const results = await query.logWarnings('dummy-results');
       expect('dummy-results').to.equal(results);
-      expect(true).to.equal(console.log.calledOnce);
+      expect(true).to.equal(console.debug.calledOnce);
     });
   });
 });

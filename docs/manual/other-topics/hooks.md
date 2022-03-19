@@ -6,7 +6,7 @@ Hooks (also known as lifecycle events), are functions which are called before an
 
 ## Available hooks
 
-Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - lib/hooks.js](https://github.com/sequelize/sequelize/blob/v6/lib/hooks.js#L7).
+Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - src/hooks.js](https://github.com/sequelize/sequelize/blob/v6/src/hooks.js#L7).
 
 ## Hooks firing order
 
@@ -116,7 +116,24 @@ You can have many hooks with same name. Calling `.removeHook()` will remove all 
 
 ## Global / universal hooks
 
-Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
+Global hooks are hooks that are run for all models. They are especially useful for plugins and can define behaviours that you want for all your models, for example to allow customization on timestamps using `sequelize.define` on your models:
+
+```js
+const User = sequelize.define('User', {}, {
+    tableName: 'users',
+    hooks : {
+        beforeCreate : (record, options) => {
+            record.dataValues.createdAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+            record.dataValues.updatedAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+        },
+        beforeUpdate : (record, options) => {
+            record.dataValues.updatedAt = new Date().toISOString().replace(/T/, ' ').replace(/\..+/g, '');
+        }
+    }
+});
+```
+
+They can be defined in many ways, which have slightly different semantics:
 
 ### Default Hooks (on Sequelize constructor options)
 

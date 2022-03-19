@@ -4,7 +4,7 @@
 
 ### MySQL
 
-The underlying connector library used by Sequelize for MySQL is the [mysql2](https://www.npmjs.com/package/mysql2) npm package (version 1.5.2 or higher).
+The underlying connector library used by Sequelize for MySQL is the [mysql2](https://www.npmjs.com/package/mysql2) package (version 1.5.2 or higher).
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -17,9 +17,11 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+`dialectOptions` are passed directly to the MySQL connection constructor. A full list of options can be found in the [MySQL docs](https://www.npmjs.com/package/mysql#connection-options).
+
 ### MariaDB
 
-The underlying connector library used by Sequelize for MariaDB is the [mariadb](https://www.npmjs.com/package/mariadb) npm package.
+The underlying connector library used by Sequelize for MariaDB is the [mariadb](https://www.npmjs.com/package/mariadb) package.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -33,9 +35,11 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+`dialectOptions` are passed directly to the MariaDB connection constructor. A full list of options can be found in the [MariaDB docs](https://mariadb.com/kb/en/nodejs-connection-options/).
+
 ### SQLite
 
-The underlying connector library used by Sequelize for SQLite is the [sqlite3](https://www.npmjs.com/package/sqlite3) npm package (version 4.0.0 or above).
+The underlying connector library used by Sequelize for SQLite is the [sqlite3](https://www.npmjs.com/package/sqlite3) package (version 4.0.0 or above).
 
 You specify the storage file in the Sequelize constructor with the `storage` option (use `:memory:` for an in-memory SQLite instance).
 
@@ -51,9 +55,13 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+The following fields may be passed to SQLite `dialectOptions`:
+
+- `readWriteMode`: Set the opening mode for the SQLite connection. Potential values are provided by the sqlite3 package, and can include sqlite3.OPEN_READONLY, sqlite3.OPEN_READWRITE, or sqlite3.OPEN_CREATE. See the [SQLite C interface documentation for more details]( https://www.sqlite.org/c3ref/open.html).
+
 ### PostgreSQL
 
-The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) npm package (version 7.0.0 or above). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
+The underlying connector library used by Sequelize for PostgreSQL is the [pg](https://www.npmjs.com/package/pg) package. For usage in Node 14 and above you need to use pg version 8.2.x or above, as per [the documentation](https://node-postgres.com/#version-compatibility). The module [pg-hstore](https://www.npmjs.com/package/pg-hstore) is also necessary.
 
 You can provide custom options to it using the `dialectOptions` in the Sequelize constructor:
 
@@ -65,6 +73,15 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   }
 });
 ```
+
+The following fields may be passed to Postgres `dialectOptions`:
+
+- `application_name`: Name of application in pg_stat_activity. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-APPLICATION-NAME) for details.
+- `ssl`: SSL options. See the [`pg` docs](https://node-postgres.com/features/ssl) for details.
+- `client_encoding`: // Setting 'auto' determines locale based on the client LC_CTYPE environment variable. See the [Postgres docs](https://www.postgresql.org/docs/current/multibyte.html) for details.
+- `keepAlive`: Boolean to enable TCP KeepAlive. See the [`pg` changelog](https://github.com/brianc/node-postgres/blob/master/CHANGELOG.md#v600) for details.
+- `statement_timeout`: Times out queries after a set time in milliseconds. Added in pg v7.3. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-STATEMENT-TIMEOUT) for details.
+- `idle_in_transaction_session_timeout`: Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. See the [Postgres docs](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT) for details.
 
 To connect over a unix domain socket, specify the path to the socket directory in the `host` option. The socket path must start with `/`.
 
@@ -96,7 +113,11 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MSSQL
 
-The underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) npm package (version 6.0.0 or above).
+The supported versions of MS SQL are from MS SQL 2017 (version 14) up to the most recent version.
+
+#### Tedious
+
+The default underlying connector library used by Sequelize for MSSQL is the [tedious](https://www.npmjs.com/package/tedious) package.
 
 You can provide custom options to it using `dialectOptions.options` in the Sequelize constructor:
 
@@ -113,6 +134,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   }
 });
 ```
+
+A full list of options can be found in the [tedious docs](https://tediousjs.github.io/tedious/api-connection.html#function_newConnection).
 
 #### MSSQL Domain Account
 
@@ -137,9 +160,28 @@ const sequelize = new Sequelize('database', null, null, {
 })
 ```
 
+### IBM i
+
+The underlying connector library used by Sequelize for IBM i is the [odbc](https://www.npmjs.com/package/odbc) npm package (version 2.4.1 or higher).
+
+To learn more about using ODBC with IBM i, consult the [IBM i and ODBC documentation](https://ibmi-oss-docs.readthedocs.io/en/latest/odbc/README.html).
+
+When passing options to the constructor, the concept of `database` is mapped to the ODBC `DSN`. You can provide additional connection string options to Sequelize using the `dialectOptions.odbcConnectionString`. This connection string is then appended with the values found in the `database`, `username`, and `password` parameters:
+
+```js
+const sequelize = new Sequelize('MY_DSN', 'username', 'password', {
+  dialect: 'ibmi',
+  dialectOptions: {
+    odbcConnectionString: 'CMT=1;NAM=0;...'
+  }
+})
+```
+
+The final connection string generated by the above configuration would look like `CMT=1;NAMING=0;...;DSN=MY_DSN;UID=username;PWD=password;`. Additionally, the `host` option will map the the `SYSTEM=` connection string key.
+
 ### Snowflake (Experiment)
 
-The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) npm package.
+The underlying connector library used by Sequelize for Snowflake is the [snowflake-sdk](https://www.npmjs.com/package/snowflake-sdk) package.
 
 In order to connect with an account, use the following format:
 
@@ -167,7 +209,10 @@ const sequelize = new Sequelize('database', null, null, {
 For running integration test:
 
 ```sh
+# using npm
 SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse npm run test-integration-snowflake
+# using yarn
+SEQ_ACCOUNT=myAccount SEQ_USER=myUser SEQ_PW=myPassword SEQ_ROLE=myRole SEQ_DB=myDatabaseName SEQ_SCHEMA=mySchema SEQ_WH=myWareHouse yarn test-integration-snowflake
 ```
 
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
@@ -194,7 +239,7 @@ The `tableHint` option can be used to define a table hint. The hint must be a va
 Table hints override the default behavior of MSSQL query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
 ```js
-const { TableHints } = require('sequelize');
+const { TableHints } = require('@sequelize/core');
 Project.findAll({
   // adding the table hint NOLOCK
   tableHint: TableHints.NOLOCK
@@ -209,7 +254,7 @@ The `indexHints` option can be used to define index hints. The hint type must be
 Index hints [override the default behavior of the MySQL query optimizer](https://dev.mysql.com/doc/refman/5.7/en/index-hints.html).
 
 ```js
-const { IndexHints } = require("sequelize");
+const { IndexHints } = require('@sequelize/core');
 Project.findAll({
   indexHints: [
     { type: IndexHints.USE, values: ['index_project_on_name'] }

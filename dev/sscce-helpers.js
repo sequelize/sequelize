@@ -7,7 +7,7 @@ module.exports = {
     return Support.createSequelizeInstance({
       logging: console.log,
       logQueryParameters: true,
-      ...options
+      ...options,
     });
-  }
+  },
 };

@@ -1,10 +1,12 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../../support');
+
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
@@ -17,8 +19,8 @@ if (dialect === 'mysql') {
 
       const [affectedCount] = await User.update({ username: 'jozef' }, {
         where: {
-          id: 1
-        }
+          id: 1,
+        },
       });
 
       // https://github.com/sequelize/sequelize/issues/7184

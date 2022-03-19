@@ -1,25 +1,27 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] sqlite_master raw queries', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.sequelize.define('SomeTable', {
-        someColumn: DataTypes.INTEGER
+        someColumn: DataTypes.INTEGER,
       }, {
         freezeTableName: true,
-        timestamps: false
+        timestamps: false,
       });
 
       await this.sequelize.sync({ force: true });
     });
 
-    it('should be able to select with tbl_name filter', async function() {
+    it('should be able to select with tbl_name filter', async function () {
       const result = await this.sequelize.query('SELECT * FROM sqlite_master WHERE tbl_name=\'SomeTable\'');
       const rows = result[0];
       expect(rows).to.have.length(1);
@@ -30,20 +32,20 @@ if (dialect === 'sqlite') {
       expect(row).to.have.property('sql');
     });
 
-    it('should be able to select *', async function() {
+    it('should be able to select *', async function () {
       const result = await this.sequelize.query('SELECT * FROM sqlite_master');
       const rows = result[0];
       expect(rows).to.have.length(2);
-      rows.forEach(row => {
+      for (const row of rows) {
         expect(row).to.have.property('type');
         expect(row).to.have.property('name');
         expect(row).to.have.property('tbl_name');
         expect(row).to.have.property('rootpage');
         expect(row).to.have.property('sql');
-      });
+      }
     });
 
-    it('should be able to select just "sql" column and get rows back', async function() {
+    it('should be able to select just "sql" column and get rows back', async function () {
       const result = await this.sequelize.query('SELECT sql FROM sqlite_master WHERE tbl_name=\'SomeTable\'');
       const rows = result[0];
       expect(rows).to.have.length(1);

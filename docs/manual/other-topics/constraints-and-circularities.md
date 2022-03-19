@@ -3,7 +3,7 @@
 Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If `Task` has a reference to `User`, the `User` table must be created before the `Task` table can be created. This can sometimes lead to circular references, where Sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has a reference to its current version.
 
 ```js
-const { Sequelize, Model, DataTypes } = require("sequelize");
+const { Sequelize, Model, DataTypes } = require('@sequelize/core');
 
 class Document extends Model {}
 Document.init({

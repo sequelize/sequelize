@@ -1,36 +1,38 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  config = require('../config/config'),
-  Support = require('./support'),
-  dialect = Support.getTestDialect(),
-  Sequelize = Support.Sequelize,
-  fs = require('fs'),
-  path = require('path'),
-  { promisify } = require('util');
+const chai = require('chai');
+
+const expect = chai.expect;
+const config = require('../config/config');
+const Support = require('./support');
+
+const dialect = Support.getTestDialect();
+const Sequelize = Support.Sequelize;
+const fs = require('fs');
+const path = require('path');
+const { promisify } = require('util');
 
 let sqlite3;
 if (dialect === 'sqlite') {
-  sqlite3 = require('sqlite3'); // eslint-disable-line
+  sqlite3 = require('sqlite3');
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
-    if (dialect != 'db2') {
+    if (dialect !== 'db2') {
       it('when we don\'t have the correct server details', async () => {
         const options = {
           logging: false,
           host: 'localhost',
-          port: 19999, // Wrong port
-          dialect
+          port: 19_999, // Wrong port
+          dialect,
         };
 
         const constructorArgs = [
           config[dialect].database,
           config[dialect].username,
           config[dialect].password,
-          options
+          options,
         ];
 
         let willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
@@ -49,10 +51,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('when we don\'t have the correct login information', async () => {
       const willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
-      
+
       if (dialect === 'mssql') {
         // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
+
         return;
       }
 
@@ -60,13 +63,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
-      } 
-
-      else if (dialect === 'db2') {
+      } else if (dialect === 'db2') {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
-      } 
-      
-      else {
+      } else if (dialect === 'ibmi') {
+        await expect(seq.query('select 1 as hello from SYSIBM.SYSDUMMY1')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'Error connecting to the database');
+      } else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
     });
@@ -74,7 +75,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2 and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.');
     });
   });
 
@@ -92,21 +93,21 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         try {
           try {
             await promisify(fs.unlink)(p);
-          } catch (err) {
-            expect(err.code).to.equal('ENOENT');
+          } catch (error) {
+            expect(error.code).to.equal('ENOENT');
           }
 
           const sequelizeReadOnly0 = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
-              mode: sqlite3.OPEN_READONLY
-            }
+              mode: sqlite3.OPEN_READONLY,
+            },
           });
           const sequelizeReadWrite0 = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE
-            }
+              mode: sqlite3.OPEN_READWRITE,
+            },
           });
 
           expect(sequelizeReadOnly0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
@@ -116,31 +117,31 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             sequelizeReadOnly0.query(createTableFoo)
               .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
             sequelizeReadWrite0.query(createTableFoo)
-              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
+              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
           ]);
 
           // By default, sqlite creates a connection that's READWRITE | CREATE
           const sequelize = new Sequelize('sqlite://foo', {
-            storage: p
+            storage: p,
           });
           await testAccess(await sequelize.query(createTableFoo));
           const sequelizeReadOnly = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
-              mode: sqlite3.OPEN_READONLY
-            }
+              mode: sqlite3.OPEN_READONLY,
+            },
           });
           const sequelizeReadWrite = new Sequelize('sqlite://foo', {
             storage: p,
             dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE
-            }
+              mode: sqlite3.OPEN_READWRITE,
+            },
           });
 
           await Promise.all([
             sequelizeReadOnly.query(createTableBar)
               .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
-            sequelizeReadWrite.query(createTableBar)
+            sequelizeReadWrite.query(createTableBar),
           ]);
         } finally {
           await promisify(fs.unlink)(p);

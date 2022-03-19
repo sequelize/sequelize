@@ -1,10 +1,12 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
-  Sequelize = Support.Sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support   = require('../support');
+
+const current   = Support.sequelize;
+const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('increment', () => {
@@ -13,9 +15,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id: {
           type: Sequelize.BIGINT,
           primaryKey: true,
-          autoIncrement: true
+          autoIncrement: true,
         },
-        count: Sequelize.BIGINT
+        count: Sequelize.BIGINT,
       });
 
       it('should reject if options are missing', async () => {

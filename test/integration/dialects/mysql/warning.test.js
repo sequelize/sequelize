@@ -1,8 +1,10 @@
 'use strict';
 
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support = require('../../../support');
+
 const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -16,19 +18,19 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
         const sequelize = Support.createSequelizeInstance({
           logging: logger,
           benchmark: false,
-          showWarnings: true
+          showWarnings: true,
         });
 
         const Model = sequelize.define('model', {
-          name: Sequelize.DataTypes.STRING(1, true)
+          name: Sequelize.DataTypes.STRING(1, true),
         });
 
         await sequelize.sync({ force: true });
         await sequelize.authenticate();
-        await sequelize.query("SET SESSION sql_mode='';");
+        await sequelize.query('SET SESSION sql_mode=\'\';');
 
         await Model.create({
-          name: 'very-long-long-name'
+          name: 'very-long-long-name',
         });
 
         // last log is warning message

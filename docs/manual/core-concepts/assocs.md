@@ -158,7 +158,7 @@ As shown above, the `foreignKey` option accepts a string or an object. When rece
 For example, to use `UUID` as the foreign key data type instead of the default (`INTEGER`), you can simply do:
 
 ```js
-const { DataTypes } = require("Sequelize");
+const { DataTypes } = require('@sequelize/core');
 
 Foo.hasOne(Bar, {
   foreignKey: {
@@ -402,7 +402,7 @@ The above showed the basics on queries for fetching data involving associations.
 
 * Or use the *[special methods/mixins](#special-methods-mixins-added-to-instances)* available for associated models, which are explained later on this page.
 
-**Note:** The [`save()` instance method](../class/lib/model.js~Model.html#instance-method-save) is not aware of associations. In other words, if you change a value from a *child* object that was eager loaded along a *parent* object, calling `save()` on the parent will completely ignore the change that happened on the child.
+**Note:** The [`save()` instance method](../class/src/model.js~Model.html#instance-method-save) is not aware of associations. In other words, if you change a value from a *child* object that was eager loaded along a *parent* object, calling `save()` on the parent will completely ignore the change that happened on the child.
 
 ## Association Aliases & Custom Foreign Keys
 
@@ -610,6 +610,21 @@ The same ones from `Foo.hasMany(Bar)`:
 * `fooInstance.removeBar()`
 * `fooInstance.removeBars()`
 * `fooInstance.createBar()`
+
+For belongsToMany relationships, by default `getBars()` will return all fields from the join table. Note that any `include` options will apply to the target `Bar` object, so trying to set options for the join table as you would when eager loading with `find` methods is not possible. To choose what attributes of the join table to include, `getBars()` supports a `joinTableAttributes` option that can be used similarly to setting `through.attributes` in an `include`. As an example, given Foo belongsToMany Bar, the following will both output results without join table fields:
+
+```js
+const foo = Foo.findByPk(id, {
+  include: [{
+    model: Bar,
+    through: { attributes: [] }
+  }]
+})
+console.log(foo.bars)
+
+const foo = Foo.findByPk(id)
+console.log(foo.getBars({ joinTableAttributes: [] }))
+```
 
 ### Note: Method names
 

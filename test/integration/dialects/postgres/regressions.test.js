@@ -1,16 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  Sequelize = Support.Sequelize,
-  dialect = Support.getTestDialect();
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const Sequelize = Support.Sequelize;
+const dialect = Support.getTestDialect();
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] Regressions', () => {
-    it('properly fetch OIDs after sync, #8749', async function() {
+    it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {
-        active: Sequelize.BOOLEAN
+        active: Sequelize.BOOLEAN,
       });
 
       /**
@@ -20,8 +22,8 @@ if (dialect.match(/^postgres/)) {
        */
       const Media = this.sequelize.define('Media', {
         type: Sequelize.ENUM([
-          'image', 'video', 'audio'
-        ])
+          'image', 'video', 'audio',
+        ]),
       });
 
       User.hasMany(Media);

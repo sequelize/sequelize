@@ -1,9 +1,7 @@
-/* eslint-env mocha */
-
-import sinon from 'sinon';
-import { expect } from 'chai';
-import { Logger, logger as defaultLogger } from 'sequelize/lib/utils/logger';
 import { inspect as nodeInspect } from 'util';
+import { Logger, logger as defaultLogger } from '@sequelize/core/lib/utils/logger';
+import { expect } from 'chai';
+import sinon from 'sinon';
 
 describe('logger', () => {
   let oldWarn: typeof console.warn;
@@ -23,16 +21,16 @@ describe('logger', () => {
     defaultLogger.warn('abc');
 
     expect(fakeWarn.calledOnceWithExactly('(sequelize) Warning: abc')).to.equal(
-      true
+      true,
     );
   });
 
-  it("defaults the context of new loggers to 'sequelize'", () => {
+  it('defaults the context of new loggers to \'sequelize\'', () => {
     const logger = new Logger();
 
     logger.warn('oh no');
     expect(
-      fakeWarn.calledOnceWithExactly('(sequelize) Warning: oh no')
+      fakeWarn.calledOnceWithExactly('(sequelize) Warning: oh no'),
     ).to.equal(true);
   });
 
@@ -43,8 +41,8 @@ describe('logger', () => {
 
     expect(
       fakeWarn.calledOnceWithExactly(
-        '(query-generator) Warning: This feature is not supported for this dialect.'
-      )
+        '(query-generator) Warning: This feature is not supported for this dialect.',
+      ),
     ).to.equal(true);
   });
 
@@ -54,11 +52,11 @@ describe('logger', () => {
       b: 2,
       c() {
         /* no-op */
-      }
+      },
     };
 
     expect(defaultLogger.inspect(obj)).to.equal(
-      nodeInspect(obj, { showHidden: false, depth: 3 })
+      nodeInspect(obj, { showHidden: false, depth: 3 }),
     );
   });
 

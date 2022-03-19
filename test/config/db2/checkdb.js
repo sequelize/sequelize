@@ -1,11 +1,12 @@
 'use strict';
 
 const execSync = require('child_process').execSync;
+
 let isDbReady = false;
 
 function checkDb() {
   const logs = execSync('docker logs db2').toString();
-  if (logs.match(/Setup has completed/)) {
+  if (/Setup has completed/.test(logs)) {
     isDbReady = true;
     clearTimeout(timeoutObj);
     clearInterval(intervalObj);
@@ -13,7 +14,7 @@ function checkDb() {
   }
 }
 
-const intervalObj = setInterval(checkDb, 10000);
+const intervalObj = setInterval(checkDb, 10_000);
 
 const timeoutObj = setTimeout(() => {
   clearInterval(intervalObj);

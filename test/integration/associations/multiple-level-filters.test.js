@@ -1,15 +1,16 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
-  it('can filter through belongsTo', async function() {
-    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
-      Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+  it('can filter through belongsTo', async function () {
+    const User = this.sequelize.define('User', { username: DataTypes.STRING });
+    const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+    const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -20,31 +21,31 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      username: 'leia'
+      username: 'leia',
     }, {
-      username: 'vader'
+      username: 'vader',
     }]);
 
     await Project.bulkCreate([{
       UserId: 1,
-      title: 'republic'
+      title: 'republic',
     }, {
       UserId: 2,
-      title: 'empire'
+      title: 'empire',
     }]);
 
     await Task.bulkCreate([{
       ProjectId: 1,
-      title: 'fight empire'
+      title: 'fight empire',
     }, {
       ProjectId: 1,
-      title: 'stablish republic'
+      title: 'stablish republic',
     }, {
       ProjectId: 2,
-      title: 'destroy rebel alliance'
+      title: 'destroy rebel alliance',
     }, {
       ProjectId: 2,
-      title: 'rule everything'
+      title: 'rule everything',
     }]);
 
     const tasks = await Task.findAll({
@@ -52,11 +53,11 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         {
           model: Project,
           include: [
-            { model: User, where: { username: 'leia' } }
+            { model: User, where: { username: 'leia' } },
           ],
-          required: true
-        }
-      ]
+          required: true,
+        },
+      ],
     });
 
     expect(tasks.length).to.be.equal(2);
@@ -64,10 +65,10 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     expect(tasks[1].title).to.be.equal('stablish republic');
   });
 
-  it('avoids duplicated tables in query', async function() {
-    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
-      Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+  it('avoids duplicated tables in query', async function () {
+    const User = this.sequelize.define('User', { username: DataTypes.STRING });
+    const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+    const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -78,31 +79,31 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      username: 'leia'
+      username: 'leia',
     }, {
-      username: 'vader'
+      username: 'vader',
     }]);
 
     await Project.bulkCreate([{
       UserId: 1,
-      title: 'republic'
+      title: 'republic',
     }, {
       UserId: 2,
-      title: 'empire'
+      title: 'empire',
     }]);
 
     await Task.bulkCreate([{
       ProjectId: 1,
-      title: 'fight empire'
+      title: 'fight empire',
     }, {
       ProjectId: 1,
-      title: 'stablish republic'
+      title: 'stablish republic',
     }, {
       ProjectId: 2,
-      title: 'destroy rebel alliance'
+      title: 'destroy rebel alliance',
     }, {
       ProjectId: 2,
-      title: 'rule everything'
+      title: 'rule everything',
     }]);
 
     const tasks = await Task.findAll({
@@ -110,14 +111,16 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         {
           model: Project,
           include: [
-            { model: User, where: {
-              username: 'leia',
-              id: 1
-            } }
+            {
+              model: User, where: {
+                username: 'leia',
+                id: 1,
+              },
+            },
           ],
-          required: true
-        }
-      ]
+          required: true,
+        },
+      ],
     });
 
     expect(tasks.length).to.be.equal(2);
@@ -125,10 +128,10 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     expect(tasks[1].title).to.be.equal('stablish republic');
   });
 
-  it('can filter through hasMany', async function() {
-    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
-      Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+  it('can filter through hasMany', async function () {
+    const User = this.sequelize.define('User', { username: DataTypes.STRING });
+    const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+    const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -139,31 +142,31 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      username: 'leia'
+      username: 'leia',
     }, {
-      username: 'vader'
+      username: 'vader',
     }]);
 
     await Project.bulkCreate([{
       UserId: 1,
-      title: 'republic'
+      title: 'republic',
     }, {
       UserId: 2,
-      title: 'empire'
+      title: 'empire',
     }]);
 
     await Task.bulkCreate([{
       ProjectId: 1,
-      title: 'fight empire'
+      title: 'fight empire',
     }, {
       ProjectId: 1,
-      title: 'stablish republic'
+      title: 'stablish republic',
     }, {
       ProjectId: 2,
-      title: 'destroy rebel alliance'
+      title: 'destroy rebel alliance',
     }, {
       ProjectId: 2,
-      title: 'rule everything'
+      title: 'rule everything',
     }]);
 
     const users = await User.findAll({
@@ -171,20 +174,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         {
           model: Project,
           include: [
-            { model: Task, where: { title: 'fight empire' } }
+            { model: Task, where: { title: 'fight empire' } },
           ],
-          required: true
-        }
-      ]
+          required: true,
+        },
+      ],
     });
 
     expect(users.length).to.be.equal(1);
     expect(users[0].username).to.be.equal('leia');
   });
 
-  it('can filter through hasMany connector', async function() {
-    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
-      Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+  it('can filter through hasMany connector', async function () {
+    const User = this.sequelize.define('User', { username: DataTypes.STRING });
+    const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsToMany(User, { through: 'user_project' });
     User.belongsToMany(Project, { through: 'user_project' });
@@ -192,15 +195,15 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      username: 'leia'
+      username: 'leia',
     }, {
-      username: 'vader'
+      username: 'vader',
     }]);
 
     await Project.bulkCreate([{
-      title: 'republic'
+      title: 'republic',
     }, {
-      title: 'empire'
+      title: 'empire',
     }]);
 
     const user = await User.findByPk(1);
@@ -212,8 +215,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     const users = await User.findAll({
       include: [
-        { model: Project, where: { title: 'republic' } }
-      ]
+        { model: Project, where: { title: 'republic' } },
+      ],
     });
 
     expect(users.length).to.be.equal(1);

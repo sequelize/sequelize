@@ -2,10 +2,12 @@
 
 const util = require('util');
 const chai = require('chai');
+
 const expect = chai.expect;
 const Support   = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const Model = require('sequelize/lib/model');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Model = require('@sequelize/core/lib/model');
+
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
@@ -22,9 +24,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sql.selectQuery(
             options.table || model && model.getTableName(),
             options,
-            options.model
+            options.model,
           ),
-          expectation
+          expectation,
         );
       });
     };
@@ -35,26 +37,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING,
         field: 'name',
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true
-      }
+        allowNull: true,
+      },
     }, {
       tableName: 'user',
-      timestamps: true
+      timestamps: true,
     });
 
     const Project = Support.sequelize.define('Project', {
@@ -62,26 +64,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING,
         field: 'name',
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true
-      }
+        allowNull: true,
+      },
     }, {
       tableName: 'project',
-      timestamps: true
+      timestamps: true,
     });
 
     const ProjectUser = Support.sequelize.define('ProjectUser', {
@@ -89,31 +91,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       userId: {
         type: DataTypes.INTEGER,
         field: 'user_id',
-        allowNull: false
+        allowNull: false,
       },
       projectId: {
         type: DataTypes.INTEGER,
         field: 'project_id',
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true
-      }
+        allowNull: true,
+      },
     }, {
       tableName: 'project_user',
-      timestamps: true
+      timestamps: true,
     });
 
     const Task = Support.sequelize.define('Task', {
@@ -121,31 +123,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING,
         field: 'name',
-        allowNull: false
+        allowNull: false,
       },
       projectId: {
         type: DataTypes.INTEGER,
         field: 'project_id',
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true
-      }
+        allowNull: true,
+      },
     }, {
       tableName: 'task',
-      timestamps: true
+      timestamps: true,
     });
 
     const Subtask = Support.sequelize.define('Subtask', {
@@ -153,31 +155,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        field: 'id'
+        field: 'id',
       },
       name: {
         type: DataTypes.STRING,
         field: 'name',
-        allowNull: false
+        allowNull: false,
       },
       taskId: {
         type: DataTypes.INTEGER,
         field: 'task_id',
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true
-      }
+        allowNull: true,
+      },
     }, {
       tableName: 'subtask',
-      timestamps: true
+      timestamps: true,
     });
 
     // Relations
@@ -185,44 +187,44 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       as: 'ProjectUserProjects',
       through: ProjectUser,
       foreignKey: 'user_id',
-      otherKey: 'project_id'
+      otherKey: 'project_id',
     });
 
     Project.belongsToMany(User, {
       as: 'ProjectUserUsers',
       through: ProjectUser,
       foreignKey: 'project_id',
-      otherKey: 'user_id'
+      otherKey: 'user_id',
     });
 
     Project.hasMany(Task, {
       as: 'Tasks',
-      foreignKey: 'project_id'
+      foreignKey: 'project_id',
     });
 
     ProjectUser.belongsTo(User, {
       as: 'User',
-      foreignKey: 'user_id'
+      foreignKey: 'user_id',
     });
 
     ProjectUser.belongsTo(User, {
       as: 'Project',
-      foreignKey: 'project_id'
+      foreignKey: 'project_id',
     });
 
     Task.belongsTo(Project, {
       as: 'Project',
-      foreignKey: 'project_id'
+      foreignKey: 'project_id',
     });
 
     Task.hasMany(Subtask, {
       as: 'Subtasks',
-      foreignKey: 'task_id'
+      foreignKey: 'task_id',
     });
 
     Subtask.belongsTo(Task, {
       as: 'Task',
-      foreignKey: 'task_id'
+      foreignKey: 'task_id',
     });
 
     testsql({
@@ -230,7 +232,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       attributes: [
         'id',
         'name',
-        'createdAt'
+        'createdAt',
       ],
       include: Model._validateIncludedElements({
         include: [
@@ -240,7 +242,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             attributes: [
               'id',
               'name',
-              'createdAt'
+              'createdAt',
             ],
             include: [
               {
@@ -249,57 +251,57 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 attributes: [
                   'id',
                   'name',
-                  'createdAt'
-                ]
-              }
-            ]
-          }
+                  'createdAt',
+                ],
+              },
+            ],
+          },
         ],
-        model: Subtask
+        model: Subtask,
       }).include,
       order: [
         // order with multiple simple association syntax with direction
         [
           {
             model: Task,
-            as: 'Task'
+            as: 'Task',
           },
           {
             model: Project,
-            as: 'Project'
+            as: 'Project',
           },
           'createdAt',
-          'ASC'
+          'ASC',
         ],
         // order with multiple simple association syntax without direction
         [
           {
             model: Task,
-            as: 'Task'
+            as: 'Task',
           },
           {
             model: Project,
-            as: 'Project'
+            as: 'Project',
           },
-          'createdAt'
+          'createdAt',
         ],
 
         // order with simple association syntax with direction
         [
           {
             model: Task,
-            as: 'Task'
+            as: 'Task',
           },
           'createdAt',
-          'ASC'
+          'ASC',
         ],
         // order with simple association syntax without direction
         [
           {
             model: Task,
-            as: 'Task'
+            as: 'Task',
           },
-          'createdAt'
+          'createdAt',
         ],
 
         // through model object as array with direction
@@ -337,49 +339,50 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         // main order as array without direction
         ['createdAt'],
         // main order as string
-        'createdAt'
-      ]
+        'createdAt',
+      ],
     }, {
       default: 'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at];',
-      postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";'
+      postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";',
     });
 
     testsql({
       model: Subtask,
       attributes: ['id', 'name'],
       order: [
-        Support.sequelize.random()
-      ]
+        Support.sequelize.random(),
+      ],
     }, {
+      ibmi: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND()',
       mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
       db2: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND();',
       mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
-      sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'
+      sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
     });
 
     describe('Invalid', () => {
       it('Error on invalid association', () => {
         return expect(Subtask.findAll({
           order: [
-            [Project, 'createdAt', 'ASC']
-          ]
+            [Project, 'createdAt', 'ASC'],
+          ],
         })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
       });
 
       it('Error on invalid structure', () => {
         return expect(Subtask.findAll({
           order: [
-            [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC']
-          ]
+            [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC'],
+          ],
         })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
       });
 
       it('Error when the order is a string', () => {
         return expect(Subtask.findAll({
-          order: 'i am a silly string'
+          order: 'i am a silly string',
         })).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
       });
 
@@ -387,9 +390,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         return expect(Subtask.findAll({
           order: [
             {
-              raw: 'this should throw an error'
-            }
-          ]
+              raw: 'this should throw an error',
+            },
+          ],
         })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
       });
 
@@ -398,10 +401,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           order: [
             [
               {
-                raw: 'this should throw an error'
-              }
-            ]
-          ]
+                raw: 'this should throw an error',
+              },
+            ],
+          ],
         })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
       });
     });

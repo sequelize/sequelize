@@ -1,12 +1,14 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  _         = require('lodash'),
-  DataTypes = require('sequelize/lib/data-types'),
-  Support   = require('../support'),
-  current   = Support.sequelize;
+const chai = require('chai');
+
+const expect = chai.expect;
+const sinon = require('sinon');
+const _         = require('lodash');
+const DataTypes = require('@sequelize/core/lib/data-types');
+const Support   = require('../support');
+
+const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('throws when invalid model is passed', () => {
@@ -30,15 +32,16 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     const methods = {
       getTask: 'get',
       setTask: 'set',
-      createTask: 'create'
+      createTask: 'create',
     };
     const User = current.define('User');
     const Task = current.define('Task');
 
     _.each(methods, (alias, method) => {
-      User.prototype[method] = function() {
+      User.prototype[method] = function () {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
+
         return realMethod;
       };
     });
@@ -52,12 +55,12 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     });
   });
   describe('association hooks', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
     describe('beforeBelongsToAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: true });
@@ -68,14 +71,14 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
 
         expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: false });
@@ -83,7 +86,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       });
     });
     describe('afterBelongsToAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: true });
@@ -95,7 +98,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join()).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
@@ -103,7 +106,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: false });

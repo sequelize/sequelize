@@ -1,30 +1,32 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  DataTypes = require('sequelize/lib/data-types'),
-  dialect = Support.getTestDialect(),
-  dbFile = 'test.sqlite',
-  storages = [dbFile];
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../../support');
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+const dialect = Support.getTestDialect();
+const dbFile = 'test.sqlite';
+const storages = [dbFile];
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAOFactory', () => {
-    after(function() {
+    after(function () {
       this.sequelize.options.storage = ':memory:';
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.sequelize.options.storage = dbFile;
       this.User = this.sequelize.define('User', {
         age: DataTypes.INTEGER,
         name: DataTypes.STRING,
-        bio: DataTypes.TEXT
+        bio: DataTypes.TEXT,
       });
       await this.User.sync({ force: true });
     });
 
-    storages.forEach(storage => {
+    for (const storage of storages) {
       describe(`with storage "${storage}"`, () => {
         after(() => {
           if (storage === dbFile) {
@@ -33,7 +35,7 @@ if (dialect === 'sqlite') {
         });
 
         describe('create', () => {
-          it('creates a table entry', async function() {
+          it('creates a table entry', async function () {
             const user = await this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' });
             expect(user.age).to.equal(21);
             expect(user.name).to.equal('John Wayne');
@@ -46,10 +48,10 @@ if (dialect === 'sqlite') {
             expect(usernames).to.contain('John Wayne');
           });
 
-          it('should allow the creation of an object with options as attribute', async function() {
+          it('should allow the creation of an object with options as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              options: DataTypes.TEXT
+              options: DataTypes.TEXT,
             });
 
             await Person.sync({ force: true });
@@ -57,39 +59,39 @@ if (dialect === 'sqlite') {
 
             const people = await Person.create({
               name: 'John Doe',
-              options
+              options,
             });
 
             expect(people.options).to.deep.equal(options);
           });
 
-          it('should allow the creation of an object with a boolean (true) as attribute', async function() {
+          it('should allow the creation of an object with a boolean (true) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              has_swag: DataTypes.BOOLEAN
+              has_swag: DataTypes.BOOLEAN,
             });
 
             await Person.sync({ force: true });
 
             const people = await Person.create({
               name: 'John Doe',
-              has_swag: true
+              has_swag: true,
             });
 
             expect(people.has_swag).to.be.ok;
           });
 
-          it('should allow the creation of an object with a boolean (false) as attribute', async function() {
+          it('should allow the creation of an object with a boolean (false) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              has_swag: DataTypes.BOOLEAN
+              has_swag: DataTypes.BOOLEAN,
             });
 
             await Person.sync({ force: true });
 
             const people = await Person.create({
               name: 'John Doe',
-              has_swag: false
+              has_swag: false,
             });
 
             expect(people.has_swag).to.not.be.ok;
@@ -97,41 +99,32 @@ if (dialect === 'sqlite') {
         });
 
         describe('.findOne', () => {
-          beforeEach(async function() {
+          beforeEach(async function () {
             await this.User.create({ name: 'user', bio: 'footbar' });
           });
 
-          it('finds normal lookups', async function() {
+          it('finds normal lookups', async function () {
             const user = await this.User.findOne({ where: { name: 'user' } });
             expect(user.name).to.equal('user');
-          });
-
-          it.skip('should make aliased attributes available', async function() { // eslint-disable-line mocha/no-skipped-tests
-            const user = await this.User.findOne({
-              where: { name: 'user' },
-              attributes: ['id', ['name', 'username']]
-            });
-
-            expect(user.username).to.equal('user');
           });
         });
 
         describe('.all', () => {
-          beforeEach(async function() {
+          beforeEach(async function () {
             await this.User.bulkCreate([
               { name: 'user', bio: 'foobar' },
-              { name: 'user', bio: 'foobar' }
+              { name: 'user', bio: 'foobar' },
             ]);
           });
 
-          it('should return all users', async function() {
+          it('should return all users', async function () {
             const users = await this.User.findAll();
             expect(users).to.have.length(2);
           });
         });
 
         describe('.min', () => {
-          it('should return the min value', async function() {
+          it('should return the min value', async function () {
             const users = [];
 
             for (let i = 2; i < 5; i++) {
@@ -145,7 +138,7 @@ if (dialect === 'sqlite') {
         });
 
         describe('.max', () => {
-          it('should return the max value', async function() {
+          it('should return the max value', async function () {
             const users = [];
 
             for (let i = 2; i <= 5; i++) {
@@ -158,6 +151,6 @@ if (dialect === 'sqlite') {
           });
         });
       });
-    });
+    }
   });
 }

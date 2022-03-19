@@ -1,18 +1,20 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require('sequelize/lib/data-types');
+const chai = require('chai');
 
-if (dialect.match(/^postgres/)) {
+const expect = chai.expect;
+const Support = require('../../support');
+
+const dialect = Support.getTestDialect();
+const DataTypes = require('@sequelize/core/lib/data-types');
+
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] associations', () => {
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {
-        it('should create a table wp_table1wp_table2s', function() {
-          const Table2 = this.sequelize.define('wp_table2', { foo: DataTypes.STRING }),
-            Table1 = this.sequelize.define('wp_table1', { foo: DataTypes.STRING });
+        it('should create a table wp_table1wp_table2s', function () {
+          const Table2 = this.sequelize.define('wp_table2', { foo: DataTypes.STRING });
+          const Table1 = this.sequelize.define('wp_table1', { foo: DataTypes.STRING });
 
           Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
@@ -22,19 +24,19 @@ if (dialect.match(/^postgres/)) {
       });
 
       describe('when join table name is specified', () => {
-        beforeEach(function() {
-          const Table2 = this.sequelize.define('ms_table1', { foo: DataTypes.STRING }),
-            Table1 = this.sequelize.define('ms_table2', { foo: DataTypes.STRING });
+        beforeEach(function () {
+          const Table2 = this.sequelize.define('ms_table1', { foo: DataTypes.STRING });
+          const Table1 = this.sequelize.define('ms_table2', { foo: DataTypes.STRING });
 
           Table1.belongsToMany(Table2, { through: 'table1_to_table2' });
           Table2.belongsToMany(Table1, { through: 'table1_to_table2' });
         });
 
-        it('should not use a combined name', function() {
+        it('should not use a combined name', function () {
           expect(this.sequelize.modelManager.getModel('ms_table1sms_table2s')).not.to.exist;
         });
 
-        it('should use the specified name', function() {
+        it('should use the specified name', function () {
           expect(this.sequelize.modelManager.getModel('table1_to_table2')).to.exist;
         });
       });
@@ -42,8 +44,8 @@ if (dialect.match(/^postgres/)) {
 
     describe('HasMany', () => {
       describe('addDAO / getModel', () => {
-        beforeEach(async function() {
-          //prevent periods from occurring in the table name since they are used to delimit (table.column)
+        beforeEach(async function () {
+          // prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define(`User${Support.rand()}`, { name: DataTypes.STRING });
           this.Task = this.sequelize.define(`Task${Support.rand()}`, { name: DataTypes.STRING });
           this.users = null;
@@ -52,8 +54,8 @@ if (dialect.match(/^postgres/)) {
           this.User.belongsToMany(this.Task, { as: 'Tasks', through: 'usertasks' });
           this.Task.belongsToMany(this.User, { as: 'Users', through: 'usertasks' });
 
-          const users = [],
-            tasks = [];
+          const users = [];
+          const tasks = [];
 
           for (let i = 0; i < 5; ++i) {
             users[i] = { name: `User${Math.random()}` };
@@ -69,7 +71,7 @@ if (dialect.match(/^postgres/)) {
           this.task = _tasks[0];
         });
 
-        it('should correctly add an association to the dao', async function() {
+        it('should correctly add an association to the dao', async function () {
           expect(await this.user.getTasks()).to.have.length(0);
           await this.user.addTask(this.task);
           expect(await this.user.getTasks()).to.have.length(1);
@@ -77,11 +79,11 @@ if (dialect.match(/^postgres/)) {
       });
 
       describe('removeDAO', () => {
-        it('should correctly remove associated objects', async function() {
-          const users = [],
-            tasks = [];
+        it('should correctly remove associated objects', async function () {
+          const users = [];
+          const tasks = [];
 
-          //prevent periods from occurring in the table name since they are used to delimit (table.column)
+          // prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define(`User${Support.rand()}`, { name: DataTypes.STRING });
           this.Task = this.sequelize.define(`Task${Support.rand()}`, { name: DataTypes.STRING });
           this.users = null;

@@ -2,19 +2,28 @@
 
 const fs = require('fs');
 const path = require('path');
-const { isDeepStrictEqual } = require('util');
+const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('sequelize');
+const Sequelize = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
+
 const expect = chai.expect;
-const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
-const distDir = path.resolve(__dirname, '../dist');
+const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
+
+const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+
+// Using util.inspect to correctly assert objects with symbols
+// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
+chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
+  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
+});
+
 chai.config.includeStack = true;
 chai.should();
 
@@ -31,12 +40,17 @@ process.on('unhandledRejection', e => {
   if (unhandledRejections) {
     unhandledRejections.push(e);
   }
+
   const onNext = onNextUnhandledRejection;
   if (onNext) {
     onNextUnhandledRejection = null;
     onNext(e);
   }
-  if (onNext || unhandledRejections) return;
+
+  if (onNext || unhandledRejections) {
+    return;
+  }
+
   console.error('An unhandled rejection occurred:');
   throw e;
 });
@@ -58,7 +72,9 @@ const Support = {
    * during this test (instead of failing the test)
    */
   nextUnhandledRejection() {
-    return new Promise((resolve, reject) => onNextUnhandledRejection = reject);
+    return new Promise((resolve, reject) => {
+      onNextUnhandledRejection = reject;
+    });
   },
 
   /**
@@ -71,7 +87,9 @@ const Support = {
    * @returns {Error[]} destArray
    */
   captureUnhandledRejections(destArray = []) {
-    return unhandledRejections = destArray;
+    unhandledRejections = destArray;
+
+    return unhandledRejections;
   },
 
   async prepareTransactionTest(sequelize) {
@@ -82,16 +100,20 @@ const Support = {
       if (lastSqliteInstance) {
         await lastSqliteInstance.close();
       }
+
       if (fs.existsSync(p)) {
         fs.unlinkSync(p);
       }
-      const options = { ...sequelize.options, storage: p },
-        _sequelize = new Sequelize(sequelize.config.database, null, null, options);
+
+      const options = { ...sequelize.options, storage: p };
+      const _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
       await _sequelize.sync({ force: true });
       lastSqliteInstance = _sequelize;
+
       return _sequelize;
     }
+
     return sequelize;
   },
 
@@ -108,7 +130,8 @@ const Support = {
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
       dialectOptions: options.dialectOptions || config.dialectOptions || {},
-      minifyAliases: options.minifyAliases || config.minifyAliases
+      minifyAliases: options.minifyAliases || config.minifyAliases,
+      odbcConnectionString: config.odbcConnectionString || '',
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -126,12 +149,14 @@ const Support = {
     // Do not break existing config object - shallow clone before `delete config.pool`
     const config = { ...Config[this.getTestDialect()] };
     delete config.pool;
+
     return config;
   },
 
   getSequelizeInstance(db, user, pass, options) {
     options = options || {};
     options.dialect = options.dialect || this.getTestDialect();
+
     return new Sequelize(db, user, pass, options);
   },
 
@@ -144,6 +169,7 @@ const Support = {
     if (qi.dropAllEnums) {
       await qi.dropAllEnums();
     }
+
     await this.dropTestSchemas(sequelize);
   },
 
@@ -155,18 +181,18 @@ const Support = {
 
     const schemas = await sequelize.showAllSchemas();
     const schemasPromise = [];
-    schemas.forEach(schema => {
+    for (const schema of schemas) {
       const schemaName = schema.name ? schema.name : schema;
       if (schemaName !== sequelize.config.database) {
         schemasPromise.push(sequelize.dropSchema(schemaName));
       }
-    });
+    }
 
-    await Promise.all(schemasPromise.map(p => p.catch(e => e)));
+    await Promise.all(schemasPromise.map(p => p.catch(error => error)));
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(path.join(distDir, 'lib/dialects'))
+    return fs.readdirSync(path.join(distDir, 'dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -179,7 +205,7 @@ const Support = {
 
     const queryGenerator = new ModdedQueryGenerator({
       sequelize,
-      _dialect: sequelize.dialect
+      _dialect: sequelize.dialect,
     });
 
     return queryGenerator;
@@ -218,15 +244,18 @@ const Support = {
     let expectation = expectations[Support.sequelize.dialect.name];
 
     if (!expectation) {
-      if (expectations['default'] !== undefined) {
-        expectation = expectations['default'];
+      if (expectations.default !== undefined) {
+        expectation = expectations.default;
         if (typeof expectation === 'string') {
           expectation = expectation
             .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
             .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          if (Support.sequelize.dialect.name === 'ibmi') {
+            expectation = expectation.replace(/;$/, '');
+          }
         }
       } else {
-        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
+        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
       }
     }
 
@@ -237,7 +266,7 @@ const Support = {
     }
 
     if (assertions.bind) {
-      const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
+      const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind.default || assertions.bind;
       expect(query.bind).to.deep.equal(bind);
     }
   },
@@ -248,14 +277,29 @@ const Support = {
 
   isDeepEqualToOneOf(actual, expectedOptions) {
     return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
-  }
+  },
+
+  /**
+   * Reduces insignificant whitespace from SQL string.
+   *
+   * @param {string} sql the SQL string
+   * @returns {string} the SQL string with insignificant whitespace removed.
+   */
+  minifySql(sql) {
+    // replace all consecutive whitespaces with a single plain space character
+    return sql.replace(/\s+/g, ' ')
+      // remove space before coma
+      .replace(/ ,/g, ',')
+      // remove whitespace at start & end
+      .trim();
+  },
 };
 
 if (global.beforeEach) {
-  before(function() {
+  before(function () {
     this.sequelize = Support.sequelize;
   });
-  beforeEach(function() {
+  beforeEach(function () {
     this.sequelize = Support.sequelize;
   });
 }
