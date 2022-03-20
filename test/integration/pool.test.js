@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     });
 
     it('should obtain new connection when released connection dies inside pool', async () => {
-      function simulateUnexpectedError(connection) {
+      async function simulateUnexpectedError(connection) {
         // should never be returned again
         if (dialect === 'mssql') {
           attachMSSQLUniqueId(connection).close();
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
 
       const oldConnection = await cm.getConnection();
       await cm.releaseConnection(oldConnection);
-      simulateUnexpectedError(oldConnection);
+      await simulateUnexpectedError(oldConnection);
       const newConnection = await cm.getConnection();
 
       assertNewConnection(newConnection, oldConnection);

@@ -670,8 +670,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          expect(error.table).to.equal('users');
-          expect(error.constraint).to.equal('unknown__constraint__name');
+          // The Oracle dialect, error messages doesn't have table and constraint information
+          if (dialect != 'oracle') {
+            expect(error.table).to.equal('users');
+            expect(error.constraint).to.equal('unknown__constraint__name');
+          }
         }
       });
     });

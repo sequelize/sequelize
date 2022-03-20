@@ -63,7 +63,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
     });
 
-    it('executes a query if a placeholder value is an array', async function() {
+    // Oracle dialect doesn't support insert of multiple rows using insert into statement
+    // INSERT ALL INTO statement can be used instead
+    (dialect !== 'oracle' ? it : it.skip)('executes a query if a placeholder value is an array', async function() {
       await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ` +
         `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
         replacements: [[
@@ -206,7 +208,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           if (dialect === 'db2') {
             typeCast = '::VARCHAR';
           }
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s });
+          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${Support.addDualInSelect()}` , { bind: ['foo', 'bar'], logging: s=>logSql = s });
           expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
         });
       });

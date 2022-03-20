@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function() {
-          if (current.dialect.name === 'db2') {
+          if (current.dialect.name === 'db2' || current.dialect.name === 'oracle') {
             await this.User.findAll({
               order: [
                 ['id', this.sequelize.literal('ASC, "name" DESC')]

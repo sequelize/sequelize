@@ -51,7 +51,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({ id: 1 }, { prefix: 'User' }, {
-      oracle: `WHERE "User".id = 1`,
       default: 'WHERE [User].[id] = 1'
     });
 
@@ -62,7 +61,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'WHERE "yolo"."User"."id" = 1',
         snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
-        oracle: `WHERE yolo."User".id = 1`,
+        oracle: `WHERE "yolo"."User"."id" = 1`,
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
@@ -98,6 +97,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       snowflake: 'WHERE "name" = \'here is a null char: \0\'',
       mssql: "WHERE [name] = N'here is a null char: \0'",
       db2: "WHERE \"name\" = 'here is a null char: \0'",
+      oracle: `WHERE "name" = 'here is a null char: \0'`,
       sqlite: "WHERE `name` = 'here is a null char: \0'"
     });
   });
@@ -123,6 +123,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
       snowflake: '"deleted" IS NULL',
+      oracle: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
     });
 
@@ -162,6 +163,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: "`field` = X'53657175656c697a65'",
         db2: '"field" = BLOB(\'Sequelize\')',
         snowflake: '"field" = X\'53657175656c697a65\'',
+        oracle: `"field" = '53657175656c697a65'`,
         mssql: '[field] = 0x53657175656c697a65'
       });
     });
@@ -172,7 +174,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
-        oracle: 'deleted IS NOT 1',
+        oracle: '"deleted" IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -272,7 +274,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         ], {
           default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))",
-          oracle: `(roleName = 'NEW' OR (roleName = 'CLIENT' AND type = 'CLIENT'))`,
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
@@ -285,7 +286,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         it("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
-            oracle: `(group_id = 1 OR (user_id = 2 AND role = 'admin'))`,
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
@@ -313,7 +313,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
-          oracle:`((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -354,7 +353,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         it('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
-            oracle: `(shared = 1 AND (group_id = 1 OR user_id = 2))`,
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
@@ -368,7 +366,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           shared: 1
         }, {
-          oracle: `NOT ((group_id = 1 OR user_id = 2) AND shared = 1)`,
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
@@ -386,7 +383,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('userId', {
         [Op.col]: 'user.id'
       }, {
-        oracle: `userId = "user".id`,
         default: '[userId] = [user].[id]'
       });
 
@@ -395,7 +391,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [Op.col]: 'user.id'
         }
       }, {
-        oracle: `userId = "user".id`,
         default: '[userId] = [user].[id]'
       });
 
@@ -404,7 +399,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [Op.col]: 'user.id'
         }
       }, {
-        oracle: `userId > "user".id`,
         default: '[userId] > [user].[id]'
       });
 
@@ -412,21 +406,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         { 'ownerId': { [Op.col]: 'user.id' } },
         { 'ownerId': { [Op.col]: 'organization.id' } }
       ], {
-        oracle: `(ownerId = "user".id OR ownerId = organization.id)`,
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
 
       testsql('$organization.id$', {
         [Op.col]: 'user.organizationId'
       }, {
-        oracle: `organization.id = "user".organizationId`,
         default: '[organization].[id] = [user].[organizationId]'
       });
 
       testsql('$offer.organization.id$', {
         [Op.col]: 'offer.user.organizationId'
       }, {
-        oracle: `"offer->organization".id = "offer->user".organizationId`,
         default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
     });
@@ -553,7 +544,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.notBetween]: ['2013-01-04', '2013-01-20']
       }, {
         default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
-        oracle: `("date" BETWEEN '2012-12-10' AND '2013-01-02' AND "date" NOT BETWEEN '2013-01-04' AND '2013-01-20')`,   
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
@@ -563,7 +553,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.notBetween]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: `"date" NOT BETWEEN '2013-01-01' AND '2013-01-11'`,
         mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
     });
@@ -906,6 +895,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`,'$.id') = CAST('12346-78912' AS TEXT)",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = CAST('12346-78912' AS CHAR)",
+            oracle: `json_value("profile",'$."id"') = CAST('12346-78912' AS TEXT)`,
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = CAST('12346-78912' AS CHAR)"
           });
         });
@@ -915,6 +905,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
             sqlite: "json_extract(`profile`,'$.id') = '12346-78912' AND json_extract(`profile`,'$.name') = 'test'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '12346-78912' AND json_unquote(json_extract(`profile`,'$.name')) = 'test'",
+            oracle: `json_value("profile",'$."id"') = '12346-78912' AND json_value("profile",'$."name"') = 'test'`,
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '12346-78912' AND json_unquote(json_extract(`profile`,'$.\\\"name\\\"')) = 'test'"
           });
         });
@@ -932,6 +923,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
+          oracle: `json_value("User"."data",'$."nested"."attribute"') = 'value'`,
           sqlite: "json_extract(`User`.`data`,'$.nested.attribute') = 'value'"
         });
 
@@ -947,6 +939,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) IN (1, 2)",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\"')) AS DECIMAL) IN (1, 2)",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
+          oracle: `CAST(json_value("data",'$."nested"') AS DOUBLE PRECISION) IN (1, 2)`,
           sqlite: "CAST(json_extract(`data`,'$.nested') AS DOUBLE PRECISION) IN (1, 2)"
         });
 
@@ -962,6 +955,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) BETWEEN 1 AND 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\"')) AS DECIMAL) BETWEEN 1 AND 2",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
+          oracle: `CAST(json_value("data",'$."nested"') AS DOUBLE PRECISION) BETWEEN 1 AND 2`,
           sqlite: "CAST(json_extract(`data`,'$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
         });
 
@@ -981,6 +975,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
           mysql: "(json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"prop\\\"')) != 'None')",
           postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
+          oracle: `(json_value("User"."data",'$."nested"."attribute"') = 'value' AND json_value("User"."data",'$."nested"."prop"') != 'None')`,
           sqlite: "(json_extract(`User`.`data`,'$.nested.attribute') = 'value' AND json_extract(`User`.`data`,'$.nested.prop') != 'None')"
         });
 
@@ -1000,6 +995,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.name.last')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.employment')) != 'None')",
           mysql: "(json_unquote(json_extract(`User`.`data`,'$.\\\"name\\\".\\\"last\\\"')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.\\\"employment\\\"')) != 'None')",
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
+          oracle: `(json_value("User"."data",'$."name"."last"') = 'Simpson' AND json_value("User"."data",'$."employment"') != 'None')`,
           sqlite: "(json_extract(`User`.`data`,'$.name.last') = 'Simpson' AND json_extract(`User`.`data`,'$.employment') != 'None')"
         });
 
@@ -1014,6 +1010,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(CAST(json_unquote(json_extract(`data`,'$.price')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.name')) = 'Product')",
           mysql: "(CAST(json_unquote(json_extract(`data`,'$.\\\"price\\\"')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.\\\"name\\\"')) = 'Product')",
           postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
+          oracle: `(CAST(json_value("data",'$."price"') AS DOUBLE PRECISION) = 5 AND json_value("data",'$."name"') = 'Product')`,
           sqlite: "(CAST(json_extract(`data`,'$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`,'$.name') = 'Product')"
         });
 
@@ -1029,6 +1026,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
+          oracle: `json_value("data",'$."nested"."attribute"') = 'value'`,
           sqlite: "json_extract(`data`,'$.nested.attribute') = 'value'"
         });
 
@@ -1044,6 +1042,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) = 4",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) = 4",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
+          oracle: `CAST(json_value("data",'$."nested"."attribute"') AS DOUBLE PRECISION) = 4`,
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
 
@@ -1061,6 +1060,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) IN (3, 7)",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) IN (3, 7)",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
+          oracle: `CAST(json_value("data",'$."nested"."attribute"') AS DOUBLE PRECISION) IN (3, 7)`,
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
 
@@ -1078,6 +1078,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
+          oracle: `CAST(json_value("data",'$."nested"."attribute"') AS DOUBLE PRECISION) > 2`,
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
 
@@ -1095,6 +1096,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
+          oracle: `CAST(json_value("data",'$."nested"."attribute"') AS INTEGER) > 2`,
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS INTEGER) > 2"
         });
 
@@ -1113,6 +1115,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`data\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
           mysql: `CAST(json_unquote(json_extract(\`data\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
+          oracle: `json_value("data",'$."nested"."attribute"' RETURNING TIMESTAMP WITH TIME ZONE) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`data\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`
         });
 
@@ -1128,6 +1131,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'true'",
           mysql: "json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
+          oracle: `CAST((CASE WHEN json_value("data",'$."nested"."attribute"')='true' THEN 1 ELSE 0 END) AS NUMBER) = 1`,
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS BOOLEAN) = 1"
         });
 
@@ -1145,6 +1149,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`meta_data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`meta_data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
+          oracle:`json_value("meta_data",'$."nested"."attribute"') = 'value'`,
           sqlite: "json_extract(`meta_data`,'$.nested.attribute') = 'value'"
         });
       });

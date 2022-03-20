@@ -30,6 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: ' LIMIT 10',
       db2: ' FETCH NEXT 10 ROWS ONLY',
+      oracle: ' ORDER BY "tableRef"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
     });
 

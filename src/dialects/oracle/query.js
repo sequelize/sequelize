@@ -4,6 +4,10 @@ const AbstractQuery = require('../abstract/query');
 const SequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('oracle');
 const _ = require('lodash');
+const Utils = require('../../utils');
+const { logger } = require('../../utils/logger');
+
+const debug = logger.debugContext('sql:oracle');
 
 class Query extends AbstractQuery {
   constructor(connection, sequelize, options) {
@@ -58,7 +62,7 @@ class Query extends AbstractQuery {
     } else {
       this.sql = sql;
     }
-
+    const complete = this._logQuery(sql, debug, parameters);
     const outParameters = [];
     const bindParameters = [];
     const bindDef = [];
@@ -98,8 +102,6 @@ class Query extends AbstractQuery {
     let queryBegin;
     if (benchmark) {
       queryBegin = Date.now();
-    } else {
-      this.sequelize.log(`Executing (${connection.uuid || 'default'}): ${this.sql}`, this.options);
     }
 
     // TRANSACTION SUPPORT
@@ -131,6 +133,9 @@ class Query extends AbstractQuery {
         })
         .catch(error => {
           throw self.formatError(error);
+        })
+        .finally(() => {
+          complete();
         });
     } 
     if (_.startsWith(self.sql, 'BEGIN')) {
@@ -156,6 +161,9 @@ class Query extends AbstractQuery {
         })
         .catch(error => {
           throw self.formatError(error);
+        })
+        .finally(() => {
+          complete();
         });
     } 
     if (_.startsWith(self.sql, 'COMMIT TRANSACTION')) {
@@ -166,6 +174,9 @@ class Query extends AbstractQuery {
         })
         .catch(err => {
           throw self.formatError(err);
+        })
+        .finally(() => {
+          complete();
         });
     } 
     if (_.startsWith(self.sql, 'ROLLBACK TRANSACTION')) {
@@ -176,6 +187,9 @@ class Query extends AbstractQuery {
         })
         .catch(err => {
           throw self.formatError(err);
+        })
+        .finally(() => {
+          complete();
         });
     } 
     if (_.startsWith(self.sql, 'SET TRANSACTION')) {
@@ -186,6 +200,9 @@ class Query extends AbstractQuery {
         })
         .catch(error => {
           throw self.formatError(error);
+        })
+        .finally(() => {
+          complete();
         });
     } 
     // QUERY SUPPORT
@@ -210,17 +227,13 @@ class Query extends AbstractQuery {
     //If we have some mapping with parameters to do - INSERT queries
     return executePromise
       .then(result => {
-        if (benchmark) {
-          self.sequelize.log(
-            `Executed (${connection.uuid || 'default'}): ${self.sql}`,
-            Date.now() - queryBegin,
-            self.options
-          );
-        }
         return self.formatResults(result);
       })
       .catch(error => {
         throw self.formatError(error);
+      })
+      .finally(() => {
+        complete();
       });
     
   }
@@ -338,24 +351,20 @@ class Query extends AbstractQuery {
     if (this.model) {
       result = result.map(row => {
         return _.mapValues(row, (value, key) => {
-          let typeid;
-          if (this.model) {
-            if (this.model.rawAttributes[key]) {
-              if (this.model.rawAttributes[key].type && this.model.rawAttributes[key].type.key) {
-                if (this.model.rawAttributes[key].type.key === 'JSON') {
-                  value = JSON.parse(value);
-                } else {
-                  typeid = this.model.rawAttributes[key].type.toLocaleString();
-                  //For some types, the "name" of the type is returned with the length, we remove it
-                  if (typeid.indexOf('(') > -1) {
-                    typeid = typeid.substr(0, typeid.indexOf('('));
-                  }
-                }
-                const parse = parserStore.get(typeid);
-                if (value !== null & !!parse) {
-                  value = parse(value);
-                }
-              }
+          if (this.model.rawAttributes[key] && this.model.rawAttributes[key].type) {
+            let typeid = this.model.rawAttributes[key].type.toLocaleString();
+            if (this.model.rawAttributes[key].type.key === 'JSON') {
+              value = JSON.parse(value);
+            }
+            // For some types, the "name" of the type is returned with the length, we remove it
+            // For Boolean we skip this because BOOLEAN is mapped to CHAR(1) and we dont' want to
+            // remove the (1) for BOOLEAN
+            if (typeid.indexOf('(') > -1 && this.model.rawAttributes[key].type.key !== 'BOOLEAN') {
+              typeid = typeid.substr(0, typeid.indexOf('('));
+            }
+            const parse = parserStore.get(typeid);
+            if (value !== null & !!parse) {
+              value = parse(value);
             }
           }
           return value;
@@ -623,6 +632,13 @@ class Query extends AbstractQuery {
 
     const accKeys = Object.keys(acc);
     accKeys.forEach(accKey => {
+      const columns = {};
+      columns.fields = acc[accKey].fields;
+      // We are generating index field name in the format sequelize expects
+      // to avoid creating a unique index on primary key column
+      if (acc[accKey].primary === true) {
+        acc[accKey].name =  Utils.nameIndex(columns, acc[accKey].tableName).name;
+      }
       returnIndexes.push(acc[accKey]);
     });
 

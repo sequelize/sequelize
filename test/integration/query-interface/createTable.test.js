@@ -79,20 +79,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mysql':
         case 'db2':          
           // name + email
+        case 'oracle':
+        // name + email
           expect(indexes[1].unique).to.be.true;
           expect(indexes[1].fields[0].attribute).to.equal('name');
           expect(indexes[1].fields[1].attribute).to.equal('email');
-
-          // name
-          expect(indexes[2].unique).to.be.true;
-          expect(indexes[2].fields[0].attribute).to.equal('name');
-          break;
-        case 'oracle':
-          // oracle returns columns in ascending order
-          // name + email
-          expect(indexes[1].unique).to.be.true;
-          expect(indexes[1].fields[0].attribute).to.equal('email');
-          expect(indexes[1].fields[1].attribute).to.equal('name');
 
           // name
           expect(indexes[2].unique).to.be.true;

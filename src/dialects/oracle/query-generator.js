@@ -14,7 +14,10 @@ const Transaction = require('../../transaction');
  *
  * @private
  */
- const ORACLE_RESERVED_WORDS = ['ACCESS', 'ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'ARRAYLEN', 'AS', 'ASC', 'AUDIT', 'BETWEEN', 'BY', 'CHAR', 'CHECK', 'CLUSTER', 'COLUMN', 'COMMENT', 'COMPRESS', 'CONNECT', 'CREATE', 'CURRENT', 'DATE', 'DECIMAL', 'DEFAULT', 'DELETE', 'DESC', 'DISTINCT', 'DROP', 'ELSE', 'EXCLUSIVE', 'EXISTS', 'FILE', 'FLOAT', 'FOR', 'FROM', 'GRANT', 'GROUP', 'HAVING', 'IDENTIFIED', 'IMMEDIATE', 'IN', 'INCREMENT', 'INDEX', 'INITIAL', 'INSERT', 'INTEGER', 'INTERSECT', 'INTO', 'IS', 'LEVEL', 'LIKE', 'LOCK', 'LONG', 'MAXEXTENTS', 'MINUS', 'MODE', 'MODIFY', 'NOAUDIT', 'NOCOMPRESS', 'NOT', 'NOTFOUND', 'NOWAIT', 'NULL', 'NUMBER', 'OF', 'OFFLINE', 'ON', 'ONLINE', 'OPTION', 'OR', 'ORDER', 'PCTFREE', 'PRIOR', 'PRIVILEGES', 'PUBLIC', 'RAW', 'RENAME', 'RESOURCE', 'REVOKE', 'ROW', 'ROWID', 'ROWLABEL', 'ROWNUM', 'ROWS', 'SELECT', 'SESSION', 'SET', 'SHARE', 'SIZE', 'SMALLINT', 'SQLBUF', 'START', 'SUCCESSFUL', 'SYNONYM', 'SYSDATE', 'TABLE', 'THEN', 'TO', 'TRIGGER', 'UID', 'UNION', 'UNIQUE', 'UPDATE', 'USER', 'VALIDATE', 'VALUES', 'VARCHAR', 'VARCHAR2', 'VIEW', 'WHENEVER', 'WHERE', 'WITH'];
+const ORACLE_RESERVED_WORDS = ['ACCESS', 'ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'ARRAYLEN', 'AS', 'ASC', 'AUDIT', 'BETWEEN', 'BY', 'CHAR', 'CHECK', 'CLUSTER', 'COLUMN', 'COMMENT', 'COMPRESS', 'CONNECT', 'CREATE', 'CURRENT', 'DATE', 'DECIMAL', 'DEFAULT', 'DELETE', 'DESC', 'DISTINCT', 'DROP', 'ELSE', 'EXCLUSIVE', 'EXISTS', 'FILE', 'FLOAT', 'FOR', 'FROM', 'GRANT', 'GROUP', 'HAVING', 'IDENTIFIED', 'IMMEDIATE', 'IN', 'INCREMENT', 'INDEX', 'INITIAL', 'INSERT', 'INTEGER', 'INTERSECT', 'INTO', 'IS', 'LEVEL', 'LIKE', 'LOCK', 'LONG', 'MAXEXTENTS', 'MINUS', 'MODE', 'MODIFY', 'NOAUDIT', 'NOCOMPRESS', 'NOT', 'NOTFOUND', 'NOWAIT', 'NULL', 'NUMBER', 'OF', 'OFFLINE', 'ON', 'ONLINE', 'OPTION', 'OR', 'ORDER', 'PCTFREE', 'PRIOR', 'PRIVILEGES', 'PUBLIC', 'RAW', 'RENAME', 'RESOURCE', 'REVOKE', 'ROW', 'ROWID', 'ROWLABEL', 'ROWNUM', 'ROWS', 'SELECT', 'SESSION', 'SET', 'SHARE', 'SIZE', 'SMALLINT', 'SQLBUF', 'START', 'SUCCESSFUL', 'SYNONYM', 'SYSDATE', 'TABLE', 'THEN', 'TO', 'TRIGGER', 'UID', 'UNION', 'UNIQUE', 'UPDATE', 'USER', 'VALIDATE', 'VALUES', 'VARCHAR', 'VARCHAR2', 'VIEW', 'WHENEVER', 'WHERE', 'WITH'];
+const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
+const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
+const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
 class OracleQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -716,7 +719,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
         value = valueHash[key];
         fields.push(this.quoteIdentifier(key));
 
-        if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && !value) {
+        if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value === null) {
           values.push('DEFAULT');
         } else if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
           values.push(
@@ -978,7 +981,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'WHERE i.table_name = <%= tableName %>',
       ' AND u.TABLE_OWNER = ',
       owner ? wrapSingleQuote(owner) : 'USER',
-      ' ORDER BY INDEX_NAME, COLUMN_NAME'
+      ' ORDER BY INDEX_NAME, COLUMN_POSITION'
     ];
 
     const request = sql.join('');
@@ -1362,10 +1365,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
         return conditions.join(' AND ');
       }
       if (smth.path) {
-        const paths = _.toPath(smth.path);
-        const column = paths.shift();
-        str = this.jsonPathExtractionQuery(column, paths);
 
+        // Allow specifying conditions using the sqlite json functions
+        if (this._checkValidJsonStatement(smth.path)) {
+          str = smth.path;
+        } else {
+          // Also support json property accessors
+          const paths = _.toPath(smth.path);
+          const column = paths.shift();
+          str = this.jsonPathExtractionQuery(column, paths);
+        }
         if (smth.value) {
           str += util.format(' = %s', this.escape(smth.value));
         }
@@ -1386,6 +1395,60 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       }
     }
     return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
+  }
+
+  _checkValidJsonStatement(stmt) {
+    if (typeof stmt !== 'string') {
+      return false;
+    }
+
+    let currentIndex = 0;
+    let openingBrackets = 0;
+    let closingBrackets = 0;
+    let hasJsonFunction = false;
+    let hasInvalidToken = false;
+
+    while (currentIndex < stmt.length) {
+      const string = stmt.substr(currentIndex);
+      const functionMatches = JSON_FUNCTION_REGEX.exec(string);
+      if (functionMatches) {
+        currentIndex += functionMatches[0].indexOf('(');
+        hasJsonFunction = true;
+        continue;
+      }
+
+      const operatorMatches = JSON_OPERATOR_REGEX.exec(string);
+      if (operatorMatches) {
+        currentIndex += operatorMatches[0].length;
+        hasJsonFunction = true;
+        continue;
+      }
+
+      const tokenMatches = TOKEN_CAPTURE_REGEX.exec(string);
+      if (tokenMatches) {
+        const capturedToken = tokenMatches[1];
+        if (capturedToken === '(') {
+          openingBrackets++;
+        } else if (capturedToken === ')') {
+          closingBrackets++;
+        } else if (capturedToken === ';') {
+          hasInvalidToken = true;
+          break;
+        }
+        currentIndex += tokenMatches[0].length;
+        continue;
+      }
+
+      break;
+    }
+
+    // Check invalid json statement
+    if (hasJsonFunction && (hasInvalidToken || openingBrackets !== closingBrackets)) {
+      throw new Error(`Invalid json statement: ${stmt}`);
+    }
+
+    // return true if the statement has valid json function
+    return hasJsonFunction;
   }
 
   jsonPathExtractionQuery(column, path) {
