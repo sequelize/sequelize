@@ -144,7 +144,7 @@ SELECT * FROM projects WHERE active = true AND deleted = true
 When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similarly to [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)), except for `where` and `include`, which will be merged. Consider two scopes:
 
 ```js
-YourMode.addScope('scope1', {
+YourModel.addScope('scope1', {
   where: {
     firstName: 'bob',
     age: {
@@ -153,10 +153,10 @@ YourMode.addScope('scope1', {
   },
   limit: 2
 });
-YourMode.addScope('scope2', {
+YourModel.addScope('scope2', {
   where: {
     age: {
-      [Op.gt]: 30
+      [Op.lt]: 30
     }
   },
   limit: 10
@@ -166,10 +166,25 @@ YourMode.addScope('scope2', {
 Using `.scope('scope1', 'scope2')` will yield the following WHERE clause:
 
 ```sql
-WHERE firstName = 'bob' AND age > 30 LIMIT 10
+WHERE firstName = 'bob' AND age < 30 LIMIT 10
 ```
 
-Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` is shallowly merged (meaning that identical keys will be overwritten). The merge strategy for `include` will be discussed later on.
+Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` is by default shallowly merged (meaning that identical keys will be overwritten). If the flag `whereMergeStrategy` is set to `and` (on the model or on the sequelize instance), `where` fields will be merged using the `and` operator.
+
+For instance, if `YourModel` was initialized as such:
+
+```js
+YourModel.init({ /* attributes */ }, {
+  // ... other init options
+  whereMergeStrategy: 'and',
+});
+```
+
+Using `.scope('scope1', 'scope2')` will yield the following WHERE clause:
+
+```sql
+WHERE firstName = 'bob' AND age > 20 AND age < 30 LIMIT 10
+```
 
 Note that `attributes` keys of multiple applied scopes are merged in such a way that `attributes.exclude` are always preserved. This allows merging several scopes and never leaking sensitive fields in final scope.
 

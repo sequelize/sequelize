@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     // Oracle dialect doesn't support insert of multiple rows using insert into statement
     // INSERT ALL INTO statement can be used instead
     (dialect !== 'oracle' ? it : it.skip)('executes a query if a placeholder value is an array', async function() {
-      await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (username, email_address, ` +
+      await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ` +
         `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
         replacements: [[
           ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],

@@ -824,10 +824,16 @@ class Model {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
     }
+
     if (['where', 'having'].includes(key)) {
+      if (this.options?.whereMergeStrategy === 'and') {
+        return combineWheresWithAnd(objValue, srcValue);
+      }
+
       if (srcValue instanceof Utils.SequelizeMethod) {
         srcValue = { [Op.and]: srcValue };
       }
+
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
         return Object.assign(objValue, srcValue);
       }
@@ -848,7 +854,7 @@ class Model {
   }
 
   static _assignOptions(...args) {
-    return this._baseMerge(...args, this._mergeFunction);
+    return this._baseMerge(...args, this._mergeFunction.bind(this));
   }
 
   static _defaultsOptions(target, opts) {
@@ -945,6 +951,7 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
+   * @param {'and'|'overwrite'}       [options.whereMergeStrategy] Specify the scopes merging strategy (default 'overwrite'). 'and' strategy will merge `where` properties of scopes together by adding `Op.and` at the top-most level. 'overwrite' strategy will overwrite similar attributes using the lastly defined one.
    *
    * @returns {Model}
    */
@@ -993,6 +1000,7 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
+      whereMergeStrategy: 'overwrite',
       ...options
     };
 
@@ -1025,6 +1033,11 @@ class Model {
         throw new Error(`Members of the validate option must be functions. Model: ${this.name}, error with validate member ${validatorType}`);
       }
     });
+
+    if (!_.includes(['and', 'overwrite'], this.options?.whereMergeStrategy)) {
+      throw new Error(`Invalid value ${this.options?.whereMergeStrategy} for whereMergeStrategy. Allowed values are 'and' and 'overwrite'.`);
+    }
+
 
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
@@ -4560,6 +4573,58 @@ class Model {
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
   static belongsTo(target, options) {} // eslint-disable-line
+}
+
+/**
+ * Unpacks an object that only contains a single Op.and key to the value of Op.and
+ *
+ * Internal method used by {@link combineWheresWithAnd}
+ *
+ * @param {WhereOptions} where The object to unpack
+ * @example `{ [Op.and]: [a, b] }` becomes `[a, b]`
+ * @example `{ [Op.and]: { key: val } }` becomes `{ key: val }`
+ * @example `{ [Op.or]: [a, b] }` remains as `{ [Op.or]: [a, b] }`
+ * @example `{ [Op.and]: [a, b], key: c }` remains as `{ [Op.and]: [a, b], key: c }`
+ * @private
+ */
+function unpackAnd(where) {
+  if (!_.isObject(where)) {
+    return where;
+  }
+
+  const keys = Utils.getComplexKeys(where);
+
+  // object is empty, remove it.
+  if (keys.length === 0) {
+    return;
+  }
+
+  // we have more than just Op.and, keep as-is
+  if (keys.length !== 1 || keys[0] !== Op.and) {
+    return where;
+  }
+
+  const andParts = where[Op.and];
+
+  return andParts;
+}
+
+function combineWheresWithAnd(whereA, whereB) {
+  const unpackedA = unpackAnd(whereA);
+
+  if (unpackedA === undefined) {
+    return whereB;
+  }
+
+  const unpackedB = unpackAnd(whereB);
+
+  if (unpackedB === undefined) {
+    return whereA;
+  }
+
+  return {
+    [Op.and]: _.flatten([unpackedA, unpackedB])
+  };
 }
 
 Object.assign(Model, associationsMixin);
