@@ -1004,7 +1004,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     }
 
     //TODO: Address on update cascade issue whether to throw error or ignore.
-    //[25/11/2021] Hasan - Add this to documentation when merging to sequelize-main
+    //Add this to documentation when merging to sequelize-main
     //ON UPDATE CASCADE IS NOT SUPPORTED BY ORACLE.
     attribute.onUpdate = '';
 
