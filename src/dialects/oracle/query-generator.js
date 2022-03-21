@@ -349,7 +349,6 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
           // We cannot auto-generate unique constraint name because sequelize tries to 
           // Add unique column again when it doesn't find unique constraint name after doing showIndexQuery
           // MYSQL doesn't support constraint name > 64 and they face similar issue if size exceed 64 chars
-          // TODO: We need to address this with next fix
           if (indexName.length > 128) {
             values.attributes += `,UNIQUE (${columns.fields.map(field => self.quoteIdentifier(field)).join(', ') })`;
           } else {
