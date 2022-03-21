@@ -14,13 +14,21 @@ const Transaction = require('../../transaction');
  *
  * @private
  */
- const ORACLE_RESERVED_WORDS = ['ACCESS', 'ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'ARRAYLEN', 'AS', 'ASC', 'AUDIT', 'BETWEEN', 'BY', 'CHAR', 'CHECK', 'CLUSTER', 'COLUMN', 'COMMENT', 'COMPRESS', 'CONNECT', 'CREATE', 'CURRENT', 'DATE', 'DECIMAL', 'DEFAULT', 'DELETE', 'DESC', 'DISTINCT', 'DROP', 'ELSE', 'EXCLUSIVE', 'EXISTS', 'FILE', 'FLOAT', 'FOR', 'FROM', 'GRANT', 'GROUP', 'HAVING', 'IDENTIFIED', 'IMMEDIATE', 'IN', 'INCREMENT', 'INDEX', 'INITIAL', 'INSERT', 'INTEGER', 'INTERSECT', 'INTO', 'IS', 'LEVEL', 'LIKE', 'LOCK', 'LONG', 'MAXEXTENTS', 'MINUS', 'MODE', 'MODIFY', 'NOAUDIT', 'NOCOMPRESS', 'NOT', 'NOTFOUND', 'NOWAIT', 'NULL', 'NUMBER', 'OF', 'OFFLINE', 'ON', 'ONLINE', 'OPTION', 'OR', 'ORDER', 'PCTFREE', 'PRIOR', 'PRIVILEGES', 'PUBLIC', 'RAW', 'RENAME', 'RESOURCE', 'REVOKE', 'ROW', 'ROWID', 'ROWLABEL', 'ROWNUM', 'ROWS', 'SELECT', 'SESSION', 'SET', 'SHARE', 'SIZE', 'SMALLINT', 'SQLBUF', 'START', 'SUCCESSFUL', 'SYNONYM', 'SYSDATE', 'TABLE', 'THEN', 'TO', 'TRIGGER', 'UID', 'UNION', 'UNIQUE', 'UPDATE', 'USER', 'VALIDATE', 'VALUES', 'VARCHAR', 'VARCHAR2', 'VIEW', 'WHENEVER', 'WHERE', 'WITH'];
+const ORACLE_RESERVED_WORDS = ['ACCESS', 'ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'ARRAYLEN', 'AS', 'ASC', 'AUDIT', 'BETWEEN', 'BY', 'CHAR', 'CHECK', 'CLUSTER', 'COLUMN', 'COMMENT', 'COMPRESS', 'CONNECT', 'CREATE', 'CURRENT', 'DATE', 'DECIMAL', 'DEFAULT', 'DELETE', 'DESC', 'DISTINCT', 'DROP', 'ELSE', 'EXCLUSIVE', 'EXISTS', 'FILE', 'FLOAT', 'FOR', 'FROM', 'GRANT', 'GROUP', 'HAVING', 'IDENTIFIED', 'IMMEDIATE', 'IN', 'INCREMENT', 'INDEX', 'INITIAL', 'INSERT', 'INTEGER', 'INTERSECT', 'INTO', 'IS', 'LEVEL', 'LIKE', 'LOCK', 'LONG', 'MAXEXTENTS', 'MINUS', 'MODE', 'MODIFY', 'NOAUDIT', 'NOCOMPRESS', 'NOT', 'NOTFOUND', 'NOWAIT', 'NULL', 'NUMBER', 'OF', 'OFFLINE', 'ON', 'ONLINE', 'OPTION', 'OR', 'ORDER', 'PCTFREE', 'PRIOR', 'PRIVILEGES', 'PUBLIC', 'RAW', 'RENAME', 'RESOURCE', 'REVOKE', 'ROW', 'ROWID', 'ROWLABEL', 'ROWNUM', 'ROWS', 'SELECT', 'SESSION', 'SET', 'SHARE', 'SIZE', 'SMALLINT', 'SQLBUF', 'START', 'SUCCESSFUL', 'SYNONYM', 'SYSDATE', 'TABLE', 'THEN', 'TO', 'TRIGGER', 'UID', 'UNION', 'UNIQUE', 'UPDATE', 'USER', 'VALIDATE', 'VALUES', 'VARCHAR', 'VARCHAR2', 'VIEW', 'WHENEVER', 'WHERE', 'WITH'];
+const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
+const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
+const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
 class OracleQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
   }
 
+  /**
+   * Returns the value as it is stored in the Oracle DB
+   *
+   * @param {string} value
+   */
   getCatalogName(value) {
     if (value) {
       if (this.options.quoteIdentifiers === false) {
@@ -33,6 +41,11 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     return value;
   }
 
+  /**
+   * Returns the tableName and schemaName as it is stored the Oracle DB
+   *
+   * @param {object|string} table
+   */
   getSchemaNameAndTableName(table) {
     const tableName = this.getCatalogName(table.tableName || table);
     const schemaName = this.getCatalogName(table.schema);
@@ -106,18 +119,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'END;'
     ].join(' ');
   }
+
   versionQuery() {
     return "SELECT VERSION FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
   }
 
   createTableQuery(tableName, attributes, options) {
-    let query = 'CREATE TABLE <%= table %> (<%= attributes %>)';
-    const completeQuery =
-        "BEGIN EXECUTE IMMEDIATE '<%= createTableQuery %>'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;",
-      self = this;
     const primaryKeys = [],
       foreignKeys = {},
       attrStr = [],
+      self = this,
       checkStr = [];
 
     const values = {
@@ -349,12 +360,23 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       });
     }
 
-    query = _.template(query)(values).trim();
     //we replace single quotes by two quotes in order for the execute statement to work
-    query = query.replace(/'/g, "''");
-    values.createTableQuery = query;
+    const query = Utils.joinSQLFragments([
+      'CREATE TABLE',
+      values.table,
+      `(${values.attributes})`
+    ]).replace(/'/g, "''");
 
-    return _.template(completeQuery)(values).trim();
+    return Utils.joinSQLFragments([
+      'BEGIN',
+      'EXECUTE IMMEDIATE',
+      `'${query}';`,
+      'EXCEPTION WHEN OTHERS THEN',
+      'IF SQLCODE != -955 THEN',
+      'RAISE;',
+      'END IF;',
+      'END;'
+    ]);
   }
 
   /**
@@ -368,37 +390,31 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const indexName = `uniq${table}${columns.join('')}`.replace(/[.,"\s]/g, '').toLowerCase();
     return indexName;
   }
+  
   describeTableQuery(tableName, schema) {
+    const currTableName = this.getCatalogName(tableName.tableName || tableName);
+    schema = this.getCatalogName(schema);
     //name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
-    const sql = [
+    return [
       'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ',
       "CASE WHEN ucc.CONSTRAINT_NAME  LIKE'%PK%' THEN 'PRIMARY' ELSE '' END AS \"PRIMARY\" ",
       'FROM all_tab_columns atc ',
       'LEFT OUTER JOIN all_cons_columns ucc ON(atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME ) ',
       schema
-        ? 'WHERE (atc.OWNER = <%= schema %>) '
+        ? `WHERE (atc.OWNER = ${wrapSingleQuote(schema)}) `
         : 'WHERE atc.OWNER = USER ',
-      'AND (atc.TABLE_NAME = <%= tableName %>)',
+      `AND (atc.TABLE_NAME = ${wrapSingleQuote(currTableName)})`,
       'ORDER BY "PRIMARY", atc.COLUMN_NAME'
     ].join('');
-
-    const currTableName = this.getCatalogName(tableName.tableName || tableName);
-    schema = this.getCatalogName(schema);
-
-    const values = {
-      tableName: wrapSingleQuote(currTableName),
-      schema: schema ? wrapSingleQuote(schema) : schema
-    };
-
-    return _.template(sql)(values).trim();
   }
 
   renameTableQuery(before, after) {
-    const query = 'ALTER TABLE <%= before %> RENAME TO <%= after %>';
-    return _.template(query)({
-      before: this.quoteTable(before),
-      after: this.quoteTable(after)
-    });
+    return Utils.joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(before),
+      'RENAME TO',
+      this.quoteTable(after)
+    ]);
   }
 
   showConstraintsQuery(table) {
@@ -411,22 +427,17 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName) {
-    let table = '';
-    table = this.quoteTable(tableName);
-
-    const query = [
+    return Utils.joinSQLFragments([
       'BEGIN ',
-      "EXECUTE IMMEDIATE 'DROP TABLE <%= table %> CASCADE CONSTRAINTS PURGE';",
-      ' EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN',
-      ' RAISE; END IF;',
+      'EXECUTE IMMEDIATE \'DROP TABLE',
+      this.quoteTable(tableName),
+      'CASCADE CONSTRAINTS PURGE\';',
+      'EXCEPTION WHEN OTHERS THEN',
+      ' IF SQLCODE != -942 THEN',
+      '   RAISE;',
+      ' END IF;',
       'END;'
-    ];
-
-    const values = {
-      table
-    };
-
-    return _.template(query.join(''))(values).trim();
+    ]);
   }
 
   /*
@@ -458,20 +469,21 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   addColumnQuery(table, key, dataType) {
     dataType.field = key;
 
-    const query = 'ALTER TABLE <%= table %> ADD (<%= attribute %>)',
-      attribute = _.template('<%= key %> <%= definition %>')({
-        key: this.quoteIdentifier(key),
-        definition: this.attributeToSQL(dataType, {
-          context: 'addColumn'
-        })
-          .replace('ATTRIBUTENAME', this.quoteIdentifier(key))
-          .replace(/'/g, "'")
-      });
+    const attribute = Utils.joinSQLFragments([
+      this.quoteIdentifier(key),
+      this.attributeToSQL(dataType, {
+        context: 'addColumn'
+      })
+        .replace('ATTRIBUTENAME', this.quoteIdentifier(key))
+        .replace(/'/g, "'")
+    ]);
 
-    return _.template(query)({
-      table: this.quoteTable(table),
+    return Utils.joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(table),
+      'ADD',
       attribute
-    });
+    ]);
   }
 
   removeColumnQuery(tableName, attributeName) {
@@ -504,22 +516,18 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const attributeNameConstant = wrapSingleQuote(this.getCatalogName(attributeName));
     const schemaNameConstant = table.schema ? wrapSingleQuote(this.getCatalogName(schemaName)) : 'USER';
     const tableNameConstant = wrapSingleQuote(this.getCatalogName(tableName));
-    const constraintString = _.template('FOREIGN KEY (<%= attrName %>) <%= definition %>')({
-      attrName: this.quoteIdentifier(attributeName),
-      definition: definition.replace(/.+?(?=REFERENCES)/, '')
-    });
     const getConsNameQuery = [
       'select constraint_name into cons_name',
       'from (',
-        'select distinct cc.owner, cc.table_name, cc.constraint_name,',
-        'cc.column_name',
-        'as cons_columns',
-        'from all_cons_columns cc, all_constraints c',
-        'where cc.owner = c.owner',
-        'and cc.table_name = c.table_name',
-        'and cc.constraint_name = c.constraint_name',
-        'and c.constraint_type = \'R\'',
-        'group by cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
+      '  select distinct cc.owner, cc.table_name, cc.constraint_name,',
+      '  cc.column_name',
+      '  as cons_columns',
+      '  from all_cons_columns cc, all_constraints c',
+      '  where cc.owner = c.owner',
+      '  and cc.table_name = c.table_name',
+      '  and cc.constraint_name = c.constraint_name',
+      '  and c.constraint_type = \'R\'',
+      '  group by cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
       ')',
       'where owner =',
       schemaNameConstant,
@@ -529,23 +537,24 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       attributeNameConstant,
       ';'
     ].join(' ');
-    let fullQuery = [
+    const secondQuery = Utils.joinSQLFragments([
+      `ALTER TABLE ${this.quoteIdentifier(tableName)}`,
+      'ADD FOREIGN KEY',
+      `(${this.quoteIdentifier(attributeName)})`,
+      definition.replace(/.+?(?=REFERENCES)/, '')
+    ]);
+    const fullQuery = [
       'BEGIN',
       getConsNameQuery,
       'EXCEPTION',
       'WHEN NO_DATA_FOUND THEN',
-        'CONS_NAME := NULL;',
+      ' CONS_NAME := NULL;',
       'END;',
       'IF CONS_NAME IS NOT NULL THEN',
-        'EXECUTE IMMEDIATE \'ALTER TABLE <%= tableName %> DROP CONSTRAINT "\'||CONS_NAME||\'"\';',
+      ` EXECUTE IMMEDIATE 'ALTER TABLE ${this.quoteTable(table)} DROP CONSTRAINT "'||CONS_NAME||'"';`,
       'END IF;',
-      "EXECUTE IMMEDIATE '<%= secondQuery %>';"
+      `EXECUTE IMMEDIATE '${secondQuery}';`
     ].join(' ');
-    const secondQuery = `ALTER TABLE ${this.quoteIdentifier(tableName)} ADD ${constraintString}`;
-    fullQuery = _.template(fullQuery)({
-      tableName: this.quoteTable(table), 
-      secondQuery
-    });
     sql.push(fullQuery);
   }
 
@@ -558,34 +567,27 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
    * @param {string} attributeName The name of the attribute which would get altered
    */
   _modifyQuery(sql, definition, table, attributeName) {
-    const finalQuery = _.template('<%= attrName %> <%= definition %>')({
-      attrName: this.quoteIdentifier(attributeName),
+    let query = Utils.joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(table),
+      'MODIFY',
+      this.quoteIdentifier(attributeName),
       definition
-    });
-    const fullQuery = [
+    ]);
+    const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
+    query = [
       'BEGIN',
-      "EXECUTE IMMEDIATE '<%= fullQuery %>';",
+      `EXECUTE IMMEDIATE '${query}';`,
       'EXCEPTION',
       'WHEN OTHERS THEN',
-        'IF SQLCODE = -1442 OR SQLCODE = -1451 THEN',
-          //We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
-          "EXECUTE IMMEDIATE '<%= secondQuery %>';",
-        'ELSE',
-          'RAISE;',
-        'END IF;',
+      ' IF SQLCODE = -1442 OR SQLCODE = -1451 THEN',
+      //We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
+      `   EXECUTE IMMEDIATE '${secondQuery}';`,
+      ' ELSE',
+      '   RAISE;',
+      ' END IF;',
       'END;'
     ].join(' ');
-    let query = 'ALTER TABLE <%= tableName %> MODIFY (<%= query %>)';
-    query = _.template(query)({
-      tableName: this.quoteTable(table),
-      query: finalQuery
-    });
-    const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
-    query = _.template(fullQuery)({
-      tableName: this.quoteTable(table),
-      fullQuery: query,
-      secondQuery
-    });
     sql.push(query);
   }
 
@@ -612,14 +614,8 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
-    const query = 'ALTER TABLE <%= tableName %> RENAME COLUMN <%= before %> TO <%= after %>',
-      newName = Object.keys(attributes)[0];
-
-    return _.template(query)({
-      tableName: this.quoteTable(tableName),
-      before: this.quoteIdentifier(attrBefore),
-      after: this.quoteIdentifier(newName)
-    });
+    const newName = Object.keys(attributes)[0];
+    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(newName)}`;
   }
 
   /**
@@ -643,14 +639,24 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const sql = [
       'DECLARE ',
       'BEGIN ',
-      updateQuery.query,
-      '; ',
-      ' IF ( SQL%ROWCOUNT = 0 ) THEN ',
-      insertQuery.query,
-      '; :isUpdate := 0; ',
-      'ELSE ',
-      ' :isUpdate := 1; ',
-      ' END IF; ',
+      updateQuery.query ? [ 
+        updateQuery.query,
+        '; ',
+        ' IF ( SQL%ROWCOUNT = 0 ) THEN ',
+        insertQuery.query,
+        '; :isUpdate := 0; ',
+        'ELSE ',
+        ' :isUpdate := 1; ',
+        ' END IF; '
+      ].join('') : [
+        insertQuery.query,
+        '; :isUpdate := 0; ',
+        // If there is a conflict on insert we ignore
+        'EXCEPTION WHEN OTHERS THEN',
+        ' IF SQLCODE != -1 THEN',
+        '   RAISE;',
+        ' END IF;'
+      ].join(''),
       'END;'
     ];
 
@@ -658,7 +664,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const result = { query };
     
     if (options.bindParam !== false) {
-      result.bind = updateQuery.bind;
+      result.bind = updateQuery.bind || insertQuery.bind;
     }
 
     return result;
@@ -673,9 +679,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const inbind = options.upsertbind === undefined ? [] : options.upsertbind;
     const inbindParam 
     = options.bindParam === undefined ? this.bindParam(inbind) : options.bindParam;
-    const valueQuery = 'INSERT INTO <%= table %> (<%= attributes %>) VALUES (<%= values %>)',
-      emptyQuery = 'INSERT INTO <%= table %> VALUES (DEFAULT)',
-      fields = [],
+    const fields = [],
       values = [],
       primaryKeys = [],
       modelAttributeMap = {},
@@ -684,9 +688,6 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       primaryKeyReturn = [];
     let key, query, value;
     const oracledb = this.sequelize.connectionManager.lib;
-
-    //We have to specify a variable that will be used as return value for the id
-    const returningQuery = '<%=valueQuery %> RETURNING <%=primaryKey %> INTO <%=primaryKeyReturn %>';
 
     if (modelAttributes) {
       //We search for the primaryKey
@@ -716,7 +717,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
         value = valueHash[key];
         fields.push(this.quoteIdentifier(key));
 
-        if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && !value) {
+        if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value === null) {
           values.push('DEFAULT');
         } else if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
           values.push(
@@ -768,13 +769,22 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       values: values.join(',')
     };
 
+    query = Utils.joinSQLFragments([
+      'INSERT INTO',
+      replacements.table,
+      `(${replacements.attributes})`,
+      'VALUES',
+      replacements.attributes.length ? `(${replacements.values})` : '(DEFAULT)'
+    ]);
     if (options.returning && replacements.attributes && replacements.attributes.length > 0) {
-      query = returningQuery;
-      replacements.valueQuery = _.template(valueQuery)(replacements);
-    } else {
-      query = replacements.attributes.length ? valueQuery : emptyQuery;
+      query = Utils.joinSQLFragments([
+        query,
+        'RETURNING',
+        replacements.primaryKey,
+        'INTO',
+        replacements.primaryKeyReturn
+      ]);
     }
-    query = _.template(query)(replacements);
     const result = { query };
     if (options.bindParam !== false) {
       options.values = values;
@@ -945,27 +955,20 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const table = tableName;
 
     where = this.getWhereConditions(where, null, model, options);
-    const replacements = {
-      table: this.quoteTable(table),
-      limit: options.limit,
-      where
-    };
-
     let queryTmpl;
     // delete with limit <l> and optional condition <e> on Oracle: DELETE FROM <t> WHERE rowid in (SELECT rowid FROM <t> WHERE <e> AND rownum <= <l>)
     // Note that the condition <e> has to be in the subquery; otherwise, the subquery would select <l> arbitrary rows.
     if (options.limit) {
-      const whereTmpl = where ? ' AND <%= where %>' : '';
+      const whereTmpl = where ? ` AND ${where}` : '';
       queryTmpl =
-        `DELETE FROM <%= table %> WHERE rowid IN (SELECT rowid FROM <%= table %> WHERE rownum <= <%= limit %>${ 
+        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${options.limit}${ 
           whereTmpl 
         })`;
     } else {
-      const whereTmpl = where ? ' WHERE <%= where %>' : '';
-      queryTmpl = `DELETE FROM <%= table %>${whereTmpl}`;
+      const whereTmpl = where ? ` WHERE ${where}` : '';
+      queryTmpl = `DELETE FROM ${this.quoteTable(table)}${whereTmpl}`;
     }
-
-    return _.template(queryTmpl)(replacements);
+    return queryTmpl;
   }
 
   showIndexesQuery(table) {
@@ -975,32 +978,23 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
-      'WHERE i.table_name = <%= tableName %>',
+      `WHERE i.table_name = ${wrapSingleQuote(tableName)}`,
       ' AND u.TABLE_OWNER = ',
       owner ? wrapSingleQuote(owner) : 'USER',
-      ' ORDER BY INDEX_NAME, COLUMN_NAME'
+      ' ORDER BY INDEX_NAME, COLUMN_POSITION'
     ];
 
-    const request = sql.join('');
-    return _.template(request)({
-      tableName: wrapSingleQuote(tableName)
-    });
+    return sql.join('');
   }
 
   removeIndexQuery(tableName, indexNameOrAttributes) {
-    const sql = 'DROP INDEX <%= indexName %>';
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
       indexName = Utils.underscore(`${tableName }_${indexNameOrAttributes.join('_')}`);
     }
 
-    const values = {
-      tabelName: this.quoteTable(tableName),
-      indexName: this.quoteIdentifier(indexName)
-    };
-
-    return _.template(sql)(values);
+    return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
   attributeToSQL(attribute) {
@@ -1276,18 +1270,11 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
    * @param {string} columnName
    */
   dropIdentityColumn(tableName, columnName) {
-    const table = this.quoteTable(tableName);
-
-    return `ALTER TABLE ${table} MODIFY ${columnName} DROP IDENTITY`;
+    return `ALTER TABLE ${this.quoteTable(tableName)} MODIFY ${columnName} DROP IDENTITY`;
   }
 
   dropConstraintQuery(tableName, constraintName) {
-    const sql = 'ALTER TABLE <%= table %> DROP CONSTRAINT "<%= constraint %>"';
-
-    return _.template(sql)({
-      table: this.quoteTable(tableName),
-      constraint: constraintName
-    });
+    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
   }
 
   setAutocommitQuery(value) {
@@ -1362,10 +1349,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
         return conditions.join(' AND ');
       }
       if (smth.path) {
-        const paths = _.toPath(smth.path);
-        const column = paths.shift();
-        str = this.jsonPathExtractionQuery(column, paths);
 
+        // Allow specifying conditions using the sqlite json functions
+        if (this._checkValidJsonStatement(smth.path)) {
+          str = smth.path;
+        } else {
+          // Also support json property accessors
+          const paths = _.toPath(smth.path);
+          const column = paths.shift();
+          str = this.jsonPathExtractionQuery(column, paths);
+        }
         if (smth.value) {
           str += util.format(' = %s', this.escape(smth.value));
         }
@@ -1386,6 +1379,60 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       }
     }
     return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
+  }
+
+  _checkValidJsonStatement(stmt) {
+    if (typeof stmt !== 'string') {
+      return false;
+    }
+
+    let currentIndex = 0;
+    let openingBrackets = 0;
+    let closingBrackets = 0;
+    let hasJsonFunction = false;
+    let hasInvalidToken = false;
+
+    while (currentIndex < stmt.length) {
+      const string = stmt.substr(currentIndex);
+      const functionMatches = JSON_FUNCTION_REGEX.exec(string);
+      if (functionMatches) {
+        currentIndex += functionMatches[0].indexOf('(');
+        hasJsonFunction = true;
+        continue;
+      }
+
+      const operatorMatches = JSON_OPERATOR_REGEX.exec(string);
+      if (operatorMatches) {
+        currentIndex += operatorMatches[0].length;
+        hasJsonFunction = true;
+        continue;
+      }
+
+      const tokenMatches = TOKEN_CAPTURE_REGEX.exec(string);
+      if (tokenMatches) {
+        const capturedToken = tokenMatches[1];
+        if (capturedToken === '(') {
+          openingBrackets++;
+        } else if (capturedToken === ')') {
+          closingBrackets++;
+        } else if (capturedToken === ';') {
+          hasInvalidToken = true;
+          break;
+        }
+        currentIndex += tokenMatches[0].length;
+        continue;
+      }
+
+      break;
+    }
+
+    // Check invalid json statement
+    if (hasJsonFunction && (hasInvalidToken || openingBrackets !== closingBrackets)) {
+      throw new Error(`Invalid json statement: ${stmt}`);
+    }
+
+    // return true if the statement has valid json function
+    return hasJsonFunction;
   }
 
   jsonPathExtractionQuery(column, path) {

@@ -233,7 +233,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.deletedAtThisTime).to.exist;
     });
 
-    it('returns proper defaultValues after save when setter is set', async function() {
+    // The Oracle dialect doesn't support empty string in a non-null column
+    (dialect !== 'oracle' ? it : it.skip)('returns proper defaultValues after save when setter is set', async function() {
       const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
           title: {
@@ -541,15 +542,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined }
         ]);
       } else if (dialect === 'oracle') {
-        // Oracle returns indexes in alphabetical order
         primary = args[0];
         idx1 = args[1];
         idx2 = args[2];
         idx3 = args[3];
 
         expect(idx1.fields).to.deep.equal([
-          { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined },
-          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined }
+          { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+          { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined }
         ]);
 
         expect(idx2.fields).to.deep.equal([
@@ -1832,7 +1832,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
-    if (dialect !== 'mssql' && dialect !== 'db2') {
+    if (dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'oracle') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
@@ -2232,7 +2232,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else if (dialect === 'mssql') {
             expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
           } else if (dialect === 'oracle') {
-            expect(sql).to.match(/REFERENCES\s+\"prefix\"\.\"UserPubs\" \(\"id\"\)/);
+            expect(sql).to.match(/REFERENCES\s+"prefix"."UserPubs" \("id"\)/);
           } else if (dialect === 'mariadb') {
             expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
           } else {
@@ -2345,7 +2345,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'oracle') {
-          expect(sql).to.match(/FOREIGN KEY \(\"authorId\"\) REFERENCES \"authors\" \(\"id\"\)/);
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
         } else {
@@ -2375,7 +2375,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
         } else if (dialect === 'oracle') {
-          expect(sql).to.match(/FOREIGN KEY \(\"authorId\"\) REFERENCES \"authors\" \(\"id\"\)/);
+          expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
         } else {
           throw new Error('Undefined dialect!');
         }

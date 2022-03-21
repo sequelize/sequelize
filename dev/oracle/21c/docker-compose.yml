@@ -1,0 +1,13 @@
+services:
+  oracledb-21c:
+    container_name: oraclexedb21c
+    image: oracle/database:21.3.0-xe
+    environment:
+      ORACLE_PWD: password
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - 51521:1521
+
+networks:
+  default:
+    name: sequelize-oraclexedb21c-network

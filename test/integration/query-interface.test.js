@@ -39,15 +39,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         if (dialect === 'db2') {
           await sequelize.query('DROP VIEW V_Fail');
         } else if (dialect === 'oracle') {
-          let plsql = [
+          const plsql = [
             'DECLARE',
             '  V_COUNT INTEGER;',
             'BEGIN',
             '  V_COUNT := 0;',
-            `  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = 'V_FAIL';`,
+            '  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = \'V_FAIL\';',
             '  IF V_COUNT != 0 THEN',
             '    EXECUTE IMMEDIATE ',
-            `'DROP VIEW V_Fail'`,
+            '\'DROP VIEW V_Fail\'',
             ';',
             '  END IF;',
             'END;'
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : 'CREATE VIEW V_Fail AS SELECT 1 Id' + Support.addDualInSelect();
+      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : `CREATE VIEW V_Fail AS SELECT 1 Id${  Support.addDualInSelect()}`;
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: (dialect !== 'oracle') ?  'cascade' : null,
+          onUpdate: dialect !== 'oracle' ?  'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');
@@ -670,8 +670,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          expect(error.table).to.equal('users');
-          expect(error.constraint).to.equal('unknown__constraint__name');
+          // The Oracle dialect, error messages doesn't have table and constraint information
+          if (dialect != 'oracle') {
+            expect(error.table).to.equal('users');
+            expect(error.constraint).to.equal('unknown__constraint__name');
+          }
         }
       });
     });

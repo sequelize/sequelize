@@ -166,9 +166,6 @@ class ConnectionManager extends AbstractConnectionManager {
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
             this.pool.destroy(connection);
-            // We set the connection to invalid when an error event is emmitted
-            // on node-oracledb connection object
-            connection._invalid = true;
         }
       });
 
@@ -214,9 +211,9 @@ class ConnectionManager extends AbstractConnectionManager {
   }
 
   validate(connection) {
-    // To Do: Node-Oracledb needs to add a value that can be used to check
-    // If a connection object is valid
-    return connection && !connection._invalid && connection.stmtCacheSize !== undefined;
+    // Using the connection._closing flag to figure, close() operation is under
+    // progress by some thread
+    return connection && connection.isHealthy() && !connection._closing;
   }
 }
 

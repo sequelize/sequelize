@@ -22,9 +22,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        //TBD: WHY WAS THIS SKIPPED FOR ORACLE?
-        if (current.dialect.name !== 'mssql') {
-          const email = current.dialect.name === 'db2' || current.dialect.name !== 'oracle' ? '"email"' : 'email';
+        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'oracle') {
+          const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function() {
             const users = await this.User.findAll({
               order: this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)
@@ -87,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function() {
-          if (current.dialect.name === 'db2') {
+          if (current.dialect.name === 'db2' || current.dialect.name === 'oracle') {
             await this.User.findAll({
               order: [
                 ['id', this.sequelize.literal('ASC, "name" DESC')]

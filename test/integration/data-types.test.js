@@ -30,15 +30,24 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
-      let ret = value.format('YYYY-MM-DD HH:mm:ss');
-      if (dialect === 'oracle') {
+      return value.format('YYYY-MM-DD HH:mm:ss');
+    });
+
+    // oracle has a _bindParam function that checks if DATE was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects 
+    let bindParam;
+    if (dialect === 'oracle') {
+      bindParam = Sequelize.DATE.prototype.bindParam = sinon.spy(function(value, options) {
+        if (!moment.isMoment(value)) {
+          value = this._applyTimezone(value, options);
+        }
         // For ORACLE, use TO_DATE()
         const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
         const format = 'YYYY-MM-DD HH24:mi:ss';
-        ret = `TO_DATE('${formatedDate}', '${format}')`;
-      }
-      return ret;
-    });
+        return `TO_DATE('${formatedDate}', '${format}')`;
+      });
+    }
 
     current.refreshTypes();
 
@@ -57,7 +66,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const obj = await User.findAll();
     const user = obj[0];
     expect(parse).to.have.been.called;
-    expect(stringify).to.have.been.called;
+    // For the Oracle dialect we check if bindParam was called 
+    // for other dalects we check if stringify was called
+    dialect === 'oracle' ? expect(bindParam).to.have.been.called : expect(stringify).to.have.been.called;
 
     expect(moment.isMoment(user.dateField)).to.be.ok;
 
@@ -122,7 +133,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', async () => {
       const Type = new Sequelize.JSON();
 
-      await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      // oracle has a _bindParam function that checks if JSON was created with
+      // the boolean param (if so it outputs a Buffer bind param). This override
+      // isn't needed for other dialects
+      if (dialect === 'oracle') {
+        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } }, { useBindParam: true });
+      } else {
+        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      }
     });
   }
 
@@ -153,40 +171,73 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DATE', async () => {
     const Type = new Sequelize.DATE();
 
-    await testSuccess(Type, new Date());
+    // oracle has a _bindParam function that checks if DATE was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, new Date(), { useBindParam: true });
+    } else {
+      await testSuccess(Type, new Date());
+    }
   });
 
   it('calls parse and stringify for DATEONLY', async () => {
     const Type = new Sequelize.DATEONLY();
 
-    await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    // oracle has a _bindParam function that checks if DATEONLY was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'), { useBindParam: true });
+    } else {
+      await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    }
   });
 
   it('calls parse and stringify for TIME', async () => {
     const Type = new Sequelize.TIME();
 
-    await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    // TIME Datatype isn't supported by the Oracle dialect
+    if (dialect === 'oracle') {
+      testFailure(Type);
+    } else {
+      await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    }
   });
 
   it('calls parse and stringify for BLOB', async () => {
     const Type = new Sequelize.BLOB();
 
-    await testSuccess(Type, 'foobar', { useBindParam: true });
+    // oracle has a _bindParam function that checks if BLOB was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, 'foobar', { useBindParam: true });
+    } else {
+      await testSuccess(Type, 'foobar');
+    }
   });
 
   it('calls parse and stringify for CHAR', async () => {
     const Type = new Sequelize.CHAR();
 
-    await testSuccess(Type, 'foobar');
+    // mssql/oracle has a _bindParam function that checks if STRING was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'mssql' || dialect === 'oracle') {
+      await testSuccess(Type, 'foobar',  { useBindParam: true });
+    } else {
+      await testSuccess(Type, 'foobar');
+    }
   });
 
   it('calls parse and stringify/bindParam for STRING', async () => {
     const Type = new Sequelize.STRING();
 
-    // mssql has a _bindParam function that checks if STRING was created with
+    // mssql/oracle has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql' || dialect === 'db2') {
+    if (dialect === 'mssql' || dialect === 'db2' || dialect === 'oracle') {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -233,7 +284,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  it('should handle JS BigInt type', async function() {
+  // Node-oracledb doesn't support JS BigInt yet
+  (dialect !== 'oracle' ? it : it.skip)('should handle JS BigInt type', async function() {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT
     });
