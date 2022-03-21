@@ -16,3 +16,4 @@ esdoc
 node_modules
 /lib
 /types
+*.zip

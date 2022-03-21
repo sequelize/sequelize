@@ -26,4 +26,13 @@ grant all privileges to sequelizetest identified by sequelizepassword;
 exit;
 EOF
 
-echo "Local Oracle DB - 21c instance is ready for use."
+echo "Local Oracle DB - 21c docker instance is ready for use!"
+
+mkdir ~/Downloads/oracle && 
+wget https://download.oracle.com/otn_software/linux/instantclient/215000/instantclient-basic-linux.x64-21.5.0.0.0dbru.zip --no-check-certificate && 
+unzip instantclient-basic-linux.x64-21.5.0.0.0dbru.zip -d ~/Downloads/oracle/ &&
+mv ~/Downloads/oracle/instantclient_21_5 ~/Downloads/oracle/instantclient &&
+export LD_LIBRARY_PATH=~/Downloads/oracle/instantclient:$LD_LIBRARY_PATH &&
+export TNS_ADMIN=~/Downloads/oracle/instantclient/network/admin:$TNS_ADMIN
+
+echo "Local Oracle instant client has been setup!"
