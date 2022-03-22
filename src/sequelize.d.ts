@@ -15,13 +15,13 @@ import {
   ModelOptions,
   OrOperator,
   UpdateOptions,
-  WhereAttributeHash,
   WhereOperators,
   ModelCtor,
   Hookable,
   ModelType,
   CreationAttributes,
-  Attributes
+  Attributes,
+  ColumnReference, WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
@@ -1465,14 +1465,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): AndOperator<any>;
+export function and<T extends Array<any>>(...args: T): { [Op.and]: T };
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): OrOperator<any>;
+export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.
@@ -1484,7 +1484,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
 
 // TODO [>6]: Remove
 /**
@@ -1533,8 +1533,8 @@ export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> 
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand | Where, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: any, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
 
 export default Sequelize;
