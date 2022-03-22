@@ -3,7 +3,7 @@ import {
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
   HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
-  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
+  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
 } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
@@ -56,7 +56,11 @@ class Project extends Model<
 > {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
-  declare ownerId: number;
+
+  // foreign keys are automatically added by associations methods (like Project.belongsTo)
+  // by branding them using the `ForeignKey` type, `Project.init` will know it does not need to
+  // display an error if ownerId is missing.
+  declare ownerId: ForeignKey<User['id']>;
   declare name: string;
 
   // `owner` is an eagerly-loaded association.
@@ -73,7 +77,7 @@ class Address extends Model<
   InferAttributes<Address>,
   InferCreationAttributes<Address>
 > {
-  declare userId: number;
+  declare userId: ForeignKey<User['id']>;
   declare address: string;
 
   // createdAt can be undefined during creation
@@ -88,10 +92,6 @@ Project.init(
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true
-    },
-    ownerId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false
     },
     name: {
       type: new DataTypes.STRING(128),
@@ -132,9 +132,6 @@ User.init(
 
 Address.init(
   {
-    userId: {
-      type: DataTypes.INTEGER.UNSIGNED
-    },
     address: {
       type: new DataTypes.STRING(128),
       allowNull: false

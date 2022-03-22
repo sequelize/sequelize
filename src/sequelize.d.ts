@@ -15,17 +15,18 @@ import {
   ModelOptions,
   OrOperator,
   UpdateOptions,
-  WhereAttributeHash,
   WhereOperators,
   ModelCtor,
   Hookable,
   ModelType,
   CreationAttributes,
-  Attributes
+  Attributes,
+  WhereAttributeHash,
+  ColumnReference, WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';
-import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, SequelizeMethod, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
@@ -1452,7 +1453,10 @@ export class Sequelize extends Hooks {
  * @param fn The function you want to call
  * @param args All further arguments will be passed as arguments to the function
  */
-export function fn(fn: string, ...args: unknown[]): Fn;
+export function fn(
+  fn: string,
+  ...args: Fn['args']
+): Fn;
 
 /**
  * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -1482,14 +1486,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): AndOperator<any>;
+export function and<T extends Array<any>>(...args: T): { [Op.and]: T };
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): OrOperator<any>;
+export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.
@@ -1501,7 +1505,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | Col | Literal | Cast | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
 
 /**
  * A way of specifying "attr = condition".
@@ -1538,9 +1542,9 @@ export type WhereLeftOperand = Fn | Col | Literal | Cast | ModelAttributeColumnO
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand | Where, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: any, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
 
 type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;
