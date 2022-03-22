@@ -9,9 +9,9 @@ import { Sequelize, Model, DataTypes } from '@sequelize/core';
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 class User extends Model {
-  public id!: number; // Note that the `null assertion` `!` is required in strict mode.
-  public name!: string;
-  public preferredName!: string | null; // for nullable fields
+  declare id: number;
+  declare name: string;
+  declare preferredName: string | null;
 }
 
 User.init(
