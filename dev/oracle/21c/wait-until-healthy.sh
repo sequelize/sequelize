@@ -11,10 +11,11 @@ do
   return_code=$?
   if [ ${return_code} -eq 0 ] && [ "$state" == "healthy" ]; then
     echo "$1 is healthy!"
+    sleep 60
     exit 0
   fi
-  sleep 30
+  sleep 6
 done
 
->&2 echo "Timeout of 25m exceeded when waiting for container to be healthy: $1"
+>&2 echo "Timeout of 5m exceeded when waiting for container to be healthy: $1"
 exit 1
