@@ -11,6 +11,11 @@ const AssociationError = require('../errors').AssociationError;
 const EmptyResultError = require('../errors').EmptyResultError;
 const { Op } = require('../operators');
 
+// TODO: strictly type util options
+// TODO: remove empty @return
+// TODO: clean jsdoc
+// TODO: ensure mixin methods accept CreationAttribute as well
+
 /**
  * Many-to-many association with a join table.
  *
@@ -52,7 +57,7 @@ const { Op } = require('../operators');
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
  *
- * @see {@link Model.belongsToMany}
+ * See {@link Model.belongsToMany}
  */
 class BelongsToMany extends Association {
   constructor(source, target, options) {
@@ -69,7 +74,6 @@ class BelongsToMany extends Association {
     }
 
     this.associationType = 'BelongsToMany';
-    this.targetAssociation = null;
     this.sequelize = source.sequelize;
     this.through = { ...this.options.through };
     this.isMultiAssociation = true;
@@ -100,13 +104,6 @@ class BelongsToMany extends Association {
       this.source.tableName,
       this.isSelfAssociation ? this.as || this.target.tableName : this.target.tableName,
     );
-
-    /*
-    * If self association, this is the target association - Unless we find a pairing association
-    */
-    if (this.isSelfAssociation) {
-      this.targetAssociation = this;
-    }
 
     /*
     * Find paired association (if exists)
@@ -423,8 +420,7 @@ class BelongsToMany extends Association {
   /**
    * Get everything currently associated with this, using an optional where clause.
    *
-   * @see
-   * {@link Model} for a full explanation of options
+   * See {@link Model} for a full explanation of options
    *
    * @param {Model} instance instance
    * @param {object} [options] find options

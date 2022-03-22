@@ -201,7 +201,7 @@ export abstract class Association<
    * @private
    * @returns built objects
    */
-  toInstanceArray(input: AllowArray<T | CreationAttributes<T>>): T[] {
+  protected toInstanceArray(input: AllowArray<T | CreationAttributes<T>>): T[] {
     if (!Array.isArray(input)) {
       input = [input];
     }

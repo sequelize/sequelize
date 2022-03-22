@@ -48,11 +48,11 @@ export function addForeignKeyConstraints(
  * @param aliases Mapping between model and association method names
  *
  */
-export function mixinMethods<A extends Association>(
+export function mixinMethods<A extends Association, Aliases extends Record<string, string>>(
   association: A,
   mixinTargetPrototype: Model,
-  methods: Array<keyof A>,
-  aliases: Record<string, string> = {},
+  methods: Array<keyof A | keyof Aliases>,
+  aliases?: Aliases,
 ): void {
   for (const method of methods) {
     // @ts-expect-error
@@ -64,7 +64,7 @@ export function mixinMethods<A extends Association>(
     }
 
     // @ts-expect-error
-    const realMethod = aliases[method] || method;
+    const realMethod = aliases?.[method] || method;
 
     Object.defineProperty(mixinTargetPrototype, 'targetMethodName', {
       enumerable: false,

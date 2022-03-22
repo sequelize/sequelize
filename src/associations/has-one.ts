@@ -17,6 +17,8 @@ import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
 
+// TODO: strictly type util options
+
 /**
  * One-to-one association
  *
@@ -198,7 +200,8 @@ export class HasOne<
    * @param options Options passed to getAssociation and `target.save`
    */
   async set(sourceInstance: S, associatedInstance: T | null, options?: HasOneSetAssociationMixinOptions<T>) {
-    // TODO: options.save option is ignored?
+    // TODO: options.save option is incorrectly ignored
+    // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
 
     options = { ...options, scope: false };
 

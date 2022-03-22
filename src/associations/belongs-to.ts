@@ -15,6 +15,8 @@ import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
 
+// TODO: strictly type util options
+
 /**
  * One-to-one association
  *
@@ -157,6 +159,7 @@ export class BelongsTo<
       instances = [instances];
     }
 
+    // FIXME: the scope is ignored
     const where = Object.create(null);
 
     if (instances.length > 1) {
@@ -206,6 +209,7 @@ export class BelongsTo<
    * @param options options passed to `this.save`
    */
   async set(sourceInstance: S, associatedInstance: T | null, options: BelongsToSetAssociationMixinOptions = {}) {
+    // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
@@ -260,12 +264,12 @@ export class BelongsTo<
  *
  * @see Association class belongsTo method
  */
-export interface BelongsToOptions<T extends Model> extends AssociationOptions {
+export interface BelongsToOptions<Target extends Model> extends AssociationOptions {
   /**
    * The name of the field to use as the key for the association in the target table. Defaults to the primary
    * key of the target table
    */
-  targetKey?: AttributeNames<T>;
+  targetKey?: AttributeNames<Target>;
 
   /**
    * A string or a data type to represent the identifier in the table

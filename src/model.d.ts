@@ -684,7 +684,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * Limit include. Only available when setting `separate` to true.
    */
-  limit?: number;
+  limit?: Nullish<number>;
 
   /**
    * Run include in separate queries.
@@ -1092,7 +1092,7 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
   /**
    * How many rows to delete
    */
-  limit?: number;
+  limit?: Nullish<number>;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1131,7 +1131,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: number;
+  limit?: Nullish<number>;
 }
 
 /**
@@ -1179,7 +1179,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * How many rows to update (only for mysql and mariadb)
    */
-  limit?: number;
+  limit?: Nullish<number>;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
