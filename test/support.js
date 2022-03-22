@@ -242,15 +242,16 @@ const Support = {
   expectsql(query, assertions) {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
+    const dialect = Support.sequelize.dialect;
 
     if (!expectation) {
       if (expectations.default !== undefined) {
         expectation = expectations.default;
         if (typeof expectation === 'string') {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
-          if (Support.sequelize.dialect.name === 'ibmi') {
+          // replace [...] with the proper quote character for the dialect
+          // except for ARRAY[...]
+          expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+          if (dialect.name === 'ibmi') {
             expectation = expectation.replace(/;$/, '');
           }
         }

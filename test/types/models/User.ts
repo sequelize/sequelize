@@ -115,9 +115,9 @@ User.addHook('afterDestroy', async (instance, options) => {
 });
 
 // Model#addScope
-User.addScope('withoutFirstName', {
+User.addScope('withoutLastName', {
   where: {
-    firstName: {
+    lastName: {
       [Op.is]: null
     }
   }
