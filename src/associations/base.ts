@@ -173,7 +173,7 @@ export abstract class Association<
       foreignKey = this.inferForeignKey();
     }
 
-    this.foreignKey = foreignKey;
+    this.foreignKey = foreignKey as ForeignKey;
   }
 
   get as() {

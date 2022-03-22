@@ -136,7 +136,12 @@ export class HasOne<
    * @param options find options
    */
   // TODO: when is this called with an array? Is it ever?
-  async get(instances: S | S[], options: HasOneGetAssociationMixinOptions<T>) {
+  async get(instances: S, options: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options: HasOneGetAssociationMixinOptions<T>): Promise<Record<S[SourceKey], T | null>>;
+  async get(
+    instances: S | S[],
+    options: HasOneGetAssociationMixinOptions<T>,
+  ): Promise<Record<S[SourceKey], T | null> | T | null> {
     options = Utils.cloneDeep(options);
 
     let Target = this.target;
@@ -152,7 +157,9 @@ export class HasOne<
       Target = Target.schema(options.schema, options.schemaDelimiter);
     }
 
+    let isManyMode = true;
     if (!Array.isArray(instances)) {
+      isManyMode = false;
       instances = [instances];
     }
 
@@ -175,7 +182,7 @@ export class HasOne<
       ? { [Op.and]: [where, options.where] }
       : where;
 
-    if (instances.length > 1) {
+    if (isManyMode) {
       const results = await Target.findAll(options);
       const result: Record<S[SourceKey], T | null> = Object.create(null);
       for (const sourceInstance of instances) {

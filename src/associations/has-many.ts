@@ -156,8 +156,12 @@ export class HasMany<
    * @param options find options
    */
   // TODO: when is this called with an array? Is it ever?
-  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}) {
+  async get(instances: S, options: HasManyGetAssociationsMixinOptions): Promise<T[]>;
+  async get(instances: S[], options: HasManyGetAssociationsMixinOptions): Promise<Record<S[SourceKey], T[]>>;
+  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Record<S[SourceKey], T[]>> {
+    let isManyMode = true;
     if (!Array.isArray(instances)) {
+      isManyMode = false;
       instances = [instances];
     }
 
@@ -210,7 +214,7 @@ export class HasMany<
     }
 
     const results = await Model.findAll(findOptions);
-    if (instances.length === 1) {
+    if (!isManyMode) {
       return results;
     }
 
@@ -252,7 +256,11 @@ export class HasMany<
 
     const result = await this.get(instance, findOptions);
 
-    return Number.parseInt(result.count, 10);
+    return Number.parseInt(
+      // @ts-expect-error -- this.get() isn't designed to expect returning a raw output.
+      result.count,
+      10,
+    );
   }
 
   /**

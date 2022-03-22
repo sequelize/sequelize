@@ -139,7 +139,12 @@ export class BelongsTo<
    * @param options find options
    */
   // TODO: when is this called with an array? Is it ever?
-  async get(instances: S | S[], options: BelongsToGetAssociationMixinOptions) {
+  async get(instances: S, options: BelongsToGetAssociationMixinOptions): Promise<T | null>;
+  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Record<T[TargetKey], T | null>>;
+  async get(
+    instances: S | S[],
+    options: BelongsToGetAssociationMixinOptions,
+  ): Promise<Record<T[TargetKey], T | null> | T | null> {
     options = Utils.cloneDeep(options);
 
     let Target = this.target;
@@ -155,7 +160,9 @@ export class BelongsTo<
       Target = Target.schema(options.schema, options.schemaDelimiter);
     }
 
+    let isManyMode = true;
     if (!Array.isArray(instances)) {
+      isManyMode = false;
       instances = [instances];
     }
 
@@ -184,9 +191,9 @@ export class BelongsTo<
       ? { [Op.and]: [where, options.where] }
       : where;
 
-    if (instances.length > 1) {
+    if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Record<any, T | null> = Object.create(null);
+      const result: Record<T[TargetKey], T | null> = Object.create(null);
       for (const instance of instances) {
         result[instance.get(this.foreignKey, { raw: true })] = null;
       }
