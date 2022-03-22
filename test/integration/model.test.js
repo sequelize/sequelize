@@ -1057,7 +1057,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fields: ['secretValue'],
         logging(sql) {
           test = true;
-          if (dialect === 'mssql' || dialect === 'ibmi') {
+          if (['mssql', 'ibmi'].includes(dialect)) {
             expect(sql).to.not.contain('createdAt');
           } else {
             expect(sql).to.match(/UPDATE\s+["`]+User1s["`]+\s+SET\s+["`]+secretValue["`]=(\$1|\?),["`]+updatedAt["`]+=(\$2|\?)\s+WHERE ["`]+id["`]+\s=\s(\$3|\?)/);

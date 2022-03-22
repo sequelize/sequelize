@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
         // And when the model is not passed at all
-        if (dialect === 'db2' || dialect === 'ibmi') {
+        if (['db2', 'ibmi'].includes(dialect)) {
           await expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
         } else {
           await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);

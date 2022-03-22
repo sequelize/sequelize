@@ -382,7 +382,7 @@ module.exports = {
         'Person',
         ['name', 'bool'],
         {
-          indicesType: 'UNIQUE',
+          type: 'UNIQUE',
           where: { bool : 'true' },
         }
       );
