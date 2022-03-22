@@ -1329,6 +1329,16 @@ export interface ModelAttributeColumnReferencesOptions {
 }
 
 /**
+ * Action type when the referenced key is deleted.
+ */
+export type OnDeleteAction = 'RESTRICT' | 'CASCADE' | 'NO ACTION' | 'SET DEFAULT' | 'SET NULL';
+
+/**
+ * Action type when the referenced key is updated.
+ */
+export type OnUpdateAction = 'RESTRICT' | 'CASCADE' | 'NO ACTION' | 'SET DEFAULT' | 'SET NULL';
+
+/**
  * Column options for the model schema attributes
  */
 export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
@@ -1370,16 +1380,14 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   references?: string | ModelAttributeColumnReferencesOptions;
 
   /**
-   * What should happen when the referenced key is updated. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
-   * NO ACTION
+   * What should happen when the referenced key is updated.
    */
-  onUpdate?: string;
+  onUpdate?: OnUpdateAction;
 
   /**
-   * What should happen when the referenced key is deleted. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
-   * NO ACTION
+   * What should happen when the referenced key is deleted.
    */
-  onDelete?: string;
+  onDelete?: OnDeleteAction;
 
 
   /**
