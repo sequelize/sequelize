@@ -6,7 +6,7 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json } from './utils';
+import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json, Nullish } from './utils';
 import { LOCK, Transaction, Op, PartlyRequired, Optional } from './index';
 import { SetRequired } from './utils/set-required';
 
@@ -816,7 +816,7 @@ export interface FindOptions<TAttributes = any>
    *   subQuery: false,
    * });
    */
-  limit?: number;
+  limit?: Nullish<number>;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;

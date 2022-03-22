@@ -10,12 +10,11 @@ import type {
   AttributeNames,
   ModelAttributeColumnOptions,
   Attributes,
-  BuiltModelName,
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
 import { getColumnName } from '../utils';
-import type { AssociationOptions } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
 
@@ -45,11 +44,7 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
    */
   identifierField: string | undefined;
 
-  readonly accessors: {
-    get: string,
-    set: string,
-    create: string,
-  };
+  readonly accessors: SingleAssociationAccessors;
 
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasOneOptions<S>) {
     super(source, target, options);
@@ -115,17 +110,14 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
     return this;
   }
 
-  /**
-    * @param mixinTargetPrototype - a Model prototype, not an actual instance
-    */
   mixin(mixinTargetPrototype: Model) {
     Helpers.mixinMethods(this, mixinTargetPrototype, ['get', 'set', 'create']);
   }
 
   /**
    * Get the associated instance.
-   * See {@link Model.findOne} for a full explanation of options.
    *
+   * See {@link HasOneGetAssociationMixinOptions} for a full explanation of options.
    * This method is mixed-in the source model prototype. See {@link HasOneGetAssociationMixin}.
    *
    * @param instances source instances
@@ -200,6 +192,8 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
    * @returns
    */
   async set(sourceInstance: S, associatedInstance: T | null, options?: HasOneSetAssociationMixinOptions<T>) {
+    // TODO: options.save option is ignored?
+
     options = { ...options, scope: false };
 
     // calls the 'get' mixin
@@ -234,7 +228,7 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
       return associatedInstance.save(options);
     }
 
-    return null;
+    return sourceInstance;
   }
 
   /**
@@ -273,18 +267,6 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
 
     return this.target.create(values, options);
   }
-
-  verifyAssociationAlias(alias: string | BuiltModelName): boolean {
-    if (typeof alias === 'string') {
-      return this.as === alias;
-    }
-
-    if (alias?.singular) {
-      return this.as === alias.singular;
-    }
-
-    return !this.isAliased;
-  }
 }
 
 /**
@@ -319,6 +301,9 @@ export interface HasOneGetAssociationMixinOptions<M extends Model> extends FindO
    */
   scope?: string | string[] | boolean;
 
+  /**
+   * Apply a schema on the related model
+   */
   schema?: string;
   schemaDelimiter?: string;
 }

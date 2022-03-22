@@ -837,18 +837,6 @@ class BelongsToMany extends Association {
 
     return newAssociatedObject;
   }
-
-  verifyAssociationAlias(alias) {
-    if (typeof alias === 'string') {
-      return this.as === alias;
-    }
-
-    if (alias && alias.plural) {
-      return this.as === alias.plural;
-    }
-
-    return !this.isAliased;
-  }
 }
 
 module.exports = BelongsToMany;

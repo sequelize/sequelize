@@ -2,7 +2,7 @@ import assert from 'assert';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import { AssociationError } from '../errors';
-import type { Model, ModelStatic, ColumnOptions, Hookable } from '../model';
+import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName } from '../model';
 import { singularize } from '../utils/index';
 import * as Utils from '../utils/index.js';
 
@@ -216,16 +216,39 @@ export abstract class Association<
     });
   }
 
+  abstract _injectAttributes(): void;
+
+  /**
+   * @param mixinTargetPrototype - a Model prototype, not an actual instance
+   */
+  abstract mixin(mixinTargetPrototype: Model): void;
+
+  verifyAssociationAlias(alias: string | BuiltModelName): boolean {
+    if (typeof alias === 'string') {
+      return this.as === alias;
+    }
+
+    if (this.isMultiAssociation) {
+      if (alias?.plural) {
+        return this.as === alias.plural;
+      }
+    } else if (alias?.singular) {
+      return this.as === alias.singular;
+    }
+
+    return !this.isAliased;
+  }
+
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.as;
   }
 }
 
-export interface SingleAssociationAccessors {
-  get: string;
-  set: string;
-  create: string;
-}
+export type SingleAssociationAccessors = {
+  get: string,
+  set: string,
+  create: string,
+};
 
 export interface MultiAssociationAccessors {
   get: string;

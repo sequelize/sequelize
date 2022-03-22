@@ -457,18 +457,6 @@ class HasMany extends Association {
 
     return await this.target.create(values, options);
   }
-
-  verifyAssociationAlias(alias) {
-    if (typeof alias === 'string') {
-      return this.as === alias;
-    }
-
-    if (alias && alias.plural) {
-      return this.as === alias.plural;
-    }
-
-    return !this.isAliased;
-  }
 }
 
 module.exports = HasMany;
