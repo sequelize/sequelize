@@ -96,7 +96,7 @@ class Model {
         if (overwrittenAttributes.length > 0) {
           logger.warn(`Model ${JSON.stringify(this.constructor.name)} is declaring public class fields for attribute(s): ${overwrittenAttributes.map(attr => JSON.stringify(attr)).join(', ')}.`
             + '\nThese class fields are shadowing Sequelize\'s attribute getters & setters.'
-            + '\nSee https://sequelize.org/main/manual/model-basics.html#caveat-with-public-class-fields');
+            + '\nSee https://sequelize.org/docs/v7/core-concepts/model-basics/#caveat-with-public-class-fields');
         }
       }, 0);
     }
