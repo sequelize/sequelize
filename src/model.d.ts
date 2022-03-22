@@ -7,7 +7,7 @@ import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction } from './utils';
-import { LOCK, Transaction, Op } from './index';
+import { LOCK, Transaction, Op, Optional } from './index';
 import { SetRequired } from './utils/set-required';
 
 export interface Logging {
@@ -1736,7 +1736,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
     this: MS,
-    attributes: ModelAttributes<M, Attributes<M>>, options: InitOptions<M>
+    attributes: ModelAttributes<
+      M,
+      // 'foreign keys' are optional in Model.init as they are added by association declaration methods
+      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
+    >,
+    options: InitOptions<M>
   ): MS;
 
   /**
@@ -3045,6 +3050,10 @@ type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omi
   ? false
   : true;
 
+type BrandedKeysOf<T, Brand extends symbol> = {
+  [P in keyof T]-?: IsBranded<T[P], Brand> extends true ? P : never
+}[keyof T];
+
 /**
  * Dummy Symbol used as branding by {@link NonAttribute}.
  *
@@ -3057,13 +3066,31 @@ declare const NonAttributeBrand: unique symbol;
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
-
 export type NonAttribute<T> =
   // we don't brand null & undefined as they can't have properties.
   // This means `NonAttribute<null>` will not work, but who makes an attribute that only accepts null?
   // Note that `NonAttribute<string | null>` does work!
   T extends null | undefined ? T
   : (T & { [NonAttributeBrand]?: true });
+
+/**
+ * Dummy Symbol used as branding by {@link ForeignKey}.
+ *
+ * Do not export, Do not use.
+ */
+declare const ForeignKeyBrand: unique symbol;
+
+/**
+ * This is a Branded Type.
+ * You can use it to tag fields from your class that are foreign keys.
+ * They will become optional in {@link Model.init} (as foreign keys are added by association methods, like {@link Model.hasMany}.
+ */
+export type ForeignKey<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `ForeignKey<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `ForeignKey<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [ForeignKeyBrand]?: true });
 
 /**
  * Option bag for {@link InferAttributes}.
@@ -3139,8 +3166,8 @@ declare const CreationAttributeBrand: unique symbol;
  */
 export type CreationOptional<T> =
   // we don't brand null & undefined as they can't have properties.
-  // This means `CreationAttributeBrand<null>` will not work, but who makes an attribute that only accepts null?
-  // Note that `CreationAttributeBrand<string | null>` does work!
+  // This means `CreationOptional<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `CreationOptional<string | null>` does work!
   T extends null | undefined ? T
   : (T & { [CreationAttributeBrand]?: true });
 
