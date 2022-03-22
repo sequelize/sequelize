@@ -83,7 +83,7 @@ import * as Utils from '../utils/index.js';
  *
  * Note how we also specified `constraints: false` for profile picture. This is because we add a foreign key from user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this, you should either disable some constraints, or rethink your associations completely.
  */
-export class Association<
+export abstract class Association<
   S extends Model = Model,
   T extends Model = Model,
   Opts extends AssociationOptions = AssociationOptions,
@@ -106,6 +106,8 @@ export class Association<
     as: string,
     name: { singular: string, plural: string },
   };
+
+  abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
 
   foreignKeyAttribute: ForeignKeyOptions;
   foreignKey: string;

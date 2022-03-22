@@ -1058,6 +1058,8 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default false
    */
   omitNull?: boolean;
+
+  association?: boolean;
 }
 
 /**
@@ -1259,6 +1261,8 @@ export interface ModelNameOptions {
   plural?: string;
 }
 
+export type BuiltModelName = Required<ModelNameOptions>;
+
 /**
  * Interface for getterMethods in InitOptions
  */
@@ -1321,7 +1325,7 @@ export interface ModelAttributeColumnReferencesOptions {
   key?: string;
 
   /**
-   * When to check for the foreign key constraing
+   * When to check for the foreign key constraint
    *
    * PostgreSQL only
    */
@@ -1645,6 +1649,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * The name of the primary key attribute
+   *
+   * @deprecated use {@link Model.primaryKeyAttributes}.
    */
   public static readonly primaryKeyAttribute: string;
 
@@ -1681,6 +1687,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static getAttributes<M extends Model>(this: ModelStatic<M>): {
     readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
+
+  /**
+   * Like {@link Model.rawAttributes}, but only includes attributes that are part of the Primary Key.
+   */
+  public static readonly primaryKeys: { [attribute: string]: BuiltModelAttributeColumOptions };
 
   /**
    * Reference to the sequelize instance the model was initialized with
@@ -1744,11 +1755,27 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static hasAlias(alias: string): boolean;
 
   /**
+   * Refreshes the Model's attribute definition.
+   */
+  static refreshAttributes(): void;
+
+  /**
    * Remove attribute from model definition
+   * Only use if you know what you're doing.
    *
    * @param attribute
    */
   public static removeAttribute(attribute: string): void;
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   *
+   * @param newAttributes
+   */
+  public static mergeAttributes(newAttributes: { [key: string]: ModelAttributeColumnOptions }): BuiltModelAttributeColumOptions;
 
   /**
    * Sync this Model to the DB, that is create the table. Upon success, the callback will be called with the
@@ -1770,12 +1797,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * sqlite - `'schema.tablename'`.
    *
    * @param schema The name of the schema
-   * @param options
+   * @param options - either {@link SchemaOptions} or a string, the later is equivalent to setting {@link SchemaOptions.schemaDelimiter}.
    */
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions
+    options?: SchemaOptions | string
   ): ModelCtor<M>;
 
   /**
@@ -3220,3 +3247,5 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  * function getValue<M extends Model>(modelClass: ModelStatic<M>, attribute: keyof Attributes<M>) {}
  */
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
+
+export type AttributeNames<M extends Model | Hooks> = Extract<M['_attributes'], string>;

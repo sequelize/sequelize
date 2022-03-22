@@ -93,7 +93,7 @@ class BelongsTo extends Association {
       this.options.onUpdate = this.options.onUpdate || 'CASCADE';
     }
 
-    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.source, this.options, this.targetKeyField);
+    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.options, this.targetKeyField);
     Utils.mergeDefaults(this.source.rawAttributes, newAttributes);
 
     this.source.refreshAttributes();

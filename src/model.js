@@ -18,6 +18,8 @@ const Hooks = require('./hooks');
 const associationsMixin = require('./associations/mixin');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
+const { ModelAttributeColumnOptions } = require('./model');
+const { at } = require('lodash');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -1361,13 +1363,30 @@ class Model {
   }
 
   /**
-   * Remove attribute from model definition
+   * Remove attribute from model definition.
+   * Only use if you know what you're doing.
    *
    * @param {string} attribute name of attribute to remove
    */
   static removeAttribute(attribute) {
     delete this.rawAttributes[attribute];
     this.refreshAttributes();
+  }
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   *
+   * @param {object} newAttributes
+   */
+  static mergeAttributes(newAttributes) {
+    Utils.mergeDefaults(this.rawAttributes, newAttributes);
+
+    this.refreshAttributes();
+
+    return this.rawAttributes;
   }
 
   /**

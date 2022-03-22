@@ -112,7 +112,7 @@ class HasMany extends Association {
       constraintOptions.onUpdate = constraintOptions.onUpdate || 'CASCADE';
     }
 
-    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, this.target, constraintOptions, this.sourceKeyField);
+    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, constraintOptions, this.sourceKeyField);
     Utils.mergeDefaults(this.target.rawAttributes, newAttributes);
 
     this.target.refreshAttributes();
