@@ -19,7 +19,7 @@ import type { MultiAssociationAccessors, ManyToManyOptions } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
 
-// TODO: strictly type util options
+// TODO: strictly type mixin options
 
 /**
  * One-to-many association

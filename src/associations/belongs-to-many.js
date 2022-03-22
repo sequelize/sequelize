@@ -11,7 +11,7 @@ const AssociationError = require('../errors').AssociationError;
 const EmptyResultError = require('../errors').EmptyResultError;
 const { Op } = require('../operators');
 
-// TODO: strictly type util options
+// TODO: strictly type mixin options
 // TODO: remove empty @return
 // TODO: clean jsdoc
 // TODO: ensure mixin methods accept CreationAttribute as well
