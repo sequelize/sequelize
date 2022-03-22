@@ -11,7 +11,6 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import { getColumnName } from '../utils';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
@@ -21,9 +20,14 @@ import * as Helpers from './helpers';
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
  *
- * @see {@link Model.belongsTo}
+ * See {@link Model.belongsTo}
  */
-export class BelongsTo<S extends Model = Model, T extends Model = Model> extends Association<S, T, BelongsToOptions<T>> {
+export class BelongsTo<
+  S extends Model = Model,
+  T extends Model = Model,
+  SourceKey extends AttributeNames<S> = any,
+  TargetKey extends AttributeNames<T> = any,
+> extends Association<S, T, BelongsToOptions<T>, SourceKey> {
 
   associationType = 'BelongsTo';
   isSingleAssociation = true;
@@ -40,9 +44,11 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
   identifierField: string | undefined;
 
   /**
-   * The attribute name of the target key
+   * The name of the attribute the foreign key points to.
+   * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOne.sourceKey}).
+   * The {@link Association.foreignKey} is on the Source Model.
    */
-  readonly targetKey: string;
+  readonly targetKey: TargetKey;
 
   /**
    * The column name of the target key
@@ -69,11 +75,11 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
 
     this.identifier = this.foreignKey;
     if (this.source.getAttributes()[this.identifier]) {
-      this.identifierField = getColumnName(this.source.getAttributes()[this.identifier]);
+      this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.identifier]);
     }
 
-    this.targetKey = this.options.targetKey || this.target.primaryKeyAttribute;
-    this.targetKeyField = getColumnName(this.target.getAttributes()[this.targetKey]);
+    this.targetKey = this.options.targetKey || (this.target.primaryKeyAttribute as TargetKey);
+    this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
     this.targetIdentifier = this.targetKey;
 
@@ -110,7 +116,7 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
 
     this.source.mergeAttributes(newAttributes);
 
-    this.identifierField = getColumnName(this.source.rawAttributes[this.foreignKey]);
+    this.identifierField = Utils.getColumnName(this.source.rawAttributes[this.foreignKey]);
 
     Helpers.checkNamingCollision(this);
 
@@ -179,12 +185,10 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
       const results = await Target.findAll(options);
       const result: Record<any, T | null> = Object.create(null);
       for (const instance of instances) {
-        // @ts-expect-error
         result[instance.get(this.foreignKey, { raw: true })] = null;
       }
 
       for (const instance of results) {
-        // @ts-expect-error
         result[instance.get(this.targetKey, { raw: true })] = instance;
       }
 
@@ -200,14 +204,11 @@ export class BelongsTo<S extends Model = Model, T extends Model = Model> extends
    * @param sourceInstance the source instance
    * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
    * @param options options passed to `this.save`
-   *
-   *  @returns
    */
   async set(sourceInstance: S, associatedInstance: T | null, options: BelongsToSetAssociationMixinOptions = {}) {
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
-      // @ts-expect-error
       value = associatedInstance[this.targetKey];
     }
 

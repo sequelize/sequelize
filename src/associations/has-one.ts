@@ -13,7 +13,6 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import { getColumnName } from '../utils';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import * as Helpers from './helpers';
@@ -24,20 +23,31 @@ import * as Helpers from './helpers';
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
  * This is almost the same as `belongsTo` with one exception - The foreign key will be defined on the target model.
  *
- * @see {@link Model.hasOne}
+ * See {@link Model.hasOne}
  */
-export class HasOne<S extends Model = Model, T extends Model = Model> extends Association<S, T, HasOneOptions<S>> {
+export class HasOne<
+  S extends Model = Model,
+  T extends Model = Model,
+  SourceKey extends AttributeNames<S> = any,
+  TargetKey extends AttributeNames<T> = any,
+> extends Association<S, T, HasOneOptions<S>, TargetKey> {
   associationType = 'HasOne';
   isSingleAssociation = true;
 
-  sourceKey: string;
-  sourceKeyAttribute: string;
+  /**
+   * The name of the attribute the foreign key points to.
+   * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsTo.targetKey}).
+   * The {@link Association.foreignKey} is on the Target Model.
+   */
+  readonly sourceKey: SourceKey;
 
   /**
    * The Column Name of the source key.
    */
-  sourceKeyField: string;
-  associationAccessor: string;
+  readonly sourceKeyField: string;
+
+  readonly sourceKeyAttribute: string;
+  readonly associationAccessor: string;
 
   /**
    * A column name
@@ -58,7 +68,7 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
 
     // TODO: throw is source model has a composite primary key.
 
-    this.sourceKey = this.options.sourceKey || this.source.primaryKeyAttribute;
+    this.sourceKey = this.options.sourceKey || (this.source.primaryKeyAttribute as SourceKey);
     this.sourceKeyAttribute = this.sourceKey;
     this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;
 
@@ -66,7 +76,7 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
     this.options.useHooks = options.useHooks;
 
     if (this.target.getAttributes()[this.foreignKey]) {
-      this.identifierField = getColumnName(this.target.getAttributes()[this.foreignKey]);
+      this.identifierField = Utils.getColumnName(this.target.getAttributes()[this.foreignKey]);
     }
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
@@ -165,15 +175,13 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
 
     if (instances.length > 1) {
       const results = await Target.findAll(options);
-      const result: Record<any, T | null> = Object.create(null);
-      for (const instance of instances) {
-        // @ts-expect-error
-        result[instance.get(this.sourceKey, { raw: true })] = null;
+      const result: Record<S[SourceKey], T | null> = Object.create(null);
+      for (const sourceInstance of instances) {
+        result[sourceInstance.get(this.sourceKey, { raw: true })] = null;
       }
 
-      for (const instance of results) {
-        // @ts-expect-error
-        result[instance.get(this.foreignKey, { raw: true })] = instance;
+      for (const targetInstance of results) {
+        result[targetInstance.get(this.foreignKey, { raw: true })] = targetInstance;
       }
 
       return result;
@@ -188,8 +196,6 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
    * @param sourceInstance the source instance
    * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
    * @param options Options passed to getAssociation and `target.save`
-   *
-   * @returns
    */
   async set(sourceInstance: S, associatedInstance: T | null, options?: HasOneSetAssociationMixinOptions<T>) {
     // TODO: options.save option is ignored?
@@ -275,8 +281,8 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
 export interface HasOneOptions<Source extends Model> extends AssociationOptions {
 
   /**
-   * The name of the field to use as the key for the association in the source table. Defaults to the primary
-   * key of the source table.
+   * The name of the field to use as the key for the association in the source table.
+   * Defaults to the primary key of the source table.
    *
    * This is the attribute the foreign key will target. Not to be confused with {@link AssociationOptions.foreignKey}.
    */

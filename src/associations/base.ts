@@ -2,9 +2,9 @@ import assert from 'assert';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import { AssociationError } from '../errors';
-import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName } from '../model';
-import { singularize } from '../utils/index';
-import * as Utils from '../utils/index.js';
+import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, CreationAttributes } from '../model';
+import type { AllowArray } from '../utils';
+import * as Utils from '../utils';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -87,6 +87,7 @@ export abstract class Association<
   S extends Model = Model,
   T extends Model = Model,
   Opts extends AssociationOptions = AssociationOptions,
+  ForeignKey extends string = string,
 > {
   /**
    * The type of the association. One of `HasMany`, `BelongsTo`, `HasOne`, `BelongsToMany`
@@ -108,9 +109,10 @@ export abstract class Association<
   };
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
+  abstract associationAccessor: string;
 
   foreignKeyAttribute: ForeignKeyOptions;
-  foreignKey: string;
+  foreignKey: ForeignKey;
 
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: Opts) {
     this.source = source;
@@ -134,7 +136,7 @@ export abstract class Association<
         as = this.as;
         name = {
           plural: this.as,
-          singular: singularize(this.as),
+          singular: Utils.singularize(this.as),
         };
       }
     } else {
@@ -182,7 +184,7 @@ export abstract class Association<
     return this.options.scope;
   }
 
-  inferForeignKey() {
+  protected inferForeignKey() {
     return Utils.camelize(
       [
         Utils.singularize(this.options.as || this.source.name),
@@ -199,14 +201,14 @@ export abstract class Association<
    * @private
    * @returns built objects
    */
-  toInstanceArray(input) {
+  toInstanceArray(input: AllowArray<T | CreationAttributes<T>>): T[] {
     if (!Array.isArray(input)) {
       input = [input];
     }
 
     return input.map(element => {
       if (element instanceof this.target) {
-        return element;
+        return element as T;
       }
 
       const tmpInstance = Object.create(null);
@@ -250,18 +252,18 @@ export type SingleAssociationAccessors = {
   create: string,
 };
 
-export interface MultiAssociationAccessors {
-  get: string;
-  set: string;
-  addMultiple: string;
-  add: string;
-  create: string;
-  remove: string;
-  removeMultiple: string;
-  hasSingle: string;
-  hasAll: string;
-  count: string;
-}
+export type MultiAssociationAccessors = {
+  get: string,
+  set: string,
+  addMultiple: string,
+  add: string,
+  create: string,
+  remove: string,
+  removeMultiple: string,
+  hasSingle: string,
+  hasAll: string,
+  count: string,
+};
 
 /** Foreign Key Options */
 export interface ForeignKeyOptions extends ColumnOptions {

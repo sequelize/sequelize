@@ -1874,11 +1874,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static readonly tableName: string;
 
   /**
-   * The name of the primary key attribute
+   * The name of the primary key attribute (on the JS side).
    *
    * @deprecated use {@link Model.primaryKeyAttributes}.
    */
   public static readonly primaryKeyAttribute: string;
+
+  /**
+   * The column name of the primary key.
+   *
+   * @deprecated don't use this. It doesn't work with composite PKs. It may be removed in the future to reduce duplication.
+   */
+  public static readonly primaryKeyField: string;
 
   /**
    * The name of the primary key attributes
@@ -3101,9 +3108,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
-  public get(options?: { plain?: boolean; clone?: boolean }): TModelAttributes;
-  public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
+  public get(options?: { plain?: boolean, clone?: boolean, raw?: boolean }): TModelAttributes;
+  public get<K extends keyof this>(key: K, options?: { plain?: boolean, clone?: boolean, raw?: boolean }): this[K];
+  public get(key: string, options?: { plain?: boolean, clone?: boolean, raw?: boolean}): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
