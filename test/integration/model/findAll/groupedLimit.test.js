@@ -117,7 +117,7 @@ if (current.dialect.supports['UNION ALL']) {
             }
           });
 
-          it('works with computed order', async function() {
+          it('works with computed order', async function () {
             const users = await this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
@@ -127,7 +127,7 @@ if (current.dialect.supports['UNION ALL']) {
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
-                'id'
+                'id',
               ],
               include: [this.User.Tasks],
             });
