@@ -49,7 +49,6 @@ export class HasOne<
   readonly sourceKeyField: string;
 
   readonly sourceKeyAttribute: string;
-  readonly associationAccessor: string;
 
   /**
    * A column name
@@ -74,7 +73,6 @@ export class HasOne<
     this.sourceKeyAttribute = this.sourceKey;
     this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;
 
-    this.associationAccessor = this.as;
     this.options.useHooks = options.useHooks;
 
     if (this.target.getAttributes()[this.foreignKey]) {
@@ -89,12 +87,15 @@ export class HasOne<
       set: `set${singular}`,
       create: `create${singular}`,
     };
+
+    this.#injectAttributes();
+    this.#mixin(source.prototype);
   }
 
   /**
    * @private
    */
-  _injectAttributes() {
+  #injectAttributes() {
     // the id is in the target table
 
     const newAttributes: Record<string, ModelAttributeColumnOptions> = {
@@ -122,7 +123,7 @@ export class HasOne<
     return this;
   }
 
-  mixin(mixinTargetPrototype: Model) {
+  #mixin(mixinTargetPrototype: Model) {
     Helpers.mixinMethods(this, mixinTargetPrototype, ['get', 'set', 'create']);
   }
 
@@ -136,13 +137,13 @@ export class HasOne<
    * @param options find options
    */
   // TODO: when is this called with an array? Is it ever?
-  async get(instances: S, options: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options: HasOneGetAssociationMixinOptions<T>): Promise<Record<S[SourceKey], T | null>>;
+  async get(instances: S, options?: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Record<S[SourceKey], T | null>>;
   async get(
     instances: S | S[],
-    options: HasOneGetAssociationMixinOptions<T>,
+    options?: HasOneGetAssociationMixinOptions<T>,
   ): Promise<Record<S[SourceKey], T | null> | T | null> {
-    options = Utils.cloneDeep(options);
+    options = options ? Utils.cloneDeep(options) : {};
 
     let Target = this.target;
     if (Object.prototype.hasOwnProperty.call(options, 'scope')) {
@@ -206,7 +207,11 @@ export class HasOne<
    * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
    * @param options Options passed to getAssociation and `target.save`
    */
-  async set(sourceInstance: S, associatedInstance: T | null, options?: HasOneSetAssociationMixinOptions<T>) {
+  async set(
+    sourceInstance: S,
+    associatedInstance: T | T[TargetKey] | null,
+    options?: HasOneSetAssociationMixinOptions<T>,
+  ): Promise<void> {
     // TODO: options.save option is incorrectly ignored
     // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
 
@@ -263,7 +268,7 @@ export class HasOne<
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<T> = {},
     options: HasOneCreateAssociationMixinOptions<T> = {},
-  ) {
+  ): Promise<T> {
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
@@ -406,8 +411,8 @@ export interface HasOneCreateAssociationMixinOptions<M extends Model>
  * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
-export type HasOneCreateAssociationMixin<M extends Model> = (
+export type HasOneCreateAssociationMixin<T extends Model> = (
   // TODO: omit the foreign key
-  values?: CreationAttributes<M>,
-  options?: HasOneCreateAssociationMixinOptions<M>
-) => Promise<M>;
+  values?: CreationAttributes<T>,
+  options?: HasOneCreateAssociationMixinOptions<T>
+) => Promise<T>;

@@ -1,10 +1,10 @@
 'use strict';
 
 const _ = require('lodash');
-const HasOne = require('./has-one');
-const HasMany = require('./has-many');
-const BelongsToMany = require('./belongs-to-many');
-const BelongsTo = require('./belongs-to');
+const { HasOne } = require('./has-one');
+const { HasMany } = require('./has-many');
+const { BelongsToMany } = require('./belongs-to-many');
+const { BelongsTo } = require('./belongs-to');
 
 function isModel(model, sequelize) {
   return model
@@ -32,10 +32,7 @@ const Mixin = {
 
     // the id is in the foreign table or in a connecting table
     const association = new HasMany(source, target, options);
-    source.associations[association.associationAccessor] = association;
-
-    association._injectAttributes();
-    association.mixin(source.prototype);
+    source.associations[association.as] = association;
 
     if (options.useHooks) {
       this.runHooks('afterAssociate', { source, target, type: HasMany, association }, options);
@@ -63,10 +60,7 @@ const Mixin = {
 
     // the id is in the foreign table or in a connecting table
     const association = new BelongsToMany(source, target, options);
-    source.associations[association.associationAccessor] = association;
-
-    association._injectAttributes();
-    association.mixin(source.prototype);
+    source.associations[association.as] = association;
 
     if (options.useHooks) {
       this.runHooks('afterAssociate', { source, target, type: BelongsToMany, association }, options);
@@ -104,10 +98,7 @@ function singleLinked(Type) {
 
     // the id is in the foreign table
     const association = new Type(source, target, Object.assign(options, source.options));
-    source.associations[association.associationAccessor] = association;
-
-    association._injectAttributes();
-    association.mixin(source.prototype);
+    source.associations[association.as] = association;
 
     if (options.useHooks) {
       source.runHooks('afterAssociate', { source, target, type: Type, association }, options);

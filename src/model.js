@@ -2542,8 +2542,7 @@ class Model {
    * A more performant findOrCreate that may not work under a transaction (working in postgres)
    * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
    *
-   * @see
-   * {@link Model.findAll} for a full specification of find and options
+   * See {@link Model.findAll} for a full specification of find and options
    *
    * @param {object} options find options
    * @param {object} options.where A hash of search attributes. If `where` is a plain object it will be appended with defaults to build a new instance.

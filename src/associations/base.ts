@@ -2,7 +2,7 @@ import assert from 'assert';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import { AssociationError } from '../errors';
-import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, CreationAttributes } from '../model';
+import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 
@@ -109,7 +109,6 @@ export abstract class Association<
   };
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
-  abstract associationAccessor: string;
 
   foreignKeyAttribute: ForeignKeyOptions;
   foreignKey: ForeignKey;
@@ -133,10 +132,10 @@ export abstract class Association<
         as = options.as.plural;
       } else {
         assert(typeof options.as === 'string');
-        as = this.as;
+        as = options.as;
         name = {
-          plural: this.as,
-          singular: Utils.singularize(this.as),
+          plural: options.as,
+          singular: Utils.singularize(options.as),
         };
       }
     } else {
@@ -176,11 +175,14 @@ export abstract class Association<
     this.foreignKey = foreignKey as ForeignKey;
   }
 
-  get as() {
+  /**
+   * The identifier of the relation on the source model.
+   */
+  get as(): string {
     return this.options.as;
   }
 
-  get scope() {
+  get scope(): AssociationScope | undefined {
     return this.options.scope;
   }
 
@@ -201,7 +203,8 @@ export abstract class Association<
    * @private
    * @returns built objects
    */
-  protected toInstanceArray(input: AllowArray<T | CreationAttributes<T>>): T[] {
+  // TODO: type 'unknown', the primary key of T
+  protected toInstanceArray(input: AllowArray<T | unknown>): T[] {
     if (!Array.isArray(input)) {
       input = [input];
     }
@@ -217,13 +220,6 @@ export abstract class Association<
       return this.target.build(tmpInstance, { isNewRecord: false });
     });
   }
-
-  abstract _injectAttributes(): void;
-
-  /**
-   * @param mixinTargetPrototype - a Model prototype, not an actual instance
-   */
-  abstract mixin(mixinTargetPrototype: Model): void;
 
   verifyAssociationAlias(alias: string | BuiltModelName): boolean {
     if (typeof alias === 'string') {

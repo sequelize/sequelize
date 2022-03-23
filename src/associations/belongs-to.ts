@@ -61,8 +61,6 @@ export class BelongsTo<
 
   readonly targetIdentifier: string;
 
-  readonly associationAccessor: string;
-
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions<T>) {
     super(source, target, options);
 
@@ -85,7 +83,6 @@ export class BelongsTo<
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
     this.targetIdentifier = this.targetKey;
 
-    this.associationAccessor = this.as;
     this.options.useHooks = options.useHooks;
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
@@ -96,10 +93,13 @@ export class BelongsTo<
       set: `set${singular}`,
       create: `create${singular}`,
     };
+
+    this.#injectAttributes();
+    this.#mixin(source.prototype);
   }
 
   // the id is in the source table
-  _injectAttributes() {
+  #injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
         type: this.options.keyType || this.target.rawAttributes[this.targetKey].type,
@@ -125,7 +125,7 @@ export class BelongsTo<
     return this;
   }
 
-  mixin(modelPrototype: Model): void {
+  #mixin(modelPrototype: Model): void {
     Helpers.mixinMethods(this, modelPrototype, ['get', 'set', 'create']);
   }
 
@@ -215,7 +215,12 @@ export class BelongsTo<
    * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
    * @param options options passed to `this.save`
    */
-  async set(sourceInstance: S, associatedInstance: T | null, options: BelongsToSetAssociationMixinOptions = {}) {
+  async set(
+    sourceInstance: S,
+    // TODO: type 'unknown', the foreign key of T
+    associatedInstance: T | null | unknown,
+    options: BelongsToSetAssociationMixinOptions = {},
+  ): Promise<void> {
     // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
     let value = associatedInstance;
 
@@ -255,7 +260,7 @@ export class BelongsTo<
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<T> = {},
     options: BelongsToCreateAssociationMixinOptions = {},
-  ) {
+  ): Promise<T> {
     values = values || {};
     options = options || {};
 

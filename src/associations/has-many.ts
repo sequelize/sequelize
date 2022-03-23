@@ -20,6 +20,7 @@ import { Association } from './base';
 import * as Helpers from './helpers';
 
 // TODO: strictly type mixin options
+// TODO: add typing tests for each mixin method
 
 /**
  * One-to-many association
@@ -36,7 +37,6 @@ export class HasMany<
   TargetKey extends AttributeNames<T> = any,
 > extends Association<S, T, HasManyOptions<S>, TargetKey> {
   accessors: MultiAssociationAccessors;
-  associationAccessor: string;
 
   associationType = 'HasMany';
   isMultiAssociation = true;
@@ -86,7 +86,6 @@ export class HasMany<
     const plural = upperFirst(this.options.name.plural);
     const singular = upperFirst(this.options.name.singular);
 
-    this.associationAccessor = this.as;
     this.accessors = {
       get: `get${plural}`,
       set: `set${plural}`,
@@ -99,11 +98,14 @@ export class HasMany<
       hasAll: `has${plural}`,
       count: `count${plural}`,
     };
+
+    this.#injectAttributes();
+    this.#mixin(source.prototype);
   }
 
   // the id is in the target table
   // or in an extra table which connects two tables
-  _injectAttributes() {
+  #injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
         type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type,
@@ -135,7 +137,7 @@ export class HasMany<
     return this;
   }
 
-  mixin(mixinTargetPrototype: Model) {
+  #mixin(mixinTargetPrototype: Model) {
     Helpers.mixinMethods(
       this,
       mixinTargetPrototype,
@@ -156,8 +158,8 @@ export class HasMany<
    * @param options find options
    */
   // TODO: when is this called with an array? Is it ever?
-  async get(instances: S, options: HasManyGetAssociationsMixinOptions): Promise<T[]>;
-  async get(instances: S[], options: HasManyGetAssociationsMixinOptions): Promise<Record<S[SourceKey], T[]>>;
+  async get(instances: S, options?: HasManyGetAssociationsMixinOptions): Promise<T[]>;
+  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Record<S[SourceKey], T[]>>;
   async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Record<S[SourceKey], T[]>> {
     let isManyMode = true;
     if (!Array.isArray(instances)) {
@@ -233,12 +235,10 @@ export class HasMany<
   /**
    * Count everything currently associated with this, using an optional where clause.
    *
-   * @param        instance the source instance
-   * @param         [options] find & count options
-   * @param         [options.where] An optional where clause to limit the associated models
-   * @param [options.scope] Apply a scope on the related model, or remove its default scope by passing false
+   * @param instance the source instance
+   * @param options find & count options
    */
-  async count(instance: S, options?: HasManyCountAssociationsMixinOptions) {
+  async count(instance: S, options?: HasManyCountAssociationsMixinOptions): Promise<number> {
     const findOptions: HasManyGetAssociationsMixinOptions = {
       ...options,
       raw: true,
@@ -270,7 +270,12 @@ export class HasMany<
    * @param targetInstances Can be an array of instances or their primary keys
    * @param options Options passed to getAssociations
    */
-  async has(sourceInstance: S, targetInstances: T | T[], options: HasManyHasAssociationsMixinOptions) {
+  async has(
+    sourceInstance: S,
+    // TODO: type 'unknown', the primary key of T
+    targetInstances: AllowArray<T | unknown>,
+    options?: HasManyHasAssociationsMixinOptions,
+  ): Promise<boolean> {
     if (!Array.isArray(targetInstances)) {
       targetInstances = [targetInstances];
     }
@@ -316,9 +321,10 @@ export class HasMany<
    */
   async set(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | CreationAttributes<T>>,
+    // TODO: type 'unknown', the primary key of T
+    rawTargetInstances: AllowArray<T | unknown>,
     options?: HasManySetAssociationsMixinOptions,
-  ) {
+  ): Promise<void> {
     const targetInstances = rawTargetInstances === null ? [] : this.toInstanceArray(rawTargetInstances);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
@@ -391,9 +397,10 @@ export class HasMany<
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | CreationAttributes<T>>,
+    // TODO: type 'unknown', the primary key of T
+    rawTargetInstances: AllowArray<T | unknown>,
     options: HasManyAddAssociationsMixinOptions = {},
-  ) {
+  ): Promise<void> {
     if (!rawTargetInstances) {
       return sourceInstance;
     }
@@ -425,9 +432,10 @@ export class HasMany<
    */
   async remove(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | CreationAttributes<T>>,
+    // TODO: type 'unknown', the primary key of T
+    rawTargetInstances: AllowArray<T | unknown>,
     options: HasManyRemoveAssociationsMixinOptions = {},
-  ) {
+  ): Promise<void> {
     const update = {
       [this.foreignKey]: null,
     };
@@ -458,7 +466,7 @@ export class HasMany<
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<T> = {},
     options: HasManyCreateAssociationMixinOptions | HasManyCreateAssociationMixinOptions['fields'] = {},
-  ) {
+  ): Promise<T> {
     if (Array.isArray(options)) {
       options = {
         fields: options,
