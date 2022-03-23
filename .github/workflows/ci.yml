@@ -266,7 +266,7 @@ jobs:
       SEQ_ORACLE_PW: sequelizepassword
       SEQ_ORACLE_DB: XEPDB1
       SEQ_ORACLE_HOST: localhost
-      SEQ_ORACLE_PORT: 51521
+      SEQ_ORACLE_PORT: 1521
       UV_THREADPOOL_SIZE: 128
     steps:
       - uses: actions/checkout@v2
