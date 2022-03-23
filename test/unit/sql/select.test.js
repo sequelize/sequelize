@@ -434,14 +434,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: includeWithoutAttributes,
         attributes: [
           [Support.sequelize.col('user.first_name'), 'userName'],
-          [Support.sequelize.fn('count', '*'), 'count'],
+          [Support.sequelize.fn('count', Support.sequelize.col('*')), 'count'],
         ],
-        order: [[Support.sequelize.fn('count', '*'), 'DESC']],
+        order: [[Support.sequelize.fn('count', Support.sequelize.col('*')), 'DESC']],
         group: ['user.first_name'],
         limit: 5,
       }, {
-        default: 'SELECT [user].[first_name] AS [userName], count(\'*\') AS [count] FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] GROUP BY [user].[first_name] ORDER BY count(\'*\') DESC LIMIT 5;',
-        mssql: 'SELECT [user].[first_name] AS [userName], count(N\'*\') AS [count] FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] GROUP BY [user].[first_name] ORDER BY count(N\'*\') DESC OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;',
+        default: `SELECT [user].[first_name] AS [userName], count(*) AS [count] FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] GROUP BY [user].[first_name] ORDER BY count(*) DESC${sql.addLimitAndOffset({ limit: 5, order: ['last_name', 'ASC'] })};`,
       });
     }());
 
