@@ -322,6 +322,18 @@ class ConnectionManager {
   }
 
   /**
+   * Destroy a pooled connection so it can be utilized by other connection requests
+   *
+   * @param {Connection} connection
+   *
+   * @returns {Promise}
+   */
+  async destroyConnection(connection) {
+    this.pool.destroy(connection);
+    debug('connection destroyed');
+  }
+
+  /**
    * Call dialect library to get connection
    *
    * @param {*} config Connection config
