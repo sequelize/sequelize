@@ -4,7 +4,7 @@ Sequelize does not use [transactions](https://en.wikipedia.org/wiki/Database_tra
 
 Sequelize supports two ways of using transactions:
 
-1. **Unmanaged transactions:** Committing and rolling back the transaction should be done manually by the user (by calling the appropriate Sequelize methods).
+1. **Unmanaged transactions:** Committing and rolling back the transaction should be done manually by the user (by calling the appropriate Sequelize methods). Except for deadlocks, it will does automatically rollback, read [#12841](https://github.com/sequelize/sequelize/pull/12841).
 
 2. **Managed transactions**: Sequelize will automatically rollback the transaction if any error is thrown, or commit the transaction otherwise. Also, if CLS (Continuation Local Storage) is enabled, all queries within the transaction callback will automatically receive the transaction object.
 
