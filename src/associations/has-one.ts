@@ -181,7 +181,6 @@ export class HasOne<
       where[this.foreignKey] = instances[0].get(this.sourceKey);
     }
 
-    // FIXME: scopes should be combined using AND instance of overwriting.
     if (this.scope) {
       Object.assign(where, this.scope);
     }
@@ -377,10 +376,14 @@ export interface HasOneGetAssociationMixinOptions<M extends Model> extends FindO
  * }
  * ```
  *
+ * @returns The associated model, or null if no model is associated. HasOne associations are always nullable because the foreign key is on the target model.
+ *
  * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
-export type HasOneGetAssociationMixin<T extends Model> = (options?: HasOneGetAssociationMixinOptions<T>) => Promise<T>;
+export type HasOneGetAssociationMixin<
+  T extends Model,
+> = (options?: HasOneGetAssociationMixinOptions<T>) => Promise<T | null>;
 
 /**
  * The options for the setAssociation mixin of the hasOne association.
