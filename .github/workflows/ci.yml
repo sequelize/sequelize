@@ -253,7 +253,7 @@ jobs:
         run: yarn test-unit
       # - name: Integration Tests
       #   run: yarn test-integration
-   test-oracle:
+  test-oracle:
     strategy:
       fail-fast: false
       matrix:
