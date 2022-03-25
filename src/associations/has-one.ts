@@ -20,12 +20,12 @@ import * as Helpers from './helpers';
 // TODO: strictly type mixin options
 
 /**
- * One-to-one association
+ * One-to-one association.
+ * See {@link Model.hasOne}
  *
- * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
  * This is almost the same as {@link BelongsTo}, but the foreign key will be defined on the target model.
  *
- * See {@link Model.hasOne}
+ * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
  *
  * @typeParam S The model on which {@link Model.hasOne} has been called, on which the association methods will be added.
  * @typeParam T The model passed to {@link Model.hasOne}. This model will receive the Foreign Key attribute.
@@ -248,7 +248,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
     }
 
     if (oldInstance) {
-      // TODO: if foreignKey is not allowed to be null, delete oldInstance.
+      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
       oldInstance.set(this.foreignKey, null);
 
       await oldInstance.save({

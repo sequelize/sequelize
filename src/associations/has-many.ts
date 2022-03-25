@@ -16,26 +16,34 @@ import { col, fn } from '../sequelize';
 import * as Utils from '../utils';
 import type { AllowArray } from '../utils';
 import type { MultiAssociationAccessors, ManyToManyOptions } from './base';
-import { Association } from './base';
+import { MultiAssociation } from './base';
 import * as Helpers from './helpers';
 
 // TODO: strictly type mixin options
 // TODO: add typing tests for each mixin method
 
 /**
- * One-to-many association
+ * One-to-many association.
+ * See {@link Model.hasMany}
+ *
+ * Like with {@link HasOne}, the foreign key will be defined on the target model.
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
  * If the association is aliased, use the alias instead, e.g. `User.hasMany(Project, { as: 'jobs' })` will be `user.getJobs()`.
  *
- * See {@link Model.hasMany}
+ * @typeParam S The model on which {@link Model.hasMany} has been called, on which the association methods will be added.
+ * @typeParam T The model passed to {@link Model.hasMany}. This model will receive the Foreign Key attribute.
+ * @typeParam SourceKey The name of the attribute that the foreign key in the target model will reference.
+ * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
+ * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasManySetAssociationsMixin} & others.
  */
 export class HasMany<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
-> extends Association<S, T, HasManyOptions<S>, TargetKey> {
+  TargetPrimaryKey extends AttributeNames<T> = any,
+> extends MultiAssociation<S, T, HasManyOptions<S>, TargetKey, TargetPrimaryKey> {
   accessors: MultiAssociationAccessors;
 
   associationType = 'HasMany';
@@ -272,8 +280,7 @@ export class HasMany<
    */
   async has(
     sourceInstance: S,
-    // TODO: type 'unknown', the primary key of T
-    targetInstances: AllowArray<T | unknown>,
+    targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options?: HasManyHasAssociationsMixinOptions,
   ): Promise<boolean> {
     if (!Array.isArray(targetInstances)) {
@@ -302,7 +309,7 @@ export class HasMany<
       where: {
         [Op.and]: [
           where,
-          options.where,
+          options?.where,
         ],
       },
     };
@@ -316,13 +323,12 @@ export class HasMany<
    * Set the associated models by passing an array of persisted instances or their primary keys. Everything that is not in the passed array will be un-associated
    *
    * @param sourceInstance source instance to associate new instances with
-   * @param rawTargetInstances An array of persisted instances or primary key of instances to associate with this. Pass `null` or `undefined` to remove all associations.
+   * @param rawTargetInstances An array of persisted instances or primary key of instances to associate with this. Pass `null` to remove all associations.
    * @param options Options passed to `target.findAll` and `update`.
    */
   async set(
     sourceInstance: S,
-    // TODO: type 'unknown', the primary key of T
-    rawTargetInstances: AllowArray<T | unknown>,
+    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]> | null,
     options?: HasManySetAssociationsMixinOptions,
   ): Promise<void> {
     const targetInstances = rawTargetInstances === null ? [] : this.toInstanceArray(rawTargetInstances);
@@ -342,28 +348,13 @@ export class HasMany<
     });
 
     if (obsoleteAssociations.length > 0) {
-      const update = {
-        [this.foreignKey]: null,
-      };
-
-      const updateWhere = {
-        [this.target.primaryKeyAttribute]: obsoleteAssociations
-          .map(associatedObject => associatedObject.get(this.target.primaryKeyAttribute)),
-      };
-
-      promises.push(this.target.unscoped().update(
-        update,
-        {
-          ...options,
-          where: updateWhere,
-        },
-      ));
+      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
+      promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
     }
 
     if (unassociatedObjects.length > 0) {
       const update = {
         [this.foreignKey]: sourceInstance.get(this.sourceKey),
-        // FIXME: scopes should be combined using AND instance of overwriting.
         ...this.scope,
       };
 
@@ -383,8 +374,6 @@ export class HasMany<
     }
 
     await Promise.all(promises);
-
-    return sourceInstance;
   }
 
   /**
@@ -397,15 +386,14 @@ export class HasMany<
    */
   async add(
     sourceInstance: S,
-    // TODO: type 'unknown', the primary key of T
-    rawTargetInstances: AllowArray<T | unknown>,
+    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]>,
     options: HasManyAddAssociationsMixinOptions = {},
   ): Promise<void> {
-    if (!rawTargetInstances) {
-      return sourceInstance;
-    }
-
     const targetInstances = this.toInstanceArray(rawTargetInstances);
+
+    if (targetInstances.length === 0) {
+      return;
+    }
 
     const update = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -419,8 +407,6 @@ export class HasMany<
     };
 
     await this.target.unscoped().update(update, { ...options, where });
-
-    return sourceInstance;
   }
 
   /**
@@ -432,15 +418,19 @@ export class HasMany<
    */
   async remove(
     sourceInstance: S,
-    // TODO: type 'unknown', the primary key of T
-    rawTargetInstances: AllowArray<T | unknown>,
+    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]>,
     options: HasManyRemoveAssociationsMixinOptions = {},
   ): Promise<void> {
+    const targetInstances = this.toInstanceArray(rawTargetInstances);
+
+    if (targetInstances.length === 0) {
+      return;
+    }
+
+    // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
     const update = {
       [this.foreignKey]: null,
     };
-
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
 
     const where = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -450,8 +440,6 @@ export class HasMany<
     };
 
     await this.target.unscoped().update(update, { ...options, where });
-
-    return sourceInstance;
   }
 
   /**

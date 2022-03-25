@@ -2,7 +2,7 @@ import assert from 'assert';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import { AssociationError } from '../errors';
-import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName } from '../model';
+import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, AttributeNames } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 
@@ -195,32 +195,6 @@ export abstract class Association<
     );
   }
 
-  /**
-   * Normalize input
-   *
-   * @param input it may be array or single obj, instance or primary key
-   *
-   * @private
-   * @returns built objects
-   */
-  // TODO: type 'unknown', the primary key of T
-  protected toInstanceArray(input: AllowArray<T | unknown>): T[] {
-    if (!Array.isArray(input)) {
-      input = [input];
-    }
-
-    return input.map(element => {
-      if (element instanceof this.target) {
-        return element as T;
-      }
-
-      const tmpInstance = Object.create(null);
-      tmpInstance[this.target.primaryKeyAttribute] = element;
-
-      return this.target.build(tmpInstance, { isNewRecord: false });
-    });
-  }
-
   verifyAssociationAlias(alias: string | BuiltModelName): boolean {
     if (typeof alias === 'string') {
       return this.as === alias;
@@ -239,6 +213,43 @@ export abstract class Association<
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.as;
+  }
+}
+
+/**
+ * @private
+ */
+export abstract class MultiAssociation<
+  S extends Model = Model,
+  T extends Model = Model,
+  Opts extends AssociationOptions = AssociationOptions,
+  ForeignKey extends string = string,
+  TargetPrimaryKey extends AttributeNames<T> = any,
+> extends Association<S, T, Opts, ForeignKey> {
+
+  /**
+   * Normalize input
+   *
+   * @param input it may be array or single obj, instance or primary key
+   *
+   * @private
+   * @returns built objects
+   */
+  protected toInstanceArray(input: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>): T[] {
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
+
+    return input.map(element => {
+      if (element instanceof this.target) {
+        return element as T;
+      }
+
+      const tmpInstance = Object.create(null);
+      tmpInstance[this.target.primaryKeyAttribute] = element;
+
+      return this.target.build(tmpInstance, { isNewRecord: false });
+    });
   }
 }
 

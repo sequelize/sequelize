@@ -44,7 +44,8 @@ import * as Helpers from './helpers';
 // TODO: compare mixin methods with these methods
 
 /**
- * Many-to-many association with a join table.
+ * Many-to-many association with a join/through table.
+ * See {@link Model.belongsToMany}
  *
  * When the join table has additional attributes, these can be passed in the options object:
  *
@@ -83,15 +84,13 @@ import * as Helpers from './helpers';
  * ```
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
- *
- * See {@link Model.belongsToMany}
  */
 export class BelongsToMany<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
-> extends Association<S, T, NormalizedBelongsToManyOptions> {
+> extends Association<S, T, NormalizedBelongsToManyOptions, string> {
   associationType = 'BelongsToMany';
   isMultiAssociation = true;
 

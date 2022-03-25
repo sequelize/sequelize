@@ -19,14 +19,14 @@ import * as Helpers from './helpers';
 
 /**
  * One-to-one association
- *
- * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
- * This is almost the same as {@link HasOne}, but the foreign key will be defined on the source model.
- *
  * See {@link Model.belongsTo}
  *
- * @typeParam S The model on which {@link Model.hasOne} has been called, on which the association methods, as well as the foreign key attribute, will be added.
- * @typeParam T The model passed to {@link Model.hasOne}.
+ * This is almost the same as {@link HasOne}, but the foreign key will be defined on the source model.
+ *
+ * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
+ *
+ * @typeParam S The model on which {@link Model.belongsTo} has been called, on which the association methods, as well as the foreign key attribute, will be added.
+ * @typeParam T The model passed to {@link Model.belongsTo}.
  * @typeParam SourceKey The name of the Foreign Key attribute on the Source model.
  * @typeParam TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
  */
@@ -364,9 +364,11 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
  *
  * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
+ *
+ * @typeParam TargetKeyType The type of the attribute that the foreign key references.
  */
-export type BelongsToSetAssociationMixin<TModel extends Model, TPrimaryKey> = (
-  newAssociation?: TModel | TPrimaryKey,
+export type BelongsToSetAssociationMixin<TModel extends Model, TargetKeyType> = (
+  newAssociation?: TModel | TargetKeyType,
   options?: BelongsToSetAssociationMixinOptions
 ) => Promise<void>;
 
