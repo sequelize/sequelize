@@ -1,11 +1,11 @@
 import upperFirst from 'lodash/upperFirst';
 import type { DataType } from '../data-types.js';
+import { Model } from '../model';
 import type {
   CreateOptions,
   CreationAttributes,
   FindOptions,
   SaveOptions,
-  Model,
   ModelStatic,
   AttributeNames,
   ModelAttributeColumnOptions,
@@ -26,12 +26,19 @@ import * as Helpers from './helpers';
  * This is almost the same as `belongsTo` with one exception - The foreign key will be defined on the target model.
  *
  * See {@link Model.hasOne}
+ *
+ * @typeParam S The model on which {@link Model.hasOne} has been called, on which the association methods will be added.
+ * @typeParam T The model passed to {@link Model.hasOne}. This model will receive the Foreign Key attribute.
+ * @typeParam SourceKey The name of the attribute that the foreign key in the target model will reference.
+ * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
+ * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasOneSetAssociationMixin}.
  */
 export class HasOne<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
+  TargetPrimaryKey extends AttributeNames<T> = any,
 > extends Association<S, T, HasOneOptions<S>, TargetKey> {
   associationType = 'HasOne';
   isSingleAssociation = true;
@@ -204,25 +211,47 @@ export class HasOne<
    * Set the associated model.
    *
    * @param sourceInstance the source instance
-   * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
+   * @param associatedInstanceOrPk An persisted instance or the primary key of an instance to associate with this. Pass `null` to remove the association.
    * @param options Options passed to getAssociation and `target.save`
+   *
+   * @returns The associated instance, or null if disassociated.
    */
   async set(
+    sourceInstance: S, associatedInstanceOrPk: T | T[TargetPrimaryKey], options?: HasOneSetAssociationMixinOptions<T>,
+  ): Promise<T>;
+  async set(sourceInstance: S, associatedInstanceOrPk: null, options?: HasOneSetAssociationMixinOptions<T>): Promise<null>;
+  async set(
     sourceInstance: S,
-    associatedInstance: T | T[TargetKey] | null,
+    associatedInstanceOrPk: T | T[TargetPrimaryKey] | null,
     options?: HasOneSetAssociationMixinOptions<T>,
-  ): Promise<void> {
-    // TODO: options.save option is incorrectly ignored
+  ): Promise<T | null> {
     // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
 
     options = { ...options, scope: false };
 
+    // @ts-expect-error -- .save isn't listed in the options because it's not supported but we'll still warn users if they use it.
+    if (options.save === false) {
+      throw new Error(`The "save: false" option cannot be honoured in ${this.source.name}#${this.accessors.set}
+because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.`);
+    }
+
     // calls the 'get' mixin
     const oldInstance: T | null = await this.get(sourceInstance, options);
 
-    const alreadyAssociated = oldInstance && associatedInstance && associatedInstance.equals(oldInstance);
+    const alreadyAssociated = !oldInstance || !associatedInstanceOrPk ? false
+      : associatedInstanceOrPk instanceof Model ? associatedInstanceOrPk.equals(oldInstance)
+      : oldInstance.get(this.target.primaryKeyAttribute) === associatedInstanceOrPk;
 
-    if (oldInstance && !alreadyAssociated) {
+    if (alreadyAssociated) {
+      if (associatedInstanceOrPk instanceof Model) {
+        return associatedInstanceOrPk;
+      }
+
+      return oldInstance;
+    }
+
+    if (oldInstance) {
+      // TODO: if foreignKey is not allowed to be null, delete oldInstance.
       oldInstance.set(this.foreignKey, null);
 
       await oldInstance.save({
@@ -234,10 +263,13 @@ export class HasOne<
       });
     }
 
-    if (associatedInstance && !alreadyAssociated) {
-      if (!(associatedInstance instanceof this.target)) {
+    if (associatedInstanceOrPk) {
+      let associatedInstance: T;
+      if (associatedInstanceOrPk instanceof this.target) {
+        associatedInstance = associatedInstanceOrPk;
+      } else {
         const tmpInstance = Object.create(null);
-        tmpInstance[this.target.primaryKeyAttribute] = associatedInstance;
+        tmpInstance[this.target.primaryKeyAttribute] = associatedInstanceOrPk;
         associatedInstance = this.target.build(tmpInstance, {
           isNewRecord: false,
         });
@@ -249,7 +281,8 @@ export class HasOne<
       return associatedInstance.save(options);
     }
 
-    return sourceInstance;
+    // disassociated
+    return null;
   }
 
   /**
@@ -356,10 +389,6 @@ export type HasOneGetAssociationMixin<T extends Model> = (options?: HasOneGetAss
  */
 export interface HasOneSetAssociationMixinOptions<T extends Model>
   extends HasOneGetAssociationMixinOptions<T>, SaveOptions<any> {
-  /**
-   * Skip saving this after setting the foreign key if false.
-   */
-  save?: boolean;
 }
 
 /**
@@ -378,12 +407,11 @@ export interface HasOneSetAssociationMixinOptions<T extends Model>
  * ```
  *
  * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
- * @see Instance
  */
-export type HasOneSetAssociationMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociation?: T | TModelPrimaryKey,
-  options?: HasOneSetAssociationMixinOptions<T>
-) => Promise<void>;
+export type HasOneSetAssociationMixin<T extends Model, TModelPrimaryKey> = {
+  (newAssociation: null, options?: HasOneSetAssociationMixinOptions<T>): Promise<null>,
+  (newAssociation: T | TModelPrimaryKey, options?: HasOneSetAssociationMixinOptions<T>): Promise<T>,
+};
 
 /**
  * The options for the createAssociation mixin of the hasOne association.
