@@ -23,7 +23,7 @@ import * as Helpers from './helpers';
  * One-to-one association
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
- * This is almost the same as `belongsTo` with one exception - The foreign key will be defined on the target model.
+ * This is almost the same as {@link BelongsTo}, but the foreign key will be defined on the target model.
  *
  * See {@link Model.hasOne}
  *
@@ -224,8 +224,6 @@ export class HasOne<
     associatedInstanceOrPk: T | T[TargetPrimaryKey] | null,
     options?: HasOneSetAssociationMixinOptions<T>,
   ): Promise<T | null> {
-    // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
-
     options = { ...options, scope: false };
 
     // @ts-expect-error -- .save isn't listed in the options because it's not supported but we'll still warn users if they use it.

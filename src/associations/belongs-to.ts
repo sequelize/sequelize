@@ -21,8 +21,14 @@ import * as Helpers from './helpers';
  * One-to-one association
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
+ * This is almost the same as {@link HasOne}, but the foreign key will be defined on the source model.
  *
  * See {@link Model.belongsTo}
+ *
+ * @typeParam S The model on which {@link Model.hasOne} has been called, on which the association methods, as well as the foreign key attribute, will be added.
+ * @typeParam T The model passed to {@link Model.hasOne}.
+ * @typeParam SourceKey The name of the Foreign Key attribute on the Source model.
+ * @typeParam TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
  */
 export class BelongsTo<
   S extends Model = Model,
@@ -212,16 +218,14 @@ export class BelongsTo<
    * Set the associated model.
    *
    * @param sourceInstance the source instance
-   * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` or `undefined` to remove the association.
+   * @param associatedInstance An persisted instance or the primary key of an instance to associate with this. Pass `null` to remove the association.
    * @param options options passed to `this.save`
    */
   async set(
     sourceInstance: S,
-    // TODO: type 'unknown', the foreign key of T
-    associatedInstance: T | null | unknown,
+    associatedInstance: T | T[TargetKey] | null,
     options: BelongsToSetAssociationMixinOptions = {},
   ): Promise<void> {
-    // TODO: HasMany.set accepts CreationAttributes, this one should too (add tests)
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
@@ -231,19 +235,17 @@ export class BelongsTo<
     sourceInstance.set(this.foreignKey, value);
 
     if (options.save === false) {
-      return sourceInstance;
+      return;
     }
 
-    options = {
+    // passes the changed field to save, so only that field get updated.
+    await sourceInstance.save({
       fields: [this.foreignKey],
       // TODO: what is this 'allowNull' for?
       // allowNull: [this.foreignKey],
       association: true,
       ...options,
-    };
-
-    // passes the changed field to save, so only that field get updated.
-    return sourceInstance.save(options);
+    });
   }
 
   /**
@@ -327,7 +329,11 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
  * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
-export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
+// TODO: in the future, type the return value based on whether the foreign key is nullable or not on the source model.
+//   if nullable, return TModel | null
+//   https://github.com/sequelize/meetings/issues/14
+export type BelongsToGetAssociationMixin<TModel extends Model> =
+  (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
 
 /**
  * The options for the setAssociation mixin of the belongsTo association.
@@ -359,7 +365,7 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
  * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
-export type BelongsToSetAssociationMixin<TModel, TPrimaryKey> = (
+export type BelongsToSetAssociationMixin<TModel extends Model, TPrimaryKey> = (
   newAssociation?: TModel | TPrimaryKey,
   options?: BelongsToSetAssociationMixinOptions
 ) => Promise<void>;
