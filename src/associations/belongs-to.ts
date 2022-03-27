@@ -43,6 +43,8 @@ export class BelongsTo<
 
   /**
    * The attribute name of the identifier
+   *
+   * @deprecated use {@link foreignKey} instead
    */
   readonly identifier: string;
 
@@ -56,7 +58,9 @@ export class BelongsTo<
    * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOne.sourceKey}).
    * The {@link Association.foreignKey} is on the Source Model.
    */
-  readonly targetKey: TargetKey;
+  get targetKey(): TargetKey {
+    return this.attributeReferencedByForeignKey as TargetKey;
+  }
 
   /**
    * The column name of the target key
@@ -67,29 +71,27 @@ export class BelongsTo<
 
   readonly targetIdentifier: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions<SourceKey, TargetKey>) {
-    super(source, target, options);
-
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SourceKey, TargetKey>) {
     if (
-      this.options.targetKey
-      && !this.target.getAttributes()[this.options.targetKey]
+      options?.targetKey
+      && !target.getAttributes()[options.targetKey]
     ) {
-      throw new Error(`Unknown attribute "${this.options.targetKey}" passed as targetKey, define this attribute on model "${this.target.name}" first`);
+      throw new Error(`Unknown attribute "${options.targetKey}" passed as targetKey, define this attribute on model "${target.name}" first`);
     }
 
     // TODO: throw is source model has a composite primary key.
+    const attributeReferencedByForeignKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
+
+    super(source, target, attributeReferencedByForeignKey, options);
 
     this.identifier = this.foreignKey;
     if (this.source.getAttributes()[this.identifier]) {
       this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.identifier]);
     }
 
-    this.targetKey = this.options.targetKey || (this.target.primaryKeyAttribute as TargetKey);
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
     this.targetIdentifier = this.targetKey;
-
-    this.options.useHooks = options.useHooks;
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);

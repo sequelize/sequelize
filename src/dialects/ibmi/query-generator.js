@@ -5,7 +5,7 @@ const util = require('util');
 const _ = require('lodash');
 const AbstractQueryGenerator = require('../abstract/query-generator');
 const DataTypes = require('../../data-types');
-const Model = require('../../model');
+const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);

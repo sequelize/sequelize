@@ -113,9 +113,12 @@ export abstract class Association<
   foreignKeyAttribute: ForeignKeyOptions<ForeignKey>;
   foreignKey: ForeignKey;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: Opts) {
+  attributeReferencedByForeignKey: string;
+
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, attributeReferencedByForeignKey: string, options?: Opts) {
     this.source = source;
     this.target = target;
+    this.attributeReferencedByForeignKey = attributeReferencedByForeignKey;
 
     this.isSelfAssociation
       // @ts-expect-error -- TypeScript thinks ModelStatic & ModelStatic have no overlap.
@@ -187,12 +190,12 @@ export abstract class Association<
   }
 
   protected inferForeignKey() {
-    return Utils.camelize(
-      [
-        Utils.singularize(this.options.as || this.source.name),
-        this.source.primaryKeyAttribute,
-      ].join('_'),
-    );
+    const associationName = this.options.as ? Utils.singularize(this.options.as) : this.source.options.name.singular;
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   verifyAssociationAlias(alias: string | BuiltModelName): boolean {

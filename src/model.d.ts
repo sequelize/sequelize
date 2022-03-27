@@ -3539,3 +3539,5 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
 
 export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;
+
+export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M>;

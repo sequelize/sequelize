@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
-import type { DataType, ModelStatic } from '..';
-import { Model } from '..';
+import type { DataType } from '..';
 import { getOperators } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Where } from './sequelize-method';
@@ -68,8 +67,4 @@ export function defaultValueSchemable(value: DataType): boolean {
  */
 export function isWhereEmpty(obj: object): boolean {
   return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
-}
-
-export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
-  return typeof val === 'function' && val.prototype instanceof Model;
 }

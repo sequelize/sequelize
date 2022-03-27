@@ -18,8 +18,6 @@ const Hooks = require('./hooks');
 const associationsMixin = require('./associations/mixin');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
-const { ModelAttributeColumnOptions } = require('./model');
-const { at } = require('lodash');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -51,7 +49,7 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
    * {@link Sequelize#define} for more information about getters and setters
  * @mixes Hooks
  */
-class Model {
+export class Model {
   static get queryInterface() {
     return this.sequelize.getQueryInterface();
   }
@@ -4847,4 +4845,6 @@ function combineWheresWithAnd(whereA, whereB) {
 Object.assign(Model, associationsMixin);
 Hooks.applyTo(Model, true);
 
-module.exports = Model;
+export function isModelStatic(val) {
+  return typeof val === 'function' && val.prototype instanceof Model;
+}

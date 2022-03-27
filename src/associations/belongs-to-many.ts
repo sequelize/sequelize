@@ -25,16 +25,15 @@ import type {
   ModelAttributes,
   UpdateOptions,
 } from '../model';
+import { isModelStatic } from '../model';
 import { Op } from '../operators';
-import type Sequelize from '../sequelize.js';
-import { col, fn } from '../sequelize.js';
+import type { Sequelize } from '../sequelize';
+import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
-import { isModelStatic } from '../utils';
-import { assertAssociationModelIsDefined } from './association-utils.js';
-import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions } from './base';
+import { assertAssociationModelIsDefined } from './association-utils';
+import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions, MultiAssociationAccessors } from './base';
 import { MultiAssociation } from './base';
-import type { MultiAssociationAccessors } from './base.js';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
@@ -44,6 +43,7 @@ import * as Helpers from './helpers';
 // TODO: ensure mixin methods accept CreationAttribute as well
 // TODO: compare mixin methods with these methods
 // TODO: add typing tests to check that association creation calls with the wrong parameters are caught
+// TODO: type through modelyarn
 
 function addInclude(findOptions: FindOptions<any>, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -157,7 +157,9 @@ export class BelongsToMany<
   /**
    * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
    */
-  sourceKey: SourceKey;
+  get sourceKey(): SourceKey {
+    return this.attributeReferencedByForeignKey as SourceKey;
+  }
 
   /**
    * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
@@ -193,9 +195,9 @@ export class BelongsToMany<
   constructor(
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
-    options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    options?: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
   ) {
-    if (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through)) {
+    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
       throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
     }
 
@@ -204,7 +206,9 @@ export class BelongsToMany<
 
     const sequelize = source.sequelize!;
 
-    super(source, target, {
+    const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
+
+    super(source, target, attributeReferencedByForeignKey, {
       ...options,
       // though is either a string of a Model. Convert it to ThroughOptions.
       through: isThroughOptions(options.through)
@@ -242,7 +246,6 @@ export class BelongsToMany<
     /*
     * Default/generated source/target keys
     */
-    this.sourceKey = this.options.sourceKey || this.source.primaryKeyAttribute as SourceKey;
     this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);
 
     if (this.options.targetKey) {
@@ -331,16 +334,11 @@ export class BelongsToMany<
     return this.through.model;
   }
 
-  protected inferForeignKey(): string {
-    return Utils.camelize(
-      [
-        this.source.options.name.singular,
-        this.sourceKey,
-      ].join('_'),
-    );
-  }
-
   protected inferOtherKey(): string {
+    if (!this.targetKey) {
+      throw new Error('Sanity check: targetKey should be defined (this is an error in Sequelize)');
+    }
+
     return Utils.camelize(
       [
         this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular,

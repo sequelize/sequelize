@@ -58,13 +58,25 @@ export class HasMany<
    * This key is on the Source Model.
    * The {@link Association.foreignKey} is on the Target Model.
    */
-  sourceKey: SourceKey;
+  get sourceKey(): SourceKey {
+    return this.attributeReferencedByForeignKey as SourceKey;
+  }
 
   sourceKeyAttribute: string;
   sourceKeyField: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasManyOptions<SourceKey, TargetKey>) {
-    super(source, target, options);
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SourceKey, TargetKey>) {
+    if (
+      options?.sourceKey
+      && !source.getAttributes()[options.sourceKey]
+    ) {
+      throw new Error(`Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`);
+    }
+
+    // TODO: throw if source has a compose PK.
+    const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
+
+    super(source, target, attributeReferencedByForeignKey, options);
 
     if ('through' in this.options) {
       throw new Error('The "through" option is not available in hasMany. N:M associations are defined using belongsToMany instead.');
@@ -78,9 +90,6 @@ export class HasMany<
     /*
      * Source key setup
      */
-    // TODO: throw if source has a compose PK.
-    this.sourceKey = this.options.sourceKey || (this.source.primaryKeyAttribute as SourceKey);
-
     if (this.source.rawAttributes[this.sourceKey]) {
       this.sourceKeyAttribute = this.sourceKey;
       this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);

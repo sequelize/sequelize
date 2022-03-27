@@ -7,7 +7,7 @@ const retry = require('retry-as-promised');
 const _ = require('lodash');
 
 const Utils = require('./utils');
-const Model = require('./model');
+const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
 const ModelManager = require('./model-manager');

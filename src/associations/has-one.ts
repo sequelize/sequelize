@@ -48,7 +48,9 @@ export class HasOne<
    * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsTo.targetKey}).
    * The {@link Association.foreignKey} is on the Target Model.
    */
-  readonly sourceKey: SourceKey;
+  get sourceKey(): SourceKey {
+    return this.attributeReferencedByForeignKey as SourceKey;
+  }
 
   /**
    * The Column Name of the source key.
@@ -64,23 +66,21 @@ export class HasOne<
 
   readonly accessors: SingleAssociationAccessors;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasOneOptions<SourceKey, TargetKey>) {
-    super(source, target, options);
-
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SourceKey, TargetKey>) {
     if (
-      this.options.sourceKey
-      && !this.source.getAttributes()[this.options.sourceKey]
+      options?.sourceKey
+      && !source.getAttributes()[options.sourceKey]
     ) {
-      throw new Error(`Unknown attribute "${this.options.sourceKey}" passed as sourceKey, define this attribute on model "${this.source.name}" first`);
+      throw new Error(`Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`);
     }
 
     // TODO: throw is source model has a composite primary key.
+    const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
 
-    this.sourceKey = this.options.sourceKey || (this.source.primaryKeyAttribute as SourceKey);
+    super(source, target, attributeReferencedByForeignKey, options);
+
     this.sourceKeyAttribute = this.sourceKey;
     this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;
-
-    this.options.useHooks = options.useHooks;
 
     if (this.target.getAttributes()[this.foreignKey]) {
       this.identifierField = Utils.getColumnName(this.target.getAttributes()[this.foreignKey]);
