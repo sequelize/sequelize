@@ -14,7 +14,7 @@ export function checkNamingCollision(association: Association): void {
 export function addForeignKeyConstraints(
   newAttribute: ModelAttributeColumnOptions,
   source: ModelStatic<Model>,
-  options: AssociationOptions,
+  options: AssociationOptions<string>,
   key: string,
 ): void {
   // FK constraints are opt-in: users must either set `foreignKeyConstraints`

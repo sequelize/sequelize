@@ -857,13 +857,18 @@ export interface FindOptions<TAttributes = any>
    * See {@link FindOptions#limit} for more information.
    */
   subQuery?: boolean;
+
+  /**
+   * Throws an error if the query would return 0 results.
+   */
+  rejectOnEmpty?: boolean | Error;
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
   /**
    * Throw if nothing was found.
    */
-  rejectOnEmpty: boolean | Error;
+  rejectOnEmpty: true | Error;
 }
 
 /**
@@ -1186,6 +1191,13 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    */
   silent?: boolean;
 }
+
+/**
+ * Used by {@link Model.update}
+ */
+export type UpdateValues<M extends Model> = {
+  [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
+};
 
 /**
  * Options used for Model.aggregate
@@ -2493,9 +2505,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static update<M extends Model>(
     this: ModelStatic<M>,
-    values: {
-        [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
-    },
+    values: UpdateValues<M>,
     options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
@@ -2507,9 +2517,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
    public static update<M extends Model>(
     this: ModelStatic<M>,
-    values: {
-        [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
-    },
+    values: UpdateValues<M>,
     options: UpdateOptions<Attributes<M>>
   ): Promise<[affectedCount: number]>;
 
@@ -2946,9 +2954,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasOne<S extends Model, T extends Model>(
-    this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<S>
-  ): HasOne<S, T>;
+  public static hasOne<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOne<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the
@@ -2959,9 +2970,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static belongsTo<S extends Model, T extends Model>(
-    this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<T>
-  ): BelongsTo<S, T>;
+  public static belongsTo<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SKey, TKey>): BelongsTo<S, T, SKey, TKey>;
 
   /**
    * Create an association that is either 1:m or n:m.
@@ -3016,9 +3030,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasMany<S extends Model, T extends Model>(
-    this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<S>
-  ): HasMany<S, T>;
+  public static hasMany<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SKey, TKey>): HasMany<S, T, SKey, TKey>;
 
   /**
    * Create an N:M association with a join table
@@ -3067,11 +3084,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
-   *
    */
-  public static belongsToMany<S extends Model, T extends Model>(
-    this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions
-  ): BelongsToMany<S, T>;
+  public static belongsToMany<
+    S extends Model,
+    T extends Model,
+    ThroughModel extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(
+    this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
+  ): BelongsToMany<S, T, ThroughModel, SKey, TKey>;
 
   public static _injectDependentVirtualAttributes(attributes: string[]): string[];
   public static _virtualAttributes: Set<string>;
@@ -3516,4 +3538,4 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  */
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
 
-export type AttributeNames<M extends Model | Hooks> = Extract<M['_attributes'], string>;
+export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;

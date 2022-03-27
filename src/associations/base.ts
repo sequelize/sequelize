@@ -86,8 +86,8 @@ import * as Utils from '../utils';
 export abstract class Association<
   S extends Model = Model,
   T extends Model = Model,
-  Opts extends AssociationOptions = AssociationOptions,
   ForeignKey extends string = string,
+  Opts extends AssociationOptions<ForeignKey> = AssociationOptions<ForeignKey>,
 > {
   /**
    * The type of the association. One of `HasMany`, `BelongsTo`, `HasOne`, `BelongsToMany`
@@ -110,7 +110,7 @@ export abstract class Association<
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
 
-  foreignKeyAttribute: ForeignKeyOptions;
+  foreignKeyAttribute: ForeignKeyOptions<ForeignKey>;
   foreignKey: ForeignKey;
 
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: Opts) {
@@ -222,10 +222,10 @@ export abstract class Association<
 export abstract class MultiAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  Opts extends AssociationOptions = AssociationOptions,
   ForeignKey extends string = string,
-  TargetPrimaryKey extends AttributeNames<T> = any,
-> extends Association<S, T, Opts, ForeignKey> {
+  TargetKey extends AttributeNames<T> = any,
+  Opts extends MultiAssociationOptions<ForeignKey> = MultiAssociationOptions<ForeignKey>,
+> extends Association<S, T, ForeignKey, Opts> {
 
   /**
    * Normalize input
@@ -235,7 +235,7 @@ export abstract class MultiAssociation<
    * @private
    * @returns built objects
    */
-  protected toInstanceArray(input: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>): T[] {
+  protected toInstanceArray(input: AllowArray<T | Exclude<T[TargetKey], any[]>>): T[] {
     if (!Array.isArray(input)) {
       input = [input];
     }
@@ -273,13 +273,13 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions extends ColumnOptions {
+export interface ForeignKeyOptions<ForeignKey extends string> extends ColumnOptions {
   /**
    * The name of the foreign key attribute.
    *
    * Not to be confused with {@link ColumnOptions#field} which controls the name of the foreign key Column.
    */
-  name?: string;
+  name?: ForeignKey;
 
   /**
    * Alias of {@link ForeignKeyOptions#name}.
@@ -292,7 +292,7 @@ export interface ForeignKeyOptions extends ColumnOptions {
 /**
  * Options provided when associating models
  */
-export interface AssociationOptions extends Hookable {
+export interface AssociationOptions<ForeignKey extends string> extends Hookable {
   /**
    * The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If
    * you create multiple associations between the same tables, you should provide an alias to be able to
@@ -309,7 +309,7 @@ export interface AssociationOptions extends Hookable {
    * Using a string is equivalent to passing a {@link ForeignKeyOptions} object
    * with the {@link ForeignKeyOptions.name} option set.
    */
-  foreignKey?: string | ForeignKeyOptions;
+  foreignKey?: ForeignKey | ForeignKeyOptions<ForeignKey>;
 
   /**
    * What happens when delete occurs.
@@ -349,7 +349,7 @@ export interface AssociationScope {
 /**
  * Options provided for many-to-many relationships
  */
-export interface ManyToManyOptions extends AssociationOptions {
+export interface MultiAssociationOptions<ForeignKey extends string> extends AssociationOptions<ForeignKey> {
   /**
    * A key/value set that will be used for association create and find defaults on the target.
    * (sqlite not supported for N:M)

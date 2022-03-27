@@ -1,12 +1,10 @@
-import differenceWith from 'lodash/differenceWith';
 import each from 'lodash/each';
-import isEqual from 'lodash/eq';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import upperFirst from 'lodash/upperFirst';
-import { AssociationError, EmptyResultError } from '../errors';
+import { AssociationError } from '../errors';
 import type {
   BulkCreateOptions,
   CreateOptions,
@@ -22,15 +20,20 @@ import type {
   WhereOptions,
   AttributeNames,
   ModelAttributeColumnOptions,
+  Attributes,
+  Includeable,
+  ModelAttributes,
+  UpdateOptions,
 } from '../model';
 import { Op } from '../operators';
 import type Sequelize from '../sequelize.js';
+import { col, fn } from '../sequelize.js';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 import { isModelStatic } from '../utils';
 import { assertAssociationModelIsDefined } from './association-utils.js';
-import type { AssociationScope, ForeignKeyOptions, ManyToManyOptions } from './base';
-import { Association } from './base';
+import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions } from './base';
+import { MultiAssociation } from './base';
 import type { MultiAssociationAccessors } from './base.js';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
@@ -38,10 +41,19 @@ import { HasOne } from './has-one';
 import * as Helpers from './helpers';
 
 // TODO: strictly type mixin options
-// TODO: remove empty @return
-// TODO: clean jsdoc
 // TODO: ensure mixin methods accept CreationAttribute as well
 // TODO: compare mixin methods with these methods
+// TODO: add typing tests to check that association creation calls with the wrong parameters are caught
+
+function addInclude(findOptions: FindOptions<any>, include: Includeable) {
+  if (Array.isArray(findOptions.include)) {
+    findOptions.include.push(include);
+  } else if (!findOptions.include) {
+    findOptions.include = [include];
+  } else {
+    findOptions.include = [findOptions.include, include];
+  }
+}
 
 /**
  * Many-to-many association with a join/through table.
@@ -86,55 +98,103 @@ import * as Helpers from './helpers';
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
  */
 export class BelongsToMany<
-  S extends Model = Model,
-  T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
-> extends Association<S, T, NormalizedBelongsToManyOptions, string> {
+  SourceModel extends Model = Model,
+  TargetModel extends Model = Model,
+  ThroughModel extends Model = Model,
+  SourceKey extends AttributeNames<SourceModel> = any,
+  TargetKey extends AttributeNames<TargetModel> = any,
+> extends MultiAssociation<
+  SourceModel,
+  TargetModel,
+  /* ForeignKey */ string,
+  TargetKey,
+  NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
+> {
   associationType = 'BelongsToMany';
   isMultiAssociation = true;
 
   accessors: MultiAssociationAccessors;
 
-  primaryKeyDeleted: boolean;
-
-  otherKey: string;
-  otherKeyAttribute: ForeignKeyOptions;
-  otherKeyDefault: boolean;
-
-  identifier: string;
-  identifierField: string;
-  foreignIdentifier: string;
-  foreignIdentifierField: string;
+  primaryKeyDeleted: boolean = false;
 
   /**
-   * The name of the Attribute that the Foreign Key (located on the Through Model) will reference on the Source model.
+   * The name of the Foreign Key attribute, located on the through table, that points to the Target model.
+   *
+   * Not to be confused with @link {BelongsToMany.foreignKey}, which points to the Source model instead.
+   *
+   * @type {string}
+   */
+  // '!' added because this is initialized in constructor through a function call
+  otherKey!: string;
+  // '!' added because this is initialized in constructor through a function call
+  otherKeyAttribute!: ForeignKeyOptions<string>;
+  otherKeyDefault: boolean = false;
+
+  /**
+   * @deprecated use {@link BelongsToMany#foreignKey}
+   */
+  // '!' added because this is initialized in constructor through a function call
+  identifier!: string;
+
+  /**
+   * The corresponding column name of {@link BelongsToMany#foreignKey}
+   */
+  // '!' added because this is initialized in constructor through a function call
+  identifierField!: string;
+
+  /**
+   * @deprecated use {@link BelongsToMany#otherKey}
+   */
+  // '!' added because this is initialized in constructor through a function call
+  foreignIdentifier!: string;
+
+  /**
+   * The corresponding column name of {@link BelongsToMany#otherKey}
+   */
+  // '!' added because this is initialized in constructor through a function call
+  foreignIdentifierField!: string;
+
+  /**
+   * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
    */
   sourceKey: SourceKey;
 
   /**
-   * The name of the Column that the Foreign Key (located on the Through Table) will reference on the Source model.
+   * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
    */
   sourceKeyField: string;
 
+  /**
+   * The name of the Attribute that the {@link otherKey} fk (located on the Through Model) will reference on the Target model.
+   */
   targetKey: TargetKey;
+
+  /**
+   * The name of the Column that the {@link otherKey} fk (located on the Through Table) will reference on the Target model.
+   */
   targetKeyField: string;
   targetKeyDefault: boolean;
 
   /**
-   *
+   * The corresponding association this entity is paired with.
    */
   pairedWith: BelongsToMany | undefined;
 
-  #intermediaryAssociations: {
+  // '!' added because this is initialized in constructor through a function call
+  #intermediaryAssociations!: {
     // any is "through" table, which is untyped
-    fromSourceToThrough: HasMany<S, any, SourceKey, any>,
-    fromThroughToSource: BelongsTo<any, S, any, SourceKey>,
-    fromTargetToThrough: HasMany<T, any, TargetKey, any>,
-    fromThroughToTarget: BelongsTo<any, T, any, TargetKey>,
+    fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>,
+    fromThroughToSource: BelongsTo<ThroughModel, SourceModel, any, SourceKey>,
+    fromTargetToThrough: HasMany<TargetModel, ThroughModel, TargetKey, any>,
+    fromTargetToThroughOne: HasOne<TargetModel, ThroughModel, TargetKey, any>,
+    fromThroughToTarget: BelongsTo<ThroughModel, TargetModel, any, TargetKey>,
   };
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions) {
+  constructor(
+    source: ModelStatic<SourceModel>,
+    target: ModelStatic<TargetModel>,
+    options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+  ) {
     if (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through)) {
       throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
     }
@@ -182,7 +242,7 @@ export class BelongsToMany<
     /*
     * Default/generated source/target keys
     */
-    this.sourceKey = this.options.sourceKey || this.source.primaryKeyAttribute;
+    this.sourceKey = this.options.sourceKey || this.source.primaryKeyAttribute as SourceKey;
     this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);
 
     if (this.options.targetKey) {
@@ -190,12 +250,12 @@ export class BelongsToMany<
       this.targetKey = this.options.targetKey;
     } else {
       this.targetKeyDefault = true;
-      this.targetKey = this.target.primaryKeyAttribute;
+      this.targetKey = this.target.primaryKeyAttribute as TargetKey;
     }
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
 
-    this._createForeignAndOtherKeys();
+    this.#createForeignAndOtherKeys();
 
     Object.assign(this.options, pick(this.through.model.options, [
       'timestamps', 'createdAt', 'updatedAt', 'deletedAt', 'paranoid',
@@ -207,7 +267,7 @@ export class BelongsToMany<
       if (this.targetKeyDefault) {
         this.targetKey = this.pairedWith.sourceKey;
         this.targetKeyField = this.pairedWith.sourceKeyField;
-        this._createForeignAndOtherKeys();
+        this.#createForeignAndOtherKeys();
       }
 
       if (this.pairedWith.targetKeyDefault // in this case paired.otherKey depends on paired.targetKey,
@@ -216,10 +276,11 @@ export class BelongsToMany<
         delete this.through.model.rawAttributes[this.pairedWith.otherKey];
         this.pairedWith.targetKey = this.sourceKey;
         this.pairedWith.targetKeyField = this.sourceKeyField;
-        this.pairedWith._createForeignAndOtherKeys();
+        this.pairedWith.#createForeignAndOtherKeys();
         needInjectPaired = true;
       }
 
+      // this is set by 'this.#createForeignAndOtherKeys();'
       if (this.otherKeyDefault) {
         this.otherKey = this.pairedWith.foreignKey;
       }
@@ -262,46 +323,54 @@ export class BelongsToMany<
     return this.source.sequelize!;
   }
 
-  get through(): NormalizedThroughOptions {
+  get through(): NormalizedThroughOptions<ThroughModel> {
     return this.options.through;
   }
 
-  get throughModel(): ModelStatic<any> {
+  get throughModel(): ModelStatic<ThroughModel> {
     return this.through.model;
   }
 
-  _createForeignAndOtherKeys() {
+  protected inferForeignKey(): string {
+    return Utils.camelize(
+      [
+        this.source.options.name.singular,
+        this.sourceKey,
+      ].join('_'),
+    );
+  }
+
+  protected inferOtherKey(): string {
+    return Utils.camelize(
+      [
+        this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular,
+        this.targetKey,
+      ].join('_'),
+    );
+  }
+
+  #createForeignAndOtherKeys() {
     /*
     * Default/generated foreign/other keys
     */
     if (isObject(this.options.foreignKey)) {
       this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
+      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName || this.inferForeignKey();
     } else {
       this.foreignKeyAttribute = {};
-      this.foreignKey = this.options.foreignKey || Utils.camelize(
-        [
-          this.source.options.name.singular,
-          this.sourceKey,
-        ].join('_'),
-      );
+      this.foreignKey = this.options.foreignKey || this.inferForeignKey();
     }
 
     if (isObject(this.options.otherKey)) {
       this.otherKeyAttribute = this.options.otherKey;
-      this.otherKey = this.otherKeyAttribute.name || this.otherKeyAttribute.fieldName;
+      this.otherKey = this.otherKeyAttribute.name || this.otherKeyAttribute.fieldName || this.inferOtherKey();
     } else {
       if (!this.options.otherKey) {
         this.otherKeyDefault = true;
       }
 
       this.otherKeyAttribute = {};
-      this.otherKey = this.options.otherKey || Utils.camelize(
-        [
-          this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular,
-          this.targetKey,
-        ].join('_'),
-      );
+      this.otherKey = this.options.otherKey || this.inferOtherKey();
     }
   }
 
@@ -336,7 +405,7 @@ export class BelongsToMany<
     const sourceAttribute: ModelAttributeColumnOptions = { type: sourceKeyType, ...this.foreignKeyAttribute };
     const targetAttribute: ModelAttributeColumnOptions = { type: targetKeyType, ...this.otherKeyAttribute };
 
-    if (this.primaryKeyDeleted === true) {
+    if (this.primaryKeyDeleted) {
       targetAttribute.primaryKey = true;
       sourceAttribute.primaryKey = true;
     } else if (this.through.unique !== false) {
@@ -417,41 +486,41 @@ export class BelongsToMany<
 
     this.#intermediaryAssociations = {
       fromSourceToThrough: new HasMany(this.source, this.through.model, {
+        // @ts-expect-error
         foreignKey: this.foreignKey,
       }),
       fromThroughToSource: new BelongsTo(this.through.model, this.source, {
+        // @ts-expect-error
         foreignKey: this.foreignKey,
       }),
       fromTargetToThrough: new HasMany(this.target, this.through.model, {
+        // @ts-expect-error
         foreignKey: this.otherKey,
       }),
       fromThroughToTarget: new BelongsTo(this.through.model, this.target, {
+        // @ts-expect-error
         foreignKey: this.otherKey,
+      }),
+      fromTargetToThroughOne: new HasOne(this.target, this.through.model, {
+        // @ts-expect-error
+        foreignKey: this.otherKey,
+        sourceKey: this.targetKey,
+        as: this.through.model.name,
       }),
     };
 
-    // this.oneFromSource = new HasOne(this.source, this.through.model, {
-    //   foreignKey: this.foreignKey,
-    //   sourceKey: this.sourceKey,
-    //   as: this.through.model.name,
-    // });
-
-    // this.oneFromTarget = new HasOne(this.target, this.through.model, {
-    //   foreignKey: this.otherKey,
-    //   sourceKey: this.targetKey,
-    //   as: this.through.model.name,
-    // });
-
     if (this.pairedWith && this.pairedWith.otherKeyDefault) {
-      this.pairedWith.toTarget = new BelongsTo(this.pairedWith.through.model, this.pairedWith.target, {
-        foreignKey: this.pairedWith.otherKey,
-      });
+      this.pairedWith.#intermediaryAssociations.fromThroughToTarget
+        = new BelongsTo(this.pairedWith.through.model, this.pairedWith.target, {
+          foreignKey: this.pairedWith.otherKey,
+        });
 
-      this.pairedWith.oneFromTarget = new HasOne(this.pairedWith.target, this.pairedWith.through.model, {
-        foreignKey: this.pairedWith.otherKey,
-        sourceKey: this.pairedWith.targetKey,
-        as: this.pairedWith.through.model.name,
-      });
+      this.pairedWith.#intermediaryAssociations.fromTargetToThroughOne
+        = new HasOne(this.pairedWith.target, this.pairedWith.through.model, {
+          foreignKey: this.pairedWith.otherKey,
+          sourceKey: this.pairedWith.targetKey,
+          as: this.pairedWith.through.model.name,
+        });
     }
 
     Helpers.checkNamingCollision(this);
@@ -482,63 +551,59 @@ export class BelongsToMany<
    * @param instance instance
    * @param options find options
    */
-  async get(instance: S, options?: BelongsToManyGetAssociationsMixinOptions): Promise<T[]> {
-    options = Utils.cloneDeep(options) || {};
-
+  async get(instance: SourceModel, options?: BelongsToManyGetAssociationsMixinOptions): Promise<TargetModel[]> {
     const through = this.through;
-    let scopeWhere;
-    let throughWhere;
 
-    if (this.scope) {
-      scopeWhere = { ...this.scope };
-    }
-
-    options.where = {
-      [Op.and]: [
-        scopeWhere,
-        options.where,
-      ],
+    const findOptions: FindOptions<Attributes<TargetModel>> = {
+      ...options,
+      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
+      // @ts-expect-error
+      where: {
+        [Op.and]: [
+          options?.where,
+          this.scope,
+        ],
+      },
     };
 
-    if (Object(through.model) === through.model) {
-      throughWhere = {};
-      throughWhere[this.foreignKey] = instance.get(this.sourceKey);
+    let throughWhere = {
+      [this.foreignKey]: instance.get(this.sourceKey),
+    };
 
-      if (through.scope) {
-        Object.assign(throughWhere, through.scope);
-      }
-
-      // If a user pass a where on the options through options, make an "and" with the current throughWhere
-      if (options.through && options.through.where) {
-        throughWhere = {
-          [Op.and]: [throughWhere, options.through.where],
-        };
-      }
-
-      options.include = options.include || [];
-      options.include.push({
-        association: this.oneFromTarget,
-        attributes: options.joinTableAttributes,
-        required: true,
-        paranoid: options.through?.paranoid ?? true,
-        where: throughWhere,
-      });
+    // TODO: scopes should be joined using Op.and
+    if (through.scope) {
+      Object.assign(throughWhere, through.scope);
     }
 
+    // If a user pass a where on the options through options, make an "and" with the current throughWhere
+    if (options?.through?.where) {
+      throughWhere = {
+        [Op.and]: [throughWhere, options.through.where],
+      };
+    }
+
+    addInclude(findOptions, {
+      association: this.#intermediaryAssociations.fromTargetToThroughOne,
+      attributes: options?.joinTableAttributes,
+      required: true,
+      paranoid: options?.through?.paranoid ?? true,
+      where: throughWhere,
+    });
+
     let model = this.target;
-    if (Object.prototype.hasOwnProperty.call(options, 'scope')) {
+    if (options?.scope != null) {
       if (!options.scope) {
         model = model.unscoped();
-      } else {
+      } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
         model = model.scope(options.scope);
       }
     }
 
-    if (Object.prototype.hasOwnProperty.call(options, 'schema')) {
+    if (options?.schema) {
       model = model.schema(options.schema, options.schemaDelimiter);
     }
 
-    return model.findAll(options);
+    return model.findAll(findOptions);
   }
 
   /**
@@ -547,19 +612,20 @@ export class BelongsToMany<
    * @param instance instance
    * @param options find options
    */
-  async count(instance: S, options?: BelongsToManyCountAssociationsMixinOptions): Promise<number> {
-    const sequelize = this.target.sequelize;
+  async count(instance: SourceModel, options?: BelongsToManyCountAssociationsMixinOptions): Promise<number> {
+    const getOptions: BelongsToManyGetAssociationsMixinOptions = {
+      ...options,
+      attributes: [
+        [fn('COUNT', col([this.target.name, this.targetKeyField].join('.'))), 'count'],
+      ],
+      joinTableAttributes: [],
+      raw: true,
+      plain: true,
+    };
 
-    options = Utils.cloneDeep(options);
-    options.attributes = [
-      [sequelize.fn('COUNT', sequelize.col([this.target.name, this.targetKeyField].join('.'))), 'count'],
-    ];
-    options.joinTableAttributes = [];
-    options.raw = true;
-    options.plain = true;
+    const result = await this.get(instance, getOptions);
 
-    const result = await this.get(instance, options);
-
+    // @ts-expect-error -- this.get() isn't designed to expect returning a raw output.
     return Number.parseInt(result.count, 10);
   }
 
@@ -567,48 +633,45 @@ export class BelongsToMany<
    * Check if one or more instance(s) are associated with this. If a list of instances is passed, the function returns true if _all_ instances are associated
    *
    * @param sourceInstance source instance to check for an association with
-   * @param instances Can be an array of instances or their primary keys
+   * @param targetInstancesOrPks Can be an array of instances or their primary keys
    * @param options Options passed to getAssociations
    */
   async has(
-    sourceInstance: S,
-    // TODO: type 'unknown', it's the primary key of T
-    instances: AllowArray<T | unknown>,
+    sourceInstance: SourceModel,
+    targetInstancesOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyHasAssociationMixinOptions,
   ): Promise<boolean> {
-    if (!Array.isArray(instances)) {
-      instances = [instances];
+    if (!Array.isArray(targetInstancesOrPks)) {
+      targetInstancesOrPks = [targetInstancesOrPks];
     }
 
-    options = {
+    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
+      if (instance instanceof this.target) {
+        return (instance as TargetModel).get(this.targetKey);
+      }
+
+      return instance as TargetModel[TargetKey];
+    });
+
+    const associatedObjects: TargetModel[] = await this.get(sourceInstance, {
       raw: true,
       ...options,
       scope: false,
       attributes: [this.targetKey],
       joinTableAttributes: [],
-    };
-
-    const instancePrimaryKeys = instances.map(instance => {
-      if (instance instanceof this.target) {
-        return instance.where();
-      }
-
-      return {
-        [this.targetKey]: instance,
-      };
+      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
+      // @ts-expect-error
+      where: {
+        [Op.and]: [
+          { [this.targetKey]: { [Op.in]: targetPrimaryKeys } },
+          options?.where,
+        ],
+      },
     });
 
-    options.where = {
-      [Op.and]: [
-        { [Op.or]: instancePrimaryKeys },
-        options.where,
-      ],
-    };
-
-    const associatedObjects = await this.get(sourceInstance, options);
-
-    return differenceWith(instancePrimaryKeys, associatedObjects,
-      (a, b) => isEqual(a[this.targetKey], b[this.targetKey])).length === 0;
+    return targetPrimaryKeys.every(pk => {
+      return associatedObjects.some(instance => instance.get(this.targetKey) === pk);
+    });
   }
 
   /**
@@ -616,110 +679,58 @@ export class BelongsToMany<
    * Everything that it not in the passed array will be un-associated.
    *
    * @param sourceInstance source instance to associate new instances with
-   * @param newAssociatedObjects A single instance or primary key, or a mixed array of persisted instances or primary keys
+   * @param newInstancesOrPrimaryKeys A single instance or primary key, or a mixed array of persisted instances or primary keys
    * @param options Options passed to `through.findAll`, `bulkCreate`, `update` and `destroy`
    */
   async set(
-    sourceInstance: S,
-    // TODO: type 'unknown', it's the Primary key of T.
-    newAssociatedObjects: AllowArray<T | unknown>,
-    options?: BelongsToManySetAssociationsMixinOptions,
+    sourceInstance: SourceModel,
+    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    options: BelongsToManySetAssociationsMixinOptions = {},
   ): Promise<void> {
-    options = options || {};
-
     const sourceKey = this.sourceKey;
     const targetKey = this.targetKey;
     const identifier = this.identifier;
     const foreignIdentifier = this.foreignIdentifier;
 
-    if (newAssociatedObjects === null) {
-      newAssociatedObjects = [];
-    } else {
-      newAssociatedObjects = this.toInstanceArray(newAssociatedObjects);
-    }
+    const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
 
+    // TODO: scopes should be joined using Op.and
     const where = {
       [identifier]: sourceInstance.get(sourceKey),
       ...this.through.scope,
     };
 
-    const updateAssociations = async currentRows => {
-      const obsoleteAssociations = [];
-      const promises = [];
-      const defaultAttributes = options.through || {};
+    const currentThroughRows: ThroughModel[] = await this.through.model.findAll({
+      ...options,
+      where,
+      raw: true,
+      // force this option to be false, in case the user enabled
+      rejectOnEmpty: false,
+    });
 
-      const unassociatedObjects = newAssociatedObjects.filter(obj => {
-        return !currentRows.some(currentRow => currentRow[foreignIdentifier] === obj.get(targetKey));
-      });
+    const obsoleteTargets: Array<TargetModel | Exclude<TargetModel[TargetKey], any[]>> = [];
+    const updatableTargets: TargetModel[] = [];
 
-      for (const currentRow of currentRows) {
-        const newObj = newAssociatedObjects.find(obj => currentRow[foreignIdentifier] === obj.get(targetKey));
+    for (const currentRow of currentThroughRows) {
+      const newTarget = newInstances.find(obj => currentRow.get(foreignIdentifier) === obj.get(targetKey));
 
-        if (!newObj) {
-          obsoleteAssociations.push(currentRow);
-        } else {
-          let throughAttributes = newObj[this.through.model.name];
-          // Quick-fix for subtle bug when using existing objects that might have the through model attached (not as an attribute object)
-          if (throughAttributes instanceof this.through.model) {
-            throughAttributes = {};
-          }
-
-          const attributes = { ...defaultAttributes, ...throughAttributes };
-
-          if (Object.keys(attributes).length > 0) {
-            promises.push(
-              this.through.model.update(attributes, Object.assign(options, {
-                where: {
-                  [identifier]: sourceInstance.get(sourceKey),
-                  [foreignIdentifier]: newObj.get(targetKey),
-                },
-              })),
-            );
-          }
-        }
+      if (newTarget) {
+        updatableTargets.push(newTarget);
+      } else {
+        obsoleteTargets.push(currentRow.get(this.foreignIdentifier) as Exclude<TargetModel[TargetKey], any[]>);
       }
-
-      if (obsoleteAssociations.length > 0) {
-        promises.push(
-          this.through.model.destroy({
-            ...options,
-            where: {
-              [identifier]: sourceInstance.get(sourceKey),
-              [foreignIdentifier]: obsoleteAssociations.map(obsoleteAssociation => obsoleteAssociation[foreignIdentifier]),
-              ...this.through.scope,
-            },
-          }),
-        );
-      }
-
-      if (unassociatedObjects.length > 0) {
-        const bulk = unassociatedObjects.map(unassociatedObject => {
-          return {
-            ...defaultAttributes,
-            ...unassociatedObject[this.through.model.name],
-            [identifier]: sourceInstance.get(sourceKey),
-            [foreignIdentifier]: unassociatedObject.get(targetKey),
-            ...this.through.scope,
-          };
-        });
-
-        promises.push(this.through.model.bulkCreate(bulk, { validate: true, ...options }));
-      }
-
-      return Promise.all(promises);
-    };
-
-    try {
-      const currentRows = await this.through.model.findAll({ ...options, where, raw: true });
-
-      return await updateAssociations(currentRows);
-    } catch (error) {
-      if (error instanceof EmptyResultError) {
-        return updateAssociations([]);
-      }
-
-      throw error;
     }
+
+    const promises: Array<Promise<any>> = [];
+    if (obsoleteTargets.length > 0) {
+      promises.push(this.remove(sourceInstance, obsoleteTargets, options));
+    }
+
+    if (updatableTargets.length > 0) {
+      promises.push(this.#updateAssociations(sourceInstance, currentThroughRows, updatableTargets, options));
+    }
+
+    await Promise.all(promises);
   }
 
   /**
@@ -727,127 +738,146 @@ export class BelongsToMany<
    * that may be missing from `newInstances`.
    *
    * @param sourceInstance source instance to associate new instances with
-   * @param newInstances A single instance or primary key, or a mixed array of persisted instances or primary keys
+   * @param newInstancesOrPrimaryKeys A single instance or primary key, or a mixed array of persisted instances or primary keys
    * @param options Options passed to `through.findAll`, `bulkCreate` and `update`
    */
   async add(
-    sourceInstance: S,
-    // TODO: type 'unknown', it's the Primary key of T.
-    newInstances: AllowArray<T | unknown>,
+    sourceInstance: SourceModel,
+    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyAddAssociationsMixinOptions,
   ): Promise<void> {
     // If newInstances is null or undefined, no-op
-    if (!newInstances) {
+    if (!newInstancesOrPrimaryKeys) {
       return;
     }
 
-    options = { ...options };
+    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
+    const currentRows = await this.through.model.findAll({
+      ...options,
+      raw: true,
+      where: {
+        [this.identifier]: sourceInstance.get(this.sourceKey),
+        [this.foreignIdentifier]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
+        // TODO: scopes should be joined using Op.and
+        ...this.through.scope,
+      },
+      // force this option to be false, in case the user enabled
+      rejectOnEmpty: false,
+    });
+
+    await this.#updateAssociations(sourceInstance, currentRows, newInstances, options);
+  }
+
+  /**
+   * Adds new target instances that were not already present in the through table.
+   * Updates the through table row of the instances that already were present.
+   *
+   * @param sourceInstance
+   * @param currentThroughRows
+   * @param newTargets
+   * @param options
+   * @private
+   */
+  async #updateAssociations(
+    sourceInstance: SourceModel,
+    currentThroughRows: ThroughModel[],
+    newTargets: TargetModel[],
+    options?:
+      & { through?: JoinTableAttributes }
+      & BulkCreateOptions<Attributes<ThroughModel>>
+      & Omit<UpdateOptions<Attributes<ThroughModel>>, 'where'>,
+  ) {
     const sourceKey = this.sourceKey;
     const targetKey = this.targetKey;
     const identifier = this.identifier;
     const foreignIdentifier = this.foreignIdentifier;
-    const defaultAttributes = options.through || {};
 
-    newInstances = this.toInstanceArray(newInstances);
+    const defaultAttributes = options?.through || {};
 
-    const where = {
-      [identifier]: sourceInstance.get(sourceKey),
-      [foreignIdentifier]: newInstances.map(newInstance => newInstance.get(targetKey)),
-      ...this.through.scope,
-    };
+    const promises: Array<Promise<any>> = [];
+    const unassociatedTargets: TargetModel[] = [];
+    // the 'through' table of these targets has changed
+    const changedTargets: TargetModel[] = [];
+    for (const newInstance of newTargets) {
+      const existingThroughRow = currentThroughRows.find(throughRow => {
+        return throughRow.get(foreignIdentifier) === newInstance.get(targetKey);
+      });
 
-    const updateAssociations = async currentRows => {
-      const promises = [];
-      const unassociatedObjects = [];
-      const changedAssociations = [];
-      for (const obj of newInstances) {
-        const existingAssociation = currentRows?.find(current => current[foreignIdentifier] === obj.get(targetKey));
+      if (!existingThroughRow) {
+        unassociatedTargets.push(newInstance);
 
-        if (!existingAssociation) {
-          unassociatedObjects.push(obj);
-        } else {
-          const throughAttributes = obj[this.through.model.name];
-          const attributes = { ...defaultAttributes, ...throughAttributes };
-
-          if (Object.keys(attributes).some(attribute => attributes[attribute] !== existingAssociation[attribute])) {
-            changedAssociations.push(obj);
-          }
-        }
+        continue;
       }
 
-      if (unassociatedObjects.length > 0) {
-        const bulk = unassociatedObjects.map(unassociatedObject => {
-          const throughAttributes = unassociatedObject[this.through.model.name];
-          const attributes = { ...defaultAttributes, ...throughAttributes };
+      // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
+      const throughAttributes = newInstance[this.through.model.name];
+      const attributes = { ...defaultAttributes, ...throughAttributes };
 
-          attributes[identifier] = sourceInstance.get(sourceKey);
-          attributes[foreignIdentifier] = unassociatedObject.get(targetKey);
-
-          Object.assign(attributes, this.through.scope);
-
-          return attributes;
-        });
-
-        promises.push(this.through.model.bulkCreate(bulk, { validate: true, ...options }));
+      if (Object.keys(attributes).some(attribute => attributes[attribute] !== existingThroughRow.get(attribute))) {
+        changedTargets.push(newInstance);
       }
-
-      for (const assoc of changedAssociations) {
-        let throughAttributes = assoc[this.through.model.name];
-        const attributes = { ...defaultAttributes, ...throughAttributes };
-        // Quick-fix for subtle bug when using existing objects that might have the through model attached (not as an attribute object)
-        if (throughAttributes instanceof this.through.model) {
-          throughAttributes = {};
-        }
-
-        promises.push(this.through.model.update(attributes, Object.assign(options, {
-          where: {
-            [identifier]: sourceInstance.get(sourceKey),
-            [foreignIdentifier]: assoc.get(targetKey),
-          },
-        })));
-      }
-
-      return Promise.all(promises);
-    };
-
-    try {
-      const currentRows = await this.through.model.findAll({ ...options, where, raw: true });
-      await updateAssociations(currentRows);
-    } catch (error) {
-      if (error instanceof EmptyResultError) {
-        await updateAssociations();
-
-        return;
-      }
-
-      throw error;
     }
+
+    if (unassociatedTargets.length > 0) {
+      const bulk = unassociatedTargets.map(unassociatedTarget => {
+        // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
+        const throughAttributes = unassociatedTarget[this.through.model.name];
+        const attributes = { ...defaultAttributes, ...throughAttributes };
+
+        attributes[identifier] = sourceInstance.get(sourceKey);
+        attributes[foreignIdentifier] = unassociatedTarget.get(targetKey);
+
+        // TODO: scopes should be joined using Op.and
+        Object.assign(attributes, this.through.scope);
+
+        return attributes;
+      });
+
+      promises.push(this.through.model.bulkCreate(bulk, { validate: true, ...options }));
+    }
+
+    for (const changedTarget of changedTargets) {
+      // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
+      let throughAttributes = changedTarget[this.through.model.name];
+      const attributes = { ...defaultAttributes, ...throughAttributes };
+      // Quick-fix for subtle bug when using existing objects that might have the through model attached (not as an attribute object)
+      if (throughAttributes instanceof this.through.model) {
+        throughAttributes = {};
+      }
+
+      promises.push(this.through.model.update(attributes, {
+        ...options,
+        where: {
+          [identifier]: sourceInstance.get(sourceKey),
+          [foreignIdentifier]: changedTarget.get(targetKey),
+        },
+      }));
+    }
+
+    await Promise.all(promises);
   }
 
   /**
    * Un-associate one or more instance(s).
    *
    * @param sourceInstance instance to un associate instances with
-   * @param oldAssociatedObjects Can be an Instance or its primary key, or a mixed array of instances and primary keys
+   * @param targetInstanceOrPks Can be an Instance or its primary key, or a mixed array of instances and primary keys
    * @param options Options passed to `through.destroy`
    */
   async remove(
-    sourceInstance: S,
-    // TODO: type 'unknown', it's the Primary key of T.
-    oldAssociatedObjects: AllowArray<T | unknown>,
+    sourceInstance: SourceModel,
+    targetInstanceOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyRemoveAssociationMixinOptions,
   ): Promise<void> {
-    options = options || {};
-
-    oldAssociatedObjects = this.toInstanceArray(oldAssociatedObjects);
+    const targetInstance = this.toInstanceArray(targetInstanceOrPks);
 
     const where = {
       [this.identifier]: sourceInstance.get(this.sourceKey),
-      [this.foreignIdentifier]: oldAssociatedObjects.map(newInstance => newInstance.get(this.targetKey)),
+      [this.foreignIdentifier]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
     };
 
-    return this.through.model.destroy({ ...options, where });
+    await this.through.model.destroy({ ...options, where });
   }
 
   /**
@@ -858,13 +888,11 @@ export class BelongsToMany<
    * @param options Options passed to create and add
    */
   async create(
-    sourceInstance: S,
-    values: CreationAttributes<T>,
-    options?: BelongsToManyCreateAssociationMixinOptions,
-  ): Promise<T> {
-    options = options || {};
-    values = values || {};
-
+    sourceInstance: SourceModel,
+    // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
+    values: CreationAttributes<TargetModel> = {},
+    options: BelongsToManyCreateAssociationMixinOptions | BelongsToManyCreateAssociationMixinOptions['fields'] = {},
+  ): Promise<TargetModel> {
     if (Array.isArray(options)) {
       options = {
         fields: options,
@@ -887,26 +915,28 @@ export class BelongsToMany<
   }
 }
 
-function isThroughOptions(val: any): val is ThroughOptions {
+function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
   return isPlainObject(val) && 'model' in val;
 }
 
-function normalizeThroughOptions(through: ThroughOptions, sequelize: Sequelize): NormalizedThroughOptions {
-  if (isModelStatic(through.model)) {
-    return through as NormalizedThroughOptions;
+function normalizeThroughOptions<M extends Model>(
+  through: ThroughOptions<M>,
+  sequelize: Sequelize,
+): NormalizedThroughOptions<M> {
+  if (isModelStatic<M>(through.model)) {
+    return through as NormalizedThroughOptions<M>;
   }
 
   if (sequelize.isDefined(through.model)) {
     return {
       ...through,
-      model: sequelize.model(through.model),
+      model: sequelize.model(through.model) as ModelStatic<M>,
     };
   }
 
   return {
     ...through,
-    model: sequelize.define(through.model, {}, {
-      ...this.options,
+    model: sequelize.define(through.model, {} as ModelAttributes<M>, {
       tableName: through.model,
       indexes: [], // we don't want indexes here (as referenced in #2416)
       paranoid: through.paranoid || false, // Default to non-paranoid join (referenced in #11991)
@@ -919,12 +949,12 @@ function normalizeThroughOptions(through: ThroughOptions, sequelize: Sequelize):
 /**
  * Used for a association table in n:m associations.
  */
-export interface ThroughOptions {
+export interface ThroughOptions<ThroughModel extends Model> {
   /**
    * The model used to join both sides of the N:M association.
    * Can be a string if you want the model to be generated by sequelize.
    */
-  model: ModelStatic<any> | string;
+  model: ModelStatic<ThroughModel> | string;
 
   /**
    * If true the generated join table will be paranoid
@@ -955,23 +985,31 @@ export interface JoinTableAttributes {
   [attribute: string]: unknown;
 }
 
-type NormalizedBelongsToManyOptions = Omit<BelongsToManyOptions, 'though'> & {
-  through: NormalizedThroughOptions,
-};
+type NormalizedBelongsToManyOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+  ThroughModel extends Model,
+> =
+  Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'though'>
+  & { through: NormalizedThroughOptions<ThroughModel> };
 
-type NormalizedThroughOptions = Omit<ThroughOptions, 'model'> & {
-  model: ModelStatic<any>,
+type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
+  model: ModelStatic<ThroughModel>,
 };
 
 /**
  * Options provided when associating models with belongsToMany relationship
  */
-export interface BelongsToManyOptions extends ManyToManyOptions {
+export interface BelongsToManyOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+  ThroughModel extends Model,
+> extends MultiAssociationOptions<string> {
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a
    * sequelize model if you want to define the junction table yourself and add extra attributes to it.
    */
-  through: ModelStatic<any> | string | ThroughOptions;
+  through: ModelStatic<any> | string | ThroughOptions<ThroughModel>;
 
   /**
    * The name of the foreign key in the join table (representing the target model) or an object representing
@@ -979,19 +1017,19 @@ export interface BelongsToManyOptions extends ManyToManyOptions {
    * can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of
    * target
    */
-  otherKey?: string | ForeignKeyOptions;
+  otherKey?: string | ForeignKeyOptions<string>;
 
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary
    * key of the source table
    */
-  sourceKey?: string;
+  sourceKey?: SourceKey;
 
   /**
    * The name of the field to use as the key for the association in the target table. Defaults to the primary
    * key of the target table
    */
-  targetKey?: string;
+  targetKey?: TargetKey;
 
   /**
    * Should the join model have timestamps

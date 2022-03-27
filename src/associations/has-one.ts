@@ -39,7 +39,7 @@ export class HasOne<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
-> extends Association<S, T, HasOneOptions<S>, TargetKey> {
+> extends Association<S, T, TargetKey, HasOneOptions<SourceKey, TargetKey>> {
   associationType = 'HasOne';
   isSingleAssociation = true;
 
@@ -64,7 +64,7 @@ export class HasOne<
 
   readonly accessors: SingleAssociationAccessors;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasOneOptions<S>) {
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasOneOptions<SourceKey, TargetKey>) {
     super(source, target, options);
 
     if (
@@ -145,15 +145,15 @@ export class HasOne<
    */
   // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options?: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Record<S[SourceKey], T | null>>;
+  async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Record<any, T | null>>;
   async get(
     instances: S | S[],
     options?: HasOneGetAssociationMixinOptions<T>,
-  ): Promise<Record<S[SourceKey], T | null> | T | null> {
+  ): Promise<Record<any, T | null> | T | null> {
     options = options ? Utils.cloneDeep(options) : {};
 
     let Target = this.target;
-    if (Object.prototype.hasOwnProperty.call(options, 'scope')) {
+    if (options.scope != null) {
       if (!options.scope) {
         Target = Target.unscoped();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
@@ -191,12 +191,18 @@ export class HasOne<
 
     if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Record<S[SourceKey], T | null> = Object.create(null);
+      const result: Record<any, T | null> = Object.create(null);
       for (const sourceInstance of instances) {
+        // TODO: sourceKey could be anything, including things not valid as keys.
+        //  check if this is still used and either replace with 'Map', or removed
+        // @ts-expect-error
         result[sourceInstance.get(this.sourceKey, { raw: true })] = null;
       }
 
       for (const targetInstance of results) {
+        // TODO: foreignKey could be anything, including things not valid as keys.
+        //  check if this is still used and either replace with 'Map', or removed
+        // @ts-expect-error
         result[targetInstance.get(this.foreignKey, { raw: true })] = targetInstance;
       }
 
@@ -226,7 +232,7 @@ export class HasOne<
   ): Promise<T | null> {
     options = { ...options, scope: false };
 
-    // @ts-expect-error -- .save isn't listed in the options because it's not supported but we'll still warn users if they use it.
+    // @ts-expect-error -- .save isn't listed in the options because it's not supported, but we'll still warn users if they use it.
     if (options.save === false) {
       throw new Error(`The "save: false" option cannot be honoured in ${this.source.name}#${this.accessors.set}
 because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.`);
@@ -263,7 +269,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
     if (associatedInstanceOrPk) {
       let associatedInstance: T;
       if (associatedInstanceOrPk instanceof this.target) {
-        associatedInstance = associatedInstanceOrPk;
+        associatedInstance = associatedInstanceOrPk as T;
       } else {
         const tmpInstance = Object.create(null);
         tmpInstance[this.target.primaryKeyAttribute] = associatedInstanceOrPk;
@@ -323,7 +329,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
 /**
  * Options provided when associating models with hasOne relationship
  */
-export interface HasOneOptions<Source extends Model> extends AssociationOptions {
+export interface HasOneOptions<SourceKey extends string, TargetKey extends string> extends AssociationOptions<TargetKey> {
 
   /**
    * The name of the field to use as the key for the association in the source table.
@@ -331,7 +337,7 @@ export interface HasOneOptions<Source extends Model> extends AssociationOptions 
    *
    * This is the attribute the foreign key will target. Not to be confused with {@link AssociationOptions.foreignKey}.
    */
-  sourceKey?: AttributeNames<Source>;
+  sourceKey?: SourceKey;
 
   /**
    * A string or a data type to represent the identifier in the table

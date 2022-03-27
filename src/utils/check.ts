@@ -70,6 +70,6 @@ export function isWhereEmpty(obj: object): boolean {
   return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
 }
 
-export function isModelStatic(val: any): val is ModelStatic<any> {
+export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
   return typeof val === 'function' && val.prototype instanceof Model;
 }

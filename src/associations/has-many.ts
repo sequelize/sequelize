@@ -9,13 +9,13 @@ import type {
   InstanceUpdateOptions,
   Transactionable,
   ModelStatic,
-  AttributeNames,
+  AttributeNames, UpdateValues,
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import * as Utils from '../utils';
 import type { AllowArray } from '../utils';
-import type { MultiAssociationAccessors, ManyToManyOptions } from './base';
+import type { MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { MultiAssociation } from './base';
 import * as Helpers from './helpers';
 
@@ -43,7 +43,7 @@ export class HasMany<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
-> extends MultiAssociation<S, T, HasManyOptions<S>, TargetKey, TargetPrimaryKey> {
+> extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, HasManyOptions<SourceKey, TargetKey>> {
   accessors: MultiAssociationAccessors;
 
   associationType = 'HasMany';
@@ -63,7 +63,7 @@ export class HasMany<
   sourceKeyAttribute: string;
   sourceKeyField: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasManyOptions<S>) {
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: HasManyOptions<SourceKey, TargetKey>) {
     super(source, target, options);
 
     if ('through' in this.options) {
@@ -167,8 +167,8 @@ export class HasMany<
    */
   // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options?: HasManyGetAssociationsMixinOptions): Promise<T[]>;
-  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Record<S[SourceKey], T[]>>;
-  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Record<S[SourceKey], T[]>> {
+  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Record<any, T[]>>;
+  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Record<any, T[]>> {
     let isManyMode = true;
     if (!Array.isArray(instances)) {
       isManyMode = false;
@@ -214,7 +214,7 @@ export class HasMany<
     if (options.scope != null) {
       if (!options.scope) {
         Model = Model.unscoped();
-      } else if (options.scope !== true) {
+      } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
         Model = Model.scope(options.scope);
       }
     }
@@ -228,8 +228,11 @@ export class HasMany<
       return results;
     }
 
-    const result: Record<S[SourceKey], T[]> = Object.create(null);
+    const result: Record<any, T[]> = Object.create(null);
     for (const instance of instances) {
+      // TODO: sourceKey could be anything, including things not valid as keys.
+      //  check if this is still used and either replace with 'Map', or removed
+      // @ts-expect-error
       result[instance.get(this.sourceKey, { raw: true })] = [];
     }
 
@@ -290,7 +293,7 @@ export class HasMany<
     const where = {
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
-          return instance.where();
+          return (instance as T).where();
         }
 
         return {
@@ -328,7 +331,7 @@ export class HasMany<
    */
   async set(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]> | null,
+    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
     options?: HasManySetAssociationsMixinOptions,
   ): Promise<void> {
     const targetInstances = rawTargetInstances === null ? [] : this.toInstanceArray(rawTargetInstances);
@@ -356,7 +359,7 @@ export class HasMany<
       const update = {
         [this.foreignKey]: sourceInstance.get(this.sourceKey),
         ...this.scope,
-      };
+      } as UpdateValues<T>;
 
       const updateWhere = {
         [this.target.primaryKeyAttribute]: unassociatedObjects.map(unassociatedObject => {
@@ -386,7 +389,7 @@ export class HasMany<
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]>,
+    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyAddAssociationsMixinOptions = {},
   ): Promise<void> {
     const targetInstances = this.toInstanceArray(rawTargetInstances);
@@ -398,7 +401,7 @@ export class HasMany<
     const update = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       ...this.scope,
-    };
+    } as UpdateValues<T>;
 
     const where = {
       [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
@@ -418,7 +421,7 @@ export class HasMany<
    */
   async remove(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | T[TargetPrimaryKey]>,
+    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyRemoveAssociationsMixinOptions = {},
   ): Promise<void> {
     const targetInstances = this.toInstanceArray(rawTargetInstances);
@@ -430,7 +433,7 @@ export class HasMany<
     // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
     const update = {
       [this.foreignKey]: null,
-    };
+    } as UpdateValues<T>;
 
     const where = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -472,25 +475,28 @@ export class HasMany<
       }
     }
 
-    values[this.foreignKey] = sourceInstance.get(this.sourceKey);
     if (options.fields) {
       options.fields.push(this.foreignKey);
     }
 
-    return this.target.create(values, options);
+    return this.target.create({
+      ...values,
+      [this.foreignKey]: sourceInstance.get(this.sourceKey),
+    }, options);
   }
 }
 
 /**
  * Options provided when associating models with hasMany relationship
  */
-export interface HasManyOptions<Source extends Model> extends ManyToManyOptions {
+export interface HasManyOptions<SourceKey extends string, TargetKey extends string>
+  extends MultiAssociationOptions<TargetKey> {
 
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary
    * key of the source table
    */
-  sourceKey?: AttributeNames<Source>;
+  sourceKey?: SourceKey;
 
   /**
    * A string or a data type to represent the identifier in the table

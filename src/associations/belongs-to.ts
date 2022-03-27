@@ -35,7 +35,7 @@ export class BelongsTo<
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
-> extends Association<S, T, BelongsToOptions<T>, SourceKey> {
+> extends Association<S, T, SourceKey, BelongsToOptions<SourceKey, TargetKey>> {
 
   associationType = 'BelongsTo';
   isSingleAssociation = true;
@@ -67,7 +67,7 @@ export class BelongsTo<
 
   readonly targetIdentifier: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions<T>) {
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions<SourceKey, TargetKey>) {
     super(source, target, options);
 
     if (
@@ -146,15 +146,15 @@ export class BelongsTo<
    */
   // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options: BelongsToGetAssociationMixinOptions): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Record<T[TargetKey], T | null>>;
+  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Record<any, T | null>>;
   async get(
     instances: S | S[],
     options: BelongsToGetAssociationMixinOptions,
-  ): Promise<Record<T[TargetKey], T | null> | T | null> {
+  ): Promise<Record<any, T | null> | T | null> {
     options = Utils.cloneDeep(options);
 
     let Target = this.target;
-    if (Object.prototype.hasOwnProperty.call(options, 'scope')) {
+    if (options.scope != null) {
       if (!options.scope) {
         Target = Target.unscoped();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
@@ -199,12 +199,18 @@ export class BelongsTo<
 
     if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Record<T[TargetKey], T | null> = Object.create(null);
+      const result: Record<any, T | null> = Object.create(null);
       for (const instance of instances) {
+        // TODO: foreignKey could be anything, including things not valid as keys.
+        //  check if this is still used and either replace with 'Map', or removed
+        // @ts-expect-error
         result[instance.get(this.foreignKey, { raw: true })] = null;
       }
 
       for (const instance of results) {
+        // TODO: targetKey could be anything, including things not valid as keys.
+        //  check if this is still used and either replace with 'Map', or removed
+        // @ts-expect-error
         result[instance.get(this.targetKey, { raw: true })] = instance;
       }
 
@@ -229,7 +235,7 @@ export class BelongsTo<
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
-      value = associatedInstance[this.targetKey];
+      value = (associatedInstance as T)[this.targetKey];
     }
 
     sourceInstance.set(this.foreignKey, value);
@@ -278,12 +284,12 @@ export class BelongsTo<
  *
  * @see Association class belongsTo method
  */
-export interface BelongsToOptions<Target extends Model> extends AssociationOptions {
+export interface BelongsToOptions<SourceKey extends string, TargetKey extends string> extends AssociationOptions<SourceKey> {
   /**
    * The name of the field to use as the key for the association in the target table. Defaults to the primary
    * key of the target table
    */
-  targetKey?: AttributeNames<Target>;
+  targetKey?: TargetKey;
 
   /**
    * A string or a data type to represent the identifier in the table
