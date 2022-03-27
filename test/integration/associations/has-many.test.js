@@ -1623,7 +1623,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         username: 'jane',
       });
 
-      const [addr1, addr2] = await Promise.all([jane.createNullableAddress({ street: 'st' }),
+      const [addr1, addr2] = await Promise.all([
+        jane.createNullableAddress({ street: 'st' }),
         NullableAddress.create({
           street: 'st2',
           userId: jane.id,
@@ -1634,7 +1635,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       const addrToCheck = await NullableAddress.findAll({ where: { street: 'st' } });
       // !! coerces the value to a boolean (this is to handle possible unefined values)
-      // expect(!!addrToCheck.street).to.equal(!!null);
       expect(!!addr1.userId).to.equal(!!null);
     });
   });

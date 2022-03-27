@@ -352,19 +352,23 @@ class HasMany extends Association {
       };
 
       // update or delete obsolete associations depending on foreign key
-      let udMethod;
-      const udArgs = [{ ...options, where: updateWhere }];
-      const foreignKeyIsNullable
-        = this.target.rawAttributes[this.identifierField].allowNull;
+      const foreignKeyIsNullable = this.target.rawAttributes[this.foreignKey].allowNull !== false;
+      const target = this.target.unscoped();
 
       if (foreignKeyIsNullable) {
-        udMethod = this.target.update.bind(this.target.unscoped());
-        udArgs.unshift(update);
+        promises.push(target.update({
+          [this.foreignKey]: null,
+        },
+        {
+          ...options,
+          where: updateWhere,
+        }));
       } else {
-        udMethod = this.target.destroy.bind(this.target.unscoped());
+        promises.push(target.destroy({
+          ...options,
+          where: updateWhere,
+        }));
       }
-
-      promises.push(udMethod(...udArgs));
     }
 
     if (unassociatedObjects.length > 0) {
