@@ -212,6 +212,85 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       }
     });
   });
+
+  describe('set', async () => {
+    it('should unassociate (delete) addr1 given a non-null constraint on userId', async () => {
+      const User = current.define('User', {
+        username: DataTypes.STRING,
+        UserId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+      });
+
+      const Address = current.define('Address', {
+        street: DataTypes.STRING,
+      });
+
+      Address.belongsTo(User, {
+        foreignKey: {
+          allowNull: false,
+        },
+      });
+      User.hasMany(Address);
+      await current.sync();
+
+      const jane = await User.create({
+        username: 'jane',
+        UserId: 1,
+      });
+
+      const addr1 = await jane.createAddress({ street: 'st' });
+      const addr2 = await Address.build({
+        street: 'st2',
+        UserId: jane.id,
+      });
+      await addr2.save();
+
+      await jane.setAddresses([addr2]);
+
+      const addresses = await Address.findAll();
+      expect(addresses.length).to.equal(1);
+    });
+
+    it('should unassociate addr1 given no non-null constraint on userId', async () => {
+      const NullableUser = current.define('NullableUser', {
+        userName: DataTypes.STRING,
+        userId: {
+          type: DataTypes.INTEGER,
+        },
+      });
+
+      const NullableAddress = current.define('NullableAddress', {
+        street: DataTypes.STRING,
+      });
+
+      NullableAddress.belongsTo(NullableUser);
+      NullableUser.hasMany(NullableAddress);
+      await current.sync();
+
+      const jane = await NullableUser.create({
+        username: 'jane',
+      });
+
+      const addr1 = await jane.createNullableAddress({ street: 'st' });
+      let addresses = await jane.getNullableAddresses();
+
+      const addr2 = await NullableAddress.build({
+        street: 'st2',
+        userId: jane.id,
+      });
+      await addr2.save();
+
+      await jane.setNullableAddresses([addr2]);
+
+      addresses = await jane.getNullableAddresses();
+
+      const newAddresses = await NullableAddress.findAll();
+      expect(newAddresses.length).to.equal(2);
+    });
+  });
+
   describe('association hooks', () => {
     beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
