@@ -227,12 +227,12 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         street: DataTypes.STRING,
       });
 
-      Address.belongsTo(User, {
+      User.hasMany(Address, {
         foreignKey: {
           allowNull: false,
         },
       });
-      User.hasMany(Address);
+
       await current.sync();
 
       const jane = await User.create({
@@ -240,12 +240,12 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         UserId: 1,
       });
 
-      const addr1 = await jane.createAddress({ street: 'st' });
-      const addr2 = await Address.build({
-        street: 'st2',
-        UserId: jane.id,
-      });
-      await addr2.save();
+      const [addr1, addr2] = await Promise.all([
+        jane.createAddress({ street: 'st' }),
+        Address.create({
+          street: 'st2',
+          UserId: jane.id,
+        })]);
 
       await jane.setAddresses([addr2]);
 
@@ -274,9 +274,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       });
 
       const addr1 = await jane.createNullableAddress({ street: 'st' });
-      let addresses = await jane.getNullableAddresses();
 
-      const addr2 = await NullableAddress.build({
+      const addr2 = NullableAddress.build({
         street: 'st2',
         userId: jane.id,
       });
@@ -284,10 +283,9 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       await jane.setNullableAddresses([addr2]);
 
-      addresses = await jane.getNullableAddresses();
-
-      const newAddresses = await NullableAddress.findAll();
-      expect(newAddresses.length).to.equal(2);
+      const addrToCheck = await NullableAddress.findAll({ where: { street: 'st' } });
+      // !! coerces the value to a boolean (this is to handle possible unefined values)
+      expect(!!addrToCheck.street).to.equal(!!null);
     });
   });
 
