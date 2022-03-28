@@ -4,7 +4,7 @@ const _ = require('lodash');
 const Utils = require('./utils');
 const sequelizeError = require('./errors');
 const DataTypes = require('./data-types');
-const BelongsTo = require('./associations/belongs-to');
+const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('util');
 

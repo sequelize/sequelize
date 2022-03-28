@@ -5,7 +5,7 @@ const path = require('path');
 const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('@sequelize/core');
+const { Sequelize } = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
 

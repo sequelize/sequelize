@@ -6,8 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const _ = require('lodash');

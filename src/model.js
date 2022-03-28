@@ -6,13 +6,13 @@ const Dottie = require('dottie');
 
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
-const BelongsTo = require('./associations/belongs-to');
-const BelongsToMany = require('./associations/belongs-to-many');
+const { BelongsTo } = require('./associations/belongs-to');
+const { BelongsToMany } = require('./associations/belongs-to-many');
 const InstanceValidator = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
-const Association = require('./associations/base');
-const HasMany = require('./associations/has-many');
+const { Association } = require('./associations/base');
+const { HasMany } = require('./associations/has-many');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const associationsMixin = require('./associations/mixin');

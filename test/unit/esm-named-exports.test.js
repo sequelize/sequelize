@@ -124,11 +124,12 @@ Either add these exports to "index.mjs" (and "types/index.d.ts"), or mark them a
 
     for (const key of esmKeys) {
       expect(sequelizeEsm[key]).not.to.eq(undefined, `esm is exporting undefined under key ${JSON.stringify(key)}`);
-      expect(cjsKeys).to.include(key, `esm entry point is declaring export ${JSON.stringify(key)} that is missing from CJS`);
 
-      // exported values need to be the same instances
-      //  if we want to avoid major bugs:
-      //  https://github.com/sequelize/sequelize/pull/13689#issuecomment-987412233
+      if (key === 'default') {
+        continue;
+      }
+
+      expect(cjsKeys).to.include(key, `esm entry point is declaring export ${JSON.stringify(key)} that is missing from CJS`);
       expect(sequelizeEsm[key]).to.eq(sequelizeCjs[key]);
     }
   });
