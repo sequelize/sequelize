@@ -573,7 +573,7 @@ class DATEONLY extends ABSTRACT {
 }
 
 /**
- * A key / value store column. Only available in Postgres.
+ * A key / value store column. Only available in SQLite, MySQL, MariaDB and PostgreSQL.
  */
 class HSTORE extends ABSTRACT {
   validate(value) {
@@ -586,7 +586,7 @@ class HSTORE extends ABSTRACT {
 }
 
 /**
- * A JSON string column. Available in MySQL, Postgres and SQLite
+ * A JSON string column. Available in SQLite, MySQL, MariaDB and PostgreSQL.
  */
 class JSONTYPE extends ABSTRACT {
   validate() {
