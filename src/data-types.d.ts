@@ -361,12 +361,12 @@ export interface DateOnlyDataType extends AbstractDataType {
 
 
 /**
- * A key / value column. Only available in postgres.
+ * A key / value column. Only available in SQLite, MySQL, MariaDB and PostgreSQL.
  */
 export const HSTORE: AbstractDataTypeConstructor;
 
 /**
- * A JSON string column. Only available in postgres.
+ * A JSON string column. Only available in SQLite, MySQL, MariaDB and PostgreSQL.
  */
 export const JSON: AbstractDataTypeConstructor;
 /**
