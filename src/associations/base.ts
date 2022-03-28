@@ -120,6 +120,10 @@ export abstract class Association<
   }
 
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, attributeReferencedByForeignKey: string, options?: Opts) {
+    if (!this.inferForeignKey) {
+      throw new Error('"Association" is an abstract class and cannot be directly instantiated.');
+    }
+
     this.source = source;
     this.target = target;
     this.attributeReferencedByForeignKey = attributeReferencedByForeignKey;
