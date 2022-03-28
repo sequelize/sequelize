@@ -1548,5 +1548,3 @@ type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;
   set(key: string, value: unknown): void;
 };
-
-export default Sequelize;

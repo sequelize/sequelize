@@ -819,7 +819,8 @@ export class BelongsToMany<
     const changedTargets: TargetModel[] = [];
     for (const newInstance of newTargets) {
       const existingThroughRow = currentThroughRows.find(throughRow => {
-        return throughRow.get(foreignIdentifier) === newInstance.get(targetKey);
+        // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
+        return throughRow[foreignIdentifier] === newInstance.get(targetKey);
       });
 
       if (!existingThroughRow) {
@@ -832,7 +833,10 @@ export class BelongsToMany<
       const throughAttributes = newInstance[this.through.model.name];
       const attributes = { ...defaultAttributes, ...throughAttributes };
 
-      if (Object.keys(attributes).some(attribute => attributes[attribute] !== existingThroughRow.get(attribute))) {
+      if (Object.keys(attributes).some(attribute => {
+        // @ts-expect-error existingThroughRow is raw
+        return attributes[attribute] !== existingThroughRow[attribute];
+      })) {
         changedTargets.push(newInstance);
       }
     }

@@ -673,7 +673,7 @@ export class Model {
     const association = include.association || this._getIncludedAssociation(include.model, include.as);
 
     include.association = association;
-    include.as = association.as;
+    include.as ||= association.as;
 
     // If through, we create a pseudo child include, to ease our parsing later on
     if (include.association.through && Object(include.association.through.model) === include.association.through.model) {

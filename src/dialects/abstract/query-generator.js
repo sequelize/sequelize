@@ -1268,9 +1268,10 @@ class QueryGenerator {
 
         if (options.groupedLimit.on instanceof BelongsToMany) {
           // BTM includes needs to join the through table on to check ID
-          groupedTableName = options.groupedLimit.on.fromSourceToThrough.as;
+          groupedTableName = options.groupedLimit.on.as;
           const groupedLimitOptions = Model._validateIncludedElements({
             include: [{
+              as: options.groupedLimit.on.as,
               association: options.groupedLimit.on.fromSourceToThrough,
               duplicating: false, // The UNION'ed query may contain duplicates, but each sub-query cannot
               required: true,
