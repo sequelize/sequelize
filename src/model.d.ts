@@ -643,19 +643,28 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * Mark the include as duplicating, will prevent a subquery from being used.
    */
   duplicating?: boolean;
+
   /**
-   * The model you want to eagerly load
+   * The model you want to eagerly load.
+   * This option only works if this model is only associated once to the parent model of this query.
+   * We recommend you use {@link IncludeOptions.association} instead.
    */
   model?: ModelType;
 
   /**
-   * The alias of the relation, in case the model you want to eagerly load is aliassed. For `hasOne` /
-   * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
+   * The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` /
+   * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural.
+   *
+   * @deprecated using "as" is the same as using {@link IncludeOptions.association}
+   *  because "as" is always the name of the association.
    */
   as?: string;
 
   /**
-   * The association you want to eagerly load. (This can be used instead of providing a model/as pair)
+   * The association you want to eagerly load.
+   * Either the name of the association, or one of the association objects that are available in {@link Model.associations}.
+   *
+   * This can be used instead of providing a model/as pair
    */
   association?: Association | string;
 
@@ -2594,9 +2603,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static describe(): Promise<object>;
 
   /**
-   * Unscope the model
+   * Returns a model without scope, including the default scope.
+   *
+   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
    */
-  public static unscoped<M extends ModelType>(this: M): M;
+  public static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the base model, before any {@link Model.unscoped} or {@link Model.scope} call was applied.
+   */
+  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * A hook that is run before validation

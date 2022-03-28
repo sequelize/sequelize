@@ -8,6 +8,7 @@ const DataTypes = require('@sequelize/core/lib/data-types');
 const { Op } = require('@sequelize/core/lib/operators');
 const { TableHints } = require('@sequelize/core/lib/table-hints');
 const QueryGenerator = require('@sequelize/core/lib/dialects/mssql/query-generator');
+const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -232,7 +233,7 @@ if (current.dialect.name === 'mssql') {
         ],
       };
       foo._conformIncludes(options);
-      options = foo._validateIncludedElements(options);
+      options = _validateIncludedElements(options);
       expectsql(modifiedGen.selectFromTableFragment(options, foo, ['[Foo].[id]', '[Foo].[barId]'], foo.tableName, 'Foo', '[Bar].[id] = 12'), {
         mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bar] ON [Foo].[barId] = [Bar].[id] WHERE [Bar].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo',
       });

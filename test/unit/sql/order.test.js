@@ -6,6 +6,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support   = require('../support');
 const { Model, DataTypes } = require('@sequelize/core');
+const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -233,7 +234,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         'name',
         'createdAt',
       ],
-      include: Model._validateIncludedElements({
+      include: _validateIncludedElements({
         include: [
           {
             association: Subtask.associations.Task,

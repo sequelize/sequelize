@@ -2,6 +2,7 @@
 
 const Support = require('../support');
 const { Sequelize, DataTypes, Op } = require('@sequelize/core');
+const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
 const util = require('util');
 const _ = require('lodash');
 
@@ -17,8 +18,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
 
-      Sequelize.Model._conformIncludes(options);
-      options = Sequelize.Model._validateIncludedElements(options);
+      Sequelize.Model._conformIncludes(options, options.model);
+      options = _validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 

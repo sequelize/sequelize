@@ -42,13 +42,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('method findAll', () => {
-    const Model = current.define('model', {
+    const MyModel = current.define('model', {
       name: DataTypes.STRING,
     }, { timestamps: false });
 
     before(function () {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => Model.build({}));
-      this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
+      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => MyModel.build({}));
+      this.warnOnInvalidOptionsStub = sinon.stub(MyModel, 'warnOnInvalidOptions');
     });
 
     beforeEach(function () {
@@ -63,18 +63,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('handles input validation', () => {
       it('calls warnOnInvalidOptions', function () {
-        Model.findAll();
+        MyModel.findAll();
         expect(this.warnOnInvalidOptionsStub.calledOnce).to.equal(true);
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', async () => {
-        await expect(Model.findAll({ attributes: 'name' })).to.be.rejectedWith(sequelizeErrors.QueryError);
+        await expect(MyModel.findAll({ attributes: 'name' })).to.be.rejectedWith(sequelizeErrors.QueryError);
       });
     });
 
     describe('attributes include / exclude', () => {
       it('allows me to include additional attributes', async function () {
-        await Model.findAll({
+        await MyModel.findAll({
           attributes: {
             include: ['foobar'],
           },
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('allows me to exclude attributes', async function () {
-        await Model.findAll({
+        await MyModel.findAll({
           attributes: {
             exclude: ['name'],
           },
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('include takes precendence over exclude', async function () {
-        await Model.findAll({
+        await MyModel.findAll({
           attributes: {
             exclude: ['name'],
             include: ['name'],
@@ -114,13 +114,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works for models without PK #4607', async function () {
-        const Model = current.define('model', {}, { timestamps: false });
+        const MyModel = current.define('model', {}, { timestamps: false });
         const Foo = current.define('foo');
-        Model.hasOne(Foo);
+        MyModel.hasOne(Foo);
 
-        Model.removeAttribute('id');
+        MyModel.removeAttribute('id');
 
-        await Model.findAll({
+        await MyModel.findAll({
           attributes: {
             include: ['name'],
           },

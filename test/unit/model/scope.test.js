@@ -3,16 +3,32 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Sequelize, Op } = require('@sequelize/core');
+const { Sequelize, Op, DataTypes, Model } = require('@sequelize/core');
 
 const Support   = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
 
 const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   const Project = current.define('project');
-  const User = current.define('user');
+  const User = current.define('user', {
+    password: DataTypes.STRING,
+    value: DataTypes.INTEGER,
+    name: DataTypes.STRING,
+  }, {
+    defaultScope: {
+      attributes: {
+        exclude: ['password'],
+      },
+    },
+    scopes: {
+      aScope: {
+        attributes: {
+          exclude: ['value'],
+        },
+      },
+    },
+  });
 
   const scopes = {
     complexFunction(value) {
@@ -82,27 +98,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     scopes,
   });
 
+  Company.hasMany(User);
+  Company.hasMany(Project);
+
   describe('.scope', () => {
     describe('attribute exclude / include', () => {
-      const User = current.define('user', {
-        password: DataTypes.STRING,
-        value: DataTypes.INTEGER,
-        name: DataTypes.STRING,
-      }, {
-        defaultScope: {
-          attributes: {
-            exclude: ['password'],
-          },
-        },
-        scopes: {
-          aScope: {
-            attributes: {
-              exclude: ['value'],
-            },
-          },
-        },
-      });
-
       it('should not expand attributes', () => {
         expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
@@ -215,29 +215,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should be able to merge two scoped includes', () => {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
-          { model: User },
-          { model: Project },
+          { model: User, association: Company.associations.users, as: 'users' },
+          { model: Project, association: Company.associations.projects, as: 'projects'  },
         ],
       });
     });
 
     it('should be able to keep original scope definition clean', () => {
-      expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deepEqual({
+      expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
         include: [
-          { model: Project },
-          { model: User, where: { something: 42 } },
+          { model: Project, association: Company.associations.projects, as: 'projects' },
+          { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
         ],
       });
 
-      expect(Company.options.scopes.alsoUsers).to.deepEqual({
+      expect(Company.options.scopes.alsoUsers).to.deep.equal({
         include: [
-          { model: User, where: { something: 42 } },
+          { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
         ],
       });
 
-      expect(Company.options.scopes.users).to.deepEqual({
+      expect(Company.options.scopes.users).to.deep.equal({
         include: [
-          { model: User },
+          { model: User, association: Company.associations.users, as: 'users' },
         ],
       });
     });
@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to combine default with another scope', () => {
       expect(Company.scope(['defaultScope', { method: ['actualValue', 11] }])._scope).to.deepEqual({
-        include: [{ model: Project }],
+        include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
         where: {
           [Op.and]: [
             { active: true },
@@ -508,7 +508,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should override the default scope', () => {
       expect(Company.scope(['defaultScope', { method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
-        include: [{ model: Project }],
+        include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
         where: {
           [Op.and]: [
             { active: true },
@@ -521,30 +521,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should emit an error for scopes that don\'t exist', () => {
       expect(() => {
         Company.scope('doesntexist');
-      }).to.throw('Invalid scope doesntexist called.');
+      }).to.throw('"company.scope()" has been called with an invalid scope: "doesntexist" does not exist.');
     });
 
     it('should concatenate scope groups', () => {
-      expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
+      expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deepEqual({
         group: ['company.id', 'project.id'],
-        include: [{ model: Project }],
+        include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
       });
     });
   });
 
   describe('addScope', () => {
     it('works if the model does not have any initial scopes', () => {
-      const Model = current.define('model');
+      const MyModel = current.define('model');
 
       expect(() => {
-        Model.addScope('anything', {});
+        MyModel.addScope('anything', {});
       }).not.to.throw();
     });
 
     it('allows me to add a new scope', () => {
       expect(() => {
         Company.scope('newScope');
-      }).to.throw('Invalid scope newScope called.');
+      }).to.throw('"company.scope()" has been called with an invalid scope: "newScope" does not exist.');
 
       Company.addScope('newScope', {
         where: {
@@ -557,7 +557,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           this: 'that',
         },
-        include: [{ model: Project }],
+        include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
       });
     });
 
@@ -588,10 +588,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not warn if default scope is not defined', () => {
-      const Model = current.define('model');
+      const MyModel = current.define('model');
 
       expect(() => {
-        Model.addScope('defaultScope', {});
+        MyModel.addScope('defaultScope', {});
       }).not.to.throw();
     });
 
@@ -637,6 +637,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { something: true },
             ],
           },
+          association: Company.associations.projects,
+          as: 'projects',
           limit: 1,
         }],
       });
@@ -645,11 +647,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('_injectScope', () => {
     it('should be able to merge scope and where', () => {
-      Sequelize.Model._scope = {
+      const MyModel = current.define('model');
+      MyModel.addScope('defaultScope', {
         where: { something: true, somethingElse: 42 },
         limit: 15,
         offset: 3,
-      };
+      });
 
       const options = {
         where: {
@@ -658,7 +661,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9,
       };
 
-      Sequelize.Model._injectScope(options);
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
 
       expect(options).to.deepEqual({
         where: {
@@ -673,11 +677,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge scope and having', () => {
-      Sequelize.Model._scope = {
+      const MyModel = current.define('model');
+      MyModel.addScope('defaultScope', {
         having: { something: true, somethingElse: 42 },
         limit: 15,
         offset: 3,
-      };
+      });
 
       const options = {
         having: {
@@ -686,7 +691,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9,
       };
 
-      Sequelize.Model._injectScope(options);
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
 
       expect(options).to.deepEqual({
         having: {
@@ -700,41 +706,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should be able to merge scopes with the same include', () => {
-      Sequelize.Model._scope = {
-        include: [
-          { model: Project, where: { something: false, somethingElse: 99 } },
-          { model: Project, where: { something: true }, limit: 1 },
-        ],
-      };
-
-      const options = {};
-
-      Sequelize.Model._injectScope(options);
-
-      expect(options.include).to.have.length(1);
-      expect(options.include[0]).to.deepEqual({
-        model: Project,
-        where: {
-          [Op.and]: [
-            { something: false, somethingElse: 99 },
-            { something: true },
-          ],
-        },
-        limit: 1,
-      });
-    });
-
     it('should be able to merge scoped include', () => {
-      Sequelize.Model._scope = {
+      const MyModel = current.define('model');
+      MyModel.hasMany(Project);
+
+      MyModel.addScope('defaultScope', {
         include: [{ model: Project, where: { something: false, somethingElse: 99 } }],
-      };
+      });
 
       const options = {
         include: [{ model: Project, where: { something: true }, limit: 1 }],
       };
 
-      Sequelize.Model._injectScope(options);
+      MyModel._conformIncludes(options, MyModel);
+      MyModel._injectScope(options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deepEqual({
@@ -745,32 +730,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { something: true },
           ],
         },
+        association: Company.associations.projects,
+        as: 'projects',
         limit: 1,
       });
     });
 
     it('should be able to merge aliased includes with the same model', () => {
-      Sequelize.Model._scope = {
+      const MyModel = current.define('model');
+      MyModel.hasMany(User, { as: 'someUser' });
+      MyModel.hasMany(User, { as: 'otherUser' });
+
+      MyModel.addScope('defaultScope', {
         include: [{ model: User, as: 'someUser' }],
-      };
+      });
 
       const options = {
         include: [{ model: User, as: 'otherUser' }],
       };
 
-      Sequelize.Model._injectScope(options);
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
 
       expect(options.include).to.have.length(2);
-      expect(options.include[0]).to.deep.equal({ model: User, as: 'someUser' });
-      expect(options.include[1]).to.deep.equal({ model: User, as: 'otherUser' });
+      expect(options.include[0]).to.deepEqual({ model: User, as: 'someUser', association: MyModel.associations.someUser });
+      expect(options.include[1]).to.deepEqual({ model: User, as: 'otherUser', association: MyModel.associations.otherUser });
     });
 
     it('should be able to merge scoped include with include in find', () => {
-      Sequelize.Model._scope = {
+      const MyModel = current.define('model');
+      MyModel.hasMany(Project);
+      MyModel.hasMany(User);
+
+      MyModel.addScope('defaultScope', {
         include: [
           { model: Project, where: { something: false } },
         ],
-      };
+      });
 
       const options = {
         include: [
@@ -778,20 +774,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ],
       };
 
-      Sequelize.Model._injectScope(options);
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
 
       expect(options.include).to.have.length(2);
-      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: false } });
-      expect(options.include[1]).to.deep.equal({ model: User, where: { something: true } });
+      expect(options.include[0]).to.deep.equal({ model: Project, as: 'projects', association: MyModel.associations.projects, where: { something: false } });
+      expect(options.include[1]).to.deep.equal({ model: User, as: 'users', association: MyModel.associations.users, where: { something: true } });
     });
 
     describe('include all', () => {
       it('scope with all', () => {
-        Sequelize.Model._scope = {
+        const MyModel = current.define('model');
+        MyModel.hasMany(User);
+        MyModel.hasMany(Project);
+        MyModel.addScope('defaultScope', {
           include: [
             { all: true },
           ],
-        };
+        });
 
         const options = {
           include: [
@@ -799,19 +799,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         };
 
-        Sequelize.Model._injectScope(options);
+        MyModel._normalizeIncludes(options, MyModel);
+        MyModel._injectScope(options);
 
         expect(options.include).to.have.length(2);
-        expect(options.include[0]).to.deep.equal({ all: true });
-        expect(options.include[1]).to.deep.equal({ model: User, where: { something: true } });
+        expect(options.include[0]).to.deep.equal({
+          model: User,
+          as: 'users',
+          association: MyModel.associations.users,
+          where: { something: true },
+        });
+        expect(options.include[1]).to.deep.equal({
+          model: Project,
+          as: 'projects',
+          association: MyModel.associations.projects,
+        });
       });
 
       it('options with all', () => {
-        Sequelize.Model._scope = {
+        const MyModel = current.define('model');
+        MyModel.hasMany(User);
+        MyModel.hasMany(Project);
+        MyModel.addScope('defaultScope', {
           include: [
             { model: User, where: { something: true } },
           ],
-        };
+        });
 
         const options = {
           include: [
@@ -819,11 +832,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         };
 
-        Sequelize.Model._injectScope(options);
+        MyModel._normalizeIncludes(options, MyModel);
+        MyModel._injectScope(options);
 
         expect(options.include).to.have.length(2);
-        expect(options.include[0]).to.deep.equal({ model: User, where: { something: true } });
-        expect(options.include[1]).to.deep.equal({ all: true });
+        expect(options.include[0]).to.deep.equal({
+          model: User,
+          as: 'users',
+          association: MyModel.associations.users,
+          where: { something: true },
+        });
+        expect(options.include[1]).to.deep.equal({
+          model: Project,
+          as: 'projects',
+          association: MyModel.associations.projects,
+        });
       });
     });
   });

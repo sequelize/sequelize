@@ -17,7 +17,7 @@ const sortById = function (a, b) {
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
-    it('should support an empty belongsTo include', async function () {
+    it('supports a model+alias includeable', async function () {
       const Company = this.sequelize.define('Company', {});
       const User = this.sequelize.define('User', {});
 
@@ -33,7 +33,56 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(user).to.be.ok;
     });
 
-    it('should support a belongsTo association reference', async function () {
+    it('supports an alias includeable', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+
+      await this.sequelize.sync({ force: true });
+      await User.create();
+
+      const user = await User.findOne({
+        include: [{ as: 'Employer' }],
+      });
+
+      expect(user).to.be.ok;
+    });
+
+    it('supports a model includeable if only one association has the model as its target', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+
+      await this.sequelize.sync({ force: true });
+      await User.create();
+
+      const user = await User.findOne({
+        include: [Company],
+      });
+
+      expect(user).to.be.ok;
+    });
+
+    it('rejects a model includeable if more than one association has the model as its target', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+      User.belongsTo(Company, { as: 'SecondaryEmployer' });
+
+      await expect(User.findOne({ include: [Company] })).to.be.rejectedWith(`
+Invalid Include received:
+"User" is associated to "Company" multiple times.
+Instead of specifying a Model, pass one of the Association object available in "User.associations" (through the "association" option),
+or pass the name of the association you want to include (through the "as" option).
+
+"User" is associated to "Company" through the following associations: "Employer", "SecondaryEmployer"
+`.trim());
+    });
+
+    it('supports a belongsTo association reference includeable', async function () {
       const Company = this.sequelize.define('Company', {});
       const User = this.sequelize.define('User', {});
       const Employer = User.belongsTo(Company, { as: 'Employer' });
@@ -580,7 +629,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           },
           {
             model: Product, include: [
-              Tag,
+              { model: Tag, as: 'Tags' },
               { model: Tag, as: 'Category' },
               Price,
             ],

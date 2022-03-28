@@ -4,6 +4,7 @@ const Support = require('../support');
 const { Model, DataTypes, Op } = require('@sequelize/core');
 const util = require('util');
 const chai = require('chai');
+const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
 
 const expect = chai.expect;
 const expectsql = Support.expectsql;
@@ -241,7 +242,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       Post.Comments = Post.hasMany(Comment, { foreignKey: 'postId', as: 'COMMENTS' });
 
-      const include = Model._validateIncludedElements({
+      const include = _validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts,
@@ -331,7 +332,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         `),
       });
 
-      const nestedInclude = Model._validateIncludedElements({
+      const nestedInclude = _validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts,
@@ -393,7 +394,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts,
@@ -426,7 +427,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts,
@@ -469,7 +470,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['id_user', 'id'],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             model: Project,
             right: true,
@@ -504,7 +505,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           table: User.getTableName(),
           model: User,
           attributes: ['name', 'age'],
-          include: Model._validateIncludedElements({
+          include: _validateIncludedElements({
+            model: User,
             include: [{
               attributes: ['title'],
               association: User.Posts,
@@ -528,7 +530,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           model: User,
           attributes: ['name', 'age'],
           where: { '$postaliasname.title$': 'test' },
-          include: Model._validateIncludedElements({
+          include: _validateIncludedElements({
+            model: User,
             include: [{
               attributes: ['title'],
               association: User.Posts,
@@ -573,7 +576,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: Company,
         attributes: ['name', 'public'],
         where: { '$Users.Profession.name$': 'test', [Op.and]: { scopeId: [42] } },
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             association: Company.Users,
             attributes: [],
@@ -726,7 +729,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(sql.selectQuery('User', {
           attributes: ['name', 'age'],
-          include: Model._validateIncludedElements({
+          include: _validateIncludedElements({
             include: [{
               attributes: [
                 '* FROM [User]; DELETE FROM [User];SELECT [id]'
@@ -745,7 +748,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(sql.selectQuery('User', {
           attributes: ['name', 'age'],
-          include: Model._validateIncludedElements({
+          include: _validateIncludedElements({
             include: [{
               attributes: [
                 ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
@@ -762,7 +765,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(sql.selectQuery('User', {
           attributes: ['name', 'age'],
-          include: Model._validateIncludedElements({
+          include: _validateIncludedElements({
             include: [{
               attributes: [
                 ['* FROM User; DELETE FROM User;SELECT id', 'data'],
@@ -827,7 +830,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts,
@@ -869,7 +872,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             attributes: ['title'],
             association: User.Posts,
@@ -915,7 +918,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age', ['status.label', 'statuslabel']],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           include: [{
             attributes: ['title', ['status.label', 'statuslabel']],
             association: User.Posts,

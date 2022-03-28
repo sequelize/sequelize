@@ -16,6 +16,7 @@ const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { IndexHints } = require('../../index-hints');
+const { _validateIncludedElements } = require('../../model-internals');
 
 /**
  * Abstract Query Generator
@@ -1269,7 +1270,7 @@ class QueryGenerator {
         if (options.groupedLimit.on instanceof BelongsToMany) {
           // BTM includes needs to join the through table on to check ID
           groupedTableName = options.groupedLimit.on.as;
-          const groupedLimitOptions = Model._validateIncludedElements({
+          const groupedLimitOptions = _validateIncludedElements({
             include: [{
               as: options.groupedLimit.on.as,
               association: options.groupedLimit.on.fromSourceToThrough,
@@ -2010,7 +2011,7 @@ class QueryGenerator {
     if (topInclude.through && Object(topInclude.through.model) === topInclude.through.model) {
       query = this.selectQuery(topInclude.through.model.getTableName(), {
         attributes: [topInclude.through.model.primaryKeyField],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           model: topInclude.through.model,
           include: [{
             association: topAssociation.toTarget,
@@ -2044,7 +2045,7 @@ class QueryGenerator {
 
       query = this.selectQuery(topInclude.model.getTableName(), {
         attributes: [targetField],
-        include: Model._validateIncludedElements(topInclude).include,
+        include: _validateIncludedElements(topInclude).include,
         model: topInclude.model,
         where: {
           [Op.and]: [
