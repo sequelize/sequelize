@@ -24,6 +24,7 @@ import type {
   Includeable,
   ModelAttributes,
   UpdateOptions,
+  ModelOptions,
 } from '../model';
 import { isModelStatic } from '../model';
 import { Op } from '../operators';
@@ -40,10 +41,9 @@ import { HasOne } from './has-one';
 import * as Helpers from './helpers';
 
 // TODO: strictly type mixin options
-// TODO: ensure mixin methods accept CreationAttribute as well
 // TODO: compare mixin methods with these methods
 // TODO: add typing tests to check that association creation calls with the wrong parameters are caught
-// TODO: type through modelyarn
+// TODO: strongly type the through model
 
 function addInclude(findOptions: FindOptions<any>, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -111,7 +111,6 @@ export class BelongsToMany<
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
   associationType = 'BelongsToMany';
-  isMultiAssociation = true;
 
   accessors: MultiAssociationAccessors;
 
@@ -182,15 +181,15 @@ export class BelongsToMany<
    */
   pairedWith: BelongsToMany | undefined;
 
+  // intermediary associations
   // '!' added because this is initialized in constructor through a function call
-  #intermediaryAssociations!: {
-    // any is "through" table, which is untyped
-    fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>,
-    fromThroughToSource: BelongsTo<ThroughModel, SourceModel, any, SourceKey>,
-    fromTargetToThrough: HasMany<TargetModel, ThroughModel, TargetKey, any>,
-    fromTargetToThroughOne: HasOne<TargetModel, ThroughModel, TargetKey, any>,
-    fromThroughToTarget: BelongsTo<ThroughModel, TargetModel, any, TargetKey>,
-  };
+  // any is "through" table, which is untyped
+  fromSourceToThrough!: HasMany<SourceModel, ThroughModel, SourceKey, any>;
+  fromSourceToThroughOne!: HasOne<SourceModel, ThroughModel, SourceKey, any>;
+  fromThroughToSource!: BelongsTo<ThroughModel, SourceModel, any, SourceKey>;
+  fromTargetToThrough!: HasMany<TargetModel, ThroughModel, TargetKey, any>;
+  fromTargetToThroughOne!: HasOne<TargetModel, ThroughModel, TargetKey, any>;
+  fromThroughToTarget!: BelongsTo<ThroughModel, TargetModel, any, TargetKey>;
 
   constructor(
     source: ModelStatic<SourceModel>,
@@ -334,17 +333,23 @@ export class BelongsToMany<
     return this.through.model;
   }
 
+  protected inferForeignKey() {
+    const associationName = this.source.options.name.singular;
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
+  }
+
   protected inferOtherKey(): string {
     if (!this.targetKey) {
       throw new Error('Sanity check: targetKey should be defined (this is an error in Sequelize)');
     }
 
-    return Utils.camelize(
-      [
-        this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular,
-        this.targetKey,
-      ].join('_'),
-    );
+    const associationName = this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular;
+
+    return Utils.camelize(`${associationName}_${this.targetKey}`);
   }
 
   #createForeignAndOtherKeys() {
@@ -431,9 +436,10 @@ export class BelongsToMany<
         model: this.source.getTableName(),
         key: sourceKeyField,
       };
+
       // For the source attribute the passed option is the priority
-      sourceAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey].onDelete;
-      sourceAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey].onUpdate;
+      sourceAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey]?.onDelete;
+      sourceAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey]?.onUpdate;
 
       if (!sourceAttribute.onDelete) {
         sourceAttribute.onDelete = 'CASCADE';
@@ -447,9 +453,9 @@ export class BelongsToMany<
         model: this.target.getTableName(),
         key: targetKeyField,
       };
-      // But the for target attribute the previously defined option is the priority (since it could've been set by another belongsToMany call)
-      targetAttribute.onDelete = this.through.model.rawAttributes[this.otherKey].onDelete || this.options.onDelete;
-      targetAttribute.onUpdate = this.through.model.rawAttributes[this.otherKey].onUpdate || this.options.onUpdate;
+      // For attribute that reference the target, existing options is the priority as it could have been defined by a paired belongsToMany call
+      targetAttribute.onDelete = this.through.model.rawAttributes[this.otherKey]?.onDelete || this.options.onDelete;
+      targetAttribute.onUpdate = this.through.model.rawAttributes[this.otherKey]?.onUpdate || this.options.onUpdate;
 
       if (!targetAttribute.onDelete) {
         targetAttribute.onDelete = 'CASCADE';
@@ -460,7 +466,7 @@ export class BelongsToMany<
       }
     }
 
-    this.through.model.mergeAttributes({
+    this.through.model.mergeAttributesOverwrite({
       [this.foreignKey]: sourceAttribute,
       [this.otherKey]: targetAttribute,
     });
@@ -482,43 +488,52 @@ export class BelongsToMany<
       );
     }
 
-    this.#intermediaryAssociations = {
-      fromSourceToThrough: new HasMany(this.source, this.through.model, {
-        // @ts-expect-error
-        foreignKey: this.foreignKey,
-      }),
-      fromThroughToSource: new BelongsTo(this.through.model, this.source, {
-        // @ts-expect-error
-        foreignKey: this.foreignKey,
-      }),
-      fromTargetToThrough: new HasMany(this.target, this.through.model, {
-        // @ts-expect-error
-        foreignKey: this.otherKey,
-      }),
-      fromThroughToTarget: new BelongsTo(this.through.model, this.target, {
-        // @ts-expect-error
-        foreignKey: this.otherKey,
-      }),
-      fromTargetToThroughOne: new HasOne(this.target, this.through.model, {
-        // @ts-expect-error
-        foreignKey: this.otherKey,
-        sourceKey: this.targetKey,
-        as: this.through.model.name,
-      }),
-    };
+    this.fromSourceToThrough = new HasMany(this.source, this.through.model, {
+      // @ts-expect-error
+      foreignKey: this.foreignKey,
+    });
+    this.fromSourceToThroughOne = new HasOne(this.source, this.through.model, {
+      // @ts-expect-error
+      foreignKey: this.foreignKey,
+      sourceKey: this.sourceKey,
+      as: this.through.model.name,
+    });
+    this.fromThroughToSource = new BelongsTo(this.through.model, this.source, {
+      // @ts-expect-error
+      foreignKey: this.foreignKey,
+    });
+
+    this.fromTargetToThrough = new HasMany(this.target, this.through.model, {
+      // @ts-expect-error
+      foreignKey: this.otherKey,
+    });
+    this.fromTargetToThroughOne = new HasOne(this.target, this.through.model, {
+      // @ts-expect-error
+      foreignKey: this.otherKey,
+      sourceKey: this.targetKey,
+      as: this.through.model.name,
+    });
+    this.fromThroughToTarget = new BelongsTo(this.through.model, this.target, {
+      // @ts-expect-error
+      foreignKey: this.otherKey,
+    });
 
     if (this.pairedWith && this.pairedWith.otherKeyDefault) {
-      this.pairedWith.#intermediaryAssociations.fromThroughToTarget
-        = new BelongsTo(this.pairedWith.through.model, this.pairedWith.target, {
-          foreignKey: this.pairedWith.otherKey,
-        });
+      if (!this.pairedWith.fromThroughToTarget) {
+        this.pairedWith.fromThroughToTarget
+          = new BelongsTo(this.pairedWith.through.model, this.pairedWith.target, {
+            foreignKey: this.pairedWith.otherKey,
+          });
+      }
 
-      this.pairedWith.#intermediaryAssociations.fromTargetToThroughOne
-        = new HasOne(this.pairedWith.target, this.pairedWith.through.model, {
-          foreignKey: this.pairedWith.otherKey,
-          sourceKey: this.pairedWith.targetKey,
-          as: this.pairedWith.through.model.name,
-        });
+      if (!this.pairedWith.fromTargetToThroughOne) {
+        this.pairedWith.fromTargetToThroughOne
+          = new HasOne(this.pairedWith.target, this.pairedWith.through.model, {
+            foreignKey: this.pairedWith.otherKey,
+            sourceKey: this.pairedWith.targetKey,
+            as: this.pairedWith.through.model.name,
+          });
+      }
     }
 
     Helpers.checkNamingCollision(this);
@@ -581,7 +596,7 @@ export class BelongsToMany<
     }
 
     addInclude(findOptions, {
-      association: this.#intermediaryAssociations.fromTargetToThroughOne,
+      association: this.fromTargetToThroughOne,
       attributes: options?.joinTableAttributes,
       required: true,
       paranoid: options?.through?.paranoid ?? true,
@@ -652,8 +667,8 @@ export class BelongsToMany<
     });
 
     const associatedObjects: TargetModel[] = await this.get(sourceInstance, {
-      raw: true,
       ...options,
+      raw: true,
       scope: false,
       attributes: [this.targetKey],
       joinTableAttributes: [],
@@ -668,7 +683,10 @@ export class BelongsToMany<
     });
 
     return targetPrimaryKeys.every(pk => {
-      return associatedObjects.some(instance => instance.get(this.targetKey) === pk);
+      return associatedObjects.some(instance => {
+        // instance[x] instead of instance.get() because the query output is 'raw'
+        return instance[this.targetKey] === pk;
+      });
     });
   }
 
@@ -707,15 +725,17 @@ export class BelongsToMany<
     });
 
     const obsoleteTargets: Array<TargetModel | Exclude<TargetModel[TargetKey], any[]>> = [];
-    const updatableTargets: TargetModel[] = [];
 
+    // find all obsolete targets
     for (const currentRow of currentThroughRows) {
-      const newTarget = newInstances.find(obj => currentRow.get(foreignIdentifier) === obj.get(targetKey));
+      const newTarget = newInstances.find(obj => {
+        // @ts-expect-error -- the findAll call is raw, no model here
+        return currentRow[foreignIdentifier] === obj.get(targetKey);
+      });
 
-      if (newTarget) {
-        updatableTargets.push(newTarget);
-      } else {
-        obsoleteTargets.push(currentRow.get(this.foreignIdentifier) as Exclude<TargetModel[TargetKey], any[]>);
+      if (!newTarget) {
+        // @ts-expect-error -- the findAll call is raw, no model here
+        obsoleteTargets.push(currentRow[this.foreignIdentifier]);
       }
     }
 
@@ -724,8 +744,8 @@ export class BelongsToMany<
       promises.push(this.remove(sourceInstance, obsoleteTargets, options));
     }
 
-    if (updatableTargets.length > 0) {
-      promises.push(this.#updateAssociations(sourceInstance, currentThroughRows, updatableTargets, options));
+    if (newInstances.length > 0) {
+      promises.push(this.#updateAssociations(sourceInstance, currentThroughRows, newInstances, options));
     }
 
     await Promise.all(promises);
@@ -913,6 +933,11 @@ export class BelongsToMany<
   }
 }
 
+// workaround https://github.com/evanw/esbuild/issues/1260
+Object.defineProperty(BelongsToMany, 'name', {
+  value: 'BelongsToMany',
+});
+
 function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
   return isPlainObject(val) && 'model' in val;
 }
@@ -939,13 +964,16 @@ function normalizeThroughOptions<M extends Model>(
       indexes: [], // we don't want indexes here (as referenced in #2416)
       paranoid: through.paranoid || false, // Default to non-paranoid join (referenced in #11991)
       validate: {}, // Don't propagate model-level validations
+      timestamps: through.timestamps,
     }),
   };
 
 }
 
 /**
- * Used for a association table in n:m associations.
+ * Used for the through table in n:m associations.
+ *
+ * Used in {@link BelongsToManyOptions.through}
  */
 export interface ThroughOptions<ThroughModel extends Model> {
   /**
@@ -955,11 +983,14 @@ export interface ThroughOptions<ThroughModel extends Model> {
   model: ModelStatic<ThroughModel> | string;
 
   /**
-   * If true the generated join table will be paranoid
-   *
-   * @default false
+   * See {@link ModelOptions.timestamps}
    */
-  paranoid?: boolean;
+  timestamps?: ModelOptions['timestamps'];
+
+  /**
+   * See {@link ModelOptions.paranoid}
+   */
+  paranoid?: ModelOptions['paranoid'];
 
   /**
    * A key/value set that will be used for association create and find defaults on the through model.
@@ -996,7 +1027,9 @@ type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<
 };
 
 /**
- * Options provided when associating models with belongsToMany relationship
+ * Options provided when associating models with belongsToMany relationship.
+ *
+ * Used by {@link Model.belongsToMany}.
  */
 export interface BelongsToManyOptions<
   SourceKey extends string,

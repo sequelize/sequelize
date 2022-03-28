@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const User = current.define('User', {});
       const Task = current.define('Task', {});
 
-      User.belongsToMany(Task, { through: 'user_task2', timestamps: false });
+      User.belongsToMany(Task, { through: { model: 'user_task2', timestamps: false } });
 
       expect(current.models.user_task2.rawAttributes).not.to.contain.all.keys(['createdAt', 'updatedAt']);
     });
@@ -213,8 +213,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id' });
       const Users = Place.belongsToMany(User, { through: 'user_places', foreignKey: 'place_id' });
 
-      expect(Places.paired).to.equal(Users);
-      expect(Users.paired).to.equal(Places);
+      expect(Places.pairedWith).to.equal(Users);
+      expect(Users.pairedWith).to.equal(Places);
 
       expect(Places.foreignKey).to.equal('user_id');
       expect(Users.foreignKey).to.equal('place_id');
@@ -237,8 +237,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id' });
       const Users = Place.belongsToMany(User, { through: UserPlace, foreignKey: 'place_id' });
 
-      expect(Places.paired).to.equal(Users);
-      expect(Users.paired).to.equal(Places);
+      expect(Places.pairedWith).to.equal(Users);
+      expect(Users.pairedWith).to.equal(Places);
 
       expect(Places.foreignKey).to.equal('user_id');
       expect(Users.foreignKey).to.equal('place_id');
@@ -258,8 +258,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const Places = User.belongsToMany(Place, { through: 'user_places', sourceKey: 'user_id' });
       const Users = Place.belongsToMany(User, { through: 'user_places', sourceKey: 'place_id' });
 
-      expect(Places.paired).to.equal(Users);
-      expect(Users.paired).to.equal(Places);
+      expect(Places.pairedWith).to.equal(Users);
+      expect(Users.pairedWith).to.equal(Places);
 
       expect(Places.sourceKey).to.equal('user_id');
       expect(Users.sourceKey).to.equal('place_id');
@@ -282,8 +282,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const Places = User.belongsToMany(Place, { through: UserPlace, sourceKey: 'user_id' });
       const Users = Place.belongsToMany(User, { through: UserPlace, sourceKey: 'place_id' });
 
-      expect(Places.paired).to.equal(Users);
-      expect(Users.paired).to.equal(Places);
+      expect(Places.pairedWith).to.equal(Users);
+      expect(Users.pairedWith).to.equal(Places);
 
       expect(Places.sourceKey).to.equal('user_id');
       expect(Users.sourceKey).to.equal('place_id');
@@ -317,17 +317,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(Product.Tags.toSource).to.be.an.instanceOf(BelongsTo);
-      expect(Product.Tags.toTarget).to.be.an.instanceOf(BelongsTo);
+      expect(Product.Tags.fromThroughToSource).to.be.an.instanceOf(BelongsTo);
+      expect(Product.Tags.fromThroughToTarget).to.be.an.instanceOf(BelongsTo);
 
-      expect(Tag.Products.toSource).to.be.an.instanceOf(BelongsTo);
-      expect(Tag.Products.toTarget).to.be.an.instanceOf(BelongsTo);
+      expect(Tag.Products.fromThroughToSource).to.be.an.instanceOf(BelongsTo);
+      expect(Tag.Products.fromThroughToTarget).to.be.an.instanceOf(BelongsTo);
 
-      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromThroughToSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromThroughToTarget.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromThroughToSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromThroughToTarget.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
@@ -354,17 +354,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(Product.Tags.manyFromSource).to.be.an.instanceOf(HasMany);
-      expect(Product.Tags.manyFromTarget).to.be.an.instanceOf(HasMany);
+      expect(Product.Tags.fromSourceToThrough).to.be.an.instanceOf(HasMany);
+      expect(Product.Tags.fromTargetToThrough).to.be.an.instanceOf(HasMany);
 
-      expect(Tag.Products.manyFromSource).to.be.an.instanceOf(HasMany);
-      expect(Tag.Products.manyFromTarget).to.be.an.instanceOf(HasMany);
+      expect(Tag.Products.fromSourceToThrough).to.be.an.instanceOf(HasMany);
+      expect(Tag.Products.fromTargetToThrough).to.be.an.instanceOf(HasMany);
 
-      expect(Product.Tags.manyFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.manyFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromSourceToThrough.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromTargetToThrough.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.manyFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.manyFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromSourceToThrough.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromTargetToThrough.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
@@ -391,17 +391,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(Product.Tags.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Product.Tags.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Tag.Products.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Tag.Products.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Product.Tags.oneFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.oneFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromSourceToThroughOne.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromTargetToThroughOne.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.oneFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.oneFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromSourceToThroughOne.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromTargetToThroughOne.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
@@ -430,17 +430,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, sourceKey: 'productSecondaryId' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, sourceKey: 'tagSecondaryId' });
 
-      expect(Product.Tags.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Product.Tags.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Tag.Products.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Tag.Products.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Tag.Products.oneFromSource.sourceKey).to.equal(Tag.Products.sourceKey);
-      expect(Tag.Products.oneFromTarget.sourceKey).to.equal(Tag.Products.targetKey);
+      expect(Tag.Products.fromSourceToThroughOne.sourceKey).to.equal(Tag.Products.sourceKey);
+      expect(Tag.Products.fromTargetToThroughOne.sourceKey).to.equal(Tag.Products.targetKey);
 
-      expect(Product.Tags.oneFromSource.sourceKey).to.equal(Product.Tags.sourceKey);
-      expect(Product.Tags.oneFromTarget.sourceKey).to.equal(Product.Tags.targetKey);
+      expect(Product.Tags.fromSourceToThroughOne.sourceKey).to.equal(Product.Tags.sourceKey);
+      expect(Product.Tags.fromTargetToThroughOne.sourceKey).to.equal(Product.Tags.targetKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'ProductProductSecondaryId', 'TagTagSecondaryId']);
@@ -467,17 +467,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tag_ID' });
 
-      expect(Product.Tags.toSource).to.be.ok;
-      expect(Product.Tags.toTarget).to.be.ok;
+      expect(Product.Tags.fromThroughToSource).to.be.ok;
+      expect(Product.Tags.fromThroughToTarget).to.be.ok;
 
-      expect(Tag.Products.toSource).to.be.ok;
-      expect(Tag.Products.toTarget).to.be.ok;
+      expect(Tag.Products.fromThroughToSource).to.be.ok;
+      expect(Tag.Products.fromThroughToTarget).to.be.ok;
 
-      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromThroughToSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromThroughToTarget.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromThroughToSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromThroughToTarget.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID']);
@@ -504,17 +504,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID' });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tag_ID' });
 
-      expect(Product.Tags.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Product.Tags.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Product.Tags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Tag.Products.oneFromSource).to.be.an.instanceOf(HasOne);
-      expect(Tag.Products.oneFromTarget).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(Tag.Products.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
 
-      expect(Product.Tags.oneFromSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.oneFromTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromSourceToThroughOne.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromTargetToThroughOne.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.oneFromSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.oneFromTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromSourceToThroughOne.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromTargetToThroughOne.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID']);
@@ -541,17 +541,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Product.Tags = Product.belongsToMany(Tag, { through: ProductTag });
       Tag.Products = Tag.belongsToMany(Product, { through: ProductTag });
 
-      expect(Product.Tags.toSource).to.be.ok;
-      expect(Product.Tags.toTarget).to.be.ok;
+      expect(Product.Tags.fromThroughToSource).to.be.ok;
+      expect(Product.Tags.fromThroughToTarget).to.be.ok;
 
-      expect(Tag.Products.toSource).to.be.ok;
-      expect(Tag.Products.toTarget).to.be.ok;
+      expect(Tag.Products.fromThroughToSource).to.be.ok;
+      expect(Tag.Products.fromThroughToTarget).to.be.ok;
 
-      expect(Product.Tags.toSource.foreignKey).to.equal(Product.Tags.foreignKey);
-      expect(Product.Tags.toTarget.foreignKey).to.equal(Product.Tags.otherKey);
+      expect(Product.Tags.fromThroughToSource.foreignKey).to.equal(Product.Tags.foreignKey);
+      expect(Product.Tags.fromThroughToTarget.foreignKey).to.equal(Product.Tags.otherKey);
 
-      expect(Tag.Products.toSource.foreignKey).to.equal(Tag.Products.foreignKey);
-      expect(Tag.Products.toTarget.foreignKey).to.equal(Tag.Products.otherKey);
+      expect(Tag.Products.fromThroughToSource.foreignKey).to.equal(Tag.Products.foreignKey);
+      expect(Tag.Products.fromThroughToTarget.foreignKey).to.equal(Tag.Products.otherKey);
 
       expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'ProductId', 'TagId']);
@@ -564,12 +564,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       this.Project = this.sequelize.define('Project', {});
       this.UserProjects = this.sequelize.define('UserProjects', {});
 
-      this.UserProjects.belongsTo(this.User);
-
       this.User.belongsToMany(this.Project, { through: this.UserProjects });
       this.Project.belongsToMany(this.User, { through: this.UserProjects });
-
-      this.UserProjects.belongsTo(this.Project);
     });
 
     it('should work for belongsTo associations defined before belongsToMany', function () {
@@ -671,10 +667,13 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup, onUpdate: 'SET NULL', onDelete: 'RESTRICT' });
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
+
+      const Through = Group.associations.MyUsers.through.model;
+
+      expect(Through.rawAttributes.UserId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
+      expect(Through.rawAttributes.UserId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
+      expect(Through.rawAttributes.GroupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
+      expect(Through.rawAttributes.GroupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
     });
 
     it('generate unique identifier with very long length', function () {

@@ -98,10 +98,6 @@ export abstract class Association<
   source: ModelStatic<S>;
   target: ModelStatic<T>;
   isSelfAssociation: boolean;
-  // this property is overwritten by subclasses
-  isSingleAssociation: boolean = false;
-  // this property is overwritten by subclasses
-  isMultiAssociation: boolean = false;
   isAliased: boolean;
   options: Omit<Opts, 'as'> & {
     as: string,
@@ -114,6 +110,14 @@ export abstract class Association<
   foreignKey: ForeignKey;
 
   attributeReferencedByForeignKey: string;
+
+  get isMultiAssociation(): boolean {
+    return false;
+  }
+
+  get isSingleAssociation(): boolean {
+    return !this.isMultiAssociation;
+  }
 
   constructor(source: ModelStatic<S>, target: ModelStatic<T>, attributeReferencedByForeignKey: string, options?: Opts) {
     this.source = source;
@@ -132,7 +136,7 @@ export abstract class Association<
       if (isPlainObject(options.as)) {
         assert(typeof options.as === 'object');
         name = options.as;
-        as = options.as.plural;
+        as = this.isMultiAssociation ? options.as.plural : options.as.singular;
       } else {
         assert(typeof options.as === 'string');
         as = options.as;
@@ -142,7 +146,7 @@ export abstract class Association<
         };
       }
     } else {
-      as = this.target.options.name.plural;
+      as = this.isMultiAssociation ? this.target.options.name.plural : this.target.options.name.singular;
       name = this.target.options.name;
     }
 
@@ -154,7 +158,7 @@ export abstract class Association<
     };
 
     if (source.hasAlias(this.as)) {
-      throw new AssociationError(`Association ${this.as} has already been defined on model ${source.name}. Use another alias using the "as" parameter.`);
+      throw new AssociationError(`You have defined two associations with the same name "${this.as}" on the model "${source.name}". Use another alias using the "as" parameter.`);
     }
 
     this.foreignKeyAttribute = {};
@@ -189,14 +193,7 @@ export abstract class Association<
     return this.options.scope;
   }
 
-  protected inferForeignKey() {
-    const associationName = this.options.as ? Utils.singularize(this.options.as) : this.source.options.name.singular;
-    if (!associationName) {
-      throw new Error('Sanity check: Could not guess the name of the association');
-    }
-
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
-  }
+  protected abstract inferForeignKey(): string;
 
   verifyAssociationAlias(alias: string | BuiltModelName): boolean {
     if (typeof alias === 'string') {
@@ -229,6 +226,10 @@ export abstract class MultiAssociation<
   TargetKey extends AttributeNames<T> = any,
   Opts extends MultiAssociationOptions<ForeignKey> = MultiAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
+
+  get isMultiAssociation(): boolean {
+    return true;
+  }
 
   /**
    * Normalize input

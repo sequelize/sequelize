@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     User.belongsTo(Task, { as: 'task' });
     const errorFunction = User.belongsTo.bind(User, Task, { as: 'task' });
-    const errorMessage = 'You have used the alias task in two separate associations. Aliased associations must have unique aliases.';
+    const errorMessage = 'You have defined two associations with the same name "task" on the model "User". Use another alias using the "as" parameter.';
     expect(errorFunction).to.throw(AssociationError, errorMessage);
   });
 });

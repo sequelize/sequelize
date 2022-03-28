@@ -28,15 +28,18 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     }).to.throw('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
   });
 
-  it('properly use the `as` key to generate foreign key name', () => {
+  it('does not use `as` option to generate foreign key name', () => {
+    // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = current.define('User', { username: DataTypes.STRING });
     const Task = current.define('Task', { title: DataTypes.STRING });
 
-    User.hasOne(Task);
+    const association1 = User.hasOne(Task);
+    expect(association1.foreignKey).to.equal('UserId');
     expect(Task.rawAttributes.UserId).not.to.be.empty;
 
-    User.hasOne(Task, { as: 'Shabda' });
-    expect(Task.rawAttributes.ShabdaId).not.to.be.empty;
+    const association2 = User.hasOne(Task, { as: 'Shabda' });
+    expect(association2.foreignKey).to.equal('UserId');
+    expect(Task.rawAttributes.UserId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {

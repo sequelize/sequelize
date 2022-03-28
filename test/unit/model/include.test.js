@@ -10,7 +10,7 @@ const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('all', () => {
-    const Referral = current.define('referal');
+    const Referral = current.define('referral');
 
     Referral.belongsTo(Referral);
 
@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Sequelize.Model._expandIncludeAll.call(Referral, options);
 
       expect(options.include).to.deep.equal([
-        { model: Referral },
+        { as: 'referral', model: Referral },
       ]);
     });
   });

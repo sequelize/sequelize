@@ -41,7 +41,6 @@ export class HasOne<
   TargetPrimaryKey extends AttributeNames<T> = any,
 > extends Association<S, T, TargetKey, HasOneOptions<SourceKey, TargetKey>> {
   associationType = 'HasOne';
-  isSingleAssociation = true;
 
   /**
    * The name of the attribute the foreign key points to.
@@ -121,7 +120,7 @@ export class HasOne<
 
     Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, this.options, this.sourceKeyField);
 
-    this.target.mergeAttributes(newAttributes);
+    this.target.mergeAttributesDefault(newAttributes);
 
     this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
 
@@ -132,6 +131,20 @@ export class HasOne<
 
   #mixin(mixinTargetPrototype: Model) {
     Helpers.mixinMethods(this, mixinTargetPrototype, ['get', 'set', 'create']);
+  }
+
+  protected inferForeignKey(): string {
+    // hasMany & hasOne don't use 'as' to generate the foreign key because the foreign key is located on the *target* model.
+    // If we were to use 'as', User.hasMany(Project, { as: 'projects' }) would add the foreign key
+    // 'projectId' on Project, when it should be 'userId'.
+    // Users can still customize the foreign key using the 'ForeignKey' option.
+    // Note: Keep this code in sync with HasMany.inferForeignKey
+    const associationName = this.source.options.name.singular;
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   /**

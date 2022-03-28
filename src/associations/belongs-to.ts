@@ -38,7 +38,6 @@ export class BelongsTo<
 > extends Association<S, T, SourceKey, BelongsToOptions<SourceKey, TargetKey>> {
 
   associationType = 'BelongsTo';
-  isSingleAssociation = true;
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -124,7 +123,7 @@ export class BelongsTo<
 
     Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.options, this.targetKeyField);
 
-    this.source.mergeAttributes(newAttributes);
+    this.source.mergeAttributesDefault(newAttributes);
 
     this.identifierField = Utils.getColumnName(this.source.rawAttributes[this.foreignKey]);
 
@@ -135,6 +134,15 @@ export class BelongsTo<
 
   #mixin(modelPrototype: Model): void {
     Helpers.mixinMethods(this, modelPrototype, ['get', 'set', 'create']);
+  }
+
+  protected inferForeignKey(): string {
+    const associationName = Utils.singularize(this.options.as);
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   /**

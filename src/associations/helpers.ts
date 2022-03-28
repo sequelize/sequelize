@@ -66,7 +66,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
     // @ts-expect-error
     const realMethod = aliases?.[method] || method;
 
-    Object.defineProperty(mixinTargetPrototype, 'targetMethodName', {
+    Object.defineProperty(mixinTargetPrototype, targetMethodName, {
       enumerable: false,
       value(...params: any[]) {
         // @ts-expect-error

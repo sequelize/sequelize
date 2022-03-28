@@ -1379,8 +1379,22 @@ export class Model {
    *
    * @param {object} newAttributes
    */
-  static mergeAttributes(newAttributes) {
+  static mergeAttributesDefault(newAttributes) {
     Utils.mergeDefaults(this.rawAttributes, newAttributes);
+
+    this.refreshAttributes();
+
+    return this.rawAttributes;
+  }
+
+  static mergeAttributesOverwrite(newAttributes) {
+    for (const attributeName of Object.keys(newAttributes)) {
+      if (!this.rawAttributes[attributeName]) {
+        this.rawAttributes[attributeName] = newAttributes[attributeName];
+      } else {
+        Object.assign(this.rawAttributes[attributeName], newAttributes[attributeName]);
+      }
+    }
 
     this.refreshAttributes();
 

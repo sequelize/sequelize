@@ -47,7 +47,6 @@ export class HasMany<
   accessors: MultiAssociationAccessors;
 
   associationType = 'HasMany';
-  isMultiAssociation = true;
 
   identifierField: string | undefined;
   foreignKeyField: string | undefined;
@@ -142,7 +141,7 @@ export class HasMany<
 
     Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, constraintOptions, this.sourceKeyField);
 
-    this.target.mergeAttributes(newAttributes);
+    this.target.mergeAttributesDefault(newAttributes);
     this.source.refreshAttributes();
 
     this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
@@ -166,6 +165,20 @@ export class HasMany<
         removeMultiple: 'remove',
       },
     );
+  }
+
+  protected inferForeignKey(): string {
+    // hasMany & hasOne don't use 'as' to generate the foreign key because the foreign key is located on the *target* model.
+    // If we were to use 'as', User.hasMany(Project, { as: 'projects' }) would add the foreign key
+    // 'projectId' on Project, when it should be 'userId'.
+    // Users can still customize the foreign key using the 'ForeignKey' option.
+    // Note: Keep this code in sync with HasOne.inferForeignKey
+    const associationName = this.source.options.name.singular;
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   /**

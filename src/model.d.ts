@@ -2030,10 +2030,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Only use if you know what you're doing.
    *
    * Warning: Attributes are not replaced, they are merged.
+   * The existing configuration for an attribute takes priority over the new configuration.
    *
    * @param newAttributes
    */
-  public static mergeAttributes(newAttributes: { [key: string]: ModelAttributeColumnOptions }): BuiltModelAttributeColumOptions;
+  public static mergeAttributesDefault(newAttributes: { [key: string]: ModelAttributeColumnOptions }): BuiltModelAttributeColumOptions;
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   * The new configuration for an attribute takes priority over the existing configuration.
+   *
+   * @param newAttributes
+   */
+  public static mergeAttributesOverwrite(newAttributes: { [key: string]: ModelAttributeColumnOptions}): BuiltModelAttributeColumOptions;
 
   /**
    * Sync this Model to the DB, that is create the table. Upon success, the callback will be called with the

@@ -77,19 +77,16 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     it('should mixin association methods', () => {
       const as = Math.random().toString();
       const association = new HasMany(User, Task, { as });
-      const obj = {};
 
-      association.mixin(obj);
-
-      expect(obj[association.accessors.get]).to.be.an('function');
-      expect(obj[association.accessors.set]).to.be.an('function');
-      expect(obj[association.accessors.addMultiple]).to.be.an('function');
-      expect(obj[association.accessors.add]).to.be.an('function');
-      expect(obj[association.accessors.remove]).to.be.an('function');
-      expect(obj[association.accessors.removeMultiple]).to.be.an('function');
-      expect(obj[association.accessors.hasSingle]).to.be.an('function');
-      expect(obj[association.accessors.hasAll]).to.be.an('function');
-      expect(obj[association.accessors.count]).to.be.an('function');
+      expect(User.prototype[association.accessors.get]).to.be.an('function');
+      expect(User.prototype[association.accessors.set]).to.be.an('function');
+      expect(User.prototype[association.accessors.addMultiple]).to.be.an('function');
+      expect(User.prototype[association.accessors.add]).to.be.an('function');
+      expect(User.prototype[association.accessors.remove]).to.be.an('function');
+      expect(User.prototype[association.accessors.removeMultiple]).to.be.an('function');
+      expect(User.prototype[association.accessors.hasSingle]).to.be.an('function');
+      expect(User.prototype[association.accessors.hasAll]).to.be.an('function');
+      expect(User.prototype[association.accessors.count]).to.be.an('function');
     });
 
     it('should not override custom methods', () => {
@@ -136,8 +133,14 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('get', () => {
-    const User = current.define('User', {});
-    const Task = current.define('Task', {});
+    let User;
+    let Task;
+
+    beforeEach(() => {
+      User = current.define('User', {});
+      Task = current.define('Task', {});
+    });
+
     const idA = Math.random().toString();
     const idB = Math.random().toString();
     const idC = Math.random().toString();
@@ -169,6 +172,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should fetch associations for multiple source instances', async () => {
+      User.Tasks = User.hasMany(Task, { foreignKey });
+
       const findAll = stub(Task, 'findAll').returns(
         Promise.resolve([
           Task.build({
@@ -186,7 +191,6 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         ]),
       );
 
-      User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([
         User.build({ id: idA }),
         User.build({ id: idB }),
