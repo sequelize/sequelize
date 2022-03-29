@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 
-if (dialect !== 'mariadb') {
+if (dialect === 'mariadb') {
   describe('[MariaDB Specific] Errors', () => {
 
     const validateError = async (promise, errClass, errValues) => {

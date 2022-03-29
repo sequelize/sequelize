@@ -9,7 +9,7 @@ const dialect = Support.getTestDialect();
 const env = process.env;
 const { Sequelize } = require('@sequelize/core');
 
-if (dialect !== 'mariadb') {
+if (dialect === 'mariadb') {
   describe('[MARIADB Specific] Connection Manager', () => {
 
     it('has existing init SQL', async () => {
