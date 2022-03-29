@@ -7,7 +7,7 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOne', () => {

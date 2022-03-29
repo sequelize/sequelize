@@ -2,10 +2,10 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
+const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Sequelize, Transaction, DataTypes } = require('@sequelize/core');
 const config = require('../config/config');
 const sinon = require('sinon');
 
@@ -714,7 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('is a transaction method available', () => {
-          expect(Support.Sequelize).to.respondTo('transaction');
+          expect(Sequelize).to.respondTo('transaction');
         });
 
         it('passes a transaction object to the callback', async function () {

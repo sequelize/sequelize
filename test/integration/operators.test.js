@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const { Op, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 

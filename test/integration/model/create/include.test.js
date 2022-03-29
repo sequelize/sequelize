@@ -1,10 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('create', () => {

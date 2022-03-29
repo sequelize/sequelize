@@ -7,8 +7,7 @@ const expect = chai.expect;
 const stub = sinon.stub;
 const _ = require('lodash');
 const Support = require('../support');
-const { DataTypes, Op } = require('@sequelize/core');
-const { HasMany } = require('@sequelize/core/lib/associations/has-many');
+const { DataTypes, Op, HasMany } = require('@sequelize/core');
 
 const current = Support.sequelize;
 

@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -62,8 +62,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-        const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
         Group.belongsTo(User);
 
@@ -166,8 +166,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-        const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
         Group.belongsTo(User);
 
@@ -343,8 +343,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-        const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
         Group.belongsTo(User);
 

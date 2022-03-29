@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, Op, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -11,6 +10,7 @@ const moment = require('moment');
 
 const current = Support.sequelize;
 const uuid = require('uuid');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const semver = require('semver');

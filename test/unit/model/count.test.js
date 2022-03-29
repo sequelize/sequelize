@@ -7,15 +7,15 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Model } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
     before(function () {
-      this.oldFindAll = Sequelize.Model.findAll;
-      this.oldAggregate = Sequelize.Model.aggregate;
+      this.oldFindAll = Model.findAll;
+      this.oldAggregate = Model.aggregate;
 
-      Sequelize.Model.findAll = sinon.stub().resolves();
+      Model.findAll = sinon.stub().resolves();
 
       this.User = current.define('User', {
         username: DataTypes.STRING,
@@ -30,12 +30,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     after(function () {
-      Sequelize.Model.findAll = this.oldFindAll;
-      Sequelize.Model.aggregate = this.oldAggregate;
+      Model.findAll = this.oldFindAll;
+      Model.aggregate = this.oldAggregate;
     });
 
     beforeEach(function () {
-      this.stub = Sequelize.Model.aggregate = sinon.stub().resolves();
+      this.stub = Model.aggregate = sinon.stub().resolves();
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {

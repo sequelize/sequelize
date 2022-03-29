@@ -7,7 +7,7 @@ const config = require('../config/config');
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');

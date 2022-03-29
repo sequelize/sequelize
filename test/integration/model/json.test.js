@@ -1,12 +1,11 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, Op, DataTypes } = require('@sequelize/core');
-
 const moment = require('moment');
 
 const expect = chai.expect;
 const Support = require('../support');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 

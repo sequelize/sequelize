@@ -1,13 +1,12 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, DataTypes, Op } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
+const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const errors = require('@sequelize/core/lib/errors');
 const sinon = require('sinon');
 const _ = require('lodash');
 const moment = require('moment');
@@ -2934,7 +2933,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.bulkCreate(data, {
         validate: true,
         individualHooks: true,
-      })).to.be.rejectedWith(errors.AggregateError);
+      })).to.be.rejectedWith(AggregateError);
     });
 
     it('should not use setter when renaming fields in dataValues', async function () {

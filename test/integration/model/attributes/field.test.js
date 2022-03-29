@@ -2,10 +2,10 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const { Sequelize, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 

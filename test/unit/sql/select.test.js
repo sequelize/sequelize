@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const { Model, DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Model, Op } = require('@sequelize/core');
 const util = require('util');
 const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');

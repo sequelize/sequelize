@@ -65,8 +65,6 @@ if (global.afterEach) {
 let lastSqliteInstance;
 
 const Support = {
-  Sequelize,
-
   /**
    * Returns a Promise that will reject with the next unhandled rejection that occurs
    * during this test (instead of failing the test)
