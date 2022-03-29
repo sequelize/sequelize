@@ -76,13 +76,13 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.27",
+    "esbuild": "0.14.28",
     "esdoc": "1.1.0",
     "esdoc-ecmascript-proposal-plugin": "1.0.0",
     "esdoc-inject-style-plugin": "1.0.0",
     "esdoc-standard-plugin": "1.0.0",
-    "eslint": "8.11.0",
-    "eslint-plugin-jsdoc": "38.0.6",
+    "eslint": "8.12.0",
+    "eslint-plugin-jsdoc": "38.1.3",
     "eslint-plugin-mocha": "10.0.3",
     "expect-type": "0.12.0",
     "fast-glob": "3.2.11",
@@ -113,8 +113,8 @@
     "snowflake-sdk": "1.6.8",
     "source-map-support": "0.5.21",
     "sqlite3": "npm:@vscode/sqlite3@5.0.7",
-    "tedious": "14.3.0",
-    "typescript": "4.6.2"
+    "tedious": "14.4.0",
+    "typescript": "4.6.3"
   },
   "peerDependenciesMeta": {
     "pg": {
