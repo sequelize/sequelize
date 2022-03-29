@@ -3,13 +3,11 @@
 const { expect } = require('chai');
 const Support = require('../support');
 
-const Sequelize = Support.Sequelize;
-const DataTypes = Support.Sequelize.DataTypes;
+const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const moment = require('moment');
-
-const { DatabaseError, UniqueConstraintError, ForeignKeyConstraintError } = Support.Sequelize;
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
