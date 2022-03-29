@@ -32,10 +32,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       .stub(current.getQueryInterface(), 'bulkInsert')
       .resolves([]);
 
-    beforeEach(async () => {
-      await Model.sync({ force: true });
-    });
-
     afterEach(() => {
       stub.resetHistory();
     });
