@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {

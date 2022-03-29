@@ -1,9 +1,8 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const chai = require('chai');
 const util = require('util');
 const uuid = require('uuid');

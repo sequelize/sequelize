@@ -7,7 +7,7 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const env = process.env;
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 
 if (dialect !== 'mariadb') {
   return;
@@ -64,7 +64,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
     });
 
     it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
-      const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
+      const sequelize = new Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
     });
   });

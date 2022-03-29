@@ -4,11 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Sequelize = require('@sequelize/core');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const Op = Sequelize.Op;
 const semver = require('semver');
 
 describe(Support.getTestDialectTeaser('associations'), () => {

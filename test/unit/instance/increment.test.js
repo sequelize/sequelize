@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support   = require('../support');
 
 const current   = Support.sequelize;
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
