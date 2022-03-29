@@ -64,69 +64,73 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: [0],
         });
     });
-  });
 
-  if (current.dialect.supports.inserts.onConflictWhere){
-    it('adds conflictWhere clause to generated queries', () => {
-      const User = Support.sequelize.define(
-        'user',
-        {
-          username: {
-            type: DataTypes.STRING,
-            field: 'user_name',
-            primaryKey: true,
-          },
-          password: {
-            type: DataTypes.STRING,
-            field: 'pass_word',
-          },
-          createdAt: {
-            type: DataTypes.DATE,
-            field: 'created_at',
-          },
-          updatedAt: {
-            type: DataTypes.DATE,
-            field: 'updated_at',
-          },
-        },
-        {
-          timestamps: true,
-        },
-      );
-
-      const upsertKeys = User.primaryKeyAttributes.map(
-        attr => User.rawAttributes[attr].field || attr,
-      );
-
-      expectsql(
-        sql.insertQuery(
-          User.tableName,
-          { user_name: 'testuser', pass_word: '12345' },
-          User.fieldRawAttributesMap,
+    it(
+      current.dialect.supports.inserts.onConflictWhere
+        ? 'adds conflictWhere clause to generated queries'
+        : 'throws error if conflictWhere is provided',
+      () => {
+        const User = Support.sequelize.define(
+          'user',
           {
-            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
-            conflictWhere: {
-              user_name: 'test where value',
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
             },
-            upsertKeys,
+            password: {
+              type: DataTypes.STRING,
+              field: 'pass_word',
+            },
+            createdAt: {
+              type: DataTypes.DATE,
+              field: 'created_at',
+            },
+            updatedAt: {
+              type: DataTypes.DATE,
+              field: 'updated_at',
+            },
           },
-        ),
-        {
-          default:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2);',
+          {
+            timestamps: true,
+          },
+        );
+
+        const upsertKeys = User.primaryKeyAttributes.map(
+          attr => User.rawAttributes[attr].field || attr,
+        );
+
+        let result;
+
+        try {
+          result = sql.insertQuery(
+            User.tableName,
+            { user_name: 'testuser', pass_word: '12345' },
+            User.fieldRawAttributesMap,
+            {
+              updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+              conflictWhere: {
+                user_name: 'test where value',
+              },
+              upsertKeys,
+            },
+          );
+        } catch (error) {
+          result = error;
+        }
+
+        expectsql(result, {
+          default: new Error(
+            'missing dialect support for conflictWhere option',
+          ),
           postgres:
             'INSERT INTO "users" ("user_name","pass_word") VALUES ($1,$2) ON CONFLICT ("user_name") WHERE "user_name" = \'test where value\' DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
-          mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES ($1,$2);',
-          mariadb:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
-          mysql:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           sqlite:
             'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON CONFLICT (`user_name`) WHERE `user_name` = \'test where value\' DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
-        },
-      );
-    });
-  }
+        });
+      },
+    );
+  });
 
   describe('dates', () => {
     it('formats the date correctly when inserting', () => {

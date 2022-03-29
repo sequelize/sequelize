@@ -199,7 +199,6 @@ class QueryGenerator {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')})`;
 
         const fragments = [
           'ON CONFLICT',
@@ -208,11 +207,12 @@ class QueryGenerator {
           ')',
         ];
 
-        if (
-          this._dialect.supports.inserts.onConflictWhere
-          && options.conflictWhere
-        ) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
+        if (!_.isEmpty(options.conflictWhere)) {
+          if (this._dialect.supports.inserts.onConflictWhere) {
+            fragments.push(this.whereQuery(options.conflictWhere, options));
+          } else {
+            throw new Error('missing dialect support for conflictWhere option');
+          }
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -231,6 +231,10 @@ class QueryGenerator {
         // This will be the primary key in most cases, but it could be some other constraint.
         if (_.isEmpty(valueKeys) && options.upsertKeys) {
           valueKeys.push(...options.upsertKeys.map(attr => `${this.quoteIdentifier(attr)}=${this.quoteIdentifier(attr)}`));
+        }
+
+        if (!_.isEmpty(options.conflictWhere)) {
+          throw new Error('missing dialect support for conflictWhere option');
         }
 
         // edge case... but if for some reason there were no valueKeys, and there were also no upsertKeys... then we
