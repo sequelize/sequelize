@@ -6,7 +6,7 @@ const parserStore = require('../parserStore')('oracle');
 const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('connection:oracle');
 const DataTypes = require('../../data-types').oracle;
-
+const { promisify } = require('util');
 /**
  * Oracle Connection Manager
  *
@@ -194,26 +194,16 @@ class ConnectionManager extends AbstractConnectionManager {
   }
 
   async disconnect(connection) {
-    if (connection._closing) {
+    if (!connection.isHealthy()) {
       debug('connection tried to disconnect but was already at CLOSED state');
       return;
     }
 
-    //return await promisify(callback => connection.end(callback))();
-    return new Promise((resolve, reject) => {
-      return connection
-        .close()
-        .then(resolve)
-        .catch(err => {
-          reject(new SequelizeErrors.ConnectionError(err));
-        });
-    });
+    return await promisify(callback => connection.close(callback))();
   }
 
   validate(connection) {
-    // Using the connection._closing flag to figure, close() operation is under
-    // progress by some thread
-    return connection && connection.isHealthy() && !connection._closing;
+    return connection && connection.isHealthy();
   }
 }
 

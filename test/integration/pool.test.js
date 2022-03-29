@@ -128,7 +128,6 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
           connection.closeSync();
         } else if (dialect === 'oracle') {
           // For the Oracle dialect close is an async function
-          connection._closing = true;
           await connection.close();
         } else {
           connection.close();
