@@ -835,10 +835,10 @@ class QueryGenerator {
           if (model) {
             // set the as to either the through name or the model name
             if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through && previousAssociation.through.model === model) {
-              // get from previous association
-              item = new Association(previousModel, model, {
-                as: model.name,
-              });
+              // we get here for cases like
+              // [manyToManyAssociation, throughModel]
+              // "throughModel" must be replaced by the association  from the many to many to the through model
+              item = previousAssociation.fromSourceToThroughOne;
             } else {
               // get association from previous model
               item = previousModel.getAssociationForAlias(model, as);
