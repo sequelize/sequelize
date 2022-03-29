@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id" INTO :2',
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id","user_name" INTO :2,:3;',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'            
           },
           bind: ['triggertest']
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
-            oracle: 'INSERT INTO "ms" ("id") VALUES (:1)',
+            oracle: 'INSERT INTO "ms" ("id") VALUES (:1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);'
           },
           bind: [0]
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("date") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("date") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: {

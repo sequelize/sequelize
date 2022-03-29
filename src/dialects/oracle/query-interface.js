@@ -74,6 +74,11 @@ class OracleQueryInterface extends QueryInterface {
     }
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
+    // we need set this to undefined otherwise sequelize would raise an error
+    // Error: Both `sql.bind` and `options.bind` cannot be set at the same time
+    if (sql.bind) {
+      options.bind = undefined;
+    }
     return await this.sequelize.query(sql, options);
   }
 }

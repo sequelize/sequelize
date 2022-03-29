@@ -89,6 +89,16 @@ class QueryGenerator {
   }
 
   /**
+   * Helper method for getting the returning into bind information 
+   * that is needed by some dialects (currently Oracle)
+   * 
+   * @private
+   */
+  getInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an insert into command
    *
    * @param {string} table
@@ -103,12 +113,14 @@ class QueryGenerator {
     _.defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = [];
+    const bind = options.bind || [];
     const fields = [];
     const returningModelAttributes = [];
+    const returnTypes = [];
     const values = [];
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const returnAttributes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -132,10 +144,14 @@ class QueryGenerator {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if ((this._dialect.supports.returnValues || this._dialect.supports.returnIntoValues) && options.returning) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this._dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -244,7 +260,12 @@ class QueryGenerator {
       emptyQuery += returningFragment;
     }
 
-    query = `${replacements.attributes.length ? valueQuery : emptyQuery};`;
+    if (this._dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery 
+      this.getInsertQueryReturnIntoBinds(returnAttributes, bind.length, returningModelAttributes, returnTypes, options);
+    }
+
+    query = `${replacements.attributes.length ? valueQuery : emptyQuery}${returnAttributes.join(',')};`;
     if (this._dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE(${ replacements.attributes.length ? valueQuery : emptyQuery });`;
     }
@@ -1837,6 +1858,8 @@ class QueryGenerator {
 
     if (this._dialect.supports.returnValues.returning) {
       returningFragment = ` RETURNING ${returnFields.join(',')}`;
+    } else if (this._dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(',')} INTO `;
     } else if (this._dialect.supports.returnValues.output) {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(',')}`;
 
@@ -1850,7 +1873,7 @@ class QueryGenerator {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
