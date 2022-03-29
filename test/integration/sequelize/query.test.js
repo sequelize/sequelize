@@ -384,12 +384,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             error = error_;
           }
 
-          if (dialect === 'db2') {
-            expect(error).to.be.instanceOf(DatabaseError);
-          } else {
-            expect(error).to.be.instanceOf(DatabaseError);
-            expect(error.stack).to.contain('query.test');
-          }
+          expect(error).to.be.instanceOf(DatabaseError);
+          expect(error.stack).to.contain('query.test');
         });
 
         it('emits full stacktraces for unique constraint error', async function () {
@@ -414,12 +410,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             error = error_;
           }
 
-          if (dialect === 'db2') {
-            expect(error).to.be.instanceOf(DatabaseError);
-          } else {
-            expect(error).to.be.instanceOf(UniqueConstraintError);
-            expect(error.stack).to.contain('query.test');
-          }
+          expect(error).to.be.instanceOf(UniqueConstraintError);
+          expect(error.stack).to.contain('query.test');
         });
 
         it('emits full stacktraces for constraint validation error', async function () {
@@ -445,12 +437,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             error = error_;
           }
 
-          if (dialect === 'db2') {
-            expect(error).to.be.instanceOf(DatabaseError);
-          } else {
-            expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-            expect(error.stack).to.contain('query.test');
-          }
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          expect(error.stack).to.contain('query.test');
         });
       });
     }
