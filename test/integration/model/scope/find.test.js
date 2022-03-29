@@ -1,10 +1,9 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, Op } = require('@sequelize/core');
 
 const expect = chai.expect;
-const Op = Sequelize.Op;
 const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
