@@ -185,6 +185,15 @@ module.exports = {
       tagNamePreference: {
         augments: 'extends',
       },
+      structuredTags: {
+        typeParam: {
+          type: false,
+          required: ['name'],
+        },
+        internal: {
+          type: false,
+        },
+      },
     },
   },
   parserOptions: {
