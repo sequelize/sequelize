@@ -4,7 +4,7 @@ const _ = require('lodash');
 const validator = _.cloneDeep(require('validator'));
 const moment = require('moment');
 
-const extensions = {
+export const extensions = {
   extend(name, fn) {
     this[name] = fn;
 
@@ -65,7 +65,6 @@ const extensions = {
     return this.regex(str, pattern, modifiers);
   },
 };
-exports.extensions = extensions;
 
 // instance based validators
 validator.isImmutable = function (value, validatorArgs, field, modelInstance) {
@@ -104,4 +103,4 @@ validator.isDate = function (dateString) {
   return moment(date.toISOString()).isValid();
 };
 
-exports.validator = validator;
+export { validator };

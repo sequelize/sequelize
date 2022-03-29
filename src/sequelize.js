@@ -7,30 +7,30 @@ const retry = require('retry-as-promised');
 const _ = require('lodash');
 
 const Utils = require('./utils');
-const Model = require('./model');
+const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
-const ModelManager = require('./model-manager');
+const { ModelManager } = require('./model-manager');
 const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
 const Hooks = require('./hooks');
-const Association = require('./associations/index');
+const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { QueryInterface } = require('./dialects/abstract/query-interface');
 const { BelongsTo } = require('./associations/belongs-to');
-const HasOne = require('./associations/has-one');
+const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
 
 /**
  * This is the main class, the entry point to sequelize.
  */
-class Sequelize {
+export class Sequelize {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -333,28 +333,28 @@ class Sequelize {
     // require calls static. (Browserify fix)
     switch (this.getDialect()) {
       case 'mariadb':
-        Dialect = require('./dialects/mariadb');
+        Dialect = require('./dialects/mariadb').MariaDbDialect;
         break;
       case 'mssql':
-        Dialect = require('./dialects/mssql');
+        Dialect = require('./dialects/mssql').MssqlDialect;
         break;
       case 'mysql':
-        Dialect = require('./dialects/mysql');
+        Dialect = require('./dialects/mysql').MysqlDialect;
         break;
       case 'postgres':
-        Dialect = require('./dialects/postgres');
+        Dialect = require('./dialects/postgres').PostgresDialect;
         break;
       case 'sqlite':
-        Dialect = require('./dialects/sqlite');
+        Dialect = require('./dialects/sqlite').SqliteDialect;
         break;
       case 'ibmi':
-        Dialect = require('./dialects/ibmi');
+        Dialect = require('./dialects/ibmi').IBMiDialect;
         break;
       case 'db2':
-        Dialect = require('./dialects/db2');
+        Dialect = require('./dialects/db2').Db2Dialect;
         break;
       case 'snowflake':
-        Dialect = require('./dialects/snowflake');
+        Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
@@ -1429,6 +1429,3 @@ for (const error of Object.keys(sequelizeErrors)) {
   Sequelize[error] = sequelizeErrors[error];
 }
 
-module.exports = Sequelize;
-module.exports.Sequelize = Sequelize;
-module.exports.default = Sequelize;

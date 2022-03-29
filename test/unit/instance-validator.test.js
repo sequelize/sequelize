@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const InstanceValidator = require('@sequelize/core/lib/instance-validator');
+const { InstanceValidator } = require('@sequelize/core/lib/instance-validator');
 const sinon = require('sinon');
 const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');
 

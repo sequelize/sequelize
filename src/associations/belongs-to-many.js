@@ -3,12 +3,11 @@
 const Utils = require('./../utils');
 const Helpers = require('./helpers');
 const _ = require('lodash');
-const Association = require('./base');
-const BelongsTo = require('./belongs-to');
-const HasMany = require('./has-many');
-const HasOne = require('./has-one');
-const AssociationError = require('../errors').AssociationError;
-const EmptyResultError = require('../errors').EmptyResultError;
+const { Association } = require('./base');
+const { BelongsTo } = require('./belongs-to');
+const { HasMany } = require('./has-many');
+const { HasOne } = require('./has-one');
+const { AssociationError, EmptyResultError } = require('../errors');
 const { Op } = require('../operators');
 
 /**
@@ -54,7 +53,7 @@ const { Op } = require('../operators');
  *
  * @see {@link Model.belongsToMany}
  */
-class BelongsToMany extends Association {
+export class BelongsToMany extends Association {
   constructor(source, target, options) {
     super(source, target, options);
 
@@ -850,7 +849,3 @@ class BelongsToMany extends Association {
     return !this.isAliased;
   }
 }
-
-module.exports = BelongsToMany;
-module.exports.BelongsToMany = BelongsToMany;
-module.exports.default = BelongsToMany;

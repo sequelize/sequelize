@@ -2,13 +2,13 @@
 
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
+const { SqliteConnectionManager } = require('./connection-manager');
+const { SqliteQuery } = require('./query');
+const { SQLiteQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').sqlite;
 const { SQLiteQueryInterface } = require('./query-interface');
 
-class SqliteDialect extends AbstractDialect {
+export class SqliteDialect extends AbstractDialect {
   static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
     DEFAULT: false,
     'DEFAULT VALUES': true,
@@ -38,8 +38,8 @@ class SqliteDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
-    this.queryGenerator = new QueryGenerator({
+    this.connectionManager = new SqliteConnectionManager(this, sequelize);
+    this.queryGenerator = new SQLiteQueryGenerator({
       _dialect: this,
       sequelize,
     });
@@ -52,13 +52,9 @@ class SqliteDialect extends AbstractDialect {
 }
 
 SqliteDialect.prototype.defaultVersion = '3.8.0'; // minimum supported version
-SqliteDialect.prototype.Query = Query;
+SqliteDialect.prototype.Query = SqliteQuery;
 SqliteDialect.prototype.DataTypes = DataTypes;
 SqliteDialect.prototype.name = 'sqlite';
 SqliteDialect.prototype.TICK_CHAR = '`';
 SqliteDialect.prototype.TICK_CHAR_LEFT = SqliteDialect.prototype.TICK_CHAR;
 SqliteDialect.prototype.TICK_CHAR_RIGHT = SqliteDialect.prototype.TICK_CHAR;
-
-module.exports = SqliteDialect;
-module.exports.SqliteDialect = SqliteDialect;
-module.exports.default = SqliteDialect;
