@@ -3,7 +3,7 @@
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 const moment = require('moment');
 
 if (dialect === 'snowflake') {

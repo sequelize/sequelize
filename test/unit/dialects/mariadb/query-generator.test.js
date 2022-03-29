@@ -7,8 +7,7 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Op } = require('@sequelize/core/lib/operators');
-const { IndexHints } = require('@sequelize/core/lib/index-hints');
+const { Op, IndexHints } = require('@sequelize/core');
 const QueryGenerator = require('@sequelize/core/lib/dialects/mariadb/query-generator');
 
 if (dialect === 'mariadb') {

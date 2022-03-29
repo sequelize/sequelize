@@ -6,6 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const moment = require('moment');
 const Support = require('../support');
+const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
@@ -15,7 +16,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -31,8 +32,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('does not set the deletedAt date in subsequent destroys if dao is paranoid', async function () {
       const UserDestroy = this.sequelize.define('UserDestroy', {
-        name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       }, { paranoid: true });
 
       await UserDestroy.sync({ force: true });
@@ -48,8 +49,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('does not update deletedAt with custom default in subsequent destroys', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
-        deletedAt: { type: Support.Sequelize.DATE, defaultValue: new Date(0) },
+        username: DataTypes.STRING,
+        deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) },
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
@@ -71,8 +72,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('deletes a record from the database if dao is not paranoid', async function () {
       const UserDestroy = this.sequelize.define('UserDestroy', {
-        name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       });
 
       await UserDestroy.sync({ force: true });
@@ -86,7 +87,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('allows updating soft deleted instance', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
+        username: DataTypes.STRING,
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
@@ -116,8 +117,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('supports custom deletedAt field', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
-        destroyTime: Support.Sequelize.DATE,
+        username: DataTypes.STRING,
+        destroyTime: DataTypes.DATE,
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
       await ParanoidUser.sync({ force: true });
@@ -144,8 +145,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('supports custom deletedAt database column', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
-        deletedAt: { type: Support.Sequelize.DATE, field: 'deleted_at' },
+        username: DataTypes.STRING,
+        deletedAt: { type: DataTypes.DATE, field: 'deleted_at' },
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
@@ -172,8 +173,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('supports custom deletedAt field and database column', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
-        destroyTime: { type: Support.Sequelize.DATE, field: 'destroy_time' },
+        username: DataTypes.STRING,
+        destroyTime: { type: DataTypes.DATE, field: 'destroy_time' },
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
       await ParanoidUser.sync({ force: true });
@@ -200,7 +201,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('persists other model changes when soft deleting', async function () {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
+        username: DataTypes.STRING,
       }, { paranoid: true });
 
       await ParanoidUser.sync({ force: true });
@@ -249,8 +250,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('allows sql logging of delete statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
-        name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       });
 
       const logging = sinon.spy();
@@ -268,8 +269,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('allows sql logging of update statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
-        name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       }, { paranoid: true });
 
       const logging = sinon.spy();
@@ -290,7 +291,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const afterSave = sinon.spy();
 
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: Support.Sequelize.STRING,
+        username: DataTypes.STRING,
       }, {
         paranoid: true,
         hooks: {
@@ -323,12 +324,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('delete a record of multiple primary keys table', async function () {
       const MultiPrimary = this.sequelize.define('MultiPrimary', {
         bilibili: {
-          type: Support.Sequelize.CHAR(2),
+          type: DataTypes.CHAR(2),
           primaryKey: true,
         },
 
         guruguru: {
-          type: Support.Sequelize.CHAR(2),
+          type: DataTypes.CHAR(2),
           primaryKey: true,
         },
       });
@@ -359,11 +360,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const Date = this.sequelize.define('Date',
           {
             date: {
-              type: Support.Sequelize.DATE,
+              type: DataTypes.DATE,
               primaryKey: true,
             },
             deletedAt: {
-              type: Support.Sequelize.DATE,
+              type: DataTypes.DATE,
               defaultValue: Number.POSITIVE_INFINITY,
             },
           },

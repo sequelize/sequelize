@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { Transaction } = require('@sequelize/core/lib/transaction');
+const { Transaction, DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const delay = require('delay');
@@ -45,7 +45,7 @@ if (current.dialect.supports.transactions) {
           this.sequelize = sequelize;
 
           this.User = sequelize.define('User', {
-            name: Support.Sequelize.STRING,
+            name: DataTypes.STRING,
           }, { timestamps: false });
 
           await sequelize.sync({ force: true });
@@ -81,8 +81,8 @@ if (current.dialect.supports.transactions) {
       it('works with promise syntax', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const Test = sequelize.define('Test', {
-          id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-          name: { type: Support.Sequelize.STRING },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: { type: DataTypes.STRING },
         });
 
         await sequelize.sync({ force: true });
@@ -109,7 +109,7 @@ if (current.dialect.supports.transactions) {
           this.sequelize = sequelize;
 
           this.Model = sequelize.define('Model', {
-            name: { type: Support.Sequelize.STRING, unique: true },
+            name: { type: DataTypes.STRING, unique: true },
           }, {
             timestamps: false,
           });

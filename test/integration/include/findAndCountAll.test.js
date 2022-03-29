@@ -6,8 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('../support');
 
-const Op = Support.Sequelize.Op;
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
