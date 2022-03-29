@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
-            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id" INTO :2',
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id","user_name" INTO :2,:3;',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: ['triggertest']
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($1); SET IDENTITY_INSERT [ms] OFF;',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
-            oracle: 'INSERT INTO "ms" ("id") VALUES (:1)',
+            oracle: 'INSERT INTO "ms" ("id") VALUES (:1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);'
           },
           bind: [0]
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("date") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("date") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
-            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1)',
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: {
