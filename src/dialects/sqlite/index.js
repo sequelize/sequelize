@@ -6,7 +6,7 @@ const { SqliteConnectionManager } = require('./connection-manager');
 const { SqliteQuery } = require('./query');
 const { SqliteQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').sqlite;
-const { SQLiteQueryInterface } = require('./query-interface');
+const { SqliteQueryInterface } = require('./query-interface');
 
 export class SqliteDialect extends AbstractDialect {
   static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
@@ -44,7 +44,7 @@ export class SqliteDialect extends AbstractDialect {
       sequelize,
     });
 
-    this.queryInterface = new SQLiteQueryInterface(
+    this.queryInterface = new SqliteQueryInterface(
       sequelize,
       this.queryGenerator,
     );
