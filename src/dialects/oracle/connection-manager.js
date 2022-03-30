@@ -202,6 +202,12 @@ class ConnectionManager extends AbstractConnectionManager {
     return await promisify(callback => connection.close(callback))();
   }
 
+  /**
+   * Checking if the connection object is valid and the connection is healthy
+   *
+   * @param {object} connection
+   * @private
+   */
   validate(connection) {
     return connection && connection.isHealthy();
   }
