@@ -1,7 +1,7 @@
 # Code of Conduct
 
 All participants of Sequelize are expected to abide by our Code of Conduct,
-both online (be it on GitHub, slack, and others) and during in-person events (such as meetups) that are hosted and/or associated with Sequelize.
+both online (be it on GitHub, Slack, and others) and during in-person events (such as meetups) that are hosted and/or associated with Sequelize.
 
 ## The Pledge
 
