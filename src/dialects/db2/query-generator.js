@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
@@ -12,7 +12,7 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-class Db2QueryGenerator extends AbstractQueryGenerator {
+export class Db2QueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
 
@@ -933,5 +933,3 @@ function wrapSingleQuote(identifier) {
 
   return '';
 }
-
-module.exports = Db2QueryGenerator;

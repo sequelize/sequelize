@@ -1,10 +1,10 @@
 'use strict';
 
-const MySQLQueryGenerator = require('../mysql/query-generator');
+const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const Utils = require('./../../utils');
 const _ = require('lodash');
 
-class MariaDBQueryGenerator extends MySQLQueryGenerator {
+export class MariaDbQueryGenerator extends MySqlQueryGenerator {
   createSchema(schema, options) {
     options = {
       charset: null,
@@ -91,5 +91,3 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 }
-
-module.exports = MariaDBQueryGenerator;

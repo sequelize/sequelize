@@ -16,6 +16,7 @@ export { BaseError as Error } from './errors';
 export * from './model';
 export * from './dialects/abstract/query-interface';
 export * from './sequelize';
+export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils';
 export { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';

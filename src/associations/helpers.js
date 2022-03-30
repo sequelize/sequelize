@@ -1,6 +1,6 @@
 'use strict';
 
-function checkNamingCollision(association) {
+export function checkNamingCollision(association) {
   if (Object.prototype.hasOwnProperty.call(association.source.rawAttributes, association.as)) {
     throw new Error(
       `Naming collision between attribute '${association.as}'`
@@ -10,9 +10,7 @@ function checkNamingCollision(association) {
   }
 }
 
-exports.checkNamingCollision = checkNamingCollision;
-
-function addForeignKeyConstraints(newAttribute, source, target, options, key) {
+export function addForeignKeyConstraints(newAttribute, source, target, options, key) {
   // FK constraints are opt-in: users must either set `foreignKeyConstraints`
   // on the association, or request an `onDelete` or `onUpdate` behavior
 
@@ -33,8 +31,6 @@ function addForeignKeyConstraints(newAttribute, source, target, options, key) {
   }
 }
 
-exports.addForeignKeyConstraints = addForeignKeyConstraints;
-
 /**
  * Mixin (inject) association methods to model prototype
  *
@@ -46,7 +42,7 @@ exports.addForeignKeyConstraints = addForeignKeyConstraints;
  * @param {object} aliases Mapping between model and association method names
  *
  */
-function mixinMethods(association, obj, methods, aliases) {
+export function mixinMethods(association, obj, methods, aliases) {
   aliases = aliases || {};
 
   for (const method of methods) {
@@ -60,5 +56,3 @@ function mixinMethods(association, obj, methods, aliases) {
     }
   }
 }
-
-exports.mixinMethods = mixinMethods;

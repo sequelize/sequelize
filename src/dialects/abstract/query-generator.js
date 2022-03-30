@@ -8,11 +8,11 @@ const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
 const SqlString = require('../../sql-string');
 const DataTypes = require('../../data-types');
-const Model = require('../../model');
-const Association = require('../../associations/base');
-const BelongsTo = require('../../associations/belongs-to');
-const BelongsToMany = require('../../associations/belongs-to-many');
-const HasMany = require('../../associations/has-many');
+const { Model } = require('../../model');
+const { Association } = require('../../associations/base');
+const { BelongsTo } = require('../../associations/belongs-to');
+const { BelongsToMany } = require('../../associations/belongs-to-many');
+const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { IndexHints } = require('../../index-hints');
@@ -22,7 +22,7 @@ const { IndexHints } = require('../../index-hints');
  *
  * @private
  */
-class QueryGenerator {
+export class AbstractQueryGenerator {
   constructor(options) {
     if (!options.sequelize) {
       throw new Error('QueryGenerator initialized without options.sequelize');
@@ -2882,7 +2882,5 @@ class QueryGenerator {
   }
 }
 
-Object.assign(QueryGenerator.prototype, require('./query-generator/operators'));
-Object.assign(QueryGenerator.prototype, require('./query-generator/transaction'));
-
-module.exports = QueryGenerator;
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/operators'));
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));

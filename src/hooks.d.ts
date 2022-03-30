@@ -1,5 +1,6 @@
 import { ValidationOptions } from './instance-validator';
-import Model, {
+import {
+  Model,
   BulkCreateOptions,
   CountOptions,
   CreateOptions,

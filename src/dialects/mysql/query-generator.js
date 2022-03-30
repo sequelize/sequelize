@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -26,7 +26,7 @@ const FOREIGN_KEY_FIELDS = [
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-class MySQLQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
 
@@ -630,5 +630,3 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-module.exports = MySQLQueryGenerator;

@@ -3,7 +3,7 @@
 const dataTypes = require('./data-types');
 const { logger } = require('./utils/logger');
 
-function arrayToList(array, timeZone, dialect, format) {
+export function arrayToList(array, timeZone, dialect, format) {
   return array.reduce((sql, val, i) => {
     if (i !== 0) {
       sql += ', ';
@@ -19,9 +19,7 @@ function arrayToList(array, timeZone, dialect, format) {
   }, '');
 }
 
-exports.arrayToList = arrayToList;
-
-function escape(val, timeZone, dialect, format) {
+export function escape(val, timeZone, dialect, format) {
   let prependN = false;
   if (val === undefined || val === null) {
     // There are cases in Db2 for i where 'NULL' isn't accepted, such as
@@ -109,9 +107,7 @@ function escape(val, timeZone, dialect, format) {
   return `${(prependN ? 'N\'' : '\'') + val}'`;
 }
 
-exports.escape = escape;
-
-function format(sql, values, timeZone, dialect) {
+export function format(sql, values, timeZone, dialect) {
   values = [values].flat();
 
   if (typeof sql !== 'string') {
@@ -127,9 +123,7 @@ function format(sql, values, timeZone, dialect) {
   });
 }
 
-exports.format = format;
-
-function formatNamedParameters(sql, values, timeZone, dialect) {
+export function formatNamedParameters(sql, values, timeZone, dialect) {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
     if (dialect === 'postgres' && value.slice(0, 2) === '::') {
       return value;
@@ -142,5 +136,3 @@ function formatNamedParameters(sql, values, timeZone, dialect) {
     throw new Error(`Named parameter "${value}" has no value in the given object.`);
   });
 }
-
-exports.formatNamedParameters = formatNamedParameters;

@@ -3,7 +3,7 @@
 const Utils = require('./../utils');
 const Helpers = require('./helpers');
 const _ = require('lodash');
-const Association = require('./base');
+const { Association } = require('./base');
 const { Op } = require('../operators');
 
 /**
@@ -13,7 +13,7 @@ const { Op } = require('../operators');
  *
  * @see {@link Model.belongsTo}
  */
-class BelongsTo extends Association {
+export class BelongsTo extends Association {
   constructor(source, target, options) {
     super(source, target, options);
 
@@ -252,7 +252,3 @@ class BelongsTo extends Association {
     return !this.isAliased;
   }
 }
-
-module.exports = BelongsTo;
-module.exports.BelongsTo = BelongsTo;
-module.exports.default = BelongsTo;
