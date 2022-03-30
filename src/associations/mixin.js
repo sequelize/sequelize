@@ -12,7 +12,7 @@ function isModel(model, sequelize) {
     && model.prototype instanceof sequelize.Sequelize.Model;
 }
 
-const Mixin = {
+export const Mixin = {
   hasMany(target, options = {}) {
     if (!isModel(target, this.sequelize)) {
       throw new Error(`${this.name}.hasMany called with something that's not a subclass of Sequelize.Model`);
@@ -111,6 +111,3 @@ function singleLinked(Type) {
 Mixin.hasOne = singleLinked(HasOne);
 Mixin.belongsTo = singleLinked(BelongsTo);
 
-module.exports = Mixin;
-module.exports.Mixin = Mixin;
-module.exports.default = Mixin;

@@ -16,7 +16,7 @@ const { promisify } = require('util');
  *
  * @private
  */
-class InstanceValidator {
+export class InstanceValidator {
   constructor(modelInstance, options) {
     options = {
       // assign defined and default options
@@ -419,7 +419,3 @@ class InstanceValidator {
  * @private
  */
 InstanceValidator.RAW_KEY_NAME = 'original';
-
-module.exports = InstanceValidator;
-module.exports.InstanceValidator = InstanceValidator;
-module.exports.default = InstanceValidator;

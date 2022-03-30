@@ -153,5 +153,4 @@ if (dialect === 'mariadb') {
       });
     });
   });
-
 }

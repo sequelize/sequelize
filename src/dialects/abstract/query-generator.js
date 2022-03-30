@@ -23,7 +23,7 @@ const { _validateIncludedElements } = require('../../model-internals');
  *
  * @private
  */
-class QueryGenerator {
+export class AbstractQueryGenerator {
   constructor(options) {
     if (!options.sequelize) {
       throw new Error('QueryGenerator initialized without options.sequelize');
@@ -2871,7 +2871,5 @@ class QueryGenerator {
   }
 }
 
-Object.assign(QueryGenerator.prototype, require('./query-generator/operators'));
-Object.assign(QueryGenerator.prototype, require('./query-generator/transaction'));
-
-module.exports = QueryGenerator;
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/operators'));
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));

@@ -14,3 +14,4 @@ const { Sequelize } = require('./sequelize');
 //  const { Sequelize } = require('@sequelize/core')
 module.exports = Sequelize;
 module.exports.Sequelize = Sequelize;
+module.exports.default = Sequelize;

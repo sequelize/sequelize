@@ -9,7 +9,6 @@ const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
-
   describe('[MariaDB Specific] DAO', () => {
     beforeEach(async function () {
       this.sequelize.options.quoteIdentifiers = true;
@@ -125,7 +124,5 @@ if (dialect === 'mariadb') {
       const user = await User.findOne({ where: { username: user0.username } });
       expect(user.location).to.deep.eql(point);
     });
-
   });
-
 }

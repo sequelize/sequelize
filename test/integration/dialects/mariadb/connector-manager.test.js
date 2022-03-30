@@ -66,5 +66,4 @@ if (dialect === 'mariadb') {
       });
     });
   });
-
 }

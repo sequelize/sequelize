@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
@@ -12,7 +12,7 @@ const ER_NO_REFERENCED_ROW = 1452;
 
 const debug = logger.debugContext('sql:mysql');
 
-class Query extends AbstractQuery {
+export class MySqlQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, { showWarnings: false, ...options });
   }
@@ -316,7 +316,3 @@ class Query extends AbstractQuery {
     }));
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

@@ -1,7 +1,6 @@
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
-  AndOperator,
   BulkCreateOptions,
   CreateOptions,
   DestroyOptions,
@@ -13,7 +12,6 @@ import {
   ModelAttributeColumnOptions,
   ModelAttributes,
   ModelOptions,
-  OrOperator,
   UpdateOptions,
   WhereOperators,
   ModelCtor,
@@ -21,12 +19,12 @@ import {
   ModelType,
   CreationAttributes,
   Attributes,
-  WhereAttributeHash,
-  ColumnReference, WhereAttributeHashValue,
+  ColumnReference,
+  WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
-import { Cast, Col, DeepWriteable, Fn, Json, Literal, SequelizeMethod, Where } from './utils';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';

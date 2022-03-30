@@ -7,7 +7,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk with Snowflake database
  */
-class SnowflakeQueryInterface extends QueryInterface {
+export class SnowflakeQueryInterface extends QueryInterface {
   /**
    * A wrapper that fixes Snowflake's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
@@ -86,5 +86,3 @@ class SnowflakeQueryInterface extends QueryInterface {
     return await this.sequelize.query(query, options);
   }
 }
-
-exports.SnowflakeQueryInterface = SnowflakeQueryInterface;

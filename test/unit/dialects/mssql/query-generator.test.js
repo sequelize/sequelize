@@ -5,7 +5,7 @@ const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const { DataTypes, Op, TableHints } = require('@sequelize/core');
-const QueryGenerator = require('@sequelize/core/lib/dialects/mssql/query-generator');
+const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/mssql/query-generator');
 const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
 
 if (current.dialect.name === 'mssql') {

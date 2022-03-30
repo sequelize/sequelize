@@ -3,14 +3,14 @@
 const Utils = require('../../utils');
 const util = require('util');
 const _ = require('lodash');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const DataTypes = require('../../data-types');
 const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
-class IBMiQueryGenerator extends AbstractQueryGenerator {
+export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
   // Version queries
   versionQuery() {
@@ -841,5 +841,3 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-exports.QueryGenerator = IBMiQueryGenerator;

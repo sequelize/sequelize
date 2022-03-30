@@ -73,7 +73,6 @@ if (dialect === 'mariadb') {
         await this.User.bulkCreate(users);
         await this.Task.bulkCreate(tasks);
       });
-
     });
   });
 }
