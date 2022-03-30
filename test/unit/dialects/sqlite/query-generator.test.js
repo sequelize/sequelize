@@ -9,7 +9,7 @@ const { DataTypes, Op } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const moment = require('moment');
-const { SQLiteQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/sqlite/query-generator');
+const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {

@@ -6,7 +6,7 @@ const _ = require('lodash');
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-export class SQLiteQueryGenerator extends MySqlQueryGenerator {
+export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchema() {
     return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }

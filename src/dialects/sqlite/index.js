@@ -4,7 +4,7 @@ const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { SqliteConnectionManager } = require('./connection-manager');
 const { SqliteQuery } = require('./query');
-const { SQLiteQueryGenerator } = require('./query-generator');
+const { SqliteQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').sqlite;
 const { SQLiteQueryInterface } = require('./query-interface');
 
@@ -39,7 +39,7 @@ export class SqliteDialect extends AbstractDialect {
     super();
     this.sequelize = sequelize;
     this.connectionManager = new SqliteConnectionManager(this, sequelize);
-    this.queryGenerator = new SQLiteQueryGenerator({
+    this.queryGenerator = new SqliteQueryGenerator({
       _dialect: this,
       sequelize,
     });
