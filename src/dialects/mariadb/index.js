@@ -2,13 +2,13 @@
 
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
-const { MySQLQueryInterface } = require('../mysql/query-interface');
+const { MariaDbConnectionManager } = require('./connection-manager');
+const { MariaDbQuery } = require('./query');
+const { MariaDbQueryGenerator } = require('./query-generator');
+const { MySqlQueryInterface } = require('../mysql/query-interface');
 const DataTypes = require('../../data-types').mariadb;
 
-class MariadbDialect extends AbstractDialect {
+export class MariaDbDialect extends AbstractDialect {
   static supports = _.merge(
     _.cloneDeep(AbstractDialect.supports),
     {
@@ -45,25 +45,23 @@ class MariadbDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
-    this.queryGenerator = new QueryGenerator({
+    this.connectionManager = new MariaDbConnectionManager(this, sequelize);
+    this.queryGenerator = new MariaDbQueryGenerator({
       _dialect: this,
       sequelize,
     });
-    this.queryInterface = new MySQLQueryInterface(
+    this.queryInterface = new MySqlQueryInterface(
       sequelize,
       this.queryGenerator,
     );
   }
 }
 
-MariadbDialect.prototype.defaultVersion = '10.1.44'; // minimum supported version
-MariadbDialect.prototype.Query = Query;
-MariadbDialect.prototype.QueryGenerator = QueryGenerator;
-MariadbDialect.prototype.DataTypes = DataTypes;
-MariadbDialect.prototype.name = 'mariadb';
-MariadbDialect.prototype.TICK_CHAR = '`';
-MariadbDialect.prototype.TICK_CHAR_LEFT = MariadbDialect.prototype.TICK_CHAR;
-MariadbDialect.prototype.TICK_CHAR_RIGHT = MariadbDialect.prototype.TICK_CHAR;
-
-module.exports = MariadbDialect;
+MariaDbDialect.prototype.defaultVersion = '10.1.44'; // minimum supported version
+MariaDbDialect.prototype.Query = MariaDbQuery;
+MariaDbDialect.prototype.QueryGenerator = MariaDbQueryGenerator;
+MariaDbDialect.prototype.DataTypes = DataTypes;
+MariaDbDialect.prototype.name = 'mariadb';
+MariaDbDialect.prototype.TICK_CHAR = '`';
+MariaDbDialect.prototype.TICK_CHAR_LEFT = MariaDbDialect.prototype.TICK_CHAR;
+MariaDbDialect.prototype.TICK_CHAR_RIGHT = MariaDbDialect.prototype.TICK_CHAR;

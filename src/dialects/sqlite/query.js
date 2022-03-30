@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('sqlite');
@@ -10,7 +10,7 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
-class Query extends AbstractQuery {
+export class SqliteQuery extends AbstractQuery {
   getInsertIdField() {
     return 'lastID';
   }
@@ -475,7 +475,3 @@ class Query extends AbstractQuery {
     return 'all';
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

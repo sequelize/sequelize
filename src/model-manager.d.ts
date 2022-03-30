@@ -11,5 +11,3 @@ export class ModelManager {
   public removeModel(model: ModelType): void;
   public getModel(against: unknown, options?: { attribute?: string }): typeof Model;
 }
-
-export default ModelManager;

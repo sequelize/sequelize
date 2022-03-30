@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const { Op, DataTypes } = require('@sequelize/core');
-const QueryGenerator = require('@sequelize/core/lib/dialects/postgres/query-generator');
+const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/postgres/query-generator');
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
