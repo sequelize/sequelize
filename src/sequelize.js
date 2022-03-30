@@ -1174,14 +1174,14 @@ export class Sequelize {
 }
 
 // Aliases
-Sequelize.prototype.fn = fn;
-Sequelize.prototype.col = col;
-Sequelize.prototype.cast = cast;
-Sequelize.prototype.literal = literal;
-Sequelize.prototype.and = and;
-Sequelize.prototype.or = or;
-Sequelize.prototype.json = json;
-Sequelize.prototype.where = where;
+Sequelize.prototype.fn = Sequelize.fn;
+Sequelize.prototype.col = Sequelize.col;
+Sequelize.prototype.cast = Sequelize.cast;
+Sequelize.prototype.literal = Sequelize.literal;
+Sequelize.prototype.and = Sequelize.and;
+Sequelize.prototype.or = Sequelize.or;
+Sequelize.prototype.json = Sequelize.json;
+Sequelize.prototype.where = Sequelize.where;
 Sequelize.prototype.validate = Sequelize.prototype.authenticate;
 
 /**
