@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
 const DataTypes = require('../../data-types');
@@ -13,7 +13,7 @@ const ER_NO_REFERENCED_ROW = 1452;
 
 const debug = logger.debugContext('sql:mariadb');
 
-class Query extends AbstractQuery {
+export class MariaDbQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, { showWarnings: false, ...options });
   }
@@ -343,5 +343,3 @@ class Query extends AbstractQuery {
     return result;
   }
 }
-
-module.exports = Query;

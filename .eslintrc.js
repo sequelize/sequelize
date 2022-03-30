@@ -198,7 +198,7 @@ module.exports = {
   },
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'script',
+    sourceType: 'module',
   },
   // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
   ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*', '!dev/update-authors.js'],

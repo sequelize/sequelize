@@ -17,7 +17,7 @@ const debug = logger.debugContext('pool');
  *
  * @private
  */
-class ConnectionManager {
+export class ConnectionManager {
   constructor(dialect, sequelize) {
     const config = _.cloneDeep(sequelize.config);
 
@@ -365,7 +365,3 @@ class ConnectionManager {
     return this.dialect.connectionManager.validate(connection);
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

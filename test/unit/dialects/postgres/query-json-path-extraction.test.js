@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('@sequelize/core/lib/dialects/postgres/query-generator');
+const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/postgres/query-generator');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] jsonPathExtractionQuery', () => {

@@ -1,7 +1,7 @@
 'use strict';
 
 const semver = require('semver');
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { ConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').mariadb;
@@ -19,7 +19,7 @@ const parserStore = require('../parserStore')('mariadb');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class MariaDbConnectionManager extends ConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
@@ -65,7 +65,7 @@ class ConnectionManager extends AbstractConnectionManager {
       password: config.password,
       database: config.database,
       timezone: tzOffset,
-      typeCast: ConnectionManager._typecast.bind(this),
+      typeCast: MariaDbConnectionManager._typecast.bind(this),
       bigNumberStrings: false,
       supportBigNumbers: true,
       foundRows: false,
@@ -139,7 +139,3 @@ class ConnectionManager extends AbstractConnectionManager {
     return connection && connection.isValid();
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

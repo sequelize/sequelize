@@ -8,7 +8,7 @@ const Utils = require('../../utils');
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-class PostgresQueryInterface extends QueryInterface {
+export class PostgresQueryInterface extends QueryInterface {
   /**
    * Ensure enum and their values.
    *
@@ -245,5 +245,3 @@ class PostgresQueryInterface extends QueryInterface {
     await Promise.all(promises);
   }
 }
-
-exports.PostgresQueryInterface = PostgresQueryInterface;

@@ -1,7 +1,6 @@
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
-  AndOperator,
   BulkCreateOptions,
   CreateOptions,
   DestroyOptions,
@@ -13,7 +12,6 @@ import {
   ModelAttributeColumnOptions,
   ModelAttributes,
   ModelOptions,
-  OrOperator,
   UpdateOptions,
   WhereOperators,
   ModelCtor,
@@ -21,12 +19,12 @@ import {
   ModelType,
   CreationAttributes,
   Attributes,
-  WhereAttributeHash,
-  ColumnReference, WhereAttributeHashValue,
+  ColumnReference,
+  WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
-import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op } from '.';
-import { Cast, Col, DeepWriteable, Fn, Json, Literal, SequelizeMethod, Where } from './utils';
+import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
@@ -409,7 +407,7 @@ export interface QueryOptionsTransactionRequired { }
  * import sequelize:
  *
  * ```js
- * const Sequelize = require('@sequelize/core');
+ * const { Sequelize } = require('@sequelize/core');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -512,6 +510,9 @@ export class Sequelize extends Hooks {
    */
   public static where: typeof where;
   public where: typeof where;
+
+  public static Op: typeof Op;
+  public static DataTypes: typeof DataTypes;
 
   /**
    * A hook that is run before validation
@@ -1548,5 +1549,3 @@ type ContinuationLocalStorageNamespace = {
   get(key: string): unknown;
   set(key: string, value: unknown): void;
 };
-
-export default Sequelize;
