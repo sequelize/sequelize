@@ -69,6 +69,9 @@ export class SnowflakeConnectionManager extends ConnectionManager {
     try {
 
       const connection = await new Promise((resolve, reject) => {
+        if (connectionConfig.configure) {
+          this.lib.configure({ ...connectionConfig.configure });
+        }
         this.lib.createConnection(connectionConfig).connect((err, conn) => {
           if (err) {
             console.error(err);
