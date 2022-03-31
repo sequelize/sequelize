@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { ConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('connection:pg');
@@ -11,7 +11,7 @@ const dataTypes = require('../../data-types');
 const momentTz = require('moment-timezone');
 const { promisify } = require('util');
 
-class ConnectionManager extends AbstractConnectionManager {
+export class PostgresConnectionManager extends ConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
@@ -108,7 +108,7 @@ class ConnectionManager extends AbstractConnectionManager {
     ]);
 
     connectionConfig.types = {
-      getTypeParser: ConnectionManager.prototype.getTypeParser.bind(this),
+      getTypeParser: PostgresConnectionManager.prototype.getTypeParser.bind(this),
     };
 
     if (config.dialectOptions) {
@@ -356,7 +356,3 @@ class ConnectionManager extends AbstractConnectionManager {
     this.enumOids = { oids: [], arrayOids: [] };
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

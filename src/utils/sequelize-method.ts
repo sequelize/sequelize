@@ -1,5 +1,5 @@
 import isObject from 'lodash/isObject';
-import type { Op, WhereOperators, WhereLeftOperand } from '..';
+import type { Op, WhereOperators, WhereLeftOperand, WhereAttributeHash, WhereAttributeHashValue } from '..';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -14,9 +14,12 @@ export class SequelizeMethod {}
  */
 export class Fn extends SequelizeMethod {
   private readonly fn: string;
-  private readonly args: unknown[];
 
-  constructor(fn: string, args: unknown[]) {
+  // unknown already covers the other two types, but they've been added explicitly to document
+  // passing WhereAttributeHash generates a condition inside the function.
+  private readonly args: Array<unknown | SequelizeMethod | WhereAttributeHash>;
+
+  constructor(fn: string, args: Fn['args']) {
     super();
     this.fn = fn;
     this.args = args;
@@ -65,6 +68,9 @@ export class Cast extends SequelizeMethod {
  * Do not use me directly. Use {@link Sequelize.literal}
  */
 export class Literal extends SequelizeMethod {
+  /** this (type-only) brand prevents TypeScript from thinking Cast is assignable to Literal because they share the same shape */
+  declare private readonly brand: 'literal';
+
   private readonly val: unknown;
 
   constructor(val: unknown) {
@@ -108,14 +114,14 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
   // TODO [=7]: rename to operator after typescript migration
   private readonly comparator: string | Operator;
   // TODO [=7]: rename to rightOperand after typescript migration
-  private readonly logic: WhereOperators[Operator] | any;
+  private readonly logic: WhereOperators[Operator] | WhereAttributeHashValue<any> | any;
 
   constructor(leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]);
   constructor(leftOperand: WhereLeftOperand, operator: string, rightOperand: any);
-  constructor(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]);
+  constructor(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>);
   constructor(
     leftOperand: WhereLeftOperand,
-    operatorOrRightOperand: string | Operator | WhereOperators[Operator],
+    operatorOrRightOperand: string | Operator | WhereAttributeHashValue<any>,
     rightOperand?: WhereOperators[Operator] | any,
   ) {
     super();
@@ -124,8 +130,6 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
 
     if (rightOperand !== undefined) {
       this.logic = rightOperand;
-      // TypeScript is not smart enough to know that if `rightOperand` is undefined, then `operatorOrRightOperand` has to be a valid rightOperand
-      // @ts-expect-error
       this.comparator = operatorOrRightOperand;
     } else {
       this.logic = operatorOrRightOperand;

@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, OptimisticLockError } = require('@sequelize/core');
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         accountB.number += 1;
 
         return await accountB.save();
-      })()).to.eventually.be.rejectedWith(Support.Sequelize.OptimisticLockError);
+      })()).to.eventually.be.rejectedWith(OptimisticLockError);
     });
 
     it('increment() also increments the version', async () => {

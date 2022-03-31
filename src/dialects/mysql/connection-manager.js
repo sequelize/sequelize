@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { ConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').mysql;
@@ -19,7 +19,7 @@ const { promisify } = require('util');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class MySqlConnectionManager extends ConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
@@ -61,7 +61,7 @@ class ConnectionManager extends AbstractConnectionManager {
       password: config.password,
       database: config.database,
       timezone: this.sequelize.options.timezone,
-      typeCast: ConnectionManager._typecast.bind(this),
+      typeCast: MySqlConnectionManager._typecast.bind(this),
       bigNumberStrings: false,
       supportBigNumbers: true,
       ...config.dialectOptions,
@@ -149,7 +149,3 @@ class ConnectionManager extends AbstractConnectionManager {
       && !connection.stream.destroyed;
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

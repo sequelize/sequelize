@@ -10,7 +10,7 @@ const uuid = require('uuid').v4;
 /**
  * The interface that Sequelize uses to talk with SQLite database
  */
-class SQLiteQueryInterface extends QueryInterface {
+export class SqliteQueryInterface extends QueryInterface {
   /**
    * A wrapper that fixes SQLite's inability to remove columns from existing tables.
    * It will create a backup of the table, drop the table afterwards and create a
@@ -322,5 +322,3 @@ class SQLiteQueryInterface extends QueryInterface {
     return `${prefix}_${suffix}`;
   }
 }
-
-exports.SQLiteQueryInterface = SQLiteQueryInterface;

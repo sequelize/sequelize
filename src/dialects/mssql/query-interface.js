@@ -10,7 +10,7 @@ const { QueryInterface } = require('../abstract/query-interface');
 /**
  * The interface that Sequelize uses to talk with MSSQL database
  */
-class MSSqlQueryInterface extends QueryInterface {
+export class MsSqlQueryInterface extends QueryInterface {
   /**
   * A wrapper that fixes MSSQL's inability to cleanly remove columns from existing tables if they have a default constraint.
   *
@@ -87,5 +87,3 @@ class MSSqlQueryInterface extends QueryInterface {
     return await this.sequelize.query(sql, options);
   }
 }
-
-exports.MSSqlQueryInterface = MSSqlQueryInterface;

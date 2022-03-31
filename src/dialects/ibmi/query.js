@@ -1,15 +1,14 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const parserStore = require('../parserStore')('ibmi');
-const SqlString = require('../../sql-string');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:ibmi');
 
-class Query extends AbstractQuery {
+export class IBMiQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -285,7 +284,3 @@ class Query extends AbstractQuery {
     return err;
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

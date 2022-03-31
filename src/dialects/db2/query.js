@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
 const _ = require('lodash');
@@ -9,7 +9,7 @@ const moment = require('moment');
 
 const debug = logger.debugContext('sql:db2');
 
-class Query extends AbstractQuery {
+export class Db2Query extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -530,7 +530,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

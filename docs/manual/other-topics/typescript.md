@@ -103,7 +103,7 @@ import {
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
   HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
-  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute
+  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
 } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
@@ -153,10 +153,14 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
 class Project extends Model<
   InferAttributes<Project>,
   InferCreationAttributes<Project>
-> {
+  > {
   // id can be undefined during creation when using `autoIncrement`
   declare id: CreationOptional<number>;
-  declare ownerId: number;
+
+  // foreign keys are automatically added by associations methods (like Project.belongsTo)
+  // by branding them using the `ForeignKey` type, `Project.init` will know it does not need to
+  // display an error if ownerId is missing.
+  declare ownerId: ForeignKey<User['id']>;
   declare name: string;
 
   // `owner` is an eagerly-loaded association.
@@ -173,7 +177,7 @@ class Address extends Model<
   InferAttributes<Address>,
   InferCreationAttributes<Address>
 > {
-  declare userId: number;
+  declare userId: ForeignKey<User['id']>;
   declare address: string;
 
   // createdAt can be undefined during creation
@@ -188,10 +192,6 @@ Project.init(
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true
-    },
-    ownerId: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false
     },
     name: {
       type: new DataTypes.STRING(128),
@@ -232,9 +232,6 @@ User.init(
 
 Address.init(
   {
-    userId: {
-      type: DataTypes.INTEGER.UNSIGNED
-    },
     address: {
       type: new DataTypes.STRING(128),
       allowNull: false
@@ -321,6 +318,63 @@ async function doStuffWithUser() {
 })();
 ```
 
+### The case of `Model.init`
+
+`Model.init` requires an attribute configuration for each attribute declared in typings.
+
+Some attributes don't actually need to be passed to `Model.init`, this is how you can make this static method aware of them:
+
+- Methods used to define associations (`Model.belongsTo`, `Model.hasMany`, etc…) already handle
+  the configuration of the necessary foreign keys attributes. It is not necessary to configure
+  these foreign keys using `Model.init`.
+  Use the `ForeignKey<>` branded type to make `Model.init` aware of the fact that it isn't necessary to configure the foreign key:
+
+  ```typescript
+  import { Model, InferAttributes, InferCreationAttributes, DataTypes, ForeignKey } from 'sequelize';
+
+  class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
+    id: number;
+    userId: ForeignKey<number>;
+  }
+
+  // this configures the `userId` attribute.
+  Project.belongsTo(User);
+
+  // therefore, `userId` doesn't need to be specified here.
+  Project.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+  }, { sequelize });
+  ```
+
+- Timestamp attributes managed by Sequelize (by default, `createdAt`, `updatedAt`, and `deletedAt`) don't need to be configured using `Model.init`,
+  unfortunately `Model.init` has no way of knowing this. We recommend you use the minimum necessary configuration to silence this error:
+
+  ```typescript
+  import { Model, InferAttributes, InferCreationAttributes, DataTypes } from 'sequelize';
+
+  class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+    id: number;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  User.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    // technically, `createdAt` & `updatedAt` are added by Sequelize and don't need to be configured in Model.init
+    // but the typings of Model.init do not know this. Add the following to mute the typing error:
+    createdAt: DataTypes.DATE,
+    updatedAt: DataTypes.DATE,
+  }, { sequelize });
+  ```
+
 ### Usage without strict types for attributes
 
 The typings for Sequelize v5 allowed you to define models without specifying types for the attributes. This is still possible for backwards compatibility and for cases where you feel strict typing for attributes isn't worth it.
@@ -380,25 +434,19 @@ In Sequelize versions before v5, the default way of defining a model involved us
 [//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/Define.ts` to ensure it typechecks correctly.)
 
 ```ts
-import { Sequelize, Model, DataTypes, Optional } from '@sequelize/core';
+import { Sequelize, Model, DataTypes, CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 
-const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
+const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
-interface UserAttributes {
-  id: number;
+
+interface UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
+  // Some fields are optional when calling UserModel.create() or UserModel.build()
+  id: CreationOptional<number>;
   name: string;
 }
 
-// Some fields are optional when calling UserModel.create() or UserModel.build()
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
-
-// We need to declare an interface for our model that is basically what our class would be
-interface UserInstance
-  extends Model<UserAttributes, UserCreationAttributes>,
-    UserAttributes {}
-
-const UserModel = sequelize.define<UserInstance>("User", {
+const UserModel = sequelize.define<UserModel>('User', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
@@ -412,39 +460,7 @@ async function doStuff() {
   const instance = await UserModel.findByPk(1, {
     rejectOnEmpty: true,
   });
-  console.log(instance.id);
-}
-```
 
-If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
-
-[//]: # (NOTE for maintainers: Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure it typechecks correctly.)
-
-```ts
-import { Sequelize, Model, DataTypes } from '@sequelize/core';
-
-const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
-
-// We need to declare an interface for our model that is basically what our class would be
-interface UserInstance extends Model {
-  id: number;
-  name: string;
-}
-
-const UserModel = sequelize.define<UserInstance>("User", {
-  id: {
-    primaryKey: true,
-    type: DataTypes.INTEGER.UNSIGNED,
-  },
-  name: {
-    type: DataTypes.STRING,
-  },
-});
-
-async function doStuff() {
-  const instance = await UserModel.findByPk(1, {
-    rejectOnEmpty: true,
-  });
   console.log(instance.id);
 }
 ```

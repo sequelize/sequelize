@@ -72,6 +72,25 @@ Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
 Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
 ```
 
+### In TypeScript
+
+Use the `Range` type provided by Sequelize to properly type your range:
+
+```typescript
+import { Model, InferAttributes, Range } from '@sequelize/core';
+
+class User extends Model<InferAttributes<User>> {
+  declare myDateRange: Range<Date>;
+}
+
+User.init({
+  myDateRange: {
+    type: DataTypes.RANGE(DataTypes.DATE),
+    allowNull: false,
+  }
+});
+```
+
 ## BLOBs
 
 ```js
