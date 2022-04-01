@@ -2538,7 +2538,7 @@ class Model {
       const createOptions = { ...options };
 
       // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.options.dialect === 'postgres' && options.transaction) {
+      if ((this.sequelize.options.dialect === 'postgres' || this.sequelize.options.dialect === 'yugabyte') && options.transaction) {
         createOptions.ignoreDuplicates = true;
       }
 
@@ -2724,7 +2724,7 @@ class Model {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
+      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi', 'yugabyte'].includes(dialect)) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 

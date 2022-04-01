@@ -70,7 +70,7 @@ function escape(val, timeZone, dialect, format) {
 
   if (Array.isArray(val)) {
     const partialEscape = escVal => escape(escVal, timeZone, dialect, format);
-    if (dialect === 'postgres' && !format) {
+    if ((dialect === 'postgres' || dialect === 'yugabyte') && !format) {
       return dataTypes.ARRAY.prototype.stringify(val, { escape: partialEscape });
     }
 
@@ -81,12 +81,12 @@ function escape(val, timeZone, dialect, format) {
     throw new Error(`Invalid value ${logger.inspect(val)}`);
   }
 
-  if (['postgres', 'sqlite', 'mssql', 'snowflake', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'sqlite', 'mssql', 'snowflake', 'db2', 'ibmi', 'yugabyte'].includes(dialect)) {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
     val = val.replace(/'/g, '\'\'');
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'yugabyte') {
       // null character is not allowed in Postgres
       val = val.replace(/\0/g, '\\0');
     }
@@ -131,7 +131,7 @@ exports.format = format;
 
 function formatNamedParameters(sql, values, timeZone, dialect) {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
-    if (dialect === 'postgres' && value.slice(0, 2) === '::') {
+    if ((dialect === 'postgres' || dialect === 'yugabyte') && value.slice(0, 2) === '::') {
       return value;
     }
 

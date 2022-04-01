@@ -1158,6 +1158,7 @@ dialectMap.mssql = require('./dialects/mssql/data-types')(DataTypes);
 dialectMap.ibmi = require('./dialects/ibmi/data-types')(DataTypes);
 dialectMap.db2 = require('./dialects/db2/data-types')(DataTypes);
 dialectMap.snowflake = require('./dialects/snowflake/data-types')(DataTypes);
+dialectMap.yugabyte = require('./dialects/yugabyte/data-types')(DataTypes);
 
 const dialectList = Object.values(dialectMap);
 
