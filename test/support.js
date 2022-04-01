@@ -5,12 +5,12 @@ const path = require('path');
 const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('@sequelize/core');
+const { Sequelize } = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
 
 const expect = chai.expect;
-const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/lib/dialects/abstract/query-generator');
 
 const distDir = path.resolve(__dirname, '../lib');
 
@@ -65,8 +65,6 @@ if (global.afterEach) {
 let lastSqliteInstance;
 
 const Support = {
-  Sequelize,
-
   /**
    * Returns a Promise that will reject with the next unhandled rejection that occurs
    * during this test (instead of failing the test)

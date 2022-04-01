@@ -8,7 +8,7 @@ const deprecations = require('../../utils/deprecations');
 const uuid = require('uuid').v4;
 const { safeStringifyJson } = require('../../utils');
 
-class AbstractQuery {
+export class AbstractQuery {
 
   constructor(connection, sequelize, options) {
     this.uuid = uuid();
@@ -777,7 +777,3 @@ class AbstractQuery {
     return results;
   }
 }
-
-module.exports = AbstractQuery;
-module.exports.AbstractQuery = AbstractQuery;
-module.exports.default = AbstractQuery;

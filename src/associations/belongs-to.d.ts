@@ -117,5 +117,3 @@ export type BelongsToCreateAssociationMixin<TModel extends Model> = (
   values?: CreationAttributes<TModel>,
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
-
-export default BelongsTo;

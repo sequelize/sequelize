@@ -6,16 +6,13 @@ const Dottie = require('dottie');
 
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
-const BelongsTo = require('./associations/belongs-to');
-const BelongsToMany = require('./associations/belongs-to-many');
-const InstanceValidator = require('./instance-validator');
+const { BelongsTo, BelongsToMany, Association, HasMany } = require('./associations');
+const { InstanceValidator } = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
-const Association = require('./associations/base');
-const HasMany = require('./associations/has-many');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
-const associationsMixin = require('./associations/mixin');
+const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
 
@@ -48,7 +45,7 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * @see {Sequelize#define} for more information about getters and setters
  * @mixes Hooks
  */
-class Model {
+export class Model {
   static get queryInterface() {
     return this.sequelize.getQueryInterface();
   }
@@ -4824,5 +4821,3 @@ function combineWheresWithAnd(whereA, whereB) {
 
 Object.assign(Model, associationsMixin);
 Hooks.applyTo(Model, true);
-
-module.exports = Model;

@@ -3266,8 +3266,6 @@ export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
 
-export default Model;
-
 /**
  * Type will be true is T is branded with Brand, false otherwise
  */

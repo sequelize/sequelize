@@ -190,11 +190,20 @@ module.exports = {
       tagNamePreference: {
         augments: 'extends',
       },
+      structuredTags: {
+        typeParam: {
+          type: false,
+          required: ['name'],
+        },
+        internal: {
+          type: false,
+        },
+      },
     },
   },
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'script',
+    sourceType: 'module',
   },
   // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
   ignorePatterns: [
