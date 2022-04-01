@@ -6998,10 +6998,10 @@ ocsp@^1.2.0:
     async "^1.5.2"
     simple-lru-cache "0.0.2"
 
-odbc@2.4.2:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.2.tgz#14dab3934e0c73076cd566558da33137cadacff1"
-  integrity sha512-mnAZYcjWAYIDVLC0WdJIJ197xM0LqYvOMMhwOaTPPJiliYCfVNkaSZFiY/R5gmGG3pkkuRwOBeCj3cOPn1I9dA==
+odbc@2.4.3:
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.3.tgz#0be40e8a9acc2fd6a986a4155ca772c94021e708"
+  integrity sha512-AQ5ySsW2xf247LpGK0/0Wgq6SpD+s2qspYx82ukkmB4aZkEf+pr3inFvi2MrakUIeAvPeMBKqpjiBJWFO4xvtw==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
     async "^3.0.1"
