@@ -3567,3 +3567,16 @@ export type Attributes<M extends Model | Hooks> = M['_attributes'];
 export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;
 
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M>;
+
+/**
+ * Returns true if a & b are the same model.
+ * The difference with doing `a === b` is that this method will also
+ * return true if one of the models is a scoped ones.
+ *
+ * @example
+ * isSameModel(a, a.scope('myScope')) // true;
+ *
+ * @param {Model} a
+ * @param {Model} b
+ */
+export function isSameModel(a: ModelStatic<any>, b: ModelStatic<any>): boolean;

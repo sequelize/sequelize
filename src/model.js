@@ -460,8 +460,8 @@ or pass the name of the association you want to include (through the "as" option
         throw new TypeError('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
       }
 
-      if (include.association.source !== associationOwner) {
-        throw new Error(`Invalid Include received: the specified association "${include.association.as}" is not defined on model "${associationOwner.name}"
+      if (!isSameModel(include.association.source, associationOwner)) {
+        throw new Error(`Invalid Include received: the specified association "${include.association.as}" is not defined on model "${associationOwner.name}". It is owned by model "${include.association.source.name}".
 ${associationOwner._getAssociationDebugList()}`);
       }
     }
