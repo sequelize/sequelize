@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    it('should enforce a unique constraint', async function () {
+    (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should enforce a unique constraint', async function () { // Assertion Error in yugabyte as in errors messages returns undefined error details.
       const Model = this.sequelize.define('model', {
         uniqueName: { type: Sequelize.STRING, unique: 'uniqueName' },
       });
@@ -100,8 +100,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    if (Support.getTestDialect() !== 'ibmi') {
-      it('should allow a custom unique constraint error message', async function () {
+    if (Support.getTestDialect() !== 'ibmi' &&  Support.getTestDialect() !== 'yugabyte') {
+      it('should allow a custom unique constraint error message', async function () { // Assertion Error in yugabyte as cutomising error messages cann't be done in because yugabyte returns undefined error details.
         const Model = this.sequelize.define('model', {
           uniqueName: {
             type: Sequelize.STRING,

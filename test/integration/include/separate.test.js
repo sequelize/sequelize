@@ -477,7 +477,7 @@ if (current.dialect.supports.groupedLimit) {
         expect(result[1].tasks[1].title).to.equal('c');
         await this.sequelize.dropSchema('archive');
         const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+        if (['postgres', 'mssql', 'mariadb', 'yugabyte'].includes(dialect)) {
           expect(schemas).to.not.have.property('archive');
         }
       });

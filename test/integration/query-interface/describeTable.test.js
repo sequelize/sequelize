@@ -78,6 +78,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'postgres':
           assertVal = 'CHARACTER VARYING(255)';
           break;
+        case 'yugabyte':
+          assertVal = 'CHARACTER VARYING(255)';
+          break;
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
@@ -107,6 +110,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       assertVal = 'TINYINT(1)';
       switch (dialect) {
         case 'postgres':
+        case 'yugabyte':
         case 'db2':
           assertVal = 'BOOLEAN';
           break;
@@ -128,14 +132,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(isAdmin.defaultValue).to.be.null;
       }
 
-      if (dialect.startsWith('postgres')) {
+      if (dialect.startsWith('postgres') || dialect.startsWith('yugabyte')) {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+      if (['postgres', 'mysql', 'mssql', 'yugabyte'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }

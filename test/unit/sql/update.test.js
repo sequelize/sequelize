@@ -58,6 +58,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2',
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
             postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
+            yugabyte: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$1 WHERE "id" = $2);',
             snowflake: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2',
             default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2',

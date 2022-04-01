@@ -519,7 +519,9 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             });
           });
 
-          it('should create, find and include associations with scope values', async function () {
+          // (current.dialect.name !== 'yugabyte' ? it : it.skip)
+          it('should create, find and include associations with scope values', async function () { // DDLs occuring while processing some query in this test causing operation to fail in yugabyteDB.
+
             await Promise.all([
               this.Post.sync({ force: true }),
               this.Image.sync({ force: true }),

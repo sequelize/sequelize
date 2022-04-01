@@ -33,23 +33,24 @@ if (current.dialect.name !== 'sqlite') {
       after(function () {
         this.stub.restore();
       });
-
-      it('properly generate alter queries', () => {
-        return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
-          type: DataTypes.FLOAT,
-          allowNull: false,
-        }).then(sql => {
-          expectsql(sql, {
-            ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT NOT NULL',
-            mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
-            db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT ALTER COLUMN "level_id" SET NOT NULL;',
-            mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
-            mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
-            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
-            snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+      if (current.dialect.name !== 'yugabyte'){ // Alter Column type not supported yet in Yugabyte
+        it('properly generate alter queries', () => {
+          return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
+            type: DataTypes.FLOAT,
+            allowNull: false,
+          }).then(sql => {
+            expectsql(sql, {
+              ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT NOT NULL',
+              mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
+              db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT ALTER COLUMN "level_id" SET NOT NULL;',
+              mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+              mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+              postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+              snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+            });
           });
         });
-      });
+      }
 
       it('properly generate alter queries for foreign keys', () => {
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
@@ -69,6 +70,7 @@ if (current.dialect.name !== 'sqlite') {
             mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             postgres: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
             snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
+            yugabyte: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
           });
         });
       });

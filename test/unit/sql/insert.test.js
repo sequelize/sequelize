@@ -33,6 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
+            yugabyte: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);',
@@ -58,6 +59,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($1))',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
+            yugabyte: 'INSERT INTO "ms" ("id") VALUES ($1);',
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);',
           },
@@ -85,6 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
+            yugabyte: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
@@ -120,6 +123,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
+            yugabyte: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
@@ -154,6 +158,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+            yugabyte: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
@@ -199,7 +204,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
           snowflake: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
-          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES ("testuser","12345") ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+          yugabyte: `INSERT INTO "users" ("user_name","pass_word") VALUES ('testuser','12345') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";`,
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
           db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
@@ -222,6 +228,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL);; SET IDENTITY_INSERT [ms] OFF;',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
+            yugabyte: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',

@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       } catch (error) {
         expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        if (dialect !== 'ibmi') {
+        if (dialect !== 'ibmi' && dialect !== 'yugabyte') { // As Yugabyte doesn't support yet the proper detailed error details.
           expect(error.errors[0].path).to.be.a('string', 'username');
         }
       }
@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(current.dialect.name)) {
+    if (!['sqlite', 'mssql', 'db2', 'ibmi', 'yugabyte'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function () {
         const User = this.sequelize.define('User', {
           email: {
@@ -496,66 +496,69 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return await User.findOrCreate({ where: { username } });
             } catch (error) {
               spy();
-              expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick \' vs \'mick\'');
+              if (dialect !== 'yugabyte'){
+                expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick \' vs \'mick\'');
+              }
             }
           }),
         );
 
         expect(spy).to.have.been.called;
       });
+      if (dialect !== 'yugabyte'){
+        (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () { // Assertion Error in yugabyte as Error fields will be undefined for the yugabyte in this "expect(error.fields).to.be.ok;".
+          const User = this.sequelize.define('user', {
+            objectId: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+            username: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          });
 
-      (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () {
-        const User = this.sequelize.define('user', {
-          objectId: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-          username: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
+          await User.sync({ force: true });
+
+          await User.create({
+            username: 'gottlieb',
+          });
+
+          return Promise.all([(async () => {
+            try {
+              await User.findOrCreate({
+                where: {
+                  objectId: 'asdasdasd',
+                },
+                defaults: {
+                  username: 'gottlieb',
+                },
+              });
+
+              throw new Error('I should have ben rejected');
+            } catch (error) {
+              expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
+              expect(error.fields).to.be.ok;
+            }
+          })(), (async () => {
+            try {
+              await User.findOrCreate({
+                where: {
+                  objectId: 'asdasdasd',
+                },
+                defaults: {
+                  username: 'gottlieb',
+                },
+              });
+
+              throw new Error('I should have ben rejected');
+            } catch (error) {
+              expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
+              expect(error.fields).to.be.ok;
+            }
+          })()]);
         });
-
-        await User.sync({ force: true });
-
-        await User.create({
-          username: 'gottlieb',
-        });
-
-        return Promise.all([(async () => {
-          try {
-            await User.findOrCreate({
-              where: {
-                objectId: 'asdasdasd',
-              },
-              defaults: {
-                username: 'gottlieb',
-              },
-            });
-
-            throw new Error('I should have ben rejected');
-          } catch (error) {
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
-            expect(error.fields).to.be.ok;
-          }
-        })(), (async () => {
-          try {
-            await User.findOrCreate({
-              where: {
-                objectId: 'asdasdasd',
-              },
-              defaults: {
-                username: 'gottlieb',
-              },
-            });
-
-            throw new Error('I should have ben rejected');
-          } catch (error) {
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
-            expect(error.fields).to.be.ok;
-          }
-        })()]);
-      });
+      }
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
       (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', async function () {
@@ -937,7 +940,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('is possible to use functions as default values', async function () {
       let userWithDefaults;
 
-      if (dialect.startsWith('postgres')) {
+      if (dialect.startsWith('postgres' || dialect.startsWith('yugabyte'))) {
         await this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
         userWithDefaults = this.sequelize.define('userWithDefaults', {
           uuid: {
@@ -976,7 +979,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'yugabyte') {
       it('does not cast arrays for postgresql insert', async function () {
         const User = this.sequelize.define('UserWithArray', {
           myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },

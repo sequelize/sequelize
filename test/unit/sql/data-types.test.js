@@ -47,6 +47,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
@@ -56,6 +57,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       describe('validate', () => {
@@ -149,6 +151,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'CLOB(12)',
         sqlite: 'CHAR BINARY(12)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
@@ -156,6 +159,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'CLOB(255)',
         sqlite: 'CHAR BINARY(255)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
     });
 
@@ -163,6 +167,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
         ibmi: 'SMALLINT',
         postgres: 'BOOLEAN',
+        yugabyte: 'BOOLEAN',
         db2: 'BOOLEAN',
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
@@ -197,6 +202,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('DATE', DataTypes.DATE, {
         ibmi: 'TIMESTAMP',
         postgres: 'TIMESTAMP WITH TIME ZONE',
+        yugabyte: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME',
         mysql: 'DATETIME',
@@ -208,6 +214,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('DATE(6)', DataTypes.DATE(6), {
         ibmi: 'TIMESTAMP',
         postgres: 'TIMESTAMP WITH TIME ZONE',
+        yugabyte: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
@@ -256,6 +263,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('UUID', () => {
       testsql('UUID', DataTypes.UUID, {
         postgres: 'UUID',
+        yugabyte: 'UUID',
         ibmi: 'CHAR(36)',
         db2: 'CHAR(36) FOR BIT DATA',
         mssql: 'CHAR(36)',
@@ -374,6 +382,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER UNSIGNED',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
         sqlite: 'INTEGER',
@@ -383,6 +392,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER UNSIGNED ZEROFILL',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
         sqlite: 'INTEGER',
@@ -392,6 +402,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER(11)',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -400,6 +411,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'INTEGER(11)',
         ibmi: 'INTEGER',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -409,6 +421,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -418,6 +431,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -427,6 +441,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -436,6 +451,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'INTEGER',
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
+        yugabyte: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
       });
@@ -483,6 +499,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
         {
@@ -493,6 +510,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
         {
@@ -503,6 +521,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
             sqlite: 'TINYINT',
           },
         },
@@ -515,6 +534,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
         {
@@ -525,6 +545,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
             sqlite: 'TINYINT',
           },
         },
@@ -537,6 +558,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
         {
@@ -547,6 +569,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
             sqlite: 'TINYINT',
           },
         },
@@ -559,6 +582,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
         {
@@ -569,6 +593,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'TINYINT',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
             sqlite: 'TINYINT',
           },
         },
@@ -581,6 +606,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
+            yugabyte: 'TINYINT',
           },
         },
       ];
@@ -626,6 +652,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT(4)',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -637,6 +664,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT(4)',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -648,6 +676,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT',
@@ -661,6 +690,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -672,6 +702,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT',
@@ -685,6 +716,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -696,6 +728,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT',
@@ -709,6 +742,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -720,6 +754,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             ibmi: 'SMALLINT',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
             sqlite: 'SMALLINT',
@@ -733,6 +768,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SMALLINT',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
+            yugabyte: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
           },
@@ -887,6 +923,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT UNSIGNED',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
         sqlite: 'BIGINT',
@@ -896,6 +933,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT UNSIGNED ZEROFILL',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
         sqlite: 'BIGINT',
@@ -905,6 +943,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT(11)',
         ibmi: 'BIGINT',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
       });
@@ -912,6 +951,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
         default: 'BIGINT(11)',
         ibmi: 'BIGINT',
+        yugabyte: 'BIGINT',
         postgres: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
@@ -922,6 +962,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
       });
@@ -931,6 +972,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
       });
@@ -940,6 +982,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
       });
@@ -949,6 +992,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BIGINT',
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
+        yugabyte: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
       });
@@ -983,6 +1027,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL UNSIGNED',
         ibmi: 'REAL',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -991,6 +1036,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -999,6 +1045,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1008,6 +1055,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1017,6 +1065,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1026,6 +1075,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL ZEROFILL(11)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1035,6 +1085,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1043,6 +1094,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11,12)',
         ibmi: 'REAL',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1052,6 +1104,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1061,6 +1114,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1070,6 +1124,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1079,6 +1134,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL ZEROFILL(11,12)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1088,6 +1144,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'REAL',
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
+        yugabyte: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
@@ -1103,12 +1160,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION UNSIGNED',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11)', DataTypes.DOUBLE(11), {
         default: 'DOUBLE PRECISION(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11).UNSIGNED', DataTypes.DOUBLE(11).UNSIGNED, {
@@ -1116,6 +1175,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE({ length: 11 }).UNSIGNED', DataTypes.DOUBLE({ length: 11 }).UNSIGNED, {
@@ -1123,6 +1183,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11).UNSIGNED.ZEROFILL, {
@@ -1130,6 +1191,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11).ZEROFILL', DataTypes.DOUBLE(11).ZEROFILL, {
@@ -1137,6 +1199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11).ZEROFILL.UNSIGNED, {
@@ -1144,12 +1207,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
         default: 'DOUBLE PRECISION(11,12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
@@ -1157,6 +1222,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
@@ -1164,6 +1230,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
@@ -1171,6 +1238,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
@@ -1178,6 +1246,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+        yugabyte: 'DOUBLE PRECISION',
       });
     });
 
@@ -1185,12 +1254,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('FLOAT', DataTypes.FLOAT, {
         default: 'FLOAT',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
       });
 
       testsql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
         default: 'FLOAT UNSIGNED',
         ibmi: 'FLOAT',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1198,6 +1269,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('FLOAT(11)', DataTypes.FLOAT(11), {
         default: 'FLOAT(11)',
         postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
+        yugabyte: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
         db2: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
         mssql: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
       });
@@ -1207,6 +1279,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED(11)',
         postgres: 'FLOAT(11)',
+        yugabyte: 'FLOAT(11)',
         db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)',
       });
@@ -1216,6 +1289,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        yugabyte: 'FLOAT(11)',
         db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)',
       });
@@ -1225,6 +1299,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        yugabyte: 'FLOAT(11)',
         db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)',
       });
@@ -1234,6 +1309,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        yugabyte: 'FLOAT(11)',
         db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)',
       });
@@ -1243,6 +1319,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT(11)',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
+        yugabyte: 'FLOAT(11)',
         db2: 'FLOAT(11)',
         mssql: 'FLOAT(11)',
       });
@@ -1251,6 +1328,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'FLOAT(11,12)',
         ibmi: 'FLOAT',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1260,6 +1338,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1269,6 +1348,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1278,6 +1358,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1287,6 +1368,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1296,6 +1378,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
+        yugabyte: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT',
       });
@@ -1432,6 +1515,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'BLOB(1M)',
         mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
@@ -1440,6 +1524,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'VARBINARY(256)',
         db2: 'BLOB(255)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('BLOB("medium")', DataTypes.BLOB('medium'), {
@@ -1448,6 +1533,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
@@ -1456,6 +1542,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       testsql('BLOB("long")', DataTypes.BLOB('long'), {
@@ -1464,6 +1551,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(2G)',
         postgres: 'BYTEA',
+        yugabyte: 'BYTEA',
       });
 
       describe('validate', () => {
@@ -1514,65 +1602,80 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       describe('ARRAY', () => {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
           postgres: 'VARCHAR(255)[]',
+          yugabyte: 'VARCHAR(255)[]',
         });
 
         testsql('ARRAY(VARCHAR(100))', DataTypes.ARRAY(DataTypes.STRING(100)), {
           postgres: 'VARCHAR(100)[]',
+          yugabyte: 'VARCHAR(100)[]',
         });
 
         testsql('ARRAY(INTEGER)', DataTypes.ARRAY(DataTypes.INTEGER), {
           postgres: 'INTEGER[]',
+          yugabyte: 'INTEGER[]',
         });
 
         testsql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
           postgres: 'HSTORE[]',
+          yugabyte: 'HSTORE[]',
         });
 
         testsql('ARRAY(ARRAY(VARCHAR(255)))', DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)), {
           postgres: 'VARCHAR(255)[][]',
+          yugabyte: 'VARCHAR(255)[][]',
         });
 
         testsql('ARRAY(TEXT)', DataTypes.ARRAY(DataTypes.TEXT), {
           postgres: 'TEXT[]',
+          yugabyte: 'TEXT[]',
         });
 
         testsql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
           postgres: 'TIMESTAMP WITH TIME ZONE[]',
+          yugabyte: 'TIMESTAMP WITH TIME ZONE[]',
         });
 
         testsql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {
           postgres: 'BOOLEAN[]',
+          yugabyte: 'BOOLEAN[]',
         });
 
         testsql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
           postgres: 'DECIMAL[]',
+          yugabyte: 'DECIMAL[]',
         });
 
         testsql('ARRAY(DECIMAL(6))', DataTypes.ARRAY(DataTypes.DECIMAL(6)), {
           postgres: 'DECIMAL(6)[]',
+          yugabyte: 'DECIMAL(6)[]',
         });
 
         testsql('ARRAY(DECIMAL(6,4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
           postgres: 'DECIMAL(6,4)[]',
+          yugabyte: 'DECIMAL(6,4)[]',
         });
 
         testsql('ARRAY(DOUBLE)', DataTypes.ARRAY(DataTypes.DOUBLE), {
           postgres: 'DOUBLE PRECISION[]',
+          yugabyte: 'DOUBLE PRECISION[]',
         });
 
         testsql('ARRAY(REAL))', DataTypes.ARRAY(DataTypes.REAL), {
           postgres: 'REAL[]',
+          yugabyte: 'REAL[]',
         });
 
         if (current.dialect.supports.JSON) {
           testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
             postgres: 'JSON[]',
+            yugabyte: 'JSON[]',
           });
         }
 
         if (current.dialect.supports.JSONB) {
           testsql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {
             postgres: 'JSONB[]',
+            yugabyte: 'JSONB[]',
           });
         }
 
@@ -1609,24 +1712,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
           postgres: 'GEOMETRY(POINT)',
+          yugabyte: 'GEOMETRY(POINT)',
           mariadb: 'POINT',
           mysql: 'POINT',
         });
 
         testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
           postgres: 'GEOMETRY(LINESTRING)',
+          yugabyte: 'GEOMETRY(LINESTRING)',
           mariadb: 'LINESTRING',
           mysql: 'LINESTRING',
         });
 
         testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
           postgres: 'GEOMETRY(POLYGON)',
+          yugabyte: 'GEOMETRY(POLYGON)',
           mariadb: 'POLYGON',
           mysql: 'POLYGON',
         });
 
         testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
+          yugabyte: 'GEOMETRY(POINT,4326)',
           mariadb: 'POINT',
           mysql: 'POINT',
         });

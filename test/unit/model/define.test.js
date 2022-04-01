@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
+        if (['postgres', 'sqlite', 'mssql', 'db2', 'yugabyte'].includes(dialect)) {
           expect(true).to.equal(console.warn.calledOnce);
           expect(console.warn.args[0][0]).to.contain('does not support \'TINYINT\'');
         } else {

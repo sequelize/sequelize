@@ -14,7 +14,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'yugabyte'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'yugabyte') {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
@@ -448,7 +448,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (error) {
-          if (['postgres', 'postgres-native'].includes(dialect)) {
+          if (['postgres', 'postgres-native', 'yugabyte'].includes(dialect)) {
             assert([
               'fe_sendauth: no password supplied',
               'role "bar" does not exist',
@@ -567,19 +567,21 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(result).to.deep.equal(block);
     });
 
-    it('handles alter: true with underscore correctly', async function () {
-      this.sequelize.define('access_metric', {
-        user_id: {
-          type: DataTypes.INTEGER,
-        },
-      }, {
-        underscored: true,
-      });
+    if (dialect !== 'yugabyte'){ // change column type not supported in yugabyte
+      it('handles alter: true with underscore correctly', async function () {
+        this.sequelize.define('access_metric', {
+          user_id: {
+            type: DataTypes.INTEGER,
+          },
+        }, {
+          underscored: true,
+        });
 
-      await this.sequelize.sync({
-        alter: true,
+        await this.sequelize.sync({
+          alter: true,
+        });
       });
-    });
+    }
 
     describe('doesn\'t emit logging when explicitly saying not to', () => {
       afterEach(function () {

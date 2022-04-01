@@ -276,7 +276,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'yugabyte') {
         it('should allow case-sensitive find on TSVECTOR type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: Sequelize.TSVECTOR,

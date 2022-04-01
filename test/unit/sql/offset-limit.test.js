@@ -58,6 +58,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ibmi: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
       snowflake: ' LIMIT 10 OFFSET 20',
       postgres: ' LIMIT 10 OFFSET 20',
+      yugabyte: ' LIMIT 10 OFFSET 20',
       db2: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
     });
@@ -86,6 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       sqlite: ' LIMIT \'\'\';DELETE FROM user\', 10',
       postgres: ' LIMIT 10 OFFSET \'\'\';DELETE FROM user\'',
+      yugabyte: ' LIMIT 10 OFFSET \'\'\';DELETE FROM user\'',
       mariadb: ' LIMIT \'\\\';DELETE FROM user\', 10',
       snowflake: ' LIMIT 10 OFFSET \'\'\';DELETE FROM user\'',
       mysql: ' LIMIT \'\\\';DELETE FROM user\', 10',

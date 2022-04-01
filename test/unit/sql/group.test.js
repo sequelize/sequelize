@@ -39,6 +39,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
       postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+      yugabyte: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       db2: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
       mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
@@ -51,6 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: 'SELECT * FROM `Users` AS `User`;',
       postgres: 'SELECT * FROM "Users" AS "User";',
+      yugabyte: 'SELECT * FROM "Users" AS "User";',
       db2: 'SELECT * FROM "Users" AS "User";',
       ibmi: 'SELECT * FROM "Users" AS "User"',
       mssql: 'SELECT * FROM [Users] AS [User];',

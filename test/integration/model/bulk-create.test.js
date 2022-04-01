@@ -162,6 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           switch (dialect) {
             case 'postgres':
+            case 'yugabyte':
             case 'ibmi': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
 

@@ -45,40 +45,41 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       }
     });
+    if (current.dialect.name !== 'yugabyte'){
+      it('type and using', () => { // INDEX CONCURRENTLY is not yet supported in Yugabyte
+        expectsql(sql.addIndexQuery('User', ['fieldC'], {
+          type: 'FULLTEXT',
+          concurrently: true,
+        }), {
+          ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
+          sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
+          db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
+          mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
+          postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
+          mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+          mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+        });
 
-    it('type and using', () => {
-      expectsql(sql.addIndexQuery('User', ['fieldC'], {
-        type: 'FULLTEXT',
-        concurrently: true,
-      }), {
-        ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
-        db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
-        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
-        mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
-        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+        expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
+          name: 'a_b_uniq',
+          unique: true,
+          using: 'BTREE',
+          parser: 'foo',
+        }), {
+          sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
+          mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
+          db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
+          ibmi: `BEGIN
+        DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
+          BEGIN END;
+          ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
+        END`,
+          postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
+          mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+          mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+        });
       });
-
-      expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
-        name: 'a_b_uniq',
-        unique: true,
-        using: 'BTREE',
-        parser: 'foo',
-      }), {
-        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
-        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
-        db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
-        ibmi: `BEGIN
-      DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
-        BEGIN END;
-        ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
-      END`,
-        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
-        mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-      });
-    });
+    }
 
     it('POJO field', () => {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
@@ -99,7 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (current.dialect.supports.index.using === 2) {
+    if (current.dialect.name !== 'yugabyte' && current.dialect.supports.index.using === 2) { // Yugabyte uses ybgin in place of gin
       it('USING', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -122,6 +123,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\'',
         });
 
@@ -140,6 +142,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
+          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')',
         });
 
@@ -155,12 +158,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         });
       });
     }
 
-    if (current.dialect.supports.JSONB) {
+    if (current.dialect.name !== 'yugabyte' && current.dialect.supports.JSONB) { // Yugabyte has its own ybgin using function in place of gin;
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -201,6 +205,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           operator: 'inet_ops',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
+          yugabyte: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
         });
       });
       it('operator in fields', () => {
@@ -212,6 +217,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
+          yugabyte: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
         });
       });
       it('operator in fields with order', () => {
@@ -224,6 +230,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
+          yugabyte: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
         });
       });
       it('operator in multiple fields #1', () => {
@@ -236,6 +243,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
+          yugabyte: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
         });
       });
       it('operator in multiple fields #2', () => {
@@ -250,6 +258,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'btree',
         }), {
           postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
+          yugabyte: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
         });
       });
     }

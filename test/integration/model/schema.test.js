@@ -525,7 +525,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         // TODO: this should work with MSSQL / MariaDB too
         // Need to fix addSchema return type
-        if (dialect.startsWith('postgres')) {
+        if (dialect.startsWith('postgres') || dialect.startsWith('yugabyte')) {
           it('defaults to schema provided to sync() for references #11276', async function () {
             const User = this.sequelize.define('UserXYZ', {
               uid: {
