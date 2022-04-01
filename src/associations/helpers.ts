@@ -1,4 +1,7 @@
+import isUndefined from 'lodash/isUndefined';
+import omitBy from 'lodash/omitBy';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
+import type { Sequelize } from '../sequelize';
 import type { Association, AssociationOptions } from './base';
 
 export function checkNamingCollision(association: Association): void {
@@ -84,3 +87,22 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
  * @private do not expose outside sequelize
  */
 export const AssociationConstructorSecret = Symbol('AssociationConstructorPrivateKey');
+
+export function getModel<M extends Model>(
+  sequelize: Sequelize,
+  model: string | ModelStatic<M>,
+): ModelStatic<M> | null {
+  if (typeof model === 'string') {
+    if (!sequelize.isDefined(model)) {
+      return null;
+    }
+
+    return sequelize.model(model) as ModelStatic<M>;
+  }
+
+  return model;
+}
+
+export function removeUndefined<T>(val: T): T {
+  return omitBy(val, isUndefined) as T;
+}

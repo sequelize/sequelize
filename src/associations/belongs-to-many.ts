@@ -1,5 +1,4 @@
 import each from 'lodash/each';
-import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
@@ -39,6 +38,7 @@ import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
 import * as Helpers from './helpers';
+import { AssociationConstructorSecret, removeUndefined } from './helpers';
 
 // TODO: strictly type mixin options
 // TODO: compare mixin methods with these methods
@@ -112,6 +112,14 @@ export class BelongsToMany<
 > {
   associationType = 'BelongsToMany';
 
+  /**
+   * The options, as they were when passed to the constructor.
+   *
+   * @internal
+   * @private
+   */
+  _originalOptions: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>;
+
   accessors: MultiAssociationAccessors;
 
   primaryKeyDeleted: boolean = false;
@@ -124,34 +132,38 @@ export class BelongsToMany<
    * @type {string}
    */
   // '!' added because this is initialized in constructor through a function call
-  otherKey!: string;
+  get otherKey() {
+    return this.pairedWith.foreignKey;
+  }
+
   // '!' added because this is initialized in constructor through a function call
-  otherKeyAttribute!: ForeignKeyOptions<string>;
-  otherKeyDefault: boolean = false;
+  get otherKeyAttribute() {
+    return this.pairedWith.foreignKeyAttribute;
+  }
 
   /**
    * @deprecated use {@link BelongsToMany#foreignKey}
    */
-  // '!' added because this is initialized in constructor through a function call
-  identifier!: string;
+  get identifier() {
+    return this.foreignKey;
+  }
 
   /**
    * The corresponding column name of {@link BelongsToMany#foreignKey}
    */
-  // '!' added because this is initialized in constructor through a function call
-  identifierField!: string;
+  identifierField: string;
 
   /**
    * @deprecated use {@link BelongsToMany#otherKey}
    */
-  // '!' added because this is initialized in constructor through a function call
-  foreignIdentifier!: string;
+  get foreignIdentifier() {
+    return this.otherKey;
+  }
 
   /**
    * The corresponding column name of {@link BelongsToMany#otherKey}
    */
-  // '!' added because this is initialized in constructor through a function call
-  foreignIdentifierField!: string;
+  foreignIdentifierField: string;
 
   /**
    * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
@@ -179,22 +191,30 @@ export class BelongsToMany<
   /**
    * The corresponding association this entity is paired with.
    */
-  pairedWith: BelongsToMany | undefined;
+  readonly pairedWith: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
 
   // intermediary associations
-  // '!' added because this is initialized in constructor through a function call
-  // any is "through" table, which is untyped
-  fromSourceToThrough!: HasMany<SourceModel, ThroughModel, SourceKey, any>;
-  fromSourceToThroughOne!: HasOne<SourceModel, ThroughModel, SourceKey, any>;
-  fromThroughToSource!: BelongsTo<ThroughModel, SourceModel, any, SourceKey>;
-  fromTargetToThrough!: HasMany<TargetModel, ThroughModel, TargetKey, any>;
-  fromTargetToThroughOne!: HasOne<TargetModel, ThroughModel, TargetKey, any>;
-  fromThroughToTarget!: BelongsTo<ThroughModel, TargetModel, any, TargetKey>;
+  readonly fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>;
+  readonly fromSourceToThroughOne: HasOne<SourceModel, ThroughModel, SourceKey, any>;
+  readonly fromThroughToSource: BelongsTo<ThroughModel, SourceModel, any, SourceKey>;
+  get fromTargetToThrough(): HasMany<TargetModel, ThroughModel, TargetKey, any> {
+    return this.pairedWith.fromSourceToThrough;
+  }
+
+  get fromTargetToThroughOne(): HasOne<TargetModel, ThroughModel, TargetKey, any> {
+    return this.pairedWith.fromSourceToThroughOne;
+  }
+
+  get fromThroughToTarget(): BelongsTo<ThroughModel, TargetModel, any, TargetKey> {
+    return this.pairedWith.fromThroughToSource;
+  }
 
   constructor(
+    secret: symbol,
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
-    options?: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
   ) {
     if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
       throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
@@ -207,7 +227,7 @@ export class BelongsToMany<
 
     const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
 
-    super(source, target, attributeReferencedByForeignKey, {
+    super(secret, source, target, attributeReferencedByForeignKey, {
       ...options,
       // though is either a string of a Model. Convert it to ThroughOptions.
       through: isThroughOptions(options.through)
@@ -215,32 +235,26 @@ export class BelongsToMany<
         : normalizeThroughOptions({ model: options.through }, sequelize),
     });
 
+    this._originalOptions = removeUndefined(options);
+
     // options.as instead of this.as, because this.as is always set
     if (!options.as && this.isSelfAssociation) {
       throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
     }
 
-    /*
-    * Find paired association (if exists)
-    */
-    each(this.target.associations, association => {
-      if (!(association instanceof BelongsToMany)) {
-        return;
-      }
-
-      if (association.target !== this.source) {
-        return;
-      }
-
-      if (this.options.through.model === association.options.through.model) {
-        if (this.pairedWith && this.pairedWith !== association) {
-          throw new Error(`Association ${source.name}.${this.as} is paired with both ${association.source.name}.${association.as} and ${this.pairedWith.source.name}.${this.pairedWith.as}`);
-        }
-
-        this.pairedWith = association;
-        association.pairedWith = this;
-      }
-    });
+    this.pairedWith = pair ?? new BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+      secret,
+      target,
+      source,
+      {
+        ...options,
+        sourceKey: options.targetKey,
+        targetKey: options.sourceKey,
+        foreignKey: options.otherKey,
+        otherKey: options.foreignKey,
+      },
+      this,
+    );
 
     /*
     * Default/generated source/target keys
@@ -257,131 +271,9 @@ export class BelongsToMany<
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
 
-    this.#createForeignAndOtherKeys();
-
     Object.assign(this.options, pick(this.through.model.options, [
       'timestamps', 'createdAt', 'updatedAt', 'deletedAt', 'paranoid',
     ]));
-
-    if (this.pairedWith) {
-      let needInjectPaired = false;
-
-      if (this.targetKeyDefault) {
-        this.targetKey = this.pairedWith.sourceKey;
-        this.targetKeyField = this.pairedWith.sourceKeyField;
-        this.#createForeignAndOtherKeys();
-      }
-
-      if (this.pairedWith.targetKeyDefault // in this case paired.otherKey depends on paired.targetKey,
-        // so cleanup previously wrong generated otherKey
-        && this.pairedWith.targetKey !== this.sourceKey) {
-        delete this.through.model.rawAttributes[this.pairedWith.otherKey];
-        this.pairedWith.targetKey = this.sourceKey;
-        this.pairedWith.targetKeyField = this.sourceKeyField;
-        this.pairedWith.#createForeignAndOtherKeys();
-        needInjectPaired = true;
-      }
-
-      // this is set by 'this.#createForeignAndOtherKeys();'
-      if (this.otherKeyDefault) {
-        this.otherKey = this.pairedWith.foreignKey;
-      }
-
-      if (this.pairedWith.otherKeyDefault // If paired otherKey was inferred we should make sure to clean it up
-        // before adding a new one that matches the foreignKey
-        && this.pairedWith.otherKey !== this.foreignKey) {
-        delete this.through.model.rawAttributes[this.pairedWith.otherKey];
-        this.pairedWith.otherKey = this.foreignKey;
-        needInjectPaired = true;
-      }
-
-      if (needInjectPaired) {
-        this.pairedWith.#injectAttributes();
-      }
-    }
-
-    // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
-    const plural = upperFirst(this.options.name.plural);
-    const singular = upperFirst(this.options.name.singular);
-
-    this.accessors = {
-      get: `get${plural}`,
-      set: `set${plural}`,
-      addMultiple: `add${plural}`,
-      add: `add${singular}`,
-      create: `create${singular}`,
-      remove: `remove${singular}`,
-      removeMultiple: `remove${plural}`,
-      hasSingle: `has${singular}`,
-      hasAll: `has${plural}`,
-      count: `count${plural}`,
-    };
-
-    this.#injectAttributes();
-    this.#mixin(source.prototype);
-  }
-
-  get sequelize(): Sequelize {
-    return this.source.sequelize!;
-  }
-
-  get through(): NormalizedThroughOptions<ThroughModel> {
-    return this.options.through;
-  }
-
-  get throughModel(): ModelStatic<ThroughModel> {
-    return this.through.model;
-  }
-
-  protected inferForeignKey() {
-    const associationName = this.source.options.name.singular;
-    if (!associationName) {
-      throw new Error('Sanity check: Could not guess the name of the association');
-    }
-
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
-  }
-
-  protected inferOtherKey(): string {
-    if (!this.targetKey) {
-      throw new Error('Sanity check: targetKey should be defined (this is an error in Sequelize)');
-    }
-
-    const associationName = this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular;
-
-    return Utils.camelize(`${associationName}_${this.targetKey}`);
-  }
-
-  #createForeignAndOtherKeys() {
-    /*
-    * Default/generated foreign/other keys
-    */
-    if (isObject(this.options.foreignKey)) {
-      this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName || this.inferForeignKey();
-    } else {
-      this.foreignKeyAttribute = {};
-      this.foreignKey = this.options.foreignKey || this.inferForeignKey();
-    }
-
-    if (isObject(this.options.otherKey)) {
-      this.otherKeyAttribute = this.options.otherKey;
-      this.otherKey = this.otherKeyAttribute.name || this.otherKeyAttribute.fieldName || this.inferOtherKey();
-    } else {
-      if (!this.options.otherKey) {
-        this.otherKeyDefault = true;
-      }
-
-      this.otherKeyAttribute = {};
-      this.otherKey = this.options.otherKey || this.inferOtherKey();
-    }
-  }
-
-  // the id is in the target table
-  // or in an extra table which connects two tables
-  #injectAttributes() {
-    this.identifier = this.foreignKey;
-    this.foreignIdentifier = this.otherKey;
 
     // remove any PKs previously defined by sequelize
     // but ignore any keys that are part of this association (#5865)
@@ -482,63 +374,72 @@ export class BelongsToMany<
       this.source.getAttributes()[this.sourceKey].unique = true;
     }
 
-    if (this.pairedWith && !this.pairedWith.foreignIdentifierField) {
-      this.pairedWith.foreignIdentifierField = Utils.getColumnName(
-        this.through.model.rawAttributes[this.pairedWith.otherKey],
-      );
-    }
-
-    this.fromSourceToThrough = new HasMany(this.source, this.through.model, {
+    this.fromSourceToThrough = new HasMany(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
     });
-    this.fromSourceToThroughOne = new HasOne(this.source, this.through.model, {
+    this.fromSourceToThroughOne = new HasOne(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       sourceKey: this.sourceKey,
-      as: this.through.model.name,
+      as: this.through.model.options.name.singular,
     });
-    this.fromThroughToSource = new BelongsTo(this.through.model, this.source, {
+    this.fromThroughToSource = new BelongsTo(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
     });
 
-    this.fromTargetToThrough = new HasMany(this.target, this.through.model, {
-      // @ts-expect-error
-      foreignKey: this.otherKey,
-    });
-    this.fromTargetToThroughOne = new HasOne(this.target, this.through.model, {
-      // @ts-expect-error
-      foreignKey: this.otherKey,
-      sourceKey: this.targetKey,
-      as: this.through.model.name,
-    });
-    this.fromThroughToTarget = new BelongsTo(this.through.model, this.target, {
-      // @ts-expect-error
-      foreignKey: this.otherKey,
-    });
-
-    if (this.pairedWith && this.pairedWith.otherKeyDefault) {
-      if (!this.pairedWith.fromThroughToTarget) {
-        this.pairedWith.fromThroughToTarget
-          = new BelongsTo(this.pairedWith.through.model, this.pairedWith.target, {
-            foreignKey: this.pairedWith.otherKey,
-          });
-      }
-
-      if (!this.pairedWith.fromTargetToThroughOne) {
-        this.pairedWith.fromTargetToThroughOne
-          = new HasOne(this.pairedWith.target, this.pairedWith.through.model, {
-            foreignKey: this.pairedWith.otherKey,
-            sourceKey: this.pairedWith.targetKey,
-            as: this.pairedWith.through.model.name,
-          });
-      }
-    }
-
     Helpers.checkNamingCollision(this);
 
-    return this;
+    // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
+    const plural = upperFirst(this.options.name.plural);
+    const singular = upperFirst(this.options.name.singular);
+
+    this.accessors = {
+      get: `get${plural}`,
+      set: `set${plural}`,
+      addMultiple: `add${plural}`,
+      add: `add${singular}`,
+      create: `create${singular}`,
+      remove: `remove${singular}`,
+      removeMultiple: `remove${plural}`,
+      hasSingle: `has${singular}`,
+      hasAll: `has${plural}`,
+      count: `count${plural}`,
+    };
+
+    this.#mixin(source.prototype);
+  }
+
+  get sequelize(): Sequelize {
+    return this.source.sequelize!;
+  }
+
+  get through(): NormalizedThroughOptions<ThroughModel> {
+    return this.options.through;
+  }
+
+  get throughModel(): ModelStatic<ThroughModel> {
+    return this.through.model;
+  }
+
+  protected inferForeignKey() {
+    const associationName = this.source.options.name.singular;
+    if (!associationName) {
+      throw new Error('Sanity check: Could not guess the name of the association');
+    }
+
+    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
+  }
+
+  protected inferOtherKey(): string {
+    if (!this.targetKey) {
+      throw new Error('Sanity check: targetKey should be defined (this is an error in Sequelize)');
+    }
+
+    const associationName = this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular;
+
+    return Utils.camelize(`${associationName}_${this.targetKey}`);
   }
 
   #mixin(modelPrototype: Model) {
@@ -971,7 +872,6 @@ function normalizeThroughOptions<M extends Model>(
       timestamps: through.timestamps,
     }),
   };
-
 }
 
 /**
