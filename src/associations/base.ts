@@ -5,6 +5,7 @@ import { AssociationError } from '../errors';
 import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, AttributeNames } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
+import { AssociationConstructorSecret } from './helpers';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -119,9 +120,19 @@ export abstract class Association<
     return !this.isMultiAssociation;
   }
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, attributeReferencedByForeignKey: string, options?: Opts) {
+  constructor(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    attributeReferencedByForeignKey: string,
+    options?: Opts,
+  ) {
     if (!this.inferForeignKey) {
       throw new Error('"Association" is an abstract class and cannot be directly instantiated.');
+    }
+
+    if (secret !== AssociationConstructorSecret) {
+      throw new Error(`Class ${this.constructor.name} cannot be instantiated directly due to it mutating the source model. Use one of the static methods on Model instead.`);
     }
 
     this.source = source;
@@ -164,6 +175,8 @@ export abstract class Association<
     if (source.hasAlias(this.as)) {
       throw new AssociationError(`You have defined two associations with the same name "${this.as}" on the model "${source.name}". Use another alias using the "as" parameter.`);
     }
+
+    source.associations[this.as] = this;
 
     this.foreignKeyAttribute = {};
 

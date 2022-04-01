@@ -65,7 +65,12 @@ export class HasOne<
 
   readonly accessors: SingleAssociationAccessors;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SourceKey, TargetKey>) {
+  constructor(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: HasOneOptions<SourceKey, TargetKey>,
+  ) {
     if (
       options?.sourceKey
       && !source.getAttributes()[options.sourceKey]
@@ -76,7 +81,7 @@ export class HasOne<
     // TODO: throw is source model has a composite primary key.
     const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
 
-    super(source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options);
 
     this.sourceKeyAttribute = this.sourceKey;
     this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;

@@ -1,5 +1,7 @@
 'use strict';
 
+import { AssociationConstructorSecret } from './helpers';
+
 const _ = require('lodash');
 const { HasOne } = require('./has-one');
 const { HasMany } = require('./has-many');
@@ -31,8 +33,7 @@ export const Mixin = {
     }
 
     // the id is in the foreign table or in a connecting table
-    const association = new HasMany(source, target, options);
-    source.associations[association.as] = association;
+    const association = new HasMany(AssociationConstructorSecret, source, target, options);
 
     if (options.useHooks) {
       this.runHooks('afterAssociate', { source, target, type: HasMany, association }, options);
@@ -59,8 +60,7 @@ export const Mixin = {
     }
 
     // the id is in the foreign table or in a connecting table
-    const association = new BelongsToMany(source, target, options);
-    source.associations[association.as] = association;
+    const association = new BelongsToMany(AssociationConstructorSecret, source, target, options);
 
     if (options.useHooks) {
       this.runHooks('afterAssociate', { source, target, type: BelongsToMany, association }, options);
@@ -97,8 +97,7 @@ function singleLinked(Type) {
     }
 
     // the id is in the foreign table
-    const association = new Type(source, target, Object.assign(options, source.options));
-    source.associations[association.as] = association;
+    const association = new Type(AssociationConstructorSecret, source, target, Object.assign(options, source.options));
 
     if (options.useHooks) {
       source.runHooks('afterAssociate', { source, target, type: Type, association }, options);

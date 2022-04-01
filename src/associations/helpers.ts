@@ -75,3 +75,12 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
     });
   }
 }
+
+/**
+ * Used to prevent users from instantiating Associations themselves.
+ * Instantiating associations is not safe as it mutates the Model object.
+ *
+ * @internal
+ * @private do not expose outside sequelize
+ */
+export const AssociationConstructorSecret = Symbol('AssociationConstructorPrivateKey');

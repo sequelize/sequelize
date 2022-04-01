@@ -64,7 +64,12 @@ export class HasMany<
   sourceKeyAttribute: string;
   sourceKeyField: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SourceKey, TargetKey>) {
+  constructor(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: HasManyOptions<SourceKey, TargetKey>,
+  ) {
     if (
       options?.sourceKey
       && !source.getAttributes()[options.sourceKey]
@@ -75,7 +80,7 @@ export class HasMany<
     // TODO: throw if source has a compose PK.
     const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
 
-    super(source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options);
 
     if ('through' in this.options) {
       throw new Error('The "through" option is not available in hasMany. N:M associations are defined using belongsToMany instead.');

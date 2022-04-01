@@ -70,7 +70,12 @@ export class BelongsTo<
 
   readonly targetIdentifier: string;
 
-  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SourceKey, TargetKey>) {
+  constructor(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: BelongsToOptions<SourceKey, TargetKey>,
+  ) {
     if (
       options?.targetKey
       && !target.getAttributes()[options.targetKey]
@@ -81,7 +86,7 @@ export class BelongsTo<
     // TODO: throw is source model has a composite primary key.
     const attributeReferencedByForeignKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
 
-    super(source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options);
 
     this.identifier = this.foreignKey;
     if (this.source.getAttributes()[this.identifier]) {
