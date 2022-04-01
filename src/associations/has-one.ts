@@ -40,7 +40,7 @@ export class HasOne<
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
 > extends Association<S, T, TargetKey, HasOneOptions<SourceKey, TargetKey>> {
-  associationType = 'HasOne';
+  readonly associationType = 'HasOne';
 
   /**
    * The name of the attribute the foreign key points to.

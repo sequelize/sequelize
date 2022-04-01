@@ -37,7 +37,7 @@ export class BelongsTo<
   TargetKey extends AttributeNames<T> = any,
 > extends Association<S, T, SourceKey, BelongsToOptions<SourceKey, TargetKey>> {
 
-  associationType = 'BelongsTo';
+  readonly associationType = 'BelongsTo';
   readonly accessors: SingleAssociationAccessors;
 
   /**

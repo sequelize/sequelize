@@ -46,7 +46,7 @@ export class HasMany<
 > extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, HasManyOptions<SourceKey, TargetKey>> {
   accessors: MultiAssociationAccessors;
 
-  associationType = 'HasMany';
+  readonly associationType = 'HasMany';
 
   identifierField: string | undefined;
   foreignKeyField: string | undefined;

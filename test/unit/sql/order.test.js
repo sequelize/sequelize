@@ -185,6 +185,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     // Relations
     User.belongsToMany(Project, {
       as: 'ProjectUserProjects',
+      inverse: {
+        as: 'ProjectUserUsers',
+      },
       through: ProjectUser,
       foreignKey: 'user_id',
       otherKey: 'project_id',
@@ -192,6 +195,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     Project.belongsToMany(User, {
       as: 'ProjectUserUsers',
+      inverse: {
+        as: 'ProjectUserProjects',
+      },
       through: ProjectUser,
       foreignKey: 'project_id',
       otherKey: 'user_id',

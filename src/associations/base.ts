@@ -95,7 +95,7 @@ export abstract class Association<
    *
    * @type {string}
    */
-  associationType: string = '';
+  readonly abstract associationType: string;
   source: ModelStatic<S>;
   target: ModelStatic<T>;
   isSelfAssociation: boolean;
@@ -111,6 +111,24 @@ export abstract class Association<
   foreignKey: ForeignKey;
 
   attributeReferencedByForeignKey: string;
+
+  /**
+   * A reference to the association that created this one.
+   */
+  parentAssociation: Association | null = null;
+
+  /**
+   * Creating an associations can automatically create other associations.
+   * This returns the initial association that caused the creation of the descendant associations.
+   */
+  // eslint-disable-next-line @typescript-eslint/prefer-return-this-type -- false positive
+  get rootAssociation(): Association {
+    if (this.parentAssociation) {
+      return this.parentAssociation.rootAssociation;
+    }
+
+    return this;
+  }
 
   get isMultiAssociation(): boolean {
     return false;
@@ -172,8 +190,17 @@ export abstract class Association<
       name,
     };
 
-    if (source.hasAlias(this.as)) {
-      throw new AssociationError(`You have defined two associations with the same name "${this.as}" on the model "${source.name}". Use another alias using the "as" parameter.`);
+    const existingAssociation = source.associations[this.as];
+    if (existingAssociation) {
+      const createdByRoot = existingAssociation.rootAssociation;
+
+      // TODO: if this association was created by another, and their options are identical, don't throw. Ignore the creation of this association instead.
+
+      throw new AssociationError(
+        createdByRoot === this
+          ? `You have defined two associations with the same name "${this.as}" on the model "${source.name}". Use another alias using the "as" parameter.`
+          : `You are trying to define the association "${this.as}" on the model "${source.name}", but that association was already created by ${createdByRoot.source.name}.${createdByRoot.associationType}(${createdByRoot.target.name})`,
+      );
     }
 
     source.associations[this.as] = this;

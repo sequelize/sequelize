@@ -32,7 +32,7 @@ import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 import { assertAssociationModelIsDefined } from './association-utils';
-import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions, MultiAssociationAccessors } from './base';
+import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions, MultiAssociationAccessors, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
@@ -44,6 +44,8 @@ import { AssociationConstructorSecret, removeUndefined } from './helpers';
 // TODO: compare mixin methods with these methods
 // TODO: add typing tests to check that association creation calls with the wrong parameters are caught
 // TODO: strongly type the through model
+
+// TODO: add test to ensure 'through' is only used in one association
 
 function addInclude(findOptions: FindOptions<any>, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -110,7 +112,7 @@ export class BelongsToMany<
   TargetKey,
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
-  associationType = 'BelongsToMany';
+  readonly associationType = 'BelongsToMany';
 
   /**
    * The options, as they were when passed to the constructor.
@@ -118,9 +120,9 @@ export class BelongsToMany<
    * @internal
    * @private
    */
-  _originalOptions: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>;
+  readonly _originalOptions: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>;
 
-  accessors: MultiAssociationAccessors;
+  readonly accessors: MultiAssociationAccessors;
 
   primaryKeyDeleted: boolean = false;
 
@@ -151,7 +153,7 @@ export class BelongsToMany<
   /**
    * The corresponding column name of {@link BelongsToMany#foreignKey}
    */
-  identifierField: string;
+  readonly identifierField: string;
 
   /**
    * @deprecated use {@link BelongsToMany#otherKey}
@@ -163,7 +165,7 @@ export class BelongsToMany<
   /**
    * The corresponding column name of {@link BelongsToMany#otherKey}
    */
-  foreignIdentifierField: string;
+  readonly foreignIdentifierField: string;
 
   /**
    * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
@@ -175,18 +177,18 @@ export class BelongsToMany<
   /**
    * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
    */
-  sourceKeyField: string;
+  readonly sourceKeyField: string;
 
   /**
    * The name of the Attribute that the {@link otherKey} fk (located on the Through Model) will reference on the Target model.
    */
-  targetKey: TargetKey;
+  readonly targetKey: TargetKey;
 
   /**
    * The name of the Column that the {@link otherKey} fk (located on the Through Table) will reference on the Target model.
    */
-  targetKeyField: string;
-  targetKeyDefault: boolean;
+  readonly targetKeyField: string;
+  readonly targetKeyDefault: boolean;
 
   /**
    * The corresponding association this entity is paired with.
@@ -194,6 +196,7 @@ export class BelongsToMany<
   readonly pairedWith: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
 
   // intermediary associations
+  // these create the actual associations on the model. Remove them would be a breaking change.
   readonly fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>;
   readonly fromSourceToThroughOne: HasOne<SourceModel, ThroughModel, SourceKey, any>;
   readonly fromThroughToSource: BelongsTo<ThroughModel, SourceModel, any, SourceKey>;
@@ -248,6 +251,8 @@ export class BelongsToMany<
       source,
       {
         ...options,
+        ...options.inverse,
+        inverse: undefined,
         sourceKey: options.targetKey,
         targetKey: options.sourceKey,
         foreignKey: options.otherKey,
@@ -255,6 +260,10 @@ export class BelongsToMany<
       },
       this,
     );
+
+    if (!pair) {
+      this.pairedWith.parentAssociation = this;
+    }
 
     /*
     * Default/generated source/target keys
@@ -378,16 +387,21 @@ export class BelongsToMany<
       // @ts-expect-error
       foreignKey: this.foreignKey,
     });
+    this.fromSourceToThrough.parentAssociation = this;
+
     this.fromSourceToThroughOne = new HasOne(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       sourceKey: this.sourceKey,
       as: this.through.model.options.name.singular,
     });
+    this.fromSourceToThroughOne.parentAssociation = this;
+
     this.fromThroughToSource = new BelongsTo(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
     });
+    this.fromThroughToSource.parentAssociation = this;
 
     Helpers.checkNamingCollision(this);
 
@@ -940,6 +954,13 @@ export interface BelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > extends MultiAssociationOptions<string> {
+  /**
+   * Configures this association on the target model.
+   */
+  inverse?: {
+    as?: AssociationOptions<string>['as'],
+  };
+
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a
    * sequelize model if you want to define the junction table yourself and add extra attributes to it.

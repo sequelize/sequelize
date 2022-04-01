@@ -3,6 +3,7 @@
 import assert from 'assert';
 import { isModelStatic, isSameModel } from '../model';
 import { AssociationConstructorSecret, getModel, removeUndefined } from './helpers';
+import NodeUtil from 'util';
 
 const _ = require('lodash');
 const { HasOne } = require('./has-one');
@@ -51,7 +52,7 @@ export const Mixin = {
     options.timestamps = options.timestamps === undefined ? this.sequelize.options.timestamps : options.timestamps;
 
     // TODO: be more strict about what is copied over
-    Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name']));
+    Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name', 'tableName']));
 
     if (options.useHooks) {
       this.runHooks('beforeAssociate', { source, target, type: BelongsToMany }, options);
@@ -70,7 +71,6 @@ export const Mixin = {
         continue;
       }
 
-      // TODO: instead of deduplicating by 'through', deduplicate by 'as'
       const throughModel = getModel(source.sequelize, options.through);
       if (!throughModel) {
         continue;
@@ -87,8 +87,14 @@ export const Mixin = {
     options = removeUndefined(options);
 
     if (existingAssociation) {
-      assert.deepStrictEqual(options, existingAssociation._originalOptions, `${source.name}.belongsToMany(${target.name}) was called with different options than ${target.name}.belongsToMany(${source.name}). This is not allowed.
-Note that 'belongsToMany' associations are automatically created on the target model as well, so you only need to call this method on one side.`);
+      assert.deepStrictEqual(
+        _.omit(options, 'inverse'),
+        _.omit(existingAssociation._originalOptions, 'inverse'),
+        `${source.name}.belongsToMany(${target.name}, { through: ${existingAssociation.throughModel.name} }) was called with different options than ${target.name}.belongsToMany(${source.name}, { through: ${existingAssociation.throughModel.name} }).
+This is not allowed.
+Note that 'belongsToMany' associations are automatically created on the target model as well, so you only need to call this method on one side.
+You can configure the inverse association through the "inverse" option.`,
+      );
     }
 
     // the id is in the foreign table or in a connecting table

@@ -1254,30 +1254,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
 
-        const Article = sequelize.define('Article', {
-          pk: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-          },
-          title: DataTypes.STRING,
-        });
-
-        const Label = sequelize.define('Label', {
-          sk: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-          },
-          text: DataTypes.STRING,
-        });
-
-        const ArticleLabel = sequelize.define('ArticleLabel');
-
-        Article.belongsToMany(Label, { through: ArticleLabel });
-        Label.belongsToMany(Article, { through: ArticleLabel });
-
-        await sequelize.sync({ force: true });
+        const { Article, Label } = this;
 
         const [article, label] = await Promise.all([
           Article.create({ title: 'foo' }),
