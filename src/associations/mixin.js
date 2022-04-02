@@ -52,7 +52,7 @@ export const Mixin = {
     options.timestamps = options.timestamps === undefined ? this.sequelize.options.timestamps : options.timestamps;
 
     // TODO: be more strict about what is copied over
-    Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name', 'tableName']));
+    Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name', 'tableName', 'sequelize']));
 
     if (options.useHooks) {
       this.runHooks('beforeAssociate', { source, target, type: BelongsToMany }, options);
@@ -90,10 +90,11 @@ export const Mixin = {
       assert.deepStrictEqual(
         _.omit(options, 'inverse'),
         _.omit(existingAssociation._originalOptions, 'inverse'),
-        `${source.name}.belongsToMany(${target.name}, { through: ${existingAssociation.throughModel.name} }) was called with different options than ${target.name}.belongsToMany(${source.name}, { through: ${existingAssociation.throughModel.name} }).
-This is not allowed.
-Note that 'belongsToMany' associations are automatically created on the target model as well, so you only need to call this method on one side.
-You can configure the inverse association through the "inverse" option.`,
+        `As belongsToMany association are automatically created on both sides of the association, the belongsToMany association from ${source.name} to ${target.name}, through ${existingAssociation.throughModel.name} has already been defined by ${target.name}.belongsToMany(${source.name}, { through: ${existingAssociation.throughModel.name} }),
+
+In the past Sequelize would attempt to patch the association and models, but this behavior is prone to subtle bugs and has been removed.
+We recommend that you call .belongsToMany on one side of the association only, you can customize the other side using the "inverse" option.
+`, // TODO: link to website documentation about this
       );
     }
 

@@ -143,6 +143,12 @@ const Support = {
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
+  resetSequelizeInstance() {
+    for (const model of Array.from(this.sequelize.modelManager.all)) {
+      this.sequelize.modelManager.removeModel(model);
+    }
+  },
+
   getConnectionOptionsWithoutPool() {
     // Do not break existing config object - shallow clone before `delete config.pool`
     const config = { ...Config[this.getTestDialect()] };

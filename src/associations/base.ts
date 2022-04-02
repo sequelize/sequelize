@@ -107,8 +107,9 @@ export abstract class Association<
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
 
-  foreignKeyAttribute: ForeignKeyOptions<ForeignKey>;
-  foreignKey: ForeignKey;
+  // these are set by calling computeForeignKey in children
+  foreignKeyAttribute!: ForeignKeyOptions<ForeignKey>;
+  foreignKey!: ForeignKey;
 
   attributeReferencedByForeignKey: string;
 
@@ -174,8 +175,8 @@ export abstract class Association<
         assert(typeof options.as === 'string');
         as = options.as;
         name = {
-          plural: options.as,
-          singular: Utils.singularize(options.as),
+          plural: this.isMultiAssociation ? options.as : Utils.pluralize(options.as),
+          singular: this.isMultiAssociation ? Utils.singularize(options.as) : options.as,
         };
       }
     } else {
@@ -195,28 +196,29 @@ export abstract class Association<
       const createdByRoot = existingAssociation.rootAssociation;
 
       // TODO: if this association was created by another, and their options are identical, don't throw. Ignore the creation of this association instead.
-
       throw new AssociationError(
-        createdByRoot === this
+        createdByRoot === existingAssociation
           ? `You have defined two associations with the same name "${this.as}" on the model "${source.name}". Use another alias using the "as" parameter.`
           : `You are trying to define the association "${this.as}" on the model "${source.name}", but that association was already created by ${createdByRoot.source.name}.${createdByRoot.associationType}(${createdByRoot.target.name})`,
       );
     }
 
     source.associations[this.as] = this;
+  }
 
+  protected computeForeignKey() {
     this.foreignKeyAttribute = {};
 
     let foreignKey: string | undefined;
-    if (isObject(options?.foreignKey)) {
+    if (isObject(this.options?.foreignKey)) {
       // lodash has poor typings
-      assert(typeof options?.foreignKey === 'object');
+      assert(typeof this.options?.foreignKey === 'object');
 
-      this.foreignKeyAttribute = options.foreignKey;
+      this.foreignKeyAttribute = this.options.foreignKey;
       foreignKey = this.foreignKeyAttribute.name
         || this.foreignKeyAttribute.fieldName;
-    } else if (options?.foreignKey) {
-      foreignKey = options.foreignKey;
+    } else if (this.options?.foreignKey) {
+      foreignKey = this.options.foreignKey;
     }
 
     if (!foreignKey) {
@@ -231,6 +233,10 @@ export abstract class Association<
    */
   get as(): string {
     return this.options.as;
+  }
+
+  get name(): { singular: string, plural: string } {
+    return this.options.name;
   }
 
   get scope(): AssociationScope | undefined {

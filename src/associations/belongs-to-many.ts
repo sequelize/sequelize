@@ -1,7 +1,6 @@
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
-import pick from 'lodash/pick';
 import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors';
 import type {
@@ -46,6 +45,13 @@ import { AssociationConstructorSecret, removeUndefined } from './helpers';
 // TODO: strongly type the through model
 
 // TODO: add test to ensure 'through' is only used in one association
+// TODO: add all necessary "inverse" options
+// TODO: write new documentation
+// TODO: add all necessary options to configure "fromThroughToSource", "fromSourceToThrough"
+
+// TODO: add tests in belongs-to-many to check the name of foreign key, associations, etc
+//  for selfAssociations
+//  for others
 
 function addInclude(findOptions: FindOptions<any>, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -165,7 +171,9 @@ export class BelongsToMany<
   /**
    * The corresponding column name of {@link BelongsToMany#otherKey}
    */
-  readonly foreignIdentifierField: string;
+  get foreignIdentifierField() {
+    return this.pairedWith.identifierField;
+  }
 
   /**
    * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
@@ -182,13 +190,16 @@ export class BelongsToMany<
   /**
    * The name of the Attribute that the {@link otherKey} fk (located on the Through Model) will reference on the Target model.
    */
-  readonly targetKey: TargetKey;
+  get targetKey(): TargetKey {
+    return this.pairedWith.sourceKey;
+  }
 
   /**
    * The name of the Column that the {@link otherKey} fk (located on the Through Table) will reference on the Target model.
    */
-  readonly targetKeyField: string;
-  readonly targetKeyDefault: boolean;
+  get targetKeyField(): string {
+    return this.pairedWith.sourceKeyField;
+  }
 
   /**
    * The corresponding association this entity is paired with.
@@ -241,8 +252,14 @@ export class BelongsToMany<
     this._originalOptions = removeUndefined(options);
 
     // options.as instead of this.as, because this.as is always set
-    if (!options.as && this.isSelfAssociation) {
-      throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
+    if (this.isSelfAssociation) {
+      if (!options.as) {
+        throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
+      }
+
+      if (!options.inverse?.as) {
+        throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
+      }
     }
 
     this.pairedWith = pair ?? new BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
@@ -251,8 +268,15 @@ export class BelongsToMany<
       source,
       {
         ...options,
-        ...options.inverse,
-        inverse: undefined,
+        // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
+        as: options.inverse?.as,
+        onDelete: options.inverse?.onDelete,
+        onUpdate: options.inverse?.onUpdate,
+        inverse: {
+          onDelete: options.onDelete,
+          onUpdate: options.onUpdate,
+          as: options.as,
+        },
         sourceKey: options.targetKey,
         targetKey: options.sourceKey,
         foreignKey: options.otherKey,
@@ -265,24 +289,13 @@ export class BelongsToMany<
       this.pairedWith.parentAssociation = this;
     }
 
+    // computeForeignKey needs this.pairedWith to be created (see inferForeignKey)
+    this.computeForeignKey();
+
     /*
     * Default/generated source/target keys
     */
     this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);
-
-    if (this.options.targetKey) {
-      this.targetKeyDefault = false;
-      this.targetKey = this.options.targetKey;
-    } else {
-      this.targetKeyDefault = true;
-      this.targetKey = this.target.primaryKeyAttribute as TargetKey;
-    }
-
-    this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
-
-    Object.assign(this.options, pick(this.through.model.options, [
-      'timestamps', 'createdAt', 'updatedAt', 'deletedAt', 'paranoid',
-    ]));
 
     // remove any PKs previously defined by sequelize
     // but ignore any keys that are part of this association (#5865)
@@ -303,14 +316,9 @@ export class BelongsToMany<
     const sourceKey = this.source.rawAttributes[this.sourceKey];
     const sourceKeyType = sourceKey.type;
     const sourceKeyField = this.sourceKeyField;
-    const targetKey = this.target.rawAttributes[this.targetKey];
-    const targetKeyType = targetKey.type;
-    const targetKeyField = this.targetKeyField;
     const sourceAttribute: ModelAttributeColumnOptions = { type: sourceKeyType, ...this.foreignKeyAttribute };
-    const targetAttribute: ModelAttributeColumnOptions = { type: targetKeyType, ...this.otherKeyAttribute };
 
     if (this.primaryKeyDeleted) {
-      targetAttribute.primaryKey = true;
       sourceAttribute.primaryKey = true;
     } else if (this.through.unique !== false) {
       let uniqueKey;
@@ -320,16 +328,11 @@ export class BelongsToMany<
         uniqueKey = [this.through.model.tableName, this.foreignKey, this.otherKey, 'unique'].join('_');
       }
 
-      targetAttribute.unique = uniqueKey;
       sourceAttribute.unique = uniqueKey;
     }
 
     if (!this.through.model.rawAttributes[this.foreignKey]) {
       sourceAttribute._autoGenerated = true;
-    }
-
-    if (!this.through.model.rawAttributes[this.otherKey]) {
-      targetAttribute._autoGenerated = true;
     }
 
     if (this.options.constraints !== false) {
@@ -339,41 +342,15 @@ export class BelongsToMany<
       };
 
       // For the source attribute the passed option is the priority
-      sourceAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey]?.onDelete;
-      sourceAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey]?.onUpdate;
-
-      if (!sourceAttribute.onDelete) {
-        sourceAttribute.onDelete = 'CASCADE';
-      }
-
-      if (!sourceAttribute.onUpdate) {
-        sourceAttribute.onUpdate = 'CASCADE';
-      }
-
-      targetAttribute.references = {
-        model: this.target.getTableName(),
-        key: targetKeyField,
-      };
-      // For attribute that reference the target, existing options is the priority as it could have been defined by a paired belongsToMany call
-      targetAttribute.onDelete = this.through.model.rawAttributes[this.otherKey]?.onDelete || this.options.onDelete;
-      targetAttribute.onUpdate = this.through.model.rawAttributes[this.otherKey]?.onUpdate || this.options.onUpdate;
-
-      if (!targetAttribute.onDelete) {
-        targetAttribute.onDelete = 'CASCADE';
-      }
-
-      if (!targetAttribute.onUpdate) {
-        targetAttribute.onUpdate = 'CASCADE';
-      }
+      sourceAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey]?.onDelete || 'CASCADE';
+      sourceAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey]?.onUpdate || 'CASCADE';
     }
 
     this.through.model.mergeAttributesOverwrite({
       [this.foreignKey]: sourceAttribute,
-      [this.otherKey]: targetAttribute,
     });
 
     this.identifierField = Utils.getColumnName(this.through.model.rawAttributes[this.foreignKey]);
-    this.foreignIdentifierField = Utils.getColumnName(this.through.model.rawAttributes[this.otherKey]);
 
     // For Db2 server, a reference column of a FOREIGN KEY must be unique
     // else, server throws SQL0573N error. Hence, setting it here explicitly
@@ -386,6 +363,9 @@ export class BelongsToMany<
     this.fromSourceToThrough = new HasMany(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
+      as: this.isSelfAssociation
+        ? `${this.name.plural}_${this.pairedWith.name.plural}`
+        : undefined,
     });
     this.fromSourceToThrough.parentAssociation = this;
 
@@ -393,13 +373,16 @@ export class BelongsToMany<
       // @ts-expect-error
       foreignKey: this.foreignKey,
       sourceKey: this.sourceKey,
-      as: this.through.model.options.name.singular,
+      as: this.isSelfAssociation
+        ? `${this.name.singular}_${this.pairedWith.name.singular}`
+        : this.through.model.options.name.singular,
     });
     this.fromSourceToThroughOne.parentAssociation = this;
 
     this.fromThroughToSource = new BelongsTo(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
+      as: Utils.singularize(this.pairedWith.as),
     });
     this.fromThroughToSource.parentAssociation = this;
 
@@ -438,22 +421,11 @@ export class BelongsToMany<
   }
 
   protected inferForeignKey() {
-    const associationName = this.source.options.name.singular;
-    if (!associationName) {
-      throw new Error('Sanity check: Could not guess the name of the association');
+    if (this.isSelfAssociation) {
+      return Utils.camelize(`${this.pairedWith.name.singular}_${this.attributeReferencedByForeignKey}`);
     }
 
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
-  }
-
-  protected inferOtherKey(): string {
-    if (!this.targetKey) {
-      throw new Error('Sanity check: targetKey should be defined (this is an error in Sequelize)');
-    }
-
-    const associationName = this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular;
-
-    return Utils.camelize(`${associationName}_${this.targetKey}`);
+    return Utils.camelize(`${this.source.options.name.singular}_${this.attributeReferencedByForeignKey}`);
   }
 
   #mixin(modelPrototype: Model) {
@@ -959,6 +931,8 @@ export interface BelongsToManyOptions<
    */
   inverse?: {
     as?: AssociationOptions<string>['as'],
+    onDelete?: AssociationOptions<string>['onDelete'],
+    onUpdate?: AssociationOptions<string>['onUpdate'],
   };
 
   /**
@@ -973,6 +947,7 @@ export interface BelongsToManyOptions<
    * can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of
    * target
    */
+  // TODO: in the future, this could become "inverse.foreignKey" instead
   otherKey?: string | ForeignKeyOptions<string>;
 
   /**

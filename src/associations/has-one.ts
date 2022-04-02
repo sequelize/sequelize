@@ -83,6 +83,8 @@ export class HasOne<
 
     super(secret, source, target, attributeReferencedByForeignKey, options);
 
+    this.computeForeignKey();
+
     this.sourceKeyAttribute = this.sourceKey;
     this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;
 

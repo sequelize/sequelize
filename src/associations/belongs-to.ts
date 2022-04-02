@@ -88,6 +88,8 @@ export class BelongsTo<
 
     super(secret, source, target, attributeReferencedByForeignKey, options);
 
+    this.computeForeignKey();
+
     this.identifier = this.foreignKey;
     if (this.source.getAttributes()[this.identifier]) {
       this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.identifier]);

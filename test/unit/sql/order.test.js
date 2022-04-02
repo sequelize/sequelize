@@ -208,16 +208,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       foreignKey: 'project_id',
     });
 
-    ProjectUser.belongsTo(User, {
-      as: 'User',
-      foreignKey: 'user_id',
-    });
-
-    ProjectUser.belongsTo(User, {
-      as: 'Project',
-      foreignKey: 'project_id',
-    });
-
     Task.belongsTo(Project, {
       as: 'Project',
       foreignKey: 'project_id',
