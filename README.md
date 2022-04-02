@@ -19,7 +19,7 @@ Sequelize follows [Semantic Versioning](http://semver.org) and the [official Nod
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
-Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help! 😃
+Would you like to contribute? Read [our contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md) to know more. There are many ways to help! �
 
 ### :pencil: Major version changelog
 
