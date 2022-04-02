@@ -717,12 +717,37 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       expect(Through.rawAttributes.GroupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
     });
 
+    it('makes the foreign keys primary keys', function () {
+      const User = this.sequelize.define('User', {});
+      const Group = this.sequelize.define('Group', {});
+
+      const association = User.belongsToMany(Group, {
+        as: 'MyGroups',
+        through: 'GroupUser',
+        inverse: {
+          as: 'MyUsers',
+        },
+      });
+
+      const Through = association.throughModel;
+
+      expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['createdAt', 'updatedAt', 'GroupId', 'UserId'].sort());
+      expect(Through.rawAttributes.UserId.primaryKey).to.be.true;
+      expect(Through.rawAttributes.GroupId.primaryKey).to.be.true;
+      expect(Through.rawAttributes.UserId.unique).to.be.undefined;
+      expect(Through.rawAttributes.GroupId.unique).to.be.undefined;
+    });
+
     it('generates unique identifier with very long length', function () {
       const User = this.sequelize.define('User', {}, { tableName: 'table_user_with_very_long_name' });
       const Group = this.sequelize.define('Group', {}, { tableName: 'table_group_with_very_long_name' });
       const UserGroup = this.sequelize.define(
         'GroupUser',
         {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
           id_user_very_long_field: {
             type: DataTypes.INTEGER(1),
           },
@@ -746,13 +771,9 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const Through = Group.associations.MyUsers.through.model;
       expect(Through === User.associations.MyGroups.through.model);
 
-      expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
-      console.log(Through.rawAttributes.id_user_very_long_field);
-      console.log(Through.rawAttributes.id_group_very_long_field);
-      expect(Through.rawAttributes.id_user_very_long_field.unique).to.have.lengthOf(92);
-      expect(Through.rawAttributes.id_group_very_long_field.unique).to.have.lengthOf(92);
-      expect(Through.rawAttributes.id_user_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_user_very_long_field_id_group_very_long_field_unique');
-      expect(Through.rawAttributes.id_group_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_user_very_long_field_id_group_very_long_field_unique');
+      expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
+      expect(Through.rawAttributes.id_user_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
+      expect(Through.rawAttributes.id_group_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
     });
 
     it('generates unique identifier with custom name', function () {
@@ -761,6 +782,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const UserGroup = this.sequelize.define(
         'GroupUser',
         {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
           id_user_very_long_field: {
             type: DataTypes.INTEGER(1),
           },
@@ -782,11 +807,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
         },
       });
 
-      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.have.lengthOf(24);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.have.lengthOf(24);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
-      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.equal('custom_user_group_unique');
+      expect(Group.associations.MyUsers.through.model === UserGroup);
+      expect(User.associations.MyGroups.through.model === UserGroup);
+      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
+      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.equal('custom_user_group_unique');
     });
   });
   describe('association hooks', () => {
@@ -806,7 +830,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsToMany');
@@ -832,7 +856,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
         expect(afterAssociateArgs.length).to.equal(2);
 
         const firstArg = afterAssociateArgs[0];
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsToMany');

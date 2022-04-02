@@ -2,6 +2,7 @@
 
 import assert from 'assert';
 import { isModelStatic, isSameModel } from '../model';
+import { movedSequelizeParam } from '../utils/deprecations';
 import { AssociationConstructorSecret, getModel, removeUndefined } from './helpers';
 import NodeUtil from 'util';
 
@@ -23,17 +24,27 @@ export const Mixin = {
     options.hooks = options.hooks === undefined ? false : Boolean(options.hooks);
     options.useHooks = options.hooks;
 
-    Object.assign(options, _.omit(source.options, ['hooks']));
+    Object.assign(options, _.omit(source.options, ['hooks', 'sequelize']));
+
+    const sequelize = source.sequelize;
+    Object.defineProperty(options, 'sequelize', {
+      configurable: true,
+      get() {
+        movedSequelizeParam();
+
+        return sequelize;
+      },
+    });
 
     if (options.useHooks) {
-      this.runHooks('beforeAssociate', { source, target, type: HasMany }, options);
+      this.runHooks('beforeAssociate', { source, target, type: HasMany, sequelize }, options);
     }
 
     // the id is in the foreign table or in a connecting table
     const association = new HasMany(AssociationConstructorSecret, source, target, options);
 
     if (options.useHooks) {
-      this.runHooks('afterAssociate', { source, target, type: HasMany, association }, options);
+      this.runHooks('afterAssociate', { source, target, type: HasMany, association, sequelize }, options);
     }
 
     return association;
@@ -51,11 +62,22 @@ export const Mixin = {
     options.useHooks = options.hooks;
     options.timestamps = options.timestamps === undefined ? this.sequelize.options.timestamps : options.timestamps;
 
+    const sequelize = source.sequelize;
+
+    Object.defineProperty(options, 'sequelize', {
+      configurable: true,
+      get() {
+        movedSequelizeParam();
+
+        return sequelize;
+      },
+    });
+
     // TODO: be more strict about what is copied over
     Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name', 'tableName', 'sequelize']));
 
     if (options.useHooks) {
-      this.runHooks('beforeAssociate', { source, target, type: BelongsToMany }, options);
+      this.runHooks('beforeAssociate', { source, target, type: BelongsToMany, sequelize }, options);
     }
 
     // BelongsToMany automatically creates its symmetrical association on the target model
@@ -101,8 +123,17 @@ We recommend that you call .belongsToMany on one side of the association only, y
     // the id is in the foreign table or in a connecting table
     const association = existingAssociation || new BelongsToMany(AssociationConstructorSecret, source, target, options);
 
+    Object.defineProperty(options, 'sequelize', {
+      configurable: true,
+      get() {
+        movedSequelizeParam();
+
+        return sequelize;
+      },
+    });
+
     if (options.useHooks) {
-      this.runHooks('afterAssociate', { source, target, type: BelongsToMany, association }, options);
+      this.runHooks('afterAssociate', { source, target, type: BelongsToMany, association, sequelize }, options);
     }
 
     return association;
@@ -130,16 +161,29 @@ function singleLinked(Type) {
     // Since this is a mixin, we'll need a unique letiable name for hooks (since Model will override our hooks option)
     options.hooks = options.hooks === undefined ? false : Boolean(options.hooks);
     options.useHooks = options.hooks;
+    const sequelize = source.sequelize;
+
+    Object.defineProperty(options, 'sequelize', {
+      configurable: true,
+      get() {
+        movedSequelizeParam();
+
+        return sequelize;
+      },
+    });
+
+    // TODO: be more strict about what is copied over
+    Object.assign(options, _.omit(source.options, ['hooks', 'timestamps', 'scopes', 'defaultScope', 'name', 'tableName', 'sequelize']));
 
     if (options.useHooks) {
-      source.runHooks('beforeAssociate', { source, target, type: Type }, options);
+      source.runHooks('beforeAssociate', { source, target, type: Type, sequelize }, options);
     }
 
     // the id is in the foreign table
-    const association = new Type(AssociationConstructorSecret, source, target, Object.assign(options, source.options));
+    const association = new Type(AssociationConstructorSecret, source, target, options);
 
     if (options.useHooks) {
-      source.runHooks('afterAssociate', { source, target, type: Type, association }, options);
+      source.runHooks('afterAssociate', { source, target, type: Type, association, sequelize }, options);
     }
 
     return association;

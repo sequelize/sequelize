@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('should mixin association methods', () => {
       const as = Math.random().toString();
-      const association = new HasMany(User, Task, { as });
+      const association = User.hasMany(Task, { as });
 
       expect(User.prototype[association.accessors.get]).to.be.an('function');
       expect(User.prototype[association.accessors.set]).to.be.an('function');
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasMany');
@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('HasMany');

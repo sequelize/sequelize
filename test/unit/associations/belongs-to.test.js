@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
         expect(beforeAssociateArgs.length).to.equal(2);
 
         const firstArg = beforeAssociateArgs[0];
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association');
+        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');

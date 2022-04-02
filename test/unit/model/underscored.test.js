@@ -102,8 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         underscored: true,
       });
 
-      this.N.belongsToMany(this.M, { through: this.NM, foreignKey: 'n_id' });
-      this.M.belongsToMany(this.N, { through: this.NM, foreignKey: 'm_id' });
+      this.N.belongsToMany(this.M, { through: this.NM, foreignKey: 'n_id', otherKey: 'm_id' });
 
       expect(this.NM.rawAttributes.n_id.field).to.equal('nana_id');
       expect(this.NM.rawAttributes.m_id.field).to.equal('mama_id');
