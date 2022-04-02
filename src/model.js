@@ -42,8 +42,7 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * However, if getters and/or setters are defined for `field` they will be invoked, instead of returning the value from `dataValues`.
  * Accessing properties directly or using `get` is preferred for regular use, `getDataValue` should only be used for custom getters.
  *
- * @see
-   * {@link Sequelize#define} for more information about getters and setters
+ * @see {Sequelize#define} for more information about getters and setters
  * @mixes Hooks
  */
 export class Model {
@@ -57,9 +56,6 @@ export class Model {
 
   /**
    * A reference to the sequelize instance
-   *
-   * @see
-   * {@link Sequelize}
    *
    * @property sequelize
    *
@@ -97,7 +93,7 @@ export class Model {
         if (overwrittenAttributes.length > 0) {
           logger.warn(`Model ${JSON.stringify(this.constructor.name)} is declaring public class fields for attribute(s): ${overwrittenAttributes.map(attr => JSON.stringify(attr)).join(', ')}.`
             + '\nThese class fields are shadowing Sequelize\'s attribute getters & setters.'
-            + '\nSee https://sequelize.org/main/manual/model-basics.html#caveat-with-public-class-fields');
+            + '\nSee https://sequelize.org/docs/v7/core-concepts/model-basics/#caveat-with-public-class-fields');
         }
       }, 0);
     }

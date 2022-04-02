@@ -236,7 +236,7 @@ type StaticValues<Type> =
  *
  * @typeParam AttributeType - The JS type of the attribute the operator is operating on.
  *
- * See https://sequelize.org/master/en/v3/docs/querying/#operators
+ * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators
  */
 // TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
@@ -1940,13 +1940,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
    *
-   * For a list of possible data types, see https://sequelize.org/master/en/latest/docs/models-definition/#data-types
+   * For a list of possible data types, see https://sequelize.org/docs/v7/other-topics/other-data-types
    *
-   * For more about getters and setters, see https://sequelize.org/master/en/latest/docs/models-definition/#getters-setters
+   * For more about getters and setters, see https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
    *
-   * For more about instance and class methods, see https://sequelize.org/master/en/latest/docs/models-definition/#expansion-of-models
+   * For more about instance and class methods, see https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
    *
-   * For more about validation, see https://sequelize.org/master/en/latest/docs/models-definition/#validations
+   * For more about validation, see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
    *
    * @param attributes
    *  An object, where each attribute is a column of the table. Each column can be either a DataType, a
@@ -2419,7 +2419,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @returns Promise<number> The number of destroyed rows
+   * @return The number of destroyed rows
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
@@ -3021,7 +3021,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
+  /**
+   * @private
+   */
   public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+
+  /**
+   * @private
+   */
   public static _virtualAttributes: Set<string>;
 
   /**
