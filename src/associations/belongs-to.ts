@@ -312,8 +312,6 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
    * A string or a data type to represent the identifier in the table
    */
   keyType?: DataType;
-
-  useHooks?: boolean;
 }
 
 /**

@@ -388,6 +388,11 @@ export interface AssociationOptions<ForeignKey extends string> extends Hookable 
   foreignKeyConstraint?: boolean;
 
   scope?: AssociationScope;
+
+  /**
+   * @deprecated use {@link Hookable.hooks}
+   */
+  useHooks?: boolean;
 }
 
 /**

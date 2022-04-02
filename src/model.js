@@ -13,7 +13,7 @@ const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
-const { Mixin: associationsMixin } = require('./associations/mixin');
+const { DefineAssociationMethods } = require('./associations/mixin');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
 const { _validateIncludedElements, combineIncludes } = require('./model-internals');
@@ -3457,6 +3457,15 @@ ${associationOwner._getAssociationDebugList()}`);
     return Object.prototype.hasOwnProperty.call(this.associations, alias);
   }
 
+  static getAssociations(target) {
+    return Object.values(this.associations).filter(association => association.target.name === target.name);
+  }
+
+  static getAssociationForAlias(target, alias) {
+    // Two associations cannot have the same alias, so we can use find instead of filter
+    return this.getAssociations(target).find(association => association.verifyAssociationAlias(alias)) || null;
+  }
+
   /**
    * Increment the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The increment is done using a
    * ``` SET column = column + X WHERE foo = 'bar' ``` query. To get the correct value after an increment into the Instance you should do a reload.
@@ -4684,7 +4693,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @example
    * User.hasMany(Profile) // This will add userId to the profile table
    */
-  static hasMany(target, options) {}
+  static hasMany(target, options) {
+    return DefineAssociationMethods.hasMany(this, target, options);
+  }
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -4719,7 +4730,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * User.belongsToMany(Project, { through: UserProjects })
    * Project.belongsToMany(User, { through: UserProjects })
    */
-  static belongsToMany(target, options) {}
+  static belongsToMany(target, options) {
+    return DefineAssociationMethods.belongsToMany(this, target, options);
+  }
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the target.
@@ -4740,7 +4753,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @example
    * User.hasOne(Profile) // This will add userId to the profile table
    */
-  static hasOne(target, options) {}
+  static hasOne(target, options) {
+    return DefineAssociationMethods.hasOne(this, target, options);
+  }
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the source.
@@ -4760,7 +4775,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @example
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
-  static belongsTo(target, options) {}
+  static belongsTo(target, options) {
+    return DefineAssociationMethods.belongsTo(this, target, options);
+  }
 }
 
 /**
@@ -4815,7 +4832,6 @@ function combineWheresWithAnd(whereA, whereB) {
   };
 }
 
-Object.assign(Model, associationsMixin);
 Hooks.applyTo(Model, true);
 
 export function isModelStatic(val) {

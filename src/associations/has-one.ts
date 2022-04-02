@@ -363,8 +363,6 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
    * A string or a data type to represent the identifier in the table
    */
   keyType?: DataType;
-
-  useHooks?: boolean;
 }
 
 /**

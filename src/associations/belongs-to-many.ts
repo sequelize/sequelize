@@ -838,7 +838,7 @@ Object.defineProperty(BelongsToMany, 'name', {
   value: 'BelongsToMany',
 });
 
-function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
+export function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
   return isPlainObject(val) && 'model' in val;
 }
 

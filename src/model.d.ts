@@ -1,5 +1,5 @@
 import { IndexHints } from './index-hints';
-import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
+import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions, AssociationOptions } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
@@ -9,6 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json, Nullish } from './utils';
 import { LOCK, Transaction, Op, PartlyRequired, Optional } from './index';
 import { SetRequired } from './utils/set-required';
+import { AfterAssociateEventData, BeforeAssociateEventData } from './associations/mixin';
 
 export interface Logging {
   /**
@@ -988,7 +989,6 @@ export interface Hookable {
    * The default value depends on the context.
    */
   hooks?: boolean
-
 }
 
 /**
@@ -2022,6 +2022,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static hasAlias(alias: string): boolean;
 
   /**
+   * Returns all associations for which the target matches the parameter.
+   */
+  static getAssociations<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>): Association<S, T>[];
+
+  /**
+   * Returns the association for which the target matches the 'target' parameter, and the alias ("as") matches the 'alias' parameter
+   */
+  static getAssociationForAlias<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T> | null;
+
+  /**
    * Refreshes the Model's attribute definition.
    */
   static refreshAttributes(): void;
@@ -2972,6 +2982,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
+
+  public static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
+  public static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added
