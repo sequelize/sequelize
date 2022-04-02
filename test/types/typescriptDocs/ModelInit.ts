@@ -1,9 +1,3 @@
-/**
- * Keep this file in sync with the code in the "Usage" section
- * in /docs/manual/other-topics/typescript.md
- *
- * Don't include this comment in the md file.
- */
 import {
   Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,

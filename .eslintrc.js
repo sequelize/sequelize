@@ -135,7 +135,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js', 'docs/**/*.js'],
+    files: ['test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
@@ -149,8 +149,8 @@ module.exports = {
       'no-multi-spaces': 'off',
     },
   }, {
-    // Disable slow rules that are not important in tests & docs (perf)
-    files: ['test/**/*', 'docs/**/*'],
+    // Disable slow rules that are not important in tests (perf)
+    files: ['test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -179,6 +179,11 @@ module.exports = {
     parserOptions: {
       project: ['./test/tsconfig.json'],
     },
+  }, {
+    files: ['**/tsconfig.json'],
+    rules: {
+      'json/*': ['error', { allowComments: true }],
+    },
   }],
   settings: {
     jsdoc: {
@@ -201,7 +206,15 @@ module.exports = {
     sourceType: 'module',
   },
   // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
-  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*', '!dev/update-authors.js'],
+  ignorePatterns: [
+    'lib/**/*',
+    'types/**/*',
+    'test/types/**/*',
+    'src/**/*.d.ts',
+    'dev/**/*',
+    '!dev/update-authors.js',
+    '.typedoc-build',
+  ],
   env: {
     node: true,
     mocha: true,
