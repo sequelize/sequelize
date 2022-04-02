@@ -9,7 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json, Nullish } from './utils';
 import { LOCK, Transaction, Op, PartlyRequired, Optional } from './index';
 import { SetRequired } from './utils/set-required';
-import { AfterAssociateEventData, BeforeAssociateEventData } from './associations/mixin';
+import { AfterAssociateEventData, BeforeAssociateEventData } from './associations/define-association-methods.js';
 
 export interface Logging {
   /**
