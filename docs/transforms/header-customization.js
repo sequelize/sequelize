@@ -5,7 +5,8 @@ module.exports = function transform($) {
   const githubLogoImage = $('header a img[src="./image/github.png"]');
 
   apiReferenceLink
-    .text('API Reference')
+    .attr('href', '/docs/v6/intro/')
+    .text('Guides')
     .addClass('api-reference-link');
 
   githubLogoImage
