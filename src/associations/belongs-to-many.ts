@@ -1031,8 +1031,7 @@ export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions<an
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyGetAssociationsMixin<TModel> = (
   options?: BelongsToManyGetAssociationsMixinOptions
@@ -1077,8 +1076,7 @@ export interface BelongsToManySetAssociationsMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
   newAssociations?: Array<TModel | TModelPrimaryKey>,
@@ -1120,8 +1118,7 @@ export interface BelongsToManyAddAssociationsMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
   newAssociations?: Array<TModel | TModelPrimaryKey>,
@@ -1163,8 +1160,7 @@ export interface BelongsToManyAddAssociationMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
   newAssociation?: TModel | TModelPrimaryKey,
@@ -1201,8 +1197,7 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
   values?: CreationAttributes<TModel>,
@@ -1238,8 +1233,7 @@ export interface BelongsToManyRemoveAssociationMixinOptions extends InstanceDest
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
   oldAssociated?: TModel | TModelPrimaryKey,
@@ -1258,7 +1252,6 @@ export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDes
  * An example of usage is as follows:
  *
  * ```js
- *
  * User.belongsToMany(Role, { through: UserRole });
  *
  * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
@@ -1275,8 +1268,7 @@ export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDes
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
   oldAssociateds?: Array<TModel | TModelPrimaryKey>,
@@ -1312,8 +1304,7 @@ export interface BelongsToManyHasAssociationMixinOptions extends BelongsToManyGe
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
   target: TModel | TModelPrimaryKey,
@@ -1349,8 +1340,7 @@ export interface BelongsToManyHasAssociationsMixinOptions extends BelongsToManyG
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
   targets: Array<TModel | TModelPrimaryKey>,
@@ -1391,8 +1381,7 @@ export interface BelongsToManyCountAssociationsMixinOptions extends Transactiona
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to-many.js~BelongsToMany.html
- * @see Instance
+ * @see Model.belongsToMany
  */
 export type BelongsToManyCountAssociationsMixin = (
   options?: BelongsToManyCountAssociationsMixinOptions

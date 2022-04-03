@@ -347,8 +347,7 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
- * @see Instance
+ * @see Model.belongsTo
  */
 // TODO: in the future, type the return value based on whether the foreign key is nullable or not on the source model.
 //   if nullable, return TModel | null
@@ -383,8 +382,7 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
- * @see Instance
+ * @see Model.belongsTo
  *
  * @typeParam TargetKeyType The type of the attribute that the foreign key references.
  */
@@ -416,8 +414,7 @@ export interface BelongsToCreateAssociationMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
- * @see Instance
+ * @see Model.belongsTo
  */
 export type BelongsToCreateAssociationMixin<TModel extends Model> = (
   values?: CreationAttributes<TModel>,

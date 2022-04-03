@@ -400,8 +400,7 @@ export interface HasOneGetAssociationMixinOptions<M extends Model> extends FindO
  *
  * @returns The associated model, or null if no model is associated. HasOne associations are always nullable because the foreign key is on the target model.
  *
- * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
- * @see Instance
+ * @see Model.hasOne
  */
 export type HasOneGetAssociationMixin<
   T extends Model,
@@ -431,7 +430,7 @@ export interface HasOneSetAssociationMixinOptions<T extends Model>
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+ * @see Model.hasOne
  */
 export type HasOneSetAssociationMixin<T extends Model, TModelPrimaryKey> = {
   (newAssociation: null, options?: HasOneSetAssociationMixinOptions<T>): Promise<null>,
@@ -461,8 +460,7 @@ export interface HasOneCreateAssociationMixinOptions<M extends Model>
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
- * @see Instance
+ * @see Model.hasOne
  */
 export type HasOneCreateAssociationMixin<T extends Model> = (
   // TODO: omit the foreign key

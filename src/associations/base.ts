@@ -370,12 +370,16 @@ export interface AssociationOptions<ForeignKey extends string> extends Hookable 
    *
    * Cascade if this is a n:m, and set null if it is a 1:m
    *
+   * One of RESTRICT, CASCADE, NO ACTION, SET DEFAULT, or SET NULL
+   *
    * @default 'SET NULL' or 'CASCADE'
    */
   onDelete?: string;
 
   /**
    * What happens when update occurs
+   *
+   * One of RESTRICT, CASCADE, NO ACTION, SET DEFAULT, or SET NULL
    *
    * @default 'CASCADE'
    */
