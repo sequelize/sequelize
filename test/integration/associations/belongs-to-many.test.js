@@ -12,6 +12,10 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
+  beforeEach(() => {
+    Support.resetSequelizeInstance();
+  });
+
   describe('getAssociations', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -190,9 +194,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const projects = await u.getProjects();
       expect(projects).to.have.length(1);
       const project = projects[0];
-      expect(project.ProjectUsers).to.be.ok;
+
+      expect(project.ProjectUser).to.be.ok;
       expect(project.status).not.to.exist;
-      expect(project.ProjectUsers.status).to.equal('active');
+      expect(project.ProjectUser.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
       if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
@@ -227,8 +232,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         tableName: 'tbl_user_has_group',
       });
 
-      User.belongsToMany(Group, { as: 'groups', through: User_has_Group, foreignKey: 'id_user' });
-      Group.belongsToMany(User, { as: 'users', through: User_has_Group, foreignKey: 'id_group' });
+      User.belongsToMany(Group, { as: 'groups', through: User_has_Group, foreignKey: 'id_user', otherKey: 'id_group', inverse: { as: 'users' } });
 
       await this.sequelize.sync({ force: true });
       const [user0, group] = await Promise.all([User.create(), Group.create()]);
@@ -352,8 +356,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ],
       });
 
-      User.belongsToMany(Group, { through: 'usergroups', sourceKey: 'userSecondId' });
-      Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId' });
+      User.belongsToMany(Group, { through: 'usergroups', sourceKey: 'userSecondId', targetKey: 'groupSecondId' });
 
       await this.sequelize.sync({ force: true });
       const [user1, user2, group1, group2] = await Promise.all([User.create(), User.create(), Group.create(), Group.create()]);
@@ -734,8 +737,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ],
       });
 
-      User.belongsToMany(Group, { through: User_has_Group, sourceKey: 'userSecondId' });
-      Group.belongsToMany(User, { through: User_has_Group, sourceKey: 'groupSecondId' });
+      User.belongsToMany(Group, { through: User_has_Group, sourceKey: 'userSecondId', targetKey: 'groupSecondId' });
 
       await this.sequelize.sync({ force: true });
       const [user1, user2, group1, group2] = await Promise.all([User.create(), User.create(), Group.create(), Group.create()]);
@@ -928,8 +930,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ],
       });
 
-      User.belongsToMany(Group, { through: 'usergroups', foreignKey: 'userId2', sourceKey: 'userSecondId' });
-      Group.belongsToMany(User, { through: 'usergroups', foreignKey: 'groupId2', sourceKey: 'groupSecondId' });
+      User.belongsToMany(Group, { through: 'usergroups', foreignKey: 'userId2', otherKey: 'groupId2', sourceKey: 'userSecondId', targetKey: 'groupSecondId' });
 
       await this.sequelize.sync({ force: true });
       const [user1, user2, group1, group2] = await Promise.all([User.create(), User.create(), Group.create(), Group.create()]);
@@ -1075,8 +1076,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ],
       });
 
-      User.belongsToMany(Group, { through: User_has_Group, foreignKey: 'userId2', sourceKey: 'userSecondId' });
-      Group.belongsToMany(User, { through: User_has_Group, foreignKey: 'groupId2', sourceKey: 'groupSecondId' });
+      User.belongsToMany(Group, {
+        through: User_has_Group,
+        foreignKey: 'userId2',
+        otherKey: 'groupId2',
+        sourceKey: 'userSecondId',
+        targetKey: 'groupSecondId',
+      });
 
       await this.sequelize.sync({ force: true });
       const [user1, user2, group1, group2] = await Promise.all([User.create(), User.create(), Group.create(), Group.create()]);
@@ -1243,18 +1249,18 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         text: DataTypes.STRING,
       });
       this.ArticleLabel = this.sequelize.define('ArticleLabel');
-
-      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
-      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
-
-      return this.sequelize.sync({ force: true });
     });
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
 
-        const { Article, Label } = this;
+        const { Article, Label, ArticleLabel } = this;
+
+        Article.belongsToMany(Label, { through: ArticleLabel });
+        Label.belongsToMany(Article, { through: ArticleLabel });
+
+        await this.sequelize.sync({ force: true });
 
         const [article, label] = await Promise.all([
           Article.create({ title: 'foo' }),
@@ -1278,6 +1284,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     }
 
     it('answers false if only some labels have been assigned', async function () {
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      await this.sequelize.sync({ force: true });
+
       const [article, label1, label2] = await Promise.all([
         this.Article.create({ title: 'Article' }),
         this.Label.create({ text: 'Awesomeness' }),
@@ -1290,6 +1301,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('answers false if only some labels have been assigned when passing a primary key instead of an object', async function () {
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      await this.sequelize.sync({ force: true });
+
       const [article, label1, label2] = await Promise.all([
         this.Article.create({ title: 'Article' }),
         this.Label.create({ text: 'Awesomeness' }),
@@ -1307,6 +1323,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('answers true if all label have been assigned', async function () {
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      await this.sequelize.sync({ force: true });
+
       const [article, label1, label2] = await Promise.all([
         this.Article.create({ title: 'Article' }),
         this.Label.create({ text: 'Awesomeness' }),
@@ -1319,6 +1340,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('answers true if all label have been assigned when passing a primary key instead of an object', async function () {
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      await this.sequelize.sync({ force: true });
+
       const [article, label1, label2] = await Promise.all([
         this.Article.create({ title: 'Article' }),
         this.Label.create({ text: 'Awesomeness' }),
@@ -1350,6 +1376,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           },
         },
       });
+
       this.Article.belongsToMany(this.Label, { through: { model: this.ArticleLabel, unique: false } });
       this.Label.belongsToMany(this.Article, { through: { model: this.ArticleLabel, unique: false } });
 
@@ -1458,21 +1485,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     // Problably due to binary id. Hence, disabling it for db2 dialect
     if (dialect !== 'db2') {
       it('answers true for labels that have been assigned', async function () {
-        const [article0, label0] = await Promise.all([
+        const [article, label] = await Promise.all([
           this.Article.create({
-            id: Buffer.alloc(255),
+            id: Buffer.from([1]),
           }),
           this.Label.create({
-            id: Buffer.alloc(255),
+            id: Buffer.from([1]),
           }),
         ]);
-        const [article, label] = await Promise.all([
-          article0,
-          label0,
-          article0.addLabel(label0, {
-            through: 'ArticleLabel',
-          }),
-        ]);
+
+        await article.addLabel(label);
         const result = await article.hasLabels([label]);
         await expect(result).to.be.true;
       });
