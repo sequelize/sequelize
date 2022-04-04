@@ -13,7 +13,7 @@ export interface CommonErrorProperties {
 //  Remove me in Sequelize 8, where this is added natively by TypeScript (>= 4.6):
 //  This is a breaking change and must be done in a MAJOR release.
 export type ErrorOptions = {
-  cause?: unknown,
+  cause?: Error,
 };
 
 const supportsErrorCause = (() => {
@@ -33,7 +33,7 @@ const supportsErrorCause = (() => {
  * This means that errors can be accessed using `Sequelize.ValidationError`
  */
 abstract class BaseError extends Error {
-  declare cause: unknown;
+  declare cause: Error | undefined;
 
   get parent(): this['cause'] {
     useErrorCause();
