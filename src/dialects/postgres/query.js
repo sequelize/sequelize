@@ -357,7 +357,7 @@ export class PostgresQuery extends AbstractQuery {
           fields: null,
           index,
           table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
       case '23505':
@@ -389,12 +389,12 @@ export class PostgresQuery extends AbstractQuery {
             });
           }
 
-          return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
         }
 
         return new sequelizeErrors.UniqueConstraintError({
           message: errMessage,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -412,7 +412,7 @@ export class PostgresQuery extends AbstractQuery {
           constraint: err.constraint,
           fields,
           table: err.table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -429,7 +429,7 @@ export class PostgresQuery extends AbstractQuery {
             constraint: index,
             fields,
             table,
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }

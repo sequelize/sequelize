@@ -243,7 +243,7 @@ export class IBMiQuery extends AbstractQuery {
 
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.ForeignKeyConstraintError({
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -253,7 +253,7 @@ export class IBMiQuery extends AbstractQuery {
       if (uniqueConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.UniqueConstraintError({
           errors: err.odbcErrors,
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -271,7 +271,7 @@ export class IBMiQuery extends AbstractQuery {
 
           if (type === '*N') {
             return new sequelizeErrors.UnknownConstraintError({
-              parent: err,
+              cause: err,
               constraint: constraintName,
             });
           }

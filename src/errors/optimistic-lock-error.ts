@@ -19,17 +19,15 @@ class OptimisticLockError extends BaseError {
   values: Record<string, unknown> | undefined;
   where: Record<string, unknown> | undefined;
 
-  constructor(options: OptimisticLockErrorOptions) {
-    options = options || {};
-    options.message
-      = options.message
-      || `Attempting to update a stale model instance: ${options.modelName}`;
+  constructor(options?: OptimisticLockErrorOptions, errorOptions?: ErrorOptions) {
+    const message = options?.message
+      || `Attempting to update a stale model instance: ${options?.modelName}`;
 
-    super(options.message);
+    super(message, errorOptions);
     this.name = 'SequelizeOptimisticLockError';
-    this.modelName = options.modelName;
-    this.values = options.values;
-    this.where = options.where;
+    this.modelName = options?.modelName;
+    this.values = options?.values;
+    this.where = options?.where;
   }
 }
 

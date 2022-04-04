@@ -12,8 +12,8 @@ class BulkRecordError extends BaseError {
   errors: Error;
   record: Model;
 
-  constructor(error: Error, record: Model) {
-    super(error.message);
+  constructor(error: Error, record: Model, options?: ErrorOptions) {
+    super(error.message, options);
     this.name = 'SequelizeBulkRecordError';
     this.errors = error;
     this.record = record;
