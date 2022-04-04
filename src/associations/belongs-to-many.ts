@@ -1,5 +1,6 @@
 import assert from 'assert';
 import each from 'lodash/each';
+import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
@@ -581,7 +582,8 @@ export class BelongsToMany<
     return targetPrimaryKeys.every(pk => {
       return associatedObjects.some(instance => {
         // instance[x] instead of instance.get() because the query output is 'raw'
-        return instance[this.targetKey] === pk;
+        // isEqual is used here because the PK can be a non-primitive value, such as a Buffer
+        return isEqual(instance[this.targetKey], pk);
       });
     });
   }
