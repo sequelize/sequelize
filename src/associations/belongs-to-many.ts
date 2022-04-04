@@ -26,20 +26,32 @@ import type {
   UpdateOptions,
   ModelOptions,
 } from '../model';
-import { isModelStatic } from '../model';
+import { isModelStatic, isSameModel } from '../model';
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
-import { assertAssociationModelIsDefined } from './association-utils';
-import type { AssociationScope, ForeignKeyOptions, MultiAssociationOptions, MultiAssociationAccessors, AssociationOptions } from './base';
+import type {
+  AssociationScope,
+  ForeignKeyOptions,
+  MultiAssociationOptions,
+  MultiAssociationAccessors,
+  AssociationOptions,
+  NormalizedAssociationOptions,
+  Association,
+} from './base';
 import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
-import * as Helpers from './helpers';
-import { AssociationConstructorSecret, removeUndefined } from './helpers';
+import {
+  assertAssociationUnique,
+  AssociationConstructorSecret,
+  checkNamingCollision,
+  defineAssociation,
+  mixinMethods,
+} from './helpers';
 
 // TODO: strictly type mixin options
 // TODO: compare mixin methods with these methods
@@ -55,7 +67,7 @@ import { AssociationConstructorSecret, removeUndefined } from './helpers';
 //  for selfAssociations
 //  for others
 
-function addInclude(findOptions: FindOptions<any>, include: Includeable) {
+function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
     findOptions.include.push(include);
   } else if (!findOptions.include) {
@@ -121,14 +133,6 @@ export class BelongsToMany<
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
   readonly associationType = 'BelongsToMany';
-
-  /**
-   * The options, as they were when passed to the constructor.
-   *
-   * @internal
-   * @private
-   */
-  readonly _originalOptions: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>;
 
   readonly accessors: MultiAssociationAccessors;
 
@@ -218,46 +222,31 @@ export class BelongsToMany<
     return this.pairedWith.fromThroughToSource;
   }
 
+  get sequelize(): Sequelize {
+    return this.source.sequelize!;
+  }
+
+  get through(): NormalizedThroughOptions<ThroughModel> {
+    return this.options.through;
+  }
+
+  get throughModel(): ModelStatic<ThroughModel> {
+    return this.through.model;
+  }
+
   constructor(
     secret: symbol,
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
-    options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    options: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
     pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
+    parent?: Association<any>,
   ) {
-    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
-      throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
-    }
-
-    assertAssociationModelIsDefined(source);
-    assertAssociationModelIsDefined(target);
-
-    const sequelize = source.sequelize!;
-
     const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
 
-    super(secret, source, target, attributeReferencedByForeignKey, {
-      ...options,
-      // though is either a string of a Model. Convert it to ThroughOptions.
-      through: isThroughOptions(options.through)
-        ? normalizeThroughOptions(options.through, sequelize)
-        : normalizeThroughOptions({ model: options.through }, sequelize),
-    });
+    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
-    this._originalOptions = removeUndefined(options);
-
-    // options.as instead of this.as, because this.as is always set
-    if (this.isSelfAssociation) {
-      if (!options.as) {
-        throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
-      }
-
-      if (!options.inverse?.as) {
-        throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
-      }
-    }
-
-    this.pairedWith = pair ?? new BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+    this.pairedWith = BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
       secret,
       target,
       source,
@@ -278,11 +267,8 @@ export class BelongsToMany<
         otherKey: options.foreignKey,
       },
       this,
+      this,
     );
-
-    if (!pair) {
-      this.pairedWith.parentAssociation = this;
-    }
 
     // computeForeignKey needs this.pairedWith to be created (see inferForeignKey)
     this.computeForeignKey();
@@ -370,14 +356,13 @@ export class BelongsToMany<
       this.source.getAttributes()[this.sourceKey].unique = true;
     }
 
-    this.fromSourceToThrough = new HasMany(AssociationConstructorSecret, this.source, this.through.model, {
+    this.fromSourceToThrough = HasMany.associate(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       as: this.isSelfAssociation
         ? `${this.name.plural}_${this.pairedWith.name.plural}`
         : undefined,
-    });
-    this.fromSourceToThrough.parentAssociation = this;
+    }, this);
 
     this.fromSourceToThroughOne = new HasOne(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
@@ -386,17 +371,13 @@ export class BelongsToMany<
       as: this.isSelfAssociation
         ? `${this.name.singular}_${this.pairedWith.name.singular}`
         : this.through.model.options.name.singular,
-    });
-    this.fromSourceToThroughOne.parentAssociation = this;
+    }, this);
 
     this.fromThroughToSource = new BelongsTo(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       as: Utils.singularize(this.pairedWith.as),
-    });
-    this.fromThroughToSource.parentAssociation = this;
-
-    Helpers.checkNamingCollision(this);
+    }, this);
 
     // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
     const plural = upperFirst(this.options.name.plural);
@@ -418,16 +399,55 @@ export class BelongsToMany<
     this.#mixin(source.prototype);
   }
 
-  get sequelize(): Sequelize {
-    return this.source.sequelize!;
-  }
+  static associate<
+    S extends Model,
+    T extends Model,
+    ThroughModel extends Model,
+    SourceKey extends AttributeNames<S>,
+    TargetKey extends AttributeNames<T>,
+  >(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    pair?: BelongsToMany<T, S, ThroughModel, TargetKey, SourceKey>,
+    parent?: Association<any>,
+  ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
+    // self-associations must always set their 'as' parameter
+    if (isSameModel(source, target)) {
+      if (!options.as) {
+        throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
+      }
 
-  get through(): NormalizedThroughOptions<ThroughModel> {
-    return this.options.through;
-  }
+      if (!options.inverse?.as) {
+        throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
+      }
+    }
 
-  get throughModel(): ModelStatic<ThroughModel> {
-    return this.through.model;
+    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
+      throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
+    }
+
+    return defineAssociation<
+      BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
+      BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
+    >(BelongsToMany, source, target, options, newOptions => {
+      const sequelize = source.sequelize!;
+
+      const normalizedOptions: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel> = {
+        ...this.normalizeOptions(newOptions, true, target),
+        // though is either a string of a Model. Convert it to ThroughOptions.
+        through: isThroughOptions(newOptions.through)
+          ? normalizeThroughOptions(newOptions.through, sequelize)
+          : normalizeThroughOptions({ model: newOptions.through }, sequelize),
+        timestamps: newOptions.timestamps === undefined ? sequelize.options.define?.timestamps : newOptions.timestamps,
+      };
+
+      checkNamingCollision(source, normalizedOptions.as);
+      assertAssociationUnique(source, normalizedOptions);
+
+      return new BelongsToMany(secret, source, target, normalizedOptions, pair, parent);
+    });
   }
 
   protected inferForeignKey() {
@@ -440,7 +460,7 @@ export class BelongsToMany<
 
   #mixin(modelPrototype: Model) {
 
-    Helpers.mixinMethods(
+    mixinMethods(
       this,
       modelPrototype,
       ['get', 'count', 'hasSingle', 'hasAll', 'set', 'add', 'addMultiple', 'remove', 'removeMultiple', 'create'],
@@ -920,8 +940,9 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'though'>
-  & { through: NormalizedThroughOptions<ThroughModel> };
+  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as'>
+  & { through: NormalizedThroughOptions<ThroughModel> }
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
 
 type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
   model: ModelStatic<ThroughModel>,
@@ -936,7 +957,7 @@ export interface BelongsToManyOptions<
   SourceKey extends string,
   TargetKey extends string,
   ThroughModel extends Model,
-> extends MultiAssociationOptions<string> {
+> extends AssociationOptions<string>, MultiAssociationOptions {
   /**
    * Configures this association on the target model.
    */

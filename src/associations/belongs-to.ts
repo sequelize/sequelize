@@ -11,9 +11,15 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import type { AssociationOptions, SingleAssociationAccessors, NormalizedAssociationOptions } from './base';
 import { Association } from './base';
-import * as Helpers from './helpers';
+import {
+  addForeignKeyConstraints,
+  assertAssociationUnique,
+  checkNamingCollision,
+  defineAssociation,
+  mixinMethods,
+} from './helpers';
 
 // TODO: strictly type mixin options
 
@@ -35,7 +41,7 @@ export class BelongsTo<
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
-> extends Association<S, T, SourceKey, BelongsToOptions<SourceKey, TargetKey>> {
+> extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
 
   readonly associationType = 'BelongsTo';
   readonly accessors: SingleAssociationAccessors;
@@ -45,7 +51,9 @@ export class BelongsTo<
    *
    * @deprecated use {@link foreignKey} instead
    */
-  readonly identifier: string;
+  get identifier(): string {
+    return this.foreignKey;
+  }
 
   /**
    * The column name of the identifier
@@ -68,13 +76,19 @@ export class BelongsTo<
 
   readonly targetKeyIsPrimary: boolean;
 
-  readonly targetIdentifier: string;
+  /**
+   * @deprecated use {@link BelongsTo.targetKey}
+   */
+  get targetIdentifier(): string {
+    return this.targetKey;
+  }
 
   constructor(
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options?: BelongsToOptions<SourceKey, TargetKey>,
+    options: NormalizedBelongsToOptions<SourceKey, TargetKey>,
+    parent?: Association,
   ) {
     if (
       options?.targetKey
@@ -86,18 +100,16 @@ export class BelongsTo<
     // TODO: throw is source model has a composite primary key.
     const attributeReferencedByForeignKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
 
-    super(secret, source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
     this.computeForeignKey();
 
-    this.identifier = this.foreignKey;
-    if (this.source.getAttributes()[this.identifier]) {
-      this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.identifier]);
+    if (this.source.getAttributes()[this.foreignKey]) {
+      this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.foreignKey]);
     }
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
-    this.targetIdentifier = this.targetKey;
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);
@@ -110,6 +122,32 @@ export class BelongsTo<
 
     this.#injectAttributes();
     this.#mixin(source.prototype);
+  }
+
+  static associate<
+    S extends Model,
+    T extends Model,
+    SourceKey extends AttributeNames<S>,
+    TargetKey extends AttributeNames<T>,
+    >(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options: BelongsToOptions<SourceKey, TargetKey>,
+    parent?: Association<any>,
+  ): BelongsTo<S, T, SourceKey, TargetKey> {
+    return defineAssociation<
+      BelongsTo<S, T, SourceKey, TargetKey>,
+      BelongsToOptions<SourceKey, TargetKey>
+    >(BelongsTo, source, target, options, newOptions => {
+      const normalizedOptions: NormalizedBelongsToOptions<SourceKey, TargetKey>
+        = this.normalizeOptions(newOptions, true, target);
+
+      checkNamingCollision(source, normalizedOptions.as);
+      assertAssociationUnique(source, normalizedOptions);
+
+      return new BelongsTo(secret, source, target, normalizedOptions, parent);
+    });
   }
 
   // the id is in the source table
@@ -128,19 +166,17 @@ export class BelongsTo<
       this.options.onUpdate = this.options.onUpdate || 'CASCADE';
     }
 
-    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.options, this.targetKeyField);
+    addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.options, this.targetKeyField);
 
     this.source.mergeAttributesDefault(newAttributes);
 
     this.identifierField = Utils.getColumnName(this.source.rawAttributes[this.foreignKey]);
 
-    Helpers.checkNamingCollision(this);
-
     return this;
   }
 
   #mixin(modelPrototype: Model): void {
-    Helpers.mixinMethods(this, modelPrototype, ['get', 'set', 'create']);
+    mixinMethods(this, modelPrototype, ['get', 'set', 'create']);
   }
 
   protected inferForeignKey(): string {
@@ -295,6 +331,10 @@ export class BelongsTo<
     return newAssociatedObject;
   }
 }
+
+export type NormalizedBelongsToOptions<SourceKey extends string, TargetKey extends string> =
+  & Omit<BelongsToOptions<SourceKey, TargetKey>, 'as'>
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
 
 /**
  * Options provided when associating models with belongsTo relationship

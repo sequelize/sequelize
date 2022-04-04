@@ -4,16 +4,15 @@ const assert = require('assert');
 const NodeUtil = require('util');
 const _ = require('lodash');
 const Dottie = require('dottie');
-
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
-const { BelongsTo, BelongsToMany, Association, HasMany } = require('./associations');
+const { BelongsTo, BelongsToMany, Association, HasMany, HasOne } = require('./associations');
+const { AssociationConstructorSecret } = require('./associations/helpers');
 const { InstanceValidator } = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
-const { DefineAssociationMethods } = require('./associations/define-association-methods');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
 const { _validateIncludedElements, combineIncludes } = require('./model-internals');
@@ -4690,7 +4689,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * User.hasMany(Profile) // This will add userId to the profile table
    */
   static hasMany(target, options) {
-    return DefineAssociationMethods.hasMany(this, target, options);
+    return HasMany.associate(AssociationConstructorSecret, this, target, options);
   }
 
   /**
@@ -4727,7 +4726,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * Project.belongsToMany(User, { through: UserProjects })
    */
   static belongsToMany(target, options) {
-    return DefineAssociationMethods.belongsToMany(this, target, options);
+    return BelongsToMany.associate(AssociationConstructorSecret, this, target, options);
   }
 
   /**
@@ -4750,7 +4749,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * User.hasOne(Profile) // This will add userId to the profile table
    */
   static hasOne(target, options) {
-    return DefineAssociationMethods.hasOne(this, target, options);
+    return HasOne.associate(AssociationConstructorSecret, this, target, options);
   }
 
   /**
@@ -4772,7 +4771,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
   static belongsTo(target, options) {
-    return DefineAssociationMethods.belongsTo(this, target, options);
+    return BelongsTo.associate(AssociationConstructorSecret, this, target, options);
   }
 }
 

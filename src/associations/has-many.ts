@@ -15,9 +15,9 @@ import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import * as Utils from '../utils';
 import type { AllowArray } from '../utils';
-import type { MultiAssociationAccessors, MultiAssociationOptions } from './base';
+import type { AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions, Association, NormalizedAssociationOptions } from './base';
 import { MultiAssociation } from './base';
-import * as Helpers from './helpers';
+import { addForeignKeyConstraints, assertAssociationUnique, checkNamingCollision, mixinMethods } from './helpers';
 
 // TODO: strictly type mixin options
 // TODO: add typing tests for each mixin method
@@ -43,7 +43,7 @@ export class HasMany<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
-> extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, HasManyOptions<SourceKey, TargetKey>> {
+> extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, NormalizedHasManyOptions<SourceKey, TargetKey>> {
   accessors: MultiAssociationAccessors;
 
   readonly associationType = 'HasMany';
@@ -68,7 +68,8 @@ export class HasMany<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options: HasManyOptions<SourceKey, TargetKey> = {},
+    options: NormalizedHasManyOptions<SourceKey, TargetKey>,
+    parent?: Association,
   ) {
     if (
       options.sourceKey
@@ -84,7 +85,7 @@ export class HasMany<
     // TODO: throw if source has a compose PK.
     const attributeReferencedByForeignKey = options.sourceKey || (source.primaryKeyAttribute as SourceKey);
 
-    super(secret, source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
     this.computeForeignKey();
 
@@ -126,6 +127,26 @@ export class HasMany<
     this.#mixin(source.prototype);
   }
 
+  static associate<
+    S extends Model,
+    T extends Model,
+    SourceKey extends AttributeNames<S>,
+    TargetKey extends AttributeNames<T>,
+    >(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options: HasManyOptions<SourceKey, TargetKey>,
+    parent?: Association<any>,
+  ): HasMany<S, T, SourceKey, TargetKey> {
+    const normalizedOptions: NormalizedHasManyOptions<SourceKey, TargetKey> = this.normalizeOptions(options, true, target);
+
+    checkNamingCollision(source, normalizedOptions.as);
+    assertAssociationUnique(source, normalizedOptions);
+
+    return new HasMany(secret, source, target, normalizedOptions, parent);
+  }
+
   // the id is in the target table
   // or in an extra table which connects two tables
   #injectAttributes() {
@@ -146,7 +167,7 @@ export class HasMany<
       constraintOptions.onUpdate = constraintOptions.onUpdate || 'CASCADE';
     }
 
-    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, constraintOptions, this.sourceKeyField);
+    addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, constraintOptions, this.sourceKeyField);
 
     this.target.mergeAttributesDefault(newAttributes);
     this.source.refreshAttributes();
@@ -155,13 +176,11 @@ export class HasMany<
     this.foreignKeyField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
     this.sourceKeyField = this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
 
-    Helpers.checkNamingCollision(this);
-
     return this;
   }
 
   #mixin(mixinTargetPrototype: Model) {
-    Helpers.mixinMethods(
+    mixinMethods(
       this,
       mixinTargetPrototype,
       ['get', 'count', 'hasSingle', 'hasAll', 'set', 'add', 'addMultiple', 'remove', 'removeMultiple', 'create'],
@@ -515,11 +534,15 @@ export class HasMany<
   }
 }
 
+export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends string> =
+  & Omit<HasManyOptions<SourceKey, TargetKey>, 'as'>
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
+
 /**
  * Options provided when associating models with hasMany relationship
  */
 export interface HasManyOptions<SourceKey extends string, TargetKey extends string>
-  extends MultiAssociationOptions<TargetKey> {
+  extends AssociationOptions<TargetKey>, MultiAssociationOptions {
 
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary

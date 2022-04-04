@@ -13,9 +13,9 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import type { AssociationOptions, SingleAssociationAccessors, NormalizedAssociationOptions } from './base';
 import { Association } from './base';
-import * as Helpers from './helpers';
+import { addForeignKeyConstraints, assertAssociationUnique, checkNamingCollision, mixinMethods } from './helpers';
 
 // TODO: strictly type mixin options
 
@@ -39,7 +39,7 @@ export class HasOne<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
-> extends Association<S, T, TargetKey, HasOneOptions<SourceKey, TargetKey>> {
+> extends Association<S, T, TargetKey, NormalizedHasOneOptions<SourceKey, TargetKey>> {
   readonly associationType = 'HasOne';
 
   /**
@@ -69,7 +69,8 @@ export class HasOne<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options?: HasOneOptions<SourceKey, TargetKey>,
+    options: NormalizedHasOneOptions<SourceKey, TargetKey>,
+    parent?: Association,
   ) {
     if (
       options?.sourceKey
@@ -81,7 +82,7 @@ export class HasOne<
     // TODO: throw is source model has a composite primary key.
     const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
 
-    super(secret, source, target, attributeReferencedByForeignKey, options);
+    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
     this.computeForeignKey();
 
@@ -125,19 +126,37 @@ export class HasOne<
       this.options.onUpdate = this.options.onUpdate || 'CASCADE';
     }
 
-    Helpers.addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, this.options, this.sourceKeyField);
+    addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, this.options, this.sourceKeyField);
 
     this.target.mergeAttributesDefault(newAttributes);
 
     this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
 
-    Helpers.checkNamingCollision(this);
-
     return this;
   }
 
   #mixin(mixinTargetPrototype: Model) {
-    Helpers.mixinMethods(this, mixinTargetPrototype, ['get', 'set', 'create']);
+    mixinMethods(this, mixinTargetPrototype, ['get', 'set', 'create']);
+  }
+
+  static associate<
+    S extends Model,
+    T extends Model,
+    SourceKey extends AttributeNames<S>,
+    TargetKey extends AttributeNames<T>,
+    >(
+    secret: symbol,
+    source: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options: HasOneOptions<SourceKey, TargetKey>,
+    parent?: Association<any>,
+  ): HasOne<S, T, SourceKey, TargetKey> {
+    const normalizedOptions: NormalizedHasOneOptions<SourceKey, TargetKey> = this.normalizeOptions(options, true, target);
+
+    checkNamingCollision(source, normalizedOptions.as);
+    assertAssociationUnique(source, normalizedOptions);
+
+    return new HasOne(secret, source, target, normalizedOptions, parent);
   }
 
   protected inferForeignKey(): string {
@@ -345,6 +364,10 @@ because, as this is a hasOne association, the foreign key we need to update is l
     return this.target.create(values, options);
   }
 }
+
+export type NormalizedHasOneOptions<SourceKey extends string, TargetKey extends string> =
+  & Omit<HasOneOptions<SourceKey, TargetKey>, 'as'>
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
 
 /**
  * Options provided when associating models with hasOne relationship

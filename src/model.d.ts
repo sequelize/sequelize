@@ -1,5 +1,5 @@
 import { IndexHints } from './index-hints';
-import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions, AssociationOptions } from './associations/index';
+import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions, AssociationOptions, AfterAssociateEventData, BeforeAssociateEventData } from './associations';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
@@ -9,7 +9,6 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json, Nullish } from './utils';
 import { LOCK, Transaction, Op, PartlyRequired, Optional } from './index';
 import { SetRequired } from './utils/set-required';
-import { AfterAssociateEventData, BeforeAssociateEventData } from './associations/define-association-methods.js';
 
 export interface Logging {
   /**
