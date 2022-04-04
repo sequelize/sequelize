@@ -1,5 +1,5 @@
 import type { Model } from '..';
-import type { SequelizeErrorOptions } from './base-error';
+import type { ErrorOptions, SequelizeErrorOptions } from './base-error';
 import BaseError from './base-error';
 
 /**
