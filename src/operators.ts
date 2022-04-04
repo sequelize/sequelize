@@ -45,7 +45,7 @@ interface OpTypes {
    * ```
    * In SQL
    * ```sql
-   * ANY ARRAY[2, 3]::INTEGER
+   * ANY (ARRAY[2, 3]::INTEGER[])
    * ```
    *
    * Operator LIKE ANY ARRAY (also works for iLike and notLike)
@@ -55,7 +55,7 @@ interface OpTypes {
    * ```
    * In SQL
    * ```sql
-   * LIKE ANY ARRAY['cat', 'hat']
+   * LIKE ANY (ARRAY['cat', 'hat'])
    * ```
    */
   readonly any: unique symbol;
