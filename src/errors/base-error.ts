@@ -9,6 +9,12 @@ export interface CommonErrorProperties {
   readonly sql: string;
 }
 
+const supportsErrorCause = (() => {
+  const err = new Error('Dummy 1', { cause: new Error('Dummy 2') });
+
+  return 'cause' in err;
+})();
+
 /**
  * The Base Error all Sequelize Errors inherit from.
  *
@@ -33,6 +39,11 @@ abstract class BaseError extends Error {
   constructor(message?: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'SequelizeBaseError';
+
+    if (!supportsErrorCause) {
+      // TODO [>=2024-04-30]: Once all supported node versions have support for Error.cause, delete this line:
+      this.cause = options?.cause;
+    }
   }
 }
 
