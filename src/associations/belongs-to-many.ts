@@ -46,9 +46,7 @@ import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
 import {
-  assertAssociationUnique,
   AssociationConstructorSecret,
-  checkNamingCollision,
   defineAssociation,
   mixinMethods,
 } from './helpers';
@@ -66,6 +64,28 @@ import {
 // TODO: add tests in belongs-to-many to check the name of foreign key, associations, etc
 //  for selfAssociations
 //  for others
+
+// TODO: add test for this scenario:
+
+// BelongsToMany(Source, Posts, {
+//   as: 'posts',
+//   through: { model: post_tag },
+//   inverse: {
+//       as: 'categories',
+//       scope: { type: 'category' }
+//   },
+// }
+//
+// BelongsToMany(Source, Posts, {
+//   as: 'posts',
+//   through: { model: post_tag },
+//   inverse: {
+//     onDelete: undefined,
+//       onUpdate: undefined,
+//       as: 'tags',
+//       scope: { type: 'tag' }
+//   },
+// }
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -132,8 +152,6 @@ export class BelongsToMany<
   TargetKey,
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
-  readonly associationType = 'BelongsToMany';
-
   readonly accessors: MultiAssociationAccessors;
 
   /**
@@ -246,7 +264,7 @@ export class BelongsToMany<
 
     super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
-    this.pairedWith = BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+    this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
       secret,
       target,
       source,
@@ -256,10 +274,12 @@ export class BelongsToMany<
         as: options.inverse?.as,
         onDelete: options.inverse?.onDelete,
         onUpdate: options.inverse?.onUpdate,
+        scope: options.inverse?.scope,
         inverse: {
           onDelete: options.onDelete,
           onUpdate: options.onUpdate,
           as: options.as,
+          scope: options.scope,
         },
         sourceKey: options.targetKey,
         targetKey: options.sourceKey,
@@ -364,7 +384,7 @@ export class BelongsToMany<
         : undefined,
     }, this);
 
-    this.fromSourceToThroughOne = new HasOne(AssociationConstructorSecret, this.source, this.through.model, {
+    this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.through.model, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       sourceKey: this.sourceKey,
@@ -373,7 +393,7 @@ export class BelongsToMany<
         : this.through.model.options.name.singular,
     }, this);
 
-    this.fromThroughToSource = new BelongsTo(AssociationConstructorSecret, this.through.model, this.source, {
+    this.fromThroughToSource = BelongsTo.associate(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       as: Utils.singularize(this.pairedWith.as),
@@ -413,6 +433,10 @@ export class BelongsToMany<
     pair?: BelongsToMany<T, S, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
+    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
+      throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
+    }
+
     // self-associations must always set their 'as' parameter
     if (isSameModel(source, target)) {
       if (!options.as) {
@@ -424,27 +448,20 @@ export class BelongsToMany<
       }
     }
 
-    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
-      throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
-    }
-
     return defineAssociation<
       BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
-    >(BelongsToMany, source, target, options, newOptions => {
+    >(BelongsToMany, source, target, options, parent, newOptions => {
       const sequelize = source.sequelize!;
 
-      const normalizedOptions: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel> = {
-        ...this.normalizeOptions(newOptions, true, target),
+      const normalizedOptions = {
+        ...newOptions,
         // though is either a string of a Model. Convert it to ThroughOptions.
         through: isThroughOptions(newOptions.through)
           ? normalizeThroughOptions(newOptions.through, sequelize)
           : normalizeThroughOptions({ model: newOptions.through }, sequelize),
         timestamps: newOptions.timestamps === undefined ? sequelize.options.define?.timestamps : newOptions.timestamps,
       };
-
-      checkNamingCollision(source, normalizedOptions.as);
-      assertAssociationUnique(source, normalizedOptions);
 
       return new BelongsToMany(secret, source, target, normalizedOptions, pair, parent);
     });
@@ -940,9 +957,9 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as'>
+  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks'>
   & { through: NormalizedThroughOptions<ThroughModel> }
-  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks'>;
 
 type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
   model: ModelStatic<ThroughModel>,
@@ -957,7 +974,7 @@ export interface BelongsToManyOptions<
   SourceKey extends string,
   TargetKey extends string,
   ThroughModel extends Model,
-> extends AssociationOptions<string>, MultiAssociationOptions {
+> extends MultiAssociationOptions<string> {
   /**
    * Configures this association on the target model.
    */
@@ -965,6 +982,7 @@ export interface BelongsToManyOptions<
     as?: AssociationOptions<string>['as'],
     onDelete?: AssociationOptions<string>['onDelete'],
     onUpdate?: AssociationOptions<string>['onUpdate'],
+    scope?: MultiAssociationOptions<string>['scope'],
   };
 
   /**

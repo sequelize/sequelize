@@ -11,12 +11,11 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import type { AssociationOptions, SingleAssociationAccessors, NormalizedAssociationOptions } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   addForeignKeyConstraints,
-  assertAssociationUnique,
-  checkNamingCollision,
   defineAssociation,
   mixinMethods,
 } from './helpers';
@@ -43,7 +42,6 @@ export class BelongsTo<
   TargetKey extends AttributeNames<T> = any,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
 
-  readonly associationType = 'BelongsTo';
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -133,19 +131,13 @@ export class BelongsTo<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options: BelongsToOptions<SourceKey, TargetKey>,
+    options: BelongsToOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
   ): BelongsTo<S, T, SourceKey, TargetKey> {
     return defineAssociation<
       BelongsTo<S, T, SourceKey, TargetKey>,
       BelongsToOptions<SourceKey, TargetKey>
-    >(BelongsTo, source, target, options, newOptions => {
-      const normalizedOptions: NormalizedBelongsToOptions<SourceKey, TargetKey>
-        = this.normalizeOptions(newOptions, true, target);
-
-      checkNamingCollision(source, normalizedOptions.as);
-      assertAssociationUnique(source, normalizedOptions);
-
+    >(BelongsTo, source, target, options, parent, normalizedOptions => {
       return new BelongsTo(secret, source, target, normalizedOptions, parent);
     });
   }
@@ -332,9 +324,13 @@ export class BelongsTo<
   }
 }
 
+// workaround https://github.com/evanw/esbuild/issues/1260
+Object.defineProperty(BelongsTo, 'name', {
+  value: 'BelongsTo',
+});
+
 export type NormalizedBelongsToOptions<SourceKey extends string, TargetKey extends string> =
-  & Omit<BelongsToOptions<SourceKey, TargetKey>, 'as'>
-  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
+  NormalizeBaseAssociationOptions<BelongsToOptions<SourceKey, TargetKey>>;
 
 /**
  * Options provided when associating models with belongsTo relationship

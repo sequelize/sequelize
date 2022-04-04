@@ -15,9 +15,14 @@ import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import * as Utils from '../utils';
 import type { AllowArray } from '../utils';
-import type { AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions, Association, NormalizedAssociationOptions } from './base';
+import type { MultiAssociationAccessors, MultiAssociationOptions, Association } from './base';
 import { MultiAssociation } from './base';
-import { addForeignKeyConstraints, assertAssociationUnique, checkNamingCollision, mixinMethods } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
+import {
+  addForeignKeyConstraints,
+  defineAssociation,
+  mixinMethods,
+} from './helpers';
 
 // TODO: strictly type mixin options
 // TODO: add typing tests for each mixin method
@@ -45,8 +50,6 @@ export class HasMany<
   TargetPrimaryKey extends AttributeNames<T> = any,
 > extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, NormalizedHasManyOptions<SourceKey, TargetKey>> {
   accessors: MultiAssociationAccessors;
-
-  readonly associationType = 'HasMany';
 
   identifierField: string | undefined;
   foreignKeyField: string | undefined;
@@ -136,20 +139,22 @@ export class HasMany<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options: HasManyOptions<SourceKey, TargetKey>,
+    options: HasManyOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
   ): HasMany<S, T, SourceKey, TargetKey> {
-    const normalizedOptions: NormalizedHasManyOptions<SourceKey, TargetKey> = this.normalizeOptions(options, true, target);
 
-    checkNamingCollision(source, normalizedOptions.as);
-    assertAssociationUnique(source, normalizedOptions);
-
-    return new HasMany(secret, source, target, normalizedOptions, parent);
+    return defineAssociation<
+      HasMany<S, T, SourceKey, TargetKey>,
+      HasManyOptions<SourceKey, TargetKey>
+    >(HasMany, source, target, options, parent, normalizedOptions => {
+      return new HasMany(secret, source, target, normalizedOptions, parent);
+    });
   }
 
   // the id is in the target table
   // or in an extra table which connects two tables
   #injectAttributes() {
+    // TODO: instead of injecting attributes, automatically create the corresponding BelongsTo association
     const newAttributes = {
       [this.foreignKey]: {
         type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type,
@@ -534,15 +539,19 @@ export class HasMany<
   }
 }
 
+// workaround https://github.com/evanw/esbuild/issues/1260
+Object.defineProperty(HasMany, 'name', {
+  value: 'HasMany',
+});
+
 export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends string> =
-  & Omit<HasManyOptions<SourceKey, TargetKey>, 'as'>
-  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
+  NormalizeBaseAssociationOptions<HasManyOptions<SourceKey, TargetKey>>;
 
 /**
  * Options provided when associating models with hasMany relationship
  */
 export interface HasManyOptions<SourceKey extends string, TargetKey extends string>
-  extends AssociationOptions<TargetKey>, MultiAssociationOptions {
+  extends MultiAssociationOptions<TargetKey> {
 
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary

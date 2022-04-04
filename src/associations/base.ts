@@ -1,10 +1,10 @@
 import assert from 'assert';
 import isObject from 'lodash/isObject';
-import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, AttributeNames } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
-import { AssociationConstructorSecret, removeUndefined } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
+import { AssociationConstructorSecret } from './helpers';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -89,16 +89,12 @@ export abstract class Association<
   ForeignKey extends string = string,
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > {
-  /**
-   * The type of the association. One of `HasMany`, `BelongsTo`, `HasOne`, `BelongsToMany`
-   *
-   * @type {string}
-   */
-  readonly abstract associationType: string;
   source: ModelStatic<S>;
   target: ModelStatic<T>;
   isSelfAssociation: boolean;
   isAliased: boolean;
+
+  readonly _origOptions: Opts;
   readonly options: Opts;
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
@@ -127,43 +123,21 @@ export abstract class Association<
     return this;
   }
 
+  /**
+   * The type of the association. One of `HasMany`, `BelongsTo`, `HasOne`, `BelongsToMany`
+   *
+   * @type {string}
+   */
+  get associationType(): string {
+    return this.constructor.name;
+  }
+
   get isMultiAssociation(): boolean {
     return false;
   }
 
   get isSingleAssociation(): boolean {
     return !this.isMultiAssociation;
-  }
-
-  static normalizeOptions<
-    ForeignKey extends string,
-    Out extends NormalizedAssociationOptions<ForeignKey>,
-  >(options: AssociationOptions<ForeignKey>, isMultiAssociation: boolean, target: ModelStatic<Model>): Out {
-    let name: { singular: string, plural: string };
-    let as: string;
-    if (options?.as) {
-      if (isPlainObject(options.as)) {
-        assert(typeof options.as === 'object');
-        name = options.as;
-        as = isMultiAssociation ? options.as.plural : options.as.singular;
-      } else {
-        assert(typeof options.as === 'string');
-        as = options.as;
-        name = {
-          plural: isMultiAssociation ? options.as : Utils.pluralize(options.as),
-          singular: isMultiAssociation ? Utils.singularize(options.as) : options.as,
-        };
-      }
-    } else {
-      as = isMultiAssociation ? target.options.name.plural : target.options.name.singular;
-      name = target.options.name;
-    }
-
-    return removeUndefined({
-      ...options,
-      as,
-      name,
-    }) as Out;
   }
 
   constructor(
@@ -193,6 +167,7 @@ export abstract class Association<
 
     this.isAliased = Boolean(options?.as);
 
+    this._origOptions = Utils.cloneDeep(options);
     this.options = options;
 
     source.associations[this.as] = this;
@@ -335,10 +310,8 @@ export interface ForeignKeyOptions<ForeignKey extends string> extends ColumnOpti
   fieldName?: string;
 }
 
-export type NormalizedAssociationOptions<ForeignKey extends string> = Omit<AssociationOptions<ForeignKey>, 'as'> & {
-  as: string,
-  name: { singular: string, plural: string },
-};
+export type NormalizedAssociationOptions<ForeignKey extends string>
+  = NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
 /**
  * Options provided when associating models
@@ -404,7 +377,7 @@ export interface AssociationScope {
 /**
  * Options provided for many-to-many relationships
  */
-export interface MultiAssociationOptions {
+export interface MultiAssociationOptions<ForeignKey extends string> extends AssociationOptions<ForeignKey> {
   /**
    * A key/value set that will be used for association create and find defaults on the target.
    * (sqlite not supported for N:M)

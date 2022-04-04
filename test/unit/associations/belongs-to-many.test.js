@@ -154,24 +154,31 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    const User = current.define('User', { username: DataTypes.STRING });
-    const Task = current.define('Task', { title: DataTypes.STRING });
-    const UserTasks = current.define('UserTasks', {});
-
-    User.belongsToMany(Task, { through: UserTasks });
-    Task.belongsToMany(User, { through: UserTasks });
-
-    const user = User.build({
-      id: 42,
-    });
-    const task1 = Task.build({
-      id: 15,
-    });
-    const task2 = Task.build({
-      id: 16,
-    });
+    let User;
+    let Task;
+    let UserTasks;
+    let user;
+    let task1;
+    let task2;
 
     beforeEach(function () {
+      User = current.define('User', { username: DataTypes.STRING });
+      Task = current.define('Task', { title: DataTypes.STRING });
+      UserTasks = current.define('UserTasks', {});
+
+      User.belongsToMany(Task, { through: UserTasks });
+      Task.belongsToMany(User, { through: UserTasks });
+
+      user = User.build({
+        id: 42,
+      });
+      task1 = Task.build({
+        id: 15,
+      });
+      task2 = Task.build({
+        id: 16,
+      });
+
       this.findAll = stub(UserTasks, 'findAll').resolves([]);
       this.bulkCreate = stub(UserTasks, 'bulkCreate').resolves([]);
       this.destroy = stub(UserTasks, 'destroy').resolves([]);

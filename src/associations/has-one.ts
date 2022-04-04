@@ -13,9 +13,14 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
-import type { AssociationOptions, SingleAssociationAccessors, NormalizedAssociationOptions } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
-import { addForeignKeyConstraints, assertAssociationUnique, checkNamingCollision, mixinMethods } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
+import {
+  addForeignKeyConstraints,
+  defineAssociation,
+  mixinMethods,
+} from './helpers';
 
 // TODO: strictly type mixin options
 
@@ -40,8 +45,6 @@ export class HasOne<
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
 > extends Association<S, T, TargetKey, NormalizedHasOneOptions<SourceKey, TargetKey>> {
-  readonly associationType = 'HasOne';
-
   /**
    * The name of the attribute the foreign key points to.
    * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsTo.targetKey}).
@@ -110,6 +113,7 @@ export class HasOne<
    * @private
    */
   #injectAttributes() {
+    // TODO: instead of injecting attributes, automatically create the corresponding BelongsTo association
     // the id is in the target table
 
     const newAttributes: Record<string, ModelAttributeColumnOptions> = {
@@ -148,15 +152,15 @@ export class HasOne<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    options: HasOneOptions<SourceKey, TargetKey>,
+    options: HasOneOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
   ): HasOne<S, T, SourceKey, TargetKey> {
-    const normalizedOptions: NormalizedHasOneOptions<SourceKey, TargetKey> = this.normalizeOptions(options, true, target);
-
-    checkNamingCollision(source, normalizedOptions.as);
-    assertAssociationUnique(source, normalizedOptions);
-
-    return new HasOne(secret, source, target, normalizedOptions, parent);
+    return defineAssociation<
+      HasOne<S, T, SourceKey, TargetKey>,
+      HasOneOptions<SourceKey, TargetKey>
+      >(HasOne, source, target, options, parent, normalizedOptions => {
+        return new HasOne(secret, source, target, normalizedOptions, parent);
+      });
   }
 
   protected inferForeignKey(): string {
@@ -365,9 +369,13 @@ because, as this is a hasOne association, the foreign key we need to update is l
   }
 }
 
+// workaround https://github.com/evanw/esbuild/issues/1260
+Object.defineProperty(HasOne, 'name', {
+  value: 'HasOne',
+});
+
 export type NormalizedHasOneOptions<SourceKey extends string, TargetKey extends string> =
-  & Omit<HasOneOptions<SourceKey, TargetKey>, 'as'>
-  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name'>;
+  NormalizeBaseAssociationOptions<HasOneOptions<SourceKey, TargetKey>>;
 
 /**
  * Options provided when associating models with hasOne relationship
