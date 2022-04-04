@@ -191,6 +191,10 @@ class QueryGenerator {
 
     let onDuplicateKeyUpdate = '';
 
+    if (!_.isEmpty(options.conflictWhere)) {
+      throw new Error('missing dialect support for conflictWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -208,11 +212,7 @@ class QueryGenerator {
         ];
 
         if (!_.isEmpty(options.conflictWhere)) {
-          if (this._dialect.supports.inserts.onConflictWhere) {
-            fragments.push(this.whereQuery(options.conflictWhere, options));
-          } else {
-            throw new Error('missing dialect support for conflictWhere option');
-          }
+          fragments.push(this.whereQuery(options.conflictWhere, options));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -231,10 +231,6 @@ class QueryGenerator {
         // This will be the primary key in most cases, but it could be some other constraint.
         if (_.isEmpty(valueKeys) && options.upsertKeys) {
           valueKeys.push(...options.upsertKeys.map(attr => `${this.quoteIdentifier(attr)}=${this.quoteIdentifier(attr)}`));
-        }
-
-        if (!_.isEmpty(options.conflictWhere)) {
-          throw new Error('missing dialect support for conflictWhere option');
         }
 
         // edge case... but if for some reason there were no valueKeys, and there were also no upsertKeys... then we
