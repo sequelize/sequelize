@@ -41,7 +41,9 @@ abstract class BaseError extends Error {
     this.name = 'SequelizeBaseError';
 
     if (!supportsErrorCause) {
-      // TODO [>=2024-04-30]: Once all supported node versions have support for Error.cause, delete this line:
+      // TODO [>=2023-04-30]:
+      //  Once all supported node versions have support for Error.cause (added in node 16), delete this line:
+      //  This is a breaking change and must be done in a MAJOR release.
       this.cause = options?.cause;
     }
   }
