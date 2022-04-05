@@ -1,1 +1,1 @@
-export type Falsy = false | 0 | -0 | 0n | '' | null | undefined | 0x0n;
+export type Falsy = false | 0 | -0 | 0n | '' | null | undefined | NaN;
