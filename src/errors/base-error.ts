@@ -56,7 +56,7 @@ abstract class BaseError extends Error {
 
     if (!supportsErrorCause) {
       // TODO [>=2023-04-30]:
-      //  Once all supported node versions have support for Error.cause (added in node 16), delete this line:
+      //  Once all supported node versions have support for Error.cause (added in Node 16.9.0), delete this line:
       //  This is a breaking change and must be done in a MAJOR release.
       this.cause = options?.cause;
     }
