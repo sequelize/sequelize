@@ -21,7 +21,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   addForeignKeyConstraints,
   defineAssociation,
-  mixinMethods,
+  mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
 
 // TODO: strictly type mixin options
@@ -146,8 +146,9 @@ export class HasMany<
 
     return defineAssociation<
       HasMany<S, T, SourceKey, TargetKey>,
-      HasManyOptions<SourceKey, TargetKey>
-    >(HasMany, source, target, options, parent, normalizedOptions => {
+      HasManyOptions<SourceKey, TargetKey>,
+      NormalizedHasManyOptions<SourceKey, TargetKey>
+    >(HasMany, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
       return new HasMany(secret, source, target, normalizedOptions, parent);
     });
   }

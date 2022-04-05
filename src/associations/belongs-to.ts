@@ -17,7 +17,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   addForeignKeyConstraints,
   defineAssociation,
-  mixinMethods,
+  mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
 
 // TODO: strictly type mixin options
@@ -137,8 +137,9 @@ export class BelongsTo<
   ): BelongsTo<S, T, SourceKey, TargetKey> {
     return defineAssociation<
       BelongsTo<S, T, SourceKey, TargetKey>,
-      BelongsToOptions<SourceKey, TargetKey>
-    >(BelongsTo, source, target, options, parent, normalizedOptions => {
+      BelongsToOptions<SourceKey, TargetKey>,
+      NormalizedBelongsToOptions<SourceKey, TargetKey>
+    >(BelongsTo, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
       return new BelongsTo(secret, source, target, normalizedOptions, parent);
     });
   }

@@ -45,11 +45,11 @@ import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
-import type { NormalizeBaseAssociationOptions } from './helpers';
+import type { AssociationStatic } from './helpers';
 import {
   AssociationConstructorSecret,
   defineAssociation,
-  mixinMethods,
+  mixinMethods, normalizeBaseAssociationOptions, removeUndefined,
 } from './helpers';
 
 // TODO: strictly type mixin options
@@ -257,24 +257,13 @@ export class BelongsToMany<
     secret: symbol,
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
-    options: NormalizeBaseAssociationOptions<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>>,
+    options: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
     pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ) {
     const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
 
-    const sequelize = source.sequelize!;
-
-    const normalizedOptions = {
-      ...options,
-      // though is either a string of a Model. Convert it to ThroughOptions.
-      through: isThroughOptions(options.through)
-        ? normalizeThroughOptions(options.through, sequelize)
-        : normalizeThroughOptions({ model: options.through }, sequelize),
-      timestamps: options.timestamps ?? sequelize.options.define?.timestamps,
-    };
-
-    super(secret, source, target, attributeReferencedByForeignKey, normalizedOptions, parent);
+    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
     this._origOptions = options;
 
@@ -299,6 +288,10 @@ export class BelongsToMany<
         targetKey: options.sourceKey,
         foreignKey: options.otherKey,
         otherKey: options.foreignKey,
+        through: {
+          ...options.through,
+          scope: undefined,
+        },
       },
       this,
       this,
@@ -449,8 +442,9 @@ export class BelongsToMany<
   ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
     return defineAssociation<
       BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
-      BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
-    >(BelongsToMany, source, target, options, parent, newOptions => {
+      BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+      NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
+    >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
       if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
         throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
       }
@@ -836,6 +830,7 @@ export class BelongsToMany<
     const where = {
       [this.identifier]: sourceInstance.get(this.sourceKey),
       [this.foreignIdentifier]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
+      ...this.through.scope,
     };
 
     await this.through.model.destroy({ ...options, where });
@@ -912,6 +907,24 @@ function normalizeThroughOptions<M extends Model>(
   };
 }
 
+function normalizeOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
+  type: AssociationStatic<any>,
+  options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel> {
+
+  const sequelize = target.sequelize!;
+
+  return normalizeBaseAssociationOptions(type, {
+    ...options,
+    through: removeUndefined(isThroughOptions(options.through)
+      ? normalizeThroughOptions(options.through, sequelize)
+      : normalizeThroughOptions({ model: options.through }, sequelize)),
+    timestamps: options.timestamps ?? sequelize.options.define?.timestamps,
+  }, source, target);
+}
+
 /**
  * Used for the through table in n:m associations.
  *
@@ -975,9 +988,9 @@ type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<
  * Used by {@link Model.belongsToMany}.
  */
 export interface BelongsToManyOptions<
-  SourceKey extends string,
-  TargetKey extends string,
-  ThroughModel extends Model,
+  SourceKey extends string = string,
+  TargetKey extends string = string,
+  ThroughModel extends Model = Model,
 > extends MultiAssociationOptions<string> {
   /**
    * Configures this association on the target model.

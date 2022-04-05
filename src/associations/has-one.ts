@@ -19,7 +19,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   addForeignKeyConstraints,
   defineAssociation,
-  mixinMethods,
+  mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
 
 // TODO: strictly type mixin options
@@ -158,10 +158,11 @@ export class HasOne<
   ): HasOne<S, T, SourceKey, TargetKey> {
     return defineAssociation<
       HasOne<S, T, SourceKey, TargetKey>,
-      HasOneOptions<SourceKey, TargetKey>
-      >(HasOne, source, target, options, parent, normalizedOptions => {
-        return new HasOne(secret, source, target, normalizedOptions, parent);
-      });
+      HasOneOptions<SourceKey, TargetKey>,
+      NormalizedHasOneOptions<SourceKey, TargetKey>
+    >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+      return new HasOne(secret, source, target, normalizedOptions, parent);
+    });
   }
 
   protected inferForeignKey(): string {

@@ -1,4 +1,5 @@
 import assert from 'assert';
+import NodeUtils from 'util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import isUndefined from 'lodash/isUndefined';
@@ -132,55 +133,66 @@ export function assertAssociationUnique(
     return;
   }
 
-  if ((parent || existingAssociation.parentAssociation)
-    && areAssociationsCompatible(existingAssociation, type, target, options)) {
+  const incompatibilityStatus = getAssociationsIncompatibilityStatus(existingAssociation, type, target, options);
+  if ((parent || existingAssociation.parentAssociation) && incompatibilityStatus == null) {
     return;
   }
 
   const existingRoot = existingAssociation.rootAssociation;
 
-  if (parent) {
-    throw new AssociationError(`
-The association "${parent.as}" needs to define the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
-but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
-
-${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}).
-
-${parent.rootAssociation === existingRoot
-  ? 'This is a bug in Sequelize, as both associations are being created by the same initial function call.'
-  : ''}
-`.trim());
+  if (!parent && existingRoot === existingAssociation) {
+    throw new AssociationError(`You have defined two associations with the same name "${as}" on the model "${source.name}". Use another alias using the "as" parameter.`);
   }
 
-  throw new AssociationError(
-    existingRoot === existingAssociation
-      ? `You have defined two associations with the same name "${as}" on the model "${source.name}". Use another alias using the "as" parameter.`
-      : `You are trying to define the association "${as}" on the model "${source.name}",
-but that association was already created by ${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}).`,
-  );
+  throw new AssociationError(`
+${parent ? `The association "${parent.as}" needs to define` : `You are trying to define`} the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
+but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
+
+${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${NodeUtils.inspect(existingRoot._origOptions)})
+
+That association would be re-used if compatible, but it is incompatible because ${
+  incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TYPES ? `their types are different (${type.name} vs ${existingAssociation.associationType})`
+    : incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TARGETS ? `they target different models (${target.name} vs ${existingAssociation.target.name})`
+    : `their options are not reconcilable:
+
+Options of the association to create:
+${NodeUtils.inspect(omit(options, 'inverse'), { sorted: true })}
+
+Options of the existing association:
+${NodeUtils.inspect(omit(existingAssociation._origOptions as any, 'inverse'), { sorted: true })}
+`}`.trim());
 }
 
-function areAssociationsCompatible(
+/**
+ * @internal
+ */
+enum IncompatibilityStatus {
+  DIFFERENT_TYPES = 0,
+  DIFFERENT_TARGETS = 1,
+  DIFFERENT_OPTIONS = 2,
+}
+
+function getAssociationsIncompatibilityStatus(
   existingAssociation: Association,
   newAssociationType: Class<Association>,
   newTarget: ModelStatic<Model>,
   newOptions: NormalizeBaseAssociationOptions<any>,
-) {
+): IncompatibilityStatus | null {
   if (existingAssociation.associationType !== newAssociationType.name) {
-    return false;
+    return IncompatibilityStatus.DIFFERENT_TYPES;
   }
 
   if (!isSameModel(existingAssociation.target, newTarget)) {
-    return false;
+    return IncompatibilityStatus.DIFFERENT_TARGETS;
   }
 
   const opts1 = omit(existingAssociation._origOptions as any, 'inverse');
   const opts2 = omit(newOptions, 'inverse');
   if (!isEqual(opts1, opts2)) {
-    return false;
+    return IncompatibilityStatus.DIFFERENT_OPTIONS;
   }
 
-  return true;
+  return null;
 }
 
 export function assertAssociationModelIsDefined(model: ModelStatic<any>): void {
@@ -189,15 +201,25 @@ export function assertAssociationModelIsDefined(model: ModelStatic<any>): void {
   }
 }
 
-type AssociationStatic<T extends Association> = Class<T> & OmitConstructors<typeof Association>;
+export type AssociationStatic<T extends Association> = Class<T> & OmitConstructors<typeof Association>;
 
-export function defineAssociation<T extends Association, O extends AssociationOptions<any>>(
+export function defineAssociation<
+  T extends Association,
+  RawOptions extends AssociationOptions<any>,
+  CleanOptions extends NormalizedAssociationOptions<any>,
+>(
   type: AssociationStatic<T>,
   source: ModelStatic<Model>,
   target: ModelStatic<Model>,
-  options: O,
+  options: RawOptions,
   parent: Association<any> | undefined,
-  construct: (opts: NormalizeBaseAssociationOptions<O>) => T,
+  normalizeOptions: (
+    type: AssociationStatic<T>,
+    options: RawOptions,
+    source: ModelStatic<Model>,
+    target: ModelStatic<Model>
+  ) => CleanOptions,
+  construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
     throw new Error(`${source.name}.${lowerFirst(type.name)} called with something that's not a subclass of Sequelize.Model`);
@@ -206,7 +228,7 @@ export function defineAssociation<T extends Association, O extends AssociationOp
   assertAssociationModelIsDefined(source);
   assertAssociationModelIsDefined(target);
 
-  const normalizedOptions = normalizeBaseOptions(options, type, target);
+  const normalizedOptions = normalizeOptions(type, options, source, target);
 
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
@@ -250,10 +272,13 @@ export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks'> & {
   hooks: boolean,
 };
 
-export function normalizeBaseOptions<
-  Opts extends AssociationOptions<any>,
->(options: Opts, type: AssociationStatic<Association>, target: ModelStatic<Model>): NormalizeBaseAssociationOptions<Opts> {
-  const isMultiAssociation = type.isMultiAssociation;
+export function normalizeBaseAssociationOptions<T extends AssociationOptions<any>>(
+  associationType: AssociationStatic<any>,
+  options: T,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizeBaseAssociationOptions<T> {
+  const isMultiAssociation = associationType.isMultiAssociation;
 
   let name: { singular: string, plural: string };
   let as: string;
