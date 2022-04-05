@@ -1,3 +1,4 @@
+import { useErrorCause } from '../../utils/deprecations.js';
 import type { DatabaseErrorSubclassOptions } from '../database-error';
 import DatabaseError from '../database-error';
 
@@ -25,12 +26,15 @@ class ForeignKeyConstraintError extends DatabaseError {
   reltype: RelationshipType | undefined;
 
   constructor(
-    options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions,
+    options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions = {},
   ) {
-    options = options || {};
-    options.parent = options.parent || { sql: '', name: '', message: '' };
+    if ('parent' in options) {
+      useErrorCause();
+    }
 
-    super(options.parent, { stack: options.stack });
+    const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
+
+    super(parent, { stack: options.stack });
     this.name = 'SequelizeForeignKeyConstraintError';
     this.fields = options.fields;
     this.table = options.table;

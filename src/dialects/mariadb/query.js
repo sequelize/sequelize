@@ -280,7 +280,7 @@ export class MariaDbQuery extends AbstractQuery {
           ));
         });
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
       }
 
       case ER_ROW_IS_REFERENCED:
@@ -298,7 +298,7 @@ export class MariaDbQuery extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
       }

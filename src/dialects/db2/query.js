@@ -413,7 +413,7 @@ export class Db2Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/SQL0532N {2}A parent row cannot be deleted because the relationship "(.*)" restricts the deletion/)
@@ -423,7 +423,7 @@ export class Db2Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -438,7 +438,7 @@ export class Db2Query extends AbstractQuery {
         message: match[0],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
