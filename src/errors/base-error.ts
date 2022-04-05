@@ -51,7 +51,7 @@ abstract class BaseError extends Error {
     // TODO [>=2023-04-30]: remove this ts-ignore (Sequelize 8)
     // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- Supported in TS 4.6, not before
     // @ts-ignore
-    super(message, options);
+    super(supportsErrorCause ? message : addCause(message, options?.cause), options);
     this.name = 'SequelizeBaseError';
 
     if (!supportsErrorCause) {
@@ -61,6 +61,27 @@ abstract class BaseError extends Error {
       this.cause = options?.cause;
     }
   }
+}
+
+const indentation = '  ';
+
+function addCause(message: string = '', cause?: unknown) {
+  let out = message;
+
+  if (cause) {
+    out += `\n\n${indentation}Caused by:\n${indentation}${getErrorMessage(cause).replace(/\n/g, `\n${indentation}`)}`;
+  }
+
+  return out;
+}
+
+function getErrorMessage(error: unknown) {
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }
 
 export default BaseError;
