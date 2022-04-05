@@ -308,13 +308,13 @@ export interface WhereOperators<AttributeType = any> {
 
   /**
    * @example: `[Op.like]: '%hat',` becomes `LIKE '%hat'`
-   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.like]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
    * @example: `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
-   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
@@ -322,7 +322,7 @@ export interface WhereOperators<AttributeType = any> {
    * case insensitive PG only
    *
    * @example: `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
-   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.iLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
@@ -330,7 +330,7 @@ export interface WhereOperators<AttributeType = any> {
    * PG only
    *
    * @example: `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
-   * @example: `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.notILike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notILike]?: WhereOperators<AttributeType>[typeof Op.like];
 

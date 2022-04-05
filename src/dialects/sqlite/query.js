@@ -392,7 +392,7 @@ export class SqliteQuery extends AbstractQuery {
       case 'SQLITE_CONSTRAINT': {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
           return new sequelizeErrors.ForeignKeyConstraintError({
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }
@@ -436,7 +436,7 @@ export class SqliteQuery extends AbstractQuery {
           });
         }
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
       }
 
       case 'SQLITE_BUSY':

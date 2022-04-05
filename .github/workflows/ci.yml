@@ -258,11 +258,11 @@ jobs:
             dialect: mariadb
             node-version: 16
           - name: MariaDB 10.5
-            image: mariadb:10.5.13
+            image: mariadb:10.5
             dialect: mariadb
             node-version: 12
           - name: MariaDB 10.5
-            image: mariadb:10.5.13
+            image: mariadb:10.5
             dialect: mariadb
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})

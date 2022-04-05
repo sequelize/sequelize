@@ -334,7 +334,7 @@ export class MsSqlQuery extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -344,7 +344,7 @@ export class MsSqlQuery extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -360,7 +360,7 @@ export class MsSqlQuery extends AbstractQuery {
         message: match[1],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
