@@ -119,16 +119,12 @@ module.exports = BaseTypes => {
   BaseTypes.TEXT.types.yugabyte = ['text'];
 
   class CITEXT extends BaseTypes.CITEXT {
-    toSql(){
-      return 'TEXT';
-    }
-
     static parse(value) {
       return value;
     }
   }
 
-  BaseTypes.CITEXT.types.yugabyte = ['text'];
+  BaseTypes.CITEXT.types.yugabyte = ['citext'];
 
   class CHAR extends BaseTypes.CHAR {
     toSql() {
