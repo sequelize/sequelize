@@ -87,6 +87,7 @@ export class HasOne<
 
     super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
+    this._origOptions = options;
     this.computeForeignKey();
 
     this.sourceKeyAttribute = this.sourceKey;

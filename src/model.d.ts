@@ -1,13 +1,37 @@
 import { IndexHints } from './index-hints';
-import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions, AssociationOptions, AfterAssociateEventData, BeforeAssociateEventData } from './associations';
+import {
+  AfterAssociateEventData,
+  Association,
+  AssociationOptions,
+  BeforeAssociateEventData,
+  BelongsTo,
+  BelongsToMany,
+  BelongsToManyOptions,
+  BelongsToOptions,
+  HasMany,
+  HasManyOptions,
+  HasOne,
+  HasOneOptions,
+} from './associations';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json, Nullish } from './utils';
-import { LOCK, Transaction, Op, PartlyRequired, Optional } from './index';
+import {
+  AnyFunction,
+  Cast,
+  Col,
+  Fn,
+  Json,
+  Literal,
+  MakeNullishOptional,
+  Nullish,
+  OmitConstructors,
+  Where,
+} from './utils';
+import { LOCK, Op, Optional, PartlyRequired, Transaction } from './index';
 import { SetRequired } from './utils/set-required';
 
 export interface Logging {
@@ -3369,16 +3393,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 /** @deprecated use ModelStatic */
 export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
-type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
-type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
-
 /** @deprecated use ModelStatic */
 export type ModelCtor<M extends Model> = ModelStatic<M>;
 
 export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
+export type ModelStatic<M extends Model> = OmitConstructors<typeof Model> & { new(): M };
 
 /**
  * Type will be true is T is branded with Brand, false otherwise

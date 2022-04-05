@@ -100,6 +100,7 @@ export class BelongsTo<
 
     super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
+    this._origOptions = options;
     this.computeForeignKey();
 
     if (this.source.getAttributes()[this.foreignKey]) {

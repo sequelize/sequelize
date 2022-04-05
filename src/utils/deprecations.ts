@@ -10,4 +10,3 @@ export const noDoubleNestedGroup = deprecate(noop, 'Passing a double nested nest
 export const unsupportedEngine = deprecate(noop, 'This database engine version is not supported, please update your database server. More information https://github.com/sequelize/sequelize/blob/main/ENGINE.md', 'SEQUELIZE0006');
 export const useErrorCause = deprecate(noop, 'The "parent" and "original" properties in Sequelize errors have been replaced with the native "cause" property. Use that one instead.', 'SEQUELIZE0007');
 export const movedSequelizeParam = deprecate(noop, 'The "sequelize" instance has been moved from the second parameter bag to the first parameter bag in "beforeAssociate" and "afterAssociate" hooks', 'SEQUELIZE0008');
-export const useHooksRemoved = deprecate(noop, 'The "useHooks" option has been renamed to "hooks"', 'SEQUELIZE0009');

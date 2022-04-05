@@ -45,6 +45,7 @@ import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   AssociationConstructorSecret,
   defineAssociation,
@@ -256,13 +257,26 @@ export class BelongsToMany<
     secret: symbol,
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
-    options: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
+    options: NormalizeBaseAssociationOptions<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>>,
     pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ) {
     const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
 
-    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
+    const sequelize = source.sequelize!;
+
+    const normalizedOptions = {
+      ...options,
+      // though is either a string of a Model. Convert it to ThroughOptions.
+      through: isThroughOptions(options.through)
+        ? normalizeThroughOptions(options.through, sequelize)
+        : normalizeThroughOptions({ model: options.through }, sequelize),
+      timestamps: options.timestamps ?? sequelize.options.define?.timestamps,
+    };
+
+    super(secret, source, target, attributeReferencedByForeignKey, normalizedOptions, parent);
+
+    this._origOptions = options;
 
     this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
       secret,
@@ -433,37 +447,27 @@ export class BelongsToMany<
     pair?: BelongsToMany<T, S, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
-    if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
-      throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
-    }
-
-    // self-associations must always set their 'as' parameter
-    if (isSameModel(source, target)) {
-      if (!options.as) {
-        throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
-      }
-
-      if (!options.inverse?.as) {
-        throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
-      }
-    }
-
     return defineAssociation<
       BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
     >(BelongsToMany, source, target, options, parent, newOptions => {
-      const sequelize = source.sequelize!;
+      if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
+        throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
+      }
 
-      const normalizedOptions = {
-        ...newOptions,
-        // though is either a string of a Model. Convert it to ThroughOptions.
-        through: isThroughOptions(newOptions.through)
-          ? normalizeThroughOptions(newOptions.through, sequelize)
-          : normalizeThroughOptions({ model: newOptions.through }, sequelize),
-        timestamps: newOptions.timestamps === undefined ? sequelize.options.define?.timestamps : newOptions.timestamps,
-      };
+      // self-associations must always set their 'as' parameter
+      if (isSameModel(source, target)) {
+        // use 'options' because this will always be set in 'newOptions'
+        if (!options.as) {
+          throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
+        }
 
-      return new BelongsToMany(secret, source, target, normalizedOptions, pair, parent);
+        if (!options.inverse?.as) {
+          throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
+        }
+      }
+
+      return new BelongsToMany(secret, source, target, newOptions, pair, parent);
     });
   }
 

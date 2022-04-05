@@ -12,6 +12,7 @@ import { isModelStatic, isSameModel } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import * as Utils from '../utils/index.js';
+import type { OmitConstructors } from '../utils/index.js';
 import type { Association, AssociationOptions, NormalizedAssociationOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
@@ -136,19 +137,17 @@ export function assertAssociationUnique(
     return;
   }
 
-  const currentRoot = parent?.rootAssociation;
   const existingRoot = existingAssociation.rootAssociation;
 
-  if (currentRoot) {
+  if (parent) {
     throw new AssociationError(`
-You are trying to define the ${currentRoot.associationType} association "${currentRoot.as}" from ${currentRoot.source.name} to ${currentRoot.target.name}.
-This association needs to define the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
+The association "${parent.as}" needs to define the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
 but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
 
 ${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}).
 
-${currentRoot === existingRoot
-  ? 'This is a bug in Sequelize, as both associations are being created by the same initial function call'
+${parent.rootAssociation === existingRoot
+  ? 'This is a bug in Sequelize, as both associations are being created by the same initial function call.'
   : ''}
 `.trim());
   }
@@ -175,7 +174,7 @@ function areAssociationsCompatible(
     return false;
   }
 
-  const opts1 = omit(existingAssociation._origOptions, 'inverse');
+  const opts1 = omit(existingAssociation._origOptions as any, 'inverse');
   const opts2 = omit(newOptions, 'inverse');
   if (!isEqual(opts1, opts2)) {
     return false;
@@ -190,8 +189,10 @@ export function assertAssociationModelIsDefined(model: ModelStatic<any>): void {
   }
 }
 
+type AssociationStatic<T extends Association> = Class<T> & OmitConstructors<typeof Association>;
+
 export function defineAssociation<T extends Association, O extends AssociationOptions<any>>(
-  type: Class<T>,
+  type: AssociationStatic<T>,
   source: ModelStatic<Model>,
   target: ModelStatic<Model>,
   options: O,
@@ -205,7 +206,7 @@ export function defineAssociation<T extends Association, O extends AssociationOp
   assertAssociationModelIsDefined(source);
   assertAssociationModelIsDefined(target);
 
-  const normalizedOptions = normalizeBaseOptions(options, false, target);
+  const normalizedOptions = normalizeBaseOptions(options, type, target);
 
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
@@ -224,7 +225,17 @@ export function defineAssociation<T extends Association, O extends AssociationOp
     source.runHooks('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
   }
 
-  const association = source.associations[normalizedOptions.as] as T ?? construct(normalizedOptions);
+  let association;
+  try {
+    association = source.associations[normalizedOptions.as] as T ?? construct(normalizedOptions);
+  } catch (error) {
+    throw new AssociationError(
+      parent
+        ? `Association "${parent.as}" needs to create the ${type.name} association "${normalizedOptions.as}" from ${source.name} to ${target.name}, but it failed`
+        : `Defining ${type.name} association "${normalizedOptions.as}" from ${source.name} to ${target.name} failed`,
+      { cause: error as Error },
+    );
+  }
 
   if (normalizedOptions.hooks) {
     source.runHooks('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
@@ -241,7 +252,9 @@ export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks'> & {
 
 export function normalizeBaseOptions<
   Opts extends AssociationOptions<any>,
->(options: Opts, isMultiAssociation: boolean, target: ModelStatic<Model>): NormalizeBaseAssociationOptions<Opts> {
+>(options: Opts, type: AssociationStatic<Association>, target: ModelStatic<Model>): NormalizeBaseAssociationOptions<Opts> {
+  const isMultiAssociation = type.isMultiAssociation;
+
   let name: { singular: string, plural: string };
   let as: string;
   if (options?.as) {

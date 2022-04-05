@@ -90,6 +90,7 @@ export class HasMany<
 
     super(secret, source, target, attributeReferencedByForeignKey, options, parent);
 
+    this._origOptions = options;
     this.computeForeignKey();
 
     if (this.target.getAttributes()[this.foreignKey]) {

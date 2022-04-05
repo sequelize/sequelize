@@ -423,31 +423,7 @@ ${this._getAssociationDebugList()}`);
     }
 
     if (!include.association) {
-      if (include.as) {
-        include.association = associationOwner.getAssociation(include.as);
-      } else {
-        if (!include.model) {
-          throw new TypeError('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
-        }
-
-        const matchingAssociations = associationOwner._getAssociationsByModel(include.model);
-        if (matchingAssociations.length === 0) {
-          throw new TypeError(`Invalid Include received: no association exist between "${this.name}" and "${include.model.name}"`);
-        }
-
-        if (matchingAssociations.length > 1) {
-          throw new Error(`
-Invalid Include received:
-"${this.name}" is associated to "${include.model.name}" multiple times.
-Instead of specifying a Model, pass one of the Association object available in "${this.name}.associations" (through the "association" option),
-or pass the name of the association you want to include (through the "as" option).
-
-"${this.name}" is associated to "${include.model.name}" through the following associations: ${matchingAssociations.map(association => `"${association.as}"`).join(', ')}
-`.trim());
-        }
-
-        include.association = matchingAssociations[0];
-      }
+      include.association = associationOwner._getIncludedAssociation(include.model, include.as);
     } else if (typeof include.association === 'string') {
       include.association = associationOwner.getAssociation(include.association);
     } else {
@@ -706,35 +682,31 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _getIncludedAssociation(targetModel, targetAlias) {
-    const associations = this.getAssociations(targetModel);
-    let association = null;
-    if (associations.length === 0) {
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is not associated to ${this.name}!`);
+    if (targetAlias) {
+      return this.getAssociation(targetAlias);
     }
 
-    if (associations.length === 1) {
-      association = this.getAssociationForAlias(targetModel, targetAlias);
-      if (association) {
-        return association;
-      }
-
-      if (targetAlias) {
-        const existingAliases = this.getAssociations(targetModel).map(association => association.as);
-        throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} using an alias. `
-          + `You've included an alias (${targetAlias}), but it does not match the alias(es) defined in your association (${existingAliases.join(', ')}).`);
-      }
-
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} using an alias. `
-        + 'You must use the \'as\' keyword to specify the alias within your include statement.');
+    if (!targetModel) {
+      throw new sequelizeErrors.EagerLoadingError('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
     }
 
-    association = this.getAssociationForAlias(targetModel, targetAlias);
-    if (!association) {
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} multiple times. `
-        + 'To identify the correct association, you must use the \'as\' keyword to specify the alias of the association you want to include.');
+    const matchingAssociations = this._getAssociationsByModel(targetModel);
+    if (matchingAssociations.length === 0) {
+      throw new sequelizeErrors.EagerLoadingError(`Invalid Include received: no association exist between "${this.name}" and "${targetModel.name}"`);
     }
 
-    return association;
+    if (matchingAssociations.length > 1) {
+      throw new sequelizeErrors.EagerLoadingError(`
+Invalid Include received:
+"${this.name}" is associated to "${targetModel.name}" multiple times.
+Instead of specifying a Model, pass one of the Association object available in "${this.name}.associations" (through the "association" option),
+or pass the name of the association you want to include (through the "as" option).
+
+"${this.name}" is associated to "${targetModel.name}" through the following associations: ${matchingAssociations.map(association => `"${association.as}"`).join(', ')}
+`.trim());
+    }
+
+    return matchingAssociations[0];
   }
 
   static _expandIncludeAll(options, associationOwner) {

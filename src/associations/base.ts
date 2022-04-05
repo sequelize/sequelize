@@ -94,7 +94,7 @@ export abstract class Association<
   isSelfAssociation: boolean;
   isAliased: boolean;
 
-  readonly _origOptions: Opts;
+  declare _origOptions: unknown;
   readonly options: Opts;
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
@@ -133,11 +133,18 @@ export abstract class Association<
   }
 
   get isMultiAssociation(): boolean {
-    return false;
+    return (this.constructor as typeof Association).isMultiAssociation;
   }
 
+  /**
+   * @deprecated negate {@link isMultiAssociation} instead
+   */
   get isSingleAssociation(): boolean {
     return !this.isMultiAssociation;
+  }
+
+  static get isMultiAssociation(): boolean {
+    return false;
   }
 
   constructor(
@@ -167,8 +174,7 @@ export abstract class Association<
 
     this.isAliased = Boolean(options?.as);
 
-    this._origOptions = Utils.cloneDeep(options);
-    this.options = options;
+    this.options = Utils.cloneDeep(options);
 
     source.associations[this.as] = this;
   }
@@ -244,7 +250,7 @@ export abstract class MultiAssociation<
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
 
-  get isMultiAssociation(): boolean {
+  static get isMultiAssociation() {
     return true;
   }
 
