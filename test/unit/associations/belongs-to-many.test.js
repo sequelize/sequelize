@@ -109,14 +109,14 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const errorFunction2 = User.belongsToMany.bind(User, Task, { through: undefined });
       const errorFunction3 = User.belongsToMany.bind(User, Task, { through: null });
       for (const errorFunction of [errorFunction1, errorFunction2, errorFunction3]) {
-        expect(errorFunction).to.throw(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires through option, pass either a string or a model`);
+        expect(errorFunction).to.throwWithCause(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires through option, pass either a string or a model`);
       }
     });
     it('throws an AssociationError for a self-association defined without an alias', () => {
       const User = current.define('User', {});
 
       const errorFunction = User.belongsToMany.bind(User, User, { through: 'jointable' });
-      expect(errorFunction).to.throw(AssociationError, '\'as\' must be defined for many-to-many self-associations');
+      expect(errorFunction).to.throwWithCause(AssociationError, '\'as\' must be defined for many-to-many self-associations');
     });
   });
 

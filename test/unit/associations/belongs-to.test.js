@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     expect(() => {
       User.belongsTo(Task, { targetKey: 'wowow' });
-    }).to.throw('Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first');
+    }).to.throwWithCause('Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first');
   });
 
   it('should not override custom methods with association mixin', () => {

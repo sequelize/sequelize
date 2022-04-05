@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
 
     expect(() => {
       User.hasOne(Task, { sourceKey: 'wowow' });
-    }).to.throw('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
+    }).to.throwWithCause('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
   });
 
   it('does not use `as` option to generate foreign key name', () => {

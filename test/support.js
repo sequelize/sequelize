@@ -24,6 +24,37 @@ chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
   expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
 });
 
+function withInlineCause(cb) {
+  return () => {
+    try {
+      return cb();
+    } catch (error) {
+      error.message = inlineErrorCause(error);
+
+      throw error;
+    }
+  };
+}
+
+function inlineErrorCause(error) {
+  let message = error.message;
+
+  const cause = error.cause;
+  if (cause) {
+    message += `\nCaused by: ${inlineErrorCause(cause)}`;
+  }
+
+  return message;
+}
+
+/**
+ * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
+ * that is also checks whether the message is present in the error cause.
+ */
+chai.Assertion.addMethod('throwWithCause', function (errorConstructor, errorMessage) {
+  expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
 chai.config.includeStack = true;
 chai.should();
 
