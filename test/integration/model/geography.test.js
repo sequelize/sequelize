@@ -8,7 +8,7 @@ const DataTypes = require('@sequelize/core/lib/data-types');
 
 const current = Support.sequelize;
 
-(current.dialect.name !== 'yugabyte' ? describe : describe.skip)(Support.getTestDialectTeaser('Model'), () => {
+(current.dialect.name !== 'yugabytedb' ? describe : describe.skip)(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.GEOGRAPHY) {
     /**
      * Yugabyte has some issues with postGIS set up for now and due to which tests will fail, so need to skip them for now.

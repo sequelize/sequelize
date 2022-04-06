@@ -33,7 +33,7 @@ if (current.dialect.name !== 'sqlite') {
       after(function () {
         this.stub.restore();
       });
-      if (current.dialect.name !== 'yugabyte'){ // Alter Column type not supported yet in Yugabyte
+      if (current.dialect.name !== 'yugabytedb'){ // Alter Column type not supported yet in yugabytedb
         it('properly generate alter queries', () => {
           return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
             type: DataTypes.FLOAT,
@@ -70,7 +70,7 @@ if (current.dialect.name !== 'sqlite') {
             mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             postgres: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
             snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
-            yugabyte: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
+            yugabytedb: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
           });
         });
       });

@@ -45,8 +45,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       }
     });
-    if (current.dialect.name !== 'yugabyte'){
-      it('type and using', () => { // INDEX CONCURRENTLY is not yet supported in Yugabyte
+    if (current.dialect.name !== 'yugabytedb'){
+      it('type and using', () => { // INDEX CONCURRENTLY is not yet supported in yugabytedb
         expectsql(sql.addIndexQuery('User', ['fieldC'], {
           type: 'FULLTEXT',
           concurrently: true,
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (current.dialect.name !== 'yugabyte' && current.dialect.supports.index.using === 2) { // Yugabyte uses ybgin in place of gin
+    if (current.dialect.name !== 'yugabytedb' && current.dialect.supports.index.using === 2) { // yugabytedb uses ybgin in place of gin
       it('USING', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\'',
         });
 
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')',
         });
 
@@ -158,13 +158,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          yugabyte: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         });
       });
     }
 
-    if (current.dialect.name !== 'yugabyte' && current.dialect.supports.JSONB) { // Yugabyte has its own ybgin using function in place of gin;
+    if (current.dialect.name !== 'yugabytedb' && current.dialect.supports.JSONB) { // yugabytedb has its own ybgin using function in place of gin;
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           operator: 'inet_ops',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
-          yugabyte: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
+          yugabytedb: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
         });
       });
       it('operator in fields', () => {
@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
-          yugabyte: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
+          yugabytedb: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
         });
       });
       it('operator in fields with order', () => {
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
-          yugabyte: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
+          yugabytedb: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
         });
       });
       it('operator in multiple fields #1', () => {
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
-          yugabyte: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
+          yugabytedb: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
         });
       });
       it('operator in multiple fields #2', () => {
@@ -258,7 +258,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'btree',
         }), {
           postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
-          yugabyte: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
+          yugabytedb: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
         });
       });
     }

@@ -742,28 +742,26 @@ if (current.dialect.supports.transactions) {
     }
 
     describe('isolation levels', () => {
-      if (dialect !== 'yugabyte'){ // READ COMMITED not possible in yugabyte yet.
-        it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
-          const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
-          });
-
-          await expect(
-            this.sequelize.sync({ force: true }).then(() => {
-              return this.sequelize.transaction(
-                { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
-                async transaction => {
-                  const users0 = await User.findAll({ transaction });
-                  expect(users0).to.have.lengthOf(0);
-                  await User.create({ username: 'jan' }); // Create a User outside of the transaction
-                  const users = await User.findAll({ transaction });
-                  expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
-                },
-              );
-            }),
-          ).to.eventually.be.fulfilled;
+      (dialect !== 'yugabytedb' ? it : it.skip)('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () { // READ COMMITED not possible in yugabytedb yet.
+        const User = this.sequelize.define('user', {
+          username: Support.Sequelize.STRING,
         });
-      }
+
+        await expect(
+          this.sequelize.sync({ force: true }).then(() => {
+            return this.sequelize.transaction(
+              { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
+              async transaction => {
+                const users0 = await User.findAll({ transaction });
+                expect(users0).to.have.lengthOf(0);
+                await User.create({ username: 'jan' }); // Create a User outside of the transaction
+                const users = await User.findAll({ transaction });
+                expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
+              },
+            );
+          }),
+        ).to.eventually.be.fulfilled;
+      });
 
       // mssql is excluded because it implements REPREATABLE READ using locks rather than a snapshot, and will see the new row
       if (!['sqlite', 'mssql', 'db2'].includes(dialect)) {
@@ -788,7 +786,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'yugabyte'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'yugabytedb'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function () {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
@@ -822,57 +820,55 @@ if (current.dialect.supports.transactions) {
 
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
-        if (dialect !== 'yugabyte'){ // could not serialize access due to concurrent DDL for yugabyte
-          it('supports for update', async function () {
-            const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
-            });
-            const t1Spy = sinon.spy();
-            const t2Spy = sinon.spy();
+        (dialect !== 'yugabytedb' ? it : it.skip)('supports for update', async function () { // could not serialize access due to concurrent DDL for yugabytedb
+          const User = this.sequelize.define('user', {
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN,
+          });
+          const t1Spy = sinon.spy();
+          const t2Spy = sinon.spy();
 
-            await this.sequelize.sync({ force: true });
-            await User.create({ username: 'jan' });
-            const t1 = await this.sequelize.transaction();
+          await this.sequelize.sync({ force: true });
+          await User.create({ username: 'jan' });
+          const t1 = await this.sequelize.transaction();
 
-            const t1Jan = await User.findOne({
+          const t1Jan = await User.findOne({
+            where: {
+              username: 'jan',
+            },
+            lock: t1.LOCK.UPDATE,
+            transaction: t1,
+          });
+
+          const t2 = await this.sequelize.transaction({
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
+          });
+
+          await Promise.all([(async () => {
+            await User.findOne({
               where: {
                 username: 'jan',
               },
-              lock: t1.LOCK.UPDATE,
+              lock: t2.LOCK.UPDATE,
+              transaction: t2,
+            });
+
+            t2Spy();
+            await t2.commit();
+            expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has committed
+          })(), (async () => {
+            await t1Jan.update({
+              awesome: true,
+            }, {
               transaction: t1,
             });
 
-            const t2 = await this.sequelize.transaction({
-              isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
-            });
+            t1Spy();
+            await delay(2000);
 
-            await Promise.all([(async () => {
-              await User.findOne({
-                where: {
-                  username: 'jan',
-                },
-                lock: t2.LOCK.UPDATE,
-                transaction: t2,
-              });
-
-              t2Spy();
-              await t2.commit();
-              expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has committed
-            })(), (async () => {
-              await t1Jan.update({
-                awesome: true,
-              }, {
-                transaction: t1,
-              });
-
-              t1Spy();
-              await delay(2000);
-
-              return await t1.commit();
-            })()]);
-          });
-        }
+            return await t1.commit();
+          })()]);
+        });
 
         if (current.dialect.supports.skipLocked) {
           it('supports for update with skip locked', async function () {
@@ -1061,7 +1057,7 @@ if (current.dialect.supports.transactions) {
           });
         }
 
-        (dialect !== 'yugabyte' ? it : it.skip)('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
+        (dialect !== 'yugabytedb' ? it : it.skip)('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
           const verifySelectLockInShareMode = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,

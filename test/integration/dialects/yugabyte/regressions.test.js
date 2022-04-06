@@ -8,8 +8,8 @@ const Support = require('../../support');
 const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE Specific] Regressions', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB Specific] Regressions', () => {
     it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {
         active: Sequelize.BOOLEAN,

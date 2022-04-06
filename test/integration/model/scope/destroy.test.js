@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].get('username')).to.equal('tobi');
       });
 
-      (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should be able to merge scopes with where', async function () {     // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+      (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be able to merge scopes with where', async function () {     // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
 
         await this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } });
         const users = await this.ScopeMe.unscoped().findAll();
@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[2].get('username')).to.equal('fred');
       });
 
-      (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should be able to merge scopes with similar where', async function () {     // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+      (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be able to merge scopes with similar where', async function () {     // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
 
         await this.ScopeMe.scope('defaultScope', 'lowAccess').destroy();
         const users = await this.ScopeMe.unscoped().findAll();

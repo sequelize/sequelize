@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
-      } else if (dialect === 'postgres' || dialect === 'yugabyte') {
+      } else if (dialect === 'postgres' || dialect === 'yugabytedb') {
         expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
       }
     });
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const indexes = await this.queryInterface.showIndex('MyTable');
       switch (dialect) {
         case 'postgres':
-        case 'yugabyte':
+        case 'yugabytedb':
         case 'postgres-native':
         case 'sqlite':
         case 'mssql':
@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabyte')) {
+        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabyte')) {
+        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabyte')) {
+        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
           expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }, { schema: 'archive' });
 
         const table = await this.queryInterface.describeTable('SomeTable', { schema: 'archive' });
-        if (dialect.includes('postgres') || dialect.includes('yugabyte')) {
+        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
           expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabyte')) {
+        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
           expect(table.someEnum.special).to.deep.equal(['COMMENT']);
           expect(table.someEnum.comment).to.equal('special enum col');
         }

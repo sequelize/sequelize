@@ -8,8 +8,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('@sequelize/core/lib/data-types');
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE] Sequelize', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB] Sequelize', () => {
     async function checkTimezoneParsing(baseOptions) {
       const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
       const sequelize = Support.createSequelizeInstance(options);
@@ -105,15 +105,15 @@ if (dialect.startsWith('yugabyte')) {
       const sequelize = Support.sequelize;
       await reloadDynamicOIDs(sequelize);
       for (const type of dynamicTypesToCheck) {
-        expect(type.types.yugabyte,
-          `DataType.${type.key}.types.yugabyte`).to.not.be.empty;
+        expect(type.types.yugabytedb,
+          `DataType.${type.key}.types.yugabytedb`).to.not.be.empty;
 
-        // CITEXT is not supported yet for yugabyte, GEOMETRY and GEOGRAPHY has some issues currently going on with postGIS setup so not checking them for now.
+        // CITEXT is not supported yet for yugabytedb, GEOMETRY and GEOGRAPHY has some issues currently going on with postGIS setup so not checking them for now.
         if (type.key === 'CITEXT' || type.key === 'GEOMETRY' || type.key === 'GEOGRAPHY'){
           continue;
         }
 
-        for (const name of type.types.yugabyte) {
+        for (const name of type.types.yugabytedb) {
           const entry = sequelize.connectionManager.nameOidMap[name];
           const oidParserMap = sequelize.connectionManager.oidParserMap;
           expect(entry.oid, `nameOidMap[${name}].oid`).to.be.a('number');

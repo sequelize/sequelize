@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (!['sqlite', 'postgres', 'db2', 'ibmi', 'yugabyte'].includes(dialect)) {
+    if (!['sqlite', 'postgres', 'db2', 'ibmi', 'yugabytedb'].includes(dialect)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function () {
@@ -396,7 +396,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    if (dialect === 'postgres' || dialect === 'yugabyte') {
+    if (dialect === 'postgres' || dialect === 'yugabytedb') {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
@@ -468,7 +468,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialect === 'postgres' || dialect === 'yugabyte') {
+      if (dialect === 'postgres' || dialect === 'yugabytedb') {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
 
     describe('primary key', () => {
-      (dialect !== 'yugabyte' ? it : it.skip)('should add, read & remove primary key constraint', async function () {
+      (dialect !== 'yugabytedb' ? it : it.skip)('should add, read & remove primary key constraint', async function () {
 
         await this.queryInterface.removeColumn('users', 'id'); // Removing a PRIMARY KEY column is not yet supported in Yugabyte
         await this.queryInterface.changeColumn('users', 'username', {
@@ -630,7 +630,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     describe('foreign key', () => {
-      (dialect !== 'yugabyte' ? it : it.skip)('should add, read & remove foreign key constraint', async function () {
+      (dialect !== 'yugabytedb' ? it : it.skip)('should add, read & remove foreign key constraint', async function () {
 
         await this.queryInterface.removeColumn('users', 'id'); // Removing a PRIMARY KEY column is not yet supported in Yugabyte
         await this.queryInterface.changeColumn('users', 'username', {

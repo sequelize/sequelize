@@ -777,7 +777,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return;
           }
 
-          if (current.options.dialect === 'postgres' || current.options.dialect === 'yugabyte') {
+          if (current.options.dialect === 'postgres' || current.options.dialect === 'yugabytedb') {
             await expect(this.Event.findAll({
               where: {
                 data: {

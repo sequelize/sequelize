@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
      refer for more info - https://support.yugabyte.com/hc/en-us/articles/4403469712397-Database-Transactions-errors-out-with-Restart-read-required.
     */
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const Article = sequelize.define('Article', { title: DataTypes.STRING });
         const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(project.ProjectUsers.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb', 'ibmi', 'yugabyte'].includes(dialect)) {
+      if (['postgres', 'mssql', 'mariadb', 'ibmi', 'yugabytedb'].includes(dialect)) {
         expect(schemas).to.not.have.property('acme');
       }
     });
@@ -1260,7 +1260,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
 
         const Article = sequelize.define('Article', {
@@ -1858,7 +1858,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
@@ -1957,7 +1957,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
@@ -1981,7 +1981,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await t.rollback();
       });
 
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions when updating a through model', async function () { // Skipping this because READ COMMITED is not possible yet in yugabyte.
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions when updating a through model', async function () { // Skipping this because READ COMMITED is not possible yet in yugabytedb.
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });

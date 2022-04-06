@@ -9,11 +9,11 @@ const DataTypes = require('@sequelize/core/lib/data-types');
 const dialect = Support.getTestDialect();
 const range   = require('@sequelize/core/lib/dialects/postgres/range');
 
-if (dialect.startsWith('yugabyte')) {
+if (dialect.startsWith('yugabytedb')) {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
 
-  describe('[YUGABYTE Specific] range datatype', () => {
+  describe('[YUGABYTEDB Specific] range datatype', () => {
     describe('stringify', () => {
       it('should handle empty objects correctly', () => {
         expect(range.stringify([])).to.equal('empty');
@@ -62,7 +62,7 @@ if (dialect.startsWith('yugabyte')) {
       });
 
       it('should handle date values', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATE);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATE);
         expect(Range.stringify([new Date(Date.UTC(2000, 1, 1)),
           new Date(Date.UTC(2000, 1, 2))], { timezone: '+02:00' })).to.equal('\'["2000-02-01 02:00:00.000 +02:00","2000-02-02 02:00:00.000 +02:00")\'');
       });
@@ -71,27 +71,27 @@ if (dialect.startsWith('yugabyte')) {
     describe('stringify value', () => {
 
       it('should stringify integer values with appropriate casting', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.INTEGER);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.INTEGER);
         expect(Range.stringify(1)).to.equal('\'1\'::int4');
       });
 
       it('should stringify bigint values with appropriate casting', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.BIGINT);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.BIGINT);
         expect(Range.stringify(1)).to.equal('\'1\'::int8');
       });
 
       it('should stringify numeric values with appropriate casting', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.DECIMAL);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DECIMAL);
         expect(Range.stringify(1.1)).to.equal('\'1.1\'::numeric');
       });
 
       it('should stringify dateonly values with appropriate casting', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATEONLY);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATEONLY);
         expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)))).to.include('::date');
       });
 
       it('should stringify date values with appropriate casting', () => {
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATE);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATE);
         expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)), { timezone: '+02:00' })).to.equal('\'2000-02-01 02:00:00.000 +02:00\'::timestamptz');
       });
 
@@ -100,32 +100,32 @@ if (dialect.startsWith('yugabyte')) {
         const infiniteRangeSQL = '\'[,)\'';
 
         it('should stringify integer range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.INTEGER);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.INTEGER);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify bigint range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.BIGINT);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.BIGINT);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify numeric range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DECIMAL);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DECIMAL);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify dateonly ranges appropriately', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATEONLY);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATEONLY);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
-        it('should be stringified to appropriate unbounded yugabyte range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATEONLY);
+        it('should be stringified to appropriate unbounded yugabytedb range', () => {
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATEONLY);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify date values with appropriate casting', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATE);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATE);
           expect(Range.stringify(infiniteRange, { timezone: '+02:00' })).to.equal(infiniteRangeSQL);
         });
 
@@ -136,32 +136,32 @@ if (dialect.startsWith('yugabyte')) {
         const infiniteRangeSQL = '\'[-infinity,infinity)\'';
 
         it('should stringify integer range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.INTEGER);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.INTEGER);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify bigint range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.BIGINT);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.BIGINT);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify numeric range to infinite range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DECIMAL);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DECIMAL);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify dateonly ranges appropriately', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATEONLY);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATEONLY);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
-        it('should be stringified to appropriate unbounded yugabyte range', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATEONLY);
+        it('should be stringified to appropriate unbounded yugabytedb range', () => {
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATEONLY);
           expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
         });
 
         it('should stringify date values with appropriate casting', () => {
-          const Range = new DataTypes.yugabyte.RANGE(DataTypes.DATE);
+          const Range = new DataTypes.yugabytedb.RANGE(DataTypes.DATE);
           expect(Range.stringify(infiniteRange, { timezone: '+02:00' })).to.equal(infiniteRangeSQL);
         });
 
@@ -179,30 +179,30 @@ if (dialect.startsWith('yugabyte')) {
       });
 
       it('should handle empty bounds correctly', () => {
-        expect(range.parse('(1,)', DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: null, inclusive: false }]);
-        expect(range.parse('(,1)', DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: 1, inclusive: false }]);
-        expect(range.parse('(,)', DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: null, inclusive: false }]);
+        expect(range.parse('(1,)', DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: null, inclusive: false }]);
+        expect(range.parse('(,1)', DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(,)', DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: null, inclusive: false }]);
       });
 
       it('should handle infinity/-infinity bounds correctly', () => {
-        expect(range.parse('(infinity,1)', DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: Number.POSITIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
-        expect(range.parse('(1,infinity)',  DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
-        expect(range.parse('(-infinity,1)',  DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
-        expect(range.parse('(1,-infinity)',  DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.NEGATIVE_INFINITY, inclusive: false }]);
-        expect(range.parse('(-infinity,infinity)',  DataTypes.yugabyte.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
+        expect(range.parse('(infinity,1)', DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: Number.POSITIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,infinity)',  DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
+        expect(range.parse('(-infinity,1)',  DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,-infinity)',  DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Number.NEGATIVE_INFINITY, inclusive: false }]);
+        expect(range.parse('(-infinity,infinity)',  DataTypes.yugabytedb.INTEGER.parse)).to.deep.equal([{ value: Number.NEGATIVE_INFINITY, inclusive: false }, { value: Number.POSITIVE_INFINITY, inclusive: false }]);
       });
 
       it('should return raw value if not range is returned', () => {
         expect(range.parse('some_non_array')).to.deep.equal('some_non_array');
       });
 
-      it('should handle native yugabyte timestamp format', async () => {
+      it('should handle native yugabytedb timestamp format', async () => {
         // Make sure nameOidMap is loaded
         const connection = await Support.sequelize.connectionManager.getConnection();
 
         Support.sequelize.connectionManager.releaseConnection(connection);
 
-        const tsName = DataTypes.yugabyte.DATE.types.yugabyte[0];
+        const tsName = DataTypes.yugabytedb.DATE.types.yugabytedb[0];
         const tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid;
         const parser = pg.types.getTypeParser(tsOid);
         expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
@@ -212,12 +212,12 @@ if (dialect.startsWith('yugabyte')) {
     describe('stringify and parse', () => {
       it('should stringify then parse back the same structure', () => {
         const testRange = [{ value: 5, inclusive: true }, { value: 10, inclusive: true }];
-        const Range = new DataTypes.yugabyte.RANGE(DataTypes.INTEGER);
+        const Range = new DataTypes.yugabytedb.RANGE(DataTypes.INTEGER);
 
         let stringified = Range.stringify(testRange, {});
         stringified = stringified.slice(1, 1 + stringified.length - 2); // Remove the escaping ticks
 
-        expect(DataTypes.yugabyte.RANGE.parse(stringified, { parser: DataTypes.yugabyte.INTEGER.parse })).to.deep.equal(testRange);
+        expect(DataTypes.yugabytedb.RANGE.parse(stringified, { parser: DataTypes.yugabytedb.INTEGER.parse })).to.deep.equal(testRange);
       });
     });
   });

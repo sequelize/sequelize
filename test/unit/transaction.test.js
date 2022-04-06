@@ -67,7 +67,7 @@ if (dialect !== 'ibmi') {
           'START TRANSACTION;',
           'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
         ],
-        yugabyte: [
+        yugabytedb: [
           'START TRANSACTION;',
           'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
         ],

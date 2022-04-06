@@ -72,7 +72,7 @@ module.exports = {
     minifyAliases: env.SEQ_PG_MINIFY_ALIASES,
   },
 
-  yugabyte: {
+  yugabytedb: {
     database: env.SEQ_YB_DB || env.SEQ_DB || 'sequelize_test',
     username: env.SEQ_YB_USER || env.SEQ_USER || 'yugabyte',
     password: env.SEQ_YB_PW || env.SEQ_PW || 'yugabyte',

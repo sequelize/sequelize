@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(5);
       });
 
-      if (dialect === 'postgres' || dialect === 'yugabyte') {
+      if (dialect === 'postgres' || dialect === 'yugabytedb') {
         it('should be able to find a row using ilike', async function () {
           const users = await this.User.findAll({
             where: {
@@ -951,7 +951,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         });
 
-        (dialect !== 'yugabyte' ? it : it.skip)('includes all associations', async function () { // Operation Expired or aborted by a conflict in yugabyte
+        (dialect !== 'yugabytedb' ? it : it.skip)('includes all associations', async function () { // Operation Expired or aborted by a conflict in yugabytedb
           const countries = await this.Country.findAll({ include: [{ all: true }] });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1160,7 +1160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }));
         });
 
-        (dialect !== 'yugabyte' ? it : it.skip)('sorts by 1st degree association', async function () {  // Operation Expired or aborted by a conflict in yugabyte
+        (dialect !== 'yugabytedb' ? it : it.skip)('sorts by 1st degree association', async function () {  // Operation Expired or aborted by a conflict in yugabytedb
           await Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [this.Country],
@@ -1383,7 +1383,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].id).to.be.above(users[2].id);
       });
 
-      (dialect !== 'yugabyte' ? it : it.skip)('handles offset and limit', async function () { // Assertion Error in yugabyte due to order.
+      (dialect !== 'yugabytedb' ? it : it.skip)('handles offset and limit', async function () { // Assertion Error in yugabytedb due to order.
         await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
         const users = await this.User.findAll({ limit: 2, offset: 2 });
         expect(users.length).to.equal(2);

@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
   describe('getAssociation', () => {
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
         const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user).to.be.ok;
       await this.sequelize.dropSchema('archive');
       const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb', 'yugabyte'].includes(dialect)) {
+      if (['postgres', 'mssql', 'mariadb', 'yugabytedb'].includes(dialect)) {
         expect(schemas).to.not.have.property('archive');
       }
     });
@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
   describe('setAssociation', () => {
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
         const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
@@ -341,7 +341,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      (current.dialect.name !== 'yugabyte' ? it : it.skip)('supports transactions', async function () {
+      (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
         const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });

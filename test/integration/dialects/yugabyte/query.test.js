@@ -8,8 +8,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('@sequelize/core/lib/data-types');
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE] Query', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB] Query', () => {
 
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';

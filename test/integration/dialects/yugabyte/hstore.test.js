@@ -8,8 +8,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const hstore = require('@sequelize/core/lib/dialects/postgres/hstore');
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE Specific] hstore', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB Specific] hstore', () => {
     describe('stringify', () => {
       it('should handle empty objects correctly', () => {
         expect(hstore.stringify({})).to.equal('');

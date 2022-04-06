@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'WHERE [yolo.User].[id] = 1',
         ibmi: 'WHERE "yolo"."User"."id" = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
-        yugabyte: 'WHERE "yolo"."User"."id" = 1',
+        yugabytedb: 'WHERE "yolo"."User"."id" = 1',
         db2: 'WHERE "yolo"."User"."id" = 1',
         snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ibmi: '"deleted" IS NULL',
       db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
-      yugabyte: '"deleted" IS NULL',
+      yugabytedb: '"deleted" IS NULL',
       snowflake: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL',
     });
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('field', Buffer.from('Sequelize'), {
         ibmi: '"field" = BLOB(X\'53657175656c697a65\')',
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
-        yugabyte: '"field" = E\'\\\\x53657175656c697a65\'',
+        yugabytedb: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: '`field` = X\'53657175656c697a65\'',
         mariadb: '`field` = X\'53657175656c697a65\'',
         mysql: '`field` = X\'53657175656c697a65\'',
@@ -559,14 +559,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.contains]: [2, 3],
           }, {
             postgres: '"muscles" @> ARRAY[2,3]',
-            yugabyte: '"muscles" @> ARRAY[2,3]',
+            yugabytedb: '"muscles" @> ARRAY[2,3]',
           });
 
           testsql('muscles', {
             [Op.contained]: [6, 8],
           }, {
             postgres: '"muscles" <@ ARRAY[6,8]',
-            yugabyte: '"muscles" <@ ARRAY[6,8]',
+            yugabytedb: '"muscles" <@ ARRAY[6,8]',
           });
 
           testsql('muscles', {
@@ -577,21 +577,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]',
-            yugabyte: '"muscles" @> ARRAY[2,5]::INTEGER[]',
+            yugabytedb: '"muscles" @> ARRAY[2,5]::INTEGER[]',
           });
 
           testsql('muscles', {
             [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3'],
           }, {
             postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
-            yugabyte: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
+            yugabytedb: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
           });
 
           testsql('muscles', {
             [Op.contained]: ['stringValue1', 'stringValue2', 'stringValue3'],
           }, {
             postgres: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
-            yugabyte: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
+            yugabytedb: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']',
           });
 
           testsql('muscles', {
@@ -602,7 +602,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]',
-            yugabyte: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]',
+            yugabytedb: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]',
           });
         });
 
@@ -611,7 +611,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.overlap]: [3, 11],
           }, {
             postgres: '"muscles" && ARRAY[3,11]',
-            yugabyte: '"muscles" && ARRAY[3,11]',
+            yugabytedb: '"muscles" && ARRAY[3,11]',
 
           });
         });
@@ -621,7 +621,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.any]: [4, 5, 6],
           }, {
             postgres: '"userId" = ANY (ARRAY[4,5,6])',
-            yugabyte: '"userId" = ANY (ARRAY[4,5,6])',
+            yugabytedb: '"userId" = ANY (ARRAY[4,5,6])',
           });
 
           testsql('userId', {
@@ -632,7 +632,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])',
-            yugabyte: '"userId" = ANY (ARRAY[2,5]::INTEGER[])',
+            yugabytedb: '"userId" = ANY (ARRAY[2,5]::INTEGER[])',
           });
 
           describe('Op.values', () => {
@@ -642,7 +642,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               },
             }, {
               postgres: '"userId" = ANY (VALUES (4), (5), (6))',
-              yugabyte: '"userId" = ANY (VALUES (4), (5), (6))',
+              yugabytedb: '"userId" = ANY (VALUES (4), (5), (6))',
             });
 
             testsql('userId', {
@@ -655,7 +655,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               },
             }, {
               postgres: '"userId" = ANY (VALUES (2), (5))',
-              yugabyte: '"userId" = ANY (VALUES (2), (5))',
+              yugabytedb: '"userId" = ANY (VALUES (2), (5))',
             });
           });
         });
@@ -665,7 +665,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.all]: [4, 5, 6],
           }, {
             postgres: '"userId" = ALL (ARRAY[4,5,6])',
-            yugabyte: '"userId" = ALL (ARRAY[4,5,6])',
+            yugabytedb: '"userId" = ALL (ARRAY[4,5,6])',
           });
 
           testsql('userId', {
@@ -676,7 +676,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])',
-            yugabyte: '"userId" = ALL (ARRAY[2,5]::INTEGER[])',
+            yugabytedb: '"userId" = ALL (ARRAY[2,5]::INTEGER[])',
           });
 
           describe('Op.values', () => {
@@ -686,7 +686,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               },
             }, {
               postgres: '"userId" = ALL (VALUES (4), (5), (6))',
-              yugabyte: '"userId" = ALL (VALUES (4), (5), (6))',
+              yugabytedb: '"userId" = ALL (VALUES (4), (5), (6))',
             });
 
             testsql('userId', {
@@ -699,7 +699,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               },
             }, {
               postgres: '"userId" = ALL (VALUES (2), (5))',
-              yugabyte: '"userId" = ALL (VALUES (2), (5))',
+              yugabytedb: '"userId" = ALL (VALUES (2), (5))',
             });
           });
         });
@@ -711,7 +711,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -720,7 +720,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -729,7 +729,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" NOT LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" NOT LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" NOT LIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -738,7 +738,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" NOT ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" NOT ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" NOT ILIKE ANY (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -747,7 +747,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -756,7 +756,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -765,7 +765,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" NOT LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" NOT LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" NOT LIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
 
           testsql('userId', {
@@ -774,7 +774,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: '"userId" NOT ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
-            yugabyte: '"userId" NOT ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
+            yugabytedb: '"userId" NOT ILIKE ALL (ARRAY[\'foo\',\'bar\',\'baz\'])',
           });
         });
       });
@@ -792,7 +792,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Timeline',
         }, {
           postgres: '"Timeline"."range" @> \'2000-02-01 00:00:00.000 +00:00\'::timestamptz',
-          yugabyte: '"Timeline"."range" @> \'2000-02-01 00:00:00.000 +00:00\'::timestamptz',
+          yugabytedb: '"Timeline"."range" @> \'2000-02-01 00:00:00.000 +00:00\'::timestamptz',
         });
 
         testsql('range', {
@@ -804,7 +804,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Timeline',
         }, {
           postgres: '"Timeline"."range" @> \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
-          yugabyte: '"Timeline"."range" @> \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
+          yugabytedb: '"Timeline"."range" @> \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
         });
 
         testsql('range', {
@@ -816,7 +816,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Timeline',
         }, {
           postgres: '"Timeline"."range" <@ \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
-          yugabyte: '"Timeline"."range" <@ \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
+          yugabytedb: '"Timeline"."range" <@ \'["2000-02-01 00:00:00.000 +00:00","2000-03-01 00:00:00.000 +00:00")\'',
         });
 
         testsql('unboundedRange', {
@@ -828,7 +828,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Timeline',
         }, {
           postgres: '"Timeline"."unboundedRange" @> \'["2000-02-01 00:00:00.000 +00:00",)\'',
-          yugabyte: '"Timeline"."unboundedRange" @> \'["2000-02-01 00:00:00.000 +00:00",)\'',
+          yugabytedb: '"Timeline"."unboundedRange" @> \'["2000-02-01 00:00:00.000 +00:00",)\'',
         });
 
         testsql('unboundedRange', {
@@ -840,7 +840,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Timeline',
         }, {
           postgres: '"Timeline"."unboundedRange" @> \'[-infinity,infinity)\'',
-          yugabyte: '"Timeline"."unboundedRange" @> \'[-infinity,infinity)\'',
+          yugabytedb: '"Timeline"."unboundedRange" @> \'[-infinity,infinity)\'',
         });
 
         testsql('reservedSeats', {
@@ -852,7 +852,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" && \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" && \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" && \'[1,4)\'',
         });
 
         testsql('reservedSeats', {
@@ -864,7 +864,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" -|- \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" -|- \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" -|- \'[1,4)\'',
         });
 
         testsql('reservedSeats', {
@@ -876,7 +876,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" << \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" << \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" << \'[1,4)\'',
         });
 
         testsql('reservedSeats', {
@@ -888,7 +888,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" >> \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" >> \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" >> \'[1,4)\'',
         });
 
         testsql('reservedSeats', {
@@ -900,7 +900,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" &< \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" &< \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" &< \'[1,4)\'',
         });
 
         testsql('reservedSeats', {
@@ -912,7 +912,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'Room',
         }, {
           postgres: '"Room"."reservedSeats" &> \'[1,4)\'',
-          yugabyte: '"Room"."reservedSeats" &> \'[1,4)\'',
+          yugabytedb: '"Room"."reservedSeats" &> \'[1,4)\'',
         });
 
       });
@@ -923,7 +923,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         it('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
             postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
-            yugabyte: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
+            yugabytedb: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
             sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
@@ -933,7 +933,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         it('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json({ profile: { id: '12346-78912', name: 'test' } })), {
             postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
-            yugabyte: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
+            yugabytedb: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
@@ -953,7 +953,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`User`.`data`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`User`.`data`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("User"."data"#>>\'{nested,attribute}\') = \'value\'',
-          yugabyte: '("User"."data"#>>\'{nested,attribute}\') = \'value\'',
+          yugabytedb: '("User"."data"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`User`.`data`,\'$.nested.attribute\') = \'value\'',
         });
 
@@ -969,7 +969,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested\')) AS DECIMAL) IN (1, 2)',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\"\')) AS DECIMAL) IN (1, 2)',
           postgres: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
-          yugabyte: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
+          yugabytedb: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
           sqlite: 'CAST(json_extract(`data`,\'$.nested\') AS DOUBLE PRECISION) IN (1, 2)',
         });
 
@@ -985,7 +985,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested\')) AS DECIMAL) BETWEEN 1 AND 2',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\"\')) AS DECIMAL) BETWEEN 1 AND 2',
           postgres: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
-          yugabyte: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
+          yugabytedb: 'CAST(("data"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
           sqlite: 'CAST(json_extract(`data`,\'$.nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
         });
 
@@ -1005,7 +1005,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`data`,\'$.nested.attribute\')) = \'value\' AND json_unquote(json_extract(`User`.`data`,\'$.nested.prop\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`data`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\' AND json_unquote(json_extract(`User`.`data`,\'$.\\"nested\\".\\"prop\\"\')) != \'None\')',
           postgres: '(("User"."data"#>>\'{nested,attribute}\') = \'value\' AND ("User"."data"#>>\'{nested,prop}\') != \'None\')',
-          yugabyte: '(("User"."data"#>>\'{nested,attribute}\') = \'value\' AND ("User"."data"#>>\'{nested,prop}\') != \'None\')',
+          yugabytedb: '(("User"."data"#>>\'{nested,attribute}\') = \'value\' AND ("User"."data"#>>\'{nested,prop}\') != \'None\')',
           sqlite: '(json_extract(`User`.`data`,\'$.nested.attribute\') = \'value\' AND json_extract(`User`.`data`,\'$.nested.prop\') != \'None\')',
         });
 
@@ -1025,7 +1025,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`data`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`data`,\'$.employment\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`data`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`data`,\'$.\\"employment\\"\')) != \'None\')',
           postgres: '(("User"."data"#>>\'{name,last}\') = \'Simpson\' AND ("User"."data"#>>\'{employment}\') != \'None\')',
-          yugabyte: '(("User"."data"#>>\'{name,last}\') = \'Simpson\' AND ("User"."data"#>>\'{employment}\') != \'None\')',
+          yugabytedb: '(("User"."data"#>>\'{name,last}\') = \'Simpson\' AND ("User"."data"#>>\'{employment}\') != \'None\')',
           sqlite: '(json_extract(`User`.`data`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`data`,\'$.employment\') != \'None\')',
         });
 
@@ -1040,7 +1040,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(CAST(json_unquote(json_extract(`data`,\'$.price\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,\'$.name\')) = \'Product\')',
           mysql: '(CAST(json_unquote(json_extract(`data`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,\'$.\\"name\\"\')) = \'Product\')',
           postgres: '(CAST(("data"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("data"#>>\'{name}\') = \'Product\')',
-          yugabyte: '(CAST(("data"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("data"#>>\'{name}\') = \'Product\')',
+          yugabytedb: '(CAST(("data"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("data"#>>\'{name}\') = \'Product\')',
           sqlite: '(CAST(json_extract(`data`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`data`,\'$.name\') = \'Product\')',
         });
 
@@ -1056,7 +1056,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`data`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("data"#>>\'{nested,attribute}\') = \'value\'',
-          yugabyte: '("data"#>>\'{nested,attribute}\') = \'value\'',
+          yugabytedb: '("data"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`data`,\'$.nested.attribute\') = \'value\'',
         });
 
@@ -1072,7 +1072,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
           postgres: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
-          yugabyte: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
+          yugabytedb: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
           sqlite: 'CAST(json_extract(`data`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
         });
 
@@ -1090,7 +1090,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested.attribute\')) AS DECIMAL) IN (3, 7)',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) IN (3, 7)',
           postgres: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
-          yugabyte: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
+          yugabytedb: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
           sqlite: 'CAST(json_extract(`data`,\'$.nested.attribute\') AS DOUBLE PRECISION) IN (3, 7)',
         });
 
@@ -1108,7 +1108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
-          yugabyte: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
+          yugabytedb: 'CAST(("data"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
           sqlite: 'CAST(json_extract(`data`,\'$.nested.attribute\') AS DOUBLE PRECISION) > 2',
         });
 
@@ -1126,7 +1126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`data`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("data"#>>\'{nested,attribute}\') AS INTEGER) > 2',
-          yugabyte: 'CAST(("data"#>>\'{nested,attribute}\') AS INTEGER) > 2',
+          yugabytedb: 'CAST(("data"#>>\'{nested,attribute}\') AS INTEGER) > 2',
           sqlite: 'CAST(json_extract(`data`,\'$.nested.attribute\') AS INTEGER) > 2',
         });
 
@@ -1145,7 +1145,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`data\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
           mysql: `CAST(json_unquote(json_extract(\`data\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
-          yugabyte: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
+          yugabytedb: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`data\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`,
         });
 
@@ -1161,7 +1161,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`data`,\'$.nested.attribute\')) = \'true\'',
           mysql: 'json_unquote(json_extract(`data`,\'$.\\"nested\\".\\"attribute\\"\')) = \'true\'',
           postgres: 'CAST(("data"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
-          yugabyte: 'CAST(("data"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
+          yugabytedb: 'CAST(("data"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
           sqlite: 'CAST(json_extract(`data`,\'$.nested.attribute\') AS BOOLEAN) = 1',
         });
 
@@ -1179,7 +1179,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`meta_data`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`meta_data`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("meta_data"#>>\'{nested,attribute}\') = \'value\'',
-          yugabyte: '("meta_data"#>>\'{nested,attribute}\') = \'value\'',
+          yugabytedb: '("meta_data"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`meta_data`,\'$.nested.attribute\') = \'value\'',
         });
       });
@@ -1210,7 +1210,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql: '`username` REGEXP \'^sw.*r$\'',
           snowflake: '"username" REGEXP \'^sw.*r$\'',
           postgres: '"username" ~ \'^sw.*r$\'',
-          yugabyte: '"username" ~ \'^sw.*r$\'',
+          yugabytedb: '"username" ~ \'^sw.*r$\'',
         });
       });
 
@@ -1222,7 +1222,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql: '`newline` REGEXP \'^new\\nline$\'',
           snowflake: '"newline" REGEXP \'^new\nline$\'',
           postgres: '"newline" ~ \'^new\nline$\'',
-          yugabyte: '"newline" ~ \'^new\nline$\'',
+          yugabytedb: '"newline" ~ \'^new\nline$\'',
         });
       });
 
@@ -1234,7 +1234,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql: '`username` NOT REGEXP \'^sw.*r$\'',
           snowflake: '"username" NOT REGEXP \'^sw.*r$\'',
           postgres: '"username" !~ \'^sw.*r$\'',
-          yugabyte: '"username" !~ \'^sw.*r$\'',
+          yugabytedb: '"username" !~ \'^sw.*r$\'',
         });
       });
 
@@ -1246,17 +1246,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql: '`newline` NOT REGEXP \'^new\\nline$\'',
           snowflake: '"newline" NOT REGEXP \'^new\nline$\'',
           postgres: '"newline" !~ \'^new\nline$\'',
-          yugabyte: '"newline" !~ \'^new\nline$\'',
+          yugabytedb: '"newline" !~ \'^new\nline$\'',
         });
       });
 
-      if (current.dialect.name === 'postgres' || current.dialect.name === 'yugabyte') {
+      if (current.dialect.name === 'postgres' || current.dialect.name === 'yugabytedb') {
         describe('Op.iRegexp', () => {
           testsql('username', {
             [Op.iRegexp]: '^sw.*r$',
           }, {
             postgres: '"username" ~* \'^sw.*r$\'',
-            yugabyte: '"username" ~* \'^sw.*r$\'',
+            yugabytedb: '"username" ~* \'^sw.*r$\'',
           });
         });
 
@@ -1265,7 +1265,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.iRegexp]: '^new\nline$',
           }, {
             postgres: '"newline" ~* \'^new\nline$\'',
-            yugabyte: '"newline" ~* \'^new\nline$\'',
+            yugabytedb: '"newline" ~* \'^new\nline$\'',
           });
         });
 
@@ -1274,7 +1274,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.notIRegexp]: '^sw.*r$',
           }, {
             postgres: '"username" !~* \'^sw.*r$\'',
-            yugabyte: '"username" !~* \'^sw.*r$\'',
+            yugabytedb: '"username" !~* \'^sw.*r$\'',
           });
         });
 
@@ -1283,7 +1283,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.notIRegexp]: '^new\nline$',
           }, {
             postgres: '"newline" !~* \'^new\nline$\'',
-            yugabyte: '"newline" !~* \'^new\nline$\'',
+            yugabytedb: '"newline" !~* \'^new\nline$\'',
           });
         });
       }

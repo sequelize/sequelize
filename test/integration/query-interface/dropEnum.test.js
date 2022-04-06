@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    if (dialect === 'postgres' || dialect === 'yugabyte') {
+    if (dialect === 'postgres' || dialect === 'yugabytedb') {
       it('should be able to drop the specified enum', async function () {
         await this.queryInterface.removeColumn('menus', 'structuretype');
         const enumList0 = await this.queryInterface.pgListEnums('menus');

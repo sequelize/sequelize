@@ -9,8 +9,8 @@ const dialect = Support.getTestDialect();
 const DataTypes = require('@sequelize/core/lib/data-types');
 const _ = require('lodash');
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE Specific] QueryInterface', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB Specific] QueryInterface', () => {
     beforeEach(function () {
       this.sequelize.options.quoteIdenifiers = true;
       this.queryInterface = this.sequelize.getQueryInterface();

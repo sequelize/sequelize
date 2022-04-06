@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   */
 
   describe('getAssociation', () => {
-    if (current.dialect.supports.transactions && dialect !== 'yugabyte') {
+    if (current.dialect.supports.transactions && dialect !== 'yugabytedb') {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
@@ -129,14 +129,14 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(associatedUser.id).not.to.equal(fakeUser.id);
       await this.sequelize.dropSchema('admin');
       const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb', 'yugabyte'].includes(dialect)) {
+      if (['postgres', 'mssql', 'mariadb', 'yugabytedb'].includes(dialect)) {
         expect(schemas).to.not.have.property('admin');
       }
     });
   });
 
   describe('setAssociation', () => {
-    if (current.dialect.supports.transactions && dialect !== 'yugabyte') {
+    if (current.dialect.supports.transactions && dialect !== 'yugabytedb') {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Support.Sequelize.STRING });
@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(task.title).to.equal('task');
     });
 
-    if (current.dialect.supports.transactions && dialect !== 'yugabyte') {
+    if (current.dialect.supports.transactions && dialect !== 'yugabytedb') {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: Sequelize.STRING });

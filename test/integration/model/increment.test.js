@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user4.aNumber).to.be.equal(this.assert(2, -2));
       });
 
-      (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should still work right with other concurrent increments', async function () { // Operation expired in yugabyte for this test case due to concurrency
+      (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should still work right with other concurrent increments', async function () { // Operation expired in yugabytedb for this test case due to concurrency
         const aUsers = await this.User.findAll();
 
         await Promise.all([

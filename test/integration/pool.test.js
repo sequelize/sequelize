@@ -16,7 +16,7 @@ function assertSameConnection(newConnection, oldConnection) {
     case 'postgres':
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
-    case 'yugabyte':
+    case 'yugabytedb':
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
     case 'mariadb':
@@ -43,7 +43,7 @@ function assertNewConnection(newConnection, oldConnection) {
     case 'postgres':
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
-    case 'yugabyte':
+    case 'yugabytedb':
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
     case 'mariadb':
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
             break;
           }
 
-          case 'yugabyte': {
+          case 'yugabytedb': {
             connection.end();
 
             break;

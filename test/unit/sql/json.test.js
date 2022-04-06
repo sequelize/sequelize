@@ -62,7 +62,7 @@ if (current.dialect.supports.JSON) {
               'joe',
             ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
               postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
-              yugabyte: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+              yugabytedb: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
             });
           });
 
@@ -74,7 +74,7 @@ if (current.dialect.supports.JSON) {
                 'joe',
               ], { type: DataTypes.ARRAY(DataTypes.JSONB) }), {
                 postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
-                yugabyte: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+                yugabytedb: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
               });
             });
           }
@@ -85,7 +85,7 @@ if (current.dialect.supports.JSON) {
         it('condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ id: 1 })), {
             postgres: '("id"#>>\'{}\') = \'1\'',
-            yugabyte: '("id"#>>\'{}\') = \'1\'',
+            yugabytedb: '("id"#>>\'{}\') = \'1\'',
             sqlite: 'json_extract(`id`,\'$\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`id`,\'$\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`id`,\'$\')) = \'1\'',
@@ -95,7 +95,7 @@ if (current.dialect.supports.JSON) {
         it('nested condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
-            yugabyte: '("profile"#>>\'{id}\') = \'1\'',
+            yugabytedb: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'1\'',
@@ -105,7 +105,7 @@ if (current.dialect.supports.JSON) {
         it('multiple condition object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } })), {
             postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
-            yugabyte: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
+            yugabytedb: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
             sqlite: 'json_extract(`property`,\'$.value\') = \'1\' AND json_extract(`another`,\'$.value\') = \'string\'',
             mariadb: 'json_unquote(json_extract(`property`,\'$.value\')) = \'1\' AND json_unquote(json_extract(`another`,\'$.value\')) = \'string\'',
             mysql: 'json_unquote(json_extract(`property`,\'$.\\"value\\"\')) = \'1\' AND json_unquote(json_extract(`another`,\'$.\\"value\\"\')) = \'string\'',
@@ -115,7 +115,7 @@ if (current.dialect.supports.JSON) {
         it('property array object', () => {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]] })), {
             postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
-            yugabyte: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
+            yugabytedb: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
             sqlite: 'json_extract(`property`,\'$[0][0]\') = \'4\' AND json_extract(`property`,\'$[0][1]\') = \'6\' AND json_extract(`property`,\'$[1][0]\') = \'8\'',
             mariadb: 'json_unquote(json_extract(`property`,\'$[0][0]\')) = \'4\' AND json_unquote(json_extract(`property`,\'$[0][1]\')) = \'6\' AND json_unquote(json_extract(`property`,\'$[1][0]\')) = \'8\'',
             mysql: 'json_unquote(json_extract(`property`,\'$[0][0]\')) = \'4\' AND json_unquote(json_extract(`property`,\'$[0][1]\')) = \'6\' AND json_unquote(json_extract(`property`,\'$[1][0]\')) = \'8\'',
@@ -125,7 +125,7 @@ if (current.dialect.supports.JSON) {
         it('dot notation', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
-            yugabyte: '("profile"#>>\'{id}\') = \'1\'',
+            yugabytedb: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: 'json_extract(`profile`,\'$.id\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'1\'',
@@ -135,7 +135,7 @@ if (current.dialect.supports.JSON) {
         it('item dot notation array', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id.0.1'), '1'), {
             postgres: '("profile"#>>\'{id,0,1}\') = \'1\'',
-            yugabyte: '("profile"#>>\'{id,0,1}\') = \'1\'',
+            yugabytedb: '("profile"#>>\'{id,0,1}\') = \'1\'',
             sqlite: 'json_extract(`profile`,\'$.id[0][1]\') = \'1\'',
             mariadb: 'json_unquote(json_extract(`profile`,\'$.id[0][1]\')) = \'1\'',
             mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"[0][1]\')) = \'1\'',
@@ -145,7 +145,7 @@ if (current.dialect.supports.JSON) {
         it('column named "json"', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('json'), '{}'), {
             postgres: '("json"#>>\'{}\') = \'{}\'',
-            yugabyte: '("json"#>>\'{}\') = \'{}\'',
+            yugabytedb: '("json"#>>\'{}\') = \'{}\'',
             sqlite: 'json_extract(`json`,\'$\') = \'{}\'',
             mariadb: 'json_unquote(json_extract(`json`,\'$\')) = \'{}\'',
             mysql: 'json_unquote(json_extract(`json`,\'$\')) = \'{}\'',
@@ -154,11 +154,11 @@ if (current.dialect.supports.JSON) {
       });
 
       describe('raw json query', () => {
-        if (current.dialect.name === 'postgres' || current.dialect.name === 'yugabyte') {
+        if (current.dialect.name === 'postgres' || current.dialect.name === 'yugabytedb') {
           it('#>> operator', () => {
             expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
               postgres: '("data"#>>\'{id}\') = \'id\'',
-              yugabyte: '("data"#>>\'{id}\') = \'id\'',
+              yugabytedb: '("data"#>>\'{id}\') = \'id\'',
             });
           });
         }

@@ -8,8 +8,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('@sequelize/core/lib/data-types');
 
-if (dialect === 'yugabyte') {
-  describe('[YUGABYTE Specific] Data Types', () => {
+if (dialect === 'yugabytedb') {
+  describe('[YUGABYTEDB Specific] Data Types', () => {
     describe('DATE/DATEONLY Validate and Stringify', () => {
       const now = new Date();
       const nowString = now.toISOString();

@@ -66,8 +66,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('manager');
       });
 
-      // Cannot remove a key column in yugabyte.
-      (dialect !== 'yugabyte' ? it : it.skip)('should be able to remove a column with primaryKey', async function () {
+      // Cannot remove a key column in yugabytedb.
+      (dialect !== 'yugabytedb' ? it : it.skip)('should be able to remove a column with primaryKey', async function () {
         await this.queryInterface.removeColumn('users', 'manager');
         const table0 = await this.queryInterface.describeTable('users');
         expect(table0).to.not.have.property('manager');
@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       // Cannot remove a key column in YB.
-      (dialect !== 'yugabyte' ? it : it.skip)('should be able to remove a column with primaryKey', async function () {
+      (dialect !== 'yugabytedb' ? it : it.skip)('should be able to remove a column with primaryKey', async function () {
         await this.queryInterface.removeColumn({
           tableName: 'users',
           schema: 'archive',

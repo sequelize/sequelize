@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const Sequelize = require('@sequelize/core');
 
-if (!Support.sequelize.dialect.supports.deferrableConstraints || Support.getTestDialect() === 'yugabyte') { // Doesn't support Deferrable Constraints properly, refer- https://github.com/yugabyte/yugabyte-db/issues/9288
+if (!Support.sequelize.dialect.supports.deferrableConstraints || Support.getTestDialect() === 'yugabytedb') { // Doesn't support Deferrable Constraints properly, refer- https://github.com/yugabyte/yugabyte-db/issues/9288
   return;
 }
 

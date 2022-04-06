@@ -292,8 +292,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should support an include with multiple different association types', async function () {
+    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should support an include with multiple different association types', async function () {
       const User = this.sequelize.define('User', {});
       const Product = this.sequelize.define('Product', {
         title: DataTypes.STRING,
@@ -1173,8 +1173,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
-    // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function () {
+    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function () {
       const User = this.sequelize.define('User', {
         name: DataTypes.STRING,
       });
@@ -1349,8 +1349,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }
     });
 
-    // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function () {
+    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function () {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1568,8 +1568,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }
     });
 
-    // Assertion Error for yugabyte due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabyte' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function () {
+    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
+    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function () {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({

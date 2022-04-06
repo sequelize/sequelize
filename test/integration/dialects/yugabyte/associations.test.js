@@ -8,8 +8,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('@sequelize/core/lib/data-types');
 
-if (dialect.startsWith('yugabyte')) {
-  describe('[YUGABYTE Specific] associations', () => {
+if (dialect.startsWith('yugabytedb')) {
+  describe('[YUGABYTEDB Specific] associations', () => {
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {
         it('should create a table wp_table1wp_table2s', function () {
