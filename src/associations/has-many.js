@@ -342,33 +342,7 @@ class HasMany extends Association {
     let update;
 
     if (obsoleteAssociations.length > 0) {
-      update = {};
-      update[this.foreignKey] = null;
-
-      updateWhere = {
-        [this.target.primaryKeyAttribute]: obsoleteAssociations.map(
-          associatedObject => associatedObject[this.target.primaryKeyAttribute],
-        ),
-      };
-
-      // update or delete obsolete associations depending on foreign key
-      const foreignKeyIsNullable = this.target.rawAttributes[this.foreignKey].allowNull !== false;
-      const target = this.target.unscoped();
-
-      if (foreignKeyIsNullable) {
-        promises.push(target.update({
-          [this.foreignKey]: null,
-        },
-        {
-          ...options,
-          where: updateWhere,
-        }));
-      } else {
-        promises.push(target.destroy({
-          ...options,
-          where: updateWhere,
-        }));
-      }
+      promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
     }
 
     if (unassociatedObjects.length > 0) {
@@ -429,24 +403,35 @@ class HasMany extends Association {
    * Un-associate one or several target rows.
    *
    * @param {Model} sourceInstance instance to un associate instances with
-   * @param {Model|Model[]|string|string[]|number|number[]} [targetInstances] Can be an Instance or its primary key, or a mixed array of instances and primary keys
+   * @param {Model|Model[]|string|string[]|number|number[]} [rawTargetInstances] Can be an Instance or its primary key, or a mixed array of instances and primary keys
    * @param {object} [options] Options passed to `target.update`
    *
    * @returns {Promise}
    */
-  async remove(sourceInstance, targetInstances, options = {}) {
-    const update = {
-      [this.foreignKey]: null,
-    };
-
-    targetInstances = this.toInstanceArray(targetInstances);
+  async remove(sourceInstance, rawTargetInstances, options = {}) {
+    const targetInstances = this.toInstanceArray(rawTargetInstances);
 
     const where = {
-      [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => targetInstance.get(this.target.primaryKeyAttribute)),
+      [this.target.primaryKeyAttribute]: targetInstances.map(
+        associatedObject => associatedObject[this.target.primaryKeyAttribute],
+      ),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    // update or delete based on the target's foreign key
+    const foreignKeyIsNullable = this.target.rawAttributes[this.foreignKey].allowNull !== false;
+    const target = this.target.unscoped();
+    if (foreignKeyIsNullable) {
+      const update = {
+        [this.foreignKey]: null,
+      };
+
+      where[this.foreignKey] = sourceInstance.get(this.sourceKey);
+
+      await target.update(update, { ...options, where });
+    } else {
+      const destroyWhere = where[this.target.primaryKeyAttribute];
+      await target.destroy({ ...options, where: destroyWhere });
+    }
 
     return this;
   }
