@@ -28,5 +28,3 @@ export { Deferrable } from './deferrable';
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-export { AllowReadonlyArray } from './utils/index.js';
-export { AllowArray } from './utils/index.js';

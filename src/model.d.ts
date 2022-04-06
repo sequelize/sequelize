@@ -784,7 +784,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * Load further nested related models
    */
-  include?: AllowReadonlyArray<Includeable>;
+  include?: AllowArray<Includeable>;
 
   /**
    * Order include. Only available when setting `separate` to true.
@@ -857,7 +857,7 @@ export interface FindOptions<TAttributes = any>
    *
    * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
-  include?: AllowReadonlyArray<Includeable>;
+  include?: AllowArray<Includeable>;
 
   /**
    * Specifies an ordering. If a string is provided, it will be escaped.
@@ -975,7 +975,7 @@ export interface CountOptions<TAttributes = any>
   /**
    * Include options. See `find` for details
    */
-  include?: AllowReadonlyArray<Includeable>;
+  include?: AllowArray<Includeable>;
 
   /**
    * Apply COUNT(DISTINCT(col))
@@ -1027,7 +1027,7 @@ export interface BuildOptions {
   /**
    * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
    */
-  include?: AllowReadonlyArray<Includeable>;
+  include?: AllowArray<Includeable>;
 }
 
 export interface Silent {
@@ -1172,7 +1172,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Include options. See `find` for details
    */
-  include?: AllowReadonlyArray<Includeable>;
+  include?: AllowArray<Includeable>;
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
