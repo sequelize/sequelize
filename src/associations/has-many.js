@@ -336,7 +336,7 @@ class HasMany extends Association {
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises = [];
-    const obsoleteAssociations = oldAssociations.filter(old => !targetInstances.some(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]));
+    const obsoleteAssociations = oldAssociations.filter(old => !targetInstances.some(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]) || old === null);
     const unassociatedObjects = targetInstances.filter(obj => !oldAssociations.some(old => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]));
     let updateWhere;
     let update;
