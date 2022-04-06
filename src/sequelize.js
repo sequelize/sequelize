@@ -242,7 +242,7 @@ class Sequelize {
 
       // For postgres, we can use this helper to load certs directly from the
       // connection string.
-      if (['postgres', 'postgresql', 'yugabyte'].includes(options.dialect)) {
+      if (['postgres', 'postgresql', 'yugabytedb'].includes(options.dialect)) {
         Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
       }
     } else {
@@ -356,8 +356,8 @@ class Sequelize {
       case 'snowflake':
         Dialect = require('./dialects/snowflake');
         break;
-      case 'yugabyte':
-        Dialect = require('./dialects/yugabyte');
+      case 'yugabytedb':
+        Dialect = require('./dialects/yugabytedb');
         break;
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
@@ -924,7 +924,7 @@ class Sequelize {
    * @returns {Sequelize.fn}
    */
   random() {
-    if (['postgres', 'sqlite', 'snowflake', 'yugabyte'].includes(this.getDialect())) {
+    if (['postgres', 'sqlite', 'snowflake', 'yugabytedb'].includes(this.getDialect())) {
       return this.fn('RANDOM');
     }
 

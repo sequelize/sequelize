@@ -4,7 +4,7 @@ const PostgresDialect = require('../postgres/index');
 const ConnectionManager = require('./connection-manager');
 const Query = require('./query');
 const Model = require('../../model');
-const DataTypes = require('../../data-types').yugabyte;
+const DataTypes = require('../../data-types').yugabytedb;
 const QueryGenerator = require('./query-generator');
 const { YugabyteQueryInterface } = require('./query-interface');
 const _ = require('lodash');
@@ -140,10 +140,9 @@ class YugabyteDialect extends PostgresDialect {
 
 }
 
-// YugabyteDialect.prototype.defaultVersion = '2.11.1.0-b305 '; // minimum supported version
 YugabyteDialect.prototype.Query = Query;
 YugabyteDialect.prototype.DataTypes = DataTypes;
-YugabyteDialect.prototype.name = 'yugabyte';
+YugabyteDialect.prototype.name = 'yugabytedb';
 
 YugabyteDialect.prototype.TICK_CHAR = '"';
 YugabyteDialect.prototype.TICK_CHAR_LEFT = YugabyteDialect.prototype.TICK_CHAR;

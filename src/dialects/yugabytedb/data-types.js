@@ -7,14 +7,14 @@ module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://docs.yugabyte.com/latest/api/ysql/datatypes/');
 
   /**
-   * Removes unsupported Yugabyte options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
+   * Removes unsupported YugabyteDB options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
    *
    * @param {object} dataType The base integer data type.
    * @private
    */
   function removeUnsupportedIntegerOptions(dataType) {
     if (dataType._length || dataType.options.length > 0 || dataType._unsigned || dataType._zerofill) {
-      warn(`Yugabyte does not support '${dataType.key}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`);
+      warn(`YugabyteDB does not support '${dataType.key}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`);
       dataType._length = undefined;
       dataType.options.length = undefined;
       dataType._unsigned = undefined;
@@ -32,14 +32,14 @@ module.exports = BaseTypes => {
    * @see oid here https://github.com/lib/pq/blob/master/oid/types.go
    */
 
-  BaseTypes.UUID.types.yugabyte = ['uuid'];
-  BaseTypes.CIDR.types.yugabyte = ['cidr'];
-  BaseTypes.INET.types.yugabyte = ['inet'];
-  BaseTypes.MACADDR.types.yugabyte = ['macaddr'];
-  BaseTypes.TSVECTOR.types.yugabyte = ['tsvector'];
-  BaseTypes.JSON.types.yugabyte = ['json'];
-  BaseTypes.JSONB.types.yugabyte = ['jsonb'];
-  BaseTypes.TIME.types.yugabyte = ['time'];
+  BaseTypes.UUID.types.yugabytedb = ['uuid'];
+  BaseTypes.CIDR.types.yugabytedb = ['cidr'];
+  BaseTypes.INET.types.yugabytedb = ['inet'];
+  BaseTypes.MACADDR.types.yugabytedb = ['macaddr'];
+  BaseTypes.TSVECTOR.types.yugabytedb = ['tsvector'];
+  BaseTypes.JSON.types.yugabytedb = ['json'];
+  BaseTypes.JSONB.types.yugabytedb = ['jsonb'];
+  BaseTypes.TIME.types.yugabytedb = ['time'];
 
   class DATEONLY extends BaseTypes.DATEONLY {
     _stringify(value, options) {
@@ -86,12 +86,12 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.DATEONLY.types.yugabyte = ['date'];
+  BaseTypes.DATEONLY.types.yugabytedb = ['date'];
 
   class DECIMAL extends BaseTypes.DECIMAL {}
 
   // numeric
-  BaseTypes.DECIMAL.types.yugabyte = ['numeric'];
+  BaseTypes.DECIMAL.types.yugabytedb = ['numeric'];
 
   class STRING extends BaseTypes.STRING {
     toSql() {
@@ -103,12 +103,12 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.STRING.types.yugabyte = ['varchar'];
+  BaseTypes.STRING.types.yugabytedb = ['varchar'];
 
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       if (this._length) {
-        warn('Yugabyte does not support TEXT with options. Plain `TEXT` will be used instead.');
+        warn('YugabyteDB does not support TEXT with options. Plain `TEXT` will be used instead.');
         this._length = undefined;
       }
 
@@ -116,7 +116,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.TEXT.types.yugabyte = ['text'];
+  BaseTypes.TEXT.types.yugabytedb = ['text'];
 
   class CITEXT extends BaseTypes.CITEXT {
     static parse(value) {
@@ -124,7 +124,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.CITEXT.types.yugabyte = ['citext'];
+  BaseTypes.CITEXT.types.yugabytedb = ['citext'];
 
   class CHAR extends BaseTypes.CHAR {
     toSql() {
@@ -136,7 +136,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.CHAR.types.yugabyte = ['char', 'bpchar'];
+  BaseTypes.CHAR.types.yugabytedb = ['char', 'bpchar'];
 
   class BOOLEAN extends BaseTypes.BOOLEAN {
     toSql() {
@@ -167,7 +167,7 @@ module.exports = BaseTypes => {
 
   BOOLEAN.parse = BOOLEAN.prototype._sanitize;
 
-  BaseTypes.BOOLEAN.types.yugabyte = ['bool'];
+  BaseTypes.BOOLEAN.types.yugabytedb = ['bool'];
 
   class DATE extends BaseTypes.DATE {
     toSql() {
@@ -214,7 +214,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.DATE.types.yugabyte = ['timestamptz'];
+  BaseTypes.DATE.types.yugabytedb = ['timestamptz'];
 
   class TINYINT extends BaseTypes.TINYINT {
     constructor(length) {
@@ -224,7 +224,7 @@ module.exports = BaseTypes => {
   }
 
   // int2
-  BaseTypes.TINYINT.types.yugabyte = ['int2'];
+  BaseTypes.TINYINT.types.yugabytedb = ['int2'];
 
   class SMALLINT extends BaseTypes.SMALLINT {
     constructor(length) {
@@ -234,7 +234,7 @@ module.exports = BaseTypes => {
   }
 
   // int2
-  BaseTypes.SMALLINT.types.yugabyte = ['int2'];
+  BaseTypes.SMALLINT.types.yugabytedb = ['int2'];
 
   class INTEGER extends BaseTypes.INTEGER {
     constructor(length) {
@@ -248,7 +248,7 @@ module.exports = BaseTypes => {
   };
 
   // int4
-  BaseTypes.INTEGER.types.yugabyte = ['int4'];
+  BaseTypes.INTEGER.types.yugabytedb = ['int4'];
 
   class BIGINT extends BaseTypes.BIGINT {
     constructor(length) {
@@ -258,7 +258,7 @@ module.exports = BaseTypes => {
   }
 
   // int8
-  BaseTypes.BIGINT.types.yugabyte = ['int8'];
+  BaseTypes.BIGINT.types.yugabytedb = ['int8'];
 
   class REAL extends BaseTypes.REAL {
     constructor(length) {
@@ -268,7 +268,7 @@ module.exports = BaseTypes => {
   }
 
   // float4
-  BaseTypes.REAL.types.yugabyte = ['float4'];
+  BaseTypes.REAL.types.yugabytedb = ['float4'];
 
   class DOUBLE extends BaseTypes.DOUBLE {
     constructor(length) {
@@ -278,7 +278,7 @@ module.exports = BaseTypes => {
   }
 
   // float8
-  BaseTypes.DOUBLE.types.yugabyte = ['float8'];
+  BaseTypes.DOUBLE.types.yugabytedb = ['float8'];
 
   class FLOAT extends BaseTypes.FLOAT {
     constructor(length, decimals) {
@@ -319,7 +319,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.BLOB.types.yugabyte = ['bytea'];
+  BaseTypes.BLOB.types.yugabytedb = ['bytea'];
 
   class GEOMETRY extends BaseTypes.GEOMETRY {
     toSql() {
@@ -351,7 +351,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.GEOMETRY.types.yugabyte = ['geometry'];
+  BaseTypes.GEOMETRY.types.yugabytedb = ['geometry'];
 
   class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     toSql() {
@@ -383,7 +383,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.GEOGRAPHY.types.yugabyte = ['geography'];
+  BaseTypes.GEOGRAPHY.types.yugabytedb = ['geography'];
 
   let hstore;
 
@@ -425,7 +425,7 @@ module.exports = BaseTypes => {
 
   HSTORE.prototype.escape = false;
 
-  BaseTypes.HSTORE.types.yugabyte = ['hstore'];
+  BaseTypes.HSTORE.types.yugabytedb = ['hstore'];
 
   class RANGE extends BaseTypes.RANGE {
     _value(values, options) {
@@ -479,11 +479,11 @@ module.exports = BaseTypes => {
     }
 
     toSql() {
-      return BaseTypes.RANGE.types.yugabyte.subtypes[this._subtype.toLowerCase()];
+      return BaseTypes.RANGE.types.yugabytedb.subtypes[this._subtype.toLowerCase()];
     }
 
     toCastType() {
-      return BaseTypes.RANGE.types.yugabyte.castTypes[this._subtype.toLowerCase()];
+      return BaseTypes.RANGE.types.yugabytedb.castTypes[this._subtype.toLowerCase()];
     }
 
     static parse(value, options = { parser: val => val }) {
@@ -495,7 +495,7 @@ module.exports = BaseTypes => {
 
   RANGE.prototype.escape = false;
 
-  BaseTypes.RANGE.types.yugabyte = {
+  BaseTypes.RANGE.types.yugabytedb = {
     subtypes: {
       integer: 'int4range',
       decimal: 'numrange',
@@ -568,7 +568,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  BaseTypes.ENUM.types.yugabyte = [null];
+  BaseTypes.ENUM.types.yugabytedb = [null];
 
   return {
     DECIMAL,

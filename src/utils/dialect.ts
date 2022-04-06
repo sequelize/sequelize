@@ -8,7 +8,7 @@ const dialectsSupportingMilliseconds = new Set([
   'mariadb',
   'mysql',
   'postgres',
-  'yugabyte',
+  'yugabytedb',
   'sqlite',
   'mssql',
   'db2',

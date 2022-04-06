@@ -10,7 +10,7 @@ class ConnectionManager extends PostgresConnectionManager{
     super(dialect, sequelize);
     this._clearDynamicOIDs();
     this._clearTypeParser();
-    this.refreshTypeParser(dataTypes.yugabyte);
+    this.refreshTypeParser(dataTypes.yugabytedb);
   }
 
 }
