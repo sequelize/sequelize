@@ -330,6 +330,7 @@ class HasMany extends Association {
   async set(sourceInstance, targetInstances, options) {
     if (targetInstances === null) {
       targetInstances = [];
+      options = options ? { ...options, destroy: true } : { destroy: true };
     } else {
       targetInstances = this.toInstanceArray(targetInstances);
     }
@@ -341,7 +342,7 @@ class HasMany extends Association {
     let updateWhere;
     let update;
 
-    if (obsoleteAssociations.length > 0) {
+    if (obsoleteAssociations.length > 0 || targetInstances == null) {
       promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
     }
 
@@ -420,7 +421,7 @@ class HasMany extends Association {
     // update or delete based on the target's foreign key
     const foreignKeyIsNullable = this.target.rawAttributes[this.foreignKey].allowNull !== false;
     const target = this.target.unscoped();
-    if (foreignKeyIsNullable) {
+    if (foreignKeyIsNullable && !options.destroy) {
       const update = {
         [this.foreignKey]: null,
       };
