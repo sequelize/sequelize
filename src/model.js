@@ -15,7 +15,7 @@ const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Op } = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
-const { _validateIncludedElements, combineIncludes } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude } = require('./model-internals');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -104,6 +104,7 @@ export class Model {
       _schema: this.constructor._schema,
       _schemaDelimiter: this.constructor._schemaDelimiter,
       ...options,
+      model: this.constructor,
     };
 
     if (options.attributes) {
@@ -385,7 +386,7 @@ ${this._getAssociationDebugList()}`);
 
   static _conformInclude(include, associationOwner) {
     if (!include) {
-      throw new TypeError('Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
+      throwInvalidInclude(include);
     }
 
     if (!associationOwner || !isModelStatic(associationOwner)) {
@@ -428,7 +429,7 @@ ${this._getAssociationDebugList()}`);
       include.association = associationOwner.getAssociation(include.association);
     } else {
       if (!(include.association instanceof Association)) {
-        throw new TypeError('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
+        throwInvalidInclude(include);
       }
 
       if (!isSameModel(include.association.source, associationOwner)) {
@@ -687,12 +688,12 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (!targetModel) {
-      throw new sequelizeErrors.EagerLoadingError('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
+      throwInvalidInclude({ model: targetModel, as: targetAlias });
     }
 
     const matchingAssociations = this._getAssociationsByModel(targetModel);
     if (matchingAssociations.length === 0) {
-      throw new sequelizeErrors.EagerLoadingError(`Invalid Include received: no association exist between "${this.name}" and "${targetModel.name}"`);
+      throw new sequelizeErrors.EagerLoadingError(`Invalid Include received: no associations exist between "${this.name}" and "${targetModel.name}"`);
     }
 
     if (matchingAssociations.length > 1) {
@@ -2029,6 +2030,7 @@ or pass the name of the association you want to include (through the "as" option
    */
   static async aggregate(attribute, aggregateFunction, options) {
     options = Utils.cloneDeep(options);
+    options.model = this;
 
     // We need to preserve attributes here as the `injectScope` call would inject non aggregate columns.
     const prevAttributes = options.attributes;

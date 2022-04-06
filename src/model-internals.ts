@@ -1,3 +1,5 @@
+import NodeUtil from 'util';
+import { EagerLoadingError } from './errors';
 import { isModelStatic } from './model';
 
 // TODO: strictly type this file during the TS migration of model.js
@@ -138,4 +140,9 @@ export function combineIncludes(a: any, b: any): any {
   }
 
   return combinedIncludes;
+}
+
+export function throwInvalidInclude(include: any): never {
+  throw new EagerLoadingError(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+Go ${NodeUtil.inspect(include)} instead`);
 }

@@ -2014,7 +2014,7 @@ export class AbstractQueryGenerator {
         include: _validateIncludedElements({
           model: topInclude.through.model,
           include: [{
-            association: topAssociation.toTarget,
+            association: topAssociation.fromThroughToTarget,
             required: true,
             where: topInclude.where,
             include: topInclude.include,

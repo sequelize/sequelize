@@ -66,6 +66,8 @@ import {
 //  for selfAssociations
 //  for others
 
+// TODO: ensure the user is made aware of the 'inverse' option when trying to define a pair twice
+
 // TODO: add test for this scenario:
 
 // BelongsToMany(Source, Posts, {
@@ -267,35 +269,49 @@ export class BelongsToMany<
 
     this._origOptions = options;
 
-    this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
-      secret,
-      target,
-      source,
-      {
-        ...options,
-        // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
-        as: options.inverse?.as,
-        onDelete: options.inverse?.onDelete,
-        onUpdate: options.inverse?.onUpdate,
-        scope: options.inverse?.scope,
-        inverse: {
-          onDelete: options.onDelete,
-          onUpdate: options.onUpdate,
-          as: options.as,
-          scope: options.scope,
+    try {
+      this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+        secret,
+        target,
+        source,
+        {
+          ...options,
+          // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
+          as: options.inverse?.as,
+          onDelete: options.inverse?.onDelete,
+          onUpdate: options.inverse?.onUpdate,
+          scope: options.inverse?.scope,
+          inverse: {
+            onDelete: options.onDelete,
+            onUpdate: options.onUpdate,
+            as: options.as,
+            scope: options.scope,
+          },
+          sourceKey: options.targetKey,
+          targetKey: options.sourceKey,
+          foreignKey: options.otherKey,
+          otherKey: options.foreignKey,
+          through: {
+            ...options.through,
+            scope: undefined,
+          },
         },
-        sourceKey: options.targetKey,
-        targetKey: options.sourceKey,
-        foreignKey: options.otherKey,
-        otherKey: options.foreignKey,
-        through: {
-          ...options.through,
-          scope: undefined,
-        },
-      },
-      this,
-      this,
-    );
+        this,
+        this,
+      );
+    } catch (error) {
+      throw new AssociationError(`BelongsToMany associations automatically create the corresponding association on the target model,
+but this association failed to create its paired association (BelongsToMany from ${target.name} to ${source.name}).
+
+This may happen if you try to define the same BelongsToMany association on both sides of the association.
+If that is the case, instead of doing this:
+A.belongsToMany(B, { as: 'b', through: 'AB' });
+B.belongsToMany(A, { as: 'a', through: 'AB' });
+
+Do this:
+A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
+      `, { cause: error as Error });
+    }
 
     // computeForeignKey needs this.pairedWith to be created (see inferForeignKey)
     this.computeForeignKey();

@@ -3172,11 +3172,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     describe('project has owners and users and owners and users have projects', () => {
       beforeEach(function () {
-        this.Project.belongsToMany(this.User, { as: 'owners', through: 'projectOwners' });
-        this.Project.belongsToMany(this.User, { as: 'users', through: 'projectUsers' });
-
-        this.User.belongsToMany(this.Project, { as: 'ownedProjects', through: 'projectOwners' });
-        this.User.belongsToMany(this.Project, { as: 'memberProjects', through: 'projectUsers' });
+        this.Project.belongsToMany(this.User, { as: 'owners', through: 'projectOwners', inverse: { as: 'ownedProjects' } });
+        this.Project.belongsToMany(this.User, { as: 'users', through: 'projectUsers', inverse: { as: 'memberProjects' } });
 
         return this.sequelize.sync({ force: true });
       });
