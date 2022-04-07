@@ -78,7 +78,7 @@ async function main() {
     build({
       // Adds source mapping
       sourcemap: true,
-      // The compiled code should be usable in node v12.22
+      // The compiled code should be usable in node v14.17
       target: 'node14.17',
       // The source code's format is commonjs.
       format: 'cjs',
