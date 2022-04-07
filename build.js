@@ -15,18 +15,11 @@ const rootDir = __dirname;
 const outdir = path.join(rootDir, 'lib');
 const typesDir = path.join(rootDir, 'types');
 
-const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
-
 async function rmDir(dirName) {
   try {
     await stat(dirName);
-    if (nodeMajorVersion >= 14) {
-      const rm = promisify(fs.rm);
-      await rm(dirName, { recursive: true });
-    } else {
-      const rmdir = promisify(fs.rmdir);
-      await (nodeMajorVersion >= 12 ? rmdir(dirName, { recursive: true }) : rmdir(dirName));
-    }
+    const rm = promisify(fs.rm);
+    await rm(dirName, { recursive: true });
   } catch {
     /* no-op */
   }
