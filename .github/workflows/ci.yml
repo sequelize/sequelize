@@ -215,9 +215,13 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Install pg-native (Node 14)
+        run: yarn add pg-native --ignore-engines
+        if: matrix.native && matrix.node-version == 14
       # This step uses npm instead of yarn to minimize the time needed. See #14171
       - name: Install pg-native (Node 16)
         run: npm install --no-save --no-audit pg-native
+        if: matrix.native && matrix.node-version == 16
       - name: Integration Tests
         run: yarn test-integration
   test-mysql-mariadb:
