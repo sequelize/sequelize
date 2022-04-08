@@ -6,9 +6,8 @@ const expect = chai.expect;
 const Support   = require('../support');
 
 const current   = Support.sequelize;
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const moment    = require('moment');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {

@@ -11,7 +11,7 @@ export class AsyncQueueError extends BaseError {
   }
 }
 
-class AsyncQueue {
+export class AsyncQueue {
   previous: Promise<unknown>;
   closed: boolean;
   rejectCurrent: (reason?: any) => void;
@@ -57,5 +57,3 @@ class AsyncQueue {
     });
   }
 }
-
-export default AsyncQueue;

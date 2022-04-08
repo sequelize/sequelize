@@ -6,9 +6,9 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const BaseTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes: BaseTypes } = require('@sequelize/core');
 const DataTypes = require('@sequelize/core/lib/dialects/postgres/data-types')(BaseTypes);
-const QueryGenerator = require('@sequelize/core/lib/dialects/postgres/query-generator');
+const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/postgres/query-generator');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DataTypes', () => {

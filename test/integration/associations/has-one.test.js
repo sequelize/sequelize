@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -61,8 +61,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-        const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
         Group.hasOne(User);
 
@@ -100,8 +100,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     it('supports schemas', async function () {
-      const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }).schema('admin');
-      const Group = this.sequelize.define('Group', { name: Support.Sequelize.STRING }).schema('admin');
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }).schema('admin');
+      const Group = this.sequelize.define('Group', { name: DataTypes.STRING }).schema('admin');
 
       Group.hasOne(User);
 
@@ -134,8 +134,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-        const Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
         Group.hasOne(User);
 
