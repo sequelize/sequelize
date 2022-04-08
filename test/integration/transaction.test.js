@@ -742,7 +742,7 @@ if (current.dialect.supports.transactions) {
     }
 
     describe('isolation levels', () => {
-      it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
+      (dialect !== 'yugabytedb' ? it : it.skip)('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () { // READ COMMITED not possible in yugabytedb yet.
         const User = this.sequelize.define('user', {
           username: Support.Sequelize.STRING,
         });
@@ -786,7 +786,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'yugabytedb'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function () {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
@@ -820,7 +820,7 @@ if (current.dialect.supports.transactions) {
 
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
-        it('supports for update', async function () {
+        (dialect !== 'yugabytedb' ? it : it.skip)('supports for update', async function () { // could not serialize access due to concurrent DDL for yugabytedb
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN,
@@ -1057,7 +1057,7 @@ if (current.dialect.supports.transactions) {
           });
         }
 
-        it('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
+        (dialect !== 'yugabytedb' ? it : it.skip)('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
           const verifySelectLockInShareMode = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,

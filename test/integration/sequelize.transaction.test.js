@@ -56,6 +56,9 @@ if (current.dialect.supports.transactions) {
             case 'postgres':
               query = 'select pg_sleep(2);';
               break;
+            case 'yugabytedb':
+              query = 'select pg_sleep(2);';
+              break;
             case 'sqlite':
               query = 'select sqlite3_sleep(2000);';
               break;
@@ -102,7 +105,7 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    describe('concurrency', () => {
+    (current.dialect.name === 'yugabytedb' ? describe : describe.skip)('concurrency', () => {
       describe('having tables with uniqueness constraints', () => {
         beforeEach(async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);

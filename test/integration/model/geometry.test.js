@@ -11,8 +11,13 @@ const semver = require('semver');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+(current.dialect.name !== 'yugabytedb' ? describe : describe.skip)(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.GEOMETRY) {
+    /**
+     * Yugabyte has some issues with postGIS set up for now and due to which tests will fail, so need to skip them for now.
+     * Can take a look for the issues related to that here - https://github.com/yugabyte/yugabyte-db/issues?q=is%3Aissue+is%3Aopen+postGIS
+     */
+
     describe('GEOMETRY', () => {
       beforeEach(async function () {
         this.User = this.sequelize.define('User', {

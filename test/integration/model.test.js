@@ -343,7 +343,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (dialect !== 'ibmi') {
+    if (dialect !== 'ibmi' && dialect !== 'yugabytedb') { // Assertion Error in yugabytedb as cutomising erro messages cann't be done in because yugabytedb returns undefined error details.
       it('allows us to customize the error message for unique constraint', async function () {
         const User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should allow the user to specify indexes in options', async function () {
+    (dialect !== 'yugabytedb' ? it : it.skip)('should allow the user to specify indexes in options', async function () { // Yugabyte doesn't support creation of index with concurrently option
       const indices = [{
         name: 'a_b_uniq',
         unique: true,
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       switch (dialect) {
         case 'sqlite': {
-        // PRAGMA index_info does not return the primary index
+          // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
 
@@ -577,7 +577,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'postgres': {
-        // Postgres returns indexes in alphabetical order
+          // Postgres returns indexes in alphabetical order
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
@@ -600,7 +600,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         default: {
-        // And finally mysql returns the primary first, and then the rest in the order they were defined
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
           primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
@@ -2165,6 +2165,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const expectedLengths = {
         mssql: 2,
         postgres: 2,
+        yugabytedb: 2,
         db2: 10,
         mariadb: 3,
         mysql: 1,
@@ -2225,7 +2226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'yugabytedb') {
         test++;
         expect(table.id.defaultValue).to.not.contain('special');
       }
@@ -2243,7 +2244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'yugabytedb') {
         test++;
         expect(table.id.defaultValue).to.contain('special');
       }
@@ -2262,7 +2263,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
 
-      if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi'].includes(dialect)) {
+      if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi', 'yugabytedb'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
       }
@@ -2276,6 +2277,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           test = true;
           switch (dialect) {
             case 'postgres':
+            case 'yugabytedb':
             case 'db2':
             case 'ibmi': {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
@@ -2314,6 +2316,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           logged++;
           switch (dialect) {
             case 'postgres':
+            case 'yugabytedb':
             case 'db2':
             case 'ibmi': {
               expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
@@ -2356,6 +2359,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           logged++;
           switch (dialect) {
             case 'postgres':
+            case 'yugabytedb':
             case 'db2':
             case 'ibmi': {
               expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
@@ -2393,6 +2397,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           logged++;
           switch (dialect) {
             case 'postgres':
+            case 'yugabytedb':
             case 'db2':
             case 'ibmi': {
               expect(user).to.include('UPDATE "special"."UserSpecials"');
@@ -2447,7 +2452,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync({
         logging: _.once(sql => {
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'yugabytedb') {
             expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
           } else if (['mysql', 'mariadb'].includes(dialect)) {
             expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
@@ -2497,7 +2502,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync({
         logging: _.once(sql => {
-          if (dialect === 'postgres') {
+          if (dialect === 'postgres' || dialect === 'yugabytedb') {
             expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
           } else if (['mysql', 'mariadb'].includes(dialect)) {
             expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
@@ -2582,6 +2587,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'postgres': {
+            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+
+            break;
+          }
+
+          case 'yugabytedb': {
             expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
             break;
