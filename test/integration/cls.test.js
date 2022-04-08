@@ -5,7 +5,7 @@ const chai      = require('chai');
 const expect    = chai.expect;
 const Support   = require('./support');
 
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 const cls       = require('cls-hooked');
 
 const current = Support.sequelize;

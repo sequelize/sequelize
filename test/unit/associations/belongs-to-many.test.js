@@ -7,13 +7,9 @@ const expect = chai.expect;
 const stub = sinon.stub;
 const _ = require('lodash');
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const BelongsTo = require('@sequelize/core/lib/associations/belongs-to');
-const HasMany = require('@sequelize/core/lib/associations/has-many');
-const HasOne = require('@sequelize/core/lib/associations/has-one');
+const { DataTypes, AssociationError, BelongsTo, HasMany, HasOne } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const AssociationError = require('@sequelize/core/lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   it('throws when invalid model is passed', () => {

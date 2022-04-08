@@ -10,7 +10,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
-class QueryInterface {
+export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
@@ -1317,5 +1317,3 @@ class QueryInterface {
     return await promise;
   }
 }
-
-exports.QueryInterface = QueryInterface;

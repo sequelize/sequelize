@@ -51,7 +51,7 @@ const hookTypes = {
   beforeQuery: { params: 2 },
   afterQuery: { params: 2 },
 };
-exports.hooks = hookTypes;
+export const hooks = hookTypes;
 
 /**
  * get array of current hook and its proxies combined
@@ -219,7 +219,7 @@ const Hooks = {
 };
 Hooks.hasHooks = Hooks.hasHook;
 
-function applyTo(target, isModel = false) {
+export function applyTo(target, isModel = false) {
   _.mixin(target, Hooks);
 
   for (const hook of Object.keys(hookTypes)) {
@@ -232,8 +232,6 @@ function applyTo(target, isModel = false) {
     };
   }
 }
-
-exports.applyTo = applyTo;
 
 /**
  * A hook that is run before validation

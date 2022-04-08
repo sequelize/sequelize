@@ -216,7 +216,7 @@ Then push and send your pull request. Happy hacking and thank you for contributi
 
 # Coding guidelines
 
-Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/main/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Have a look at our [.eslintrc.js](https://github.com/sequelize/sequelize/blob/main/.eslintrc.js) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
 # Contributing to the documentation
 

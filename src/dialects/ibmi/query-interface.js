@@ -12,7 +12,7 @@ const { QueryInterface } = require('../abstract/query-interface');
  @private
  */
 
-class IBMiQueryInterface extends QueryInterface {
+export class IBMiQueryInterface extends QueryInterface {
 
   startTransaction(transaction, options) {
     if (!(transaction instanceof Transaction)) {
@@ -60,5 +60,3 @@ class IBMiQueryInterface extends QueryInterface {
     return promise;
   }
 }
-
-exports.IBMiQueryInterface = IBMiQueryInterface;

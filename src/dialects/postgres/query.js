@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -8,7 +8,7 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:pg');
 
-class Query extends AbstractQuery {
+export class PostgresQuery extends AbstractQuery {
   /**
    * Rewrite query with parameters.
    *
@@ -357,7 +357,7 @@ class Query extends AbstractQuery {
           fields: null,
           index,
           table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
       case '23505':
@@ -389,12 +389,12 @@ class Query extends AbstractQuery {
             });
           }
 
-          return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
         }
 
         return new sequelizeErrors.UniqueConstraintError({
           message: errMessage,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -412,7 +412,7 @@ class Query extends AbstractQuery {
           constraint: err.constraint,
           fields,
           table: err.table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -429,7 +429,7 @@ class Query extends AbstractQuery {
             constraint: index,
             fields,
             table,
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }
@@ -448,7 +448,3 @@ class Query extends AbstractQuery {
     return 'id';
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;
