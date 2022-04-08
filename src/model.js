@@ -2613,10 +2613,9 @@ class Model {
     const updateValues = Utils.mapValueFieldNames(updatedDataValues, options.fields, this);
     const now = Utils.now(this.sequelize.options.dialect);
 
-    options.conflictFields = options.conflictFields
-      && options.conflictFields.map(
-        attr => (this.rawAttributes[attr] && this.rawAttributes[attr].field) || attr,
-      );
+    options.conflictFields = options.conflictFields?.map(
+      attr => (this.rawAttributes[attr] && this.rawAttributes[attr].field) || attr,
+    );
 
     // Attach createdAt
     if (createdAtAttr && !insertValues[createdAtAttr]) {
