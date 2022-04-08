@@ -2,13 +2,13 @@
 
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
+const { SnowflakeConnectionManager } = require('./connection-manager');
+const { SnowflakeQuery } = require('./query');
+const { SnowflakeQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').snowflake;
 const { SnowflakeQueryInterface } = require('./query-interface');
 
-class SnowflakeDialect extends AbstractDialect {
+export class SnowflakeDialect extends AbstractDialect {
   static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -45,8 +45,8 @@ class SnowflakeDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
-    this.queryGenerator = new QueryGenerator({
+    this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
+    this.queryGenerator = new SnowflakeQueryGenerator({
       _dialect: this,
       sequelize,
     });
@@ -55,12 +55,10 @@ class SnowflakeDialect extends AbstractDialect {
 }
 
 SnowflakeDialect.prototype.defaultVersion = '5.7.0';
-SnowflakeDialect.prototype.Query = Query;
-SnowflakeDialect.prototype.QueryGenerator = QueryGenerator;
+SnowflakeDialect.prototype.Query = SnowflakeQuery;
+SnowflakeDialect.prototype.QueryGenerator = SnowflakeQueryGenerator;
 SnowflakeDialect.prototype.DataTypes = DataTypes;
 SnowflakeDialect.prototype.name = 'snowflake';
 SnowflakeDialect.prototype.TICK_CHAR = '"';
 SnowflakeDialect.prototype.TICK_CHAR_LEFT = SnowflakeDialect.prototype.TICK_CHAR;
 SnowflakeDialect.prototype.TICK_CHAR_RIGHT = SnowflakeDialect.prototype.TICK_CHAR;
-
-module.exports = SnowflakeDialect;

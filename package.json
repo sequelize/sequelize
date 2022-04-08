@@ -29,7 +29,7 @@
     "./*": "./*"
   },
   "engines": {
-    "node": "^12.22.0 || ^14.17.0 || >=16.0.0"
+    "node": "^14.17.0 || >=16.0.0"
   },
   "files": [
     "lib",
@@ -57,12 +57,12 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "16.2.1",
-    "@commitlint/config-angular": "16.2.1",
-    "@ephys/eslint-config-typescript": "14.1.2",
-    "@rushstack/eslint-patch": "1.1.0",
+    "@commitlint/cli": "16.2.3",
+    "@commitlint/config-angular": "16.2.3",
+    "@ephys/eslint-config-typescript": "16.0.2",
+    "@rushstack/eslint-patch": "1.1.1",
     "@types/chai": "4.3.0",
-    "@types/lodash": "4.14.179",
+    "@types/lodash": "4.14.181",
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.26",
     "@types/sinon": "10.0.11",
@@ -76,13 +76,9 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.25",
-    "esdoc": "1.1.0",
-    "esdoc-ecmascript-proposal-plugin": "1.0.0",
-    "esdoc-inject-style-plugin": "1.0.0",
-    "esdoc-standard-plugin": "1.0.0",
-    "eslint": "8.10.0",
-    "eslint-plugin-jsdoc": "38.0.0",
+    "esbuild": "0.14.34",
+    "eslint": "8.12.0",
+    "eslint-plugin-jsdoc": "38.1.6",
     "eslint-plugin-mocha": "10.0.3",
     "expect-type": "0.12.0",
     "fast-glob": "3.2.11",
@@ -90,7 +86,7 @@
     "husky": "7.0.4",
     "ibm_db": "2.8.1",
     "lcov-result-merger": "3.1.0",
-    "lint-staged": "12.3.5",
+    "lint-staged": "12.3.7",
     "mariadb": "2.5.6",
     "markdownlint-cli": "0.31.1",
     "mocha": "9.2.2",
@@ -98,7 +94,7 @@
     "mysql2": "2.3.3",
     "node-hook": "1.0.0",
     "nyc": "15.1.0",
-    "odbc": "2.4.2",
+    "odbc": "2.4.3",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
@@ -110,11 +106,12 @@
     "semantic-release-fail-on-major-bump": "1.0.0",
     "sinon": "13.0.1",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.7",
+    "snowflake-sdk": "1.6.8",
     "source-map-support": "0.5.21",
-    "sqlite3": "npm:@vscode/sqlite3@5.0.7",
-    "tedious": "14.3.0",
-    "typescript": "4.6.2"
+    "sqlite3": "npm:@vscode/sqlite3@5.0.8",
+    "tedious": "14.4.0",
+    "typedoc": "0.22.14",
+    "typescript": "4.6.3"
   },
   "peerDependenciesMeta": {
     "pg": {
@@ -214,10 +211,9 @@
     "----------------------------------------- static analysis -----------------------------------------": "",
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
-    "lint-docs": "markdownlint docs",
     "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
-    "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
+    "docs": "typedoc",
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ./test/registerEsbuild",
     "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",

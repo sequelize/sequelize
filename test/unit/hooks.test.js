@@ -5,6 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('./support');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 const current = Support.sequelize;
@@ -51,7 +52,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterCreateHook = sinon.spy();
 
         this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+          name: DataTypes.STRING,
         }, {
           hooks: {
             beforeSave: this.beforeSaveHook,
@@ -75,7 +76,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
 
         this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+          name: DataTypes.STRING,
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -95,7 +96,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
 
         this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+          name: DataTypes.STRING,
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -378,10 +379,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('runs all beforInit/afterInit hooks', function () {
-      Support.Sequelize.addHook('beforeInit', 'h1', this.hook1);
-      Support.Sequelize.addHook('beforeInit', 'h2', this.hook2);
-      Support.Sequelize.addHook('afterInit', 'h3', this.hook3);
-      Support.Sequelize.addHook('afterInit', 'h4', this.hook4);
+      Sequelize.addHook('beforeInit', 'h1', this.hook1);
+      Sequelize.addHook('beforeInit', 'h2', this.hook2);
+      Sequelize.addHook('afterInit', 'h3', this.hook3);
+      Sequelize.addHook('afterInit', 'h4', this.hook4);
 
       Support.createSequelizeInstance();
 
@@ -390,11 +391,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(this.hook3).to.have.been.calledOnce;
       expect(this.hook4).to.have.been.calledOnce;
 
-      // cleanup hooks on Support.Sequelize
-      Support.Sequelize.removeHook('beforeInit', 'h1');
-      Support.Sequelize.removeHook('beforeInit', 'h2');
-      Support.Sequelize.removeHook('afterInit', 'h3');
-      Support.Sequelize.removeHook('afterInit', 'h4');
+      // cleanup hooks on Sequelize
+      Sequelize.removeHook('beforeInit', 'h1');
+      Sequelize.removeHook('beforeInit', 'h2');
+      Sequelize.removeHook('afterInit', 'h3');
+      Sequelize.removeHook('afterInit', 'h4');
 
       Support.createSequelizeInstance();
 

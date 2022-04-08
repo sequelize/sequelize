@@ -9,7 +9,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk with Db2 database
  */
-class Db2QueryInterface extends QueryInterface {
+export class Db2QueryInterface extends QueryInterface {
   async getForeignKeyReferencesForTable(tableName, options) {
     const queryOptions = {
       ...options,
@@ -144,5 +144,3 @@ class Db2QueryInterface extends QueryInterface {
   }
 
 }
-
-exports.Db2QueryInterface = Db2QueryInterface;
