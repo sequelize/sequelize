@@ -191,7 +191,10 @@ class QueryGenerator {
 
     let onDuplicateKeyUpdate = '';
 
-    if (!_.isEmpty(options.conflictWhere)) {
+    if (
+      !_.isEmpty(options.conflictWhere)
+      && !this._dialect.supports.inserts.onConflictWhere
+    ) {
       throw new Error('missing dialect support for conflictWhere option');
     }
 
