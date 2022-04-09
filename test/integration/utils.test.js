@@ -3,9 +3,8 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Utils = require('@sequelize/core/lib/utils/index');
 const Support = require('./support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, Utils } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('underscore', () => {

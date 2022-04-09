@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
-const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/lib/dialects/mariadb/query-generator');
+const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {
