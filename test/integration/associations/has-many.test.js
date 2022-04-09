@@ -1593,9 +1593,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       const [addr1, addr2] = await Promise.all([
-        jane.createAddress({ street: 'st1' }),
+        jane.createAddress({ street: 'NonNullableSt1' }),
         Address.create({
-          street: 'st2',
+          street: 'NonNullableSt2',
           UserId: jane.id,
         })]);
 
@@ -1605,7 +1605,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       addresses = await Address.findAll();
       expect(addresses.length).to.equal(1);
-      expect(addresses[0].street).to.equal('st2');
+      expect(addresses[0].street).to.equal('NonNullableSt2');
     });
 
     it('should unassociate addr1 given no non-null constraint on userId', async () => {
@@ -1628,9 +1628,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       const [addr1, addr2] = await Promise.all([
-        jane.createNullableAddress({ street: 'st' }),
+        jane.createNullableAddress({ street: 'NullableSt1' }),
         NullableAddress.create({
-          street: 'st2',
+          street: 'NullableSt2',
           userId: jane.id,
         }),
       ]);
