@@ -745,10 +745,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         await article.addLabel(label1.id);
         await article.setLabels([label2.id]);
         const labels = await article.getLabels();
-        expect(labels).to.have.length(2);
-        // @ephys what condition causes this to have length = 1? foreign key appears to be nullable
-        // expect(labels).to.have.length(1);
-        // expect(labels[0].text).to.equal('label two');
+        expect(labels).to.have.length(1);
+        expect(labels[0].text).to.equal('label two');
       });
     });
 

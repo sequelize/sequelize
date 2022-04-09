@@ -330,19 +330,18 @@ class HasMany extends Association {
   async set(sourceInstance, targetInstances, options) {
     if (targetInstances === null) {
       targetInstances = [];
-      options = options ? { ...options, destroy: true } : { destroy: true };
     } else {
       targetInstances = this.toInstanceArray(targetInstances);
     }
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises = [];
-    const obsoleteAssociations = oldAssociations.filter(old => !targetInstances.some(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]) || old === null);
+    const obsoleteAssociations = oldAssociations.filter(old => !targetInstances.some(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]));
     const unassociatedObjects = targetInstances.filter(obj => !oldAssociations.some(old => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute]));
     let updateWhere;
     let update;
 
-    if (obsoleteAssociations.length > 0 || targetInstances == null) {
+    if (obsoleteAssociations.length > 0) {
       promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
     }
 
@@ -404,19 +403,20 @@ class HasMany extends Association {
    * Un-associate one or several target rows.
    *
    * @param {Model} sourceInstance instance to un associate instances with
-   * @param {Model|Model[]|string|string[]|number|number[]} [rawTargetInstances] Can be an Instance or its primary key, or a mixed array of instances and primary keys
+   * @param {Model|Model[]|string|string[]|number|number[]} [targetInstances] Can be an Instance or its primary key, or a mixed array of instances and primary keys
    * @param {object} [options] Options passed to `target.update`
    *
    * @returns {Promise}
    */
-  async remove(sourceInstance, rawTargetInstances, options = {}) {
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
+  async remove(sourceInstance, targetInstances, options = {}) {
+    targetInstances = this.toInstanceArray(targetInstances);
 
     const where = {
       [this.target.primaryKeyAttribute]: targetInstances.map(
         associatedObject => associatedObject[this.target.primaryKeyAttribute],
       ),
     };
+    where[this.foreignKey] = sourceInstance.get(this.sourceKey);
 
     // update or delete based on the target's foreign key
     const foreignKeyIsNullable = this.target.rawAttributes[this.foreignKey].allowNull !== false;
