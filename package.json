@@ -45,7 +45,7 @@
     "dottie": "^2.0.2",
     "inflection": "^1.13.2",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "moment-timezone": "^0.5.34",
     "pg-connection-string": "^2.5.0",
     "retry-as-promised": "^5.0.0",
