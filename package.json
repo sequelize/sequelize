@@ -24,9 +24,8 @@
       "import": "./lib/index.mjs",
       "require": "./lib/index.js"
     },
-    "./lib/*": "./lib/*.js",
-    "./lib/errors": "./lib/errors/index.js",
-    "./*": "./*"
+    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
+    "./package.json": "./package.json"
   },
   "engines": {
     "node": "^14.17.0 || >=16.0.0"
