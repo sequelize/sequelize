@@ -8506,10 +8506,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc@0.22.14:
-  version "0.22.14"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.22.14.tgz#c690677c31bc1dd5618caffc001bfa8554c4c02f"
-  integrity sha512-tlf9wIcsrnQSjetStrnRutuy2RjZkG5PK2umwveZLTkuC2K9VywOZTdu2G19BdOPzGrhZjf9WK7pthXqnFQejg==
+typedoc@0.22.15:
+  version "0.22.15"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.22.15.tgz#c6ad7ed9d017dc2c3a06c9189cb392bd8e2d8c3f"
+  integrity sha512-CMd1lrqQbFvbx6S9G6fL4HKp3GoIuhujJReWqlIvSb2T26vGai+8Os3Mde7Pn832pXYemd9BMuuYWhFpL5st0Q==
   dependencies:
     glob "^7.2.0"
     lunr "^2.3.9"
