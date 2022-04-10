@@ -58,7 +58,6 @@ import {
 
 // TODO: add test to ensure 'through' is only used in one association
 // TODO: add all necessary "inverse" options
-// TODO: write new documentation
 // TODO: add all necessary options to configure "fromThroughToSource", "fromSourceToThrough"
 
 // TODO: add tests in belongs-to-many to check the name of foreign key, associations, etc

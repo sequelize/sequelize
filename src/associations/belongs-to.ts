@@ -191,7 +191,6 @@ export class BelongsTo<
    * @param instances source instances
    * @param options find options
    */
-  // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options: BelongsToGetAssociationMixinOptions): Promise<T | null>;
   async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Map<any, T | null>>;
   async get(
@@ -285,8 +284,6 @@ export class BelongsTo<
     // passes the changed field to save, so only that field get updated.
     await sourceInstance.save({
       fields: [this.foreignKey],
-      // TODO: what is this 'allowNull' for?
-      // allowNull: [this.foreignKey],
       association: true,
       ...options,
     });

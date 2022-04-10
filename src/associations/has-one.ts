@@ -188,7 +188,6 @@ export class HasOne<
    * @param instances source instances
    * @param options find options
    */
-  // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options?: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
   async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
@@ -296,8 +295,6 @@ because, as this is a hasOne association, the foreign key we need to update is l
       await oldInstance.save({
         ...options,
         fields: [this.foreignKey],
-        // TODO: what is this 'allowNull' for?
-        // allowNull: [this.foreignKey],
         association: true,
       });
     }
