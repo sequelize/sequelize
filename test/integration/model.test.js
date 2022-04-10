@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync();
           expect.fail();
         } catch (error) {
-          expect(error.message).to.equal('The storage engine for the table doesn\'t support descending indexes');
+          expect(error.message).to.include('The storage engine for the table doesn\'t support descending indexes');
         }
       });
 
