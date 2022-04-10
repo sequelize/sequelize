@@ -29,8 +29,7 @@ if (dialect === 'mysql') {
         this.User = this.sequelize.define('user', { username: DataTypes.STRING });
         this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
 
-        this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT', through: 'tasksusers' });
-        this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT', through: 'tasksusers' });
+        this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT', through: 'tasksusers', inverse: { onDelete: 'RESTRICT' } });
 
         this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });
