@@ -101,29 +101,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   Company.hasMany(User);
   Company.hasMany(Project);
 
-  describe('.scope', () => {
+  describe('withScope', () => {
     describe('attribute exclude / include', () => {
       it('should not expand attributes', () => {
         expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
 
       it('should not expand attributes', () => {
-        expect(User.scope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
+        expect(User.withScope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
       });
 
       it('should unite attributes with array', () => {
-        expect(User.scope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
+        expect(User.withScope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
       });
 
       it('should not modify the original scopes when merging them', () => {
-        expect(User.scope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
+        expect(User.withScope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
       });
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
       const Foo = current.define('foo', {}, {});
 
-      expect(Foo.scope('defaultScope')._scope).to.deep.equal({});
+      expect(Foo.withScope('defaultScope')._scope).to.deep.equal({});
     });
 
     it('should apply default scope', () => {
@@ -133,15 +133,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should be able to unscope', () => {
-      expect(Company.scope(null)._scope).to.be.empty;
-      expect(Company.unscoped()._scope).to.be.empty;
-      // Yes, being unscoped is also a scope - this prevents inject defaultScope, when including a scoped model, see #4663
-      expect(Company.unscoped().scoped).to.be.ok;
-    });
-
     it('should be able to merge scopes', () => {
-      expect(Company.scope('somethingTrue', 'somethingFalse', 'sequelizeWhere')._scope).to.deepEqual({
+      expect(Company.withScope('somethingTrue', 'somethingFalse', 'sequelizeWhere')._scope).to.deepEqual({
         where: {
           [Op.and]: [
             { something: true, somethingElse: 42 },
@@ -154,8 +147,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should support multiple, coexistent scoped models', () => {
-      const scoped1 = Company.scope('somethingTrue');
-      const scoped2 = Company.scope('somethingFalse');
+      const scoped1 = Company.withScope('somethingTrue');
+      const scoped2 = Company.withScope('somethingFalse');
 
       expect(scoped1._scope).to.deepEqual({
         where: {
@@ -172,13 +165,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should work with function scopes', () => {
-      expect(Company.scope({ method: ['actualValue', 11] })._scope).to.deepEqual({
+      expect(Company.withScope({ method: ['actualValue', 11] })._scope).to.deepEqual({
         where: {
           other_value: 11,
         },
       });
 
-      expect(Company.scope('noArgs')._scope).to.deepEqual({
+      expect(Company.withScope('noArgs')._scope).to.deepEqual({
         where: {
           other_value: 7,
         },
@@ -187,13 +180,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should work with consecutive function scopes', () => {
       const scope = { method: ['actualValue', 11] };
-      expect(Company.scope(scope)._scope).to.deepEqual({
+      expect(Company.withScope(scope)._scope).to.deepEqual({
         where: {
           other_value: 11,
         },
       });
 
-      expect(Company.scope(scope)._scope).to.deepEqual({
+      expect(Company.withScope(scope)._scope).to.deepEqual({
         where: {
           other_value: 11,
         },
@@ -205,15 +198,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to check custom scope name', () => {
-      expect(Company.scope('users')._scopeNames).to.include('users');
+      expect(Company.withScope('users')._scopeNames).to.include('users');
     });
 
     it('should be able to check multiple custom scope names', () => {
-      expect(Company.scope('users', 'projects')._scopeNames).to.include.members(['users', 'projects']);
+      expect(Company.withScope('users', 'projects')._scopeNames).to.include.members(['users', 'projects']);
     });
 
     it('should be able to merge two scoped includes', () => {
-      expect(Company.scope('users', 'projects')._scope).to.deep.equal({
+      expect(Company.withScope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users' },
           { model: Project, association: Company.associations.projects, as: 'projects'  },
@@ -222,7 +215,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to keep original scope definition clean', () => {
-      expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
+      expect(Company.withScope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
         include: [
           { model: Project, association: Company.associations.projects, as: 'projects' },
           { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
@@ -243,7 +236,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to override the default scope', () => {
-      expect(Company.scope('somethingTrue')._scope).to.deepEqual({
+      expect(Company.withScope('somethingTrue')._scope).to.deepEqual({
         where: {
           something: true,
           somethingElse: 42,
@@ -253,7 +246,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to combine default with another scope', () => {
-      expect(Company.scope(['defaultScope', { method: ['actualValue', 11] }])._scope).to.deepEqual({
+      expect(Company.withScope(['defaultScope', { method: ['actualValue', 11] }])._scope).to.deepEqual({
         include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
         where: {
           [Op.and]: [
@@ -331,7 +324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('attributes', () => {
         it('should group 2 similar attributes with an Op.and', () => {
-          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
+          const scope = TestModel.withScope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -344,7 +337,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple similar attributes with an unique Op.and', () => {
-          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
+          const scope = TestModel.withScope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -358,7 +351,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group different attributes with an Op.and', () => {
-          const scope = TestModel.scope(['whereAttributeIs1', 'whereOtherAttributeIs4'])._scope;
+          const scope = TestModel.withScope(['whereAttributeIs1', 'whereOtherAttributeIs4'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -373,7 +366,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('and operators', () => {
         it('should concatenate 2 Op.and into an unique one', () => {
-          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2'])._scope;
+          const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -388,7 +381,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should concatenate multiple Op.and into an unique one', () => {
-          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpAnd3'])._scope;
+          const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2', 'whereOpAnd3'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -407,7 +400,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('or operators', () => {
         it('should group 2 Op.or with an Op.and', () => {
-          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2'])._scope;
+          const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -420,7 +413,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.or with an unique Op.and', () => {
-          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpOr3'])._scope;
+          const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2', 'whereOpOr3'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -434,7 +427,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.or and Op.and with an unique Op.and', () => {
-          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpAnd1', 'whereOpAnd2'])._scope;
+          const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2', 'whereOpAnd1', 'whereOpAnd2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -451,7 +444,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.and and Op.or with an unique Op.and', () => {
-          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpOr1', 'whereOpOr2'])._scope;
+          const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2', 'whereOpOr1', 'whereOpOr2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -470,7 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('sequelize where', () => {
         it('should group 2 sequelize.where with an Op.and', () => {
-          const scope = TestModel.scope(['whereSequelizeWhere1', 'whereSequelizeWhere2'])._scope;
+          const scope = TestModel.withScope(['whereSequelizeWhere1', 'whereSequelizeWhere2'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -483,7 +476,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should group 2 sequelize.where and other scopes with an Op.and', () => {
-          const scope = TestModel.scope(['whereAttributeIs1', 'whereOpAnd1', 'whereOpOr1', 'whereSequelizeWhere1'])._scope;
+          const scope = TestModel.withScope(['whereAttributeIs1', 'whereOpAnd1', 'whereOpOr1', 'whereSequelizeWhere1'])._scope;
           const expected = {
             where: {
               [Op.and]: [
@@ -501,13 +494,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to use raw queries', () => {
-      expect(Company.scope([{ method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
+      expect(Company.withScope([{ method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
         where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
       });
     });
 
     it('should override the default scope', () => {
-      expect(Company.scope(['defaultScope', { method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
+      expect(Company.withScope(['defaultScope', { method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
         include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
         where: {
           [Op.and]: [
@@ -520,15 +513,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should emit an error for scopes that don\'t exist', () => {
       expect(() => {
-        Company.scope('doesntexist');
+        Company.withScope('doesntexist');
       }).to.throw('"company.scope()" has been called with an invalid scope: "doesntexist" does not exist.');
     });
 
     it('should concatenate scope groups', () => {
-      expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deepEqual({
+      expect(Company.withScope('groupByCompanyId', 'groupByProjectId')._scope).to.deepEqual({
         group: ['company.id', 'project.id'],
         include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
       });
+    });
+  });
+
+  describe('withoutScope', () => {
+    it('returns a model with no scope (including the default scope)', () => {
+      expect(Company.withScope(null)._scope).to.be.empty;
+      expect(Company.withoutScope()._scope).to.be.empty;
+      // Yes, being unscoped is also a scope - this prevents inject defaultScope, when including a scoped model, see #4663
+      expect(Company.withoutScope().scoped).to.be.true;
+    });
+
+    it('returns the same model no matter which variant it was called on', () => {
+      expect(Company.withoutScope()).to.eq(Company.withScope('somethingTrue').withoutScope());
+    });
+
+    it('returns the same model if used with schema', () => {
+      expect(Company.withSchema('schema1').withoutScope()).to.eq(Company.withoutScope().withSchema('schema1'));
+    });
+  });
+
+  describe('withInitialScope', () => {
+    it('returns the initial model if no schema is defined', () => {
+      expect(Company.withScope('somethingTrue').withInitialScope()).to.eq(Company);
+    });
+
+    it('returns the a model with just the schema if one was defined is defined', () => {
+      expect(Company.withSchema('schema1').withInitialScope()).to.eq(Company.withInitialScope().withSchema('schema1'));
     });
   });
 
@@ -543,7 +563,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows me to add a new scope', () => {
       expect(() => {
-        Company.scope('newScope');
+        Company.withScope('newScope');
       }).to.throw('"company.scope()" has been called with an invalid scope: "newScope" does not exist.');
 
       Company.addScope('newScope', {
@@ -553,7 +573,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project }],
       });
 
-      expect(Company.scope('newScope')._scope).to.deepEqual({
+      expect(Company.withScope('newScope')._scope).to.deepEqual({
         where: {
           this: 'that',
         },
@@ -574,7 +594,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       }, { override: true });
 
-      expect(Company.scope('somethingTrue')._scope).to.deepEqual({
+      expect(Company.withScope('somethingTrue')._scope).to.deepEqual({
         where: {
           something: false,
         },
@@ -613,7 +633,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Company.scope('newIncludeScope')._scope).to.deep.equal({
+      expect(Company.withScope('newIncludeScope')._scope).to.deep.equal({
         attributes: {
           include: ['foobar'],
           exclude: ['createdAt'],
@@ -628,7 +648,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Company.addScope('alsoProject', {
         include: [{ model: Project, where: { something: true }, limit: 1 }],
       });
-      expect(Company.scope(['project', 'alsoProject'])._scope).to.deepEqual({
+      expect(Company.withScope(['project', 'alsoProject'])._scope).to.deepEqual({
         include: [{
           model: Project,
           where: {

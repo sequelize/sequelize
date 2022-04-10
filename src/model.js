@@ -14,7 +14,7 @@ const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup } = require('./utils/deprecations');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema } = require('./utils/deprecations');
 const { _validateIncludedElements, combineIncludes, throwInvalidInclude } = require('./model-internals');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -933,7 +933,7 @@ or pass the name of the association you want to include (through the "as" option
       paranoid: false,
       rejectOnEmpty: false,
       whereCollection: null,
-      schema: null,
+      schema: '',
       schemaDelimiter: '',
       defaultScope: {},
       scopes: {},
@@ -1471,22 +1471,29 @@ or pass the name of the association you want to include (through the "as" option
    *
    * @returns {Model}
    */
+  static withSchema(schema, options) {
+
+    const schemaOptions = {
+      schema,
+      schemaDelimiter: !options ? ''
+        : typeof options === 'string' ? options
+        : options.schemaDelimiter,
+    };
+
+    return this.getInitialModel()
+      ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
   static schema(schema, options) {
+    schemaRenamedToWithSchema();
 
-    const clone = class extends this {};
-    Object.defineProperty(clone, 'name', { value: this.name });
+    return this.withSchema(schema, options);
+  }
 
-    clone._schema = schema;
-
-    if (options) {
-      if (typeof options === 'string') {
-        clone._schemaDelimiter = options;
-      } else if (options.schemaDelimiter) {
-        clone._schemaDelimiter = options.schemaDelimiter;
-      }
-    }
-
-    return clone;
+  static getInitialModel() {
+    // '_initialModel' is set on model variants (withScope, withSchema, etc)
+    return this._initialModel ?? this;
   }
 
   /**
@@ -1500,22 +1507,6 @@ or pass the name of the association you want to include (through the "as" option
   }
 
   /**
-   * Returns a model without scope, including the default scope.
-   *
-   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
-   *
-   * @returns {Model}
-   */
-  static unscoped() {
-    return this.scope(null);
-  }
-
-  static withInitialScope() {
-    // '_modelWithInitialScope' is set on scoped models
-    return this._modelWithInitialScope ?? this;
-  }
-
-  /**
    * Add a new scope to the model. This is especially useful for adding scopes with includes, when the model you want to include is not available at the time this model is defined.
    *
    * By default this will throw an error if a scope with that name already exists. Pass `override: true` in the options object to silence this error.
@@ -1526,8 +1517,8 @@ or pass the name of the association you want to include (through the "as" option
    * @param {boolean}         [options.override=false] override old scope if already defined
    */
   static addScope(name, scope, options) {
-    if (this !== this.withInitialScope()) {
-      throw new TypeError(`Model.addScope can only be called on the initial model. Use "${this.name}.withInitialScope()" to access the initial model.`);
+    if (this !== this.getInitialModel()) {
+      throw new Error(`Model.addScope can only be called on the initial model. Use "${this.name}.getInitialModel()" to access the initial model.`);
     }
 
     options = { override: false, ...options };
@@ -1541,6 +1532,13 @@ or pass the name of the association you want to include (through the "as" option
     } else {
       this.options.scopes[name] = scope;
     }
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static scope(...options) {
+    scopeRenamedToWithScope();
+
+    return this.withScope(...options);
   }
 
   /**
@@ -1588,46 +1586,35 @@ or pass the name of the association you want to include (through the "as" option
    *
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will clear the previous scope.
    */
-  static scope(...options) {
-    // TODO: scoped models should always return the same class for the same scope -- cache them.
-    const self = class extends this {};
-    let scope;
-    let scopeName;
-
-    Object.defineProperty(self, 'name', { value: this.name });
-
-    self._scope = {};
-    self._scopeNames = [];
-    self.scoped = true;
-    self._modelWithInitialScope = this.withInitialScope();
-
+  static withScope(...options) {
     options = options.flat().filter(Boolean);
 
-    if (options.length === 0) {
-      return self;
-    }
+    const initialModel = this.getInitialModel();
+
+    const mergedScope = {};
+    const scopeNames = [];
 
     for (const option of options) {
-      scope = null;
-      scopeName = null;
+      let scope = null;
+      let scopeName = null;
 
       if (_.isPlainObject(option)) {
         if (option.method) {
-          if (Array.isArray(option.method) && Boolean(self.options.scopes[option.method[0]])) {
+          if (Array.isArray(option.method) && Boolean(initialModel.options.scopes[option.method[0]])) {
             scopeName = option.method[0];
-            scope = self.options.scopes[scopeName].apply(self, option.method.slice(1));
-          } else if (self.options.scopes[option.method]) {
+            scope = initialModel.options.scopes[scopeName].apply(initialModel, option.method.slice(1));
+          } else if (initialModel.options.scopes[option.method]) {
             scopeName = option.method;
-            scope = self.options.scopes[scopeName].apply(self);
+            scope = initialModel.options.scopes[scopeName].apply(initialModel);
           }
         } else {
           scope = option;
         }
-      } else if (option === 'defaultScope' && _.isPlainObject(self.options.defaultScope)) {
-        scope = self.options.defaultScope;
+      } else if (option === 'defaultScope' && _.isPlainObject(initialModel.options.defaultScope)) {
+        scope = initialModel.options.defaultScope;
       } else {
         scopeName = option;
-        scope = self.options.scopes[scopeName];
+        scope = initialModel.options.scopes[scopeName];
         if (typeof scope === 'function') {
           scope = scope();
         }
@@ -1639,11 +1626,99 @@ or pass the name of the association you want to include (through the "as" option
 
       this._conformIncludes(scope, this);
       // clone scope so it doesn't get modified
-      this._assignOptions(self._scope, Utils.cloneDeep(scope));
-      self._scopeNames.push(scopeName ? scopeName : 'defaultScope');
+      this._assignOptions(mergedScope, Utils.cloneDeep(scope));
+      scopeNames.push(scopeName ? scopeName : 'defaultScope');
     }
 
-    return self;
+    return initialModel._withScopeAndSchema({
+      schema: this._schema,
+      schemaDelimiter: this._schemaDelimiter,
+    }, mergedScope, scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static unscoped() {
+    scopeRenamedToWithScope();
+
+    return this.withoutScope();
+  }
+
+  /**
+   * Get un-scoped model
+   *
+   * @returns {Model}
+   */
+  static withoutScope() {
+    return this.withScope(null);
+  }
+
+  static withInitialScope() {
+    const initialModel = this.getInitialModel();
+
+    if (this._schema !== initialModel._schema || this._schemaDelimiter !== initialModel._schemaDelimiter) {
+      return initialModel.withSchema(this._schema, this._schemaDelimiter);
+    }
+
+    return initialModel;
+  }
+
+  static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
+    if (!this._modelVariantRefs) {
+      // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
+      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+      this._modelVariantRefs = new Set([new WeakRef(this)]);
+    }
+
+    for (const modelVariantRef of this._modelVariantRefs) {
+      const modelVariant = modelVariantRef.deref();
+
+      if (!modelVariant) {
+        this._modelVariantRefs.delete(modelVariantRef);
+        continue;
+      }
+
+      if (modelVariant._schema !== schemaOptions.schema) {
+        continue;
+      }
+
+      if (modelVariant._schemaDelimiter !== schemaOptions.schemaDelimiter) {
+        continue;
+      }
+
+      // the item order of these arrays is important! scope('a', 'b') is not equal to scope('b', 'a')
+      if (!_.isEqual(modelVariant._scopeNames, scopeNames)) {
+        continue;
+      }
+
+      if (!_.isEqual(modelVariant._scope, mergedScope)) {
+        continue;
+      }
+
+      return modelVariant;
+    }
+
+    const clone = this._createModelVariant();
+    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+    this._modelVariantRefs.add(new WeakRef(clone));
+
+    clone._schema = schemaOptions.schema || '';
+    clone._schemaDelimiter = schemaOptions.schemaDelimiter || '';
+    clone._scope = mergedScope;
+    clone._scopeNames = scopeNames;
+
+    if (scopeNames.length !== 1 || scopeNames[0] !== 'defaultScope') {
+      clone.scoped = true;
+    }
+
+    return clone;
+  }
+
+  static _createModelVariant() {
+    const model = class extends this {};
+    model._initialModel = this;
+    Object.defineProperty(model, 'name', { value: this.name });
+
+    return model;
   }
 
   /**

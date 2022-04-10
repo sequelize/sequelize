@@ -2111,6 +2111,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param schema The name of the schema
    * @param options - either {@link SchemaOptions} or a string, the later is equivalent to setting {@link SchemaOptions.schemaDelimiter}.
    */
+  public static withSchema<M extends Model>(
+    this: ModelStatic<M>,
+    schema: string,
+    options?: SchemaOptions
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
+   *  does not mutate the model and instead returns a new one.
+   */
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
@@ -2181,10 +2191,43 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @returns Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
    */
+  public static withScope<M extends Model>(
+    this: ModelStatic<M>,
+    options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withScope} to emphasise the fact that
+   *  this method does not mutate the model, but returns a new model.
+   */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
     options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withoutScope} to emphasise the fact that
+   *   this method does not mutate the model, and is not the same as {@link Model.withInitialScope}.
+   */
+  public static unscoped<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns a model without scope, including the default scope.
+   *
+   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
+   */
+  public static withoutScope<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns the base model, with its initial scope.
+   */
+  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
+  public static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Add a new scope to the model
@@ -2634,18 +2677,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * their types.
    */
   public static describe(): Promise<object>;
-
-  /**
-   * Returns a model without scope, including the default scope.
-   *
-   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
-   */
-  public static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
-
-  /**
-   * Returns the base model, before any {@link Model.unscoped} or {@link Model.scope} call was applied.
-   */
-  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * A hook that is run before validation
