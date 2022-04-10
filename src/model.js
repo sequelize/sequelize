@@ -826,7 +826,7 @@ class Model {
     }
 
     if (['where', 'having'].includes(key)) {
-      if (this.options?.whereMergeStrategy === 'and') {
+      if (this.options && this.options.whereMergeStrategy === 'and') {
         return combineWheresWithAnd(objValue, srcValue);
       }
 
@@ -1034,8 +1034,8 @@ class Model {
       }
     });
 
-    if (!_.includes(['and', 'overwrite'], this.options?.whereMergeStrategy)) {
-      throw new Error(`Invalid value ${this.options?.whereMergeStrategy} for whereMergeStrategy. Allowed values are 'and' and 'overwrite'.`);
+    if (!_.includes(['and', 'overwrite'], this.options && this.options.whereMergeStrategy)) {
+      throw new Error(`Invalid value ${this.options && this.options.whereMergeStrategy} for whereMergeStrategy. Allowed values are 'and' and 'overwrite'.`);
     }
 
 
