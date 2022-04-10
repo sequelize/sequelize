@@ -923,6 +923,9 @@ function normalizeThroughOptions<M extends Model>(
       paranoid: through.paranoid || false, // Default to non-paranoid join (referenced in #11991)
       validate: {}, // Don't propagate model-level validations
       timestamps: through.timestamps,
+
+      // @ts-expect-error -- TODO: make 'schema' a public property on Model once the method has been removed (sequelize 8)
+      schema: source._schema,
     });
   }
 

@@ -1061,8 +1061,8 @@ Instead of specifying a Model, either:
       const Clearence = this.sequelize.define('Clearence', { level: DataTypes.INTEGER });
 
       Team.Members = Team.hasMany(Employee, { as: 'members' });
-      Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence' });
-      Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee' });
+      Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence', foreignKey: 'employeeId' });
+      Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee', foreignKey: 'employeeId' });
 
       this.Employee = Employee;
       this.Team = Team;

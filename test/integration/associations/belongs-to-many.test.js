@@ -1499,10 +1499,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       it('answers true for labels that have been assigned', async function () {
         const [article, label] = await Promise.all([
           this.Article.create({
-            id: Buffer.from([1]),
+            // note that mariadb appends binary values at the end https://mariadb.com/kb/en/binary/
+            id: Buffer.alloc(255),
           }),
           this.Label.create({
-            id: Buffer.from([1]),
+            id: Buffer.alloc(255),
           }),
         ]);
 
