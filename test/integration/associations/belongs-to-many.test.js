@@ -1266,31 +1266,27 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const Article = sequelize.define('Article', { title: DataTypes.STRING });
+        const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
-        const { Article, Label, ArticleLabel } = this;
+        Article.belongsToMany(Label, { through: 'ArticleLabels' });
+        Label.belongsToMany(Article, { through: 'ArticleLabels' });
 
-        Article.belongsToMany(Label, { through: ArticleLabel });
-        Label.belongsToMany(Article, { through: ArticleLabel });
+        await sequelize.sync({ force: true });
 
-        await this.sequelize.sync({ force: true });
-
-        const [article, label] = await Promise.all([
+        const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
+          sequelize.transaction(),
         ]);
 
-        const t = await sequelize.transaction();
         await article.setLabels([label], { transaction: t });
+        const articles0 = await Article.findAll({ transaction: t });
+        const labels0 = await articles0[0].getLabels();
+        expect(labels0).to.have.length(0);
         const articles = await Article.findAll({ transaction: t });
-
-        const [hasLabel1, hasLabel2] = await Promise.all([
-          articles[0].hasLabels([label]),
-          articles[0].hasLabels([label], { transaction: t }),
-        ]);
-
-        expect(hasLabel1).to.be.false;
-        expect(hasLabel2).to.be.true;
-
+        const labels = await articles[0].getLabels({ transaction: t });
+        expect(labels).to.have.length(1);
         await t.rollback();
       });
     }
