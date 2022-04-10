@@ -144,5 +144,5 @@ export function combineIncludes(a: any, b: any): any {
 
 export function throwInvalidInclude(include: any): never {
   throw new EagerLoadingError(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
-Go ${NodeUtil.inspect(include)} instead`);
+Got ${NodeUtil.inspect(include)} instead`);
 }

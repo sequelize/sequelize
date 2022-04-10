@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support   = require('../support');
 const { Sequelize, Op, Utils } = require('@sequelize/core');
-const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const current   = Support.sequelize;
 
@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ where: { active: false }, model: this.Project.scope('that'), as: 'projects' }],
         });
 
-        // TODO [chai>5]: simplify once '.deep.equals' includes support for symbols (https://github.com/chaijs/chai/issues/1054)
+        // TODO [chai@>5]: simplify once '.deep.equals' includes support for symbols (https://github.com/chaijs/chai/issues/1054)
         expect(options.include[0]).to.have.property('where');
         expect(Utils.getComplexKeys(options.include[0].where)).to.deep.equal([Op.and]);
         expect(options.include[0].where[Op.and]).to.deep.equal([{ that: false }, { active: false }]);
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(() => {
           Sequelize.Model._conformIncludes(options, this.Company);
-        }).to.throw('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
+        }).to.throw('Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
       });
 
       it('should throw an error if invalid association is passed', function () {
@@ -309,24 +309,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(() => {
           Sequelize.Model._conformIncludes(options, this.Company);
-        }).to.throw('Invalid Include received: include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
+        }).to.throw('Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.');
       });
     });
 
-    describe('_getIncludedAssociation', () => {
+    describe('getAssociationWithModel', () => {
       it('returns an association when there is a single unaliased association', function () {
-        expect(this.User._getIncludedAssociation(this.Task)).to.equal(this.User.Tasks);
+        expect(this.User.getAssociationWithModel(this.Task)).to.equal(this.User.Tasks);
       });
 
       it('returns an association when there is a single aliased association', function () {
         const User = this.sequelize.define('User');
         const Task = this.sequelize.define('Task');
         const Tasks = Task.belongsTo(User, { as: 'owner' });
-        expect(Task._getIncludedAssociation(User, 'owner')).to.equal(Tasks);
+        expect(Task.getAssociationWithModel(User, 'owner')).to.equal(Tasks);
       });
 
       it('returns an association when there are multiple aliased associations', function () {
-        expect(this.Company._getIncludedAssociation(this.User, 'Owner')).to.equal(this.Company.Owner);
+        expect(this.Company.getAssociationWithModel(this.User, 'Owner')).to.equal(this.Company.Owner);
       });
     });
 

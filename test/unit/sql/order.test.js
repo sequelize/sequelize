@@ -6,7 +6,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support   = require('../support');
 const { DataTypes, Model } = require('@sequelize/core');
-const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           order: [
             [Project, 'createdAt', 'ASC'],
           ],
-        })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
+        })).to.eventually.be.rejectedWith(Error, 'Invalid Include received: no associations exist between "Subtask" and "Project"');
       });
 
       it('Error on invalid structure', () => {

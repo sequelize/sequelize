@@ -561,19 +561,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error about unexpected input if include contains a non-object', async function () {
-          try {
-            await this.Worker.findAll({ include: [1] });
-          } catch (error) {
-            expect(error.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
-          }
+          await expect(this.Worker.findAll({ include: [1] }))
+            .to.be.rejectedWith(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Worker.findAll({ include: [this.Task] });
-          } catch (error) {
-            expect(error.message).to.equal('TaskBelongsTo is not associated to Worker!');
-          }
+          await expect(this.Worker.findAll({ include: [this.Task] }))
+            .to.be.rejectedWith('Invalid Include received: no associations exist between "Worker" and "TaskBelongsTo"');
         });
 
         it('returns the associated worker via task.worker', async function () {
@@ -616,11 +611,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findAll({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal('Worker is not associated to TaskHasOne!');
-          }
+          await expect(this.Task.findAll({ include: [this.Worker] }))
+            .to.be.rejectedWith('Invalid Include received: no associations exist between "TaskHasOne" and "Worker"');
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -649,22 +641,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.worker.setToDo(this.task);
         });
 
-        it('throws an error if included DaoFactory is not referenced by alias', async function () {
-          try {
-            await this.Worker.findAll({ include: [this.Task] });
-          } catch (error) {
-            expect(error.message).to.equal('Task is associated to Worker using an alias. '
-            + 'You must use the \'as\' keyword to specify the alias within your include statement.');
-          }
-        });
-
         it('throws an error if alias is not associated', async function () {
-          try {
-            await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
-          } catch (error) {
-            expect(error.message).to.equal('Task is associated to Worker using an alias. '
-            + 'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
-          }
+          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }))
+            .to.be.rejectedWith(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDo"`);
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -703,11 +683,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findAll({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal('worker is not associated to task!');
-          }
+          await expect(this.Task.findAll({ include: [this.Worker] })).to.be.rejectedWith('Invalid Include received: no associations exist between "task" and "worker"');
         });
 
         it('returns the associated tasks via worker.tasks', async function () {
@@ -844,22 +820,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.worker.setToDos([this.task]);
         });
 
-        it('throws an error if included DaoFactory is not referenced by alias', async function () {
-          try {
-            await this.Worker.findAll({ include: [this.Task] });
-          } catch (error) {
-            expect(error.message).to.equal('Task is associated to Worker using an alias. '
-            + 'You must use the \'as\' keyword to specify the alias within your include statement.');
-          }
-        });
-
         it('throws an error if alias is not associated', async function () {
-          try {
-            await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
-          } catch (error) {
-            expect(error.message).to.equal('Task is associated to Worker using an alias. '
-            + 'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
-          }
+          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }))
+            .to.be.rejectedWith(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -969,18 +933,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(countries[0].residents).not.to.exist;
         });
 
-        it('utilises specified attributes', async function () {
-          const countries = await this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] });
-          expect(countries).to.exist;
-          expect(countries[0]).to.exist;
-          expect(countries[0].people).to.exist;
-          expect(countries[0].people[0]).to.exist;
-          expect(countries[0].people[0].name).not.to.be.undefined;
-          expect(countries[0].people[0].lastName).to.be.undefined;
-          expect(countries[0].residents).to.exist;
-          expect(countries[0].residents[0]).to.exist;
-          expect(countries[0].residents[0].name).not.to.be.undefined;
-          expect(countries[0].residents[0].lastName).to.be.undefined;
+        it('forbids using options', async function () {
+          await expect(this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }))
+            .to.be.rejectedWith('"include: { all: true }" does not allow extra options (except for "nested") because they are unsafe. Select includes one by one if you want to specify more options.');
         });
 
         it('is over-ruled by specified include', async function () {
@@ -1205,8 +1160,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('sorts by 2nd degree association', async function () {
           await Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: [this.Person] }],
-              order: [[this.Country, this.Person, 'lastName', params[0]]],
+              include: [{ model: this.Country, include: ['people'] }],
+              order: [[this.Country, 'people', 'lastName', params[0]]],
             });
 
             expect(continents).to.exist;
@@ -1224,7 +1179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('sorts by 2nd degree association with alias', async function () {
           await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
+              include: [{ model: this.Country, include: ['people', { model: this.Person, as: 'residents' }] }],
               order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
             });
 
@@ -1243,7 +1198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('sorts by 2nd degree association with alias while using limit', async function () {
           await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
+              include: [{ model: this.Country, include: ['people', { model: this.Person, as: 'residents' }] }],
               order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
               limit: 3,
             });
@@ -1487,13 +1442,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should throw for undefined where parameters', async function () {
-        try {
-          await this.User.findAll({ where: { username: undefined } });
-          throw new Error('findAll should throw an error if where has a key with undefined value');
-        } catch (error) {
-          expect(error).to.be.an.instanceof(Error);
-          expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
-        }
+        await expect(this.User.findAll({ where: { username: undefined } }))
+          .to.be.rejectedWith('WHERE parameter "username" has invalid "undefined" value');
       });
     });
   });
@@ -1570,10 +1520,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       // Associations
+      Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes', inverse: { as: 'Votes' } });
       Election.belongsTo(Citizen);
-      Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' });
       Citizen.hasMany(Election);
-      Citizen.belongsToMany(Election, { as: 'Votes', through: 'ElectionsVotes' });
 
       await this.sequelize.sync();
       // Add some data
@@ -1583,18 +1532,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const election = await Election.create({ name: 'Some other election' });
       await election.setCitizen(alice);
       await election.setVoters([alice, bob]);
-      const criteria = {
+      const elections = await Election.findAndCountAll({
         offset: 5,
         limit: 1,
         where: {
           name: 'Some election',
         },
         include: [
-          Citizen, // Election creator
+          'Citizen', // Election creator
           { model: Citizen, as: 'Voters' }, // Election voters
         ],
-      };
-      const elections = await Election.findAndCountAll(criteria);
+      });
       expect(elections.count).to.equal(1);
       expect(elections.rows.length).to.equal(0);
     });

@@ -42,8 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           timestamps: false,
         });
 
-        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId' });
-        this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
+        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId', otherKey: 'CourseId' });
 
         await this.sequelize.sync({ force: true });
 

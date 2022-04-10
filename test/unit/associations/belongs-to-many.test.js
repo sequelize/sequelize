@@ -105,11 +105,11 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       const User = current.define('User', {});
       const Task = current.define('Task', {});
 
-      const errorFunction1 = User.belongsToMany.bind(User, Task, { through: true });
-      const errorFunction2 = User.belongsToMany.bind(User, Task, { through: undefined });
-      const errorFunction3 = User.belongsToMany.bind(User, Task, { through: null });
+      const errorFunction1 = () => User.belongsToMany(Task, { through: true });
+      const errorFunction2 = () => User.belongsToMany(Task, { through: undefined });
+      const errorFunction3 = () => User.belongsToMany(Task, { through: null });
       for (const errorFunction of [errorFunction1, errorFunction2, errorFunction3]) {
-        expect(errorFunction).to.throwWithCause(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires through option, pass either a string or a model`);
+        expect(errorFunction).to.throwWithCause(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
       }
     });
     it('throws an AssociationError for a self-association defined without an alias', () => {
@@ -254,6 +254,30 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       expect(Users.otherKey).to.equal('user_id');
 
       expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+    });
+
+    it('should infer foreign keys (camelCase)', function () {
+      const Person = this.sequelize.define('Person');
+      const PersonChildren = this.sequelize.define('PersonChildren');
+      const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
+
+      expect(Children.foreignKey).to.equal('ParentId');
+      expect(Children.otherKey).to.equal('ChildId');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+    });
+
+    it('should infer foreign keys (snake_case)', function () {
+      const Person = this.sequelize.define('Person', {}, { underscored: true });
+      const PersonChildren = this.sequelize.define('PersonChildren', {}, { underscored: true });
+      const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
+
+      expect(Children.foreignKey).to.equal('ParentId');
+      expect(Children.otherKey).to.equal('ChildId');
+      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.foreignKey].field).to.equal('parent_id');
+      expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
     });
   });
 
@@ -805,10 +829,12 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Group, {
         as: 'MyGroups',
-        through: UserGroup,
+        through: {
+          model: UserGroup,
+          unique: 'custom_user_group_unique',
+        },
         foreignKey: 'id_user_very_long_field',
         otherKey: 'id_group_very_long_field',
-        uniqueKey: 'custom_user_group_unique',
         inverse: {
           as: 'MyUsers',
         },

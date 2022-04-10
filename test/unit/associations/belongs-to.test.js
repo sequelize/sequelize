@@ -54,11 +54,31 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       expect(user[method]()).to.be.a('function');
     });
   });
+
+  it('should throw an error if "foreignKey" and "as" result in a name clash', function () {
+    const Person = this.sequelize.define('person', {});
+    const Car = this.sequelize.define('car', {});
+
+    expect(() => Car.belongsTo(Person, { foreignKey: 'person' }))
+      .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
+  });
+
+  it('should throw an error if an association clashes with the name of an already define attribute', function () {
+    const Person = this.sequelize.define('person', {});
+    const Car = this.sequelize.define('car', {
+      person: DataTypes.INTEGER,
+    });
+
+    expect(() => Car.belongsTo(Person, { as: 'person' }))
+      .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
+  });
+
   describe('association hooks', () => {
     beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
+
     describe('beforeBelongsToAssociate', () => {
       it('should trigger', function () {
         const beforeAssociate = sinon.spy();

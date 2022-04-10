@@ -314,7 +314,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [1] });
             } catch (error) {
-              expect(error.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
+              expect(error.message).to.equal(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+Got { association: 1 } instead`);
             }
           });
 
@@ -322,7 +323,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [this.Task] });
             } catch (error) {
-              expect(error.message).to.equal('Task is not associated to Worker!');
+              expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
             }
           });
 
@@ -471,7 +472,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Worker is not associated to Task!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
           }
         });
 
@@ -523,7 +524,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Task is not associated to Worker!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
           }
         });
 
@@ -540,7 +541,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
+              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDo"`);
             }
           });
 
@@ -592,7 +594,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Worker is not associated to Task!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
           }
         });
 
@@ -674,7 +676,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Task is not associated to Worker!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
           }
         });
 
@@ -691,7 +693,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
+              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDos"`);
             }
           });
 

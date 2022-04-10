@@ -73,12 +73,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsTo(Company, { as: 'SecondaryEmployer' });
 
       await expect(User.findOne({ include: [Company] })).to.be.rejectedWith(`
-Invalid Include received:
-"User" is associated to "Company" multiple times.
-Instead of specifying a Model, pass one of the Association object available in "User.associations" (through the "association" option),
-or pass the name of the association you want to include (through the "as" option).
+Ambiguous Include received:
+You're trying to include the model "Company", but is associated to "User" multiple times.
 
-"User" is associated to "Company" through the following associations: "Employer", "SecondaryEmployer"
+Instead of specifying a Model, either:
+1. pass one of the Association object (available in "User.associations") in the "association" option, e.g.:
+   include: {
+     association: User.associations.Employer,
+   },
+
+2. pass the name of one of the associations in the "association" option, e.g.:
+   include: {
+     association: 'Employer',
+   },
 `.trim());
     });
 
@@ -519,7 +526,8 @@ or pass the name of the association you want to include (through the "as" option
         },
         include: [
           {
-            model: Product, include: [
+            model: Product,
+            include: [
               { model: Tag },
             ],
           },
@@ -751,7 +759,7 @@ or pass the name of the association you want to include (through the "as" option
         name: DataTypes.STRING,
       });
 
-      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies' });
+      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies', inverse: { as: 'OutsourcedCompanies' } });
 
       await this.sequelize.sync({ force: true });
 
@@ -822,10 +830,9 @@ or pass the name of the association you want to include (through the "as" option
       User.belongsToMany(Group, {
         through: UserGroup,
         as: 'Clubs',
-      });
-      Group.belongsToMany(User, {
-        through: UserGroup,
-        as: 'Members',
+        inverse: {
+          as: 'Members',
+        },
       });
 
       await this.sequelize.sync({ force: true });
@@ -1008,11 +1015,10 @@ or pass the name of the association you want to include (through the "as" option
         through: UserGroup,
         as: 'Clubs',
         constraints: false,
-      });
-      Group.belongsToMany(User, {
-        through: UserGroup,
-        as: 'Members',
-        constraints: false,
+        inverse: {
+          as: 'Members',
+          constraints: false,
+        },
       });
 
       await this.sequelize.sync({ force: true });

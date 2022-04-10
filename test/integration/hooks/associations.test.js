@@ -651,12 +651,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 afterMiniTask = true;
               });
 
-              const [project0, minitask] = await Promise.all([
+              const [project, minitask] = await Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.MiniTasks.create({ mini_title: 'New MiniTask' }),
               ]);
 
-              const project = await project0.addMiniTask(minitask);
+              await project.addMiniTask(minitask);
               await project.destroy();
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
@@ -700,12 +700,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               });
 
               try {
-                const [project0, minitask] = await Promise.all([
+                const [project, minitask] = await Promise.all([
                   this.Projects.create({ title: 'New Project' }),
                   this.MiniTasks.create({ mini_title: 'New MiniTask' }),
                 ]);
 
-                const project = await project0.addMiniTask(minitask);
+                await project.addMiniTask(minitask);
                 await project.destroy();
               } catch {
                 expect(beforeProject).to.be.true;

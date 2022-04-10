@@ -386,14 +386,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         const users = await User.findAll({
           include: [
             {
-              model: GroupMember, as: 'Memberships', include: [
+              model: GroupMember,
+              as: 'Memberships',
+              include: [
                 Group,
                 Rank,
               ],
             },
             {
-              model: Product, include: [
-                Tag,
+              model: Product,
+              include: [
+                'Tags',
                 { model: Tag, as: 'Category' },
                 Price,
               ],
@@ -1271,17 +1274,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const users = await User.findAll({
         include: [
           {
-            model: GroupMember, as: 'Memberships', include: [
+            model: GroupMember,
+            as: 'Memberships',
+            include: [
               Group,
               { model: Rank, where: { name: 'Admin' } },
             ],
           },
           {
-            model: Product, include: [
-              Tag,
+            model: Product,
+            include: [
+              'Tags',
               { model: Tag, as: 'Category' },
               {
-                model: Price, where: {
+                model: Price,
+                where: {
                   value: {
                     [Op.gt]: 15,
                   },
@@ -1352,7 +1359,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         attributes: ['id', 'title'],
         include: [
           { model: this.models.Company, where: { name: 'NYSE' } },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           { model: this.models.Price },
         ],
         limit: 3,
@@ -1406,7 +1413,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const products = await this.models.Product.findAll({
         attributes: ['title'],
         include: [
-          { model: this.models.Tag, through: { attributes: [] }, required: true },
+          { model: this.models.Tag, as: 'Tags', through: { attributes: [] }, required: true },
         ],
       });
 
@@ -1426,6 +1433,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {
             model: this.models.Tag,
+            as: 'Tags',
             through: {
               where: {
                 ProductId: 3,
@@ -1447,6 +1455,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {
             model: this.models.Tag,
+            as: 'Tags',
             through: {
               where: {
                 ProductId: 3,
@@ -1538,7 +1547,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           {
             model: this.models.Price, where: {
               value: { [Op.gt]: 5 },
@@ -1569,7 +1578,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag, where: { name: ['A', 'B', 'C'] } },
+          { model: this.models.Tag, as: 'Tags', where: { name: ['A', 'B', 'C'] } },
           { model: this.models.Price },
         ],
         limit: 10,
@@ -2009,13 +2018,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         through: { model: 'EntityTag', unique: false },
         foreignKey: 'entity_id',
         otherKey: 'tag_name',
-      });
-
-      TaggableSentient.belongsToMany(Entity, {
-        as: 'tags',
-        through: { model: 'EntityTag', unique: false },
-        foreignKey: 'tag_name',
-        otherKey: 'entity_id',
       });
 
       await this.sequelize.sync({ force: true });

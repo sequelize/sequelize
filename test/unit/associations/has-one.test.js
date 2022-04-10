@@ -68,6 +68,81 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
       expect(user[method]()).to.be.a('function');
     });
   });
+
+  describe('allows the user to provide an attribute definition object as foreignKey', () => {
+    it('works with a column that hasn\'t been defined before', function () {
+      const User = this.sequelize.define('user', {});
+      const Profile = this.sequelize.define('project', {});
+
+      User.hasOne(Profile, {
+        foreignKey: {
+          allowNull: false,
+          name: 'uid',
+        },
+      });
+
+      expect(Profile.rawAttributes.uid).to.be.ok;
+      expect(Profile.rawAttributes.uid.references.model).to.equal(User.getTableName());
+      expect(Profile.rawAttributes.uid.references.key).to.equal('id');
+      expect(Profile.rawAttributes.uid.allowNull).to.be.false;
+    });
+
+    it('works when taking a column directly from the object', function () {
+      const User = this.sequelize.define('user', {
+        uid: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+      const Profile = this.sequelize.define('project', {
+        user_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+      });
+
+      User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
+
+      expect(Profile.rawAttributes.user_id).to.be.ok;
+      expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+      expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
+      expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
+    });
+
+    it('works when merging with an existing definition', function () {
+      const User = this.sequelize.define('user', {
+        uid: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+      const Project = this.sequelize.define('project', {
+        userUid: {
+          type: DataTypes.INTEGER,
+          defaultValue: 42,
+        },
+      });
+
+      User.hasOne(Project, { foreignKey: { allowNull: false } });
+
+      expect(Project.rawAttributes.userUid).to.be.ok;
+      expect(Project.rawAttributes.userUid.allowNull).to.be.false;
+      expect(Project.rawAttributes.userUid.references.model).to.equal(User.getTableName());
+      expect(Project.rawAttributes.userUid.references.key).to.equal('uid');
+      expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
+    });
+  });
+
+  it('should throw an error if an association clashes with the name of an already define attribute', function () {
+    const User = this.sequelize.define('user', {
+      attribute: DataTypes.STRING,
+    });
+    const Attribute = this.sequelize.define('attribute', {});
+
+    expect(User.hasOne.bind(User, Attribute)).to
+      .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change the "as" options in your association definition');
+  });
+
   describe('association hooks', () => {
     beforeEach(function () {
       this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });

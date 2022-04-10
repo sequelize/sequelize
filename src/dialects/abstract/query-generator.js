@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic } from '../../model';
+
 const util = require('util');
 const _ = require('lodash');
 const uuidv4 = require('uuid').v4;
@@ -819,14 +821,14 @@ export class AbstractQueryGenerator {
         }
 
         // if the previous item is a model, then attempt getting an association
-        if (previousModel && previousModel.prototype instanceof Model) {
+        if (previousModel && isModelStatic(previousModel)) {
           let model;
           let as;
 
-          if (typeof item === 'function' && item.prototype instanceof Model) {
+          if (isModelStatic(item)) {
             // set
             model = item;
-          } else if (_.isPlainObject(item) && item.model && item.model.prototype instanceof Model) {
+          } else if (_.isPlainObject(item) && isModelStatic(item.model)) {
             // set
             model = item.model;
             as = item.as;
@@ -834,24 +836,19 @@ export class AbstractQueryGenerator {
 
           if (model) {
             // set the as to either the through name or the model name
-            if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through && previousAssociation.through.model === model) {
+            if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through?.model === model) {
               // we get here for cases like
               // [manyToManyAssociation, throughModel]
               // "throughModel" must be replaced by the association  from the many to many to the through model
               item = previousAssociation.fromSourceToThroughOne;
             } else {
               // get association from previous model
-              item = previousModel.getAssociationForAlias(model, as);
-
-              // attempt to use the model name if the item is still null
-              if (!item) {
-                item = previousModel.getAssociationForAlias(model, model.name);
-              }
+              item = previousModel.getAssociationWithModel(model, as);
             }
 
             // make sure we have an association
             if (!(item instanceof Association)) {
-              throw new TypeError(util.format('Unable to find a valid association for model, \'%s\'', model.name));
+              throw new TypeError(`Unable to find a valid association between models "${previousModel.name}" and "${model.name}"`);
             }
           }
         }

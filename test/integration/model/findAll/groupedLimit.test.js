@@ -43,11 +43,9 @@ if (current.dialect.supports['UNION ALL']) {
             updatedAt: false,
           });
 
-          this.User.Projects = this.User.belongsToMany(this.Project, { through: 'project_user' });
-          this.Project.belongsToMany(this.User, { as: 'members', through: 'project_user' });
+          this.User.Projects = this.User.belongsToMany(this.Project, { through: 'project_user', inverse: { as: 'members' } });
 
-          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, { as: 'paranoidProjects', through: this.ProjectUserParanoid });
-          this.Project.belongsToMany(this.User, { as: 'paranoidMembers', through: this.ProjectUserParanoid });
+          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, { as: 'paranoidProjects', through: this.ProjectUserParanoid, inverse: { as: 'paranoidMembers' } });
 
           this.User.Tasks = this.User.hasMany(this.Task);
 

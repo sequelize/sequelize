@@ -1,6 +1,6 @@
 import assert from 'assert';
 import isObject from 'lodash/isObject';
-import type { Model, ModelStatic, ColumnOptions, Hookable, BuiltModelName, AttributeNames } from '../model';
+import type { Model, ModelStatic, ColumnOptions, Hookable, AttributeNames } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 import type { NormalizeBaseAssociationOptions } from './helpers';
@@ -217,22 +217,6 @@ export abstract class Association<
   }
 
   protected abstract inferForeignKey(): string;
-
-  verifyAssociationAlias(alias: string | BuiltModelName): boolean {
-    if (typeof alias === 'string') {
-      return this.as === alias;
-    }
-
-    if (this.isMultiAssociation) {
-      if (alias?.plural) {
-        return this.as === alias.plural;
-      }
-    } else if (alias?.singular) {
-      return this.as === alias.singular;
-    }
-
-    return !this.isAliased;
-  }
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.as;

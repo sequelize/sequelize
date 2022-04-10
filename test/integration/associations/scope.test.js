@@ -32,7 +32,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       };
 
       this.Post.addScope('withComments', {
-        include: [this.Comment],
+        include: [{
+          model: this.Comment,
+          as: 'comments',
+        }],
       });
       this.Post.addScope('withMainComment', {
         include: [{
@@ -214,13 +217,26 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(image0).to.be.instanceof(this.Image);
         expect(question0).to.be.instanceof(this.Question);
 
-        const [post, image, question] = await Promise.all([this.Post.findOne({
-          include: [this.Comment],
-        }), this.Image.findOne({
-          include: [this.Comment],
-        }), this.Question.findOne({
-          include: [this.Comment],
-        })]);
+        const [post, image, question] = await Promise.all([
+          this.Post.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+          this.Image.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+          this.Question.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+        ]);
 
         expect(post.comments.length).to.equal(1);
         expect(post.comments[0].get('title')).to.equal('I am a post comment');
@@ -320,9 +336,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             });
             this.PostTag = this.sequelize.define('post_tag');
 
-            this.Tag.belongsToMany(this.Post, { through: this.PostTag });
             this.Post.belongsToMany(this.Tag, { as: 'categories', through: this.PostTag, scope: { type: 'category' } });
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
+
+            return this.sequelize.sync({ force: true });
           });
 
           it('should create, find and include associations with scope values', async function () {
@@ -331,9 +348,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             if (isMySQL8) {
               return;
             }
-
-            await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
-            await this.PostTag.sync({ force: true });
 
             const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
               this.Post.create(),
@@ -468,14 +482,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
+              otherKey: 'tag_id',
               constraints: false,
-            });
-            this.Tag.belongsToMany(this.Post, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              inverse: {
+                constraints: false,
               },
-              foreignKey: 'tag_id',
             });
 
             this.Image.belongsToMany(this.Tag, {
@@ -487,14 +498,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
+              otherKey: 'tag_id',
               constraints: false,
-            });
-            this.Tag.belongsToMany(this.Image, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              inverse: {
+                constraints: false,
               },
-              foreignKey: 'tag_id',
             });
 
             this.Question.belongsToMany(this.Tag, {
@@ -506,14 +514,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
+              otherKey: 'tag_id',
               constraints: false,
-            });
-            this.Tag.belongsToMany(this.Question, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              inverse: {
+                constraints: false,
               },
-              foreignKey: 'tag_id',
             });
           });
 

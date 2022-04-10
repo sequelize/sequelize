@@ -843,12 +843,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const user = await User.create({ username: 'foo' });
         const task = await Task.create({ title: 'task' });
         await task.setUsers([user]);
-        const _users0 = await task.getUsers();
-        expect(_users0).to.have.length(1);
+        expect(await task.getUsers()).to.have.length(1);
 
         await task.setUsers(null);
-        const _users = await task.getUsers();
-        expect(_users).to.have.length(0);
+        expect(await task.getUsers()).to.have.length(0);
       } finally {
         this.sequelize.options.omitNull = false;
       }
@@ -1340,7 +1338,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
-        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
+        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change the "as" options in your association definition');
     });
 
     it('should ignore group from ancestor on deep separated query', async function () {

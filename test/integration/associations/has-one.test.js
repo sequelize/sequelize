@@ -643,94 +643,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
       }));
     });
-
-    describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works with a column that hasnt been defined before', function () {
-        const User = this.sequelize.define('user', {});
-        let Profile = this.sequelize.define('project', {});
-
-        User.hasOne(Profile, {
-          foreignKey: {
-            allowNull: false,
-            name: 'uid',
-          },
-        });
-
-        expect(Profile.rawAttributes.uid).to.be.ok;
-        expect(Profile.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.uid.references.key).to.equal('id');
-        expect(Profile.rawAttributes.uid.allowNull).to.be.false;
-
-        // Let's clear it
-        Profile = this.sequelize.define('project', {});
-        User.hasOne(Profile, {
-          foreignKey: {
-            allowNull: false,
-            name: 'uid',
-          },
-        });
-
-        expect(Profile.rawAttributes.uid).to.be.ok;
-        expect(Profile.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.uid.references.key).to.equal('id');
-        expect(Profile.rawAttributes.uid.allowNull).to.be.false;
-      });
-
-      it('works when taking a column directly from the object', function () {
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: Sequelize.INTEGER,
-            primaryKey: true,
-          },
-        });
-        const Profile = this.sequelize.define('project', {
-          user_id: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-          },
-        });
-
-        User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
-
-        expect(Profile.rawAttributes.user_id).to.be.ok;
-        expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
-      });
-
-      it('works when merging with an existing definition', function () {
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: Sequelize.INTEGER,
-            primaryKey: true,
-          },
-        });
-        const Project = this.sequelize.define('project', {
-          userUid: {
-            type: Sequelize.INTEGER,
-            defaultValue: 42,
-          },
-        });
-
-        User.hasOne(Project, { foreignKey: { allowNull: false } });
-
-        expect(Project.rawAttributes.userUid).to.be.ok;
-        expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-        expect(Project.rawAttributes.userUid.references.model).to.equal(User.getTableName());
-        expect(Project.rawAttributes.userUid.references.key).to.equal('uid');
-        expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
-      });
-    });
-
-    it('should throw an error if an association clashes with the name of an already define attribute', function () {
-      const User = this.sequelize.define('user', {
-        attribute: Sequelize.STRING,
-      });
-      const Attribute = this.sequelize.define('attribute', {});
-
-      expect(User.hasOne.bind(User, Attribute)).to
-        .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change either foreignKey or as in your association definition');
-    });
   });
 
   describe('Counter part', () => {
@@ -783,17 +695,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       expect(individual0.name).to.equal('Foo Bar');
       expect(individual0.personwearinghat.name).to.equal('Baz');
-
-      const individual = await this.Individual.findOne({
-        where: { name: 'Foo Bar' },
-        include: [{
-          model: this.Hat,
-          as: { singular: 'personwearinghat' },
-        }],
-      });
-
-      expect(individual.name).to.equal('Foo Bar');
-      expect(individual.personwearinghat.name).to.equal('Baz');
     });
 
     it('should load all', async function () {

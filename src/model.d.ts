@@ -2051,8 +2051,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Returns the association for which the target matches the 'target' parameter, and the alias ("as") matches the 'alias' parameter
+   *
+   * Throws if no such association were found.
    */
-  static getAssociationForAlias<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T> | null;
+  static getAssociationWithModel<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T>;
 
   /**
    * Refreshes the Model's attribute definition.

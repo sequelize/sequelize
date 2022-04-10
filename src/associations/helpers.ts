@@ -263,6 +263,8 @@ export function defineAssociation<
     source.runHooks('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
   }
 
+  checkNamingCollision(source, normalizedOptions.as);
+
   return association;
 }
 

@@ -1,4 +1,3 @@
-import assert from 'assert';
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
@@ -281,11 +280,14 @@ export class BelongsToMany<
           onDelete: options.inverse?.onDelete,
           onUpdate: options.inverse?.onUpdate,
           scope: options.inverse?.scope,
+          constraints: options.inverse?.constraints,
+
           inverse: {
             onDelete: options.onDelete,
             onUpdate: options.onUpdate,
             as: options.as,
             scope: options.scope,
+            constraints: options.constraints,
           },
           sourceKey: options.targetKey,
           targetKey: options.sourceKey,
@@ -355,14 +357,16 @@ A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
 
     if (!hasPrimaryKey) {
       foreignKeyAttribute.primaryKey = true;
+
+      if (typeof this.through.unique === 'string') {
+        throw new TypeError(`BelongsToMany: Option "through.unique" can only be used if the through model's foreign keys are not also the primary keys.
+Add your own primary key to the through model, on different attributes than the foreign keys, to be able to use this option.`);
+      }
     } else if (this.through.unique !== false) {
       let uniqueKey;
-      if (typeof this.options.uniqueKey === 'string' && this.options.uniqueKey !== '') {
-        uniqueKey = this.options.uniqueKey;
+      if (typeof this.through.unique === 'string' && this.through.unique !== '') {
+        uniqueKey = this.through.unique;
       } else {
-        assert(this.foreignKey != null, 'foreign key is nullish');
-        assert(this.otherKey != null, 'foreign key is nullish');
-
         const keys = [this.foreignKey, this.otherKey].sort();
         uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
       }
@@ -405,6 +409,7 @@ A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
       as: this.isSelfAssociation
         ? `${this.name.plural}_${this.pairedWith.name.plural}`
         : undefined,
+      constraints: this.options.constraints,
     }, this);
 
     this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.through.model, {
@@ -414,12 +419,14 @@ A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
       as: this.isSelfAssociation
         ? `${this.name.singular}_${this.pairedWith.name.singular}`
         : this.through.model.options.name.singular,
+      constraints: this.options.constraints,
     }, this);
 
     this.fromThroughToSource = BelongsTo.associate(AssociationConstructorSecret, this.through.model, this.source, {
       // @ts-expect-error
       foreignKey: this.foreignKey,
       as: Utils.singularize(this.pairedWith.as),
+      constraints: this.options.constraints,
     }, this);
 
     // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
@@ -461,10 +468,6 @@ A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
     >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
-      if (!options || (typeof options.through !== 'string' && !isPlainObject(options.through) && !isModelStatic(options.through))) {
-        throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`);
-      }
-
       // self-associations must always set their 'as' parameter
       if (isSameModel(source, target)) {
         // use 'options' because this will always be set in 'newOptions'
@@ -897,12 +900,18 @@ export function isThroughOptions<M extends Model>(val: any): val is ThroughOptio
 }
 
 function normalizeThroughOptions<M extends Model>(
+  source: ModelStatic<any>,
+  target: ModelStatic<any>,
   through: ThroughOptions<M>,
   sequelize: Sequelize,
 ): NormalizedThroughOptions<M> {
   const timestamps = through.timestamps ?? sequelize.options.define?.timestamps;
 
   let model;
+
+  if (!through || (typeof through.model !== 'string' && !isModelStatic(through.model))) {
+    throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
+  }
 
   if (isModelStatic<M>(through.model)) {
     model = through.model;
@@ -936,13 +945,17 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
     throw new TypeError('The "timestamps" option in belongsToMany has been renamed to through.timestamps');
   }
 
+  if ('uniqueKey' in options) {
+    throw new TypeError('The "uniqueKey" option in belongsToMany has been renamed to through.unique');
+  }
+
   const sequelize = target.sequelize!;
 
   return normalizeBaseAssociationOptions(type, {
     ...options,
     through: removeUndefined(isThroughOptions(options.through)
-      ? normalizeThroughOptions(options.through, sequelize)
-      : normalizeThroughOptions({ model: options.through }, sequelize)),
+      ? normalizeThroughOptions(source, target, options.through, sequelize)
+      : normalizeThroughOptions(source, target, { model: options.through }, sequelize)),
   }, source, target);
 }
 
@@ -975,12 +988,17 @@ export interface ThroughOptions<ThroughModel extends Model> {
   scope?: AssociationScope;
 
   /**
-   * If true a unique key will be generated from the foreign keys used (might want to turn this off and create
-   * specific unique keys when using scopes)
+   * If true a unique constraint will be added on the foreign key pair.
+   * If set to a string, the generated unique key will use the string as its name.
+   * If set to false, no unique constraint will be added.
+   * Useful if you want to turn this off and create your own unique constraint when using scopes.
+   *
+   * This option only works if the model already has a Primary Key,
+   * as the unique constraint will not be added if the foreign keys are already part of the composite primary key.
    *
    * @default true
    */
-  unique?: boolean;
+  unique?: boolean | string;
 }
 
 /**
@@ -1021,7 +1039,17 @@ export interface BelongsToManyOptions<
     onDelete?: AssociationOptions<string>['onDelete'],
     onUpdate?: AssociationOptions<string>['onUpdate'],
     scope?: MultiAssociationOptions<string>['scope'],
+    constraints?: AssociationOptions<string>['constraints'],
   };
+
+  // this is also present in AssociationOptions, but they have different JSDoc, keep both!
+  /**
+   * Should "ON UPDATE" and "ON DELETE" constraints be enabled on the foreign key?
+   *
+   * This only affects the foreign key that points to the source model.
+   * to control the one that points to the target model, set {@link BelongsToManyOptions.inverse.constraints}.
+   */
+  constraints?: boolean;
 
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a
@@ -1049,11 +1077,6 @@ export interface BelongsToManyOptions<
    * key of the target table
    */
   targetKey?: TargetKey;
-
-  /**
-   * The unique key name to override the autogenerated one when primary key is not present on through model
-   */
-  uniqueKey?: string;
 }
 
 /**

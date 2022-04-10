@@ -1,3 +1,4 @@
+import isPlainObject from 'lodash/isPlainObject';
 import upperFirst from 'lodash/upperFirst';
 import type { DataType } from '../data-types';
 import type {
@@ -395,13 +396,15 @@ export class HasMany<
     const promises: Array<Promise<any>> = [];
     const obsoleteAssociations = oldAssociations.filter(old => {
       return !targetInstances.some(obj => {
-        return obj.get(this.target.primaryKeyAttribute) === old.get(this.target.primaryKeyAttribute);
+        // @ts-expect-error -- old is a raw result
+        return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
     const unassociatedObjects = targetInstances.filter(obj => {
       return !oldAssociations.some(old => {
-        return obj.get(this.target.primaryKeyAttribute) === old.get(this.target.primaryKeyAttribute);
+        // @ts-expect-error -- old is a raw result
+        return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
@@ -471,15 +474,21 @@ export class HasMany<
    * Un-associate one or several target rows.
    *
    * @param sourceInstance instance to un associate instances with
-   * @param rawTargetInstances Can be an Instance or its primary key, or a mixed array of instances and primary keys
+   * @param targetInstances Can be an Instance or its primary key, or a mixed array of instances and primary keys
    * @param options Options passed to `target.update`
    */
   async remove(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyRemoveAssociationsMixinOptions = {},
   ): Promise<void> {
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
+    if (targetInstances == null) {
+      return;
+    }
+
+    if (!Array.isArray(targetInstances)) {
+      targetInstances = [targetInstances];
+    }
 
     if (targetInstances.length === 0) {
       return;
@@ -493,7 +502,18 @@ export class HasMany<
     const where = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
-        return targetInstance.get(this.target.primaryKeyAttribute);
+        if (targetInstance instanceof this.target) {
+          return (targetInstance as T).get(this.target.primaryKeyAttribute);
+        }
+
+        // raw entity
+        if (isPlainObject(targetInstance) && this.target.primaryKeyAttribute in targetInstance) {
+          // @ts-expect-error
+          return targetInstance[this.target.primaryKeyAttribute];
+        }
+
+        // primary key
+        return targetInstance;
       }),
     };
 

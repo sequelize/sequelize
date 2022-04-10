@@ -273,17 +273,21 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             { ProductId: products[i * 2 + 1].id, value: 20 },
           ]),
         ]);
+
         const users = await AccUser.findAll({
           include: [
             {
-              model: GroupMember, as: 'Memberships', include: [
+              model: GroupMember,
+              as: 'Memberships',
+              include: [
                 Group,
                 Rank,
               ],
             },
             {
-              model: Product, include: [
-                Tag,
+              model: Product,
+              include: [
+                'Tags',
                 { model: Tag, as: 'Category' },
                 Price,
               ],
@@ -293,6 +297,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             [AccUser.rawAttributes.id, 'ASC'],
           ],
         });
+
         for (const user of users) {
           expect(user.Memberships).to.be.ok;
           user.Memberships.sort(sortById);
@@ -989,17 +994,21 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         const users = await User.findAll({
           include: [
             {
-              model: GroupMember, as: 'Memberships', include: [
+              model: GroupMember,
+              as: 'Memberships',
+              include: [
                 Group,
                 { model: Rank, where: { name: 'Admin' } },
               ],
             },
             {
-              model: Product, include: [
-                Tag,
+              model: Product,
+              include: [
+                'Tags',
                 { model: Tag, as: 'Category' },
                 {
-                  model: Price, where: {
+                  model: Price,
+                  where: {
                     value: {
                       [Op.gt]: 15,
                     },
@@ -1071,7 +1080,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         attributes: ['title'],
         include: [
           { model: this.models.Company, where: { name: 'NYSE' } },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           { model: this.models.Price },
         ],
         limit: 3,
@@ -1095,9 +1104,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           {
-            model: this.models.Price, where: {
+            model: this.models.Price,
+            where: {
               value: { [Op.gt]: 5 },
             },
           },
@@ -1126,7 +1136,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag, where: { name: ['A', 'B', 'C'] } },
+          { model: this.models.Tag, as: 'Tags', where: { name: ['A', 'B', 'C'] } },
           { model: this.models.Price },
         ],
         limit: 10,

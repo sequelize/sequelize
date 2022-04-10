@@ -371,19 +371,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         Post.belongsToMany(Tag, {
           as: 'tags',
           foreignKey: 'taggable_id',
+          otherKey: 'tag_id',
           constraints: false,
-          through: {
-            model: ItemTag,
-            scope: {
-              taggable: 'post',
-            },
+          inverse: {
+            as: 'posts',
+            constraints: false,
           },
-        });
-
-        Tag.belongsToMany(Post, {
-          as: 'posts',
-          foreignKey: 'tag_id',
-          constraints: false,
           through: {
             model: ItemTag,
             scope: {

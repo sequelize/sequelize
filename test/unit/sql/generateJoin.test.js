@@ -2,7 +2,7 @@
 
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const { _validateIncludedElements } = require('@sequelize/core/lib/model-internals');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 const util = require('util');
 const _ = require('lodash');
 
