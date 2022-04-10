@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               'password authentication failed for user "bar"',
             ].some(fragment => error.message.includes(fragment)));
           } else if (dialect === 'mssql') {
-            expect(error.message).to.equal('Login failed for user \'bar\'.');
+            expect(error.message).to.include('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
           } else if (dialect === 'ibmi') {
