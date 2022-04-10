@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { SnowflakeQuery: Query } = require('@sequelize/core/lib/dialects/snowflake/query');
+const { SnowflakeQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query.js');
 
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
