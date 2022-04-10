@@ -1621,7 +1621,7 @@ or pass the name of the association you want to include (through the "as" option
       }
 
       if (!scope) {
-        throw new sequelizeErrors.SequelizeScopeError(`"${this.name}.scope()" has been called with an invalid scope: "${scopeName}" does not exist.`);
+        throw new sequelizeErrors.SequelizeScopeError(`"${this.name}.withScope()" has been called with an invalid scope: "${scopeName}" does not exist.`);
       }
 
       this._conformIncludes(scope, this);

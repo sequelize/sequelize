@@ -514,7 +514,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should emit an error for scopes that don\'t exist', () => {
       expect(() => {
         Company.withScope('doesntexist');
-      }).to.throw('"company.scope()" has been called with an invalid scope: "doesntexist" does not exist.');
+      }).to.throw('"company.withScope()" has been called with an invalid scope: "doesntexist" does not exist.');
     });
 
     it('should concatenate scope groups', () => {
@@ -564,7 +564,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('allows me to add a new scope', () => {
       expect(() => {
         Company.withScope('newScope');
-      }).to.throw('"company.scope()" has been called with an invalid scope: "newScope" does not exist.');
+      }).to.throw('"company.withScope()" has been called with an invalid scope: "newScope" does not exist.');
 
       Company.addScope('newScope', {
         where: {
