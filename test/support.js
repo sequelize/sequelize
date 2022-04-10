@@ -10,7 +10,7 @@ const Config = require('./config/config');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { AbstractQueryGenerator } = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
 
 const distDir = path.resolve(__dirname, '../lib');
 
