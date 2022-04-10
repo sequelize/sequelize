@@ -22,23 +22,26 @@ if (current.dialect.supports.groupedLimit) {
 
         await this.sequelize.sync({ force: true });
 
-        await Promise.all([User.create({
-          id: 1,
-          tasks: [
-            {},
-            {},
-            {},
-          ],
-        }, {
-          include: [User.Tasks],
-        }), User.create({
-          id: 2,
-          tasks: [
-            {},
-          ],
-        }, {
-          include: [User.Tasks],
-        })]);
+        await Promise.all([
+          User.create({
+            id: 1,
+            tasks: [
+              {},
+              {},
+              {},
+            ],
+          }, {
+            include: [User.Tasks],
+          }),
+          User.create({
+            id: 2,
+            tasks: [
+              {},
+            ],
+          }, {
+            include: [User.Tasks],
+          }),
+        ]);
 
         const users = await User.findAll({
           include: [
@@ -440,26 +443,29 @@ if (current.dialect.supports.groupedLimit) {
         await this.sequelize.createSchema('archive');
         await this.sequelize.sync({ force: true });
 
-        await Promise.all([User.create({
-          id: 1,
-          tasks: [
-            { id: 1, title: 'b' },
-            { id: 2, title: 'd' },
-            { id: 3, title: 'c' },
-            { id: 4, title: 'a' },
-          ],
-        }, {
-          include: [User.Tasks],
-        }), User.create({
-          id: 2,
-          tasks: [
-            { id: 5, title: 'a' },
-            { id: 6, title: 'c' },
-            { id: 7, title: 'b' },
-          ],
-        }, {
-          include: [User.Tasks],
-        })]);
+        await Promise.all([
+          User.create({
+            id: 1,
+            tasks: [
+              { id: 1, title: 'b' },
+              { id: 2, title: 'd' },
+              { id: 3, title: 'c' },
+              { id: 4, title: 'a' },
+            ],
+          }, {
+            include: [User.Tasks],
+          }),
+          User.create({
+            id: 2,
+            tasks: [
+              { id: 5, title: 'a' },
+              { id: 6, title: 'c' },
+              { id: 7, title: 'b' },
+            ],
+          }, {
+            include: [User.Tasks],
+          }),
+        ]);
 
         const result = await User.findAll({
           include: [{ model: Task, limit: 2, as: 'tasks', order: [['id', 'ASC']] }],

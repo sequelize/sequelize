@@ -51,9 +51,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         })]);
 
         const result = await Task.User.get(tasks);
-        expect(result[tasks[0].id].id).to.equal(tasks[0].user.id);
-        expect(result[tasks[1].id].id).to.equal(tasks[1].user.id);
-        expect(result[tasks[2].id]).to.be.undefined;
+        expect(result.get(tasks[0].id).id).to.equal(tasks[0].user.id);
+        expect(result.get(tasks[1].id).id).to.equal(tasks[1].user.id);
+        expect(result.get(tasks[2].id)).to.be.undefined;
       });
     });
   });

@@ -203,12 +203,12 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       try {
         const result = await actual;
-        expect(result).to.be.an('object');
-        expect(Object.keys(result)).to.deep.equal([idA, idB, idC]);
+        expect(result).to.be.instanceOf(Map);
+        expect(Array.from(result.keys())).to.deep.equal([idA, idB, idC]);
 
-        expect(result[idA].length).to.equal(3);
-        expect(result[idB].length).to.equal(1);
-        expect(result[idC].length).to.equal(0);
+        expect(result.get(idA).length).to.equal(3);
+        expect(result.get(idB).length).to.equal(1);
+        expect(result.get(idC).length).to.equal(0);
       } finally {
         findAll.restore();
       }

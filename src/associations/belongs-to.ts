@@ -193,11 +193,11 @@ export class BelongsTo<
    */
   // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options: BelongsToGetAssociationMixinOptions): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Record<any, T | null>>;
+  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
     options: BelongsToGetAssociationMixinOptions,
-  ): Promise<Record<any, T | null> | T | null> {
+  ): Promise<Map<any, T | null> | T | null> {
     options = Utils.cloneDeep(options);
 
     let Target = this.target;
@@ -246,19 +246,10 @@ export class BelongsTo<
 
     if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Record<any, T | null> = Object.create(null);
-      for (const instance of instances) {
-        // TODO: foreignKey could be anything, including things not valid as keys.
-        //  check if this is still used and either replace with 'Map', or removed
-        // @ts-expect-error
-        result[instance.get(this.foreignKey, { raw: true })] = null;
-      }
+      const result: Map<any, T | null> = new Map();
 
       for (const instance of results) {
-        // TODO: targetKey could be anything, including things not valid as keys.
-        //  check if this is still used and either replace with 'Map', or removed
-        // @ts-expect-error
-        result[instance.get(this.targetKey, { raw: true })] = instance;
+        result.set(instance.get(this.targetKey, { raw: true }), instance);
       }
 
       return result;

@@ -35,24 +35,28 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const players = await Promise.all([Player.create({
-          id: 1,
-          user: {},
-        }, {
-          include: [Player.User],
-        }), Player.create({
-          id: 2,
-          user: {},
-        }, {
-          include: [Player.User],
-        }), Player.create({
-          id: 3,
-        })]);
+        const players = await Promise.all([
+          Player.create({
+            id: 1,
+            user: {},
+          }, {
+            include: [Player.User],
+          }),
+          Player.create({
+            id: 2,
+            user: {},
+          }, {
+            include: [Player.User],
+          }),
+          Player.create({
+            id: 3,
+          }),
+        ]);
 
         const result = await Player.User.get(players);
-        expect(result[players[0].id].id).to.equal(players[0].user.id);
-        expect(result[players[1].id].id).to.equal(players[1].user.id);
-        expect(result[players[2].id]).to.equal(null);
+        expect(result.get(players[0].id).id).to.equal(players[0].user.id);
+        expect(result.get(players[1].id).id).to.equal(players[1].user.id);
+        expect(result.get(players[2].id)).to.equal(undefined);
       });
     });
   });

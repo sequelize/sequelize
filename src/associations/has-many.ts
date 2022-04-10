@@ -221,10 +221,9 @@ export class HasMany<
    * @param instances source instances
    * @param options find options
    */
-  // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options?: HasManyGetAssociationsMixinOptions): Promise<T[]>;
-  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Record<any, T[]>>;
-  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Record<any, T[]>> {
+  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Map<any, T[]>>;
+  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Map<any, T[]>> {
     let isManyMode = true;
     if (!Array.isArray(instances)) {
       isManyMode = false;
@@ -284,16 +283,14 @@ export class HasMany<
       return results;
     }
 
-    const result: Record<any, T[]> = Object.create(null);
+    const result: Map<any, T[]> = new Map();
     for (const instance of instances) {
-      // TODO: sourceKey could be anything, including things not valid as keys.
-      //  check if this is still used and either replace with 'Map', or removed
-      // @ts-expect-error
-      result[instance.get(this.sourceKey, { raw: true })] = [];
+      result.set(instance.get(this.sourceKey, { raw: true }), []);
     }
 
     for (const instance of results) {
-      result[instance.get(this.foreignKey, { raw: true })].push(instance);
+      const value = instance.get(this.foreignKey, { raw: true });
+      result.get(value)!.push(instance);
     }
 
     return result;

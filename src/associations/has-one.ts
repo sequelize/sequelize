@@ -190,11 +190,11 @@ export class HasOne<
    */
   // TODO: when is this called with an array? Is it ever?
   async get(instances: S, options?: HasOneGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Record<any, T | null>>;
+  async get(instances: S[], options?: HasOneGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
     options?: HasOneGetAssociationMixinOptions<T>,
-  ): Promise<Record<any, T | null> | T | null> {
+  ): Promise<Map<any, T | null> | T | null> {
     options = options ? Utils.cloneDeep(options) : {};
 
     let Target = this.target;
@@ -236,19 +236,10 @@ export class HasOne<
 
     if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Record<any, T | null> = Object.create(null);
-      for (const sourceInstance of instances) {
-        // TODO: sourceKey could be anything, including things not valid as keys.
-        //  check if this is still used and either replace with 'Map', or removed
-        // @ts-expect-error
-        result[sourceInstance.get(this.sourceKey, { raw: true })] = null;
-      }
+      const result: Map<any, T | null> = new Map();
 
       for (const targetInstance of results) {
-        // TODO: foreignKey could be anything, including things not valid as keys.
-        //  check if this is still used and either replace with 'Map', or removed
-        // @ts-expect-error
-        result[targetInstance.get(this.foreignKey, { raw: true })] = targetInstance;
+        result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
       }
 
       return result;

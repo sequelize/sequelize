@@ -78,30 +78,34 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            id: 1,
-            tasks: [
-              {},
-              {},
-              {},
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            id: 2,
-            tasks: [
-              {},
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            id: 3,
-          })]);
+          const users = await Promise.all([
+            User.create({
+              id: 1,
+              tasks: [
+                {},
+                {},
+                {},
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              id: 2,
+              tasks: [
+                {},
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              id: 3,
+            }),
+          ]);
 
           const result = await User.Tasks.get(users);
-          expect(result[users[0].id].length).to.equal(3);
-          expect(result[users[1].id].length).to.equal(1);
-          expect(result[users[2].id].length).to.equal(0);
+          expect(result.get(users[0].id).length).to.equal(3);
+          expect(result.get(users[1].id).length).to.equal(1);
+          expect(result.get(users[2].id).length).to.equal(0);
         });
 
         it('should fetch associations for multiple instances with limit and order', async function () {
@@ -114,24 +118,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            tasks: [
-              { title: 'b' },
-              { title: 'd' },
-              { title: 'c' },
-              { title: 'a' },
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            tasks: [
-              { title: 'a' },
-              { title: 'c' },
-              { title: 'b' },
-            ],
-          }, {
-            include: [User.Tasks],
-          })]);
+          const users = await Promise.all([
+            User.create({
+              tasks: [
+                { title: 'b' },
+                { title: 'd' },
+                { title: 'c' },
+                { title: 'a' },
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              tasks: [
+                { title: 'a' },
+                { title: 'c' },
+                { title: 'b' },
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+          ]);
 
           const result = await User.Tasks.get(users, {
             limit: 2,
@@ -140,13 +147,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ],
           });
 
-          expect(result[users[0].id].length).to.equal(2);
-          expect(result[users[0].id][0].title).to.equal('a');
-          expect(result[users[0].id][1].title).to.equal('b');
+          expect(result.get(users[0].id).length).to.equal(2);
+          expect(result.get(users[0].id)[0].title).to.equal('a');
+          expect(result.get(users[0].id)[1].title).to.equal('b');
 
-          expect(result[users[1].id].length).to.equal(2);
-          expect(result[users[1].id][0].title).to.equal('a');
-          expect(result[users[1].id][1].title).to.equal('b');
+          expect(result.get(users[1].id).length).to.equal(2);
+          expect(result.get(users[1].id)[0].title).to.equal('a');
+          expect(result.get(users[1].id)[1].title).to.equal('b');
         });
 
         it('should fetch multiple layers of associations with limit and order with separate=true', async function () {
@@ -163,58 +170,67 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          await Promise.all([User.create({
-            id: 1,
-            tasks: [
-              {
-                title: 'b', subtasks: [
-                  { title: 'c' },
-                  { title: 'a' },
-                ],
-              },
-              { title: 'd' },
-              {
-                title: 'c', subtasks: [
-                  { title: 'b' },
-                  { title: 'a' },
-                  { title: 'c' },
-                ],
-              },
-              {
-                title: 'a', subtasks: [
-                  { title: 'c' },
-                  { title: 'a' },
-                  { title: 'b' },
-                ],
-              },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.SubTasks] }],
-          }), User.create({
-            id: 2,
-            tasks: [
-              {
-                title: 'a', subtasks: [
-                  { title: 'b' },
-                  { title: 'a' },
-                  { title: 'c' },
-                ],
-              },
-              {
-                title: 'c', subtasks: [
-                  { title: 'a' },
-                ],
-              },
-              {
-                title: 'b', subtasks: [
-                  { title: 'a' },
-                  { title: 'b' },
-                ],
-              },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.SubTasks] }],
-          })]);
+          await Promise.all([
+            User.create({
+              id: 1,
+              tasks: [
+                {
+                  title: 'b',
+                  subtasks: [
+                    { title: 'c' },
+                    { title: 'a' },
+                  ],
+                },
+                { title: 'd' },
+                {
+                  title: 'c',
+                  subtasks: [
+                    { title: 'b' },
+                    { title: 'a' },
+                    { title: 'c' },
+                  ],
+                },
+                {
+                  title: 'a',
+                  subtasks: [
+                    { title: 'c' },
+                    { title: 'a' },
+                    { title: 'b' },
+                  ],
+                },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }],
+            }),
+            User.create({
+              id: 2,
+              tasks: [
+                {
+                  title: 'a',
+                  subtasks: [
+                    { title: 'b' },
+                    { title: 'a' },
+                    { title: 'c' },
+                  ],
+                },
+                {
+                  title: 'c',
+                  subtasks: [
+                    { title: 'a' },
+                  ],
+                },
+                {
+                  title: 'b',
+                  subtasks: [
+                    { title: 'a' },
+                    { title: 'b' },
+                  ],
+                },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }],
+            }),
+          ]);
 
           const users = await User.findAll({
             include: [{
@@ -279,24 +295,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            tasks: [
-              { title: 'b', category: {} },
-              { title: 'd', category: {} },
-              { title: 'c', category: {} },
-              { title: 'a', category: {} },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.Category] }],
-          }), User.create({
-            tasks: [
-              { title: 'a', category: {} },
-              { title: 'c', category: {} },
-              { title: 'b', category: {} },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.Category] }],
-          })]);
+          const users = await Promise.all([
+            User.create({
+              tasks: [
+                { title: 'b', category: {} },
+                { title: 'd', category: {} },
+                { title: 'c', category: {} },
+                { title: 'a', category: {} },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }],
+            }),
+            User.create({
+              tasks: [
+                { title: 'a', category: {} },
+                { title: 'c', category: {} },
+                { title: 'b', category: {} },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }],
+            }),
+          ]);
 
           const result = await User.Tasks.get(users, {
             limit: 2,
@@ -306,17 +325,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             include: [Task.Category],
           });
 
-          expect(result[users[0].id].length).to.equal(2);
-          expect(result[users[0].id][0].title).to.equal('a');
-          expect(result[users[0].id][0].category).to.be.ok;
-          expect(result[users[0].id][1].title).to.equal('b');
-          expect(result[users[0].id][1].category).to.be.ok;
+          expect(result.get(users[0].id).length).to.equal(2);
+          expect(result.get(users[0].id)[0].title).to.equal('a');
+          expect(result.get(users[0].id)[0].category).to.be.ok;
+          expect(result.get(users[0].id)[1].title).to.equal('b');
+          expect(result.get(users[0].id)[1].category).to.be.ok;
 
-          expect(result[users[1].id].length).to.equal(2);
-          expect(result[users[1].id][0].title).to.equal('a');
-          expect(result[users[1].id][0].category).to.be.ok;
-          expect(result[users[1].id][1].title).to.equal('b');
-          expect(result[users[1].id][1].category).to.be.ok;
+          expect(result.get(users[1].id).length).to.equal(2);
+          expect(result.get(users[1].id)[0].title).to.equal('a');
+          expect(result.get(users[1].id)[0].category).to.be.ok;
+          expect(result.get(users[1].id)[1].title).to.equal('b');
+          expect(result.get(users[1].id)[1].category).to.be.ok;
         });
 
         it('supports schemas', async function () {

@@ -1986,7 +1986,7 @@ ${associationOwner._getAssociationDebugList()}`);
       for (const result of results) {
         result.set(
           include.association.as,
-          map[result.get(include.association.sourceKey)],
+          map.get(result.get(include.association.sourceKey)),
           { raw: true },
         );
       }
