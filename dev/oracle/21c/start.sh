@@ -11,11 +11,11 @@ docker-compose -p oraclexedb21c up -d
 # Wait until Oracle DB is set up and docker state is healthy
 ./wait-until-healthy.sh oraclexedb21c
 
-# Granting all privileges to sequelizetest user
-docker exec -it oraclexedb21c bash -c "sqlplus system/password@XEPDB1 << EOF
-grant all privileges to sequelizetest identified by sequelizepassword;
-exit;
-EOF"
+# Moving privileges.sql to docker container
+docker cp privileges.sql oraclexedb21c:/opt/oracle/. 
+
+# Granting all the needed privileges to sequelizetest user
+docker exec -it oraclexedb21c sqlplus system/password@XEPDB1 @privileges.sql
 
 # Setting up Oracle instant client for oracledb
 if [ ! -d  ~/Downloads/oracle ] 
