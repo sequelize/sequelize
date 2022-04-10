@@ -215,7 +215,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to keep original scope definition clean', () => {
-      expect(Company.withScope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
+      expect(Company.withScope('projects', 'users', 'alsoUsers')._scope).to.deepEqual({
         include: [
           { model: Project, association: Company.associations.projects, as: 'projects' },
           { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
@@ -518,7 +518,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should concatenate scope groups', () => {
-      expect(Company.withScope('groupByCompanyId', 'groupByProjectId')._scope).to.deepEqual({
+      expect(Company.withScope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
         group: ['company.id', 'project.id'],
         include: [{ model: Project, association: Company.associations.projects, as: 'projects' }],
       });

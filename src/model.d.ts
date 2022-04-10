@@ -2126,6 +2126,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
+    options?: SchemaOptions
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
+   *  does not mutate the model and instead returns a new one.
+   */
+  public static schema<M extends Model>(
+    this: ModelStatic<M>,
+    schema: string,
     options?: SchemaOptions | string
   ): ModelCtor<M>;
 

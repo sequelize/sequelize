@@ -3196,10 +3196,10 @@ eslint-plugin-jest@^26.1.1:
   dependencies:
     "@typescript-eslint/utils" "^5.10.0"
 
-eslint-plugin-jsdoc@39.0.1:
-  version "39.0.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-39.0.1.tgz#0b772ede58fee19f11699c1c06f15f0ad34bb6c7"
-  integrity sha512-lNPnz5DlmLekkrVFM66TE5VQwceDu420tWW4CNYc/BMoKDJuvTTzmu/djK75lr9d8PLVoPDnyexVV7Pp59rOKg==
+eslint-plugin-jsdoc@39.1.0:
+  version "39.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-39.1.0.tgz#dfe7b152ea1ce9e49457286fe3280f07d5bde060"
+  integrity sha512-KgpoLbeSEL3yv6T3QMErelPy+WFJSQkDoUOZTRmqCcsvQ4bmA02Vmw6WbC5cdYQ6P52iUIsAxtXTT66EF/Xzeg==
   dependencies:
     "@es-joy/jsdoccomment" "~0.22.1"
     comment-parser "1.3.1"
