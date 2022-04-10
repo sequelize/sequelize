@@ -1671,14 +1671,14 @@ export class Model {
         }
       }
 
-      if (scope) {
-        this._conformIncludes(scope, this);
-        // clone scope so it doesn't get modified
-        this._assignOptions(mergedScope, Utils.cloneDeep(scope));
-        scopeNames.push(scopeName ? scopeName : 'defaultScope');
-      } else {
-        throw new sequelizeErrors.SequelizeScopeError(`Invalid scope ${scopeName} called.`);
+      if (!scope) {
+        throw new sequelizeErrors.SequelizeScopeError(`"${this.name}.withScope()" has been called with an invalid scope: "${scopeName}" does not exist.`);
       }
+
+      this._conformIncludes(scope, this);
+      // clone scope so it doesn't get modified
+      this._assignOptions(mergedScope, Utils.cloneDeep(scope));
+      scopeNames.push(scopeName ? scopeName : 'defaultScope');
     }
 
     return initialModel._withScopeAndSchema({
