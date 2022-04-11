@@ -1,17 +1,11 @@
-'use strict';
+import { AssociationError } from '@sequelize/core';
+import { expect } from 'chai';
+import { sequelize, getTestDialectTeaser } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../support');
-
-const current = Support.sequelize;
-const { AssociationError } = require('@sequelize/core');
-
-describe(Support.getTestDialectTeaser('belongsTo'), () => {
+describe(getTestDialectTeaser('belongsTo'), () => {
   it('should throw an AssociationError when two associations have the same alias', () => {
-    const User = current.define('User');
-    const Task = current.define('Task');
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
 
     User.belongsTo(Task, { as: 'task' });
 
@@ -21,8 +15,8 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
   });
 
   it('should throw an AssociationError when two associations have the same alias (one inferred)', () => {
-    const User = current.define('User');
-    const Task = current.define('Task');
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
 
     const association = User.belongsTo(Task);
     expect(association.as).to.eq('Task');
@@ -33,8 +27,8 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
   });
 
   it('should throw an AssociationError when two associations have the same alias (both inferred)', () => {
-    const User = current.define('User');
-    const Task = current.define('Task');
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
 
     User.belongsTo(Task);
 

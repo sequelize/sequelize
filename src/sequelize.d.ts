@@ -1209,7 +1209,7 @@ export class Sequelize extends Hooks {
    */
   public define<M extends Model, TAttributes = Attributes<M>>(
     modelName: string,
-    attributes: ModelAttributes<M, TAttributes>,
+    attributes?: ModelAttributes<M, TAttributes>,
     options?: ModelOptions<M>
   ): ModelCtor<M>;
 
