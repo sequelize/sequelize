@@ -135,6 +135,8 @@ export interface DropOptions extends Logging {
  * Schema Options provided for applying a schema to a model
  */
 export interface SchemaOptions extends Logging {
+  schema: string;
+
   /**
    * The character(s) that separates the schema name from the table name
    */
@@ -2283,13 +2285,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If a single default schema per model is needed, set the {@link ModelOptions.schema} instead.
    *
-   * @param schema The name of the schema
-   * @param options either {@link SchemaOptions} or a string, the later is equivalent to setting {@link SchemaOptions.schemaDelimiter}.
+   * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
+   */
+  public static withSchema<M extends Model>(
+    this: ModelStatic<M>,
+    schema: string | SchemaOptions,
+  ): ModelStatic<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
+   *  does not mutate the model and instead returns a new one.
    */
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions | string
+    options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
   /**
@@ -2316,17 +2326,46 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns A copy of this model, with the scopes applied.
    */
+  public static withScope<M extends Model>(
+    this: ModelStatic<M>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+  ): ModelStatic<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withScope} to emphasise the fact that
+   *  this method does not mutate the model, but returns a new model.
+   */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
   ): ModelStatic<M>;
+
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withoutScope} to emphasise the fact that
+   *   this method does not mutate the model, and is not the same as {@link Model.withInitialScope}.
+   */
+  public static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Returns a model without scope. The default scope is also omitted.
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   *
+   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
    */
-  public static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+  public static withoutScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the base model, with its initial scope.
+   */
+  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
+  public static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Add a new scope to the model

@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { ConnectionManager } = require('@sequelize/core/lib/dialects/abstract/connection-manager');
+const { ConnectionManager } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js');
 
 describe('connection manager', () => {
   describe('_connect', () => {

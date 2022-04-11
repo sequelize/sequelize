@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic } from './utils/model-utils';
+
 const assert = require('assert');
 const _ = require('lodash');
 const Dottie = require('dottie');
@@ -14,7 +16,7 @@ const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup, noModelDropSchema } = require('./utils/deprecations');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -383,7 +385,7 @@ export class Model {
         return { model, association: include, as: include.as };
       }
 
-      if (include.prototype && include.prototype instanceof Model) {
+      if (isModelStatic(include)) {
         return { model: include };
       }
 
@@ -963,7 +965,7 @@ export class Model {
       paranoid: false,
       rejectOnEmpty: false,
       whereCollection: null,
-      schema: null,
+      schema: '',
       schemaDelimiter: '',
       defaultScope: {},
       scopes: {},
@@ -988,8 +990,8 @@ export class Model {
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema;
-    this._schemaDelimiter = this.options.schemaDelimiter;
+    this._schema = this.options.schema || '';
+    this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
     _.each(options.validate, (validator, validatorType) => {
@@ -1461,28 +1463,40 @@ export class Model {
    * In such a use case it is important to call {@link Model.sync} (or use migrations!) for each model created by this method
    * to ensure the models are created in the correct schema.
    *
-   * If a single default schema per model is needed, set the {@link ModelOptions.schema} instead.
+   * If a single default schema per model is needed, set the {@link ModelOptions.schema} option instead.
    *
-   * @param {string} schema The name of the schema
-   * @param {string | object} [options] schema options
+   * @param {string|object} schema The name of the schema
+   *
    * @returns {Model}
    */
-  static schema(schema, options) {
-
-    const clone = class extends this {};
-    Object.defineProperty(clone, 'name', { value: this.name });
-
-    clone._schema = schema;
-
-    if (options) {
-      if (typeof options === 'string') {
-        clone._schemaDelimiter = options;
-      } else if (options.schemaDelimiter) {
-        clone._schemaDelimiter = options.schemaDelimiter;
-      }
+  static withSchema(schema) {
+    if (arguments.length > 1) {
+      throw new TypeError('Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.');
     }
 
-    return clone;
+    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
+
+    return this.getInitialModel()
+      ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static schema(schema, options) {
+    schemaRenamedToWithSchema();
+
+    return this.withSchema({
+      schema,
+      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+    });
+  }
+
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
+  static getInitialModel() {
+    // '_initialModel' is set on model variants (withScope, withSchema, etc)
+    return this._initialModel ?? this;
   }
 
   /**
@@ -1493,86 +1507,6 @@ export class Model {
    */
   static getTableName() {
     return this.queryGenerator.addSchema(this);
-  }
-
-  /**
-   * Creates a copy of this model, with one or more scopes applied.
-   *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
-   *
-   * @param {?Array|object|string} [option] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or
-   *   as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For
-   *   scope function, pass an object, with a `method` property. The value can either be a string, if the method does not
-   *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
-   *   arguments to that method. Pass null to remove all scopes, including the default.
-   *
-   * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
-   *   clear the previous scope.
-   */
-  static scope(option) {
-    const self = class extends this {};
-    let scope;
-    let scopeName;
-
-    Object.defineProperty(self, 'name', { value: this.name });
-
-    self._scope = {};
-    self._scopeNames = [];
-    self.scoped = true;
-
-    if (!option) {
-      return self;
-    }
-
-    // eslint-disable-next-line unicorn/prefer-array-flat -- 'arguments' is not a proper Array. TODO: stop using 'arguments'
-    const options = _.flatten(arguments);
-
-    for (const option of options) {
-      scope = null;
-      scopeName = null;
-
-      if (_.isPlainObject(option)) {
-        if (option.method) {
-          if (Array.isArray(option.method) && Boolean(self.options.scopes[option.method[0]])) {
-            scopeName = option.method[0];
-            scope = self.options.scopes[scopeName].apply(self, option.method.slice(1));
-          } else if (self.options.scopes[option.method]) {
-            scopeName = option.method;
-            scope = self.options.scopes[scopeName].apply(self);
-          }
-        } else {
-          scope = option;
-        }
-      } else if (option === 'defaultScope' && _.isPlainObject(self.options.defaultScope)) {
-        scope = self.options.defaultScope;
-      } else {
-        scopeName = option;
-        scope = self.options.scopes[scopeName];
-        if (typeof scope === 'function') {
-          scope = scope();
-        }
-      }
-
-      if (scope) {
-        this._conformIncludes(scope, this);
-        // clone scope so it doesn't get modified
-        this._assignOptions(self._scope, Utils.cloneDeep(scope));
-        self._scopeNames.push(scopeName ? scopeName : 'defaultScope');
-      } else {
-        throw new sequelizeErrors.SequelizeScopeError(`Invalid scope ${scopeName} called.`);
-      }
-    }
-
-    return self;
-  }
-
-  /**
-   * Returns a model without scope. The default scope is also omitted.
-   *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
-   */
-  static unscoped() {
-    return this.scope();
   }
 
   /**
@@ -1591,6 +1525,10 @@ export class Model {
    * @param {object}          [options] scope options
    */
   static addScope(name, scope, options) {
+    if (this !== this.getInitialModel()) {
+      throw new Error(`Model.addScope can only be called on the initial model. Use "${this.name}.getInitialModel()" to access the initial model.`);
+    }
+
     options = { override: false, ...options };
 
     if ((name === 'defaultScope' && Object.keys(this.options.defaultScope).length > 0 || name in this.options.scopes) && options.override === false) {
@@ -1602,6 +1540,173 @@ export class Model {
     } else {
       this.options.scopes[name] = scope;
     }
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static scope(...options) {
+    scopeRenamedToWithScope();
+
+    return this.withScope(...options);
+  }
+
+  /**
+   * Creates a copy of this model, with one or more scopes applied.
+   *
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   *
+   * @param {?Array|object|string} [scopes] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or
+   *   as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For
+   *   scope function, pass an object, with a `method` property. The value can either be a string, if the method does not
+   *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
+   *   arguments to that method. Pass null to remove all scopes, including the default.
+   *
+   * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
+   *   clear the previous scope.
+   */
+  static withScope(...scopes) {
+    scopes = scopes.flat().filter(Boolean);
+
+    const initialModel = this.getInitialModel();
+
+    const mergedScope = {};
+    const scopeNames = [];
+
+    for (const option of scopes) {
+      let scope = null;
+      let scopeName = null;
+
+      if (_.isPlainObject(option)) {
+        if (option.method) {
+          if (Array.isArray(option.method) && Boolean(initialModel.options.scopes[option.method[0]])) {
+            scopeName = option.method[0];
+            scope = initialModel.options.scopes[scopeName].apply(initialModel, option.method.slice(1));
+          } else if (initialModel.options.scopes[option.method]) {
+            scopeName = option.method;
+            scope = initialModel.options.scopes[scopeName].apply(initialModel);
+          }
+        } else {
+          scope = option;
+        }
+      } else if (option === 'defaultScope' && _.isPlainObject(initialModel.options.defaultScope)) {
+        scope = initialModel.options.defaultScope;
+      } else {
+        scopeName = option;
+        scope = initialModel.options.scopes[scopeName];
+        if (typeof scope === 'function') {
+          scope = scope();
+        }
+      }
+
+      if (!scope) {
+        throw new sequelizeErrors.SequelizeScopeError(`"${this.name}.withScope()" has been called with an invalid scope: "${scopeName}" does not exist.`);
+      }
+
+      this._conformIncludes(scope, this);
+      // clone scope so it doesn't get modified
+      this._assignOptions(mergedScope, Utils.cloneDeep(scope));
+      scopeNames.push(scopeName ? scopeName : 'defaultScope');
+    }
+
+    return initialModel._withScopeAndSchema({
+      schema: this._schema || '',
+      schemaDelimiter: this._schemaDelimiter || '',
+    }, mergedScope, scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  /**
+   * Returns a model without scope. The default scope is also omitted.
+   *
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   */
+  static unscoped() {
+    scopeRenamedToWithScope();
+
+    return this.withoutScope();
+  }
+
+  /**
+   * Returns a model without scope. The default scope is also omitted.
+   *
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   */
+  static withoutScope() {
+    return this.withScope(null);
+  }
+
+  /**
+   * Returns the base model, with its initial scope.
+   */
+  static withInitialScope() {
+    const initialModel = this.getInitialModel();
+
+    if (this._schema !== initialModel._schema || this._schemaDelimiter !== initialModel._schemaDelimiter) {
+      return initialModel.withSchema({
+        schema: this._schema,
+        schemaDelimiter: this._schemaDelimiter,
+      });
+    }
+
+    return initialModel;
+  }
+
+  static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
+    if (!this._modelVariantRefs) {
+      // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
+      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+      this._modelVariantRefs = new Set([new WeakRef(this)]);
+    }
+
+    for (const modelVariantRef of this._modelVariantRefs) {
+      const modelVariant = modelVariantRef.deref();
+
+      if (!modelVariant) {
+        this._modelVariantRefs.delete(modelVariantRef);
+        continue;
+      }
+
+      if (modelVariant._schema !== (schemaOptions.schema || '')) {
+        continue;
+      }
+
+      if (modelVariant._schemaDelimiter !== (schemaOptions.schemaDelimiter || '')) {
+        continue;
+      }
+
+      // the item order of these arrays is important! scope('a', 'b') is not equal to scope('b', 'a')
+      if (!_.isEqual(modelVariant._scopeNames, scopeNames)) {
+        continue;
+      }
+
+      if (!_.isEqual(modelVariant._scope, mergedScope)) {
+        continue;
+      }
+
+      return modelVariant;
+    }
+
+    const clone = this._createModelVariant();
+    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+    this._modelVariantRefs.add(new WeakRef(clone));
+
+    clone._schema = schemaOptions.schema || '';
+    clone._schemaDelimiter = schemaOptions.schemaDelimiter || '';
+    clone._scope = mergedScope;
+    clone._scopeNames = scopeNames;
+
+    if (scopeNames.length !== 1 || scopeNames[0] !== 'defaultScope') {
+      clone.scoped = true;
+    }
+
+    return clone;
+  }
+
+  static _createModelVariant() {
+    const model = class extends this {};
+    model._initialModel = this;
+    Object.defineProperty(model, 'name', { value: this.name });
+
+    return model;
   }
 
   /**
@@ -3169,7 +3274,7 @@ export class Model {
    * @returns {Promise} hash of attributes and their types
    */
   static async describe(schema, options) {
-    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || undefined, ...options });
+    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || '', ...options });
   }
 
   static _getDefaultTimestamp(attr) {

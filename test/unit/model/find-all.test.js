@@ -8,7 +8,7 @@ const Support = require('../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes, QueryError } = require('@sequelize/core');
-const { Logger } = require('@sequelize/core/lib/utils/logger');
+const { Logger } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('_warnOnInvalidOptions', () => {
