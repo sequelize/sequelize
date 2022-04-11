@@ -5,11 +5,11 @@ class Car extends Model<InferAttributes<Car>> {
 }
 
 class Person extends Model<InferAttributes<Person>> {
-
+  declare id: number;
 }
 
 class Country extends Model<InferAttributes<Country>> {
-
+  declare cId: number;
 }
 
 class PersonCountry extends Model<InferAttributes<PersonCountry>> {
@@ -28,6 +28,10 @@ Car.belongsTo(Person, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
 Car.belongsTo(Person, { foreignKey: { name: 'doesnotexist'} });
 
+Car.belongsTo(Person, { targetKey: 'id' });
+// @ts-expect-error
+Car.belongsTo(Person, { targetKey: 'doesnotexist' });
+
 // HasOne
 
 Person.hasOne(Car);
@@ -39,6 +43,10 @@ Person.hasOne(Car, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
 Person.hasOne(Car, { foreignKey: { name: 'doesnotexist'} });
 
+Person.hasOne(Car, { sourceKey: 'id' });
+// @ts-expect-error
+Person.hasOne(Car, { sourceKey: 'doesnotexist' });
+
 // HasMany
 
 Person.hasMany(Car);
@@ -49,6 +57,10 @@ Person.hasMany(Car, { foreignKey: { name: 'person'} });
 Person.hasMany(Car, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
 Person.hasMany(Car, { foreignKey: { name: 'doesnotexist'} });
+
+Person.hasMany(Car, { sourceKey: 'id' });
+// @ts-expect-error
+Person.hasMany(Car, { sourceKey: 'doesnotexist' });
 
 // BelongsToMany
 
@@ -69,3 +81,23 @@ Person.belongsToMany(Country, { through: PersonCountry, foreignKey: 'personId', 
 
 // @ts-expect-error -- this must fail, 'through' is strongly defined and OtherKey does not exist
 Person.belongsToMany(Country, { through: { model: PersonCountry }, foreignKey: 'personId', otherKey: 'doesNotExist' });
+
+Person.belongsToMany(Country, {
+  through: 'PersonCountry',
+  sourceKey: 'id',
+  targetKey: 'cId',
+});
+
+Person.belongsToMany(Country, {
+  through: 'PersonCountry',
+  // @ts-expect-error -- this key does not exist on Person
+  sourceKey: 'doesNotExist',
+  targetKey: 'cId',
+});
+
+Person.belongsToMany(Country, {
+  through: 'PersonCountry',
+  sourceKey: 'id',
+  // @ts-expect-error -- this key does not exist on Country
+  targetKey: 'doesNotExist',
+});
