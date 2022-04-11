@@ -1710,6 +1710,8 @@ export interface BuiltModelAttributeColumOptions<M extends Model = Model> extend
    * The name of the attribute (JS side).
    */
   fieldName: string;
+
+  references?: ModelAttributeColumnReferencesOptions;
 }
 
 /**
