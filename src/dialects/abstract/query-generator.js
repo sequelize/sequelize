@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic } from '../../utils/model-utils';
+
 const util = require('util');
 const _ = require('lodash');
 const uuidv4 = require('uuid').v4;
@@ -825,14 +827,14 @@ export class AbstractQueryGenerator {
         }
 
         // if the previous item is a model, then attempt getting an association
-        if (previousModel && previousModel.prototype instanceof Model) {
+        if (isModelStatic(previousModel)) {
           let model;
           let as;
 
-          if (typeof item === 'function' && item.prototype instanceof Model) {
+          if (isModelStatic(item)) {
             // set
             model = item;
-          } else if (_.isPlainObject(item) && item.model && item.model.prototype instanceof Model) {
+          } else if (_.isPlainObject(item) && item.model && isModelStatic(item.model)) {
             // set
             model = item.model;
             as = item.as;
@@ -869,7 +871,7 @@ export class AbstractQueryGenerator {
           // see if this is an order
           if (index > 0 && orderIndex !== -1) {
             item = this.sequelize.literal(` ${validOrderOptions[orderIndex]}`);
-          } else if (previousModel && previousModel.prototype instanceof Model) {
+          } else if (previousModel && isModelStatic(previousModel)) {
             // only go down this path if we have preivous model and check only once
             if (previousModel.associations !== undefined && previousModel.associations[item]) {
               // convert the item to an association
@@ -1455,7 +1457,7 @@ export class AbstractQueryGenerator {
         query += ' FOR UPDATE';
       }
 
-      if (this._dialect.supports.lockOf && options.lock.of && options.lock.of.prototype instanceof Model) {
+      if (this._dialect.supports.lockOf && options.lock.of && isModelStatic(options.lock.of)) {
         query += ` OF ${this.quoteTable(options.lock.of.name)}`;
       }
 
@@ -2115,8 +2117,8 @@ export class AbstractQueryGenerator {
           && Array.isArray(order)
           && order[0]
           && !(order[0] instanceof Association)
-          && !(typeof order[0] === 'function' && order[0].prototype instanceof Model)
-          && !(typeof order[0].model === 'function' && order[0].model.prototype instanceof Model)
+          && !isModelStatic(order[0])
+          && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
           subQueryOrder.push(this.quote(order, model, '->'));

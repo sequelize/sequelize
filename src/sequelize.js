@@ -1,5 +1,7 @@
 'use strict';
 
+import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+
 const url = require('url');
 const path = require('path');
 const pgConnectionString = require('pg-connection-string');
@@ -943,6 +945,10 @@ export class Sequelize {
   static json = json;
 
   static where = where;
+
+  static isModelStatic = isModelStatic;
+
+  static isSameInitialModel = isSameInitialModel;
 
   /**
    * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
