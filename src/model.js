@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic } from './utils/model-utils';
+
 const assert = require('assert');
 const _ = require('lodash');
 const Dottie = require('dottie');
@@ -381,7 +383,7 @@ export class Model {
         return { model, association: include, as: include.as };
       }
 
-      if (include.prototype && include.prototype instanceof Model) {
+      if (isModelStatic(include)) {
         return { model: include };
       }
 
