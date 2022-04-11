@@ -1,10 +1,10 @@
-'use strict';
+import assert from 'assert';
+import { literal } from '@sequelize/core';
+// eslint-disable-next-line import/order
+import { expect } from 'chai';
 
-const chai = require('chai');
 const Support = require('../support');
-const { literal } = require('@sequelize/core');
 
-const expect = chai.expect;
 const current = Support.sequelize;
 
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
@@ -15,7 +15,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       schemaDelimiter: '&',
     });
 
-    Project.addScope('scope1', { where: literal() });
+    Project.addScope('scope1', { where: literal('') });
 
     describe('schema', () => {
       it('should work with no default schema', () => {
@@ -27,7 +27,8 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('returns the same model if the schema is equal', () => {
-        expect(Project.withSchema('newSchema')).to.equal(Project.withSchema('newSchema'));
+        // eslint-disable-next-line no-self-compare
+        assert(Project.withSchema('newSchema') === Project.withSchema('newSchema'));
       });
 
       it('returns a new model if the schema is equal, but scope is different', () => {
@@ -35,8 +36,8 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('returns the current model if the schema is identical', () => {
-        expect(Project.withSchema('')).to.equal(Project);
-        expect(Project.withSchema('test').withSchema('test')).to.equal(Project.withSchema('test'));
+        assert(Project.withSchema('') === Project);
+        assert(Project.withSchema('test').withSchema('test') === Project.withSchema('test'));
       });
 
       it('should be able to override the default schema', () => {

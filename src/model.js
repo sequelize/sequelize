@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+
 const assert = require('assert');
 const NodeUtil = require('util');
 const _ = require('lodash');
@@ -351,7 +353,7 @@ ${this._getAssociationDebugList()}`);
 
     for (const associationName of Object.keys(this.associations)) {
       const association = this.associations[associationName];
-      if (!isSameModel(association.target, model)) {
+      if (!isSameInitialModel(association.target, model)) {
         continue;
       }
 
@@ -432,7 +434,7 @@ ${this._getAssociationDebugList()}`);
         throwInvalidInclude(include);
       }
 
-      if (!isSameModel(include.association.source, associationOwner)) {
+      if (!isSameInitialModel(include.association.source, associationOwner)) {
         throw new Error(`Invalid Include received: the specified association "${include.association.as}" is not defined on model "${associationOwner.name}". It is owned by model "${include.association.source.name}".
 ${associationOwner._getAssociationDebugList()}`);
       }
@@ -442,7 +444,7 @@ ${associationOwner._getAssociationDebugList()}`);
       include.model = include.association.target;
     }
 
-    if (!isSameModel(include.model, include.association.target)) {
+    if (!isSameInitialModel(include.model, include.association.target)) {
       throw new TypeError(`Invalid Include received: the specified "model" option ("${include.model.name}") does not match the target ("${include.association.target.name}") of the "${include.association.as}" association.`);
     }
 
@@ -937,8 +939,8 @@ ${associationOwner._getAssociationDebugList()}`);
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema;
-    this._schemaDelimiter = this.options.schemaDelimiter;
+    this._schema = this.options.schema || '';
+    this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
     _.each(options.validate, (validator, validatorType) => {
@@ -1440,25 +1442,16 @@ ${associationOwner._getAssociationDebugList()}`);
    * If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
    * for the model.
    *
-   * @param {string}   schema The name of the schema
-   * @param {object}   [options] schema options
-   * @param {string}   [options.schemaDelimiter='.'] The character(s) that separates the schema name from the table name
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
-   * @see
-   * {@link Sequelize#define} for more information about setting a default schema.
+   * @param {string|object}   schema The name of the schema
    *
    * @returns {Model}
    */
-  static withSchema(schema, options) {
+  static withSchema(schema) {
+    if (arguments.length > 1) {
+      throw new TypeError('Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.');
+    }
 
-    const schemaOptions = {
-      schema,
-      schemaDelimiter: !options ? ''
-        : typeof options === 'string' ? options
-        : options.schemaDelimiter,
-    };
+    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
     return this.getInitialModel()
       ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
@@ -1468,7 +1461,10 @@ ${associationOwner._getAssociationDebugList()}`);
   static schema(schema, options) {
     schemaRenamedToWithSchema();
 
-    return this.withSchema(schema, options);
+    return this.withSchema({
+      schema,
+      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+    });
   }
 
   static getInitialModel() {
@@ -1611,8 +1607,8 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     return initialModel._withScopeAndSchema({
-      schema: this._schema,
-      schemaDelimiter: this._schemaDelimiter,
+      schema: this._schema || '',
+      schemaDelimiter: this._schemaDelimiter || '',
     }, mergedScope, scopeNames);
   }
 
@@ -1636,7 +1632,10 @@ ${associationOwner._getAssociationDebugList()}`);
     const initialModel = this.getInitialModel();
 
     if (this._schema !== initialModel._schema || this._schemaDelimiter !== initialModel._schemaDelimiter) {
-      return initialModel.withSchema(this._schema, this._schemaDelimiter);
+      return initialModel.withSchema({
+        schema: this._schema,
+        schemaDelimiter: this._schemaDelimiter,
+      });
     }
 
     return initialModel;
@@ -1657,11 +1656,11 @@ ${associationOwner._getAssociationDebugList()}`);
         continue;
       }
 
-      if (modelVariant._schema !== schemaOptions.schema) {
+      if (modelVariant._schema !== (schemaOptions.schema || '')) {
         continue;
       }
 
-      if (modelVariant._schemaDelimiter !== schemaOptions.schemaDelimiter) {
+      if (modelVariant._schemaDelimiter !== (schemaOptions.schemaDelimiter || '')) {
         continue;
       }
 
@@ -3437,7 +3436,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise} hash of attributes and their types
    */
   static async describe(schema, options) {
-    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || undefined, ...options });
+    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || '', ...options });
   }
 
   static _getDefaultTimestamp(attr) {
@@ -4888,23 +4887,3 @@ function combineWheresWithAnd(whereA, whereB) {
 }
 
 Hooks.applyTo(Model, true);
-
-export function isModelStatic(val) {
-  return typeof val === 'function' && val.prototype instanceof Model;
-}
-
-/**
- * Returns true if a & b are the same model.
- * The difference with doing `a === b` is that this method will also
- * return true if one of the models is a scoped ones.
- *
- * @example
- * isSameModel(a, a.scope('myScope')) // true;
- *
- * @param {Model} a
- * @param {Model} b
- */
-export function isSameModel(a, b) {
-  return isModelStatic(a) && isModelStatic(b)
-    && (a.getInitialModel() === b.getInitialModel());
-}

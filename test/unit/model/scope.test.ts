@@ -1,17 +1,16 @@
-'use strict';
+import assert from 'assert';
+import type { FindOptions } from '@sequelize/core';
+import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
+// eslint-disable-next-line import/order
+import { expect } from 'chai';
 
-const chai = require('chai');
+const Support = require('../support');
 
-const expect = chai.expect;
-const { Sequelize, Op, DataTypes } = require('@sequelize/core');
-
-const Support   = require('../support');
-
-const current   = Support.sequelize;
+const sequelize = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  const Project = current.define('project');
-  const User = current.define('user', {
+  const Project = sequelize.define('project', {});
+  const User = sequelize.define('user', {
     password: DataTypes.STRING,
     value: DataTypes.INTEGER,
     name: DataTypes.STRING,
@@ -30,72 +29,70 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     },
   });
 
-  const scopes = {
-    complexFunction(value) {
-      return {
-        where: [`${value} IN (SELECT foobar FROM some_sql_function(foo.bar))`],
-      };
-    },
-    somethingTrue: {
-      where: {
-        something: true,
-        somethingElse: 42,
-      },
-      limit: 5,
-    },
-    somethingFalse: {
-      where: {
-        something: false,
-      },
-    },
-    sequelizeWhere: {
-      where: Sequelize.where(),
-    },
-    users: {
-      include: [
-        { model: User },
-      ],
-    },
-    alsoUsers: {
-      include: [
-        { model: User, where: { something: 42 } },
-      ],
-    },
-    projects: {
-      include: [Project],
-    },
-    groupByCompanyId: {
-      group: ['company.id'],
-    },
-    groupByProjectId: {
-      group: ['project.id'],
-      include: [Project],
-    },
-    noArgs() {
-      // This does not make much sense, since it does not actually need to be in a function,
-      // In reality it could be used to do for example new Date or random in the scope - but we want it deterministic
-
-      return {
-        where: {
-          other_value: 7,
-        },
-      };
-    },
-    actualValue(value) {
-      return {
-        where: {
-          other_value: value,
-        },
-      };
-    },
-  };
-
-  const Company = current.define('company', {}, {
+  const Company = sequelize.define('company', {}, {
     defaultScope: {
       include: [Project],
       where: { active: true },
     },
-    scopes,
+    scopes: {
+      complexFunction(value: any): FindOptions {
+        return {
+          where: literal(`${value} IN (SELECT foobar FROM some_sql_function(foo.bar))`),
+        };
+      },
+      somethingTrue: {
+        where: {
+          something: true,
+          somethingElse: 42,
+        },
+        limit: 5,
+      },
+      somethingFalse: {
+        where: {
+          something: false,
+        },
+      },
+      sequelizeWhere: {
+        where: where(col('a'), 1),
+      },
+      users: {
+        include: [
+          { model: User },
+        ],
+      },
+      alsoUsers: {
+        include: [
+          { model: User, where: { something: 42 } },
+        ],
+      },
+      projects: {
+        include: [Project],
+      },
+      groupByCompanyId: {
+        group: ['company.id'],
+      },
+      groupByProjectId: {
+        group: ['project.id'],
+        include: [Project],
+      },
+      noArgs() {
+        // This does not make much sense, since it does not actually need to be in a function,
+        // In reality it could be used to do for example new Date or random in the scope - but we want it deterministic
+
+        return {
+          where: {
+            other_value: 7,
+          },
+        };
+      },
+      actualValue(value: any) {
+        return {
+          where: {
+            other_value: value,
+          },
+        };
+      },
+    },
   });
 
   Company.hasMany(User);
@@ -103,25 +100,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('withScope', () => {
     describe('attribute exclude / include', () => {
-      it('should not expand attributes', () => {
-        expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
+      const User2 = sequelize.define('user', {
+        password: DataTypes.STRING,
+        value: DataTypes.INTEGER,
+        name: DataTypes.STRING,
+      }, {
+        defaultScope: {
+          attributes: {
+            exclude: ['password'],
+          },
+        },
+        scopes: {
+          aScope: {
+            attributes: {
+              exclude: ['value'],
+            },
+          },
+        },
       });
 
       it('should not expand attributes', () => {
-        expect(User.withScope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
+        expect(User2._scope.attributes).to.deep.equal({ exclude: ['password'] });
+      });
+
+      it('should not expand attributes', () => {
+        expect(User2.withScope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
       });
 
       it('should unite attributes with array', () => {
-        expect(User.withScope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
+        expect(User2.withScope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
       });
 
       it('should not modify the original scopes when merging them', () => {
-        expect(User.withScope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
+        expect(User2.withScope('defaultScope', 'aScope').options.defaultScope!.attributes).to.deep.equal({ exclude: ['password'] });
       });
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
-      const Foo = current.define('foo', {}, {});
+      const Foo = sequelize.define('foo', {}, {});
 
       expect(Foo.withScope('defaultScope')._scope).to.deep.equal({});
     });
@@ -139,7 +155,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           [Op.and]: [
             { something: true, somethingElse: 42 },
             { something: false },
-            Sequelize.where(),
+            where(col('a'), 1),
           ],
         },
         limit: 5,
@@ -209,7 +225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.withScope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users' },
-          { model: Project, association: Company.associations.projects, as: 'projects'  },
+          { model: Project, association: Company.associations.projects, as: 'projects' },
         ],
       });
     });
@@ -310,14 +326,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         },
         whereSequelizeWhere1: {
-          where: Sequelize.where('field', Op.is, 1),
+          where: where(col('field'), Op.is, 1),
         },
         whereSequelizeWhere2: {
-          where: Sequelize.where('field', Op.is, 2),
+          where: where(col('field'), Op.is, 2),
         },
       };
 
-      const TestModel = current.define('testModel', {}, {
+      const TestModel = sequelize.define('testModel', {}, {
         mergeWhereScopesWithAndOperator: true,
         scopes: testModelScopes,
       });
@@ -467,8 +483,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const expected = {
             where: {
               [Op.and]: [
-                Sequelize.where('field', Op.is, 1),
-                Sequelize.where('field', Op.is, 2),
+                where(col('field'), Op.is, 1),
+                where(col('field'), Op.is, 2),
               ],
             },
           };
@@ -484,7 +500,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 { field: 1 },
                 { field: 1 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
-                Sequelize.where('field', Op.is, 1),
+                Sequelize.where(col('field'), Op.is, 1),
               ],
             },
           };
@@ -495,7 +511,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to use raw queries', () => {
       expect(Company.withScope([{ method: ['complexFunction', 'qux'] }])._scope).to.deepEqual({
-        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))'],
+        where: literal('qux IN (SELECT foobar FROM some_sql_function(foo.bar))'),
       });
     });
 
@@ -505,7 +521,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           [Op.and]: [
             { active: true },
-            'qux IN (SELECT foobar FROM some_sql_function(foo.bar))',
+            literal('qux IN (SELECT foobar FROM some_sql_function(foo.bar))'),
           ],
         },
       });
@@ -534,27 +550,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns the same model no matter which variant it was called on', () => {
-      expect(Company.withoutScope()).to.eq(Company.withScope('somethingTrue').withoutScope());
+      assert(Company.withoutScope() === Company.withScope('somethingTrue').withoutScope());
     });
 
     it('returns the same model if used with schema', () => {
-      expect(Company.withSchema('schema1').withoutScope()).to.eq(Company.withoutScope().withSchema('schema1'));
+      assert(Company.withSchema('schema1').withoutScope() === Company.withoutScope().withSchema('schema1'));
     });
   });
 
   describe('withInitialScope', () => {
     it('returns the initial model if no schema is defined', () => {
-      expect(Company.withScope('somethingTrue').withInitialScope()).to.eq(Company);
+      assert(Company.withScope('somethingTrue').withInitialScope() === Company);
     });
 
     it('returns the a model with just the schema if one was defined is defined', () => {
-      expect(Company.withSchema('schema1').withInitialScope()).to.eq(Company.withInitialScope().withSchema('schema1'));
+      assert(Company.withSchema('schema1').withInitialScope() === Company.withInitialScope().withSchema('schema1'));
     });
   });
 
   describe('addScope', () => {
     it('works if the model does not have any initial scopes', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
 
       expect(() => {
         MyModel.addScope('anything', {});
@@ -608,7 +624,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not warn if default scope is not defined', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
 
       expect(() => {
         MyModel.addScope('defaultScope', {});
@@ -667,7 +683,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('_injectScope', () => {
     it('should be able to merge scope and where', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
       MyModel.addScope('defaultScope', {
         where: { something: true, somethingElse: 42 },
         limit: 15,
@@ -697,7 +713,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge scope and having', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
       MyModel.addScope('defaultScope', {
         having: { something: true, somethingElse: 42 },
         limit: 15,
@@ -727,7 +743,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge scoped include', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
       MyModel.hasMany(Project);
 
       MyModel.addScope('defaultScope', {
@@ -757,7 +773,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge aliased includes with the same model', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
       MyModel.hasMany(User, { as: 'someUser' });
       MyModel.hasMany(User, { as: 'otherUser' });
 
@@ -778,7 +794,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge scoped include with include in find', () => {
-      const MyModel = current.define('model');
+      const MyModel = sequelize.define('model');
       MyModel.hasMany(Project);
       MyModel.hasMany(User);
 
@@ -804,7 +820,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('include all', () => {
       it('scope with all', () => {
-        const MyModel = current.define('model');
+        const MyModel = sequelize.define('model');
         MyModel.hasMany(User);
         MyModel.hasMany(Project);
         MyModel.addScope('defaultScope', {
@@ -837,7 +853,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('options with all', () => {
-        const MyModel = current.define('model');
+        const MyModel = sequelize.define('model');
         MyModel.hasMany(User);
         MyModel.hasMany(Project);
         MyModel.addScope('defaultScope', {

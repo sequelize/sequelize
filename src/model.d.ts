@@ -110,6 +110,8 @@ export interface DropOptions extends Logging {
  * Schema Options provided for applying a schema to a model
  */
 export interface SchemaOptions extends Logging {
+  schema: string;
+
   /**
    * The character(s) that separates the schema name from the table name
    */
@@ -2110,13 +2112,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * - `"schema"."tableName"`, while the schema will be prepended to the table name for mysql and
    * sqlite - `'schema.tablename'`.
    *
-   * @param schema The name of the schema
-   * @param options - either {@link SchemaOptions} or a string, the later is equivalent to setting {@link SchemaOptions.schemaDelimiter}.
+   * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
    */
   public static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
-    options?: SchemaOptions
+    schema: string | SchemaOptions,
   ): ModelCtor<M>;
 
   /**
@@ -2126,7 +2126,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions
+    options?: { schemaDelimiter?: string } | string
   ): ModelCtor<M>;
 
   /**
@@ -3648,18 +3648,3 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
 
 export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;
-
-export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M>;
-
-/**
- * Returns true if a & b are the same model.
- * The difference with doing `a === b` is that this method will also
- * return true if one of the models is a scoped ones.
- *
- * @example
- * isSameModel(a, a.scope('myScope')) // true;
- *
- * @param {Model} a
- * @param {Model} b
- */
-export function isSameModel(a: ModelStatic<any>, b: ModelStatic<any>): boolean;

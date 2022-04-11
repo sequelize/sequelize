@@ -25,12 +25,12 @@ import type {
   UpdateOptions,
   ModelOptions,
 } from '../model';
-import { isModelStatic, isSameModel } from '../model';
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
+import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type {
   AssociationScope,
   ForeignKeyOptions,
@@ -468,7 +468,7 @@ Add your own primary key to the through model, on different attributes than the 
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
     >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameModel(source, target)) {
+      if (isSameInitialModel(source, target)) {
         // use 'options' because this will always be set in 'newOptions'
         if (!options.as) {
           throw new AssociationError('\'as\' must be defined for many-to-many self-associations');

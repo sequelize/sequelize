@@ -1,6 +1,6 @@
 import NodeUtil from 'util';
 import { EagerLoadingError } from './errors';
-import { isModelStatic } from './model';
+import { isModelStatic } from './utils/model-utils.js';
 
 // TODO: strictly type this file during the TS migration of model.js
 

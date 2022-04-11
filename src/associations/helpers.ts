@@ -9,11 +9,11 @@ import omitBy from 'lodash/omitBy';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
-import { isModelStatic, isSameModel } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import * as Utils from '../utils/index.js';
 import type { OmitConstructors } from '../utils/index.js';
+import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type { Association, AssociationOptions, NormalizedAssociationOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
@@ -182,7 +182,7 @@ function getAssociationsIncompatibilityStatus(
     return IncompatibilityStatus.DIFFERENT_TYPES;
   }
 
-  if (!isSameModel(existingAssociation.target, newTarget)) {
+  if (!isSameInitialModel(existingAssociation.target, newTarget)) {
     return IncompatibilityStatus.DIFFERENT_TARGETS;
   }
 
