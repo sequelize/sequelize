@@ -1516,6 +1516,10 @@ export class Model {
    * @returns {Model}
    */
   static withSchema(schema) {
+    if (arguments.length > 1) {
+      throw new TypeError('Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.');
+    }
+
     const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
     return this.getInitialModel()
