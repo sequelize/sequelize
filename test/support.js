@@ -261,7 +261,7 @@ const Support = {
   },
 
   getTestDialectTeaser(moduleName) {
-    let dialect = this.getTestDialect();
+    let dialect = Support.getTestDialect();
 
     if (process.env.DIALECT === 'postgres-native') {
       dialect = 'postgres-native';
