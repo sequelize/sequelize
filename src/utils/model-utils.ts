@@ -11,12 +11,13 @@ export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> 
 }
 
 /**
- * Returns true if a & b are the same model.
+ * Returns true if a & b are the same initial model, ignoring variants created by {@link Model.withSchema}, {@link Model.withScope}, and the like.
+ *
  * The difference with doing `a === b` is that this method will also
  * return true if one of the models is scoped, or a variant with a different schema.
  *
  * @example
- * isSameModel(a, a.scope('myScope')) // true;
+ * isSameInitialModel(a, a.withScope('myScope')) // true;
  *
  * @param a
  * @param b
