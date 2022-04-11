@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('Add data via model.create, retrieve via model.findOne', () => {
         it('should be able to sync model without schema option', function () {
-          expect(this.RestaurantOne._schema).to.be.null;
+          expect(this.RestaurantOne._schema).to.eq('');
           expect(this.RestaurantTwo._schema).to.equal(SCHEMA_TWO);
         });
 
