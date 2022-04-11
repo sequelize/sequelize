@@ -86,6 +86,8 @@ export interface DropOptions extends Logging {
  * Schema Options provided for applying a schema to a model
  */
 export interface SchemaOptions extends Logging {
+  schema: string;
+
   /**
    * The character(s) that separates the schema name from the table name
    */
@@ -1990,13 +1992,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * - `"schema"."tableName"`, while the schema will be prepended to the table name for mysql and
    * sqlite - `'schema.tablename'`.
    *
-   * @param schema The name of the schema
-   * @param options
+   * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
    */
   public static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
-    options?: SchemaOptions
+    schema: string | SchemaOptions,
   ): ModelCtor<M>;
 
   /**
@@ -2006,7 +2006,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions
+    options?: { schemaDelimiter?: string } | string
   ): ModelCtor<M>;
 
   /**

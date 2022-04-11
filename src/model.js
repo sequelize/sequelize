@@ -1041,8 +1041,8 @@ export class Model {
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema;
-    this._schemaDelimiter = this.options.schemaDelimiter;
+    this._schema = this.options.schema || '';
+    this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
     _.each(options.validate, (validator, validatorType) => {
@@ -1513,25 +1513,16 @@ export class Model {
    * If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
    * for the model.
    *
-   * @param {string}   schema The name of the schema
-   * @param {object}   [options] schema options
-   * @param {string}   [options.schemaDelimiter='.'] The character(s) that separates the schema name from the table name
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
-   * @see
-   * {@link Sequelize#define} for more information about setting a default schema.
+   * @param {string|object}   schema The name of the schema
    *
    * @returns {Model}
    */
-  static withSchema(schema, options) {
+  static withSchema(schema) {
+    if (arguments.length > 1) {
+      throw new TypeError('Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.');
+    }
 
-    const schemaOptions = {
-      schema,
-      schemaDelimiter: !options ? ''
-        : typeof options === 'string' ? options
-        : options.schemaDelimiter,
-    };
+    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
     return this.getInitialModel()
       ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
@@ -1541,7 +1532,10 @@ export class Model {
   static schema(schema, options) {
     schemaRenamedToWithSchema();
 
-    return this.withSchema(schema, options);
+    return this.withSchema({
+      schema,
+      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+    });
   }
 
   static getInitialModel() {
@@ -1684,8 +1678,8 @@ export class Model {
     }
 
     return initialModel._withScopeAndSchema({
-      schema: this._schema,
-      schemaDelimiter: this._schemaDelimiter,
+      schema: this._schema || '',
+      schemaDelimiter: this._schemaDelimiter || '',
     }, mergedScope, scopeNames);
   }
 
@@ -1709,7 +1703,10 @@ export class Model {
     const initialModel = this.getInitialModel();
 
     if (this._schema !== initialModel._schema || this._schemaDelimiter !== initialModel._schemaDelimiter) {
-      return initialModel.withSchema(this._schema, this._schemaDelimiter);
+      return initialModel.withSchema({
+        schema: this._schema,
+        schemaDelimiter: this._schemaDelimiter,
+      });
     }
 
     return initialModel;
@@ -1730,11 +1727,11 @@ export class Model {
         continue;
       }
 
-      if (modelVariant._schema !== schemaOptions.schema) {
+      if (modelVariant._schema !== (schemaOptions.schema || '')) {
         continue;
       }
 
-      if (modelVariant._schemaDelimiter !== schemaOptions.schemaDelimiter) {
+      if (modelVariant._schemaDelimiter !== (schemaOptions.schemaDelimiter || '')) {
         continue;
       }
 
@@ -3508,7 +3505,7 @@ export class Model {
    * @returns {Promise} hash of attributes and their types
    */
   static async describe(schema, options) {
-    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || undefined, ...options });
+    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || '', ...options });
   }
 
   static _getDefaultTimestamp(attr) {
