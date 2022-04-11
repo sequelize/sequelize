@@ -12,7 +12,7 @@ describe('isModelStatic', () => {
     expect(isModelStatic(MyModel)).to.be.true;
   });
 
-  it('returns true for model instances', () => {
+  it('returns false for model instances', () => {
     const MyModel = sequelize.define('myModel', {});
 
     expect(isModelStatic(new MyModel())).to.be.false;
