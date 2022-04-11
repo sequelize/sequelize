@@ -122,4 +122,7 @@ export const Validator = Pkg.Validator;
 export const ValidationErrorItemOrigin = Pkg.ValidationErrorItemOrigin;
 export const ValidationErrorItemType = Pkg.ValidationErrorItemType;
 
+export const isModelStatic = Pkg.isModelStatic;
+export const isSameInitialModel = Pkg.isSameInitialModel;
+
 export { default } from './index.js';
