@@ -27,7 +27,7 @@ describe('isModelStatic', () => {
   });
 });
 
-describe('areSameInitialModel', () => {
+describe('isSameInitialModel', () => {
   it('returns true if both models have the same initial model', () => {
     const MyModel = sequelize.define('myModel', {}, {
       scopes: {
