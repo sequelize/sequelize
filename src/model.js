@@ -1511,25 +1511,12 @@ export class Model {
    * If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
    * for the model.
    *
-   * @param {string}   schema The name of the schema
-   * @param {object}   [options] schema options
-   * @param {string}   [options.schemaDelimiter='.'] The character(s) that separates the schema name from the table name
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
-   * @see
-   * {@link Sequelize#define} for more information about setting a default schema.
+   * @param {string|object}   schema The name of the schema
    *
    * @returns {Model}
    */
-  static withSchema(schema, options) {
-
-    const schemaOptions = {
-      schema,
-      schemaDelimiter: !options ? ''
-        : typeof options === 'string' ? options
-        : options.schemaDelimiter,
-    };
+  static withSchema(schema) {
+    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
     return this.getInitialModel()
       ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
@@ -1539,7 +1526,10 @@ export class Model {
   static schema(schema, options) {
     schemaRenamedToWithSchema();
 
-    return this.withSchema(schema, options);
+    return this.withSchema({
+      schema,
+      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+    });
   }
 
   static getInitialModel() {
