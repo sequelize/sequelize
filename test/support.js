@@ -175,8 +175,8 @@ const Support = {
   },
 
   resetSequelizeInstance() {
-    for (const model of Array.from(this.sequelize.modelManager.all)) {
-      this.sequelize.modelManager.removeModel(model);
+    for (const model of Array.from(Support.sequelize.modelManager.all)) {
+      Support.sequelize.modelManager.removeModel(model);
     }
   },
 
