@@ -8,7 +8,7 @@
       "@sequelize/core/_non-semver-use-at-your-own-risk_/*": ["../types/*"],
       "@sequelize/core/package.json": ["../package.json"]
     },
-    "types": ["node", "mocha", "sinon", "chai"],
+    "types": ["node", "mocha", "sinon", "chai", "sinon-chai"],
     "noEmit": true,
     "emitDeclarationOnly": false
   },

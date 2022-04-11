@@ -66,6 +66,7 @@
     "@types/mocha": "9.1.0",
     "@types/node": "16.11.26",
     "@types/sinon": "10.0.11",
+    "@types/sinon-chai": "3.2.8",
     "@types/uuid": "8.3.4",
     "acorn": "8.7.0",
     "chai": "4.3.6",

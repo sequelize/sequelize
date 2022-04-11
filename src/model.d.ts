@@ -3051,6 +3051,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
 
+  public static beforeAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  public static beforeAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
+  public static afterAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  public static afterAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
   public static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
   public static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
 
