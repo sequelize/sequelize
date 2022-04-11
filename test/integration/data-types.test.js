@@ -342,7 +342,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('calls parse and stringify for CITEXT', async () => {
     const Type = new Sequelize.CITEXT();
-    // console.log(Type);
     if (dialect === 'sqlite' || dialect === 'yugabytedb') {
       // The "field type" sqlite returns is TEXT so is covered under TEXT test above
       // yugabytedb doesn't support CITEXT yet so it will have the type as TEXT
