@@ -995,7 +995,7 @@ export interface BelongsToManyOptions<
   SourceKey extends string = string,
   TargetKey extends string = string,
   ThroughModel extends Model = Model,
-> extends MultiAssociationOptions<string> {
+> extends MultiAssociationOptions<AttributeNames<ThroughModel>> {
   /**
    * Configures this association on the target model.
    */
@@ -1020,7 +1020,7 @@ export interface BelongsToManyOptions<
    * The name of the table that is used to join source and target in n:m associations. Can also be a
    * sequelize model if you want to define the junction table yourself and add extra attributes to it.
    */
-  through: ModelStatic<any> | string | ThroughOptions<ThroughModel>;
+  through: ModelStatic<ThroughModel> | string | ThroughOptions<ThroughModel>;
 
   /**
    * The name of the foreign key in the join table (representing the target model) or an object representing
@@ -1028,8 +1028,7 @@ export interface BelongsToManyOptions<
    * can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of
    * target
    */
-  // TODO: in the future, this could become "inverse.foreignKey" instead
-  otherKey?: string | ForeignKeyOptions<string>;
+  otherKey?: AttributeNames<ThroughModel> | ForeignKeyOptions<AttributeNames<ThroughModel>>;
 
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary
