@@ -712,23 +712,45 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   subQuery?: boolean;
 }
 
-type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as: string } | string
+export type OrderDirection =
+  | 'ASC'
+  | 'DESC'
+  | 'ASC NULLS LAST'
+  | 'DESC NULLS LAST'
+  | 'ASC NULLS FIRST'
+  | 'DESC NULLS FIRST'
+  | 'NULLS FIRST'
+  | 'NULLS LAST';
+
+type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as?: string } | string
 type OrderItemColumn = string | Col | Fn | Literal
+
 export type OrderItem =
-  | string
-  | Fn
-  | Col
-  | Literal
-  | [OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-export type Order = Fn | Col | Literal | OrderItem[];
+  | OrderItemColumn
+  | [OrderItemColumn, OrderDirection]
+  | [...association: OrderItemAssociation[], column: OrderItemColumn]
+  | [...association: OrderItemAssociation[], column: OrderItemColumn, direction: OrderDirection]
+
+/**
+ * Valid values for the {@link FindOptions.order} option.
+ *
+ * @example
+ * ```typescript
+ * // simplest sort order, equal to ORDER BY name ASC
+ * order: 'name',
+ *
+ * // control the order direction, note the double array
+ * order: [
+ *   ['name', 'DESC']
+ * ]
+ *
+ * // sort by the attribute 'name' of the association 'project' ('project' must be part of the list of includes)
+ * order: [
+ *   ['project', 'name', 'DESC']
+ * ]
+ * ```
+ */
+export type Order = OrderItemColumn | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance

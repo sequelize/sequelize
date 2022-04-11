@@ -1,21 +1,30 @@
-'use strict';
+import util from 'util';
+import type { FindOptions, ModelStatic, Sequelize } from '@sequelize/core';
+import { DataTypes, Model, col, literal } from '@sequelize/core';
+import { expect } from 'chai';
+// eslint-disable-next-line import/order -- TODO: replace with import when support is migrated to TS
+import { createTester } from '../../support2';
 
-const util = require('util');
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support   = require('../support');
-const { DataTypes, Model } = require('@sequelize/core');
+const Support = require('../../support');
 
 const expectsql = Support.expectsql;
-const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const sequelize: Sequelize = Support.sequelize;
+// TODO: Type QueryGenerator
+const sql = sequelize.dialect.queryGenerator as any;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
+type Options = {
+  table?: string,
+  model: ModelStatic<any>,
+  attributes: FindOptions['attributes'],
+  include?: FindOptions['include'],
+  order: FindOptions['order'],
+};
+
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('order', () => {
-    const testsql = (options, expectation) => {
+    const testSql = createTester((it, options: Options, expectation: Record<string, string>) => {
       const model = options.model;
 
       it(util.inspect(options, { depth: 2 }), () => {
@@ -28,10 +37,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expectation,
         );
       });
-    };
+    });
 
     // models
-    const User = Support.sequelize.define('User', {
+    const User = sequelize.define('User', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -58,7 +67,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       timestamps: true,
     });
 
-    const Project = Support.sequelize.define('Project', {
+    const Project = sequelize.define('Project', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -85,7 +94,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       timestamps: true,
     });
 
-    const ProjectUser = Support.sequelize.define('ProjectUser', {
+    const ProjectUser = sequelize.define('ProjectUser', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -117,7 +126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       timestamps: true,
     });
 
-    const Task = Support.sequelize.define('Task', {
+    const Task = sequelize.define('Task', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -149,7 +158,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       timestamps: true,
     });
 
-    const Subtask = Support.sequelize.define('Subtask', {
+    const Subtask = sequelize.define('Subtask', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -175,6 +184,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.DATE,
         field: 'updated_at',
         allowNull: true,
+      },
+      metadata: {
+        type: DataTypes.JSON,
+        field: 'metadata',
+        allowNull: false,
       },
     }, {
       tableName: 'subtask',
@@ -226,13 +240,76 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       foreignKey: 'task_id',
     });
 
-    testsql({
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        'name',
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY [Subtask].[name];',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        col('name'),
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY [name];',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        literal('raw sql'),
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY raw sql;',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        // these need to be wrapped in another tuple be the sort order
+        'name',
+        'ASC',
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY [Subtask].[name], [Subtask].[ASC];',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        ['name', 'ASC'],
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY [Subtask].[name] ASC;',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: ['id', 'name'],
+      order: [
+        ['name', 'NULLS FIRST'],
+      ],
+    }, {
+      default: 'SELECT [id], [name] FROM "subtask" AS "Subtask" ORDER BY [Subtask].[name] NULLS FIRST;',
+    });
+
+    testSql({
       model: Subtask,
       attributes: [
         'id',
         'name',
         'createdAt',
       ],
+      // @ts-expect-error -- TODO: type _validateIncludedElements
       include: Model._validateIncludedElements({
         include: [
           {
@@ -345,11 +422,84 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";',
     });
 
-    testsql({
+    // supports $association.reference$
+    testSql({
+      model: Subtask,
+      attributes: [
+        'id',
+        'name',
+      ],
+      // @ts-expect-error -- TODO: type _validateIncludedElements
+      include: Model._validateIncludedElements({
+        include: [
+          {
+            association: Subtask.associations.Task,
+            required: true,
+            attributes: [
+              'id',
+              'name',
+            ],
+          },
+        ],
+        model: Subtask,
+      }).include,
+      order: [['$Task.name$', 'ASC']],
+    }, {
+      default: 'SELECT [Subtask].[id], [Subtask].[name], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Model].[task_id] = [Task].[id] ORDER BY [Task].[name] ASC;',
+    });
+
+    testSql({
+      model: Subtask,
+      attributes: [
+        'id',
+        'name',
+      ],
+      // @ts-expect-error -- TODO: type _validateIncludedElements
+      include: Model._validateIncludedElements({
+        include: [
+          {
+            association: Subtask.associations.Task,
+            required: true,
+            attributes: [
+              'id',
+              'name',
+            ],
+            include: [
+              {
+                association: Task.associations.Project,
+                required: true,
+                attributes: [
+                  'id',
+                  'name',
+                ],
+              },
+            ],
+          },
+        ],
+        model: Subtask,
+      }).include,
+      order: [[Subtask.associations.Task, '$Project.metadata$.json.path', 'ASC']],
+    }, {
+      default: 'SELECT [Subtask].[id], [Subtask].[name], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Model].[task_id] = [Task].[id] ORDER BY [Task].[name] ASC;',
+    });
+
+    // supports json.path
+    testSql({
+      model: Subtask,
+      attributes: [
+        'id',
+        'metadata',
+      ],
+      order: [['metadata.json.path', 'ASC']],
+    }, {
+      postgres: 'SELECT "id", "metadata" FROM "subtask" AS "Subtask" ORDER BY ("Subtask"."metadata"#>>\'{json,path}\') ASC;',
+    });
+
+    testSql({
       model: Subtask,
       attributes: ['id', 'name'],
       order: [
-        Support.sequelize.random(),
+        sequelize.random(),
       ],
     }, {
       ibmi: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND()',
@@ -363,7 +513,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Invalid', () => {
-      it('Error on invalid association', () => {
+      it('errors on invalid association', () => {
         return expect(Subtask.findAll({
           order: [
             [Project, 'createdAt', 'ASC'],
@@ -371,7 +521,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
       });
 
-      it('Error on invalid structure', () => {
+      it('errors if an association is used after an attribute', () => {
         return expect(Subtask.findAll({
           order: [
             [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC'],
@@ -379,29 +529,35 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
       });
 
-      it('Error when the order is a string', () => {
+      it('errors if an association is used after an $association.attribute$', () => {
+        return expect(Subtask.findAll({
+          order: [
+            ['$Task.createdAt$', Task.associations.Project, 'ASC'],
+          ],
+        })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
+      });
+
+      it('errors when the order is a string', () => {
         return expect(Subtask.findAll({
           order: 'i am a silly string',
         })).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
       });
 
-      it('Error when the order contains a `{raw: "..."}` object', () => {
+      it('errors when the order contains a `{raw: "..."}` object', () => {
         return expect(Subtask.findAll({
           order: [
-            {
-              raw: 'this should throw an error',
-            },
+            // @ts-expect-error
+            { raw: 'this should throw an error' },
           ],
         })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
       });
 
-      it('Error when the order contains a `{raw: "..."}` object wrapped in an array', () => {
+      it('errors when the order contains a `{raw: "..."}` object wrapped in an array', () => {
         return expect(Subtask.findAll({
           order: [
             [
-              {
-                raw: 'this should throw an error',
-              },
+              // @ts-expect-error
+              { raw: 'this should throw an error' },
             ],
           ],
         })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
