@@ -7,7 +7,7 @@ import type {
   CreationAttributes,
   FindOptions,
   SaveOptions,
-  AttributeNames,
+  AttributeNames, Attributes,
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
@@ -19,8 +19,6 @@ import {
   defineAssociation,
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
-
-// TODO: strictly type mixin options
 
 /**
  * One-to-one association
@@ -191,11 +189,11 @@ export class BelongsTo<
    * @param instances source instances
    * @param options find options
    */
-  async get(instances: S, options: BelongsToGetAssociationMixinOptions): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions): Promise<Map<any, T | null>>;
+  async get(instances: S, options: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
-    options: BelongsToGetAssociationMixinOptions,
+    options: BelongsToGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
     options = Utils.cloneDeep(options);
 
@@ -267,7 +265,7 @@ export class BelongsTo<
   async set(
     sourceInstance: S,
     associatedInstance: T | T[TargetKey] | null,
-    options: BelongsToSetAssociationMixinOptions = {},
+    options: BelongsToSetAssociationMixinOptions<T> = {},
   ): Promise<void> {
     let value = associatedInstance;
 
@@ -302,7 +300,7 @@ export class BelongsTo<
     sourceInstance: S,
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<T> = {},
-    options: BelongsToCreateAssociationMixinOptions = {},
+    options: BelongsToCreateAssociationMixinOptions<T> = {},
   ): Promise<T> {
     values = values || {};
     options = options || {};
@@ -345,7 +343,7 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
  *
  * @see BelongsToGetAssociationMixin
  */
-export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
+export interface BelongsToGetAssociationMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -378,15 +376,15 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
 // TODO: in the future, type the return value based on whether the foreign key is nullable or not on the source model.
 //   if nullable, return TModel | null
 //   https://github.com/sequelize/meetings/issues/14
-export type BelongsToGetAssociationMixin<TModel extends Model> =
-  (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
+export type BelongsToGetAssociationMixin<T extends Model> =
+  (options?: BelongsToGetAssociationMixinOptions<T>) => Promise<T | null>;
 
 /**
  * The options for the setAssociation mixin of the belongsTo association.
  *
  * @see BelongsToSetAssociationMixin
  */
-export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
+export interface BelongsToSetAssociationMixinOptions<T extends Model> extends SaveOptions<Attributes<T>> {
   /**
    * Skip saving this after setting the foreign key if false.
    */
@@ -412,9 +410,9 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
  *
  * @typeParam TargetKeyType The type of the attribute that the foreign key references.
  */
-export type BelongsToSetAssociationMixin<TModel extends Model, TargetKeyType> = (
-  newAssociation?: TModel | TargetKeyType,
-  options?: BelongsToSetAssociationMixinOptions
+export type BelongsToSetAssociationMixin<T extends Model, TargetKeyType> = (
+  newAssociation?: T | TargetKeyType,
+  options?: BelongsToSetAssociationMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -422,8 +420,8 @@ export type BelongsToSetAssociationMixin<TModel extends Model, TargetKeyType> = 
  *
  * @see BelongsToCreateAssociationMixin
  */
-export interface BelongsToCreateAssociationMixinOptions
-  extends CreateOptions<any>, BelongsToSetAssociationMixinOptions {}
+export interface BelongsToCreateAssociationMixinOptions<T extends Model>
+  extends CreateOptions<Attributes<T>>, BelongsToSetAssociationMixinOptions<T> {}
 
 /**
  * The createAssociation mixin applied to models with belongsTo.
@@ -442,7 +440,7 @@ export interface BelongsToCreateAssociationMixinOptions
  *
  * @see Model.belongsTo
  */
-export type BelongsToCreateAssociationMixin<TModel extends Model> = (
-  values?: CreationAttributes<TModel>,
-  options?: BelongsToCreateAssociationMixinOptions
-) => Promise<TModel>;
+export type BelongsToCreateAssociationMixin<T extends Model> = (
+  values?: CreationAttributes<T>,
+  options?: BelongsToCreateAssociationMixinOptions<T>
+) => Promise<T>;

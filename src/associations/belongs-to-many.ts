@@ -51,43 +51,6 @@ import {
   mixinMethods, normalizeBaseAssociationOptions, removeUndefined,
 } from './helpers';
 
-// TODO: strictly type mixin options
-// TODO: compare mixin methods with these methods
-// TODO: add typing tests to check that association creation calls with the wrong parameters are caught
-// TODO: strongly type the through model
-
-// TODO: add test to ensure 'through' is only used in one association
-// TODO: add all necessary "inverse" options
-// TODO: add all necessary options to configure "fromThroughToSource", "fromSourceToThrough"
-
-// TODO: add tests in belongs-to-many to check the name of foreign key, associations, etc
-//  for selfAssociations
-//  for others
-
-// TODO: ensure the user is made aware of the 'inverse' option when trying to define a pair twice
-
-// TODO: add test for this scenario:
-
-// BelongsToMany(Source, Posts, {
-//   as: 'posts',
-//   through: { model: post_tag },
-//   inverse: {
-//       as: 'categories',
-//       scope: { type: 'category' }
-//   },
-// }
-//
-// BelongsToMany(Source, Posts, {
-//   as: 'posts',
-//   through: { model: post_tag },
-//   inverse: {
-//     onDelete: undefined,
-//       onUpdate: undefined,
-//       as: 'tags',
-//       scope: { type: 'tag' }
-//   },
-// }
-
 function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
     findOptions.include.push(include);
@@ -514,7 +477,7 @@ Add your own primary key to the through model, on different attributes than the 
    * @param instance instance
    * @param options find options
    */
-  async get(instance: SourceModel, options?: BelongsToManyGetAssociationsMixinOptions): Promise<TargetModel[]> {
+  async get(instance: SourceModel, options?: BelongsToManyGetAssociationsMixinOptions<TargetModel>): Promise<TargetModel[]> {
     const through = this.through;
 
     const findOptions: FindOptions<Attributes<TargetModel>> = {
@@ -533,7 +496,6 @@ Add your own primary key to the through model, on different attributes than the 
       [this.foreignKey]: instance.get(this.sourceKey),
     };
 
-    // TODO: scopes should be joined using Op.and
     if (through.scope) {
       Object.assign(throughWhere, through.scope);
     }
@@ -575,8 +537,8 @@ Add your own primary key to the through model, on different attributes than the 
    * @param instance instance
    * @param options find options
    */
-  async count(instance: SourceModel, options?: BelongsToManyCountAssociationsMixinOptions): Promise<number> {
-    const getOptions: BelongsToManyGetAssociationsMixinOptions = {
+  async count(instance: SourceModel, options?: BelongsToManyCountAssociationsMixinOptions<TargetModel>): Promise<number> {
+    const getOptions: BelongsToManyGetAssociationsMixinOptions<TargetModel> = {
       ...options,
       attributes: [
         [fn('COUNT', col([this.target.name, this.targetKeyField].join('.'))), 'count'],
@@ -602,7 +564,7 @@ Add your own primary key to the through model, on different attributes than the 
   async has(
     sourceInstance: SourceModel,
     targetInstancesOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
-    options?: BelongsToManyHasAssociationMixinOptions,
+    options?: BelongsToManyHasAssociationMixinOptions<TargetModel>,
   ): Promise<boolean> {
     if (!Array.isArray(targetInstancesOrPks)) {
       targetInstancesOrPks = [targetInstancesOrPks];
@@ -652,7 +614,7 @@ Add your own primary key to the through model, on different attributes than the 
   async set(
     sourceInstance: SourceModel,
     newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
-    options: BelongsToManySetAssociationsMixinOptions = {},
+    options: BelongsToManySetAssociationsMixinOptions<TargetModel> = {},
   ): Promise<void> {
     const sourceKey = this.sourceKey;
     const targetKey = this.targetKey;
@@ -661,7 +623,6 @@ Add your own primary key to the through model, on different attributes than the 
 
     const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
 
-    // TODO: scopes should be joined using Op.and
     const where = {
       [identifier]: sourceInstance.get(sourceKey),
       ...this.through.scope,
@@ -713,7 +674,7 @@ Add your own primary key to the through model, on different attributes than the 
   async add(
     sourceInstance: SourceModel,
     newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
-    options?: BelongsToManyAddAssociationsMixinOptions,
+    options?: BelongsToManyAddAssociationsMixinOptions<TargetModel>,
   ): Promise<void> {
     // If newInstances is null or undefined, no-op
     if (!newInstancesOrPrimaryKeys) {
@@ -728,7 +689,6 @@ Add your own primary key to the through model, on different attributes than the 
       where: {
         [this.identifier]: sourceInstance.get(this.sourceKey),
         [this.foreignIdentifier]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
-        // TODO: scopes should be joined using Op.and
         ...this.through.scope,
       },
       // force this option to be false, in case the user enabled
@@ -801,7 +761,6 @@ Add your own primary key to the through model, on different attributes than the 
         attributes[identifier] = sourceInstance.get(sourceKey);
         attributes[foreignIdentifier] = unassociatedTarget.get(targetKey);
 
-        // TODO: scopes should be joined using Op.and
         Object.assign(attributes, this.through.scope);
 
         return attributes;
@@ -865,7 +824,9 @@ Add your own primary key to the through model, on different attributes than the 
     sourceInstance: SourceModel,
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<TargetModel> = {},
-    options: BelongsToManyCreateAssociationMixinOptions | BelongsToManyCreateAssociationMixinOptions['fields'] = {},
+    options:
+      | BelongsToManyCreateAssociationMixinOptions<TargetModel>
+      | BelongsToManyCreateAssociationMixinOptions<TargetModel>['fields'] = {},
   ): Promise<TargetModel> {
     if (Array.isArray(options)) {
       options = {
@@ -926,6 +887,8 @@ function normalizeThroughOptions<M extends Model>(
 
       // @ts-expect-error -- TODO: make 'schema' a public property on Model once the method has been removed (sequelize 8)
       schema: source._schema,
+      // @ts-expect-error
+      schemaDelimiter: source._schemaDelimiter,
     });
   }
 
@@ -1086,7 +1049,7 @@ export interface BelongsToManyOptions<
  *
  * @see BelongsToManyGetAssociationsMixin
  */
-export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions<any> {
+export interface BelongsToManyGetAssociationsMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
   /**
    * A list of the attributes from the join table that you want to select.
    */
@@ -1132,19 +1095,19 @@ export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions<an
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyGetAssociationsMixin<TModel> = (
-  options?: BelongsToManyGetAssociationsMixinOptions
-) => Promise<TModel[]>;
+export type BelongsToManyGetAssociationsMixin<T extends Model> = (
+  options?: BelongsToManyGetAssociationsMixinOptions<T>
+) => Promise<T[]>;
 
 /**
  * The options for the setAssociations mixin of the belongsToMany association.
  *
  * @see BelongsToManySetAssociationsMixin
  */
-export interface BelongsToManySetAssociationsMixinOptions
-  extends FindOptions<any>,
-    BulkCreateOptions<any>,
-    InstanceUpdateOptions<any>,
+export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Model>
+  extends FindOptions<Attributes<TargetModel>>,
+    BulkCreateOptions<Attributes<TargetModel>>,
+    InstanceUpdateOptions<Attributes<TargetModel>>,
     InstanceDestroyOptions {
 
   /**
@@ -1177,9 +1140,9 @@ export interface BelongsToManySetAssociationsMixinOptions
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
+export type BelongsToManySetAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   newAssociations?: Array<TModel | TModelPrimaryKey>,
-  options?: BelongsToManySetAssociationsMixinOptions
+  options?: BelongsToManySetAssociationsMixinOptions<TModel>
 ) => Promise<void>;
 
 /**
@@ -1187,10 +1150,10 @@ export type BelongsToManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyAddAssociationsMixin
  */
-export interface BelongsToManyAddAssociationsMixinOptions
-  extends FindOptions<any>,
-    BulkCreateOptions<any>,
-    InstanceUpdateOptions<any>,
+export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
+  extends FindOptions<Attributes<TModel>>,
+    BulkCreateOptions<Attributes<TModel>>,
+    InstanceUpdateOptions<Attributes<TModel>>,
     InstanceDestroyOptions {
   through?: JoinTableAttributes;
 }
@@ -1219,9 +1182,9 @@ export interface BelongsToManyAddAssociationsMixinOptions
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
-  newAssociations?: Array<TModel | TModelPrimaryKey>,
-  options?: BelongsToManyAddAssociationsMixinOptions
+export type BelongsToManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
+  newAssociations?: Array<T | TModelPrimaryKey>,
+  options?: BelongsToManyAddAssociationsMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -1229,10 +1192,10 @@ export type BelongsToManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyAddAssociationMixin
  */
-export interface BelongsToManyAddAssociationMixinOptions
-  extends FindOptions<any>,
-    BulkCreateOptions<any>,
-    InstanceUpdateOptions<any>,
+export interface BelongsToManyAddAssociationMixinOptions<T extends Model>
+  extends FindOptions<Attributes<T>>,
+    BulkCreateOptions<Attributes<T>>,
+    InstanceUpdateOptions<Attributes<T>>,
     InstanceDestroyOptions {
   through?: JoinTableAttributes;
 }
@@ -1261,9 +1224,9 @@ export interface BelongsToManyAddAssociationMixinOptions
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
-  newAssociation?: TModel | TModelPrimaryKey,
-  options?: BelongsToManyAddAssociationMixinOptions
+export type BelongsToManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
+  newAssociation?: T | TModelPrimaryKey,
+  options?: BelongsToManyAddAssociationMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -1271,7 +1234,9 @@ export type BelongsToManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyCreateAssociationMixin
  */
-export interface BelongsToManyCreateAssociationMixinOptions extends CreateOptions<any> {
+export interface BelongsToManyCreateAssociationMixinOptions<T extends Model>
+  extends CreateOptions<Attributes<T>> {
+
   through?: JoinTableAttributes;
 }
 /**
@@ -1298,10 +1263,10 @@ export interface BelongsToManyCreateAssociationMixinOptions extends CreateOption
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyCreateAssociationMixin<TModel extends Model> = (
-  values?: CreationAttributes<TModel>,
-  options?: BelongsToManyCreateAssociationMixinOptions
-) => Promise<TModel>;
+export type BelongsToManyCreateAssociationMixin<T extends Model> = (
+  values?: CreationAttributes<T>,
+  options?: BelongsToManyCreateAssociationMixinOptions<T>
+) => Promise<T>;
 
 /**
  * The options for the removeAssociation mixin of the belongsToMany association.
@@ -1379,7 +1344,8 @@ export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyHasAssociationMixin
  */
-export interface BelongsToManyHasAssociationMixinOptions extends BelongsToManyGetAssociationsMixinOptions {}
+export interface BelongsToManyHasAssociationMixinOptions<T extends Model>
+  extends BelongsToManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The hasAssociation mixin applied to models with belongsToMany.
@@ -1405,9 +1371,9 @@ export interface BelongsToManyHasAssociationMixinOptions extends BelongsToManyGe
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
+export type BelongsToManyHasAssociationMixin<TModel extends Model, TModelPrimaryKey> = (
   target: TModel | TModelPrimaryKey,
-  options?: BelongsToManyHasAssociationMixinOptions
+  options?: BelongsToManyHasAssociationMixinOptions<TModel>
 ) => Promise<boolean>;
 
 /**
@@ -1415,7 +1381,8 @@ export type BelongsToManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyHasAssociationsMixin
  */
-export interface BelongsToManyHasAssociationsMixinOptions extends BelongsToManyGetAssociationsMixinOptions {}
+export interface BelongsToManyHasAssociationsMixinOptions<T extends Model>
+  extends BelongsToManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociations mixin applied to models with belongsToMany.
@@ -1441,9 +1408,9 @@ export interface BelongsToManyHasAssociationsMixinOptions extends BelongsToManyG
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
+export type BelongsToManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   targets: Array<TModel | TModelPrimaryKey>,
-  options?: BelongsToManyHasAssociationsMixinOptions
+  options?: BelongsToManyHasAssociationsMixinOptions<TModel>
 ) => Promise<boolean>;
 
 /**
@@ -1451,7 +1418,8 @@ export type BelongsToManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyCountAssociationsMixin
  */
-export interface BelongsToManyCountAssociationsMixinOptions extends Transactionable, Filterable<any> {
+export interface BelongsToManyCountAssociationsMixinOptions<T extends Model>
+  extends Transactionable, Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -1482,6 +1450,6 @@ export interface BelongsToManyCountAssociationsMixinOptions extends Transactiona
  *
  * @see Model.belongsToMany
  */
-export type BelongsToManyCountAssociationsMixin = (
-  options?: BelongsToManyCountAssociationsMixinOptions
+export type BelongsToManyCountAssociationsMixin<T extends Model> = (
+  options?: BelongsToManyCountAssociationsMixinOptions<T>
 ) => Promise<number>;

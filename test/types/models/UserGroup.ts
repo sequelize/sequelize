@@ -41,7 +41,7 @@ export class UserGroup extends Model<
   declare addUser: HasManyAddAssociationMixin<User, number>;
   declare addUsers: HasManyAddAssociationsMixin<User, number>;
   declare createUser: HasManyCreateAssociationMixin<User, 'groupId'>;
-  declare countUsers: HasManyCountAssociationsMixin;
+  declare countUsers: HasManyCountAssociationsMixin<User>;
   declare hasUser: HasManyHasAssociationMixin<User, number>;
   declare removeUser: HasManyRemoveAssociationMixin<User, number>;
   declare removeUsers: HasManyRemoveAssociationsMixin<User, number>;

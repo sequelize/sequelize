@@ -109,7 +109,7 @@ export interface DropOptions extends Logging {
 /**
  * Schema Options provided for applying a schema to a model
  */
-export interface SchemaOptions extends Logging {
+export interface SchemaOptions {
   schema: string;
 
   /**
@@ -1815,7 +1815,9 @@ export interface ModelOptions<M extends Model = Model> {
    */
   tableName?: string;
 
+  // TODO: merge these two together into one using SchemaOptions
   schema?: string;
+  schemaDelimiter?: string;
 
   /**
    * You can also change the database engine, e.g. to MyISAM. InnoDB is the default.

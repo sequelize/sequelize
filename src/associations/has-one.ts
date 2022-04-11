@@ -22,8 +22,6 @@ import {
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
 
-// TODO: strictly type mixin options
-
 /**
  * One-to-one association.
  * See {@link Model.hasOne}
@@ -391,7 +389,7 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
  *
  * @see HasOneGetAssociationMixin
  */
-export interface HasOneGetAssociationMixinOptions<M extends Model> extends FindOptions<Attributes<M>> {
+export interface HasOneGetAssociationMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -433,7 +431,7 @@ export type HasOneGetAssociationMixin<
  * @see HasOneSetAssociationMixin
  */
 export interface HasOneSetAssociationMixinOptions<T extends Model>
-  extends HasOneGetAssociationMixinOptions<T>, SaveOptions<any> {
+  extends HasOneGetAssociationMixinOptions<T>, SaveOptions<Attributes<T>> {
 }
 
 /**
@@ -463,8 +461,8 @@ export type HasOneSetAssociationMixin<T extends Model, TModelPrimaryKey> = {
  *
  * @see HasOneCreateAssociationMixin
  */
-export interface HasOneCreateAssociationMixinOptions<M extends Model>
-  extends Omit<HasOneSetAssociationMixinOptions<M>, 'fields'>, CreateOptions<Attributes<M>> {}
+export interface HasOneCreateAssociationMixinOptions<T extends Model>
+  extends Omit<HasOneSetAssociationMixinOptions<T>, 'fields'>, CreateOptions<Attributes<T>> {}
 
 /**
  * The createAssociation mixin applied to models with hasOne.

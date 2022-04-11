@@ -10,7 +10,7 @@ import type {
   InstanceUpdateOptions,
   Transactionable,
   ModelStatic,
-  AttributeNames, UpdateValues,
+  AttributeNames, UpdateValues, Attributes,
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
@@ -24,9 +24,6 @@ import {
   defineAssociation,
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
-
-// TODO: strictly type mixin options
-// TODO: add typing tests for each mixin method
 
 /**
  * One-to-many association.
@@ -221,9 +218,9 @@ export class HasMany<
    * @param instances source instances
    * @param options find options
    */
-  async get(instances: S, options?: HasManyGetAssociationsMixinOptions): Promise<T[]>;
-  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions): Promise<Map<any, T[]>>;
-  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions = {}): Promise<T[] | Map<any, T[]>> {
+  async get(instances: S, options?: HasManyGetAssociationsMixinOptions<T>): Promise<T[]>;
+  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions<T>): Promise<Map<any, T[]>>;
+  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions<T> = {}): Promise<T[] | Map<any, T[]>> {
     let isManyMode = true;
     if (!Array.isArray(instances)) {
       isManyMode = false;
@@ -302,8 +299,8 @@ export class HasMany<
    * @param instance the source instance
    * @param options find & count options
    */
-  async count(instance: S, options?: HasManyCountAssociationsMixinOptions): Promise<number> {
-    const findOptions: HasManyGetAssociationsMixinOptions = {
+  async count(instance: S, options?: HasManyCountAssociationsMixinOptions<T>): Promise<number> {
+    const findOptions: HasManyGetAssociationsMixinOptions<T> = {
       ...options,
       raw: true,
       plain: true,
@@ -337,7 +334,7 @@ export class HasMany<
   async has(
     sourceInstance: S,
     targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
-    options?: HasManyHasAssociationsMixinOptions,
+    options?: HasManyHasAssociationsMixinOptions<T>,
   ): Promise<boolean> {
     if (!Array.isArray(targetInstances)) {
       targetInstances = [targetInstances];
@@ -355,7 +352,7 @@ export class HasMany<
       }),
     };
 
-    const findOptions: HasManyGetAssociationsMixinOptions = {
+    const findOptions: HasManyGetAssociationsMixinOptions<T> = {
       ...options,
       scope: false,
       attributes: [this.target.primaryKeyAttribute],
@@ -385,7 +382,7 @@ export class HasMany<
   async set(
     sourceInstance: S,
     rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
-    options?: HasManySetAssociationsMixinOptions,
+    options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
     const targetInstances = rawTargetInstances === null ? [] : this.toInstanceArray(rawTargetInstances);
 
@@ -445,7 +442,7 @@ export class HasMany<
   async add(
     sourceInstance: S,
     rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
-    options: HasManyAddAssociationsMixinOptions = {},
+    options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
     const targetInstances = this.toInstanceArray(rawTargetInstances);
 
@@ -477,7 +474,7 @@ export class HasMany<
   async remove(
     sourceInstance: S,
     targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
-    options: HasManyRemoveAssociationsMixinOptions = {},
+    options: HasManyRemoveAssociationsMixinOptions<T> = {},
   ): Promise<void> {
     if (targetInstances == null) {
       return;
@@ -528,7 +525,9 @@ export class HasMany<
     sourceInstance: S,
     // @ts-expect-error -- {} is not always assignable to 'values', but Target.create will enforce this, not us.
     values: CreationAttributes<T> = {},
-    options: HasManyCreateAssociationMixinOptions | HasManyCreateAssociationMixinOptions['fields'] = {},
+    options:
+      | HasManyCreateAssociationMixinOptions<T>
+      | HasManyCreateAssociationMixinOptions<T>['fields'] = {},
   ): Promise<T> {
     if (Array.isArray(options)) {
       options = {
@@ -591,7 +590,7 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
  *
  * @see HasManyGetAssociationsMixin
  */
-export interface HasManyGetAssociationsMixinOptions extends FindOptions<any> {
+export interface HasManyGetAssociationsMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -628,14 +627,15 @@ export interface HasManyGetAssociationsMixinOptions extends FindOptions<any> {
  *
  * @see Model.hasMany
  */
-export type HasManyGetAssociationsMixin<TModel> = (options?: HasManyGetAssociationsMixinOptions) => Promise<TModel[]>;
+export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGetAssociationsMixinOptions<T>) => Promise<T[]>;
 
 /**
  * The options for the setAssociations mixin of the hasMany association.
  *
  * @see HasManySetAssociationsMixin
  */
-export interface HasManySetAssociationsMixinOptions extends FindOptions<any>, InstanceUpdateOptions<any> {}
+export interface HasManySetAssociationsMixinOptions<T extends Model>
+  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {}
 
 /**
  * The setAssociations mixin applied to models with hasMany.
@@ -661,9 +661,9 @@ export interface HasManySetAssociationsMixinOptions extends FindOptions<any>, In
  *
  * @see Model.hasMany
  */
-export type HasManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
-  newAssociations?: Array<TModel | TModelPrimaryKey>,
-  options?: HasManySetAssociationsMixinOptions
+export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
+  newAssociations?: Array<T | TModelPrimaryKey>,
+  options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -671,7 +671,8 @@ export type HasManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyAddAssociationsMixin
  */
-export interface HasManyAddAssociationsMixinOptions extends InstanceUpdateOptions<any> {}
+export interface HasManyAddAssociationsMixinOptions<T extends Model>
+  extends InstanceUpdateOptions<Attributes<T>> {}
 
 /**
  * The addAssociations mixin applied to models with hasMany.
@@ -697,9 +698,9 @@ export interface HasManyAddAssociationsMixinOptions extends InstanceUpdateOption
  *
  * @see Model.hasMany
  */
-export type HasManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
-  newAssociations?: Array<TModel | TModelPrimaryKey>,
-  options?: HasManyAddAssociationsMixinOptions
+export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
+  newAssociations?: Array<T | TModelPrimaryKey>,
+  options?: HasManyAddAssociationsMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -707,7 +708,8 @@ export type HasManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyAddAssociationMixin
  */
-export interface HasManyAddAssociationMixinOptions extends HasManyAddAssociationsMixinOptions {}
+export interface HasManyAddAssociationMixinOptions<T extends Model>
+  extends HasManyAddAssociationsMixinOptions<T> {}
 
 /**
  * The addAssociation mixin applied to models with hasMany.
@@ -733,9 +735,9 @@ export interface HasManyAddAssociationMixinOptions extends HasManyAddAssociation
  *
  * @see Model.hasMany
  */
-export type HasManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
-  newAssociation?: TModel | TModelPrimaryKey,
-  options?: HasManyAddAssociationMixinOptions
+export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
+  newAssociation?: T | TModelPrimaryKey,
+  options?: HasManyAddAssociationMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -743,7 +745,8 @@ export type HasManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyCreateAssociationMixin
  */
-export interface HasManyCreateAssociationMixinOptions extends CreateOptions<any> {}
+export interface HasManyCreateAssociationMixinOptions<T extends Model>
+  extends CreateOptions<Attributes<T>> {}
 
 /**
  * The createAssociation mixin applied to models with hasMany.
@@ -775,7 +778,7 @@ export type HasManyCreateAssociationMixin<
   TScope extends keyof CreationAttributes<TModel> = never,
   > = (
   values?: Omit<CreationAttributes<TModel>, TForeignKey | TScope>,
-  options?: HasManyCreateAssociationMixinOptions
+  options?: HasManyCreateAssociationMixinOptions<TModel>
 ) => Promise<TModel>;
 
 /**
@@ -783,7 +786,8 @@ export type HasManyCreateAssociationMixin<
  *
  * @see HasManyRemoveAssociationMixin
  */
-export interface HasManyRemoveAssociationMixinOptions extends HasManyRemoveAssociationsMixinOptions {}
+export interface HasManyRemoveAssociationMixinOptions<T extends Model>
+  extends HasManyRemoveAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociation mixin applied to models with hasMany.
@@ -809,9 +813,9 @@ export interface HasManyRemoveAssociationMixinOptions extends HasManyRemoveAssoc
  *
  * @see Model.hasMany
  */
-export type HasManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
-  oldAssociated?: TModel | TModelPrimaryKey,
-  options?: HasManyRemoveAssociationMixinOptions
+export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
+  oldAssociated?: T | TModelPrimaryKey,
+  options?: HasManyRemoveAssociationMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -819,7 +823,8 @@ export type HasManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyRemoveAssociationsMixin
  */
-export interface HasManyRemoveAssociationsMixinOptions extends InstanceUpdateOptions<any> {}
+export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
+  extends InstanceUpdateOptions<Attributes<T>> {}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -845,9 +850,9 @@ export interface HasManyRemoveAssociationsMixinOptions extends InstanceUpdateOpt
  *
  * @see Model.hasMany
  */
-export type HasManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
-  oldAssociateds?: Array<TModel | TModelPrimaryKey>,
-  options?: HasManyRemoveAssociationsMixinOptions
+export type HasManyRemoveAssociationsMixin<T extends Model, TModelPrimaryKey> = (
+  oldAssociateds?: Array<T | TModelPrimaryKey>,
+  options?: HasManyRemoveAssociationsMixinOptions<T>
 ) => Promise<void>;
 
 /**
@@ -855,7 +860,8 @@ export type HasManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyHasAssociationMixin
  */
-export interface HasManyHasAssociationMixinOptions extends HasManyGetAssociationsMixinOptions {}
+export interface HasManyHasAssociationMixinOptions<T extends Model>
+  extends HasManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The hasAssociation mixin applied to models with hasMany.
@@ -881,9 +887,9 @@ export interface HasManyHasAssociationMixinOptions extends HasManyGetAssociation
  *
  * @see Model.hasMany
  */
-export type HasManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
+export type HasManyHasAssociationMixin<TModel extends Model, TModelPrimaryKey> = (
   target: TModel | TModelPrimaryKey,
-  options?: HasManyHasAssociationMixinOptions
+  options?: HasManyHasAssociationMixinOptions<TModel>,
 ) => Promise<boolean>;
 
 /**
@@ -891,7 +897,8 @@ export type HasManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyHasAssociationsMixin
  */
-export interface HasManyHasAssociationsMixinOptions extends HasManyGetAssociationsMixinOptions {}
+export interface HasManyHasAssociationsMixinOptions<T extends Model>
+  extends HasManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -917,9 +924,9 @@ export interface HasManyHasAssociationsMixinOptions extends HasManyGetAssociatio
  *
  * @see Model.hasMany
  */
-export type HasManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
+export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   targets: Array<TModel | TModelPrimaryKey>,
-  options?: HasManyHasAssociationsMixinOptions
+  options?: HasManyHasAssociationsMixinOptions<TModel>
 ) => Promise<boolean>;
 
 /**
@@ -927,7 +934,7 @@ export type HasManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see HasManyCountAssociationsMixin
  */
-export interface HasManyCountAssociationsMixinOptions extends Transactionable, Filterable<any> {
+export interface HasManyCountAssociationsMixinOptions<T extends Model> extends Transactionable, Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -958,4 +965,5 @@ export interface HasManyCountAssociationsMixinOptions extends Transactionable, F
  *
  * @see Model.hasMany
  */
-export type HasManyCountAssociationsMixin = (options?: HasManyCountAssociationsMixinOptions) => Promise<number>;
+export type HasManyCountAssociationsMixin<T extends Model> =
+  (options?: HasManyCountAssociationsMixinOptions<T>) => Promise<number>;
