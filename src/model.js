@@ -16,7 +16,7 @@ const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema, useModelSet } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -3775,7 +3775,10 @@ export class Model {
     return this;
   }
 
+  // TODO: deprecated - remove in Sequelize 8
   setAttributes(updates) {
+    useModelSet();
+
     return this.set(updates);
   }
 

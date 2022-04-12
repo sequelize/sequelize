@@ -3304,6 +3304,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @deprecated use {@link Model.set}
    */
+  // TODO: deprecated - remove in Sequelize 8
   public setAttributes<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
   public setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
