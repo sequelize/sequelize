@@ -209,18 +209,6 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
   | Json
 >;
 
-/**
- * @deprecated unused
- */
-export interface AnyOperator {
-  [Op.any]: readonly (string | number | Date | Literal)[] | Literal;
-}
-
-/** @deprecated unused */
-export interface AllOperator {
-  [Op.all]: readonly (string | number | Date | Literal)[] | Literal;
-}
-
 // number is always allowed because -Infinity & +Infinity are valid
 export type Rangable<T> = readonly [
   lower: T | RangePart<T | number> | number | null,
@@ -565,52 +553,12 @@ export interface WhereOperators<AttributeType = any> {
 }
 
 /**
- * Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)`
- *
- * @deprecated do not use me!
- */
-// TODO [>6]: Remove me
-export interface OrOperator<TAttributes = any> {
-  [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
-}
-
-/**
- * Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)`
- *
- * @deprecated do not use me!
- */
-// TODO [>6]: Remove me
-export interface AndOperator<TAttributes = any> {
-  [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
-}
-
-/**
  * Where Geometry Options
  */
 export interface WhereGeometryOptions {
   type: string;
   coordinates: readonly (number[] | number)[];
 }
-
-/**
- * Used for the right hand side of WhereAttributeHash.
- * WhereAttributeHash is in there for JSON columns.
- *
- * @deprecated do not use me
- */
-// TODO [>6]: remove this
-export type WhereValue<TAttributes = any> =
-  | string
-  | number
-  | bigint
-  | boolean
-  | Date
-  | Buffer
-  | null
-  | WhereAttributeHash<any> // for JSON columns
-  | Col // reference another column
-  | Fn
-  | WhereGeometryOptions
 
 /**
  * A hash of attributes to describe your search.
