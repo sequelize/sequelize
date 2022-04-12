@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { ConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('connection:sqlite');
@@ -11,7 +11,7 @@ const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('sqlite');
 const { promisify } = require('util');
 
-class ConnectionManager extends AbstractConnectionManager {
+export class SqliteConnectionManager extends ConnectionManager {
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
@@ -113,7 +113,3 @@ class ConnectionManager extends AbstractConnectionManager {
     }
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const Query = require('@sequelize/core/lib/dialects/abstract/query');
+const { AbstractQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js');
 
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');

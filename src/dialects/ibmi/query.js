@@ -1,15 +1,14 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const parserStore = require('../parserStore')('ibmi');
-const SqlString = require('../../sql-string');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:ibmi');
 
-class Query extends AbstractQuery {
+export class IBMiQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -244,7 +243,7 @@ class Query extends AbstractQuery {
 
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.ForeignKeyConstraintError({
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -254,7 +253,7 @@ class Query extends AbstractQuery {
       if (uniqueConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.UniqueConstraintError({
           errors: err.odbcErrors,
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -272,7 +271,7 @@ class Query extends AbstractQuery {
 
           if (type === '*N') {
             return new sequelizeErrors.UnknownConstraintError({
-              parent: err,
+              cause: err,
               constraint: constraintName,
             });
           }
@@ -285,7 +284,3 @@ class Query extends AbstractQuery {
     return err;
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('mssql');
 const _ = require('lodash');
@@ -21,7 +21,7 @@ function getScale(aNum) {
   return Math.log10(e);
 }
 
-class Query extends AbstractQuery {
+export class MsSqlQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -334,7 +334,7 @@ class Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -344,7 +344,7 @@ class Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -360,7 +360,7 @@ class Query extends AbstractQuery {
         message: match[1],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -453,7 +453,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

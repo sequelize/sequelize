@@ -7,9 +7,8 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Op } = require('@sequelize/core/lib/operators');
-const { IndexHints } = require('@sequelize/core/lib/index-hints');
-const QueryGenerator = require('@sequelize/core/lib/dialects/snowflake/query-generator');
+const { Op, IndexHints } = require('@sequelize/core');
+const { SnowflakeQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query-generator.js');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] QueryGenerator', () => {

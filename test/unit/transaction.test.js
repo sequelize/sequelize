@@ -6,7 +6,8 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('./support');
 
-const Sequelize = Support.Sequelize;
+const { Transaction } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
@@ -79,7 +80,7 @@ if (dialect !== 'ibmi') {
         ],
       };
 
-      await current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
+      await current.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
         expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
       });
     });

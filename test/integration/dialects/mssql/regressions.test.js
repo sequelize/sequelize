@@ -6,8 +6,8 @@ const expect = chai.expect;
 const sinon =  require('sinon');
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const Op = Sequelize.Op;
+const { Sequelize, Op } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
