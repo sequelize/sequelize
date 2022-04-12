@@ -1,3 +1,4 @@
+create user sequelizetest identified by sequelizepassword;
 grant connect to sequelizetest with admin option;
 grant create session to sequelizetest with admin option;
 grant grant any privilege to sequelizetest with admin option;
@@ -9,7 +10,6 @@ grant update any table to sequelizetest with admin option;
 grant delete any table to sequelizetest with admin option;
 grant drop any table to sequelizetest with admin option;
 grant create view to sequelizetest with admin option;
-grant drop view to sequelizetest with admin option;
 grant create user to sequelizetest with admin option;
 grant drop user to sequelizetest with admin option;
 grant create any trigger to sequelizetest with admin option;

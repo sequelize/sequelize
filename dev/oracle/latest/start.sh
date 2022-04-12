@@ -3,19 +3,19 @@ set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 # Remove an existing Oracle DB docker image
-docker-compose -p oraclexedb21c down --remove-orphans
+docker-compose -p oraclexedb down --remove-orphans
 
 # Bring up new Oracle DB docker image
-docker-compose -p oraclexedb21c up -d
+docker-compose -p oraclexedb up -d
 
 # Wait until Oracle DB is set up and docker state is healthy
-./wait-until-healthy.sh oraclexedb21c
+./wait-until-healthy.sh oraclexedb
 
 # Moving privileges.sql to docker container
-docker cp privileges.sql oraclexedb21c:/opt/oracle/. 
+docker cp privileges.sql oraclexedb:/opt/oracle/. 
 
 # Granting all the needed privileges to sequelizetest user
-docker exec -it oraclexedb21c sqlplus system/password@XEPDB1 @privileges.sql
+docker exec -it oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
 
 # Setting up Oracle instant client for oracledb
 if [ ! -d  ~/Downloads/oracle ] 
@@ -31,4 +31,4 @@ then
     echo "Local Oracle instant client has been setup!"
 fi
 
-echo "Local Oracle DB - 21c is ready for use!"
+echo "Local Oracle DB is ready for use!"
