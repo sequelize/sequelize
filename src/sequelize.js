@@ -440,7 +440,7 @@ export class Sequelize {
    * @example
    * sequelize.define('modelName', {
    *   columnA: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       validate: {
    *         is: ["[a-z]",'i'],        // will only allow letters
    *         max: 23,                  // only allow values <= 23
@@ -451,7 +451,7 @@ export class Sequelize {
    *       },
    *       field: 'column_a'
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * });
    *
