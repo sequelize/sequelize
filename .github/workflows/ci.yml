@@ -258,7 +258,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [10, 16]
-    name: Oracle DB 21c (Node ${{ matrix.node-version }})
+    name: Oracle DB (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
       DIALECT: oracle
@@ -274,7 +274,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
-      - name: Install Local Oracle DB 21c
+      - name: Install Local Oracle DB
         run: yarn start-oracle
       - name: Unit Tests
         run: yarn test-unit
