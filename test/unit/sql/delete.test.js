@@ -1,7 +1,7 @@
 'use strict';
 
 const Support   = require('../support');
-const { QueryTypes, Sequelize } = require('@sequelize/core');
+const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete when the primary key has a different field name', () => {
       const User = current.define('test_user', {
         id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           field: 'test_user_id',
         },

@@ -1,5 +1,6 @@
 'use strict';
 
+import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 
 const url = require('url');
@@ -1269,8 +1270,14 @@ Sequelize.HasMany = HasMany;
 Sequelize.BelongsToMany = BelongsToMany;
 
 Sequelize.DataTypes = DataTypes;
-for (const dataType in DataTypes) {
-  Sequelize[dataType] = DataTypes[dataType];
+for (const dataTypeName in DataTypes) {
+  Object.defineProperty(Sequelize, dataTypeName, {
+    get() {
+      noSequelizeDataType();
+
+      return DataTypes[dataTypeName];
+    },
+  });
 }
 
 /**
