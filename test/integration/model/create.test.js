@@ -1174,13 +1174,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('raises an error if you mess up the datatype', function () {
       expect(() => {
         this.sequelize.define('UserBadDataType', {
-          activity_date: DataTypes.DATE,
+          activity_date: DataTypes.DATe,
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
 
       expect(() => {
         this.sequelize.define('UserBadDataType', {
-          activity_date: { type: DataTypes.DATE },
+          activity_date: { type: DataTypes.DATe },
         });
       }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
     });
