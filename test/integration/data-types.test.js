@@ -163,14 +163,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
   });
 
-  if (current.dialect.supports.TIME_WITH_TIME_ZONE) {
-    it('calls parse and stringify for TIME WITH TIMEZONE', async () => {
-      const Type = new Sequelize.TIME({ zoned: true });
-
-      await testSuccess(Type, moment(new Date()).format('hh:mm:ss ZZ'));
-    });
-  }
-
   it('calls parse and stringify for BLOB', async () => {
     const Type = new Sequelize.BLOB();
 
