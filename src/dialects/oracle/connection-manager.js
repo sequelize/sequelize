@@ -1,3 +1,5 @@
+// Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+
 'use strict';
 
 const AbstractConnectionManager = require('../abstract/connection-manager');
@@ -38,34 +40,6 @@ class ConnectionManager extends AbstractConnectionManager {
     }
     // Retrieve BLOB always as Buffer.
     this.lib.fetchAsBuffer = [this.lib.BLOB];
-
-    // try {
-    //   if (sequelize.config.dialectModulePath) {
-    //     this.lib = require(sequelize.config.dialectModulePath);
-    //   } else {
-    //     this.lib = require('oracledb');
-    //     this.lib.maxRows = 1000;
-
-    //     if (sequelize.config && 'dialectOptions' in sequelize.config) {
-    //       const dialectOptions = sequelize.config.dialectOptions;
-    //       if (dialectOptions && 'maxRows' in dialectOptions) {
-    //         this.lib.maxRows = sequelize.config.dialectOptions.maxRows;
-    //       }
-
-    //       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-    //         this.lib.fetchAsString = sequelize.config.dialectOptions.fetchAsString;
-    //       } else {
-    //         this.lib.fetchAsString = [this.lib.CLOB];
-    //       }
-    //     }
-    //     //this.lib.Promise = Promise;
-    //   }
-    // } catch (err) {
-    //   if (err.code === 'MODULE_NOT_FOUND') {
-    //     throw new Error('Please install oracledb package manually');
-    //   }
-    //   throw err;
-    // }
   }
 
   /**

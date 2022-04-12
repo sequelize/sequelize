@@ -1,3 +1,5 @@
+// Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+
 'use strict';
 const { QueryInterface } = require('../abstract/query-interface');
 const QueryTypes = require('../../query-types');
