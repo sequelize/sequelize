@@ -30,22 +30,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
 
-    it('should throw when id is added but not marked as PK', () => {
-      expect(() => {
-        current.define('foo', {
-          id: DataTypes.INTEGER,
-        });
-      }).to.throw('A column called \'id\' was added to the attributes of \'foos\' but not marked with \'primaryKey: true\'');
-
-      expect(() => {
-        current.define('bar', {
-          id: {
-            type: DataTypes.INTEGER,
-          },
-        });
-      }).to.throw('A column called \'id\' was added to the attributes of \'bars\' but not marked with \'primaryKey: true\'');
-    });
-
     it('should allow model definition without PK', () => {
       const Model = current.define('User', {}, {
         noPrimaryKey: true,
