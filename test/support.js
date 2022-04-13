@@ -148,7 +148,7 @@ const Support = {
 
   createSequelizeInstance(options) {
     options = options || {};
-    options.dialect = this.getTestDialect();
+    options.dialect = Support.getTestDialect();
 
     const config = Config[options.dialect];
 
@@ -171,7 +171,7 @@ const Support = {
       sequelizeOptions.storage = config.storage;
     }
 
-    return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
+    return Support.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
   resetSequelizeInstance() {
