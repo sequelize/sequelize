@@ -313,6 +313,18 @@ interface OpTypes {
    */
   readonly notBetween: unique symbol;
   /**
+   * Operator NOT LIKE
+   *
+   * ```js
+   * [Op.notEndsWith]: 'hat'
+   * ```
+   * In SQL
+   * ```sql
+   * NOT LIKE '%hat'
+   * ```
+   */
+  readonly notEndsWith: unique symbol;
+  /**
    * Operator NOT ILIKE (case insensitive) (PG only)
    *
    * ```js
@@ -372,6 +384,30 @@ interface OpTypes {
    * ```
    */
   readonly notRegexp: unique symbol;
+  /**
+   * Operator NOT LIKE
+   *
+   * ```js
+   * [Op.notStartsWith]: 'hat'
+   * ```
+   * In SQL
+   * ```sql
+   * NOT LIKE 'hat%'
+   * ```
+   */
+  readonly notStartsWith: unique symbol;
+  /**
+   * Operator LIKE
+   *
+   * ```js
+   * [Op.notSubstring]: 'hat'
+   * ```
+   * In SQL
+   * ```sql
+   * NOT LIKE '%hat%'
+   * ```
+   */
+  readonly notSubstring: unique symbol;
   /**
    * Operator OR
    *
@@ -499,8 +535,11 @@ export const Op: OpTypes = {
   iLike: Symbol.for('iLike'),
   notILike: Symbol.for('notILike'),
   startsWith: Symbol.for('startsWith'),
+  notStartsWith: Symbol.for('notStartsWith'),
   endsWith: Symbol.for('endsWith'),
+  notEndsWith: Symbol.for('notEndsWith'),
   substring: Symbol.for('substring'),
+  notSubstring: Symbol.for('notSubstring'),
   regexp: Symbol.for('regexp'),
   notRegexp: Symbol.for('notRegexp'),
   iRegexp: Symbol.for('iRegexp'),
