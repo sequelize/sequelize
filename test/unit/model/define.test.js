@@ -46,6 +46,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('A column called \'id\' was added to the attributes of \'bars\' but not marked with \'primaryKey: true\'');
     });
 
+    it('should allow model definition without PK', () => {
+      const Model = current.define('User', {}, {
+        noPrimaryKey: true,
+      });
+
+      expect(Model.rawAttributes).not.to.have.property('id');
+    });
+
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
       expect(() => {
         current.define('foo', {
