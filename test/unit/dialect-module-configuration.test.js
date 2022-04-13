@@ -6,7 +6,8 @@ const expect = chai.expect;
 const path = require('path');
 
 const Support = require(`${__dirname}/support`);
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {

@@ -1,13 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
-const AggregateError = require('@sequelize/core/lib/errors/aggregate-error');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
@@ -111,7 +108,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail on validate: true and individualHooks: true', async function () {
       const User = this.sequelize.define('user', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
 
       await User.sync({ force: true });
@@ -123,19 +120,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not map instance dataValues to fields with individualHooks: true', async function () {
       const User = this.sequelize.define('user', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
         type: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           allowNull: false,
           field: 'user_type',
         },
         createdAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
           allowNull: false,
           field: 'created_at',
         },
         updatedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
           field: 'modified_at',
         },
       });
@@ -150,8 +147,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not insert NULL for unused fields', async function () {
       const Beer = this.sequelize.define('Beer', {
-        style: Sequelize.STRING,
-        size: Sequelize.INTEGER,
+        style: DataTypes.STRING,
+        size: DataTypes.INTEGER,
       });
 
       await Beer.sync({ force: true });
@@ -283,7 +280,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('properly handles a model with a length column', async function () {
       const UserWithLength = this.sequelize.define('UserWithLength', {
-        length: Sequelize.INTEGER,
+        length: DataTypes.INTEGER,
       });
 
       await UserWithLength.sync({ force: true });
@@ -307,11 +304,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('emits an error when validate is set to true', async function () {
       const Tasks = this.sequelize.define('Task', {
         name: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           allowNull: false,
         },
         code: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           validate: {
             len: [3, 10],
           },
@@ -349,13 +346,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('doesn\'t emit an error when validate is set to true but our selectedValues are fine', async function () {
       const Tasks = this.sequelize.define('Task', {
         name: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           validate: {
             notEmpty: true,
           },
         },
         code: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           validate: {
             len: [3, 10],
           },
@@ -815,7 +812,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING);
+          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -839,7 +836,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING);
+          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -862,8 +859,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
-          state: { type: Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
-          name: Sequelize.STRING,
+          state: { type: DataTypes.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          name: DataTypes.STRING,
         });
 
         await Item.sync({ force: true });
@@ -875,18 +872,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should properly map field names to attribute names', async function () {
       const Maya = this.sequelize.define('Maya', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
         secret: {
           field: 'secret_given',
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
         },
         createdAt: {
           field: 'created_at',
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
         updatedAt: {
           field: 'updated_at',
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       });
 
@@ -978,7 +975,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       beforeEach(function () {
         this.User = this.sequelize.define('user', {
           password: {
-            type: Sequelize.VIRTUAL,
+            type: DataTypes.VIRTUAL,
             validate: {
               customValidator: () => {
                 throw new Error('always invalid');

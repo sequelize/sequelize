@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -17,20 +17,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('sync', () => {
     beforeEach(async function () {
       this.testSync = this.sequelize.define('testSync', {
-        dummy: Sequelize.STRING,
+        dummy: DataTypes.STRING,
       });
       await this.testSync.drop();
     });
 
     it('should remove a column if it exists in the databases schema but not the model', async function () {
       const User = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
-        badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' },
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
+        badgeNumber: { type: DataTypes.INTEGER, field: 'badge_number' },
       });
       await this.sequelize.sync();
       this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       await this.sequelize.sync({ alter: true });
       const data = await User.describe();
@@ -42,14 +42,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should add a column if it exists in the model but not the database', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       await this.sequelize.sync();
 
       await this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
-        height: { type: Sequelize.INTEGER, field: 'height_cm' },
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
+        height: { type: DataTypes.INTEGER, field: 'height_cm' },
       });
 
       await this.sequelize.sync({ alter: true });
@@ -61,13 +61,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not remove columns if drop is set to false in alter configuration', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
       });
       await this.sequelize.sync();
 
       await this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
 
       await this.sequelize.sync({ alter: { drop: false } });
@@ -78,13 +78,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should remove columns if drop is set to true in alter configuration', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
       });
       await this.sequelize.sync();
 
       await this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
 
       await this.sequelize.sync({ alter: { drop: true } });
@@ -95,13 +95,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should alter a column using the correct column name (#9515)', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       await this.sequelize.sync();
 
       await this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' },
+        name: DataTypes.STRING,
+        badgeNumber: { type: DataTypes.INTEGER, field: 'badge_number' },
       });
 
       await this.sequelize.sync({ alter: true });
@@ -114,14 +114,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (dialect !== 'ibmi') {
       it('should change a column if it exists in the model but is different in the database', async function () {
         const testSync = this.sequelize.define('testSync', {
-          name: Sequelize.STRING,
-          age: Sequelize.INTEGER,
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER,
         });
         await this.sequelize.sync();
 
         await this.sequelize.define('testSync', {
-          name: Sequelize.STRING,
-          age: Sequelize.STRING,
+          name: DataTypes.STRING,
+          age: DataTypes.STRING,
         });
 
         await this.sequelize.sync({ alter: true });
@@ -133,8 +133,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not alter table if data type does not change', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.STRING,
+        name: DataTypes.STRING,
+        age: DataTypes.STRING,
       });
       await this.sequelize.sync();
       await testSync.create({ name: 'test', age: '1' });
@@ -146,8 +146,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should properly create composite index without affecting individual fields', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.STRING,
+        name: DataTypes.STRING,
+        age: DataTypes.STRING,
       }, { indexes: [{ unique: true, fields: ['name', 'age'] }] });
       await this.sequelize.sync();
       await testSync.create({ name: 'test' });
@@ -165,8 +165,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
     it('should properly create composite index that fails on constraint violation', async function () {
       const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.STRING,
+        name: DataTypes.STRING,
+        age: DataTypes.STRING,
       }, { indexes: [{ unique: true, fields: ['name', 'age'] }] });
 
       try {
@@ -181,11 +181,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should properly alter tables when there are foreign keys', async function () {
       const foreignKeyTestSyncA = this.sequelize.define('foreignKeyTestSyncA', {
-        dummy: Sequelize.STRING,
+        dummy: DataTypes.STRING,
       });
 
       const foreignKeyTestSyncB = this.sequelize.define('foreignKeyTestSyncB', {
-        dummy: Sequelize.STRING,
+        dummy: DataTypes.STRING,
       });
 
       foreignKeyTestSyncA.hasMany(foreignKeyTestSyncB);
@@ -201,13 +201,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not duplicate named indexes after multiple sync calls', async function () {
           const User = this.sequelize.define('testSync', {
             email: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
             phone: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
             mobile: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
           }, {
             indexes: [
@@ -245,13 +245,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not duplicate unnamed indexes after multiple sync calls', async function () {
           const User = this.sequelize.define('testSync', {
             email: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
             phone: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
             mobile: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
             },
           }, {
             indexes: [
@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create only one unique index for unique:true column', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: true,
           },
         });
@@ -302,11 +302,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create only one unique index for unique:true columns', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: true,
           },
           phone: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: true,
           },
         });
@@ -327,11 +327,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create only one unique index for unique:true columns taking care of options.indexes', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: true,
           },
           phone: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: true,
           },
         }, {
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create only one unique index for unique:name column', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: 'wow_my_index',
           },
         });
@@ -383,11 +383,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should create only one unique index for unique:name columns', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: 'wow_my_index',
           },
           phone: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             unique: 'wow_my_index',
           },
         });

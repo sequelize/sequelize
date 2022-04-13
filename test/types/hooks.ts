@@ -1,7 +1,7 @@
 import { expectTypeOf } from "expect-type";
 import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions, Config, Utils } from '@sequelize/core';
-import { ModelHooks } from '@sequelize/core/lib/hooks';
-import { AbstractQuery } from '@sequelize/core/lib/dialects/abstract/query';
+import { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/hooks.js';
+import { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import { SemiDeepWritable } from "./type-helpers/deep-writable";
 
 {

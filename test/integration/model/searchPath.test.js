@@ -4,9 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-
-const Op = Support.Sequelize.Op;
+const { DataTypes, Op } = require('@sequelize/core');
 
 const SEARCH_PATH_ONE = 'schema_one,public';
 const SEARCH_PATH_TWO = 'schema_two,public';

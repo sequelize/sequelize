@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Sequelize = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
 chai.should();
@@ -11,7 +11,7 @@ chai.should();
 describe(Support.getTestDialectTeaser('Vectors'), () => {
   it('should not allow insert backslash', async function () {
     const Student = this.sequelize.define('student', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       tableName: 'student',
     });

@@ -1,11 +1,11 @@
 'use strict';
 
 const Support = require('../support');
+const { Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
-const Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 

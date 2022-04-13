@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { ConnectionManager } = require('../abstract/connection-manager');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').db2;
@@ -17,7 +17,7 @@ const parserStore = require('../parserStore')('db2');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class Db2ConnectionManager extends ConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
@@ -124,7 +124,3 @@ class ConnectionManager extends AbstractConnectionManager {
     return this.dialect.connectionManager.disconnect(connection);
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

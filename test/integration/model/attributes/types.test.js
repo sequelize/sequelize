@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -14,9 +14,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('VIRTUAL', () => {
         beforeEach(async function () {
           this.User = this.sequelize.define('user', {
-            storage: Sequelize.STRING,
+            storage: DataTypes.STRING,
             field1: {
-              type: Sequelize.VIRTUAL,
+              type: DataTypes.VIRTUAL,
               set(val) {
                 this.setDataValue('storage', val);
                 this.setDataValue('field1', val);
@@ -26,13 +26,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             },
             field2: {
-              type: Sequelize.VIRTUAL,
+              type: DataTypes.VIRTUAL,
               get() {
                 return 42;
               },
             },
             virtualWithDefault: {
-              type: Sequelize.VIRTUAL,
+              type: DataTypes.VIRTUAL,
               defaultValue: 'cake',
             },
           }, { timestamps: false });
@@ -92,9 +92,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should allow me to store selected values', async function () {
           const Post = this.sequelize.define('Post', {
-            text: Sequelize.TEXT,
+            text: DataTypes.TEXT,
             someBoolean: {
-              type: Sequelize.VIRTUAL,
+              type: DataTypes.VIRTUAL,
             },
           });
 

@@ -7,7 +7,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
-class MySQLQueryInterface extends QueryInterface {
+export class MySqlQueryInterface extends QueryInterface {
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
@@ -91,5 +91,3 @@ class MySQLQueryInterface extends QueryInterface {
     return await this.sequelize.query(query, options);
   }
 }
-
-exports.MySQLQueryInterface = MySQLQueryInterface;

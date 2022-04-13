@@ -4,10 +4,8 @@ const Support = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const DataTypes = require('@sequelize/core/lib/data-types');
-const { Op } = require('@sequelize/core/lib/operators');
-const { TableHints } = require('@sequelize/core/lib/table-hints');
-const QueryGenerator = require('@sequelize/core/lib/dialects/mssql/query-generator');
+const { DataTypes, Op, TableHints } = require('@sequelize/core');
+const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {

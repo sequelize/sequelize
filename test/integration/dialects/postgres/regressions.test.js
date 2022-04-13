@@ -5,14 +5,15 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
+const { DataTypes } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] Regressions', () => {
     it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {
-        active: Sequelize.BOOLEAN,
+        active: DataTypes.BOOLEAN,
       });
 
       /**
@@ -21,7 +22,7 @@ if (dialect.startsWith('postgres')) {
        * We are testing that OID refresh keep base type intact
        */
       const Media = this.sequelize.define('Media', {
-        type: Sequelize.ENUM([
+        type: DataTypes.ENUM([
           'image', 'video', 'audio',
         ]),
       });

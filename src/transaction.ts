@@ -415,7 +415,7 @@ export interface TransactionOptions extends Logging {
   autocommit?: boolean;
   isolationLevel?: ISOLATION_LEVELS;
   type?: TRANSACTION_TYPES;
-  deferrable?: string | Deferrable.Deferrable;
+  deferrable?: string | Deferrable;
   /**
    * Parent transaction.
    */

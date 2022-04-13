@@ -10,7 +10,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
-class QueryInterface {
+export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
@@ -145,26 +145,26 @@ class QueryInterface {
    *   'nameOfTheNewTable',
    *   {
    *     id: {
-   *       type: Sequelize.INTEGER,
+   *       type: DataTypes.INTEGER,
    *       primaryKey: true,
    *       autoIncrement: true
    *     },
    *     createdAt: {
-   *       type: Sequelize.DATE
+   *       type: DataTypes.DATE
    *     },
    *     updatedAt: {
-   *       type: Sequelize.DATE
+   *       type: DataTypes.DATE
    *     },
-   *     attr1: Sequelize.STRING,
-   *     attr2: Sequelize.INTEGER,
+   *     attr1: DataTypes.STRING,
+   *     attr2: DataTypes.INTEGER,
    *     attr3: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       defaultValue: false,
    *       allowNull: false
    *     },
    *     //foreign key usage
    *     attr4: {
-   *       type: Sequelize.INTEGER,
+   *       type: DataTypes.INTEGER,
    *       references: {
    *         model: 'another_table_name',
    *         key: 'id'
@@ -395,7 +395,7 @@ class QueryInterface {
    * Add a new column to a table
    *
    * ```js
-   * queryInterface.addColumn('tableA', 'columnC', Sequelize.STRING, {
+   * queryInterface.addColumn('tableA', 'columnC', DataTypes.STRING, {
    *    after: 'columnB' // after option is only supported by MySQL
    * });
    * ```
@@ -1317,5 +1317,3 @@ class QueryInterface {
     return await promise;
   }
 }
-
-exports.QueryInterface = QueryInterface;
