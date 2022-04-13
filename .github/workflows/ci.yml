@@ -245,6 +245,14 @@ jobs:
             image: mysql:8.0.28
             dialect: mysql
             node-version: 16
+          - name: MariaDB 10.1
+            image: mariadb:10.1.44
+            dialect: mariadb
+            node-version: 14
+          - name: MariaDB 10.1
+            image: mariadb:10.1.44
+            dialect: mariadb
+            node-version: 16
           - name: MariaDB 10.3
             image: mariadb:10.3.34
             dialect: mariadb
