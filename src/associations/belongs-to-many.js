@@ -17,7 +17,7 @@ const { Op } = require('../operators');
  *
  * ```js
  * UserProject = sequelize.define('user_project', {
- *   role: Sequelize.STRING
+ *   role: DataTypes.STRING
  * });
  * User.belongsToMany(Project, { through: UserProject });
  * Project.belongsToMany(User, { through: UserProject });

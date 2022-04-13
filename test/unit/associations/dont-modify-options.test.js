@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
       this.B = this.sequelize.define('B', {
         id: {
-          type: Sequelize.CHAR(20),
+          type: DataTypes.CHAR(20),
           primaryKey: true,
         },
       });
