@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, Op } = require('@sequelize/core');
+const { Sequelize, DataTypes, Op } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -10,10 +10,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     beforeEach(async function () {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
-        username: Sequelize.STRING,
-        email: Sequelize.STRING,
-        access_level: Sequelize.INTEGER,
-        other_value: Sequelize.INTEGER,
+        username: DataTypes.STRING,
+        email: DataTypes.STRING,
+        access_level: DataTypes.INTEGER,
+        other_value: DataTypes.INTEGER,
       }, {
         scopes: {
           lowAccess: {

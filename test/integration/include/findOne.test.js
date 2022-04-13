@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
-          defaultValue: Sequelize.UUIDV4,
+          defaultValue: DataTypes.UUIDV4,
           field: 'main_id',
           primaryKey: true,
         },
