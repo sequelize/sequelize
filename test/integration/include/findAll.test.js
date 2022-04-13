@@ -1465,12 +1465,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should be possible not to include the main id in the attributes', async function () {
       const Member = this.sequelize.define('Member', {
         id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           primaryKey: true,
           autoIncrement: true,
         },
         email: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           unique: true,
           allowNull: false,
           validate: {
@@ -1479,16 +1479,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             notEmpty: true,
           },
         },
-        password: Sequelize.STRING,
+        password: DataTypes.STRING,
       });
       const Album = this.sequelize.define('Album', {
         id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           primaryKey: true,
           autoIncrement: true,
         },
         title: {
-          type: Sequelize.STRING(25),
+          type: DataTypes.STRING(25),
           allowNull: false,
         },
       });
@@ -1592,10 +1592,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support including date fields, with the correct timeszone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
 
       User.belongsToMany(Group, { through: 'group_user' });
@@ -1690,30 +1690,30 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should work on a nested set of required 1:1 relations', async function () {
       const Person = this.sequelize.define('Person', {
         name: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           allowNull: false,
         },
       });
 
       const UserPerson = this.sequelize.define('UserPerson', {
         PersonId: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
         },
 
         rank: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
         },
       });
 
       const User = this.sequelize.define('User', {
         UserPersonId: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
         },
 
         login: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           unique: true,
           allowNull: false,
         },

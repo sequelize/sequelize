@@ -116,7 +116,7 @@ if (current.dialect.supports.transactions) {
         it('does not try to rollback a transaction that failed upon committing with SERIALIZABLE isolation level (#3689)', async function () {
           // See https://wiki.postgresql.org/wiki/SSI
 
-          const Dots = this.sequelize.define('dots', { color: Sequelize.STRING });
+          const Dots = this.sequelize.define('dots', { color: DataTypes.STRING });
           await Dots.sync({ force: true });
 
           const initialData = [
@@ -441,7 +441,7 @@ if (current.dialect.supports.transactions) {
         const getAndInitializeTaskModel = async sequelize => {
           const Task = sequelize.define('task', {
             id: {
-              type: Sequelize.INTEGER,
+              type: DataTypes.INTEGER,
               primaryKey: true,
             },
           });

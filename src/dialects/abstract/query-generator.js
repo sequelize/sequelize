@@ -2713,8 +2713,14 @@ export class AbstractQueryGenerator {
         return this._joinKeyValue(key, value.map(identifier => this.quoteIdentifier(identifier)).join('.'), comparator, options.prefix);
       case Op.startsWith:
       case Op.endsWith:
-      case Op.substring: {
+      case Op.substring:
         comparator = this.OperatorMap[Op.like];
+      case Op.notStartsWith:
+      case Op.notEndsWith:
+      case Op.notSubstring: {
+        if (comparator !== this.OperatorMap[Op.like]) {
+          comparator = this.OperatorMap[Op.notLike];
+        }
 
         if (value instanceof Utils.Literal) {
           value = value.val;
@@ -2722,11 +2728,11 @@ export class AbstractQueryGenerator {
 
         let pattern = `${value}%`;
 
-        if (prop === Op.endsWith) {
+        if (prop === Op.endsWith || prop === Op.notEndsWith) {
           pattern = `%${value}`;
         }
 
-        if (prop === Op.substring) {
+        if (prop === Op.substring || prop === Op.notSubstring) {
           pattern = `%${value}%`;
         }
 
