@@ -360,15 +360,12 @@ export interface BelongsToGetAssociationMixinOptions<T extends Model> extends Fi
  * The getAssociation mixin applied to models with belongsTo.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *  declare getRole: BelongsToGetAssociationMixin<Role>;
+ * }
  *
  * User.belongsTo(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
- *  getRole: Sequelize.BelongsToGetAssociationMixin<RoleInstance>;
- *  // setRole...
- *  // createRole...
- * }
  * ```
  *
  * @see Model.belongsTo
@@ -395,15 +392,12 @@ export interface BelongsToSetAssociationMixinOptions<T extends Model> extends Sa
  * The setAssociation mixin applied to models with belongsTo.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *  declare setRole: BelongsToSetAssociationMixin<Role, Role['id']>;
+ * }
  *
  * User.belongsTo(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *  // getRole...
- *  setRole: Sequelize.BelongsToSetAssociationMixin<RoleInstance, RoleId>;
- *  // createRole...
- * }
  * ```
  *
  * @see Model.belongsTo
@@ -427,15 +421,12 @@ export interface BelongsToCreateAssociationMixinOptions<T extends Model>
  * The createAssociation mixin applied to models with belongsTo.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare createRole: BelongsToCreateAssociationMixin<Role>;
+ * }
  *
  * User.belongsTo(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *  // getRole...
- *  // setRole...
- *  createRole: Sequelize.BelongsToCreateAssociationMixin<RoleAttributes>;
- * }
  * ```
  *
  * @see Model.belongsTo

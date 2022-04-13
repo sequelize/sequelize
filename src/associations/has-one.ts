@@ -406,15 +406,12 @@ export interface HasOneGetAssociationMixinOptions<T extends Model> extends FindO
  * The getAssociation mixin applied to models with hasOne.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare getRole: HasOneGetAssociationMixin<Role>;
+ * }
  *
  * User.hasOne(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
- *  getRole: Sequelize.HasOneGetAssociationMixin<RoleInstance>;
- *  // setRole...
- *  // createRole...
- * }
  * ```
  *
  * @returns The associated model, or null if no model is associated. HasOne associations are always nullable because the foreign key is on the target model.
@@ -438,15 +435,12 @@ export interface HasOneSetAssociationMixinOptions<T extends Model>
  * The setAssociation mixin applied to models with hasOne.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare setRole: HasOneSetAssociationMixin<Role, Role['id']>;
+ * }
  *
  * User.hasOne(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *  // getRole...
- *  setRole: Sequelize.HasOneSetAssociationMixin<RoleInstance, RoleId>;
- *  // createRole...
- * }
  * ```
  *
  * @see Model.hasOne
@@ -468,15 +462,12 @@ export interface HasOneCreateAssociationMixinOptions<T extends Model>
  * The createAssociation mixin applied to models with hasOne.
  * An example of usage is as follows:
  *
- * ```js
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *  declare createRole: HasOneCreateAssociationMixin<Role>;
+ * }
  *
  * User.hasOne(Role);
- *
- * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *  // getRole...
- *  // setRole...
- *  createRole: Sequelize.HasOneCreateAssociationMixin<RoleAttributes>;
- * }
  * ```
  *
  * @see Model.hasOne
