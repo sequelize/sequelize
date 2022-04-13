@@ -1,0 +1,17 @@
+services:
+  yugabyte:
+    container_name: sequelize-yugabytedb-2.12
+    image: yugabytedb/yugabyte:2.12.3.0-b19
+    command:  bin/yugabyted start --daemon=false --initial_scripts_dir /docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      YSQL_USER: yugabyte
+      YSQL_PASSWORD: yugabyte
+      YSQL_DB: sequelize_test
+    volumes:
+      - "./../yugabytedb-init.sql:/docker-entrypoint-initdb.d/yugabytedb-init.sql"
+    ports:
+      - 25099:5433
+
+
+
