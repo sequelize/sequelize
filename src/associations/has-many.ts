@@ -1,6 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject';
 import upperFirst from 'lodash/upperFirst';
-import type { DataType } from '../data-types';
 import type {
   Model,
   CreateOptions,
@@ -14,16 +13,12 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
-import * as Utils from '../utils';
 import type { AllowArray } from '../utils';
-import type { MultiAssociationAccessors, MultiAssociationOptions, Association } from './base';
+import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
+import { BelongsTo } from './belongs-to.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
-import {
-  addForeignKeyConstraints,
-  defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
-} from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.
@@ -49,8 +44,16 @@ export class HasMany<
 > extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, NormalizedHasManyOptions<SourceKey, TargetKey>> {
   accessors: MultiAssociationAccessors;
 
-  identifierField: string | undefined;
-  foreignKeyField: string | undefined;
+  get foreignKey(): TargetKey {
+    return this.inverse.foreignKey;
+  }
+
+  /**
+   * The column name of the foreign key (on the target model)
+   */
+  get identifierField(): string {
+    return this.inverse.identifierField;
+  }
 
   /**
    * The name of the attribute the foreign key points to.
@@ -59,11 +62,21 @@ export class HasMany<
    * The {@link Association.foreignKey} is on the Target Model.
    */
   get sourceKey(): SourceKey {
-    return this.attributeReferencedByForeignKey as SourceKey;
+    return this.inverse.targetKey;
   }
 
-  sourceKeyAttribute: string;
-  sourceKeyField: string;
+  /**
+   * @deprecated use {@link sourceKey}
+   */
+  get sourceKeyAttribute(): SourceKey {
+    return this.sourceKey;
+  }
+
+  get sourceKeyField(): string {
+    return this.inverse.targetKeyField;
+  }
+
+  readonly inverse: BelongsTo<T, S, TargetKey, SourceKey>;
 
   constructor(
     secret: symbol,
@@ -79,33 +92,26 @@ export class HasMany<
       throw new Error(`Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`);
     }
 
+    if ('keyType' in options) {
+      throw new TypeError('Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.');
+    }
+
     if ('through' in options) {
       throw new Error('The "through" option is not available in hasMany. N:M associations are defined using belongsToMany instead.');
     }
 
-    // TODO: throw if source has a compose PK.
-    const attributeReferencedByForeignKey = options.sourceKey || (source.primaryKeyAttribute as SourceKey);
+    super(secret, source, target, options, parent);
 
-    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
-
-    this._origOptions = options;
-    this.computeForeignKey();
-
-    if (this.target.getAttributes()[this.foreignKey]) {
-      this.identifierField = Utils.getColumnName(this.target.getAttributes()[this.foreignKey]);
-      this.foreignKeyField = Utils.getColumnName(this.target.getAttributes()[this.foreignKey]);
-    }
-
-    /*
-     * Source key setup
-     */
-    if (this.source.rawAttributes[this.sourceKey]) {
-      this.sourceKeyAttribute = this.sourceKey;
-      this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);
-    } else {
-      this.sourceKeyAttribute = this.source.primaryKeyAttribute;
-      this.sourceKeyField = this.source.primaryKeyField;
-    }
+    this.inverse = BelongsTo.associate(secret, target, source, {
+      as: options.inverse?.as,
+      foreignKey: options.foreignKey,
+      targetKey: options.sourceKey,
+      constraints: options.constraints,
+      hooks: options.hooks,
+      onUpdate: options.onUpdate,
+      onDelete: options.onDelete,
+      scope: options.scope,
+    }, this);
 
     // Get singular and plural names
     // try to uppercase the first letter, unless the model forbids it
@@ -125,7 +131,6 @@ export class HasMany<
       count: `count${plural}`,
     };
 
-    this.#injectAttributes();
     this.#mixin(source.prototype);
   }
 
@@ -151,39 +156,6 @@ export class HasMany<
     });
   }
 
-  // the id is in the target table
-  // or in an extra table which connects two tables
-  #injectAttributes() {
-    // TODO: instead of injecting attributes, automatically create the corresponding BelongsTo association
-    const newAttributes = {
-      [this.foreignKey]: {
-        type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type,
-        allowNull: true,
-        ...this.foreignKeyAttribute,
-      },
-    };
-
-    // Create a new options object for use with addForeignKeyConstraints, to avoid polluting this.options in case it is later used for a n:m
-    const constraintOptions = { ...this.options };
-
-    if (this.options.constraints !== false) {
-      const target = this.target.rawAttributes[this.foreignKey] || newAttributes[this.foreignKey];
-      constraintOptions.onDelete = constraintOptions.onDelete || (target.allowNull ? 'SET NULL' : 'CASCADE');
-      constraintOptions.onUpdate = constraintOptions.onUpdate || 'CASCADE';
-    }
-
-    addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, constraintOptions, this.sourceKeyField);
-
-    this.target.mergeAttributesDefault(newAttributes);
-    this.source.refreshAttributes();
-
-    this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-    this.foreignKeyField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-    this.sourceKeyField = this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
-
-    return this;
-  }
-
   #mixin(mixinTargetPrototype: Model) {
     mixinMethods(
       this,
@@ -196,20 +168,6 @@ export class HasMany<
         removeMultiple: 'remove',
       },
     );
-  }
-
-  protected inferForeignKey(): string {
-    // hasMany & hasOne don't use 'as' to generate the foreign key because the foreign key is located on the *target* model.
-    // If we were to use 'as', User.hasMany(Project, { as: 'projects' }) would add the foreign key
-    // 'projectId' on Project, when it should be 'userId'.
-    // Users can still customize the foreign key using the 'ForeignKey' option.
-    // Note: Keep this code in sync with HasOne.inferForeignKey
-    const associationName = this.source.options.name.singular;
-    if (!associationName) {
-      throw new Error('Sanity check: Could not guess the name of the association');
-    }
-
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   /**
@@ -577,10 +535,9 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
    */
   sourceKey?: SourceKey;
 
-  /**
-   * A string or a data type to represent the identifier in the table
-   */
-  keyType?: DataType;
+  inverse?: {
+    as: AssociationOptions<any>['as'],
+  };
 }
 
 /**

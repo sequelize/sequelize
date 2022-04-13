@@ -1261,7 +1261,7 @@ export class AbstractQueryGenerator {
         if (typeof options.groupedLimit.on === 'string') {
           whereKey = options.groupedLimit.on;
         } else if (options.groupedLimit.on instanceof HasMany) {
-          whereKey = options.groupedLimit.on.foreignKeyField;
+          whereKey = options.groupedLimit.on.identifierField;
         }
 
         if (options.groupedLimit.on instanceof BelongsToMany) {

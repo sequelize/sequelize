@@ -360,7 +360,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
 
           this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
-          this.UserVisit.belongsTo(this.User, { foreignKey: 'user_id', targetKey: 'id' });
 
           await this.UserVisit.sync({ force: true });
         });

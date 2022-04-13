@@ -35,7 +35,7 @@ export function addForeignKeyConstraints(
   // FK constraints are opt-in: users must either set `foreignKeyConstraints`
   // on the association, or request an `onDelete` or `onUpdate` behavior
 
-  if (options.foreignKeyConstraint || options.onDelete || options.onUpdate) {
+  if (options.constraints !== false || options.onDelete || options.onUpdate) {
     // Find primary keys: composite keys not supported with this approach
     const primaryKeys = Object.keys(source.primaryKeys)
       .map(primaryKeyAttribute => source.getAttributes()[primaryKeyAttribute].field || primaryKeyAttribute);
@@ -46,8 +46,8 @@ export function addForeignKeyConstraints(
         key: key || primaryKeys[0],
       };
 
-      newAttribute.onDelete = options.onDelete;
-      newAttribute.onUpdate = options.onUpdate;
+      newAttribute.onDelete = options.onDelete ?? (newAttribute.allowNull !== false ? 'SET NULL' : 'NO ACTION');
+      newAttribute.onUpdate = options.onUpdate ?? 'CASCADE';
     }
   }
 }
@@ -148,7 +148,7 @@ export function assertAssociationUnique(
 ${parent ? `The association "${parent.as}" needs to define` : `You are trying to define`} the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
 but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
 
-${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${NodeUtils.inspect(existingRoot._origOptions)})
+${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${NodeUtils.inspect(existingRoot.options)})
 
 That association would be re-used if compatible, but it is incompatible because ${
   incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TYPES ? `their types are different (${type.name} vs ${existingAssociation.associationType})`
@@ -159,7 +159,7 @@ Options of the association to create:
 ${NodeUtils.inspect(omit(options, 'inverse'), { sorted: true })}
 
 Options of the existing association:
-${NodeUtils.inspect(omit(existingAssociation._origOptions as any, 'inverse'), { sorted: true })}
+${NodeUtils.inspect(omit(existingAssociation.options as any, 'inverse'), { sorted: true })}
 `}`.trim());
 }
 
@@ -186,7 +186,7 @@ function getAssociationsIncompatibilityStatus(
     return IncompatibilityStatus.DIFFERENT_TARGETS;
   }
 
-  const opts1 = omit(existingAssociation._origOptions as any, 'inverse');
+  const opts1 = omit(existingAssociation.options as any, 'inverse');
   const opts2 = omit(newOptions, 'inverse');
   if (!isEqual(opts1, opts2)) {
     return IncompatibilityStatus.DIFFERENT_OPTIONS;

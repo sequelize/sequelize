@@ -8,16 +8,15 @@ import type {
   SaveOptions,
   ModelStatic,
   AttributeNames,
-  ModelAttributeColumnOptions,
   Attributes,
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import { BelongsTo } from './belongs-to.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
-  addForeignKeyConstraints,
   defineAssociation,
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
@@ -43,26 +42,42 @@ export class HasOne<
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
 > extends Association<S, T, TargetKey, NormalizedHasOneOptions<SourceKey, TargetKey>> {
+
+  get foreignKey(): TargetKey {
+    return this.inverse.foreignKey;
+  }
+
+  /**
+   * The column name of the foreign key (on the target model)
+   */
+  get identifierField(): string {
+    return this.inverse.identifierField;
+  }
+
   /**
    * The name of the attribute the foreign key points to.
    * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsTo.targetKey}).
    * The {@link Association.foreignKey} is on the Target Model.
    */
   get sourceKey(): SourceKey {
-    return this.attributeReferencedByForeignKey as SourceKey;
+    return this.inverse.targetKey;
   }
 
   /**
    * The Column Name of the source key.
    */
-  readonly sourceKeyField: string;
-
-  readonly sourceKeyAttribute: string;
+  get sourceKeyField(): string {
+    return this.inverse.targetKeyField;
+  }
 
   /**
-   * A column name
+   * @deprecated use {@link sourceKey}
    */
-  identifierField: string | undefined;
+  get sourceKeyAttribute(): SourceKey {
+    return this.sourceKey;
+  }
+
+  readonly inverse: BelongsTo<T, S, TargetKey, SourceKey>;
 
   readonly accessors: SingleAssociationAccessors;
 
@@ -80,20 +95,24 @@ export class HasOne<
       throw new Error(`Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`);
     }
 
-    // TODO: throw is source model has a composite primary key.
-    const attributeReferencedByForeignKey = options?.sourceKey || (source.primaryKeyAttribute as SourceKey);
-
-    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
-
-    this._origOptions = options;
-    this.computeForeignKey();
-
-    this.sourceKeyAttribute = this.sourceKey;
-    this.sourceKeyField = this.source.getAttributes()[this.sourceKey].field || this.sourceKey;
-
-    if (this.target.getAttributes()[this.foreignKey]) {
-      this.identifierField = Utils.getColumnName(this.target.getAttributes()[this.foreignKey]);
+    if ('keyType' in options) {
+      throw new TypeError('Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.');
     }
+
+    // TODO: throw is source model has a composite primary key.
+
+    super(secret, source, target, options, parent);
+
+    this.inverse = BelongsTo.associate(secret, target, source, {
+      as: options.inverse?.as,
+      foreignKey: options.foreignKey,
+      targetKey: options.sourceKey,
+      constraints: options.constraints,
+      hooks: options.hooks,
+      onUpdate: options.onUpdate,
+      onDelete: options.onDelete,
+      scope: options.scope,
+    }, this);
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);
@@ -104,38 +123,7 @@ export class HasOne<
       create: `create${singular}`,
     };
 
-    this.#injectAttributes();
     this.#mixin(source.prototype);
-  }
-
-  /**
-   * @private
-   */
-  #injectAttributes() {
-    // TODO: instead of injecting attributes, automatically create the corresponding BelongsTo association
-    // the id is in the target table
-
-    const newAttributes: Record<string, ModelAttributeColumnOptions> = {
-      [this.foreignKey]: {
-        type: this.options.keyType || this.source.rawAttributes[this.sourceKey].type,
-        allowNull: true,
-        ...this.foreignKeyAttribute,
-      },
-    };
-
-    if (this.options.constraints !== false) {
-      const target = this.target.rawAttributes[this.foreignKey] || newAttributes[this.foreignKey];
-      this.options.onDelete = this.options.onDelete || (target.allowNull ? 'SET NULL' : 'CASCADE');
-      this.options.onUpdate = this.options.onUpdate || 'CASCADE';
-    }
-
-    addForeignKeyConstraints(newAttributes[this.foreignKey], this.source, this.options, this.sourceKeyField);
-
-    this.target.mergeAttributesDefault(newAttributes);
-
-    this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-
-    return this;
   }
 
   #mixin(mixinTargetPrototype: Model) {
@@ -161,20 +149,6 @@ export class HasOne<
     >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
       return new HasOne(secret, source, target, normalizedOptions, parent);
     });
-  }
-
-  protected inferForeignKey(): string {
-    // hasMany & hasOne don't use 'as' to generate the foreign key because the foreign key is located on the *target* model.
-    // If we were to use 'as', User.hasMany(Project, { as: 'projects' }) would add the foreign key
-    // 'projectId' on Project, when it should be 'userId'.
-    // Users can still customize the foreign key using the 'ForeignKey' option.
-    // Note: Keep this code in sync with HasMany.inferForeignKey
-    const associationName = this.source.options.name.singular;
-    if (!associationName) {
-      throw new Error('Sanity check: Could not guess the name of the association');
-    }
-
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
   }
 
   /**
@@ -382,6 +356,10 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
    * A string or a data type to represent the identifier in the table
    */
   keyType?: DataType;
+
+  inverse?: {
+    as: AssociationOptions<any>['as'],
+  };
 }
 
 /**

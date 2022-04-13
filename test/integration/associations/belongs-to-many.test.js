@@ -7,6 +7,7 @@ const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const _ = require('lodash');
 const sinon = require('sinon');
+const { resetSequelizeInstance } = require('../../support');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -1526,6 +1527,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('countAssociations', () => {
     beforeEach(async function () {
+      resetSequelizeInstance();
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
       });

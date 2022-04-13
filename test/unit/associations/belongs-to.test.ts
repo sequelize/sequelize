@@ -67,6 +67,16 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
   });
 
+  it('should add a nullable foreign key by default', () => {
+    const BarUser = sequelize.define('user');
+
+    const BarProject = sequelize.define('project');
+
+    BarProject.belongsTo(BarUser, { foreignKey: 'userId' });
+
+    expect(BarProject.rawAttributes.userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
+  });
+
   describe('association hooks', () => {
     let Projects: ModelStatic<any>;
     let Tasks: ModelStatic<any>;

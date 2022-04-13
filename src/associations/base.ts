@@ -1,6 +1,5 @@
-import assert from 'assert';
-import isObject from 'lodash/isObject';
-import type { Model, ModelStatic, ColumnOptions, Hookable, AttributeNames } from '../model';
+import type { Optional } from '../index.js';
+import type { Model, ModelStatic, Hookable, AttributeNames, ModelAttributeColumnOptions } from '../model';
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 import type { NormalizeBaseAssociationOptions } from './helpers';
@@ -94,16 +93,11 @@ export abstract class Association<
   isSelfAssociation: boolean;
   isAliased: boolean;
 
-  declare _origOptions: unknown;
   readonly options: Opts;
 
   abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
 
-  // these are set by calling computeForeignKey in children
-  foreignKeyAttribute!: ForeignKeyOptions<ForeignKey>;
-  foreignKey!: ForeignKey;
-
-  attributeReferencedByForeignKey: string;
+  abstract foreignKey: ForeignKey;
 
   /**
    * A reference to the association that created this one.
@@ -151,21 +145,15 @@ export abstract class Association<
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
-    attributeReferencedByForeignKey: string,
     options: Opts,
     parent?: Association<any>,
   ) {
-    if (!this.inferForeignKey) {
-      throw new Error('"Association" is an abstract class and cannot be directly instantiated.');
-    }
-
     if (secret !== AssociationConstructorSecret) {
       throw new Error(`Class ${this.constructor.name} cannot be instantiated directly due to it mutating the source model. Use one of the static methods on Model instead.`);
     }
 
     this.source = source;
     this.target = target;
-    this.attributeReferencedByForeignKey = attributeReferencedByForeignKey;
     this.parentAssociation = parent ?? null;
 
     this.isSelfAssociation
@@ -177,28 +165,6 @@ export abstract class Association<
     this.options = Utils.cloneDeep(options);
 
     source.associations[this.as] = this;
-  }
-
-  protected computeForeignKey() {
-    this.foreignKeyAttribute = {};
-
-    let foreignKey: string | undefined;
-    if (isObject(this.options?.foreignKey)) {
-      // lodash has poor typings
-      assert(typeof this.options?.foreignKey === 'object');
-
-      this.foreignKeyAttribute = this.options.foreignKey;
-      foreignKey = this.foreignKeyAttribute.name
-        || this.foreignKeyAttribute.fieldName;
-    } else if (this.options?.foreignKey) {
-      foreignKey = this.options.foreignKey;
-    }
-
-    if (!foreignKey) {
-      foreignKey = this.inferForeignKey();
-    }
-
-    this.foreignKey = foreignKey as ForeignKey;
   }
 
   /**
@@ -215,8 +181,6 @@ export abstract class Association<
   get scope(): AssociationScope | undefined {
     return this.options.scope;
   }
-
-  protected abstract inferForeignKey(): string;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.as;
@@ -284,11 +248,11 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string> extends ColumnOptions {
+export interface ForeignKeyOptions<ForeignKey extends string> extends Optional<ModelAttributeColumnOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
    *
-   * Not to be confused with {@link ColumnOptions#field} which controls the name of the foreign key Column.
+   * Not to be confused with {@link ModelAttributeColumnOptions#field} which controls the name of the foreign key Column.
    */
   name?: ForeignKey;
 
@@ -349,7 +313,6 @@ export interface AssociationOptions<ForeignKey extends string> extends Hookable 
    * Should on update and on delete constraints be enabled on the foreign key.
    */
   constraints?: boolean;
-  foreignKeyConstraint?: boolean;
 
   scope?: AssociationScope;
 }

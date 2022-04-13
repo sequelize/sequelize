@@ -482,7 +482,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     let sql = type.toString();
 
-    if (Object.prototype.hasOwnProperty.call(attribute, 'allowNull') && !attribute.allowNull) {
+    if (attribute.allowNull === false) {
       sql += ' NOT NULL';
     }
 

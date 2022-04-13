@@ -1,5 +1,6 @@
+import assert from 'assert';
+import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
-import type { DataType } from '../data-types.js';
 import type {
   ModelStatic,
   Model,
@@ -7,7 +8,8 @@ import type {
   CreationAttributes,
   FindOptions,
   SaveOptions,
-  AttributeNames, Attributes,
+  AttributeNames,
+  Attributes,
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
@@ -51,19 +53,19 @@ export class BelongsTo<
     return this.foreignKey;
   }
 
+  foreignKey: SourceKey;
+
   /**
-   * The column name of the identifier
+   * The column name of the foreign key
    */
-  identifierField: string | undefined;
+  identifierField: string;
 
   /**
    * The name of the attribute the foreign key points to.
    * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOne.sourceKey}).
    * The {@link Association.foreignKey} is on the Source Model.
    */
-  get targetKey(): TargetKey {
-    return this.attributeReferencedByForeignKey as TargetKey;
-  }
+  targetKey: TargetKey;
 
   /**
    * The column name of the target key
@@ -86,27 +88,63 @@ export class BelongsTo<
     options: NormalizedBelongsToOptions<SourceKey, TargetKey>,
     parent?: Association,
   ) {
-    if (
-      options?.targetKey
-      && !target.getAttributes()[options.targetKey]
-    ) {
+    // TODO: throw is source model has a composite primary key.
+    const targetKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
+
+    if (!target.getAttributes()[targetKey]) {
       throw new Error(`Unknown attribute "${options.targetKey}" passed as targetKey, define this attribute on model "${target.name}" first`);
     }
 
-    // TODO: throw is source model has a composite primary key.
-    const attributeReferencedByForeignKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
-
-    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
-
-    this._origOptions = options;
-    this.computeForeignKey();
-
-    if (this.source.getAttributes()[this.foreignKey]) {
-      this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.foreignKey]);
+    if ('keyType' in options) {
+      throw new TypeError('Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.');
     }
+
+    super(secret, source, target, options, parent);
+
+    this.targetKey = targetKey;
+
+    // For Db2 server, a reference column of a FOREIGN KEY must be unique
+    // else, server throws SQL0573N error. Hence, setting it here explicitly
+    // for non primary columns.
+    if (target.sequelize!.options.dialect === 'db2' && this.target.getAttributes()[this.targetKey].primaryKey !== true) {
+      // TODO: throw instead
+      this.target.getAttributes()[this.targetKey].unique = true;
+    }
+
+    let foreignKey: string | undefined;
+    let foreignKeyAttributeOptions;
+    if (isObject(this.options?.foreignKey)) {
+      // lodash has poor typings
+      assert(typeof this.options?.foreignKey === 'object');
+
+      foreignKeyAttributeOptions = this.options.foreignKey;
+      foreignKey = this.options.foreignKey.name || this.options.foreignKey.fieldName;
+    } else if (this.options?.foreignKey) {
+      foreignKey = this.options.foreignKey;
+    }
+
+    if (!foreignKey) {
+      foreignKey = this.inferForeignKey();
+    }
+
+    this.foreignKey = foreignKey as SourceKey;
+
+    const newForeignKeyAttribute = {
+      type: this.target.rawAttributes[this.targetKey].type,
+      ...foreignKeyAttributeOptions,
+      allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
+    };
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
+
+    addForeignKeyConstraints(newForeignKeyAttribute, this.target, this.options, this.targetKeyField);
+
+    this.source.mergeAttributesDefault({
+      [this.foreignKey]: newForeignKeyAttribute,
+    });
+
+    this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.foreignKey]);
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);
@@ -117,7 +155,6 @@ export class BelongsTo<
       create: `create${singular}`,
     };
 
-    this.#injectAttributes();
     this.#mixin(source.prototype);
   }
 
@@ -142,31 +179,6 @@ export class BelongsTo<
     });
   }
 
-  // the id is in the source table
-  #injectAttributes() {
-    const newAttributes = {
-      [this.foreignKey]: {
-        type: this.options.keyType || this.target.rawAttributes[this.targetKey].type,
-        allowNull: true,
-        ...this.foreignKeyAttribute,
-      },
-    };
-
-    if (this.options.constraints !== false) {
-      const source = this.source.rawAttributes[this.foreignKey] || newAttributes[this.foreignKey];
-      this.options.onDelete = this.options.onDelete || (source.allowNull ? 'SET NULL' : 'NO ACTION');
-      this.options.onUpdate = this.options.onUpdate || 'CASCADE';
-    }
-
-    addForeignKeyConstraints(newAttributes[this.foreignKey], this.target, this.options, this.targetKeyField);
-
-    this.source.mergeAttributesDefault(newAttributes);
-
-    this.identifierField = Utils.getColumnName(this.source.rawAttributes[this.foreignKey]);
-
-    return this;
-  }
-
   #mixin(modelPrototype: Model): void {
     mixinMethods(this, modelPrototype, ['get', 'set', 'create']);
   }
@@ -177,7 +189,7 @@ export class BelongsTo<
       throw new Error('Sanity check: Could not guess the name of the association');
     }
 
-    return Utils.camelize(`${associationName}_${this.attributeReferencedByForeignKey}`);
+    return Utils.camelize(`${associationName}_${this.targetKey}`);
   }
 
   /**
@@ -331,11 +343,6 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
    * key of the target table
    */
   targetKey?: TargetKey;
-
-  /**
-   * A string or a data type to represent the identifier in the table
-   */
-  keyType?: DataType;
 }
 
 /**

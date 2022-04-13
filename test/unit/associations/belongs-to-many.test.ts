@@ -100,6 +100,27 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  it('allows defining two associations with the same through, but with a different scope on the through table', () => {
+    const User = sequelize.define('User');
+    const Post = sequelize.define('Post', {
+      archived: DataTypes.BOOLEAN,
+      editing: DataTypes.BOOLEAN,
+    });
+
+    User.belongsToMany(Post, { through: 'UserPost' });
+    Post.belongsToMany(User, { through: 'UserPost' });
+
+    User.belongsToMany(Post, {
+      as: 'editingPosts',
+      through: {
+        model: 'UserPost',
+        scope: {
+          editing: true,
+        },
+      },
+    });
+  });
+
   it('allows defining two associations with the same inverse association', () => {
     const User = sequelize.define('User');
     const Post = sequelize.define('Post');
@@ -126,6 +147,41 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     // This means Association1.pairedWith.pairedWith is not always Association1
     // This may be an issue
     expect(Association1.pairedWith).to.eq(Association2.pairedWith);
+  });
+
+  it('errors when trying to define similar associations with incompatible inverse associations', () => {
+    const User = sequelize.define('User');
+    const Post = sequelize.define('Post');
+
+    Post.belongsToMany(User, {
+      through: { model: 'UserPost' },
+      as: 'categories',
+      scope: { type: 'category' },
+    });
+
+    expect(() => {
+      Post.belongsToMany(User, {
+        through: { model: 'UserPost' },
+        as: 'tags',
+        scope: { type: 'tag' },
+        inverse: {
+          onUpdate: 'NO ACTION',
+        },
+      });
+    }).to.throw('Defining BelongsToMany association "tags" from Post to User failed');
+  });
+
+  it('errors when trying to define the same association', () => {
+    const User = sequelize.define('User');
+    const Post = sequelize.define('Post');
+
+    Post.belongsToMany(User, {
+      through: { model: 'UserPost' },
+    });
+
+    expect(() => {
+      Post.belongsToMany(User, { through: { model: 'UserPost' } });
+    }).to.throw('You have defined two associations with the same name "Users" on the model "Post". Use another alias using the "as" parameter');
   });
 
   describe('proper syntax', () => {
@@ -955,13 +1011,14 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(beforeAssociate).to.not.have.been.called;
       });
     });
+
     describe('afterBelongsToManyAssociate', () => {
       it('should trigger', () => {
         const afterAssociate = sinon.spy();
         Project.afterAssociate(afterAssociate);
         Project.belongsToMany(Task, { through: 'projects_and_tasks', hooks: true });
 
-        const afterAssociateArgs = afterAssociate.getCall(0).args;
+        const afterAssociateArgs = afterAssociate.getCalls()[afterAssociate.callCount - 1].args;
 
         expect(afterAssociate).to.have.been.called;
         expect(afterAssociateArgs.length).to.equal(2);
@@ -975,6 +1032,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
+
       it('should not trigger association hooks', () => {
         const afterAssociate = sinon.spy();
         Project.afterAssociate(afterAssociate);

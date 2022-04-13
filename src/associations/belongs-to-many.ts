@@ -18,7 +18,6 @@ import type {
   Model,
   WhereOptions,
   AttributeNames,
-  ModelAttributeColumnOptions,
   Attributes,
   Includeable,
   ModelAttributes,
@@ -29,7 +28,6 @@ import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
-import * as Utils from '../utils';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type {
   AssociationScope,
@@ -41,7 +39,7 @@ import type {
   Association,
 } from './base';
 import { MultiAssociation } from './base';
-import { BelongsTo } from './belongs-to';
+import type { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
 import type { AssociationStatic } from './helpers';
@@ -118,6 +116,10 @@ export class BelongsToMany<
 > {
   readonly accessors: MultiAssociationAccessors;
 
+  get foreignKey(): string {
+    return this.fromSourceToThrough.foreignKey;
+  }
+
   /**
    * The name of the Foreign Key attribute, located on the through table, that points to the Target model.
    *
@@ -140,13 +142,8 @@ export class BelongsToMany<
   /**
    * The corresponding column name of {@link BelongsToMany#foreignKey}
    */
-  readonly identifierField: string;
-
-  /**
-   * @deprecated use {@link BelongsToMany#otherKey}
-   */
-  get foreignIdentifier() {
-    return this.otherKey;
+  get identifierField(): string {
+    return this.fromThroughToSource.identifierField;
   }
 
   /**
@@ -160,13 +157,15 @@ export class BelongsToMany<
    * The name of the Attribute that the {@link foreignKey} fk (located on the Through Model) will reference on the Source model.
    */
   get sourceKey(): SourceKey {
-    return this.attributeReferencedByForeignKey as SourceKey;
+    return this.fromThroughToSource.targetKey;
   }
 
   /**
    * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
    */
-  readonly sourceKeyField: string;
+  get sourceKeyField(): string {
+    return this.fromThroughToSource.targetKeyField;
+  }
 
   /**
    * The name of the Attribute that the {@link otherKey} fk (located on the Through Model) will reference on the Target model.
@@ -191,7 +190,10 @@ export class BelongsToMany<
   // these create the actual associations on the model. Remove them would be a breaking change.
   readonly fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>;
   readonly fromSourceToThroughOne: HasOne<SourceModel, ThroughModel, SourceKey, any>;
-  readonly fromThroughToSource: BelongsTo<ThroughModel, SourceModel, any, SourceKey>;
+  get fromThroughToSource(): BelongsTo<ThroughModel, SourceModel, any, SourceKey> {
+    return this.fromSourceToThrough.inverse;
+  }
+
   get fromTargetToThrough(): HasMany<TargetModel, ThroughModel, TargetKey, any> {
     return this.pairedWith.fromSourceToThrough;
   }
@@ -202,10 +204,6 @@ export class BelongsToMany<
 
   get fromThroughToTarget(): BelongsTo<ThroughModel, TargetModel, any, TargetKey> {
     return this.pairedWith.fromThroughToSource;
-  }
-
-  get sequelize(): Sequelize {
-    return this.source.sequelize!;
   }
 
   get through(): NormalizedThroughOptions<ThroughModel> {
@@ -224,11 +222,7 @@ export class BelongsToMany<
     pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ) {
-    const attributeReferencedByForeignKey = options?.sourceKey || source.primaryKeyAttribute as SourceKey;
-
-    super(secret, source, target, attributeReferencedByForeignKey, options, parent);
-
-    this._origOptions = options;
+    super(secret, source, target, options, parent);
 
     try {
       this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
@@ -265,31 +259,76 @@ export class BelongsToMany<
       );
     } catch (error) {
       throw new AssociationError(`BelongsToMany associations automatically create the corresponding association on the target model,
-but this association failed to create its paired association (BelongsToMany from ${target.name} to ${source.name}).
+    but this association failed to create its paired association (BelongsToMany from ${target.name} to ${source.name}).
 
-This may happen if you try to define the same BelongsToMany association on both sides of the association.
-If that is the case, instead of doing this:
-A.belongsToMany(B, { as: 'b', through: 'AB' });
-B.belongsToMany(A, { as: 'a', through: 'AB' });
+    This may happen if you try to define the same BelongsToMany association on both sides of the association.
+    If that is the case, instead of doing this:
+    A.belongsToMany(B, { as: 'b', through: 'AB' });
+    B.belongsToMany(A, { as: 'a', through: 'AB' });
 
-Do this:
-A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
-      `, { cause: error as Error });
+    Do this:
+    A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
+          `, { cause: error as Error });
     }
-
-    // computeForeignKey needs this.pairedWith to be created (see inferForeignKey)
-    this.computeForeignKey();
 
     // we'll need to access their foreign key (through .otherKey) in this constructor.
     // this makes sure it's created
     this.pairedWith.pairedWith = this;
-    this.pairedWith.computeForeignKey();
 
-    /*
-    * Default/generated source/target keys
-    */
-    this.sourceKeyField = Utils.getColumnName(this.source.rawAttributes[this.sourceKey]);
+    this.fromSourceToThrough = HasMany.associate(AssociationConstructorSecret, this.source, this.throughModel, {
+      as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
+      scope: this.through.scope,
+      foreignKey: this.options.foreignKey,
+      sourceKey: this.options.sourceKey,
+      constraints: this.options.constraints,
+      onDelete: this.options.onDelete,
+      onUpdate: this.options.onUpdate,
+      hooks: this.options.hooks,
+      inverse: {
+        as: this.pairedWith.name.singular,
+      },
+    }, this);
 
+    this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.throughModel, {
+      as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
+      scope: this.through.scope,
+      foreignKey: this.options.foreignKey,
+      sourceKey: this.options.sourceKey,
+      constraints: this.options.constraints,
+      onDelete: this.options.onDelete,
+      onUpdate: this.options.onUpdate,
+      hooks: this.options.hooks,
+      inverse: {
+        as: this.pairedWith.name.singular,
+      },
+    }, this);
+
+    // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
+    const plural = upperFirst(this.options.name.plural);
+    const singular = upperFirst(this.options.name.singular);
+
+    this.accessors = {
+      get: `get${plural}`,
+      set: `set${plural}`,
+      addMultiple: `add${plural}`,
+      add: `add${singular}`,
+      create: `create${singular}`,
+      remove: `remove${singular}`,
+      removeMultiple: `remove${plural}`,
+      hasSingle: `has${singular}`,
+      hasAll: `has${plural}`,
+      count: `count${plural}`,
+    };
+
+    this.#mixin(source.prototype);
+
+    // we are the 'parent' of the belongs-to-many pair
+    if (pair == null) {
+      this.#makeFkPairUnique();
+    }
+  }
+
+  #makeFkPairUnique() {
     let hasPrimaryKey = false;
 
     // remove any PKs previously defined by sequelize
@@ -312,18 +351,14 @@ A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
       hasPrimaryKey = true;
     });
 
-    const sourceKey = this.source.rawAttributes[this.sourceKey];
-    const sourceKeyType = sourceKey.type;
-    const sourceKeyField = this.sourceKeyField;
-    const foreignKeyAttribute: ModelAttributeColumnOptions = { type: sourceKeyType, ...this.foreignKeyAttribute };
-
     if (!hasPrimaryKey) {
-      foreignKeyAttribute.primaryKey = true;
-
       if (typeof this.through.unique === 'string') {
         throw new TypeError(`BelongsToMany: Option "through.unique" can only be used if the through model's foreign keys are not also the primary keys.
 Add your own primary key to the through model, on different attributes than the foreign keys, to be able to use this option.`);
       }
+
+      this.throughModel.rawAttributes[this.foreignKey].primaryKey = true;
+      this.throughModel.rawAttributes[this.otherKey].primaryKey = true;
     } else if (this.through.unique !== false) {
       let uniqueKey;
       if (typeof this.through.unique === 'string' && this.through.unique !== '') {
@@ -333,82 +368,11 @@ Add your own primary key to the through model, on different attributes than the 
         uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
       }
 
-      foreignKeyAttribute.unique = uniqueKey;
+      this.throughModel.rawAttributes[this.foreignKey].unique = uniqueKey;
+      this.throughModel.rawAttributes[this.otherKey].unique = uniqueKey;
     }
 
-    if (!this.through.model.rawAttributes[this.foreignKey]) {
-      foreignKeyAttribute._autoGenerated = true;
-    }
-
-    if (this.options.constraints !== false) {
-      foreignKeyAttribute.references = {
-        model: this.source.getTableName(),
-        key: sourceKeyField,
-      };
-
-      // For the source attribute the passed option is the priority
-      foreignKeyAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey]?.onDelete || 'CASCADE';
-      foreignKeyAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey]?.onUpdate || 'CASCADE';
-    }
-
-    this.through.model.mergeAttributesOverwrite({
-      [this.foreignKey]: foreignKeyAttribute,
-    });
-
-    this.identifierField = Utils.getColumnName(this.through.model.rawAttributes[this.foreignKey]);
-
-    // For Db2 server, a reference column of a FOREIGN KEY must be unique
-    // else, server throws SQL0573N error. Hence, setting it here explicitly
-    // for non primary columns.
-    if (this.sequelize.options.dialect === 'db2' && this.source.getAttributes()[this.sourceKey].primaryKey !== true) {
-      // TODO: throw instead!
-      this.source.getAttributes()[this.sourceKey].unique = true;
-    }
-
-    this.fromSourceToThrough = HasMany.associate(AssociationConstructorSecret, this.source, this.through.model, {
-      // @ts-expect-error
-      foreignKey: this.foreignKey,
-      as: this.isSelfAssociation
-        ? `${this.name.plural}_${this.pairedWith.name.plural}`
-        : undefined,
-      constraints: this.options.constraints,
-    }, this);
-
-    this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.through.model, {
-      // @ts-expect-error
-      foreignKey: this.foreignKey,
-      sourceKey: this.sourceKey,
-      as: this.isSelfAssociation
-        ? `${this.name.singular}_${this.pairedWith.name.singular}`
-        : this.through.model.options.name.singular,
-      constraints: this.options.constraints,
-    }, this);
-
-    this.fromThroughToSource = BelongsTo.associate(AssociationConstructorSecret, this.through.model, this.source, {
-      // @ts-expect-error
-      foreignKey: this.foreignKey,
-      as: Utils.singularize(this.pairedWith.as),
-      constraints: this.options.constraints,
-    }, this);
-
-    // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
-    const plural = upperFirst(this.options.name.plural);
-    const singular = upperFirst(this.options.name.singular);
-
-    this.accessors = {
-      get: `get${plural}`,
-      set: `set${plural}`,
-      addMultiple: `add${plural}`,
-      add: `add${singular}`,
-      create: `create${singular}`,
-      remove: `remove${singular}`,
-      removeMultiple: `remove${plural}`,
-      hasSingle: `has${singular}`,
-      hasAll: `has${plural}`,
-      count: `count${plural}`,
-    };
-
-    this.#mixin(source.prototype);
+    this.throughModel.refreshAttributes();
   }
 
   static associate<
@@ -444,14 +408,6 @@ Add your own primary key to the through model, on different attributes than the 
 
       return new BelongsToMany(secret, source, target, newOptions, pair, parent);
     });
-  }
-
-  protected inferForeignKey() {
-    if (this.isSelfAssociation) {
-      return Utils.camelize(`${this.pairedWith.name.singular}_${this.attributeReferencedByForeignKey}`);
-    }
-
-    return Utils.camelize(`${this.source.options.name.singular}_${this.attributeReferencedByForeignKey}`);
   }
 
   #mixin(modelPrototype: Model) {
@@ -618,13 +574,13 @@ Add your own primary key to the through model, on different attributes than the 
   ): Promise<void> {
     const sourceKey = this.sourceKey;
     const targetKey = this.targetKey;
-    const identifier = this.identifier;
-    const foreignIdentifier = this.foreignIdentifier;
+    const foreignKey = this.foreignKey;
+    const otherKey = this.otherKey;
 
     const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
 
     const where = {
-      [identifier]: sourceInstance.get(sourceKey),
+      [foreignKey]: sourceInstance.get(sourceKey),
       ...this.through.scope,
     };
 
@@ -642,12 +598,12 @@ Add your own primary key to the through model, on different attributes than the 
     for (const currentRow of currentThroughRows) {
       const newTarget = newInstances.find(obj => {
         // @ts-expect-error -- the findAll call is raw, no model here
-        return currentRow[foreignIdentifier] === obj.get(targetKey);
+        return currentRow[otherKey] === obj.get(targetKey);
       });
 
       if (!newTarget) {
         // @ts-expect-error -- the findAll call is raw, no model here
-        obsoleteTargets.push(currentRow[this.foreignIdentifier]);
+        obsoleteTargets.push(currentRow[this.otherKey]);
       }
     }
 
@@ -687,8 +643,8 @@ Add your own primary key to the through model, on different attributes than the 
       ...options,
       raw: true,
       where: {
-        [this.identifier]: sourceInstance.get(this.sourceKey),
-        [this.foreignIdentifier]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+        [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
         ...this.through.scope,
       },
       // force this option to be false, in case the user enabled
@@ -719,8 +675,8 @@ Add your own primary key to the through model, on different attributes than the 
   ) {
     const sourceKey = this.sourceKey;
     const targetKey = this.targetKey;
-    const identifier = this.identifier;
-    const foreignIdentifier = this.foreignIdentifier;
+    const foreignKey = this.foreignKey;
+    const otherKey = this.otherKey;
 
     const defaultAttributes = options?.through || {};
 
@@ -731,7 +687,7 @@ Add your own primary key to the through model, on different attributes than the 
     for (const newInstance of newTargets) {
       const existingThroughRow = currentThroughRows.find(throughRow => {
         // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
-        return throughRow[foreignIdentifier] === newInstance.get(targetKey);
+        return throughRow[otherKey] === newInstance.get(targetKey);
       });
 
       if (!existingThroughRow) {
@@ -758,8 +714,8 @@ Add your own primary key to the through model, on different attributes than the 
         const throughAttributes = unassociatedTarget[this.through.model.name];
         const attributes = { ...defaultAttributes, ...throughAttributes };
 
-        attributes[identifier] = sourceInstance.get(sourceKey);
-        attributes[foreignIdentifier] = unassociatedTarget.get(targetKey);
+        attributes[foreignKey] = sourceInstance.get(sourceKey);
+        attributes[otherKey] = unassociatedTarget.get(targetKey);
 
         Object.assign(attributes, this.through.scope);
 
@@ -781,8 +737,8 @@ Add your own primary key to the through model, on different attributes than the 
       promises.push(this.through.model.update(attributes, {
         ...options,
         where: {
-          [identifier]: sourceInstance.get(sourceKey),
-          [foreignIdentifier]: changedTarget.get(targetKey),
+          [foreignKey]: sourceInstance.get(sourceKey),
+          [otherKey]: changedTarget.get(targetKey),
         },
       }));
     }
@@ -805,8 +761,8 @@ Add your own primary key to the through model, on different attributes than the 
     const targetInstance = this.toInstanceArray(targetInstanceOrPks);
 
     const where = {
-      [this.identifier]: sourceInstance.get(this.sourceKey),
-      [this.foreignIdentifier]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
+      [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
     };
 
