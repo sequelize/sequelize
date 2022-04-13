@@ -3775,10 +3775,7 @@ export class Model {
     return this;
   }
 
-  // TODO: deprecated - remove in Sequelize 8
   setAttributes(updates) {
-    useModelSet();
-
     return this.set(updates);
   }
 

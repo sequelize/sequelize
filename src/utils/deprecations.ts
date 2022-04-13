@@ -12,4 +12,3 @@ export const useErrorCause = deprecate(noop, 'The "parent" and "original" proper
 export const noModelDropSchema = deprecate(noop, 'Do not use Model.dropSchema. Use Sequelize#dropSchema or QueryInterface#dropSchema instead', 'SEQUELIZE0008');
 export const scopeRenamedToWithScope = deprecate(noop, 'Model.scope has been renamed to Model.withScope, and Model.unscoped has been renamed to Model.withoutScope', 'SEQUELIZE0009');
 export const schemaRenamedToWithSchema = deprecate(noop, 'Model.schema has been renamed to Model.withSchema', 'SEQUELIZE0010');
-export const useModelSet = deprecate(noop, 'Model.setAttributes is deprecated, use Model.set instead', 'SEQUELIZE0011');
