@@ -100,6 +100,34 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  it('allows defining two associations with the same inverse association', () => {
+    const User = sequelize.define('User');
+    const Post = sequelize.define('Post');
+
+    const Association1 = Post.belongsToMany(User, {
+      through: { model: 'UserPost' },
+      as: 'categories',
+      scope: { type: 'category' },
+    });
+
+    const Association2 = Post.belongsToMany(User, {
+      through: { model: 'UserPost' },
+      as: 'tags',
+      scope: { type: 'tag' },
+      inverse: {
+        // the reason these are explicitly set to undefined
+        // is that the inverse association for both of these BelongsToMany is the same
+        // and must be re-used. This should work.
+        onDelete: undefined,
+        onUpdate: undefined,
+      },
+    });
+
+    // This means Association1.pairedWith.pairedWith is not always Association1
+    // This may be an issue
+    expect(Association1.pairedWith).to.eq(Association2.pairedWith);
+  });
+
   describe('proper syntax', () => {
     it('throws an AssociationError if the through option is undefined, true, or null', () => {
       const User = sequelize.define('User', {});
@@ -892,6 +920,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.equal('custom_user_group_unique');
     });
   });
+
   describe('association hooks', () => {
     let Project: ModelStatic<any>;
     let Task: ModelStatic<any>;
