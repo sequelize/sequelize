@@ -1293,7 +1293,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     });
 
-    describe('Op.th', () => {
+    describe('Op.startsWith', () => {
       testSql({
         stringAttr: {
           [Op.startsWith]: 'swagger',
@@ -1838,21 +1838,21 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- notEndsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
+      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } }, {
         default: new Error('Op.notEndsWith is not compatible with Op.any'),
       });
 
-      // @ts-expect-error -- startsWith is not compatible with Op.all
+      // @ts-expect-error -- notEndsWith is not compatible with Op.all
       testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } }, {
         default: new Error('Op.notEndsWith is not compatible with Op.all'),
       });
 
-      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
+      // @ts-expect-error -- notEndsWith is not compatible with Op.any + Op.values
       testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
         default: new Error('Op.notEndsWith is not compatible with Op.any'),
       });
 
-      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
+      // @ts-expect-error -- notEndsWith is not compatible with Op.all + Op.values
       testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
         default: new Error('Op.notEndsWith is not compatible with Op.all'),
       });
