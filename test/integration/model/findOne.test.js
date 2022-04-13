@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
         const t = await sequelize.transaction();
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should not try to convert boolean values if they are not selected', async function () {
         const UserWithBoolean = this.sequelize.define('UserBoolean', {
-          active: Sequelize.BOOLEAN,
+          active: DataTypes.BOOLEAN,
         });
 
         await UserWithBoolean.sync({ force: true });
@@ -190,8 +190,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via primary keys', async function () {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          identifier: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
+          identifier: { type: DataTypes.STRING, primaryKey: true },
+          name: DataTypes.STRING,
         });
 
         await UserPrimary.sync({ force: true });
@@ -209,8 +209,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via a string primary key called id', async function () {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          id: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
+          id: { type: DataTypes.STRING, primaryKey: true },
+          name: DataTypes.STRING,
         });
 
         await UserPrimary.sync({ force: true });
@@ -250,8 +250,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should allow us to find IDs using capital letters', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
-          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-          Login: { type: Sequelize.STRING },
+          ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: DataTypes.STRING },
         });
 
         await User.sync({ force: true });
@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (['postgres', 'sqlite'].includes(dialect)) {
         it('should allow case-insensitive find on CITEXT type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
-            username: Sequelize.CITEXT,
+            username: DataTypes.CITEXT,
           });
 
           await User.sync({ force: true });
@@ -278,7 +278,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (dialect === 'postgres') {
         it('should allow case-sensitive find on TSVECTOR type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
-            username: Sequelize.TSVECTOR,
+            username: DataTypes.TSVECTOR,
           });
 
           await User.sync({ force: true });
@@ -294,8 +294,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('eager loading', () => {
       beforeEach(function () {
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING });
-        this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        this.Worker = this.sequelize.define('Worker', { name: DataTypes.STRING });
 
         this.init = async function (callback) {
           await this.sequelize.sync({ force: true });
@@ -347,8 +347,8 @@ Got { association: 1 } instead`);
 
         it('returns the private and public ip', async function () {
           const ctx = Object.create(this);
-          ctx.Domain = ctx.sequelize.define('Domain', { ip: Sequelize.STRING });
-          ctx.Environment = ctx.sequelize.define('Environment', { name: Sequelize.STRING });
+          ctx.Domain = ctx.sequelize.define('Domain', { ip: DataTypes.STRING });
+          ctx.Environment = ctx.sequelize.define('Environment', { name: DataTypes.STRING });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' });
 
@@ -378,13 +378,13 @@ Got { association: 1 } instead`);
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerbelong', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerbelong', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -408,14 +408,14 @@ Got { association: 1 } instead`);
 
         it('getting parent data in many to one relationship', async function () {
           const User = this.sequelize.define('User', {
-            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-            username: { type: Sequelize.STRING },
+            id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+            username: { type: DataTypes.STRING },
           });
 
           const Message = this.sequelize.define('Message', {
-            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-            user_id: { type: Sequelize.INTEGER },
-            message: { type: Sequelize.STRING },
+            id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+            user_id: { type: DataTypes.INTEGER },
+            message: { type: DataTypes.STRING },
           });
 
           User.hasMany(Message);
@@ -490,13 +490,13 @@ Got { association: 1 } instead`);
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerone', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -640,13 +640,13 @@ The following associations are defined on "Worker": "ToDo"`);
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerone', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -735,8 +735,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
       describe('hasMany (N:M) with alias', () => {
         beforeEach(function () {
-          this.Product = this.sequelize.define('Product', { title: Sequelize.STRING });
-          this.Tag = this.sequelize.define('Tag', { name: Sequelize.STRING });
+          this.Product = this.sequelize.define('Product', { title: DataTypes.STRING });
+          this.Tag = this.sequelize.define('Tag', { name: DataTypes.STRING });
         });
 
         it('returns the associated models when using through as string and alias', async function () {
@@ -937,7 +937,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
       it('works from model options', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         }, {
           rejectOnEmpty: true,
         });
@@ -953,7 +953,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
       it('override model options', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         }, {
           rejectOnEmpty: true,
         });
@@ -970,7 +970,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
       it('resolve null when disabled', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         });
 
         await Model.sync({ force: true });

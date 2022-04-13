@@ -29,7 +29,7 @@ if (current.dialect.supports['UNION ALL']) {
 
         beforeEach(async function () {
           this.User = this.sequelize.define('user', {
-            age: Sequelize.INTEGER,
+            age: DataTypes.INTEGER,
           });
           this.Project = this.sequelize.define('project', {
             title: DataTypes.STRING,

@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const semver = require('semver');
@@ -16,13 +16,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.Image = this.sequelize.define('image', {});
       this.Question = this.sequelize.define('question', {});
       this.Comment = this.sequelize.define('comment', {
-        title: Sequelize.STRING,
-        type: Sequelize.STRING,
-        commentable: Sequelize.STRING,
-        commentable_id: Sequelize.INTEGER,
+        title: DataTypes.STRING,
+        type: DataTypes.STRING,
+        commentable: DataTypes.STRING,
+        commentable_id: DataTypes.INTEGER,
         isMain: {
           field: 'is_main',
-          type: Sequelize.BOOLEAN,
+          type: DataTypes.BOOLEAN,
           defaultValue: false,
         },
       });

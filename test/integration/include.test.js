@@ -665,12 +665,12 @@ Instead of specifying a Model, either:
 
     it('should support specifying attributes', async function () {
       const Project = this.sequelize.define('Project', {
-        title: Sequelize.STRING,
+        title: DataTypes.STRING,
       });
 
       const Task = this.sequelize.define('Task', {
-        title: Sequelize.STRING,
-        description: Sequelize.TEXT,
+        title: DataTypes.STRING,
+        description: DataTypes.TEXT,
       });
 
       Project.hasMany(Task);
@@ -702,8 +702,8 @@ Instead of specifying a Model, either:
     it('should support Sequelize.literal and renaming of attributes in included model attributes', async function () {
       const Post = this.sequelize.define('Post', {});
       const PostComment = this.sequelize.define('PostComment', {
-        someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
-        comment_title: Sequelize.STRING,
+        someProperty: DataTypes.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        comment_title: DataTypes.STRING,
       });
 
       Post.hasMany(PostComment);
@@ -785,10 +785,10 @@ Instead of specifying a Model, either:
 
     it('should support including date fields, with the correct timeszone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
 
       User.belongsToMany(Group, { through: 'group_user' });

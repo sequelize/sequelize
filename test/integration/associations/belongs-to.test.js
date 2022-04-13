@@ -83,8 +83,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     }
 
     it('should be able to handle a where object that\'s a first class citizen.', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
+      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING });
 
       Task.belongsTo(User);
 
@@ -104,8 +104,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('supports schemas', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive');
-      const Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive');
+      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
+      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
 
       Task.belongsTo(User);
 
@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     it('supports schemas when defining custom foreign key attribute #9029', async function () {
       const User = this.sequelize.define('UserXYZ', {
         uid: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
           allowNull: false,
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       }).schema('archive');
       const Task = this.sequelize.define('TaskXYZ', {
         user_id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           references: { model: User, key: 'uid' },
         },
       }).schema('archive');
@@ -365,8 +365,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
   describe('foreign key', () => {
     it('should setup underscored field with foreign keys when using underscored', function () {
-      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true });
-      const Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
+      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });
 
       User.belongsTo(Account);
 
@@ -375,8 +375,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('should use model name when using camelcase', function () {
-      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false });
-      const Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: false });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: false });
+      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: false });
 
       User.belongsTo(Account);
 
@@ -385,8 +385,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('should support specifying the field of a foreign key', async function () {
-      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false });
-      const Account = this.sequelize.define('Account', { title: Sequelize.STRING }, { underscored: false });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: false });
+      const Account = this.sequelize.define('Account', { title: DataTypes.STRING }, { underscored: false });
 
       User.belongsTo(Account, {
         foreignKey: {
@@ -554,8 +554,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('should be possible to disable them', async function () {
-      const Task = this.sequelize.define('Task', { title: Sequelize.STRING });
-      const User = this.sequelize.define('User', { username: Sequelize.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
       Task.belongsTo(User, { constraints: false });
 
@@ -830,13 +830,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       it('works when taking a column directly from the object', function () {
         const User = this.sequelize.define('user', {
           uid: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
           },
         });
         const Profile = this.sequelize.define('project', {
           user_id: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
           },
         });
@@ -853,7 +853,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('task', {
           projectId: {
             defaultValue: 42,
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
           },
         });
         const Project = this.sequelize.define('project', {});
@@ -865,16 +865,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
       });
     });
-
   });
 
   describe('Eager loading', () => {
     beforeEach(function () {
       this.Individual = this.sequelize.define('individual', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       this.Hat = this.sequelize.define('hat', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       this.Individual.belongsTo(this.Hat, {
         as: 'personwearinghat',

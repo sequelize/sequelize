@@ -421,8 +421,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         dialect: this.sequelize.options.dialect,
       });
 
-      sequelize.define('Project', { title: Sequelize.STRING });
-      sequelize.define('Task', { title: Sequelize.STRING });
+      sequelize.define('Project', { title: DataTypes.STRING });
+      sequelize.define('Task', { title: DataTypes.STRING });
 
       await expect(sequelize.sync({ force: true, match: /$phoenix/ }))
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
@@ -471,8 +471,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           dialect: this.sequelize.options.dialect,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -483,8 +483,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           port: 99_999,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -496,8 +496,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           pool: {},
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('returns an error correctly if unable to sync a foreign key referenced model', async function () {
         this.sequelize.define('Application', {
           authorID: {
-            type: Sequelize.BIGINT,
+            type: DataTypes.BIGINT,
             allowNull: false,
             references: {
               model: 'User',

@@ -11,4 +11,6 @@ export const unsupportedEngine = deprecate(noop, 'This database engine version i
 export const useErrorCause = deprecate(noop, 'The "parent" and "original" properties in Sequelize errors have been replaced with the native "cause" property. Use that one instead.', 'SEQUELIZE0007');
 export const scopeRenamedToWithScope = deprecate(noop, 'Model.scope has been renamed to Model.withScope, and Model.unscoped has been renamed to Model.withoutScope', 'SEQUELIZE0008');
 export const schemaRenamedToWithSchema = deprecate(noop, 'Model.schema has been renamed to Model.withSchema', 'SEQUELIZE0009');
-export const movedSequelizeParam = deprecate(noop, 'The "sequelize" instance has been moved from the second parameter bag to the first parameter bag in "beforeAssociate" and "afterAssociate" hooks', 'SEQUELIZE0010');
+export const noSequelizeDataType = deprecate(noop, `Accessing DataTypes on the Sequelize constructor is deprecated. Use the DataTypes object instead.
+e.g, instead of using Sequelize.STRING, use DataTypes.STRING`, 'SEQUELIZE0010');
+export const movedSequelizeParam = deprecate(noop, 'The "sequelize" instance has been moved from the second parameter bag to the first parameter bag in "beforeAssociate" and "afterAssociate" hooks', 'SEQUELIZE0011');

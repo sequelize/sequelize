@@ -57,7 +57,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
   });
 
-  it('should throw an error if an association clashes with the name of an already define attribute', () => {
+  it('should throw an error if an association clashes with the name of an already defined attribute', () => {
     const Person = sequelize.define('person', {});
     const Car = sequelize.define('car', {
       person: DataTypes.INTEGER,

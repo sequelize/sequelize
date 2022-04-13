@@ -1244,8 +1244,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
   describe('Association options', () => {
     it('should setup underscored field with foreign keys when using underscored', function () {
-      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true });
-      const Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
+      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });
 
       User.hasMany(Account);
 
@@ -1254,8 +1254,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     it('should use model name when using camelcase', function () {
-      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: false });
-      const Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: false });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: false });
+      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: false });
 
       User.hasMany(Account);
 
@@ -1265,7 +1265,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('can specify data type for auto-generated relational keys', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING];
+      const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING];
       const Tasks = {};
 
       for (const dataType of dataTypes) {
@@ -1315,13 +1315,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       it('works when taking a column directly from the object', function () {
         const Project = this.sequelize.define('project', {
           user_id: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             defaultValue: 42,
           },
         });
         const User = this.sequelize.define('user', {
           uid: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
           },
         });
@@ -1338,7 +1338,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const Task = this.sequelize.define('task', {
           userId: {
             defaultValue: 42,
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
           },
         });
         const User = this.sequelize.define('user', {});
@@ -1353,7 +1353,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('should throw an error if foreignKey and as result in a name clash', function () {
       const User = this.sequelize.define('user', {
-        user: Sequelize.INTEGER,
+        user: DataTypes.INTEGER,
       });
 
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
@@ -1362,16 +1362,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('should ignore group from ancestor on deep separated query', async function () {
       const User = this.sequelize.define('user', {
-        userId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-        username: Sequelize.STRING,
+        userId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        username: DataTypes.STRING,
       });
       const Task = this.sequelize.define('task', {
-        taskId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-        title: Sequelize.STRING,
+        taskId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        title: DataTypes.STRING,
       });
       const Job = this.sequelize.define('job', {
-        jobId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-        title: Sequelize.STRING,
+        jobId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        title: DataTypes.STRING,
       });
 
       Task.hasMany(Job, { foreignKey: 'taskId' });
@@ -1404,10 +1404,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey', () => {
     beforeEach(function () {
       const User = this.sequelize.define('UserXYZ',
-        { username: Sequelize.STRING, email: Sequelize.STRING },
+        { username: DataTypes.STRING, email: DataTypes.STRING },
         { indexes: [{ fields: ['email'], unique: true }] });
       const Task = this.sequelize.define('TaskXYZ',
-        { title: Sequelize.STRING, userEmail: { type: Sequelize.STRING, field: 'user_email_xyz' } });
+        { title: DataTypes.STRING, userEmail: { type: DataTypes.STRING, field: 'user_email_xyz' } });
 
       User.hasMany(Task, { foreignKey: 'userEmail', sourceKey: 'email', as: 'tasks' });
 
@@ -1542,10 +1542,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey with where clause in include', () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User',
-        { username: Sequelize.STRING, email: { type: Sequelize.STRING, field: 'mail' } },
+        { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail' } },
         { indexes: [{ fields: ['mail'], unique: true }] });
       this.Task = this.sequelize.define('Task',
-        { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
+        { title: DataTypes.STRING, userEmail: DataTypes.STRING, taskStatus: DataTypes.STRING });
 
       this.User.hasMany(this.Task, {
         foreignKey: 'userEmail',
@@ -1582,10 +1582,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Eager loading', () => {
     beforeEach(function () {
       this.Individual = this.sequelize.define('individual', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       this.Hat = this.sequelize.define('hat', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       this.Individual.hasMany(this.Hat, {
         as: {

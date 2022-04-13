@@ -6,7 +6,7 @@ const expect = chai.expect;
 const sinon =  require('sinon');
 const Support = require('../../support');
 
-const { Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -16,13 +16,13 @@ if (dialect.startsWith('mssql')) {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {
           field: 'id',
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },
         UserID: {
           field: 'userid',
-          type: Sequelize.UUID,
+          type: DataTypes.UUID,
           allowNull: false,
         },
       });
@@ -30,13 +30,13 @@ if (dialect.startsWith('mssql')) {
       const User = this.sequelize.define('User', {
         UserID: {
           field: 'userid',
-          type: Sequelize.UUID,
-          defaultValue: Sequelize.UUIDV4,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
           primaryKey: true,
         },
         UserName: {
           field: 'username',
-          type: Sequelize.STRING(50),
+          type: DataTypes.STRING(50),
           allowNull: false,
         },
       });
@@ -186,7 +186,7 @@ if (dialect.startsWith('mssql')) {
 
     it('sets the varchar(max) length correctly on describeTable', async function () {
       const Users = this.sequelize.define('_Users', {
-        username: Sequelize.STRING('MAX'),
+        username: DataTypes.STRING('MAX'),
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
@@ -197,7 +197,7 @@ if (dialect.startsWith('mssql')) {
 
     it('sets the char(10) length correctly on describeTable', async function () {
       const Users = this.sequelize.define('_Users', {
-        username: Sequelize.CHAR(10),
+        username: DataTypes.CHAR(10),
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
@@ -209,7 +209,7 @@ if (dialect.startsWith('mssql')) {
     it('saves value bigger than 2147483647, #11245', async function () {
       const BigIntTable =  this.sequelize.define('BigIntTable', {
         business_id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           allowNull: false,
         },
       }, {
@@ -231,7 +231,7 @@ if (dialect.startsWith('mssql')) {
     it('saves boolean is true, #12090', async function () {
       const BooleanTable =  this.sequelize.define('BooleanTable', {
         status: {
-          type: Sequelize.BOOLEAN,
+          type: DataTypes.BOOLEAN,
           allowNull: false,
         },
       }, {
