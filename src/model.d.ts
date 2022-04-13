@@ -1704,6 +1704,11 @@ export interface ModelOptions<M extends Model = Model> {
   omitNull?: boolean;
 
   /**
+   * Adds primary key automatically to the model if false. Default false.
+   */
+  noPrimaryKey?: boolean;
+
+  /**
    * Adds createdAt and updatedAt timestamps to the model. Default true.
    */
   timestamps?: boolean;
