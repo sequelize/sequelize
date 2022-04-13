@@ -384,15 +384,26 @@ export interface WhereOperators<AttributeType = any> {
    * Strings starts with value.
    */
   [Op.startsWith]?: OperatorValues<Extract<AttributeType, string>>;
-
+  /**
+   * Strings not starts with value.
+   */
+  [Op.notStartsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
    * String ends with value.
    */
   [Op.endsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
+   * String not ends with value.
+   */
+  [Op.notEndsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
    * String contains value.
    */
   [Op.substring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
+   * String not contains value.
+   */
+  [Op.notSubstring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
 
   /**
    * MySQL/PG only
