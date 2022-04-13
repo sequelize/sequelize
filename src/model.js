@@ -240,10 +240,8 @@ export class Model {
     let head = {};
 
     // Add id if no primary key was manually added to definition
-    // Can't use this.primaryKeys here, since this function is called before PKs are identified
     if (!_.some(this.rawAttributes, 'primaryKey') && !this.options.noPrimaryKey) {
       if ('id' in this.rawAttributes) {
-        // Something is fishy here!
         throw new Error(`A column called 'id' was added to the attributes of '${this.tableName}' but not marked with 'primaryKey: true'`);
       }
 
