@@ -241,10 +241,6 @@ export class Model {
 
     // Add id if no primary key was manually added to definition
     if (!_.some(this.rawAttributes, 'primaryKey') && !this.options.noPrimaryKey) {
-      if ('id' in this.rawAttributes) {
-        throw new Error(`A column called 'id' was added to the attributes of '${this.tableName}' but not marked with 'primaryKey: true'`);
-      }
-
       head = {
         id: {
           type: new DataTypes.INTEGER(),
@@ -256,6 +252,7 @@ export class Model {
       };
 
       if (Object.keys(this.primaryKeys).length === 0) {
+        // if id is exist but noPrimaryKey option is set to false, add it to the primaryKeys object automically.
         this.primaryKeys.id = this.rawAttributes.id;
       }
     }
