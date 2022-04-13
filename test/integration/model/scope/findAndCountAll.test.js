@@ -1,9 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../../support');
 
@@ -14,10 +13,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       beforeEach(async function () {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: Sequelize.STRING,
-          email: Sequelize.STRING,
-          access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
         }, {
           defaultScope: {
             where: {
@@ -78,6 +77,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to merge scopes with where', async function () {
         const result = await this.ScopeMe.scope('lowAccess')
           .findAndCountAll({ where: { username: 'dan' } });
+
+        expect(result.count).to.equal(1);
+      });
+
+      it('should be able to merge multiple scopes', async function () {
+        const result = await this.ScopeMe.scope('defaultScope', 'lowAccess')
+          .findAndCountAll();
 
         expect(result.count).to.equal(1);
       });

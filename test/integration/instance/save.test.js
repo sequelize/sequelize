@@ -3,9 +3,8 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Sequelize = require('sequelize');
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -62,7 +61,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
         await User.sync({ force: true });
         const t = await sequelize.transaction();
         await User.build({ username: 'foo' }).save({ transaction: t });

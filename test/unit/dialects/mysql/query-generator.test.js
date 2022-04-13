@@ -7,9 +7,8 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Op } = require('sequelize/lib/operators');
-const { IndexHints } = require('sequelize/lib/index-hints');
-const QueryGenerator = require('sequelize/lib/dialects/mysql/query-generator');
+const { Op, IndexHints } = require('@sequelize/core');
+const { MySqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query-generator.js');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {

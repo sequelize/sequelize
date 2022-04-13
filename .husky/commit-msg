@@ -14,7 +14,7 @@ if [ $exitCode -ne 0 ]; then
 	echo "${BOLD_RED}!${BOLD_WHITE} Linting errors found in commit message!${RESET}"
 	echo "${YELLOW}❯${RESET} Commit stored in .git/COMMIT_EDITMESSAGE"
 	echo "${YELLOW}❯${RESET} You can run the following command to update your commit message:"
-	echo "npm run fix-commit"
+	echo "yarn fix-commit"
 fi
 
 exit $exitCode

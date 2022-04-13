@@ -6,9 +6,8 @@ const expect = chai.expect;
 const Support   = require('../support');
 
 const current   = Support.sequelize;
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const moment    = require('moment');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         birthdate: DataTypes.DATE,
         meta: DataTypes.JSON,
         deletedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       });
 
@@ -28,7 +27,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         birthdate: DataTypes.DATE,
         meta: DataTypes.JSON,
         deletedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       }, {
         paranoid: true,

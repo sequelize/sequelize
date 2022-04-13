@@ -1,7 +1,7 @@
 const chai = require('chai');
 const Support = require('../../support');
 const sinon = require('sinon');
-const ConnectionManager = require('sequelize/lib/dialects/abstract/connection-manager');
+const { ConnectionManager } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js');
 const { Pool } = require('sequelize-pool');
 const Config = require('../../../config/config');
 

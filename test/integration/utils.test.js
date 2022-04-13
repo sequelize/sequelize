@@ -3,12 +3,8 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Utils = require('sequelize/lib/utils');
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize');
-
-const Op = Sequelize.Op;
+const { DataTypes, Sequelize, Op, Utils } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('underscore', () => {
@@ -162,7 +158,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       ]);
     });
 
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (with cast)', async function () {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
@@ -190,7 +186,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (auto casting)', async function () {
         const [airplane] = await Airplane.findAll({
           attributes: [

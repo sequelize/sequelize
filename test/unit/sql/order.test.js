@@ -5,8 +5,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const Model = require('sequelize/lib/model');
+const { DataTypes, Model } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -353,6 +352,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         Support.sequelize.random(),
       ],
     }, {
+      ibmi: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND()',
       mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
       db2: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND();',
       mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',

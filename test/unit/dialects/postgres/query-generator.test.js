@@ -3,12 +3,11 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Op } = require('sequelize/lib/operators');
-const QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator');
+const { Op, DataTypes } = require('@sequelize/core');
+const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
 const moment = require('moment');
 
 const current = Support.sequelize;

@@ -1,7 +1,8 @@
 'use strict';
 
 const path = require('path');
-const Query = require('sequelize/lib/dialects/abstract/query');
+const { DataTypes } = require('@sequelize/core');
+const { AbstractQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js');
 
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
@@ -17,14 +18,14 @@ describe('[ABSTRACT]', () => {
       const Team = current.define('team', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
       const Player = current.define('player', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -35,7 +36,7 @@ describe('[ABSTRACT]', () => {
         },
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -103,14 +104,14 @@ describe('[ABSTRACT]', () => {
       const Team = current.define('team', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
       const Player = current.define('player', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -185,14 +186,14 @@ describe('[ABSTRACT]', () => {
         },
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
       const Player = current.define('player', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -272,7 +273,7 @@ describe('[ABSTRACT]', () => {
       const Player = current.define('player', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -342,7 +343,7 @@ describe('[ABSTRACT]', () => {
       const Team = current.define('team', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -406,7 +407,7 @@ describe('[ABSTRACT]', () => {
       const Team = current.define('team', {
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 
@@ -417,7 +418,7 @@ describe('[ABSTRACT]', () => {
         },
         id: {
           primaryKey: true,
-          type: current.Sequelize.STRING(1),
+          type: DataTypes.STRING(1),
         },
       });
 

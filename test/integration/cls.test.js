@@ -5,7 +5,7 @@ const chai      = require('chai');
 const expect    = chai.expect;
 const Support   = require('./support');
 
-const Sequelize = Support.Sequelize;
+const { Sequelize, DataTypes } = require('@sequelize/core');
 const cls       = require('cls-hooked');
 
 const current = Support.sequelize;
@@ -27,7 +27,7 @@ if (current.dialect.supports.transactions) {
       this.sequelize = await Support.prepareTransactionTest(this.sequelize);
       this.ns = cls.getNamespace('sequelize');
       this.User = this.sequelize.define('user', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       await this.sequelize.sync({ force: true });
     });

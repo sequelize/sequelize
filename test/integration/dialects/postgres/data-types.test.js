@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
@@ -78,20 +78,20 @@ if (dialect === 'postgres') {
 
         const date = new Date();
         const User = this.sequelize.define('User', {
-          username: this.sequelize.Sequelize.STRING,
+          username: DataTypes.STRING,
           beforeTime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: Number.NEGATIVE_INFINITY,
           },
           sometime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: this.sequelize.fn('NOW'),
           },
           anotherTime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
           },
           afterTime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: Number.POSITIVE_INFINITY,
           },
         }, {
@@ -164,20 +164,20 @@ if (dialect === 'postgres') {
 
         const date = new Date();
         const User = this.sequelize.define('User', {
-          username: this.sequelize.Sequelize.STRING,
+          username: DataTypes.STRING,
           beforeTime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: Number.NEGATIVE_INFINITY,
           },
           sometime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: this.sequelize.fn('NOW'),
           },
           anotherTime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
           },
           afterTime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: Number.POSITIVE_INFINITY,
           },
         }, {

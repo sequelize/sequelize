@@ -12,7 +12,8 @@ coverage
 test/tmp/*
 test/binary/tmp/*
 .vscode/
-esdoc
+.typedoc-build
 node_modules
-dist
 *.log
+/lib
+/types

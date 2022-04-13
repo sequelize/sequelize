@@ -3,14 +3,14 @@
     "target": "esnext",
     "module": "commonjs",
     "moduleResolution": "node",
-    "allowJs": true,
+    "allowJs": false,
     "declaration": true,
     "emitDeclarationOnly": true,
     "sourceRoot": "",
-    "outDir": "./dist/",
+    "outDir": "./types",
     "strict": true,
     "baseUrl": "./",
-    "rootDir": "./",
+    "rootDir": "./src",
     "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -18,5 +18,5 @@
     "checkJs": false,
     "removeComments": false
   },
-  "include": ["./lib/**/*.ts"]
+  "include": ["./src/**/*.ts"]
 }

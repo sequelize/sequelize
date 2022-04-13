@@ -1,9 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../../support');
 
@@ -12,10 +11,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('destroy', () => {
       beforeEach(async function () {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: Sequelize.STRING,
-          email: Sequelize.STRING,
-          access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
         }, {
           defaultScope: {
             where: {
@@ -54,14 +53,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].get('username')).to.equal('fred');
       });
 
-      it('should be able to override default scope', async function () {
-        await this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 } } });
-        const users = await this.ScopeMe.unscoped().findAll();
-        expect(users).to.have.length(2);
-        expect(users[0].get('username')).to.equal('tobi');
-        expect(users[1].get('username')).to.equal('dan');
-      });
-
       it('should be able to unscope destroy', async function () {
         await this.ScopeMe.unscoped().destroy({ where: {} });
         await expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
@@ -76,6 +67,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to merge scopes with where', async function () {
         await this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(3);
+        expect(users[0].get('username')).to.equal('tony');
+        expect(users[1].get('username')).to.equal('tobi');
+        expect(users[2].get('username')).to.equal('fred');
+      });
+
+      it('should be able to merge scopes with similar where', async function () {
+        await this.ScopeMe.scope('defaultScope', 'lowAccess').destroy();
         const users = await this.ScopeMe.unscoped().findAll();
         expect(users).to.have.length(3);
         expect(users[0].get('username')).to.equal('tony');

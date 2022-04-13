@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('sequelize/lib/dialects/mssql/query-generator');
+const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] jsonPathExtractionQuery', () => {

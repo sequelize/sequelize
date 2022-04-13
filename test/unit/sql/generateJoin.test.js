@@ -1,15 +1,13 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize/lib/sequelize');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
-const Op = Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -51,7 +49,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       tableName: 'user',
     });
     const Task = current.define('Task', {
-      title: Sequelize.STRING,
+      title: DataTypes.STRING,
       userId: {
         type: DataTypes.INTEGER,
         field: 'user_id',
@@ -61,20 +59,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     const Company = current.define('Company', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
       ownerId: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         field: 'owner_id',
       },
       public: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
       },
     }, {
       tableName: 'company',
     });
 
     const Profession = current.define('Profession', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       tableName: 'profession',
     });
@@ -117,6 +115,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
+        ibmi: 'INNER JOIN "company" AS "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1',
         sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
         mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
       },

@@ -1,11 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
@@ -609,12 +608,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support specifying attributes', async function () {
       const Project = this.sequelize.define('Project', {
-        title: Sequelize.STRING,
+        title: DataTypes.STRING,
       });
 
       const Task = this.sequelize.define('Task', {
-        title: Sequelize.STRING,
-        description: Sequelize.TEXT,
+        title: DataTypes.STRING,
+        description: DataTypes.TEXT,
       });
 
       Project.hasMany(Task);
@@ -646,8 +645,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should support Sequelize.literal and renaming of attributes in included model attributes', async function () {
       const Post = this.sequelize.define('Post', {});
       const PostComment = this.sequelize.define('PostComment', {
-        someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
-        comment_title: Sequelize.STRING,
+        someProperty: DataTypes.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        comment_title: DataTypes.STRING,
       });
 
       Post.hasMany(PostComment);
@@ -664,6 +663,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         findAttributes = [
           Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
           [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
+        ];
+      } else if (dialect === 'ibmi') {
+        findAttributes = [
+          Sequelize.literal('1 AS "PostComments.someProperty"'),
+          [Sequelize.literal('1'), 'someProperty2'],
         ];
       } else if (dialect === 'db2') {
         findAttributes = [
@@ -724,10 +728,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support including date fields, with the correct timeszone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
 
       User.belongsToMany(Group, { through: 'group_user' });

@@ -135,15 +135,22 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js', 'docs/**/*.js'],
+    files: ['test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
       'import/order': 'off',
+
+      'no-invalid-this': 'off',
+      'no-unused-expressions': 'off',
+      camelcase: 'off',
+      'no-console': 'off',
+      'no-prototype-builtins': 'off',
+      'no-multi-spaces': 'off',
     },
   }, {
-    // Disable slow rules that are not important in tests & docs (perf)
-    files: ['test/**/*', 'docs/**/*'],
+    // Disable slow rules that are not important in tests (perf)
+    files: ['test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -172,19 +179,42 @@ module.exports = {
     parserOptions: {
       project: ['./test/tsconfig.json'],
     },
+  }, {
+    files: ['**/tsconfig.json'],
+    rules: {
+      'json/*': ['error', { allowComments: true }],
+    },
   }],
   settings: {
     jsdoc: {
       tagNamePreference: {
         augments: 'extends',
       },
+      structuredTags: {
+        typeParam: {
+          type: false,
+          required: ['name'],
+        },
+        internal: {
+          type: false,
+        },
+      },
     },
   },
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'script',
+    sourceType: 'module',
   },
-  ignorePatterns: ['dist/**/*', 'types/**/*', 'dev/**/*'],
+  // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
+  ignorePatterns: [
+    'lib/**/*',
+    'types/**/*',
+    'test/types/**/*',
+    'src/**/*.d.ts',
+    'dev/**/*',
+    '!dev/update-authors.js',
+    '.typedoc-build',
+  ],
   env: {
     node: true,
     mocha: true,

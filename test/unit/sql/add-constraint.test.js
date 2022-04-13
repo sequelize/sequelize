@@ -5,9 +5,9 @@ const Support = require('../support');
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
-const Op = Support.Sequelize.Op;
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const { Op } = require('@sequelize/core');
 
 if (current.dialect.supports.constraints.addConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -108,7 +108,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: [{
                 attribute: 'myColumn',
               }],
-            })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
+            })).to.throw('Default value must be specified for DEFAULT CONSTRAINT');
           });
 
         });
@@ -168,32 +168,34 @@ if (current.dialect.supports.constraints.addConstraint) {
                 table: 'myOtherTable',
                 fields: ['id1', 'id2'],
               },
-              onUpdate: 'cascade',
               onDelete: 'cascade',
             }),
             {
               db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
+              ibmi: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE',
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON DELETE CASCADE;',
             },
           );
         });
 
-        it('uses onDelete, onUpdate', () => {
-          expectsql(sql.addConstraintQuery('myTable', {
-            type: 'foreign key',
-            fields: ['myColumn'],
-            references: {
-              table: 'myOtherTable',
-              field: 'id',
-            },
-            onUpdate: 'cascade',
-            onDelete: 'cascade',
-          }), {
-            db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
+        if (current.dialect.name !== 'ibmi') {
+          it('uses onDelete, onUpdate', () => {
+            expectsql(sql.addConstraintQuery('myTable', {
+              type: 'foreign key',
+              fields: ['myColumn'],
+              references: {
+                table: 'myOtherTable',
+                field: 'id',
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade',
+            }), {
+              db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
+              default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
+            });
           });
-        });
+        }
 
         it('errors if references object is not passed', () => {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', {

@@ -1,9 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../../support');
 
@@ -12,13 +11,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('aggregate', () => {
       beforeEach(async function () {
         this.Child = this.sequelize.define('Child', {
-          priority: Sequelize.INTEGER,
+          priority: DataTypes.INTEGER,
         });
         this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: Sequelize.STRING,
-          email: Sequelize.STRING,
-          access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
         }, {
           defaultScope: {
             where: {
@@ -94,7 +93,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to use where on include', async function () {
         await expect(this.ScopeMe.scope('withInclude').aggregate('ScopeMe.id', 'count', {
           plain: true,
-          dataType: new Sequelize.INTEGER(),
+          dataType: new DataTypes.INTEGER(),
           includeIgnoreAttributes: false,
           limit: null,
           offset: null,
@@ -106,7 +105,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (Support.sequelize.dialect.supports.schemas) {
         it('aggregate with schema', async function () {
           this.Hero = this.sequelize.define('Hero', {
-            codename: Sequelize.STRING,
+            codename: DataTypes.STRING,
           }, { schema: 'heroschema' });
           await this.sequelize.createSchema('heroschema');
           await this.sequelize.sync({ force: true });

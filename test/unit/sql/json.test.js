@@ -1,11 +1,10 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const expect = require('chai').expect;
 
 const expectsql = Support.expectsql;
-const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
 

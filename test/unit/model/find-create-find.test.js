@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { EmptyResultError, UniqueConstraintError } = require('sequelize/lib/errors');
+const { EmptyResultError, UniqueConstraintError } = require('@sequelize/core');
 const Support = require('../support');
 
 const current = Support.sequelize;

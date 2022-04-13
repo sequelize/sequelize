@@ -2,19 +2,17 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const Sequelize = require('sequelize');
 const config = require('../config/config');
-const { Transaction } = require('sequelize/lib/transaction');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -134,7 +132,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               || error.message.match(/should be >=? 0 and < 65536/)
               || error.message.includes('Login failed for user')
               || error.message.includes('A communication error has been detected')
-              || error.message.includes('must be > 0 and < 65536'),
+              || error.message.includes('must be > 0 and < 65536')
+              || error.message.includes('Error connecting to the database'),
             ).to.be.ok;
           }
         });
@@ -422,8 +421,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         dialect: this.sequelize.options.dialect,
       });
 
-      sequelize.define('Project', { title: Sequelize.STRING });
-      sequelize.define('Task', { title: Sequelize.STRING });
+      sequelize.define('Project', { title: DataTypes.STRING });
+      sequelize.define('Task', { title: DataTypes.STRING });
 
       await expect(sequelize.sync({ force: true, match: /$phoenix/ }))
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
@@ -458,6 +457,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(error.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
+          } else if (dialect === 'ibmi') {
+            expect(error.message).to.equal('[odbc] Error connecting to the database');
+            expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
           } else {
             expect(error.message.toString()).to.match(/.*Access denied.*/);
           }
@@ -469,8 +471,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           dialect: this.sequelize.options.dialect,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -481,8 +483,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           port: 99_999,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -494,8 +496,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           pool: {},
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -503,7 +505,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('returns an error correctly if unable to sync a foreign key referenced model', async function () {
         this.sequelize.define('Application', {
           authorID: {
-            type: Sequelize.BIGINT,
+            type: DataTypes.BIGINT,
             allowNull: false,
             references: {
               model: 'User',
@@ -712,7 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('is a transaction method available', () => {
-          expect(Support.Sequelize).to.respondTo('transaction');
+          expect(Sequelize).to.respondTo('transaction');
         });
 
         it('passes a transaction object to the callback', async function () {
