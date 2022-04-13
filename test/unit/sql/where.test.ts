@@ -1293,7 +1293,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
     });
 
-    describe('Op.startsWith', () => {
+    describe('Op.th', () => {
       testSql({
         stringAttr: {
           [Op.startsWith]: 'swagger',
@@ -1629,6 +1629,345 @@ describe(support.getTestDialectTeaser('SQL'), () => {
       // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
       testSql.skip({ stringAttr: { [Op.substring]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
         default: new Error('Op.substring is not compatible with Op.all'),
+      });
+    });
+
+    describe('Op.notStartsWith', () => {
+      testSql({
+        stringAttr: {
+          [Op.notStartsWith]: 'swagger',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE 'swagger%'`,
+        mssql: `[stringAttr] NOT LIKE N'swagger%'`,
+      });
+
+      testSql({
+        stringAttr: {
+          [Op.notStartsWith]: 'sql\'injection',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE 'sql''injection%'`,
+        mysql: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
+        mariadb: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
+        mssql: `[stringAttr] NOT LIKE N'sql''injection%'`,
+      });
+
+      // startsWith should escape anything that has special meaning in LIKE
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[stringAttr] NOT LIKE 'sql\%injection%' ESCAPE '\'`,
+        mssql: String.raw`[stringAttr] NOT LIKE N'sql\%injection%' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
+      testSql({
+        stringAttr: {
+          [Op.notStartsWith]: literal('swagger'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE 'swagger%'`,
+        mssql: `[stringAttr] NOT LIKE N'swagger%'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: literal('$bind'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT($bind, '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT($bind, N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: col('username'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: fn('NOW'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT(NOW(), '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(NOW(), N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notStartsWith]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[username] NOT LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
+        mssql: `[username] NOT LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
+      });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
+      // @ts-expect-error -- notStartsWith is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.notStartsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- notStartsWith is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.notStartsWith is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- notStartsWith is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notStartsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- notStartsWith is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notStartsWith is not compatible with Op.all'),
+      });
+    });
+
+    describe.skip('Op.notEndsWith', () => {
+      testSql({
+        stringAttr: {
+          [Op.notEndsWith]: 'swagger',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%swagger'`,
+        mssql: `[stringAttr] NOT LIKE N'%swagger'`,
+      });
+
+      testSql({
+        stringAttr: {
+          [Op.notEndsWith]: 'sql\'injection',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%sql''injection'`,
+        mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
+        mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
+        mssql: `[stringAttr] NOT LIKE N'%sql''injection'`,
+      });
+
+      // notEndsWith should escape anything that has special meaning in LIKE
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[stringAttr] NOT LIKE '%sql\%injection' ESCAPE '\'`,
+        mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
+      testSql({
+        stringAttr: {
+          [Op.notEndsWith]: literal('swagger'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%swagger'`,
+        mssql: `[stringAttr] NOT LIKE N'%swagger'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: literal('$bind'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', $bind)`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', $bind)`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: col('username'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: fn('NOW'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', NOW())`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', NOW())`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notEndsWith]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', CAST(NOW() AS STRING))`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', CAST(NOW() AS STRING))`,
+      });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
+      // @ts-expect-error -- notEndsWith is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.notEndsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.notEndsWith is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notEndsWith is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notEndsWith is not compatible with Op.all'),
+      });
+    });
+
+    describe.skip('Op.notSubstring', () => {
+      testSql({
+        stringAttr: {
+          [Op.notSubstring]: 'swagger',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%swagger%'`,
+        mssql: `[stringAttr] NOT LIKE N'%swagger%'`,
+      });
+
+      testSql({
+        stringAttr: {
+          [Op.notSubstring]: 'sql\'injection',
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%sql''injection%'`,
+        mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
+        mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
+        mssql: `[stringAttr] NOT LIKE N'%sql''injection%'`,
+      });
+
+      // notSubstring should escape anything that has special meaning in LIKE
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: 'like%injection',
+        },
+      }, {
+        default: String.raw`[stringAttr] NOT LIKE '%sql\%injection%' ESCAPE '\'`,
+        mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection%' ESCAPE '\'`,
+      });
+
+      // TODO: remove this test in v7 (breaking change)
+      testSql({
+        stringAttr: {
+          [Op.notSubstring]: literal('swagger'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE '%swagger%'`,
+        mssql: `[stringAttr] NOT LIKE N'%swagger%'`,
+      });
+
+      // TODO: in v7: support `col`, `literal`, and others
+      // TODO: these would require escaping LIKE values in SQL itself
+      //  output should be something like:
+      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
+      //  with missing special characters.
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: literal('$bind'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', $bind, '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', $bind, N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: col('username'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: { [Op.col]: 'username' },
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: fn('NOW'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', NOW(), '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', NOW(), N'%')`,
+      });
+
+      testSql.skip({
+        stringAttr: {
+          [Op.notSubstring]: cast(fn('NOW'), 'string'),
+        },
+      }, {
+        default: `[stringAttr] NOT LIKE CONCAT('%', CAST(NOW() AS STRING), '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', CAST(NOW() AS STRING), N'%')`,
+      });
+
+      // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
+      // @ts-expect-error -- notSubstring is not compatible with Op.any
+      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } }, {
+        default: new Error('Op.notSubstring is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- notSubstring is not compatible with Op.all
+      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } }, {
+        default: new Error('Op.notSubstring is not compatible with Op.all'),
+      });
+
+      // @ts-expect-error -- notSubstring is not compatible with Op.any + Op.values
+      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notSubstring is not compatible with Op.any'),
+      });
+
+      // @ts-expect-error -- notSubstring is not compatible with Op.all + Op.values
+      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
+        default: new Error('Op.notSubstring is not compatible with Op.all'),
       });
     });
 
