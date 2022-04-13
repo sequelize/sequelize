@@ -1344,9 +1344,7 @@ class QueryGenerator {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          if (this._dialect.name !== 'oracle') {
-            delete options.order;
-          }
+          delete options.order;
           where[Op.placeholder] = true;
         }
 
