@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('An attribute called \'id\' was defined in model \'bars\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
-    it('should allow model definition without PK', () => {
+    it('should not add the default PK when noPrimaryKey is set to true', () => {
       const User = current.define('User', {}, {
         noPrimaryKey: true,
       });
