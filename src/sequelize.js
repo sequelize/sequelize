@@ -360,7 +360,7 @@ export class Sequelize {
         Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       case 'yugabytedb':
-        Dialect = require('./dialects/yugabytedb');
+        Dialect = require('./dialects/yugabytedb').YugabyteDBDialect;
         break;
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
