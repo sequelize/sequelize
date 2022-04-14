@@ -70,13 +70,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not add the default `id` field PK if PK has been defined manually', () => {
       const Model = current.define('User', {
-        id: {
+        customId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
       });
 
-      expect(Model.rawAttributes).to.have.property('id');
+      expect(Model.rawAttributes).not.to.have.property('id');
     });
 
     it('should support noPrimaryKey on Sequelize define option', () => {
