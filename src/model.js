@@ -1238,10 +1238,6 @@ export class Model {
         this.primaryKeys[name] = definition;
       }
 
-      if (name === 'id' && definition.primaryKey === false) {
-        this.primaryKeys.id = definition;
-      }
-
       this.fieldRawAttributesMap[definition.field] = definition;
 
       if (definition.type._sanitize) {
