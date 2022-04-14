@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             primaryKey: false,
           },
         });
-      }).to.not.throw('An attribute called \'id\' was defined in model \'bazs\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      }).to.not.throw('An attribute called \'id\' was defined in model \'baz\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
