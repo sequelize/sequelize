@@ -54,14 +54,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('id');
     });
 
-    it('should allow model definition without PK with noPrimaryKey is set to true', () => {
-      const Model = current.define('User', {}, {
-        noPrimaryKey: true,
-      });
-
-      expect(Model.rawAttributes).not.to.have.property('id');
-    });
-
     it('should add the default `id` field PK if noPrimary is not set and no PK has been defined manually', () => {
       const Model = current.define('User', {});
 
