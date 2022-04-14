@@ -7,6 +7,5 @@ const Model = require('../../model');
 
 const PostgresQueryGenerator = require('../postgres/query-generator');
 
-class YugabyteQueryGenerator extends PostgresQueryGenerator{}
+export class YugabyteDBQueryGenerator extends PostgresQueryGenerator {}
 
-module.exports = YugabyteQueryGenerator;

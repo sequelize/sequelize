@@ -2563,7 +2563,12 @@ export class Model {
           .filter(name => this.rawAttributes[name])
           .map(name => this.rawAttributes[name].field || name);
 
-        const errFieldKeys = Object.keys(error.fields);
+        // YugabyteDB related changes are done at this point for errFieldsKeys variable
+        let errFieldKeys = [];
+        if (error.fields !== undefined) {
+          errFieldKeys = Object.keys(error.fields);
+        }
+
         const errFieldsWhereIntersects = Utils.intersects(errFieldKeys, whereFields);
         if (defaultFields && !errFieldsWhereIntersects && Utils.intersects(errFieldKeys, defaultFields)) {
           throw error;

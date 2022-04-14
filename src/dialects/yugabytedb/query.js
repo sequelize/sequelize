@@ -2,8 +2,5 @@
 
 const PostgresQuery = require('../postgres/query');
 
-class Query extends PostgresQuery{}
+export class YugabyteDBQuery extends PostgresQuery {}
 
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

@@ -2,6 +2,5 @@
 
 const { PostgresQueryInterface } = require('../postgres/query-interface');
 
-class YugabyteQueryInterface extends PostgresQueryInterface{}
+export class YugabyteDBQueryInterface extends PostgresQueryInterface {}
 
-exports.YugabyteQueryInterface = YugabyteQueryInterface;

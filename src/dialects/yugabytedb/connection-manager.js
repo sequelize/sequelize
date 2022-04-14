@@ -4,7 +4,7 @@ const _ = require('lodash');
 const dataTypes = require('../../data-types');
 const PostgresConnectionManager = require('../postgres/connection-manager');
 
-class ConnectionManager extends PostgresConnectionManager{
+export class YugabyteDBConnectionManager extends PostgresConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 5433;
     super(dialect, sequelize);
@@ -14,7 +14,3 @@ class ConnectionManager extends PostgresConnectionManager{
   }
 
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

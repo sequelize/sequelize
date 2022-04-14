@@ -284,19 +284,19 @@ module.exports = BaseTypes => {
     constructor(length, decimals) {
       super(length, decimals);
       if (this._decimals) {
-        warn('Yugabyte does not support FLOAT with decimals. Plain `FLOAT` will be used instead.');
+        warn('YugabyteDB does not support FLOAT with decimals. Plain `FLOAT` will be used instead.');
         this._length = undefined;
         this.options.length = undefined;
         this._decimals = undefined;
       }
 
       if (this._unsigned) {
-        warn('Yugabyte does not support FLOAT unsigned. `UNSIGNED` was removed.');
+        warn('YugabyteDB does not support FLOAT unsigned. `UNSIGNED` was removed.');
         this._unsigned = undefined;
       }
 
       if (this._zerofill) {
-        warn('Yugabyte does not support FLOAT zerofill. `ZEROFILL` was removed.');
+        warn('YugabyteDB does not support FLOAT zerofill. `ZEROFILL` was removed.');
         this._zerofill = undefined;
       }
     }
@@ -307,7 +307,7 @@ module.exports = BaseTypes => {
   class BLOB extends BaseTypes.BLOB {
     toSql() {
       if (this._length) {
-        warn('Yugabyte does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.');
+        warn('YugabyteDB does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.');
         this._length = undefined;
       }
 
