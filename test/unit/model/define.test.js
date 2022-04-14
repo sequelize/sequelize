@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).to.have.property('id');
     });
 
-    it('should support noPrimaryKey on Sequelize define attribute', () => {
+    it('should support noPrimaryKey on Sequelize define option', () => {
       const sequelize = Support.createSequelizeInstance({
         define: {
           noPrimaryKey: true,
