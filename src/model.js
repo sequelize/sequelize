@@ -240,7 +240,7 @@ export class Model {
     let head = {};
 
     // Add id if no primary key was manually added to definition
-    if (!_.some(this.rawAttributes, 'primaryKey') && !this.options.noPrimaryKey) {
+    if (!this.options.noPrimaryKey && !_.some(this.rawAttributes, 'primaryKey')) {
       head = {
         id: {
           type: new DataTypes.INTEGER(),
