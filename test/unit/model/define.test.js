@@ -29,6 +29,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('created_at');
       expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
+    
+    it('should throw when id is added but not marked as PK', () => {
+      expect(() => {
+        current.define('foo', {
+          id: DataTypes.INTEGER,
+        });
+      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+
+      expect(() => {
+        current.define('bar', {
+          id: {
+            type: DataTypes.INTEGER,
+          },
+        });
+      }).to.throw('An attribute called \'id\' was defined in model \'bars\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+    });
 
     it('should allow model definition without PK', () => {
       const Model = current.define('User', {}, {
