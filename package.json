@@ -215,7 +215,7 @@
     "docs": "typedoc",
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ./test/registerEsbuild",
-    "test-unit": "yarn mocha \"test/unit/**/define.test.[tj]s\"",
+    "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "node test/teaser.js",
