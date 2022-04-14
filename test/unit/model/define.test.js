@@ -78,9 +78,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      const Model = sequelize.define('User', {});
+      const User = sequelize.define('User', {});
 
-      expect(Model.options.noPrimaryKey).to.equal(true);
+      expect(User.options.noPrimaryKey).to.equal(true);
     });
 
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
