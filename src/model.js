@@ -1339,7 +1339,6 @@ export class Model {
 
     // Primary key convenience constiables
     if (Object.keys(this.primaryKeys).length === 0) {
-      // if id is exist but it is not a primary key and noPrimaryKey option is set to false, add it to the primaryKeys object automically.
       this.primaryKeys.id = this.rawAttributes.id;
     }
 
