@@ -85,6 +85,8 @@ jobs:
         run: yarn test-unit-ibmi
       - name: Unit tests (snowflake)
         run: yarn test-unit-snowflake
+      - name: Unit tests (yugabytedb)
+        run: yarn test-unit-yugabytedb
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
