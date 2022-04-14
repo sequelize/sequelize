@@ -1704,7 +1704,12 @@ export interface ModelOptions<M extends Model = Model> {
   omitNull?: boolean;
 
   /**
-   * Adds primary key automatically to the model if false. Default false.
+   * Sequelize will automatically add a primary key called `id` if no
+   * primary key has been added manually.
+   *
+   * Set to false to disable adding that primary key.
+   *
+   * @default false
    */
   noPrimaryKey?: boolean;
 
