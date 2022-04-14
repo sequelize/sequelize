@@ -253,6 +253,35 @@ jobs:
         run: yarn test-unit
       # - name: Integration Tests
       #   run: yarn test-integration
+  test-oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 16]
+    name: Oracle DB (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: oracle
+      SEQ_ORACLE_USER: sequelizetest
+      SEQ_ORACLE_PW: sequelizepassword
+      SEQ_ORACLE_DB: XEPDB1
+      SEQ_ORACLE_HOST: localhost
+      SEQ_ORACLE_PORT: 1521
+      UV_THREADPOOL_SIZE: 128
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install Local Oracle DB
+        run: yarn start-oracle
+      - name: Unit Tests
+        run: yarn test-unit
+        continue-on-error: true
+      - name: Integration Tests
+        run: yarn test-integration
+        continue-on-error: true
   release:
     name: Release
     runs-on: ubuntu-latest
