@@ -79,6 +79,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).to.have.property('id');
     });
 
+    it('should support noPrimaryKey on Sequelize define attribute', () => {
+      const sequelize = Support.createSequelizeInstance({
+        define: {
+          noPrimaryKey: true,
+        },
+      });
+
+      const Model = sequelize.define('User', {});
+
+      expect(Model.options.noPrimaryKey).to.equal(true);
+    });
+
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
       expect(() => {
         current.define('foo', {
