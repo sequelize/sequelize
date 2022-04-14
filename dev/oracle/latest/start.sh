@@ -27,7 +27,7 @@ then
     mv ~/oracle/instantclient_21_5 ~/oracle/instantclient
 
     echo "Local Oracle instant client has been setup!"
-elif [ ! -d  ~/Downloads/oracle ] && [ $(uname) == 'Darwin' ]
+elif [ ! -d  ~/oracle ] && [ $(uname) == 'Darwin' ]
 then
     mkdir ~/oracle && 
     wget https://download.oracle.com/otn_software/mac/instantclient/198000/instantclient-basic-macos.x64-19.8.0.0.0dbru.zip --no-check-certificate && 
