@@ -362,6 +362,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           // TODO: (ibmi) - is this correct?
           ibmi: `"stringAttr" = 'BLOB(X''53657175656c697a65'')'`,
           postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
+          yugabytedb: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
           sqlite: '`stringAttr` = X\'53657175656c697a65\'',
           mariadb: '`stringAttr` = X\'53657175656c697a65\'',
           mysql: '`stringAttr` = X\'53657175656c697a65\'',
@@ -374,6 +375,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           // TODO: (ibmi) - is this correct?
           ibmi: `"stringAttr" IN ('BLOB(X''53657175656c697a6531'')', 'BLOB(X''53657175656c697a6532'')')`,
           postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
+          yugabytedb: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
           sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
           mariadb: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
           mysql: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
@@ -1157,6 +1159,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
               // used 'postgres' because otherwise range is transformed to "1,2"
               postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+              yugabytedb: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
             });
           }
 
@@ -1183,6 +1186,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               intRangeAttr: { [operator]: [10, null] },
             }, {
               postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+              yugabytedb: `"intRangeAttr" ${sqlOperator} '[10,)'`,
             });
           }
 
@@ -1193,6 +1197,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               intRangeAttr: { [operator]: [null, 10] },
             }, {
               postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+              yugabytedb: `"intRangeAttr" ${sqlOperator} '[,10)'`,
             });
           }
 
@@ -1203,6 +1208,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               intRangeAttr: { [operator]: [null, null] },
             }, {
               postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+              yugabytedb: `"intRangeAttr" ${sqlOperator} '[,)'`,
             });
           }
 
@@ -1217,6 +1223,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               },
             }, {
               postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+              yugabytedb: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
             });
           }
 
@@ -1228,6 +1235,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
               dateRangeAttr: { [operator]: [] },
             }, {
               postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+              yugabytedb: `"dateRangeAttr" ${sqlOperator} 'empty'`,
             });
           }
 
@@ -1254,6 +1262,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           intRangeAttr: { [Op.contains]: 1 },
         }, {
           postgres: `"intRangeAttr" @> '1'::int4`,
+          yugabytedb: `"intRangeAttr" @> '1'::int4`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -1270,18 +1279,21 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         intAttr1: { [Op.contained]: [1, 2] },
       }, {
         postgres: '"intAttr1" <@ \'[1,2)\'::int4range',
+        yugabytedb: '"intAttr1" <@ \'[1,2)\'::int4range',
       });
 
       testSql.skip({
         bigIntAttr: { [Op.contained]: [1, 2] },
       }, {
         postgres: '"intAttr1" <@ \'[1,2)\'::int8range',
+        yugabytedb: '"intAttr1" <@ \'[1,2)\'::int8range',
       });
 
       testSql.skip({
         dateAttr: { [Op.contained]: [new Date('2020-01-01T00:00:00Z'), new Date('2021-01-01T00:00:00Z')] },
       }, {
         postgres: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
+        yugabytedb: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
       });
 
       /*
@@ -2000,8 +2012,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (sequelize.dialect.supports.REGEXP) {
-      describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
-      describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
+      describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'yugabytedb' ? '~' : 'REGEXP');
+      describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'yugabytedb' ? '!~' : 'NOT REGEXP');
     }
 
     if (sequelize.dialect.supports.IREGEXP) {
@@ -2047,6 +2059,8 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
             // used 'postgres' because otherwise range is transformed to "1,2"
             postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+            yugabytedb: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+
           });
         }
 
@@ -2073,6 +2087,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             intRangeAttr: { [operator]: [10, null] },
           }, {
             postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+            yugabytedb: `"intRangeAttr" ${sqlOperator} '[10,)'`,
           });
         }
 
@@ -2083,6 +2098,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             intRangeAttr: { [operator]: [null, 10] },
           }, {
             postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+            yugabytedb: `"intRangeAttr" ${sqlOperator} '[,10)'`,
           });
         }
 
@@ -2093,6 +2109,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             intRangeAttr: { [operator]: [null, null] },
           }, {
             postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+            yugabytedb: `"intRangeAttr" ${sqlOperator} '[,)'`,
           });
         }
 
@@ -2107,6 +2124,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             },
           }, {
             postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+            yugabytedb: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
           });
         }
 
@@ -2118,6 +2136,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
             dateRangeAttr: { [operator]: [] },
           }, {
             postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+            yugabytedb: `"dateRangeAttr" ${sqlOperator} 'empty'`,
           });
         }
 
@@ -2157,6 +2176,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          yugabytedb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2168,6 +2188,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested}') = 'value'`,
+          yugabytedb: `("jsonAttr"#>>'{nested}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'value'`,
         });
 
@@ -2179,6 +2200,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          yugabytedb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2190,6 +2212,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          yugabytedb: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2199,6 +2222,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          yugabytedb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2208,6 +2232,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          yugabytedb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2219,6 +2244,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          yugabytedb: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2228,6 +2254,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          yugabytedb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2237,6 +2264,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          yugabytedb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2244,6 +2272,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
           postgres: 'CAST(("jsonAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
+          yugabytedb: 'CAST(("jsonAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
           sqlite: 'CAST(json_extract(`jsonAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
         });
 
@@ -2252,6 +2281,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
           postgres: 'CAST(("aliased_json"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
+          yugabytedb: 'CAST(("aliased_json"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
           sqlite: 'CAST(json_extract(`aliased_json`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
         });
       });
@@ -2268,6 +2298,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
           postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
+          yugabytedb: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
           sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
@@ -2280,6 +2311,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
           postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
+          yugabytedb: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
           sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
@@ -2300,6 +2332,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
+          yugabytedb: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         }, {
           prefix: 'User',
@@ -2315,6 +2348,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) IN (1, 2)',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) IN (1, 2)',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) IN (1, 2)',
         });
 
@@ -2328,6 +2362,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) BETWEEN 1 AND 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) BETWEEN 1 AND 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
         });
 
@@ -2344,6 +2379,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.prop\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"prop\\"\')) != \'None\')',
           postgres: '(("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\' AND ("User"."jsonbAttr"#>>\'{nested,prop}\') != \'None\')',
+          yugabytedb: '(("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\' AND ("User"."jsonbAttr"#>>\'{nested,prop}\') != \'None\')',
           sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\' AND json_extract(`User`.`jsonbAttr`,\'$.nested.prop\') != \'None\')',
         }, {
           prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { tableName: 'User' })),
@@ -2362,6 +2398,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"employment\\"\')) != \'None\')',
           postgres: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
+          yugabytedb: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
           sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`jsonbAttr`,\'$.employment\') != \'None\')',
         }, {
           prefix: 'User',
@@ -2376,6 +2413,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.price\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.name\')) = \'Product\')',
           mysql: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.\\"name\\"\')) = \'Product\')',
           postgres: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
+          yugabytedb: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
           sqlite: '(CAST(json_extract(`jsonbAttr`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`jsonbAttr`,\'$.name\') = \'Product\')',
         });
 
@@ -2387,6 +2425,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) IN (3, 7)',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) IN (3, 7)',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) IN (3, 7)',
         });
 
@@ -2402,6 +2441,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) > 2',
         });
 
@@ -2417,6 +2457,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS INTEGER) > 2',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS INTEGER) > 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS INTEGER) > 2',
         });
 
@@ -2433,6 +2474,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
           mysql: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("jsonbAttr"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
+          yugabytedb: `CAST(("jsonbAttr"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`jsonbAttr\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`,
         });
 
@@ -2446,6 +2488,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'true\'',
           mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'true\'',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
+          yugabytedb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS BOOLEAN) = 1',
         });
 
@@ -2453,6 +2496,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
+          yugabytedb: '("jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         });
 
@@ -2470,6 +2514,7 @@ describe(support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`aliased_jsonb`,\'$.key\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`aliased_jsonb`,\'$.\\"key\\"\')) = \'value\'',
           postgres: '("aliased_jsonb"#>>\'{key}\') = \'value\'',
+          yugabytedb: '("aliased_jsonb"#>>\'{key}\') = \'value\'',
           sqlite: 'json_extract(`aliased_jsonb`,\'$.key\') = \'value\'',
         });
       });
