@@ -45,41 +45,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       }
     });
-    if (current.dialect.name !== 'yugabytedb') {
-      it('type and using', () => { // INDEX CONCURRENTLY is not yet supported in yugabytedb
-        expectsql(sql.addIndexQuery('User', ['fieldC'], {
-          type: 'FULLTEXT',
-          concurrently: true,
-        }), {
-          ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-          sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
-          db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-          mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
-          postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
-          mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
-          mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
-        });
+    // INDEX CONCURRENTLY is not yet supported in yugabytedb
+    (current.dialect.name !== 'yugabytedb' ? it : it.skip)('type and using', () => {
+      expectsql(sql.addIndexQuery('User', ['fieldC'], {
+        type: 'FULLTEXT',
+        concurrently: true,
+      }), {
+        ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
+        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
+        db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
+        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
+        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
+        mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+      });
 
-        expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
-          name: 'a_b_uniq',
-          unique: true,
-          using: 'BTREE',
-          parser: 'foo',
-        }), {
-          sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
-          mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
-          db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
-          ibmi: `BEGIN
+      expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
+        name: 'a_b_uniq',
+        unique: true,
+        using: 'BTREE',
+        parser: 'foo',
+      }), {
+        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
+        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
+        db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
+        ibmi: `BEGIN
         DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
           BEGIN END;
           ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
         END`,
-          postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
-          mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-          mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-        });
+        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
+        mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
       });
-    }
+    });
 
     it('POJO field', () => {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
