@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow model definition without PK', () => {
-      const Model = current.define('User', {}, {
+      const User = current.define('User', {}, {
         noPrimaryKey: true,
       });
 
