@@ -30,12 +30,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.rawAttributes).not.to.have.property('updated_at');
     });
 
-    it('should throw only when id is added but PK is not set', () => {
+    it('should throw only when id is added but primaryKey is not set', () => {
       expect(() => {
         current.define('foo', {
           id: DataTypes.INTEGER,
         });
-      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
 
       expect(() => {
         current.define('bar', {
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             primaryKey: true,
           },
         });
-      }).to.not.throw('An attribute called \'id\' was defined in model \'bars\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      }).to.not.throw('An attribute called \'id\' was defined in model \'bars\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
 
       expect(() => {
         current.define('baz', {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             primaryKey: false,
           },
         });
-      }).to.not.throw('An attribute called \'id\' was defined in model \'bazs\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      }).to.not.throw('An attribute called \'id\' was defined in model \'bazs\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {

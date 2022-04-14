@@ -242,7 +242,7 @@ export class Model {
     // Add id if no primary key was manually added to definition
     if (!this.options.noPrimaryKey && !_.some(this.rawAttributes, 'primaryKey')) {
       if ('id' in this.rawAttributes) {
-        throw new Error(`An attribute called 'id' was defined in model '${this.tableName}' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`);
+        throw new Error(`An attribute called 'id' was defined in model '${this.tableName}' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`);
       }
 
       head = {
