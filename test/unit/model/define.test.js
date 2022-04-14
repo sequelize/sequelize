@@ -13,21 +13,21 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const Model = current.define('User', {}, {
+      const User = current.define('User', {}, {
         createdAt: 'createdAt',
         updatedAt: 'updatedAt',
         timestamps: true,
         underscored: true,
       });
 
-      expect(Model.rawAttributes).to.haveOwnProperty('createdAt');
-      expect(Model.rawAttributes).to.haveOwnProperty('updatedAt');
+      expect(User.rawAttributes).to.haveOwnProperty('createdAt');
+      expect(User.rawAttributes).to.haveOwnProperty('updatedAt');
 
-      expect(Model._timestampAttributes.createdAt).to.equal('createdAt');
-      expect(Model._timestampAttributes.updatedAt).to.equal('updatedAt');
+      expect(User._timestampAttributes.createdAt).to.equal('createdAt');
+      expect(User._timestampAttributes.updatedAt).to.equal('updatedAt');
 
-      expect(Model.rawAttributes).not.to.have.property('created_at');
-      expect(Model.rawAttributes).not.to.have.property('updated_at');
+      expect(User.rawAttributes).not.to.have.property('created_at');
+      expect(User.rawAttributes).not.to.have.property('updated_at');
     });
 
     it('should throw when id is added but not marked as PK', () => {
@@ -51,24 +51,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         noPrimaryKey: true,
       });
 
-      expect(Model.rawAttributes).not.to.have.property('id');
+      expect(User.rawAttributes).not.to.have.property('id');
     });
 
     it('should add the default `id` field PK if noPrimary is not set and no PK has been defined manually', () => {
-      const Model = current.define('User', {});
+      const User = current.define('User', {});
 
-      expect(Model.rawAttributes).to.have.property('id');
+      expect(User.rawAttributes).to.have.property('id');
     });
 
     it('should not add the default `id` field PK if PK has been defined manually', () => {
-      const Model = current.define('User', {
+      const User = current.define('User', {
         customId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
       });
 
-      expect(Model.rawAttributes).not.to.have.property('id');
+      expect(User.rawAttributes).not.to.have.property('id');
     });
 
     it('should support noPrimaryKey on Sequelize define option', () => {
