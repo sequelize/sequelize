@@ -1238,6 +1238,10 @@ export class Model {
         this.primaryKeys[name] = definition;
       }
 
+      if (name === 'id' && definition.primaryKey === false) {
+        this.primaryKeys['id'] = definition;
+      }
+
       this.fieldRawAttributesMap[definition.field] = definition;
 
       if (definition.type._sanitize) {
@@ -1338,10 +1342,6 @@ export class Model {
     this.prototype._isAttribute = key => Object.prototype.hasOwnProperty.call(this.prototype.rawAttributes, key);
 
     // Primary key convenience constiables
-    if (Object.keys(this.primaryKeys).length === 0) {
-      this.primaryKeys.id = this.rawAttributes.id;
-    }
-
     this.primaryKeyAttributes = Object.keys(this.primaryKeys);
     this.primaryKeyAttribute = this.primaryKeyAttributes[0];
     if (this.primaryKeyAttribute) {
