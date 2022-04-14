@@ -626,11 +626,30 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include(expectedConstraintName);
       });
+
+      (dialect !== 'yugabytedb' ? it.skip : it)('should add & read primary key constraint', async function () {
+        await this.queryInterface.createTable('users_yb', {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+        });
+        await this.queryInterface.addConstraint('users_yb', {
+          fields: ['id'],
+          type: 'PRIMARY KEY',
+        });
+        let constraints = await this.queryInterface.showConstraint('users_yb');
+        constraints = constraints.map(constraint => constraint.constraintName);
+
+        const expectedConstraintName = 'users_yb_id_pk';
+
+        expect(constraints).to.include(expectedConstraintName);
+        await this.queryInterface.dropTable('users_yb');
+      });
     });
 
     describe('foreign key', () => {
       (dialect !== 'yugabytedb' ? it : it.skip)('should add, read & remove foreign key constraint', async function () {
-
         await this.queryInterface.removeColumn('users', 'id'); // Removing a PRIMARY KEY column is not yet supported in Yugabyte
         await this.queryInterface.changeColumn('users', 'username', {
           type: DataTypes.STRING,
@@ -657,6 +676,36 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
+      });
+
+      (dialect !== 'yugabytedb' ? it.skip : it)('should add, read & remove foreign key constraint', async function () {
+        await this.queryInterface.createTable('users_yb', {
+          username: {
+            type: DataTypes.STRING,
+          },
+        });
+        await this.queryInterface.addConstraint('users_yb', {
+          type: 'PRIMARY KEY',
+          fields: ['username'],
+        });
+        await this.queryInterface.addConstraint('posts', {
+          fields: ['username'],
+          references: {
+            table: 'users_yb',
+            field: 'username',
+          },
+          onDelete: 'cascade',
+          onUpdate: 'cascade',
+          type: 'foreign key',
+        });
+        let constraints = await this.queryInterface.showConstraint('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.include('posts_username_users_yb_fk');
+        await this.queryInterface.removeConstraint('posts', 'posts_username_users_yb_fk');
+        constraints = await this.queryInterface.showConstraint('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.not.include('posts_username_users_yb_fk');
+        await this.queryInterface.dropTable('users_yb');
       });
     });
 

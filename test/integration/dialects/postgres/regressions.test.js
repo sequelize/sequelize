@@ -9,7 +9,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
-if (dialect.startsWith('postgres')) {
+if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
   describe('[POSTGRES Specific] Regressions', () => {
     it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {

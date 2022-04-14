@@ -75,10 +75,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       let assertVal = 'VARCHAR(255)';
       switch (dialect) {
-        case 'postgres':
-          assertVal = 'CHARACTER VARYING(255)';
-          break;
         case 'yugabytedb':
+        case 'postgres':
           assertVal = 'CHARACTER VARYING(255)';
           break;
         case 'mssql':
@@ -132,7 +130,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(isAdmin.defaultValue).to.be.null;
       }
 
-      if (dialect.startsWith('postgres') || dialect.startsWith('yugabytedb')) {
+      if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {

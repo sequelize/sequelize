@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('retry',  () => {
-      (dialect !== 'yugabytedb' ? it : it.skip)('properly bind parameters on extra retries', async function () { // Assertion Error in yugabytedb
+      it('properly bind parameters on extra retries', async function () {
         const payload = {
           username: 'test',
           createdAt: '2010-10-10 00:00:00',
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ],
           },
         })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-        expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialect) ? 1 : 3);
+        expect(spy.callCount).to.eql(['db2', 'ibmi', 'yugabytedb'].includes(dialect) ? 1 : 3);
       });
     });
 

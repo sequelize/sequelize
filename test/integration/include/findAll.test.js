@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'Designers' },
           { name: 'Managers' },
         ]);
-        const groups = await Group.findAll();
+        const groups = await Group.findAll({ order: [['id', 'ASC']] });
         await Company.bulkCreate([
           { name: 'Sequelize' },
           { name: 'Coca Cola' },
@@ -95,13 +95,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'NYSE' },
           { name: 'Coshopr' },
         ]);
-        const companies = await Company.findAll();
+        const companies = await Company.findAll({ order: [['id', 'ASC']] });
         await Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1 },
           { name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0, canPost: 0 },
         ]);
-        const ranks = await Rank.findAll();
+        const ranks = await Rank.findAll({ order: [['id', 'ASC']] });
         await Tag.bulkCreate([
           { name: 'A' },
           { name: 'B' },
@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'D' },
           { name: 'E' },
         ]);
-        const tags = await Tag.findAll();
+        const tags = await Tag.findAll({ order: [['id', 'ASC']] });
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
           await Product.bulkCreate([
@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { title: 'Pen' },
             { title: 'Monitor' },
           ]);
-          const products = await Product.findAll();
+          const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id },
@@ -290,8 +290,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should support an include with multiple different association types', async function () {
+    it('should support an include with multiple different association types', async function () {
       const User = this.sequelize.define('User', {});
       const Product = this.sequelize.define('Product', {
         title: DataTypes.STRING,
@@ -339,16 +338,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         Group.bulkCreate([
           { name: 'Developers' },
           { name: 'Designers' },
-        ]).then(() => Group.findAll()),
+        ]).then(() => Group.findAll({ order: [['id', 'ASC']] })),
         Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0 },
-        ]).then(() => Rank.findAll()),
+        ]).then(() => Rank.findAll({ order: [['id', 'ASC']] })),
         Tag.bulkCreate([
           { name: 'A' },
           { name: 'B' },
           { name: 'C' },
-        ]).then(() => Tag.findAll()),
+        ]).then(() => Tag.findAll({ order: [['id', 'ASC']] })),
       ]);
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
@@ -356,7 +355,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' },
-          ]).then(() => Product.findAll()),
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] })),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -1171,8 +1170,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
-    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function () {
+    it('should be possible to extend the on clause with a where option on nested includes', async function () {
       const User = this.sequelize.define('User', {
         name: DataTypes.STRING,
       });
@@ -1222,16 +1220,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         Group.bulkCreate([
           { name: 'Developers' },
           { name: 'Designers' },
-        ]).then(() => Group.findAll()),
+        ]).then(() => Group.findAll({ order: [['id', 'ASC']] })),
         Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0 },
-        ]).then(() => Rank.findAll()),
+        ]).then(() => Rank.findAll({ order: [['id', 'ASC']] })),
         Tag.bulkCreate([
           { name: 'A' },
           { name: 'B' },
           { name: 'C' },
-        ]).then(() => Tag.findAll()),
+        ]).then(() => Tag.findAll({ order: [['id', 'ASC']] })),
       ]);
       for (const i of [0, 1, 2, 3, 4]) {
         const user = await User.create({ name: 'FooBarzz' });
@@ -1241,7 +1239,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { title: 'Desk' },
         ]);
 
-        const products = await Product.findAll();
+        const products = await Product.findAll({ order: [['id', 'ASC']] });
         await Promise.all([
           GroupMember.bulkCreate([
             { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -1347,8 +1345,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }
     });
 
-    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function () {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function () {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1566,8 +1563,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }
     });
 
-    // Assertion Error for yugabytedb due to the expection of rows to be selected in the same way it is inserted in the database can't be possible
-    (Support.getTestDialect() !== 'yugabytedb' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function () {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function () {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({

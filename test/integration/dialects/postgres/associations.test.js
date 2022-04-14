@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 
-if (dialect.startsWith('postgres')) {
+if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
   describe('[POSTGRES Specific] associations', () => {
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {

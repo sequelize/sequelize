@@ -2583,13 +2583,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
+          case 'yugabytedb':
+
           case 'postgres': {
-            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
-
-            break;
-          }
-
-          case 'yugabytedb': {
             expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
             break;

@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       }
     });
-    if (current.dialect.name !== 'yugabytedb'){
+    if (current.dialect.name !== 'yugabytedb') {
       it('type and using', () => { // INDEX CONCURRENTLY is not yet supported in yugabytedb
         expectsql(sql.addIndexQuery('User', ['fieldC'], {
           type: 'FULLTEXT',
@@ -100,12 +100,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (current.dialect.name !== 'yugabytedb' && current.dialect.supports.index.using === 2) { // yugabytedb uses ybgin in place of gin
+    // yugabytedb uses ybgin in place of gin
+    if (current.dialect.supports.index.using === 2) {
       it('USING', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
-          using: 'gin',
+          using: current.dialect.name !== 'yugabytedb' ? 'gin' : 'ybgin',
         }), {
+          yugabytedb: 'CREATE INDEX "table_event" ON "table" USING ybgin ("event")',
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
         });
       });
@@ -164,13 +166,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.name !== 'yugabytedb' && current.dialect.supports.JSONB) { // yugabytedb has its own ybgin using function in place of gin;
+    // yugabytedb uses ybgin in place of gin
+    if (current.dialect.supports.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
-          using: 'gin',
+          using: current.dialect.name !== 'yugabytedb' ? 'gin' : 'ybgin',
           operator: 'jsonb_path_ops',
         }), {
+          yugabytedb: 'CREATE INDEX "table_event" ON "table" USING ybgin ("event" jsonb_path_ops)',
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
         });
       });

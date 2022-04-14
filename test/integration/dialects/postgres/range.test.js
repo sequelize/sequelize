@@ -9,7 +9,7 @@ const { DataTypes } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 const range   = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/range.js');
 
-if (dialect.startsWith('postgres')) {
+if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
 

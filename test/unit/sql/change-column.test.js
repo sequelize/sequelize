@@ -33,7 +33,8 @@ if (current.dialect.name !== 'sqlite') {
       after(function () {
         this.stub.restore();
       });
-      if (current.dialect.name !== 'yugabytedb'){ // Alter Column type not supported yet in yugabytedb
+      // Alter Column type not supported yet in yugabytedb
+      if (current.dialect.name !== 'yugabytedb') {
         it('properly generate alter queries', () => {
           return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
             type: DataTypes.FLOAT,

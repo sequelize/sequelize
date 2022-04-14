@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
+        if (dialect.includes('postgres') || dialect === 'yugabytedb') {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
+        if (dialect.includes('postgres') || dialect === 'yugabytedb') {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
+        if (dialect.includes('postgres') || dialect === 'yugabytedb') {
           expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }, { schema: 'archive' });
 
         const table = await this.queryInterface.describeTable('SomeTable', { schema: 'archive' });
-        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
+        if (dialect.includes('postgres') || dialect === 'yugabytedb') {
           expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres') || dialect.includes('yugabytedb')) {
+        if (dialect.includes('postgres') || dialect === 'yugabytedb') {
           expect(table.someEnum.special).to.deep.equal(['COMMENT']);
           expect(table.someEnum.comment).to.equal('special enum col');
         }

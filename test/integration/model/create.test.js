@@ -494,7 +494,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return await User.findOrCreate({ where: { username } });
             } catch (error) {
               spy();
-              if (dialect !== 'yugabytedb'){
+              if (dialect !== 'yugabytedb') {
                 expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick \' vs \'mick\'');
               }
             }

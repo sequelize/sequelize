@@ -949,7 +949,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         });
 
-        (dialect !== 'yugabytedb' ? it : it.skip)('includes all associations', async function () { // Operation Expired or aborted by a conflict in yugabytedb
+        it('includes all associations', async function () {
           const countries = await this.Country.findAll({ include: [{ all: true }] });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1158,7 +1158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }));
         });
 
-        (dialect !== 'yugabytedb' ? it : it.skip)('sorts by 1st degree association', async function () {  // Operation Expired or aborted by a conflict in yugabytedb
+        it('sorts by 1st degree association', async function () {
           await Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [this.Country],
@@ -1381,9 +1381,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].id).to.be.above(users[2].id);
       });
 
-      (dialect !== 'yugabytedb' ? it : it.skip)('handles offset and limit', async function () { // Assertion Error in yugabytedb due to order.
+      it('handles offset and limit', async function () {
         await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
-        const users = await this.User.findAll({ limit: 2, offset: 2 });
+        const users = await this.User.findAll({ limit: 2, offset: 2, order: [['id', 'ASC']] });
         expect(users.length).to.equal(2);
         expect(users[0].id).to.equal(3);
       });
