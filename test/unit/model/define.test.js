@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         current.define('foo', {
           id: DataTypes.INTEGER,
         });
-      }).to.throw('A column called \'id\' was added to the attributes of \'foos\' but not marked with \'primaryKey: true\'');
+      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
 
       expect(() => {
         current.define('bar', {
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: DataTypes.INTEGER,
           },
         });
-      }).to.throw('A column called \'id\' was added to the attributes of \'bars\' but not marked with \'primaryKey: true\'');
+      }).to.throw('An attribute called \'id\' was defined in model \'bars\' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
     it('should allow model definition without PK', () => {
@@ -52,6 +52,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Model.rawAttributes).not.to.have.property('id');
+    });
+
+    it('should allow model definition without PK with noPrimaryKey is set to true', () => {
+      const Model = current.define('User', {}, {
+        noPrimaryKey: true,
+      });
+
+      expect(Model.rawAttributes).not.to.have.property('id');
+    });
+
+    it('should add the default `id` field PK if noPrimary is set', () => {
+      const Model = current.define('User', {});
+
+      expect(Model.rawAttributes).to.have.property('id');
+    });
+
+    it('should not add the default `id` field PK if PK has been defined manually', () => {
+      const Model = current.define('User', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      expect(Model.rawAttributes).to.have.property('id');
     });
 
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {

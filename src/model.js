@@ -240,11 +240,9 @@ export class Model {
     let head = {};
 
     // Add id if no primary key was manually added to definition
-    // Can't use this.primaryKeys here, since this function is called before PKs are identified
-    if (!_.some(this.rawAttributes, 'primaryKey') && !this.options.noPrimaryKey) {
+    if (!this.options.noPrimaryKey && !_.some(this.rawAttributes, 'primaryKey')) {
       if ('id' in this.rawAttributes) {
-        // Something is fishy here!
-        throw new Error(`A column called 'id' was added to the attributes of '${this.tableName}' but not marked with 'primaryKey: true'`);
+        throw new Error(`An attribute called 'id' was defined in model '${this.tableName}' but not marked as a primaryKey. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`);
       }
 
       head = {
@@ -258,6 +256,7 @@ export class Model {
       };
 
       if (Object.keys(this.primaryKeys).length === 0) {
+        // if id is exist but it is not a primary key and noPrimaryKey option is set to false, add it to the primaryKeys object automically.
         this.primaryKeys.id = this.rawAttributes.id;
       }
     }
