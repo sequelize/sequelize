@@ -70,10 +70,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
         db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
         ibmi: `BEGIN
-        DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
-          BEGIN END;
-          ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
-        END`,
+      DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
+        BEGIN END;
+        ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
+      END`,
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
