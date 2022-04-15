@@ -106,7 +106,7 @@ export class HasMany<
       as: options.inverse?.as,
       foreignKey: options.foreignKey,
       targetKey: options.sourceKey,
-      constraints: options.constraints,
+      foreignKeyConstraints: options.foreignKeyConstraints,
       hooks: options.hooks,
       scope: options.scope,
     }, this);

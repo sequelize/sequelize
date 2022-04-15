@@ -234,12 +234,12 @@ export class BelongsToMany<
           // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
           as: options.inverse?.as,
           scope: options.inverse?.scope,
-          constraints: options.inverse?.constraints,
+          foreignKeyConstraints: options.inverse?.foreignKeyConstraints,
 
           inverse: {
             as: options.as,
             scope: options.scope,
-            constraints: options.constraints,
+            foreignKeyConstraints: options.foreignKeyConstraints,
           },
           sourceKey: options.targetKey,
           targetKey: options.sourceKey,
@@ -276,7 +276,7 @@ export class BelongsToMany<
       scope: this.through.scope,
       foreignKey: this.options.foreignKey,
       sourceKey: this.options.sourceKey,
-      constraints: this.options.constraints,
+      foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
       inverse: {
         as: this.pairedWith.name.singular,
@@ -288,7 +288,7 @@ export class BelongsToMany<
       scope: this.through.scope,
       foreignKey: this.options.foreignKey,
       sourceKey: this.options.sourceKey,
-      constraints: this.options.constraints,
+      foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
       inverse: {
         as: this.pairedWith.name.singular,
@@ -952,17 +952,17 @@ export interface BelongsToManyOptions<
   inverse?: {
     as?: AssociationOptions<string>['as'],
     scope?: MultiAssociationOptions<string>['scope'],
-    constraints?: AssociationOptions<string>['constraints'],
+    foreignKeyConstraints?: AssociationOptions<string>['foreignKeyConstraints'],
   };
 
   // this is also present in AssociationOptions, but they have different JSDoc, keep both!
   /**
-   * Should "ON UPDATE" and "ON DELETE" constraints be enabled on the foreign key?
+   * Should "ON UPDATE", "ON DELETE" and "REFERENCES" constraints be enabled on the foreign key?
    *
    * This only affects the foreign key that points to the source model.
-   * to control the one that points to the target model, set {@link BelongsToManyOptions.inverse.constraints}.
+   * to control the one that points to the target model, set {@link BelongsToManyOptions.inverse.foreignKeyConstraints}.
    */
-  constraints?: boolean;
+  foreignKeyConstraints?: boolean;
 
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a

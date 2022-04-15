@@ -21,7 +21,7 @@ import { AssociationConstructorSecret } from './helpers';
  *
  * ```js
  * User.hasMany(Picture)
- * User.belongsTo(Picture, { as: 'ProfilePicture', constraints: false })
+ * User.belongsTo(Picture, { as: 'ProfilePicture', foreignKeyConstraints: false })
  *
  * user.getPictures() // gets you all pictures
  * user.getProfilePicture() // gets you only the profile picture
@@ -80,7 +80,7 @@ import { AssociationConstructorSecret } from './helpers';
  *
  * In the example above we have specified that a user belongs to his profile picture. Conceptually, this might not make sense, but since we want to add the foreign key to the user model this is the way to do it.
  *
- * Note how we also specified `constraints: false` for profile picture. This is because we add a foreign key from user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this, you should either disable some constraints, or rethink your associations completely.
+ * Note how we also specified `foreignKeyConstraints: false` for profile picture. This is because we add a foreign key from user to picture (profilePictureId), and from picture to user (userId). If we were to add foreign keys to both, it would create a cyclic dependency, and sequelize would not know which table to create first, since user depends on picture, and picture depends on user. These kinds of problems are detected by sequelize before the models are synced to the database, and you will get an error along the lines of `Error: Cyclic dependency found. 'users' is dependent of itself`. If you encounter this, you should either disable some constraints, or rethink your associations completely.
  */
 export abstract class Association<
   S extends Model = Model,
@@ -290,9 +290,9 @@ export interface AssociationOptions<ForeignKey extends string> extends Hookable 
   foreignKey?: ForeignKey | ForeignKeyOptions<ForeignKey>;
 
   /**
-   * Should on update and on delete constraints be enabled on the foreign key.
+   * Should ON UPDATE, ON DELETE, and REFERENCES constraints be enabled on the foreign key.
    */
-  constraints?: boolean;
+  foreignKeyConstraints?: boolean;
 
   scope?: AssociationScope;
 }

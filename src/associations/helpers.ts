@@ -35,7 +35,7 @@ export function addForeignKeyConstraints(
   // FK constraints are opt-in: users must either set `foreignKeyConstraints`
   // on the association, or request an `onDelete` or `onUpdate` behavior
 
-  if (options.constraints !== false) {
+  if (options.foreignKeyConstraints !== false) {
     // Find primary keys: composite keys not supported with this approach
     const primaryKeys = Object.keys(source.primaryKeys)
       .map(primaryKeyAttribute => source.getAttributes()[primaryKeyAttribute].field || primaryKeyAttribute);
@@ -284,6 +284,14 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
 
   if ('onDelete' in options || 'onUpdate' in options) {
     throw new Error('Options "onDelete" and "onUpdate" have been moved to "foreignKey.onDelete" and "foreignKey.onUpdate" (also available as "otherKey" in belongsToMany)');
+  }
+
+  if ('constraints' in options) {
+    throw new Error('Option "constraints" has been renamed to "foreignKeyConstraints"');
+  }
+
+  if ('foreignKeyConstraint' in options) {
+    throw new Error('Option "foreignKeyConstraint" has been renamed to "foreignKeyConstraints" (with a "s" at the end)');
   }
 
   const isMultiAssociation = associationType.isMultiAssociation;
