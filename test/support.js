@@ -328,6 +328,8 @@ const Support = {
       .replace(/ ,/g, ',')
       // remove space before )
       .replace(/ \)/g, ')')
+      // replace space after (
+      .replace(/\( /g, '(')
       // remove whitespace at start & end
       .trim();
   },
