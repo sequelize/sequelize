@@ -126,8 +126,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `SELECT [user].* FROM (${
           [
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 1 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 5 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
       });
@@ -157,8 +171,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `SELECT [user].* FROM (${
           [
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 1 AND [projects].[status] = 1 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 5 AND [projects].[status] = 1 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+                AND [project_user].[status] = 1
+              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+                AND [project_user].[status] = 1
+              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
       });
@@ -188,8 +218,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `SELECT [user].* FROM (${
           [
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 1 WHERE [user].[age] >= 21 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [projects].[user_id] AS [projects.userId], [projects].[project_id] AS [projects.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [projects] ON [user].[id_user] = [projects].[user_id] AND [projects].[project_id] = 5 WHERE [user].[age] >= 21 ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+            `SELECT * FROM (
+               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+               FROM [users] AS [user]
+               INNER JOIN [project_users] AS [project_user]
+                 ON [user].[id_user] = [project_user].[user_id]
+                 AND [project_user].[project_id] = 1
+               WHERE [user].[age] >= 21
+               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              WHERE [user].[age] >= 21
+              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+            ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
       });

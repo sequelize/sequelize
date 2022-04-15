@@ -81,11 +81,11 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(users).to.have.length(5);
             for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('projects')).to.have.length(1);
+              expect(u.get('project_user')).to.have.length(1);
             }
 
             for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('projects')).to.have.length(2);
+              expect(u.get('project_user')).to.have.length(2);
             }
           });
 
@@ -109,11 +109,11 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(users[2].get('tasks')).to.have.length(2);
             for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('projects')).to.have.length(1);
+              expect(u.get('project_user')).to.have.length(1);
             }
 
             for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('projects')).to.have.length(2);
+              expect(u.get('project_user')).to.have.length(2);
             }
           });
 
