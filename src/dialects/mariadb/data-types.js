@@ -3,7 +3,7 @@
 const wkx = require('wkx');
 const _ = require('lodash');
 const dayjs = require('dayjs');
-const { isValidTimeZone } = require('../../utils');
+const { isValidTimeZone } = require('../../utils/dayjs');
 
 module.exports = BaseTypes => {
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://mariadb.com/kb/en/library/resultset/#field-types';

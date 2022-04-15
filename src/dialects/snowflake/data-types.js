@@ -1,7 +1,7 @@
 'use strict';
 
 const dayjs = require('dayjs');
-const { isValidTimeZone } = require('../../utils');
+const { isValidTimeZone } = require('../../utils/dayjs');
 
 module.exports = BaseTypes => {
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
