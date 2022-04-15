@@ -29,6 +29,7 @@ const { BelongsTo } = require('./associations/belongs-to');
 const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
+require('./utils/dayjs');
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -150,7 +151,7 @@ export class Sequelize {
    * @param {string}   [options.schema=null] A schema to use
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
-   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones used by dayjs (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`

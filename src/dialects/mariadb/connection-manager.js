@@ -5,7 +5,7 @@ const { ConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').mariadb;
-const momentTz = require('moment-timezone');
+const dayjs = require('dayjs');
 
 const debug = logger.debugContext('connection:mariadb');
 const parserStore = require('../parserStore')('mariadb');
@@ -55,7 +55,7 @@ export class MariaDbConnectionManager extends ConnectionManager {
   async connect(config) {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = /\//.test(tzOffset) ? momentTz.tz(tzOffset).format('Z')
+    tzOffset = /\//.test(tzOffset) ? dayjs.tz(tzOffset).format('Z')
       : tzOffset;
 
     const connectionConfig = {

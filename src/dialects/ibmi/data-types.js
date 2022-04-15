@@ -1,6 +1,6 @@
 'use strict';
 
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm');
@@ -61,12 +61,12 @@ module.exports = BaseTypes => {
     static parse(date) {
       if (!date.includes('+')) {
         // For backwards compat. Dates inserted by sequelize < 2.0dev12 will not have a timestamp set
-        const mome = moment.utc(date);
+        const mome = dayjs.utc(date);
 
         return mome.toDate();
       }
 
-      const mome = moment.utc(date);
+      const mome = dayjs.utc(date);
 
       return mome.toDate();
     }

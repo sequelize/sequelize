@@ -2,8 +2,8 @@
 
 const wkx = require('wkx');
 const _ = require('lodash');
-const momentTz = require('moment-timezone');
-const moment = require('moment');
+const dayjs = require('dayjs');
+const { isValidTimeZone } = require('../../utils');
 
 module.exports = BaseTypes => {
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://mariadb.com/kb/en/library/resultset/#field-types';
@@ -58,7 +58,7 @@ module.exports = BaseTypes => {
     }
 
     _stringify(date, options) {
-      if (!moment.isMoment(date)) {
+      if (!dayjs.isDayjs(date)) {
         date = this._applyTimezone(date, options);
       }
 
@@ -71,8 +71,8 @@ module.exports = BaseTypes => {
         return value;
       }
 
-      if (momentTz.tz.zone(options.timezone)) {
-        value = momentTz.tz(value, options.timezone).toDate();
+      if (isValidTimeZone(options.timezone)) {
+        value = dayjs.tz(value, options.timezone).toDate();
       } else {
         value = new Date(`${value} ${options.timezone}`);
       }

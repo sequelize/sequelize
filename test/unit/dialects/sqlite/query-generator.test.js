@@ -8,7 +8,7 @@ const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
 
 if (dialect === 'sqlite') {
@@ -411,10 +411,10 @@ if (dialect === 'sqlite') {
             bind: ['bar', undefined],
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()],
+            bind: ['foo', dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()],
           },
         }, {
           arguments: ['myTable', { name: 'foo', value: true }],
@@ -477,7 +477,7 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', [{ name: '\'bar\'' }, { name: 'foo' }]],
           expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'\'\'bar\'\'\'),(\'foo\');',
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
         }, {
           arguments: ['myTable', [{ name: 'bar', value: null }, { name: 'foo', value: 1 }]],
@@ -517,16 +517,16 @@ if (dialect === 'sqlite') {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            bind: ['foo', dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            bind: ['foo', dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
           },
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],

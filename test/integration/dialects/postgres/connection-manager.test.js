@@ -20,7 +20,7 @@ if (dialect.startsWith('postgres')) {
       expect(row).to.be.not.null;
     }
 
-    it('should correctly parse the moment based timezone while fetching hstore oids', async function () {
+    it('should correctly parse the timezone while fetching hstore oids', async function () {
       await checkTimezoneParsing(this.sequelize.options);
     });
 
