@@ -1,6 +1,7 @@
 import assert from 'assert';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
+import { AssociationError } from '../errors/index.js';
 import type {
   ModelStatic,
   Model,
@@ -13,6 +14,7 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
+import { isSameInitialModel } from '../utils/model-utils.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { HasMany } from './has-many.js';
@@ -204,6 +206,13 @@ export class BelongsTo<
       BelongsToOptions<SourceKey, TargetKey>,
       NormalizedBelongsToOptions<SourceKey, TargetKey>
     >(BelongsTo, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+      // self-associations must always set their 'as' parameter
+      if (isSameInitialModel(source, target) && options.inverse
+        // use 'options' because this will always be set in 'newOptions'
+        && (!options.as || !options.inverse.as || options.as === options.inverse.as)) {
+        throw new AssociationError(`Both options "as" and "inverse.as" must be defined for belongsTo self-associations, and their value must be different, if you specify the 'inverse' option.`);
+      }
+
       return new BelongsTo(secret, source, target, normalizedOptions, parent);
     });
   }

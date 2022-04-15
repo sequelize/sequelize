@@ -1,5 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject';
 import upperFirst from 'lodash/upperFirst';
+import { AssociationError } from '../errors/index.js';
 import type {
   Model,
   CreateOptions,
@@ -14,6 +15,7 @@ import type {
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
+import { isSameInitialModel } from '../utils/model-utils.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to.js';
@@ -150,6 +152,13 @@ export class HasMany<
       HasManyOptions<SourceKey, TargetKey>,
       NormalizedHasManyOptions<SourceKey, TargetKey>
     >(HasMany, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+      // self-associations must always set their 'as' parameter
+      if (isSameInitialModel(source, target)
+        // use 'options' because this will always be set in 'newOptions'
+        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+        throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
+      }
+
       return new HasMany(secret, source, target, normalizedOptions, parent);
     });
   }

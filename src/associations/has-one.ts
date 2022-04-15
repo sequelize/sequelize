@@ -1,4 +1,5 @@
 import upperFirst from 'lodash/upperFirst';
+import { AssociationError } from '../errors/index.js';
 import { Model } from '../model';
 import type {
   CreateOptions,
@@ -11,6 +12,7 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
+import { isSameInitialModel } from '../utils/model-utils.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { BelongsTo } from './belongs-to.js';
@@ -144,6 +146,16 @@ export class HasOne<
       HasOneOptions<SourceKey, TargetKey>,
       NormalizedHasOneOptions<SourceKey, TargetKey>
     >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+      // self-associations must always set their 'as' parameter
+      if (isSameInitialModel(source, target)
+        // use 'options' because this will always be set in 'newOptions'
+        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+        throw new AssociationError(`Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different.
+This is because hasOne associations automatically create the corresponding belongsTo association, but they cannot share the same name.
+
+If having two associations does not make sense (for instance a "spouse" association from user to user), consider using belongsTo instead of hasOne.`);
+      }
+
       return new HasOne(secret, source, target, normalizedOptions, parent);
     });
   }

@@ -387,15 +387,10 @@ Add your own primary key to the through model, on different attributes than the 
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
     >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target)) {
+      if (isSameInitialModel(source, target)
         // use 'options' because this will always be set in 'newOptions'
-        if (!options.as) {
-          throw new AssociationError('\'as\' must be defined for many-to-many self-associations');
-        }
-
-        if (!options.inverse?.as) {
-          throw new AssociationError('\'inverse.as\' must be defined for many-to-many self-associations');
-        }
+        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+        throw new AssociationError('Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
       }
 
       return new BelongsToMany(secret, source, target, newOptions, pair, parent);
