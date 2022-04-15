@@ -15,6 +15,8 @@ import { Op } from '../operators';
 import * as Utils from '../utils';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import { HasMany } from './has-many.js';
+import { HasOne } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
   addForeignKeyConstraints,
@@ -80,6 +82,8 @@ export class BelongsTo<
   get targetIdentifier(): string {
     return this.targetKey;
   }
+
+  inverse: Association | undefined;
 
   constructor(
     secret: symbol,
@@ -156,6 +160,31 @@ export class BelongsTo<
     };
 
     this.#mixin(source.prototype);
+
+    if (options.inverse) {
+      const passDown = {
+        ...options,
+        as: options.inverse.as,
+        scope: options.inverse?.scope,
+        sourceKey: options.targetKey,
+        inverse: undefined,
+      };
+
+      delete passDown.targetKey;
+
+      switch (options.inverse.type) {
+        case 'hasMany':
+          HasMany.associate(secret, target, source, passDown, this);
+          break;
+
+        case 'hasOne':
+          HasOne.associate(secret, target, source, passDown, this);
+          break;
+
+        default:
+          throw new Error(`Invalid option received for "inverse.type": ${options.inverse.type} is not recognised. Expected "hasMany" or "hasOne"`);
+      }
+    }
   }
 
   static associate<
@@ -343,6 +372,12 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
    * key of the target table
    */
   targetKey?: TargetKey;
+
+  inverse?: {
+    type: 'hasMany' | 'hasOne',
+    as?: string,
+    scope?: AssociationOptions<any>['scope'],
+  };
 }
 
 /**
