@@ -255,7 +255,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       if (_.isObject(dataType)) {
         let sql = dataType.type.toString();
 
-        if (Object.prototype.hasOwnProperty.call(dataType, 'allowNull') && !dataType.allowNull) {
+        if (dataType.allowNull === false) {
           sql += ' NOT NULL';
         }
 
