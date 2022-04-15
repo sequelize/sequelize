@@ -16,6 +16,20 @@ describe(getTestDialectTeaser('hasMany'), () => {
     }).to.throw('User.hasMany called with something that\'s not a subclass of Sequelize.Model');
   });
 
+  it('forbids alias inference in self-associations', () => {
+    const User = sequelize.define('User');
+
+    expect(() => {
+      User.hasMany(User);
+    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different');
+  });
+
+  it('allows self-associations with explicit alias', () => {
+    const Category = sequelize.define('Category');
+
+    Category.hasMany(Category, { as: 'childCategories', inverse: { as: 'parentCategory' } });
+  });
+
   describe('optimizations using bulk create, destroy and update', () => {
     class User extends Model<InferAttributes<User>> {
       declare setTasks: HasManySetAssociationsMixin<Task, number>;

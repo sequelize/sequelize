@@ -418,8 +418,7 @@ Got { association: 1 } instead`);
             message: { type: DataTypes.STRING },
           });
 
-          User.hasMany(Message);
-          Message.belongsTo(User, { foreignKey: 'user_id' });
+          User.hasMany(Message, { foreignKey: 'user_id' });
 
           await this.sequelize.sync({ force: true });
           const user = await User.create({ username: 'test_testerson' });

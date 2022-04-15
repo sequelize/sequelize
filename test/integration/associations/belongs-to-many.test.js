@@ -196,9 +196,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(projects).to.have.length(1);
       const project = projects[0];
 
-      expect(project.ProjectUser).to.be.ok;
+      expect(project.UserProject).to.be.ok;
       expect(project.status).not.to.exist;
-      expect(project.ProjectUser.status).to.equal('active');
+      expect(project.UserProject.status).to.equal('active');
       await this.sequelize.dropSchema('acme');
       const schemas = await this.sequelize.showAllSchemas();
       if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
@@ -1587,6 +1587,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('should count scoped through associations', async function () {
       this.User.belongsToMany(this.Task, {
         as: 'startedTasks',
+        inverse: {
+          as: 'startedUsers',
+        },
         through: {
           model: this.UserTask,
           scope: {
@@ -2413,10 +2416,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       this.Project = this.sequelize.define('Project', { name: DataTypes.STRING });
       this.Puppy = this.sequelize.define('Puppy', { breed: DataTypes.STRING });
 
-      // doubly linked has many
       this.User.belongsToMany(this.Project, {
         through: 'user_projects',
         as: 'Projects',
+        inverse: {
+          as: 'Users',
+        },
         foreignKey: {
           field: 'user_id',
           name: 'userId',
@@ -2424,18 +2429,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         otherKey: {
           field: 'project_id',
           name: 'projectId',
-        },
-      });
-      this.Project.belongsToMany(this.User, {
-        through: 'user_projects',
-        as: 'Users',
-        foreignKey: {
-          field: 'project_id',
-          name: 'projectId',
-        },
-        otherKey: {
-          field: 'user_id',
-          name: 'userId',
         },
       });
     });
@@ -2602,14 +2595,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('keeps the primary key if it was added by the user', function () {
       let fk;
 
-      this.UserTasks = this.sequelize.define('usertasks', {
+      this.UserTasks = this.sequelize.define('UserTask', {
         id: {
           type: DataTypes.INTEGER,
           autoincrement: true,
           primaryKey: true,
         },
       });
-      this.UserTasks2 = this.sequelize.define('usertasks2', {
+      this.UserTasks2 = this.sequelize.define('UserTask2', {
         userTasksId: {
           type: DataTypes.INTEGER,
           autoincrement: true,
@@ -2618,7 +2611,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       this.User.belongsToMany(this.Task, { through: this.UserTasks });
-      this.User.belongsToMany(this.Task, { through: this.UserTasks2, as: 'tasks2', inverse: { as: 'users2' } });
+      this.User.belongsToMany(this.Task, { through: this.UserTasks2, as: 'otherTasksB', inverse: { as: 'otherUsers' } });
 
       expect(Object.keys(this.UserTasks.primaryKeys)).to.deep.equal(['id']);
       expect(Object.keys(this.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId']);
@@ -3228,9 +3221,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       it('can restrict deletes both ways', async function () {
         this.User.belongsToMany(this.Task, {
-          onDelete: 'RESTRICT',
           through: 'tasksusers',
-          inverse: { onDelete: 'RESTRICT' },
+          foreignKey: { onDelete: 'RESTRICT' },
+          otherKey: { onDelete: 'RESTRICT' },
         });
 
         await this.sequelize.sync({ force: true });
@@ -3256,9 +3249,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       it('can cascade and restrict deletes', async function () {
         this.User.belongsToMany(this.Task, {
-          onDelete: 'RESTRICT',
           through: 'tasksusers',
-          inverse: { onDelete: 'CASCADE' },
+          foreignKey: {  onDelete: 'RESTRICT' },
+          otherKey: { onDelete: 'CASCADE' },
         });
 
         await this.sequelize.sync({ force: true });
@@ -3289,7 +3282,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     }
 
     it('should be possible to remove all constraints', async function () {
-      this.User.belongsToMany(this.Task, { constraints: false, through: 'tasksusers', inverse: { constraints: false } });
+      this.User.belongsToMany(this.Task, { foreignKeyConstraints: false, through: 'tasksusers', inverse: { foreignKeyConstraints: false } });
 
       const Through = this.sequelize.model('tasksusers');
       expect(Through.rawAttributes.taskId.references).to.eq(undefined, 'Attribute taskId should not be a foreign key');

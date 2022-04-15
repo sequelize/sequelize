@@ -2257,7 +2257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: DataTypes.STRING,
       }, { schema: 'prefix' });
 
-      UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
+      UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
       if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);

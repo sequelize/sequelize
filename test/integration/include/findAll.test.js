@@ -1731,29 +1731,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       UserPerson.belongsTo(Person, {
         foreignKey: {
           allowNull: false,
+          onDelete: 'CASCADE',
         },
-        onDelete: 'CASCADE',
       });
       Person.hasOne(UserPerson, {
         foreignKey: {
           allowNull: false,
+          onDelete: 'CASCADE',
         },
-        onDelete: 'CASCADE',
       });
 
       User.belongsTo(UserPerson, {
         foreignKey: {
           name: 'UserPersonId',
           allowNull: false,
+          onDelete: 'CASCADE',
         },
-        onDelete: 'CASCADE',
       });
       UserPerson.hasOne(User, {
         foreignKey: {
           name: 'UserPersonId',
           allowNull: false,
+          onDelete: 'CASCADE',
         },
-        onDelete: 'CASCADE',
       });
 
       await this.sequelize.sync({ force: true });

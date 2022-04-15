@@ -38,15 +38,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { tableName: 'employees' });
         this.Restaurant.belongsTo(this.Location, {
           foreignKey: 'location_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         this.Employee.belongsTo(this.Restaurant, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
       });
 

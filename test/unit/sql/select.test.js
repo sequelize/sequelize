@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       }, { timestamps: false });
 
-      User.Projects = User.belongsToMany(Project, { through: ProjectUser });
+      User.belongsToMany(Project, { through: ProjectUser });
       Project.belongsToMany(User, { through: ProjectUser });
 
       expectsql(sql.selectQuery('User', {
@@ -478,8 +478,29 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           model: User,
         }).include,
         model: User,
+        // the order here is important, because a different piece of code is responsible for naming the through table name in ORDER BY
+        //  than in LEFT JOIN
+        order: [
+          ['projects', ProjectUser, 'userId', 'ASC'],
+        ],
       }, User), {
-        default: `SELECT [user].[id_user], [user].[id], [projects].[id] AS [projects.id], [projects].[title] AS [projects.title], [projects].[createdAt] AS [projects.createdAt], [projects].[updatedAt] AS [projects.updatedAt], [projects->project_user].[user_id] AS [projects.project_user.userId], [projects->project_user].[project_id] AS [projects.project_user.projectId] FROM [User] AS [user] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN ( [project_users] AS [projects->project_user] INNER JOIN [projects] AS [projects] ON [projects].[id] = [projects->project_user].[project_id]) ON [user].[id_user] = [projects->project_user].[user_id];`,
+        default: `
+          SELECT [user].[id_user],
+                 [user].[id],
+                 [projects].[id] AS [projects.id],
+                 [projects].[title] AS [projects.title],
+                 [projects].[createdAt] AS [projects.createdAt],
+                 [projects].[updatedAt] AS [projects.updatedAt],
+                 [projects->project_user].[user_id] AS [projects.project_user.userId],
+                 [projects->project_user].[project_id] AS [projects.project_user.projectId]
+          FROM [User] AS [user]
+          ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN (
+            [project_users] AS [projects->project_user]
+            INNER JOIN [projects] AS [projects]
+              ON [projects].[id] = [projects->project_user].[project_id]
+          )
+            ON [user].[id_user] = [projects->project_user].[user_id]
+            ORDER BY "projects->project_user"."user_id" ASC;`,
       });
     });
 

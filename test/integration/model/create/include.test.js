@@ -372,10 +372,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           as: 'tags',
           foreignKey: 'taggable_id',
           otherKey: 'tag_id',
-          constraints: false,
+          foreignKeyConstraints: false,
           inverse: {
             as: 'posts',
-            constraints: false,
+            foreignKeyConstraints: false,
           },
           through: {
             model: ItemTag,

@@ -24,6 +24,21 @@ describe(getTestDialectTeaser('hasOne'), () => {
     }).to.throwWithCause('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
   });
 
+  it('forbids alias inference in self-associations', () => {
+    const User = sequelize.define('User');
+
+    expect(() => {
+      User.hasOne(User);
+    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different');
+  });
+
+  it('allows self-associations with explicit alias', () => {
+    const User = sequelize.define('User');
+
+    // this would make more sense as a belongsTo(User, { as: 'mother', inverse: { type: 'many', as: 'children' } })
+    User.hasOne(User, { as: 'mother', inverse: { as: 'child' } });
+  });
+
   it('does not use `as` option to generate foreign key name', () => {
     // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = sequelize.define('User', { username: DataTypes.STRING });
@@ -127,6 +142,15 @@ describe(getTestDialectTeaser('hasOne'), () => {
     });
   });
 
+  it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {
+    const Task = sequelize.define('Task', { title: DataTypes.STRING });
+    const User = sequelize.define('User', { username: DataTypes.STRING });
+
+    User.hasOne(Task, { foreignKey: { allowNull: false } });
+
+    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+  });
+
   it('should throw an error if an association clashes with the name of an already define attribute', () => {
     const User = sequelize.define('user', {
       attribute: DataTypes.STRING,
@@ -135,6 +159,21 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     expect(User.hasOne.bind(User, Attribute)).to
       .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change the "as" options in your association definition');
+  });
+
+  describe('Model.associations', () => {
+    it('should store all associations when associating to the same table multiple times', () => {
+      const User = sequelize.define('User', {});
+      const Group = sequelize.define('Group', {});
+
+      Group.hasOne(User);
+      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
+      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
+
+      expect(
+        Object.keys(Group.associations),
+      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+    });
   });
 
   describe('association hooks', () => {

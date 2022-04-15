@@ -77,6 +77,15 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     expect(BarProject.rawAttributes.userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
   });
 
+  it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {
+    const Task = sequelize.define('Task', { title: DataTypes.STRING });
+    const User = sequelize.define('User', { username: DataTypes.STRING });
+
+    Task.belongsTo(User, { foreignKey: { allowNull: false } });
+
+    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+  });
+
   describe('association hooks', () => {
     let Projects: ModelStatic<any>;
     let Tasks: ModelStatic<any>;

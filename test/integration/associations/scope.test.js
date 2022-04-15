@@ -8,6 +8,7 @@ const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const semver = require('semver');
+const upperFirst = require('lodash/upperFirst');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
@@ -28,7 +29,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
 
       this.Comment.prototype.getItem = function () {
-        return this[`get${this.get('commentable').slice(0, 1).toUpperCase()}${this.get('commentable').slice(1)}`]();
+        return this[`get${upperFirst(this.get('commentable'))}`]();
       };
 
       this.Post.addScope('withComments', {
@@ -48,7 +49,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'post',
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
@@ -57,7 +58,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           commentable: 'post',
           type: { [Op.in]: ['blue', 'green'] },
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Post.hasOne(this.Comment, {
         foreignKey: 'commentable_id',
@@ -66,12 +67,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           commentable: 'post',
           isMain: true,
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Comment.belongsTo(this.Post, {
         foreignKey: 'commentable_id',
         as: 'post',
-        constraints: false,
+        foreignKeyConstraints: false,
       });
 
       this.Image.hasMany(this.Comment, {
@@ -79,12 +80,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'image',
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Comment.belongsTo(this.Image, {
         foreignKey: 'commentable_id',
         as: 'image',
-        constraints: false,
+        foreignKeyConstraints: false,
       });
 
       this.Question.hasMany(this.Comment, {
@@ -92,12 +93,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'question',
         },
-        constraints: false,
-      });
-      this.Comment.belongsTo(this.Question, {
-        foreignKey: 'commentable_id',
-        as: 'question',
-        constraints: false,
+        foreignKeyConstraints: false,
+        inverse: {
+          as: 'question',
+        },
       });
     });
 
@@ -483,9 +482,9 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               },
               foreignKey: 'taggable_id',
               otherKey: 'tag_id',
-              constraints: false,
+              foreignKeyConstraints: false,
               inverse: {
-                constraints: false,
+                foreignKeyConstraints: false,
               },
             });
 
@@ -499,9 +498,9 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               },
               foreignKey: 'taggable_id',
               otherKey: 'tag_id',
-              constraints: false,
+              foreignKeyConstraints: false,
               inverse: {
-                constraints: false,
+                foreignKeyConstraints: false,
               },
             });
 
@@ -515,9 +514,9 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               },
               foreignKey: 'taggable_id',
               otherKey: 'tag_id',
-              constraints: false,
+              foreignKeyConstraints: false,
               inverse: {
-                constraints: false,
+                foreignKeyConstraints: false,
               },
             });
           });

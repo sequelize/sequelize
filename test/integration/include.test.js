@@ -1014,10 +1014,10 @@ Instead of specifying a Model, either:
       User.belongsToMany(Group, {
         through: UserGroup,
         as: 'Clubs',
-        constraints: false,
+        foreignKeyConstraints: false,
         inverse: {
           as: 'Members',
-          constraints: false,
+          foreignKeyConstraints: false,
         },
       });
 

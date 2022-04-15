@@ -538,26 +538,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(task.UserId).to.equal(null);
     });
 
-    it('sets to NO ACTION if allowNull: false', async function () {
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      Task.belongsTo(User, { foreignKey: { allowNull: false } }); // defaults to NO ACTION
-
-      await this.sequelize.sync({ force: true });
-
-      const user = await User.create({ username: 'foo' });
-      await Task.create({ title: 'task', UserId: user.id });
-      await expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
-      const tasks = await Task.findAll();
-      expect(tasks).to.have.length(1);
-    });
-
     it('should be possible to disable them', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      Task.belongsTo(User, { constraints: false });
+      Task.belongsTo(User, { foreignKeyConstraints: false });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ username: 'foo' });
@@ -572,7 +557,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      Task.belongsTo(User, { onDelete: 'cascade' });
+      Task.belongsTo(User, { foreignKey: { onDelete: 'cascade' } });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ username: 'foo' });
@@ -588,7 +573,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onDelete: 'restrict' });
+        Task.belongsTo(User, { foreignKey: { onDelete: 'restrict' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -603,7 +588,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onUpdate: 'restrict' });
+        Task.belongsTo(User, { foreignKey: { onUpdate: 'restrict' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -633,7 +618,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onUpdate: 'cascade' });
+        Task.belongsTo(User, { foreignKey: { onUpdate: 'cascade' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -800,7 +785,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       for (const dataType of dataTypes) {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
-        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
+        Tasks[dataType].belongsTo(User, { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
       }
 
       await this.sequelize.sync({ force: true });

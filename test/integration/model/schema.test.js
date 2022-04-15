@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
         this.RestaurantOne.belongsTo(this.LocationOne, {
           foreignKey: 'location_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         current.options.schema = SCHEMA_TWO;
         this.RestaurantTwo = current.define('restaurant', {
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
         this.RestaurantTwo.belongsTo(this.LocationTwo, {
           foreignKey: 'location_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         current.options.schema = null;
       });
@@ -162,17 +162,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location, {
           foreignKey: 'location_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
 
         this.Employee.belongsTo(this.Restaurant, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
 
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
         this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);

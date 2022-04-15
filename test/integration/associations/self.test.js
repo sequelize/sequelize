@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   it('can handle 1:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id' });
+    Person.hasMany(Person, { as: 'children', foreignKey: 'parent_id', inverse: { as: 'parent' } });
 
     expect(Person.rawAttributes.parent_id).to.be.ok;
 

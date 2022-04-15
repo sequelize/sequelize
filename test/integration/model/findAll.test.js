@@ -567,8 +567,10 @@ Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          await expect(this.Worker.findAll({ include: [this.Task] }))
-            .to.be.rejectedWith('Invalid Include received: no associations exist between "Worker" and "TaskBelongsTo"');
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Worker.findAll({ include: [OtherModel] }))
+            .to.be.rejectedWith('Invalid Include received: no associations exist between "Worker" and "OtherModel"');
         });
 
         it('returns the associated worker via task.worker', async function () {
@@ -611,8 +613,10 @@ Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          await expect(this.Task.findAll({ include: [this.Worker] }))
-            .to.be.rejectedWith('Invalid Include received: no associations exist between "TaskHasOne" and "Worker"');
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findAll({ include: [OtherModel] }))
+            .to.be.rejectedWith('Invalid Include received: no associations exist between "TaskHasOne" and "OtherModel"');
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -683,7 +687,9 @@ The following associations are defined on "Worker": "ToDo"`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          await expect(this.Task.findAll({ include: [this.Worker] })).to.be.rejectedWith('Invalid Include received: no associations exist between "task" and "worker"');
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findAll({ include: [OtherModel] })).to.be.rejectedWith('Invalid Include received: no associations exist between "task" and "OtherModel"');
         });
 
         it('returns the associated tasks via worker.tasks', async function () {
@@ -889,8 +895,7 @@ The following associations are defined on "Worker": "ToDos"`);
           this.Industry.belongsToMany(this.Country, { through: 'country_industry' });
           this.Country.hasMany(this.Person);
           this.Person.belongsTo(this.Country);
-          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
-          this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
+          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId', inverse: { as: 'CountryResident' } });
 
           await this.sequelize.sync({ force: true });
 
@@ -1060,11 +1065,8 @@ The following associations are defined on "Worker": "ToDos"`);
           this.Person = this.sequelize.define('person', { name: DataTypes.STRING, lastName: DataTypes.STRING });
 
           this.Continent.hasMany(this.Country);
-          this.Country.belongsTo(this.Continent);
           this.Country.hasMany(this.Person);
-          this.Person.belongsTo(this.Country);
-          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
-          this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
+          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId', inverse: { as: 'CountryResident' } });
 
           await this.sequelize.sync({ force: true });
 
@@ -1288,6 +1290,7 @@ The following associations are defined on "Worker": "ToDos"`);
             const countries = await this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]],
+              logging: true,
             });
 
             expect(countries).to.exist;

@@ -10,21 +10,6 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
-  describe('Model.associations', () => {
-    it('should store all associations when associating to the same table multiple times', function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-
-      Group.hasOne(User);
-      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
-      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
-
-      expect(
-        Object.keys(Group.associations),
-      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
-    });
-  });
-
   describe('get', () => {
     describe('multiple', () => {
       it('should fetch associations for multiple instances', async function () {
@@ -400,26 +385,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(task.UserId).to.equal(null);
     });
 
-    it('sets to CASCADE if allowNull: false', async function () {
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      User.hasOne(Task, { foreignKey: { allowNull: false } }); // defaults to CASCADE
-
-      await this.sequelize.sync({ force: true });
-
-      const user = await User.create({ username: 'foo' });
-      await Task.create({ title: 'task', UserId: user.id });
-      await user.destroy();
-      const tasks = await Task.findAll();
-      expect(tasks).to.be.empty;
-    });
-
     it('should be possible to disable them', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { constraints: false });
+      User.hasOne(Task, { foreignKeyConstraints: false });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -435,7 +405,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { onDelete: 'cascade' });
+      User.hasOne(Task, { foreignKey: { onDelete: 'cascade' } });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -451,7 +421,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { onDelete: 'cascade', hooks: true });
+      User.hasOne(Task, { foreignKey: { onDelete: 'cascade' }, hooks: true });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -466,7 +436,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onUpdate: 'cascade' });
+        User.hasOne(Task, { foreignKey: { onUpdate: 'cascade' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -492,7 +462,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onDelete: 'restrict' });
+        User.hasOne(Task, { foreignKey: { onDelete: 'restrict' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -508,7 +478,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onUpdate: 'restrict' });
+        User.hasOne(Task, { foreignKey: { onUpdate: 'restrict' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -641,7 +611,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
-        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
+        User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         await Tasks[dataType].sync({ force: true });
         expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
@@ -656,10 +626,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const InternetOrders = this.sequelize.define('InternetOrders', {}, { timestamps: false });
 
         InternetOrders.belongsTo(Orders, {
-          foreignKeyConstraint: true,
-        });
-        Orders.hasOne(InternetOrders, {
-          foreignKeyConstraint: true,
+          foreignKeyConstraints: true,
+          inverse: {
+            type: 'hasOne',
+          },
         });
 
         expect(Object.keys(InternetOrders.rawAttributes).length).to.equal(2);

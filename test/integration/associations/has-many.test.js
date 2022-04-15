@@ -20,8 +20,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const Group = this.sequelize.define('Group', {});
 
       Group.hasMany(User);
-      Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
-      Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
+      Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
+      Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
 
       expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers']);
     });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
       User.hasMany(Task);
-      const subtasks = Task.hasMany(Task, { as: 'subtasks' });
+      const subtasks = Task.hasMany(Task, { as: 'subtasks', inverse: { as: 'supertask' } });
 
       await this.sequelize.sync({ force: true });
 
@@ -1048,6 +1048,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         this.User.hasMany(this.Task, {
           foreignKey: 'userId',
           as: 'activeTasks',
+          inverse: {
+            as: 'activeUsers',
+          },
           scope: {
             active: true,
           },
@@ -1061,7 +1064,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       it('should work with alias', async function () {
         const Person = this.sequelize.define('Group', {});
 
-        Person.hasMany(Person, { as: 'Children' });
+        Person.hasMany(Person, { as: 'Children', inverse: { as: 'parent' } });
 
         await this.sequelize.sync();
       });
@@ -1108,7 +1111,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasMany(Task, { constraints: false });
+        User.hasMany(Task, { foreignKeyConstraints: false });
 
         await this.sequelize.sync({ force: true });
 
@@ -1128,7 +1131,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasMany(Task, { onDelete: 'cascade' });
+        User.hasMany(Task, { foreignKey: { onDelete: 'cascade' } });
 
         await this.sequelize.sync({ force: true });
 
@@ -1149,7 +1152,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onUpdate: 'cascade' });
+          User.hasMany(Task, { foreignKey: { onUpdate: 'cascade' } });
 
           await this.sequelize.sync({ force: true });
 
@@ -1177,7 +1180,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onDelete: 'restrict' });
+          User.hasMany(Task, { foreignKey: { onDelete: 'restrict' } });
 
           let tasks;
           await this.sequelize.sync({ force: true });
@@ -1207,7 +1210,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onUpdate: 'restrict' });
+          User.hasMany(Task, { foreignKey: { onUpdate: 'restrict' } });
 
           let tasks;
           await this.sequelize.sync({ force: true });
@@ -1272,14 +1275,14 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
-        User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
+        User.hasMany(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         await Tasks[dataType].sync({ force: true });
         expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
       }
     });
 
-    it('infers the keyType if none provided', async function () {
+    it('infers the foreignKey.type if none provided', async function () {
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.STRING, primaryKey: true },
         username: DataTypes.STRING,
@@ -1513,11 +1516,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       Child.belongsTo(Parent, {
         foreignKey: 'parent',
         targetKey: 'id',
-      });
-      Parent.hasMany(Child, {
-        foreignKey: 'parent',
-        targetKey: 'id',
-        as: 'children',
+        inverse: {
+          type: 'hasMany',
+          as: 'children',
+        },
       });
 
       const values = {

@@ -516,34 +516,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         await expect(this.sequelize.sync()).to.be.rejected;
       });
-
-      it('handles this dependant foreign key constraints', async function () {
-        const block = this.sequelize.define('block', {
-          id: { type: DataTypes.INTEGER, primaryKey: true },
-          name: DataTypes.STRING,
-        }, {
-          tableName: 'block',
-          timestamps: false,
-          paranoid: false,
-        });
-
-        block.hasMany(block, {
-          as: 'childBlocks',
-          foreignKey: 'parent',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-        block.belongsTo(block, {
-          as: 'parentBlocks',
-          foreignKey: 'child',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-
-        await this.sequelize.sync();
-      });
     }
 
     it('return the sequelize instance after syncing', async function () {

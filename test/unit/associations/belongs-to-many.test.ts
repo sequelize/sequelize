@@ -102,16 +102,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
   it('allows defining two associations with the same through, but with a different scope on the through table', () => {
     const User = sequelize.define('User');
-    const Post = sequelize.define('Post', {
-      archived: DataTypes.BOOLEAN,
-      editing: DataTypes.BOOLEAN,
-    });
+    const Post = sequelize.define('Post', { editing: DataTypes.BOOLEAN });
 
     User.belongsToMany(Post, { through: 'UserPost' });
     Post.belongsToMany(User, { through: 'UserPost' });
 
     User.belongsToMany(Post, {
       as: 'editingPosts',
+      inverse: {
+        as: 'editingUsers',
+      },
       through: {
         model: 'UserPost',
         scope: {
@@ -135,13 +135,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       through: { model: 'UserPost' },
       as: 'tags',
       scope: { type: 'tag' },
-      inverse: {
-        // the reason these are explicitly set to undefined
-        // is that the inverse association for both of these BelongsToMany is the same
-        // and must be re-used. This should work.
-        onDelete: undefined,
-        onUpdate: undefined,
-      },
     });
 
     // This means Association1.pairedWith.pairedWith is not always Association1
@@ -164,7 +157,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         through: { model: 'UserPost' },
         as: 'tags',
         scope: { type: 'tag' },
-        inverse: {
+        otherKey: {
           onUpdate: 'NO ACTION',
         },
       });
@@ -204,7 +197,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const User = sequelize.define('User', {});
 
       const errorFunction = User.belongsToMany.bind(User, User, { through: 'jointable' });
-      expect(errorFunction).to.throwWithCause(AssociationError, '\'as\' must be defined for many-to-many self-associations');
+      expect(errorFunction).to.throwWithCause(AssociationError, 'Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
     });
   });
 
@@ -393,6 +386,43 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.foreignKey].field).to.equal('parent_id');
       expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
+    });
+
+    it('should create non-null foreign keys by default', () => {
+      const A = sequelize.define('A');
+      const B = sequelize.define('B');
+
+      const association = A.belongsToMany(B, { through: 'AB' });
+
+      const attributes = association.throughModel.rawAttributes;
+      expect(attributes.AId.allowNull).to.be.false;
+      expect(attributes.BId.allowNull).to.be.false;
+    });
+
+    it('allows creating nullable FKs', () => {
+      const A = sequelize.define('A');
+      const B = sequelize.define('B');
+
+      const association = A.belongsToMany(B, {
+        through: 'AB',
+        foreignKey: { allowNull: true },
+        otherKey: { allowNull: true },
+      });
+
+      const attributes = association.throughModel.rawAttributes;
+      expect(attributes.AId.allowNull).to.be.true;
+      expect(attributes.BId.allowNull).to.be.true;
+    });
+
+    it('should add FKs with onDelete=cascade by default', () => {
+      const A = sequelize.define('A');
+      const B = sequelize.define('B');
+
+      const association = A.belongsToMany(B, { through: 'AB', foreignKey: {} });
+
+      const attributes = association.throughModel.rawAttributes;
+      expect(attributes.AId.onDelete).to.eq('CASCADE');
+      expect(attributes.BId.onDelete).to.eq('CASCADE');
     });
   });
 
@@ -816,12 +846,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       User.belongsToMany(Group, {
         as: 'MyGroups',
         through: 'group_user',
-        onUpdate: 'RESTRICT',
-        onDelete: 'SET NULL',
-        inverse: {
-          as: 'MyUsers',
+        foreignKey: {
+          onUpdate: 'RESTRICT',
+          onDelete: 'SET NULL',
+        },
+        otherKey: {
           onUpdate: 'SET NULL',
           onDelete: 'RESTRICT',
+        },
+        inverse: {
+          as: 'MyUsers',
         },
       });
 
@@ -847,12 +881,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       User.belongsToMany(Group, {
         as: 'MyGroups',
         through: UserGroup,
-        onUpdate: 'RESTRICT',
-        onDelete: 'SET NULL',
-        inverse: {
-          as: 'MyUsers',
+        foreignKey: {
+          onUpdate: 'RESTRICT',
+          onDelete: 'SET NULL',
+        },
+        otherKey: {
           onUpdate: 'SET NULL',
           onDelete: 'RESTRICT',
+        },
+        inverse: {
+          as: 'MyUsers',
         },
       });
 

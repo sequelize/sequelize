@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         username: { type: DataTypes.STRING },
       }, { paranoid: true });
 
-      this.ParanoidUser.hasOne(this.ParanoidUser);
+      this.ParanoidUser.hasOne(this.ParanoidUser, { as: 'paranoidParent', inverse: { as: 'paranoidChild' } });
       await this.ParanoidUser.sync({ force: true });
     });
 
@@ -428,7 +428,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'fnord' });
       const users = await this.ParanoidUser.findAll();
       const linkedUser = await this.ParanoidUser.create({ username: 'linkedFnord' });
-      const user = await users[0].setParanoidUser(linkedUser);
+      const user = await users[0].setParanoidParent(linkedUser);
       expect(user.deletedAt).not.to.exist;
     });
 
