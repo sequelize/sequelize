@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type';
 import { Attributes, col } from '@sequelize/core';
 import { User } from './models/User';
 
-async () => {
+(async () => {
     const users = await User.findAll({ raw: false });
     expectTypeOf(users).toEqualTypeOf<User[]>();
 
@@ -24,4 +24,4 @@ async () => {
 
     // @ts-expect-error
     customUsers[0].id = 123; // not an instance
-};
+})();
