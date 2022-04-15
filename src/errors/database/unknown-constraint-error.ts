@@ -1,3 +1,4 @@
+import { useErrorCause } from '../../utils/deprecations.js';
 import type { DatabaseErrorSubclassOptions } from '../database-error';
 import DatabaseError from '../database-error';
 
@@ -16,12 +17,15 @@ class UnknownConstraintError extends DatabaseError implements UnknownConstraintE
   table: string | undefined;
 
   constructor(
-    options: UnknownConstraintErrorOptions & DatabaseErrorSubclassOptions,
+    options: UnknownConstraintErrorOptions & DatabaseErrorSubclassOptions = {},
   ) {
-    options = options || {};
-    options.parent = options.parent || { sql: '', name: '', message: '' };
+    if ('parent' in options) {
+      useErrorCause();
+    }
 
-    super(options.parent, { stack: options.stack });
+    const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
+
+    super(parent, { stack: options.stack });
     this.name = 'SequelizeUnknownConstraintError';
     this.constraint = options.constraint;
     this.fields = options.fields;

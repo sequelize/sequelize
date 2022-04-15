@@ -4,10 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const _ = require('lodash');
 
@@ -50,7 +49,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${dialect === 'db2' || dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
+      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialect) ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
@@ -61,7 +60,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2' && dialect !== 'ibmi') {
+    if (!['sqlite', 'postgres', 'db2', 'ibmi'].includes(dialect)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function () {
@@ -400,7 +399,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
-          type: Sequelize.ARRAY(Sequelize.ENUM(
+          type: DataTypes.ARRAY(DataTypes.ENUM(
             'Value1',
             'Value2',
             'Value3',

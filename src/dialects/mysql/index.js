@@ -2,13 +2,13 @@
 
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
+const { MySqlConnectionManager } = require('./connection-manager');
+const { MySqlQuery } = require('./query');
+const { MySqlQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').mysql;
-const { MySQLQueryInterface } = require('./query-interface');
+const { MySqlQueryInterface } = require('./query-interface');
 
-class MysqlDialect extends AbstractDialect {
+export class MysqlDialect extends AbstractDialect {
   static supports = _.merge(
     _.cloneDeep(AbstractDialect.supports),
     {
@@ -44,12 +44,12 @@ class MysqlDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
-    this.queryGenerator = new QueryGenerator({
+    this.connectionManager = new MySqlConnectionManager(this, sequelize);
+    this.queryGenerator = new MySqlQueryGenerator({
       _dialect: this,
       sequelize,
     });
-    this.queryInterface = new MySQLQueryInterface(
+    this.queryInterface = new MySqlQueryInterface(
       sequelize,
       this.queryGenerator,
     );
@@ -57,12 +57,10 @@ class MysqlDialect extends AbstractDialect {
 }
 
 MysqlDialect.prototype.defaultVersion = '5.7.0'; // minimum supported version
-MysqlDialect.prototype.Query = Query;
-MysqlDialect.prototype.QueryGenerator = QueryGenerator;
+MysqlDialect.prototype.Query = MySqlQuery;
+MysqlDialect.prototype.QueryGenerator = MySqlQueryGenerator;
 MysqlDialect.prototype.DataTypes = DataTypes;
 MysqlDialect.prototype.name = 'mysql';
 MysqlDialect.prototype.TICK_CHAR = '`';
 MysqlDialect.prototype.TICK_CHAR_LEFT = MysqlDialect.prototype.TICK_CHAR;
 MysqlDialect.prototype.TICK_CHAR_RIGHT = MysqlDialect.prototype.TICK_CHAR;
-
-module.exports = MysqlDialect;

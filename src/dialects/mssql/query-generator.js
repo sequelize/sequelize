@@ -4,7 +4,7 @@ const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const semver = require('semver');
 const { Op } = require('../../operators');
@@ -14,7 +14,7 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-class MSSQLQueryGenerator extends AbstractQueryGenerator {
+export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
     options = { collate: null, ...options };
 
@@ -273,7 +273,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return ' EXEC sp_addextendedproperty '
         + `@name = N'MS_Description', @value = ${this.escape(comment)}, `
         + '@level0type = N\'Schema\', @level0name = \'dbo\', '
-        + `@level1type = N'Table', @level1name = ${this.quoteIdentifier(table)}, `
+        + `@level1type = N'Table', @level1name = ${this.quoteTable(table)}, `
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
@@ -1038,5 +1038,3 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(Utils.removeTicks(identifier, '\''), '\'');
 }
-
-module.exports = MSSQLQueryGenerator;

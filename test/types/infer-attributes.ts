@@ -3,10 +3,13 @@ import {
   Attributes,
   CreationAttributes,
   CreationOptional,
+  DataTypes,
+  ForeignKey,
   InferAttributes,
   InferCreationAttributes,
   Model,
   NonAttribute,
+  Sequelize,
 } from '@sequelize/core';
 
 class Project extends Model<InferAttributes<Project>> {
@@ -21,6 +24,7 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   declare optionalArrayAttribute: CreationOptional<string[]>;
   declare mandatoryArrayAttribute: string[];
 
+  // note: using CreationOptional here is unnecessary, but we still ensure that it works.
   declare nullableOptionalAttribute: CreationOptional<string | null>;
 
   declare nonAttribute: NonAttribute<string>;
@@ -31,6 +35,7 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   declare omittedAttributeArray: number[];
 
   declare joinedEntity?: NonAttribute<Project>;
+  declare projectId: CreationOptional<ForeignKey<number>>;
 
   instanceMethod() {
   }
@@ -38,6 +43,15 @@ class User extends Model<InferAttributes<User, { omit: 'omittedAttribute' | 'omi
   static staticMethod() {
   }
 }
+
+User.init({
+  mandatoryArrayAttribute: DataTypes.ARRAY(DataTypes.STRING),
+  mandatoryAttribute: DataTypes.STRING,
+  // projectId is omitted but still works, because it is branded with 'ForeignKey'
+  nullableOptionalAttribute: DataTypes.STRING,
+  optionalArrayAttribute: DataTypes.ARRAY(DataTypes.STRING),
+  optionalAttribute: DataTypes.INTEGER,
+}, { sequelize: new Sequelize() });
 
 type UserAttributes = Attributes<User>;
 type UserCreationAttributes = CreationAttributes<User>;
@@ -117,4 +131,13 @@ expectTypeOf<UserCreationAttributes>().not.toHaveProperty('staticMethod');
 {
   // ensure branding does not break null
   const brandedString: NonAttribute<string | null> = null;
+}
+
+{
+  class User2 extends Model<InferAttributes<User2>, InferCreationAttributes<User2>> {
+    declare nullableAttribute: string | null;
+  }
+
+  // this should work, all null attributes are optional in Model.create
+  User2.create({});
 }

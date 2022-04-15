@@ -5,9 +5,9 @@ const Support = require('../support');
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
-const Op = Support.Sequelize.Op;
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const { Op } = require('@sequelize/core');
 
 if (current.dialect.supports.constraints.addConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -108,7 +108,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: [{
                 attribute: 'myColumn',
               }],
-            })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
+            })).to.throw('Default value must be specified for DEFAULT CONSTRAINT');
           });
 
         });

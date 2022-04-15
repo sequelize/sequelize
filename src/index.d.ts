@@ -1,7 +1,7 @@
 import DataTypes = require('./data-types');
-import Deferrable = require('./deferrable');
-import Utils = require('./utils');
+export { DataTypes };
 
+export * as Utils from './utils';
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';
 export { TableHints } from './table-hints';
@@ -16,9 +16,11 @@ export { BaseError as Error } from './errors';
 export * from './model';
 export * from './dialects/abstract/query-interface';
 export * from './sequelize';
+export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils';
+export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export { Validator } from './utils/validator-extras';
-export { Utils, DataTypes, Deferrable };
+export { Deferrable } from './deferrable';
 
 /**
  * Type helper for making certain fields of an object optional. This is helpful

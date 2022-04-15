@@ -7,9 +7,8 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Op } = require('@sequelize/core/lib/operators');
-const { IndexHints } = require('@sequelize/core/lib/index-hints');
-const QueryGenerator = require('@sequelize/core/lib/dialects/db2/query-generator');
+const { Op } = require('@sequelize/core');
+const { Db2QueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/db2/query-generator.js');
 
 if (dialect === 'db2') {
   describe('[DB2 Specific] QueryGenerator', () => {

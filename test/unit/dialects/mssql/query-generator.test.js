@@ -4,10 +4,8 @@ const Support = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const DataTypes = require('@sequelize/core/lib/data-types');
-const { Op } = require('@sequelize/core/lib/operators');
-const { TableHints } = require('@sequelize/core/lib/table-hints');
-const QueryGenerator = require('@sequelize/core/lib/dialects/mssql/query-generator');
+const { DataTypes, Op, TableHints } = require('@sequelize/core');
+const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -94,6 +92,10 @@ if (current.dialect.name === 'mssql') {
 
     it('createTableQuery with comments', function () {
       expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+    });
+
+    it('createTableQuery with comments and table object', function () {
+      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
     });
 
     it('getDefaultConstraintQuery', function () {
@@ -291,10 +293,10 @@ if (current.dialect.name === 'mssql') {
     it('addColumnQuery with comment', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)', comment: 'This is a comment' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL; EXEC sp_addextendedproperty '
-        + '@name = N\'MS_Description\', @value = N\'This is a comment\', '
-        + '@level0type = N\'Schema\', @level0name = \'dbo\', '
-        + '@level1type = N\'Table\', @level1name = [myTable], '
-        + '@level2type = N\'Column\', @level2name = [myColumn];',
+          + '@name = N\'MS_Description\', @value = N\'This is a comment\', '
+          + '@level0type = N\'Schema\', @level0name = \'dbo\', '
+          + '@level1type = N\'Table\', @level1name = [myTable], '
+          + '@level2type = N\'Column\', @level2name = [myColumn];',
       });
     });
 

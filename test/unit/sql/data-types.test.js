@@ -1,9 +1,8 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const chai = require('chai');
 const util = require('util');
 const uuid = require('uuid');
@@ -131,6 +130,52 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('CITEXT', () => {
+      testsql('CITEXT', DataTypes.CITEXT, {
+        default: 'CITEXT', // TODO: dialects that don't support CITEXT should throw
+        postgres: 'CITEXT',
+        sqlite: 'TEXT COLLATE NOCASE',
+      });
+
+      describe('validate', () => {
+        it('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.CITEXT();
+
+          expect(() => {
+            type.validate(12_345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
+        });
+
+        it('should return `true` if `value` is a string', () => {
+          const type = DataTypes.CITEXT();
+
+          expect(type.validate('foobar')).to.equal(true);
+        });
+      });
+    });
+
+    describe('TSVECTOR', () => {
+      testsql('TSVECTOR', DataTypes.TSVECTOR, {
+        default: 'TSVECTOR', // TODO: dialects that don't support TSVECTOR should throw
+      });
+
+      describe('validate', () => {
+        it('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.TSVECTOR();
+
+          expect(() => {
+            type.validate(12_345);
+          }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
+        });
+
+        it('should return `true` if `value` is a string', () => {
+          const type = DataTypes.TSVECTOR();
+
+          expect(type.validate('foobar')).to.equal(true);
+        });
+      });
+    });
+
     describe('CHAR', () => {
       testsql('CHAR', DataTypes.CHAR, {
         default: 'CHAR(255)',
@@ -230,6 +275,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(type.validate(new Date())).to.equal(true);
         });
+      });
+    });
+
+    describe('DATEONLY', () => {
+      testsql('DATEONLY', DataTypes.DATEONLY, {
+        default: 'DATE',
+      });
+    });
+
+    describe('TIME', () => {
+      testsql('TIME', DataTypes.TIME, {
+        default: 'TIME',
       });
     });
 
@@ -1510,6 +1567,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('JSON', () => {
+      // TODO: types that don't support JSON should use an equivalent to DataTypes.TEXT
+      //  and add a CHECK(ISJSON) when possible.
+      testsql('JSON', DataTypes.JSON, {
+        default: 'JSON',
+      });
+    });
+
+    describe('JSONB', () => {
+      // TODO: types that don't support JSONB should throw an error.
+      testsql('JSONB', DataTypes.JSONB, {
+        default: 'JSONB',
+      });
+    });
+
     if (current.dialect.supports.ARRAY) {
       describe('ARRAY', () => {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
@@ -1604,7 +1676,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       describe('GEOMETRY', () => {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
           default: 'GEOMETRY',
-          snowflake: 'GEOGRAPHY',
         });
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
@@ -1632,5 +1703,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
     }
+
+    describe('GEOGRAPHY', () => {
+      testsql('GEOGRAPHY', DataTypes.GEOGRAPHY, {
+        default: 'GEOGRAPHY',
+      });
+    });
+
+    describe('HSTORE', () => {
+      testsql('HSTORE', DataTypes.HSTORE, {
+        default: 'HSTORE',
+      });
+    });
   });
 });

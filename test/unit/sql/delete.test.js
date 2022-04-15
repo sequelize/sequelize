@@ -1,13 +1,12 @@
 'use strict';
 
 const Support   = require('../support');
-const { QueryTypes } = require('@sequelize/core/lib/query-types');
+const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
-const Sequelize = Support.Sequelize;
 const sql       = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -175,7 +174,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete when the primary key has a different field name', () => {
       const User = current.define('test_user', {
         id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           field: 'test_user_id',
         },

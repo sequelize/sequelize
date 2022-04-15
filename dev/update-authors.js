@@ -31,7 +31,7 @@ output.write('# Authors ordered by first contribution.\n\n');
 const seen = new Set();
 
 // exclude emails from <ROOT>/AUTHORS file
-const excludeEmails = new Set(['<bot@renovateapp.com>', '<support@greenkeeper.io>']);
+const excludeEmails = new Set(['<bot@renovateapp.com>', '<support@greenkeeper.io>', '<mail@sequelizejs.com>']);
 
 // Support regular git author metadata, as well as `Author:` and
 // `Co-authored-by:` in the message body. Both have been used in the past

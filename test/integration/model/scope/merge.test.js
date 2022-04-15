@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -10,9 +10,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('simple merge', () => {
       beforeEach(async function () {
-        this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
-        this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
-        this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
+        this.Foo = this.sequelize.define('foo', { name: DataTypes.STRING }, { timestamps: false });
+        this.Bar = this.sequelize.define('bar', { name: DataTypes.STRING }, { timestamps: false });
+        this.Baz = this.sequelize.define('baz', { name: DataTypes.STRING }, { timestamps: false });
 
         this.Foo.belongsTo(this.Baz, { foreignKey: 'bazId' });
         this.Foo.hasOne(this.Bar, { foreignKey: 'fooId' });
@@ -47,10 +47,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
     describe('complex merge', () => {
       beforeEach(async function () {
-        this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
-        this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
-        this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
-        this.Qux = this.sequelize.define('qux', { name: Sequelize.STRING }, { timestamps: false });
+        this.Foo = this.sequelize.define('foo', { name: DataTypes.STRING }, { timestamps: false });
+        this.Bar = this.sequelize.define('bar', { name: DataTypes.STRING }, { timestamps: false });
+        this.Baz = this.sequelize.define('baz', { name: DataTypes.STRING }, { timestamps: false });
+        this.Qux = this.sequelize.define('qux', { name: DataTypes.STRING }, { timestamps: false });
 
         this.Foo.hasMany(this.Bar, { foreignKey: 'fooId' });
         this.Bar.hasMany(this.Baz, { foreignKey: 'barId' });

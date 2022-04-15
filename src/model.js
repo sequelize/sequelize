@@ -1,23 +1,22 @@
 'use strict';
 
+import { isModelStatic } from './utils/model-utils';
+
 const assert = require('assert');
 const _ = require('lodash');
 const Dottie = require('dottie');
 
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
-const BelongsTo = require('./associations/belongs-to');
-const BelongsToMany = require('./associations/belongs-to-many');
-const InstanceValidator = require('./instance-validator');
+const { BelongsTo, BelongsToMany, Association, HasMany } = require('./associations');
+const { InstanceValidator } = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
-const Association = require('./associations/base');
-const HasMany = require('./associations/has-many');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
-const associationsMixin = require('./associations/mixin');
+const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup } = require('./utils/deprecations');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -45,11 +44,10 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * However, if getters and/or setters are defined for `field` they will be invoked, instead of returning the value from `dataValues`.
  * Accessing properties directly or using `get` is preferred for regular use, `getDataValue` should only be used for custom getters.
  *
- * @see
-   * {@link Sequelize#define} for more information about getters and setters
+ * @see {Sequelize#define} for more information about getters and setters
  * @mixes Hooks
  */
-class Model {
+export class Model {
   static get queryInterface() {
     return this.sequelize.getQueryInterface();
   }
@@ -60,9 +58,6 @@ class Model {
 
   /**
    * A reference to the sequelize instance
-   *
-   * @see
-   * {@link Sequelize}
    *
    * @property sequelize
    *
@@ -100,7 +95,7 @@ class Model {
         if (overwrittenAttributes.length > 0) {
           logger.warn(`Model ${JSON.stringify(this.constructor.name)} is declaring public class fields for attribute(s): ${overwrittenAttributes.map(attr => JSON.stringify(attr)).join(', ')}.`
             + '\nThese class fields are shadowing Sequelize\'s attribute getters & setters.'
-            + '\nSee https://sequelize.org/main/manual/model-basics.html#caveat-with-public-class-fields');
+            + '\nSee https://sequelize.org/docs/v7/core-concepts/model-basics/#caveat-with-public-class-fields');
         }
       }, 0);
     }
@@ -388,7 +383,7 @@ class Model {
         return { model, association: include, as: include.as };
       }
 
-      if (include.prototype && include.prototype instanceof Model) {
+      if (isModelStatic(include)) {
         return { model: include };
       }
 
@@ -861,13 +856,7 @@ class Model {
     }
 
     if (['where', 'having'].includes(key)) {
-      if (srcValue instanceof Utils.SequelizeMethod) {
-        srcValue = { [Op.and]: srcValue };
-      }
-
-      if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
-        return Object.assign(objValue, srcValue);
-      }
+      return combineWheresWithAnd(objValue, srcValue);
     } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
       return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
         if (Array.isArray(objValue) && Array.isArray(srcValue)) {
@@ -1028,7 +1017,7 @@ class Model {
       paranoid: false,
       rejectOnEmpty: false,
       whereCollection: null,
-      schema: null,
+      schema: '',
       schemaDelimiter: '',
       defaultScope: {},
       scopes: {},
@@ -1052,8 +1041,8 @@ class Model {
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema;
-    this._schemaDelimiter = this.options.schemaDelimiter;
+    this._schema = this.options.schema || '';
+    this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
     _.each(options.validate, (validator, validatorType) => {
@@ -1069,12 +1058,27 @@ class Model {
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
 
-      if (Utils.isColString(name)) {
-        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot start and end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`);
+      // Checks whether the name is ambiguous with Utils.isColString
+      // we check whether the attribute starts *or* ends because the following query:
+      // { '$json.key$' }
+      // could be interpreted as both
+      // "json"."key" (accessible attribute 'key' on model 'json')
+      // or
+      // "$json" #>> {key$} (accessing key 'key$' on attribute '$json')
+      if (name.startsWith('$') || name.endsWith('$')) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`);
       }
 
       if (name.includes('.')) {
         throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`);
+      }
+
+      if (name.includes('::')) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.`);
+      }
+
+      if (name.includes('->')) {
+        throw new Error(`Name of attribute "${name}" in model "${this.name}" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.`);
       }
 
       if (attribute.type === undefined) {
@@ -1509,33 +1513,34 @@ class Model {
    * If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
    * for the model.
    *
-   * @param {string}   schema The name of the schema
-   * @param {object}   [options] schema options
-   * @param {string}   [options.schemaDelimiter='.'] The character(s) that separates the schema name from the table name
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
-   * @see
-   * {@link Sequelize#define} for more information about setting a default schema.
+   * @param {string|object}   schema The name of the schema
    *
    * @returns {Model}
    */
-  static schema(schema, options) {
-
-    const clone = class extends this {};
-    Object.defineProperty(clone, 'name', { value: this.name });
-
-    clone._schema = schema;
-
-    if (options) {
-      if (typeof options === 'string') {
-        clone._schemaDelimiter = options;
-      } else if (options.schemaDelimiter) {
-        clone._schemaDelimiter = options.schemaDelimiter;
-      }
+  static withSchema(schema) {
+    if (arguments.length > 1) {
+      throw new TypeError('Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.');
     }
 
-    return clone;
+    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
+
+    return this.getInitialModel()
+      ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static schema(schema, options) {
+    schemaRenamedToWithSchema();
+
+    return this.withSchema({
+      schema,
+      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+    });
+  }
+
+  static getInitialModel() {
+    // '_initialModel' is set on model variants (withScope, withSchema, etc)
+    return this._initialModel ?? this;
   }
 
   /**
@@ -1549,15 +1554,6 @@ class Model {
   }
 
   /**
-   * Get un-scoped model
-   *
-   * @returns {Model}
-   */
-  static unscoped() {
-    return this.scope();
-  }
-
-  /**
    * Add a new scope to the model. This is especially useful for adding scopes with includes, when the model you want to include is not available at the time this model is defined.
    *
    * By default this will throw an error if a scope with that name already exists. Pass `override: true` in the options object to silence this error.
@@ -1568,6 +1564,10 @@ class Model {
    * @param {boolean}         [options.override=false] override old scope if already defined
    */
   static addScope(name, scope, options) {
+    if (this !== this.getInitialModel()) {
+      throw new Error(`Model.addScope can only be called on the initial model. Use "${this.name}.getInitialModel()" to access the initial model.`);
+    }
+
     options = { override: false, ...options };
 
     if ((name === 'defaultScope' && Object.keys(this.options.defaultScope).length > 0 || name in this.options.scopes) && options.override === false) {
@@ -1579,6 +1579,13 @@ class Model {
     } else {
       this.options.scopes[name] = scope;
     }
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static scope(...options) {
+    scopeRenamedToWithScope();
+
+    return this.withScope(...options);
   }
 
   /**
@@ -1622,65 +1629,146 @@ class Model {
    * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
    *
-   * @param {?Array|object|string} [option] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For scope function, pass an object, with a `method` property. The value can either be a string, if the method does not take any arguments, or an array, where the first element is the name of the method, and consecutive elements are arguments to that method. Pass null to remove all scopes, including the default.
+   * @param {?Array|object|string} [options] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For scope function, pass an object, with a `method` property. The value can either be a string, if the method does not take any arguments, or an array, where the first element is the name of the method, and consecutive elements are arguments to that method. Pass null to remove all scopes, including the default.
    *
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will clear the previous scope.
    */
-  static scope(option) {
-    const self = class extends this {};
-    let scope;
-    let scopeName;
+  static withScope(...options) {
+    options = options.flat().filter(Boolean);
 
-    Object.defineProperty(self, 'name', { value: this.name });
+    const initialModel = this.getInitialModel();
 
-    self._scope = {};
-    self._scopeNames = [];
-    self.scoped = true;
-
-    if (!option) {
-      return self;
-    }
-
-    // eslint-disable-next-line unicorn/prefer-array-flat -- 'arguments' is not a proper Array. TODO: stop using 'arguments'
-    const options = _.flatten(arguments);
+    const mergedScope = {};
+    const scopeNames = [];
 
     for (const option of options) {
-      scope = null;
-      scopeName = null;
+      let scope = null;
+      let scopeName = null;
 
       if (_.isPlainObject(option)) {
         if (option.method) {
-          if (Array.isArray(option.method) && Boolean(self.options.scopes[option.method[0]])) {
+          if (Array.isArray(option.method) && Boolean(initialModel.options.scopes[option.method[0]])) {
             scopeName = option.method[0];
-            scope = self.options.scopes[scopeName].apply(self, option.method.slice(1));
-          } else if (self.options.scopes[option.method]) {
+            scope = initialModel.options.scopes[scopeName].apply(initialModel, option.method.slice(1));
+          } else if (initialModel.options.scopes[option.method]) {
             scopeName = option.method;
-            scope = self.options.scopes[scopeName].apply(self);
+            scope = initialModel.options.scopes[scopeName].apply(initialModel);
           }
         } else {
           scope = option;
         }
-      } else if (option === 'defaultScope' && _.isPlainObject(self.options.defaultScope)) {
-        scope = self.options.defaultScope;
+      } else if (option === 'defaultScope' && _.isPlainObject(initialModel.options.defaultScope)) {
+        scope = initialModel.options.defaultScope;
       } else {
         scopeName = option;
-        scope = self.options.scopes[scopeName];
+        scope = initialModel.options.scopes[scopeName];
         if (typeof scope === 'function') {
           scope = scope();
         }
       }
 
-      if (scope) {
-        this._conformIncludes(scope, this);
-        // clone scope so it doesn't get modified
-        this._assignOptions(self._scope, Utils.cloneDeep(scope));
-        self._scopeNames.push(scopeName ? scopeName : 'defaultScope');
-      } else {
-        throw new sequelizeErrors.SequelizeScopeError(`Invalid scope ${scopeName} called.`);
+      if (!scope) {
+        throw new sequelizeErrors.SequelizeScopeError(`"${this.name}.withScope()" has been called with an invalid scope: "${scopeName}" does not exist.`);
       }
+
+      this._conformIncludes(scope, this);
+      // clone scope so it doesn't get modified
+      this._assignOptions(mergedScope, Utils.cloneDeep(scope));
+      scopeNames.push(scopeName ? scopeName : 'defaultScope');
     }
 
-    return self;
+    return initialModel._withScopeAndSchema({
+      schema: this._schema || '',
+      schemaDelimiter: this._schemaDelimiter || '',
+    }, mergedScope, scopeNames);
+  }
+
+  // TODO [>=2023-01-01]: remove in Sequelize 8
+  static unscoped() {
+    scopeRenamedToWithScope();
+
+    return this.withoutScope();
+  }
+
+  /**
+   * Get un-scoped model
+   *
+   * @returns {Model}
+   */
+  static withoutScope() {
+    return this.withScope(null);
+  }
+
+  static withInitialScope() {
+    const initialModel = this.getInitialModel();
+
+    if (this._schema !== initialModel._schema || this._schemaDelimiter !== initialModel._schemaDelimiter) {
+      return initialModel.withSchema({
+        schema: this._schema,
+        schemaDelimiter: this._schemaDelimiter,
+      });
+    }
+
+    return initialModel;
+  }
+
+  static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
+    if (!this._modelVariantRefs) {
+      // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
+      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+      this._modelVariantRefs = new Set([new WeakRef(this)]);
+    }
+
+    for (const modelVariantRef of this._modelVariantRefs) {
+      const modelVariant = modelVariantRef.deref();
+
+      if (!modelVariant) {
+        this._modelVariantRefs.delete(modelVariantRef);
+        continue;
+      }
+
+      if (modelVariant._schema !== (schemaOptions.schema || '')) {
+        continue;
+      }
+
+      if (modelVariant._schemaDelimiter !== (schemaOptions.schemaDelimiter || '')) {
+        continue;
+      }
+
+      // the item order of these arrays is important! scope('a', 'b') is not equal to scope('b', 'a')
+      if (!_.isEqual(modelVariant._scopeNames, scopeNames)) {
+        continue;
+      }
+
+      if (!_.isEqual(modelVariant._scope, mergedScope)) {
+        continue;
+      }
+
+      return modelVariant;
+    }
+
+    const clone = this._createModelVariant();
+    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
+    this._modelVariantRefs.add(new WeakRef(clone));
+
+    clone._schema = schemaOptions.schema || '';
+    clone._schemaDelimiter = schemaOptions.schemaDelimiter || '';
+    clone._scope = mergedScope;
+    clone._scopeNames = scopeNames;
+
+    if (scopeNames.length !== 1 || scopeNames[0] !== 'defaultScope') {
+      clone.scoped = true;
+    }
+
+    return clone;
+  }
+
+  static _createModelVariant() {
+    const model = class extends this {};
+    model._initialModel = this;
+    Object.defineProperty(model, 'name', { value: this.name });
+
+    return model;
   }
 
   /**
@@ -2970,7 +3058,7 @@ class Model {
                   if (include.association.through.model.rawAttributes[attr]._autoGenerated
                     || attr === include.association.foreignKey
                     || attr === include.association.otherKey
-                    || typeof associationInstance[include.association.through.model.name][attr] === undefined) {
+                    || typeof associationInstance[include.association.through.model.name][attr] === 'undefined') {
                     continue;
                   }
 
@@ -3417,7 +3505,7 @@ class Model {
    * @returns {Promise} hash of attributes and their types
    */
   static async describe(schema, options) {
-    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || undefined, ...options });
+    return await this.queryInterface.describeTable(this.tableName, { schema: schema || this._schema || '', ...options });
   }
 
   static _getDefaultTimestamp(attr) {
@@ -4291,7 +4379,7 @@ class Model {
                   if (include.association.through.model.rawAttributes[attr]._autoGenerated
                     || attr === include.association.foreignKey
                     || attr === include.association.otherKey
-                    || typeof instance[include.association.through.model.name][attr] === undefined) {
+                    || typeof instance[include.association.through.model.name][attr] === 'undefined') {
                     continue;
                   }
 
@@ -4765,7 +4853,57 @@ class Model {
   static belongsTo(target, options) {}
 }
 
+/**
+ * Unpacks an object that only contains a single Op.and key to the value of Op.and
+ *
+ * Internal method used by {@link combineWheresWithAnd}
+ *
+ * @param {WhereOptions} where The object to unpack
+ * @example `{ [Op.and]: [a, b] }` becomes `[a, b]`
+ * @example `{ [Op.and]: { key: val } }` becomes `{ key: val }`
+ * @example `{ [Op.or]: [a, b] }` remains as `{ [Op.or]: [a, b] }`
+ * @example `{ [Op.and]: [a, b], key: c }` remains as `{ [Op.and]: [a, b], key: c }`
+ * @private
+ */
+function unpackAnd(where) {
+  if (!_.isObject(where)) {
+    return where;
+  }
+
+  const keys = Utils.getComplexKeys(where);
+
+  // object is empty, remove it.
+  if (keys.length === 0) {
+    return;
+  }
+
+  // we have more than just Op.and, keep as-is
+  if (keys.length !== 1 || keys[0] !== Op.and) {
+    return where;
+  }
+
+  const andParts = where[Op.and];
+
+  return andParts;
+}
+
+function combineWheresWithAnd(whereA, whereB) {
+  const unpackedA = unpackAnd(whereA);
+
+  if (unpackedA === undefined) {
+    return whereB;
+  }
+
+  const unpackedB = unpackAnd(whereB);
+
+  if (unpackedB === undefined) {
+    return whereA;
+  }
+
+  return {
+    [Op.and]: [unpackedA, unpackedB].flat(),
+  };
+}
+
 Object.assign(Model, associationsMixin);
 Hooks.applyTo(Model, true);
-
-module.exports = Model;

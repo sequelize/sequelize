@@ -2,21 +2,27 @@
 
 const fs = require('fs');
 const path = require('path');
-const { isDeepStrictEqual } = require('util');
+const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
 
-const Sequelize = require('@sequelize/core');
+const { Sequelize } = require('@sequelize/core');
 const Config = require('./config/config');
 const chai = require('chai');
 
 const expect = chai.expect;
-const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
 
 const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+
+// Using util.inspect to correctly assert objects with symbols
+// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
+chai.Assertion.addMethod('deepEqual', function (expected, depth = 5) {
+  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
+});
 
 chai.config.includeStack = true;
 chai.should();
@@ -59,8 +65,6 @@ if (global.afterEach) {
 let lastSqliteInstance;
 
 const Support = {
-  Sequelize,
-
   /**
    * Returns a Promise that will reject with the next unhandled rejection that occurs
    * during this test (instead of failing the test)
@@ -236,15 +240,16 @@ const Support = {
   expectsql(query, assertions) {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
+    const dialect = Support.sequelize.dialect;
 
     if (!expectation) {
       if (expectations.default !== undefined) {
         expectation = expectations.default;
         if (typeof expectation === 'string') {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
-          if (Support.sequelize.dialect.name === 'ibmi') {
+          // replace [...] with the proper quote character for the dialect
+          // except for ARRAY[...]
+          expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+          if (dialect.name === 'ibmi') {
             expectation = expectation.replace(/;$/, '');
           }
         }

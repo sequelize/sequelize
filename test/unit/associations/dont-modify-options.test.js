@@ -4,8 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('Test options.foreignKey', () => {
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
       this.B = this.sequelize.define('B', {
         id: {
-          type: Sequelize.CHAR(20),
+          type: DataTypes.CHAR(20),
           primaryKey: true,
         },
       });

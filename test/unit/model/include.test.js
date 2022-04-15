@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../support');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, Op, Utils, DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
@@ -29,16 +29,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User');
       this.Task = this.sequelize.define('Task', {
-        title: Sequelize.STRING,
+        title: DataTypes.STRING,
       });
       this.Company = this.sequelize.define('Company', {
         id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
           field: 'field_id',
         },
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
 
       this.User.Tasks = this.User.hasMany(this.Task);
@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       beforeEach(function () {
         this.Project = this.sequelize.define('project', {
           bar: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             field: 'foo',
           },
         }, {
@@ -207,7 +207,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ where: { active: false }, model: this.Project.scope('that') }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: false, that: false });
+        // TODO [chai>5]: simplify once '.deep.equals' includes support for symbols (https://github.com/chaijs/chai/issues/1054)
+        expect(options.include[0]).to.have.property('where');
+        expect(Utils.getComplexKeys(options.include[0].where)).to.deep.equal([Op.and]);
+        expect(options.include[0].where[Op.and]).to.deep.equal([{ that: false }, { active: false }]);
       });
 
       it('add the where from a scoped associated model', function () {

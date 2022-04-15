@@ -3,10 +3,10 @@
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const MySqlQueryGenerator = require('../mysql/query-generator');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-class SQLiteQueryGenerator extends MySqlQueryGenerator {
+export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchema() {
     return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }
@@ -185,7 +185,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -501,5 +501,3 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return `json_extract(${quotedColumn},${pathStr})`;
   }
 }
-
-module.exports = SQLiteQueryGenerator;

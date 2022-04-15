@@ -1,5 +1,7 @@
 'use strict';
 
+import { isModelStatic } from '../../utils/model-utils';
+
 const util = require('util');
 const _ = require('lodash');
 const uuidv4 = require('uuid').v4;
@@ -8,11 +10,11 @@ const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
 const SqlString = require('../../sql-string');
 const DataTypes = require('../../data-types');
-const Model = require('../../model');
-const Association = require('../../associations/base');
-const BelongsTo = require('../../associations/belongs-to');
-const BelongsToMany = require('../../associations/belongs-to-many');
-const HasMany = require('../../associations/has-many');
+const { Model } = require('../../model');
+const { Association } = require('../../associations/base');
+const { BelongsTo } = require('../../associations/belongs-to');
+const { BelongsToMany } = require('../../associations/belongs-to-many');
+const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { IndexHints } = require('../../index-hints');
@@ -22,7 +24,7 @@ const { IndexHints } = require('../../index-hints');
  *
  * @private
  */
-class QueryGenerator {
+export class AbstractQueryGenerator {
   constructor(options) {
     if (!options.sequelize) {
       throw new Error('QueryGenerator initialized without options.sequelize');
@@ -160,7 +162,7 @@ class QueryGenerator {
       options.bindParam = false;
     }
 
-    valueHash = Utils.removeNullValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = Utils.removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
       if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
         const value = valueHash[key];
@@ -378,7 +380,7 @@ class QueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
     const bind = [];
@@ -469,7 +471,7 @@ class QueryGenerator {
     options = options || {};
     _.defaults(options, { returning: true });
 
-    extraAttributesToBeUpdated = Utils.removeNullValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
+    extraAttributesToBeUpdated = Utils.removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
     let outputFragment = '';
     let returningFragment = '';
@@ -693,7 +695,7 @@ class QueryGenerator {
         break;
       case 'DEFAULT':
         if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specifed for DEFAULT CONSTRAINT');
+          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
         if (this._dialect.name !== 'mssql') {
@@ -818,14 +820,14 @@ class QueryGenerator {
         }
 
         // if the previous item is a model, then attempt getting an association
-        if (previousModel && previousModel.prototype instanceof Model) {
+        if (isModelStatic(previousModel)) {
           let model;
           let as;
 
-          if (typeof item === 'function' && item.prototype instanceof Model) {
+          if (isModelStatic(item)) {
             // set
             model = item;
-          } else if (_.isPlainObject(item) && item.model && item.model.prototype instanceof Model) {
+          } else if (_.isPlainObject(item) && item.model && isModelStatic(item.model)) {
             // set
             model = item.model;
             as = item.as;
@@ -862,7 +864,7 @@ class QueryGenerator {
           // see if this is an order
           if (index > 0 && orderIndex !== -1) {
             item = this.sequelize.literal(` ${validOrderOptions[orderIndex]}`);
-          } else if (previousModel && previousModel.prototype instanceof Model) {
+          } else if (previousModel && isModelStatic(previousModel)) {
             // only go down this path if we have preivous model and check only once
             if (previousModel.associations !== undefined && previousModel.associations[item]) {
               // convert the item to an association
@@ -1448,7 +1450,7 @@ class QueryGenerator {
         query += ' FOR UPDATE';
       }
 
-      if (this._dialect.supports.lockOf && options.lock.of && options.lock.of.prototype instanceof Model) {
+      if (this._dialect.supports.lockOf && options.lock.of && isModelStatic(options.lock.of)) {
         query += ` OF ${this.quoteTable(options.lock.of.name)}`;
       }
 
@@ -2102,8 +2104,8 @@ class QueryGenerator {
           && Array.isArray(order)
           && order[0]
           && !(order[0] instanceof Association)
-          && !(typeof order[0] === 'function' && order[0].prototype instanceof Model)
-          && !(typeof order[0].model === 'function' && order[0].model.prototype instanceof Model)
+          && !isModelStatic(order[0])
+          && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
           subQueryOrder.push(this.quote(order, model, '->'));
@@ -2710,8 +2712,14 @@ class QueryGenerator {
         return this._joinKeyValue(key, value.map(identifier => this.quoteIdentifier(identifier)).join('.'), comparator, options.prefix);
       case Op.startsWith:
       case Op.endsWith:
-      case Op.substring: {
+      case Op.substring:
         comparator = this.OperatorMap[Op.like];
+      case Op.notStartsWith:
+      case Op.notEndsWith:
+      case Op.notSubstring: {
+        if (comparator !== this.OperatorMap[Op.like]) {
+          comparator = this.OperatorMap[Op.notLike];
+        }
 
         if (value instanceof Utils.Literal) {
           value = value.val;
@@ -2719,11 +2727,11 @@ class QueryGenerator {
 
         let pattern = `${value}%`;
 
-        if (prop === Op.endsWith) {
+        if (prop === Op.endsWith || prop === Op.notEndsWith) {
           pattern = `%${value}`;
         }
 
-        if (prop === Op.substring) {
+        if (prop === Op.substring || prop === Op.notSubstring) {
           pattern = `%${value}%`;
         }
 
@@ -2869,7 +2877,5 @@ class QueryGenerator {
   }
 }
 
-Object.assign(QueryGenerator.prototype, require('./query-generator/operators'));
-Object.assign(QueryGenerator.prototype, require('./query-generator/transaction'));
-
-module.exports = QueryGenerator;
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/operators'));
+Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));
