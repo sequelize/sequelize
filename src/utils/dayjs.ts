@@ -5,12 +5,21 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const history = new Map<string, boolean>();
+
 export function isValidTimeZone(tz: string) {
+  if (history.has(tz)) {
+    return history.get(tz);
+  }
+
+  let status: boolean;
   try {
     Intl.DateTimeFormat(undefined, { timeZone: tz });
 
-    return true;
+    status = true;
   } catch {
-    return false;
+    status = false;
   }
+
+  return history.set(tz, status);
 }
