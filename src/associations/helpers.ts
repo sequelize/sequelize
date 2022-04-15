@@ -46,7 +46,7 @@ export function addForeignKeyConstraints(
         key: key || primaryKeys[0],
       };
 
-      newAttribute.onDelete = newAttribute.onDelete ?? (newAttribute.allowNull !== false ? 'SET NULL' : 'NO ACTION');
+      newAttribute.onDelete = newAttribute.onDelete ?? (newAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE');
       newAttribute.onUpdate = newAttribute.onUpdate ?? 'CASCADE';
     }
   }
