@@ -6,8 +6,22 @@ async () => {
     const user = await User.findByPk(Buffer.from('asdf'));
     expectTypeOf(user).toEqualTypeOf<User | null>()
 
+    expectTypeOf(
+        await User.findByPk(Buffer.from('asdf'), {
+            raw: false,
+            rejectOnEmpty: true,
+        })
+    ).toEqualTypeOf<User>();
+
     const rawUser = await User.findByPk(123, { raw: true });
     expectTypeOf(rawUser).toEqualTypeOf<Attributes<User> | null>();
+
+    expectTypeOf(
+        await User.findByPk(123, {
+            raw: true,
+            rejectOnEmpty: true,
+        })
+    ).toEqualTypeOf<Attributes<User>>();
 
     interface CustomUser {
         foo: 'bar';

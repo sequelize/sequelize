@@ -26,6 +26,15 @@ User.findOne({ where: { '$include1.includeAttr$': 'blah2' } });
 User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
 
 async () => {
+
+    expectTypeOf(
+        await User.findOne({
+            where: { firstName: 'John' },
+            raw: false,
+            rejectOnEmpty: true,
+        })
+    ).toEqualTypeOf<User>();
+
     const rawUser = await User.findOne({
         where: { firstName: 'John' },
         raw: true,
@@ -45,4 +54,16 @@ async () => {
         raw: true,
     });
     expectTypeOf(customUser).toEqualTypeOf<CustomUser | null>();
+
+    expectTypeOf(
+        await User.findOne<User, CustomUser>({
+            attributes: [
+                ['bar', 'foo'],
+                'ignored',
+                [col('table.id'), 'xyz'],
+            ],
+            raw: true,
+            rejectOnEmpty: true,
+        })
+    ).toEqualTypeOf<CustomUser>();
 };
