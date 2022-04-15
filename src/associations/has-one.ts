@@ -1,5 +1,4 @@
 import upperFirst from 'lodash/upperFirst';
-import type { DataType } from '../data-types.js';
 import { Model } from '../model';
 import type {
   CreateOptions,
@@ -105,11 +104,11 @@ export class HasOne<
 
     this.inverse = BelongsTo.associate(secret, target, source, {
       as: options.inverse?.as,
+      scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
       targetKey: options.sourceKey,
       foreignKeyConstraints: options.foreignKeyConstraints,
       hooks: options.hooks,
-      scope: options.scope,
     }, this);
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
@@ -350,13 +349,9 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
    */
   sourceKey?: SourceKey;
 
-  /**
-   * A string or a data type to represent the identifier in the table
-   */
-  keyType?: DataType;
-
   inverse?: {
-    as: AssociationOptions<any>['as'],
+    as?: AssociationOptions<any>['as'],
+    scope?: AssociationOptions<any>['scope'],
   };
 }
 

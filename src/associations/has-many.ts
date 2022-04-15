@@ -104,11 +104,11 @@ export class HasMany<
 
     this.inverse = BelongsTo.associate(secret, target, source, {
       as: options.inverse?.as,
+      scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
       targetKey: options.sourceKey,
       foreignKeyConstraints: options.foreignKeyConstraints,
       hooks: options.hooks,
-      scope: options.scope,
     }, this);
 
     // Get singular and plural names
@@ -534,7 +534,8 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
   sourceKey?: SourceKey;
 
   inverse?: {
-    as: AssociationOptions<any>['as'],
+    as?: AssociationOptions<any>['as'],
+    scope?: AssociationOptions<any>['scope'],
   };
 }
 
