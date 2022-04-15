@@ -604,7 +604,7 @@ ${associationOwner._getAssociationDebugList()}`);
     include.as ||= association.as;
 
     // If through, we create a pseudo child include, to ease our parsing later on
-    if (include.association.through && Object(include.association.through.model) === include.association.through.model) {
+    if (association instanceof BelongsToMany) {
       if (!include.include) {
         include.include = [];
       }
@@ -613,6 +613,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       include.through = _.defaults(include.through || {}, {
         model: through.model,
+        // Through Models are a special case: we always want to load them as the name of the model, not the name of the association
         as: through.model.name,
         association: {
           isSingleAssociation: true,

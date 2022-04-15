@@ -905,7 +905,16 @@ export class AbstractQueryGenerator {
         if (typeof item === 'string' || item._modelAttribute || item instanceof Utils.SequelizeMethod) {
           break;
         } else if (item instanceof Association) {
-          tableNames[i] = item.as;
+          const previousAssociation = collection[i - 1];
+
+          // BelongsToMany.throughModel are a special case. We want
+          //  through model to be loaded under the model's name instead of the association name,
+          //  because we want them to be available under the model's name in the entity's data.
+          if (previousAssociation instanceof BelongsToMany && item === previousAssociation.fromSourceToThroughOne) {
+            tableNames[i] = previousAssociation.throughModel.name;
+          } else {
+            tableNames[i] = item.as;
+          }
         }
       }
 
