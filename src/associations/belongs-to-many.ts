@@ -46,7 +46,7 @@ import type { AssociationStatic } from './helpers';
 import {
   AssociationConstructorSecret,
   defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions, removeUndefined,
+  mixinMethods, normalizeBaseAssociationOptions, normalizeForeignKeyOptions, removeUndefined,
 } from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
@@ -864,8 +864,10 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
 
   const sequelize = target.sequelize!;
 
+  // TODO: normalize otherKey using the same logic as in normalizeBaseAssociationOptions
   return normalizeBaseAssociationOptions(type, {
     ...options,
+    otherKey: normalizeForeignKeyOptions(options.otherKey),
     through: removeUndefined(isThroughOptions(options.through)
       ? normalizeThroughOptions(source, target, options.through, sequelize)
       : normalizeThroughOptions(source, target, { model: options.through }, sequelize)),
@@ -926,9 +928,9 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks'>
+  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks' | 'foreignKey'>
   & { through: NormalizedThroughOptions<ThroughModel> }
-  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks'>;
+  & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks' | 'foreignKey'>;
 
 type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
   model: ModelStatic<ThroughModel>,

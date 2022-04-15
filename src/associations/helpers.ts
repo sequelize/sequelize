@@ -14,7 +14,7 @@ import * as deprecations from '../utils/deprecations.js';
 import * as Utils from '../utils/index.js';
 import type { OmitConstructors } from '../utils/index.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
-import type { Association, AssociationOptions, NormalizedAssociationOptions } from './base';
+import type { Association, AssociationOptions, NormalizedAssociationOptions, ForeignKeyOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
   if (Object.prototype.hasOwnProperty.call(source.getAttributes(), associationName)) {
@@ -268,10 +268,11 @@ export function defineAssociation<
   return association;
 }
 
-export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks'> & {
+export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks' | 'foreignKey'> & {
   as: string,
   name: { singular: string, plural: string },
   hooks: boolean,
+  foreignKey: ForeignKeyOptions<any>,
 };
 
 export function normalizeBaseAssociationOptions<T extends AssociationOptions<any>>(
@@ -309,8 +310,17 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
 
   return removeUndefined({
     ...options,
+    foreignKey: normalizeForeignKeyOptions(options.foreignKey),
     hooks: options.hooks ?? false,
     as,
     name,
+  });
+}
+
+export function normalizeForeignKeyOptions<T extends string>(foreignKey: AssociationOptions<T>['foreignKey']): ForeignKeyOptions<any> {
+  return typeof foreignKey === 'string' ? { name: foreignKey } : removeUndefined({
+    ...foreignKey,
+    name: foreignKey?.name ?? foreignKey?.fieldName,
+    fieldName: undefined,
   });
 }
