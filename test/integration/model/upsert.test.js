@@ -322,26 +322,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('does not overwrite createdAt time on update', async function () {
-        const clock = sinon.useFakeTimers();
         await this.User.create({ id: 42, username: 'john' });
         const user0 = await this.User.findByPk(42);
         const originalCreatedAt = user0.createdAt;
         const originalUpdatedAt = user0.updatedAt;
-        clock.tick(5000);
+        this.clock.tick(5000);
         await this.User.upsert({ id: 42, username: 'doe' });
         const user = await this.User.findByPk(42);
         expect(user.updatedAt).to.be.gt(originalUpdatedAt);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
-        clock.restore();
+        this.clock.restore();
       });
 
       it('does not overwrite createdAt when supplied as an explicit insert value when using fields', async function () {
-        const clock = sinon.useFakeTimers();
         const originalCreatedAt = new Date('2010-01-01T12:00:00.000Z');
         await this.User.upsert({ id: 42, username: 'john', createdAt: originalCreatedAt }, { fields: ['id', 'username'] });
         const user = await this.User.findByPk(42);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
-        clock.restore();
+        this.clock.restore();
       });
 
       it('falls back to a noop if no update values are found in the upsert data', async function () {
@@ -413,7 +411,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: DataTypes.STRING,
           },
         });
-        const clock = sinon.useFakeTimers();
         await User.sync({ force: true });
         const [, created0] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
         if (['sqlite', 'postgres'].includes(dialect)) {
@@ -424,7 +421,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(created0).to.be.ok;
         }
 
-        clock.tick(1000);
         const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
         if (['sqlite', 'postgres'].includes(dialect)) {
           expect(created).to.be.null;
@@ -434,11 +430,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(created).to.be.false;
         }
 
-        clock.tick(1000);
         const user = await User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
         expect(user.createdAt).to.be.ok;
         expect(user.city).to.equal('New City');
-        expect(user.updatedAt).to.be.afterTime(user.createdAt);
       });
 
       it('works when indexes are created via indexes array', async function () {
