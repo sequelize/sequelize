@@ -305,6 +305,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(created0).to.be.ok;
         }
 
+        this.clock.tick(1000);
         const [, created] = await this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
         if (['sqlite', 'postgres'].includes(dialect)) {
           expect(created).to.be.null;
@@ -338,6 +339,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.upsert({ id: 42, username: 'john', createdAt: originalCreatedAt }, { fields: ['id', 'username'] });
         const user = await this.User.findByPk(42);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
+        this.clock.restore();
       });
 
       it('falls back to a noop if no update values are found in the upsert data', async function () {
