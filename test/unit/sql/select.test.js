@@ -500,7 +500,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               ON [projects].[id] = [projects->project_user].[project_id]
           )
             ON [user].[id_user] = [projects->project_user].[user_id]
-            ORDER BY "projects->project_user"."user_id" ASC;`,
+            ORDER BY [projects->project_user].[user_id] ASC;`,
       });
     });
 
