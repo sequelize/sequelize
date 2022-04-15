@@ -233,14 +233,10 @@ export class BelongsToMany<
           ...options,
           // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
           as: options.inverse?.as,
-          onDelete: options.inverse?.onDelete,
-          onUpdate: options.inverse?.onUpdate,
           scope: options.inverse?.scope,
           constraints: options.inverse?.constraints,
 
           inverse: {
-            onDelete: options.onDelete,
-            onUpdate: options.onUpdate,
             as: options.as,
             scope: options.scope,
             constraints: options.constraints,
@@ -281,8 +277,6 @@ export class BelongsToMany<
       foreignKey: this.options.foreignKey,
       sourceKey: this.options.sourceKey,
       constraints: this.options.constraints,
-      onDelete: this.options.onDelete,
-      onUpdate: this.options.onUpdate,
       hooks: this.options.hooks,
       inverse: {
         as: this.pairedWith.name.singular,
@@ -295,8 +289,6 @@ export class BelongsToMany<
       foreignKey: this.options.foreignKey,
       sourceKey: this.options.sourceKey,
       constraints: this.options.constraints,
-      onDelete: this.options.onDelete,
-      onUpdate: this.options.onUpdate,
       hooks: this.options.hooks,
       inverse: {
         as: this.pairedWith.name.singular,
@@ -957,8 +949,6 @@ export interface BelongsToManyOptions<
    */
   inverse?: {
     as?: AssociationOptions<string>['as'],
-    onDelete?: AssociationOptions<string>['onDelete'],
-    onUpdate?: AssociationOptions<string>['onUpdate'],
     scope?: MultiAssociationOptions<string>['scope'],
     constraints?: AssociationOptions<string>['constraints'],
   };

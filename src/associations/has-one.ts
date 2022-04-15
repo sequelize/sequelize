@@ -109,8 +109,6 @@ export class HasOne<
       targetKey: options.sourceKey,
       constraints: options.constraints,
       hooks: options.hooks,
-      onUpdate: options.onUpdate,
-      onDelete: options.onDelete,
       scope: options.scope,
     }, this);
 
