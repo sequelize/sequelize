@@ -164,10 +164,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should store the current date in touchedAt', function () {
-        const clock = sinon.useFakeTimers();
-        clock.tick(5000);
+        this.clock.tick(5000);
         const user = this.User.build({ username: 'a user' });
-        clock.restore();
+        this.clock.restore();
         expect(Number(user.touchedAt)).to.be.equal(5000);
       });
     });
