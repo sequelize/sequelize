@@ -28,6 +28,7 @@ import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
+import { camelize } from '../utils';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type {
   AssociationScope,
@@ -271,10 +272,19 @@ export class BelongsToMany<
     // this makes sure it's created
     this.pairedWith.pairedWith = this;
 
+    const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
+
     this.fromSourceToThrough = HasMany.associate(AssociationConstructorSecret, this.source, this.throughModel, {
       as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
       scope: this.through.scope,
-      foreignKey: this.options.foreignKey,
+      foreignKey: {
+        ...this.options.foreignKey,
+        allowNull: this.options.foreignKey.allowNull ?? false,
+        name: this.options.foreignKey.name || (
+          this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
+            : camelize(`${this.source.options.name.singular}_${sourceKey}`)
+        ),
+      },
       sourceKey: this.options.sourceKey,
       foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
@@ -286,7 +296,15 @@ export class BelongsToMany<
     this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.throughModel, {
       as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
       scope: this.through.scope,
-      foreignKey: this.options.foreignKey,
+      // foreignKey: this.options.foreignKey,
+      foreignKey: {
+        ...this.options.foreignKey,
+        allowNull: this.options.foreignKey.allowNull ?? false,
+        name: this.options.foreignKey.name || (
+          this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
+            : camelize(`${this.source.options.name.singular}_${sourceKey}`)
+        ),
+      },
       sourceKey: this.options.sourceKey,
       foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
