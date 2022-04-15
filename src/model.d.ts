@@ -2208,7 +2208,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
     options?: FindOptions<Attributes<M>> & { raw?: false }): Promise<M[]>;
-  public static findAll<M extends Model, R extends any = Attributes<M>>(
+  public static findAll<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     options?: FindOptions<Attributes<M>> & { raw: true }): Promise<R[]>;
 
@@ -2221,7 +2221,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     identifier: Identifier,
     options: Omit<NonNullFindOptions<Attributes<M>>, 'where'> & { raw?: false }
   ): Promise<M>;
-  public static findByPk<M extends Model, R extends any = Attributes<M>>(
+  public static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: Identifier,
     options: Omit<NonNullFindOptions<Attributes<M>>, 'where'> & { raw: true }
@@ -2231,7 +2231,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     identifier?: Identifier,
     options?: Omit<FindOptions<Attributes<M>>, 'where'> & { raw?: false }
   ): Promise<M | null>;
-  public static findByPk<M extends Model, R extends any = Attributes<M>>(
+  public static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier?: Identifier,
     options?: Omit<FindOptions<Attributes<M>>, 'where'> & { raw: true }
@@ -2244,7 +2244,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options: NonNullFindOptions<Attributes<M>> & { raw?: false }
   ): Promise<M>;
-  public static findOne<M extends Model, R extends any = Attributes<M>>(
+  public static findOne<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     options: NonNullFindOptions<Attributes<M>> & { raw: true }
   ): Promise<R>;
@@ -2252,7 +2252,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options?: FindOptions<Attributes<M>> & { raw?: false }
   ): Promise<M | null>;
-  public static findOne<M extends Model, R extends any = Attributes<M>>(
+  public static findOne<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     options?: FindOptions<Attributes<M>> & { raw: true }
   ): Promise<R | null>;
