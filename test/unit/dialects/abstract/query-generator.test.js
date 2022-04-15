@@ -7,7 +7,7 @@ const { Op } = require('@sequelize/core');
 const Support = require('../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
-const { AbstractQueryGenerator } = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {

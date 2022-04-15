@@ -1,5 +1,8 @@
 'use strict';
 
+import { noSequelizeDataType } from './utils/deprecations';
+import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+
 const url = require('url');
 const path = require('path');
 const pgConnectionString = require('pg-connection-string');
@@ -357,7 +360,7 @@ export class Sequelize {
         Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
 
     this.dialect = new Dialect(this);
@@ -437,7 +440,7 @@ export class Sequelize {
    * @example
    * sequelize.define('modelName', {
    *   columnA: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       validate: {
    *         is: ["[a-z]",'i'],        // will only allow letters
    *         max: 23,                  // only allow values <= 23
@@ -448,7 +451,7 @@ export class Sequelize {
    *       },
    *       field: 'column_a'
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * });
    *
@@ -944,6 +947,10 @@ export class Sequelize {
 
   static where = where;
 
+  static isModelStatic = isModelStatic;
+
+  static isSameInitialModel = isSameInitialModel;
+
   /**
    * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
    *
@@ -1263,8 +1270,14 @@ Sequelize.HasMany = HasMany;
 Sequelize.BelongsToMany = BelongsToMany;
 
 Sequelize.DataTypes = DataTypes;
-for (const dataType in DataTypes) {
-  Sequelize[dataType] = DataTypes[dataType];
+for (const dataTypeName in DataTypes) {
+  Object.defineProperty(Sequelize, dataTypeName, {
+    get() {
+      noSequelizeDataType();
+
+      return DataTypes[dataTypeName];
+    },
+  });
 }
 
 /**

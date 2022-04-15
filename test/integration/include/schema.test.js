@@ -1149,10 +1149,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
     it('should support including date fields, with the correct timezone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false, schema: 'account' });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false, schema: 'account' });
 
       User.belongsToMany(Group, { through: 'group_user' });
@@ -1203,22 +1203,22 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         timestamps: false,
       });
 
-      const UserIdColumn = { type: Sequelize.INTEGER, references: { model: UserModel, key: 'Id' } };
+      const UserIdColumn = { type: DataTypes.INTEGER, references: { model: UserModel, key: 'Id' } };
 
       const ResumeModel = this.sequelize.define('Resume', {
         Id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
         },
         UserId: UserIdColumn,
-        Name: Sequelize.STRING,
-        Contact: Sequelize.STRING,
-        School: Sequelize.STRING,
-        WorkingAge: Sequelize.STRING,
-        Description: Sequelize.STRING,
-        PostType: Sequelize.INTEGER,
-        RefreshDatetime: Sequelize.DATE,
-        CreatedDatetime: Sequelize.DATE,
+        Name: DataTypes.STRING,
+        Contact: DataTypes.STRING,
+        School: DataTypes.STRING,
+        WorkingAge: DataTypes.STRING,
+        Description: DataTypes.STRING,
+        PostType: DataTypes.INTEGER,
+        RefreshDatetime: DataTypes.DATE,
+        CreatedDatetime: DataTypes.DATE,
       }, {
         schema: 'hero',
         tableName: 'resume',

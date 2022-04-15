@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
+        node-version: [14, 16]
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
@@ -26,11 +26,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: Install dependencies and build sequelize
-        run: yarn install --frozen-lockfile --ignore-engines
-        if: matrix.node-version == 12
-      - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile
-        if: matrix.node-version == 16
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
       - uses: actions/upload-artifact@v3
@@ -39,7 +35,7 @@ jobs:
           path: install-build-node-${{ matrix.node-version }}.tar
           retention-days: 1
   lint:
-    name: Lint code and docs
+    name: Lint code
     runs-on: ubuntu-latest
     needs: install-and-build
     steps:
@@ -54,12 +50,11 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-16.tar
       - run: yarn lint-no-fix
-      - run: yarn lint-docs
   unit-test:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
+        node-version: [14, 16]
     name: Unit test all dialects (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: lint
@@ -91,7 +86,7 @@ jobs:
       - name: Unit tests (snowflake)
         run: yarn test-unit-snowflake
   docs:
-    name: Generate docs
+    name: Generate TypeDoc
     runs-on: ubuntu-latest
     needs: lint
     steps:
@@ -134,7 +129,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
+        node-version: [14, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
@@ -164,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
+        node-version: [14, 16]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
@@ -187,8 +182,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
-        postgres-version: [9.5, 10] # Does not work with 12
+        node-version: [14, 16]
+        postgres-version: [9.5, 10]
         minify-aliases: [true, false]
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
@@ -220,9 +215,9 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install pg-native (Node 12)
+      - name: Install pg-native (Node 14)
         run: yarn add pg-native --ignore-engines
-        if: matrix.native && matrix.node-version == 12
+        if: matrix.native && matrix.node-version == 14
       # This step uses npm instead of yarn to minimize the time needed. See #14171
       - name: Install pg-native (Node 16)
         run: npm install --no-save --no-audit pg-native
@@ -237,7 +232,7 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7.37
             dialect: mysql
-            node-version: 12
+            node-version: 14
           - name: MySQL 5.7
             image: mysql:5.7.37
             dialect: mysql
@@ -245,7 +240,7 @@ jobs:
           - name: MySQL 8.0
             image: mysql:8.0.28
             dialect: mysql
-            node-version: 12
+            node-version: 14
           - name: MySQL 8.0
             image: mysql:8.0.28
             dialect: mysql
@@ -253,17 +248,17 @@ jobs:
           - name: MariaDB 10.3
             image: mariadb:10.3.34
             dialect: mariadb
-            node-version: 12
+            node-version: 14
           - name: MariaDB 10.3
             image: mariadb:10.3.34
             dialect: mariadb
             node-version: 16
           - name: MariaDB 10.5
-            image: mariadb:10.5.13
+            image: mariadb:10.5
             dialect: mariadb
-            node-version: 12
+            node-version: 14
           - name: MariaDB 10.5
-            image: mariadb:10.5.13
+            image: mariadb:10.5
             dialect: mariadb
             node-version: 16
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
@@ -301,7 +296,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [12, 16]
+        node-version: [14, 16]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -375,4 +370,4 @@ jobs:
           curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": ${{ steps.sequelize.outputs.id }}}}'
       - name: Notify docs repo
         run: |
-          curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize.org/dispatches --data '{"event_type":"Build website"}'
+          curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/website/dispatches --data '{"event_type":"Build website"}'

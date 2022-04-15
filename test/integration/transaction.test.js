@@ -116,7 +116,7 @@ if (current.dialect.supports.transactions) {
         it('does not try to rollback a transaction that failed upon committing with SERIALIZABLE isolation level (#3689)', async function () {
           // See https://wiki.postgresql.org/wiki/SSI
 
-          const Dots = this.sequelize.define('dots', { color: Sequelize.STRING });
+          const Dots = this.sequelize.define('dots', { color: DataTypes.STRING });
           await Dots.sync({ force: true });
 
           const initialData = [
@@ -441,7 +441,7 @@ if (current.dialect.supports.transactions) {
         const getAndInitializeTaskModel = async sequelize => {
           const Task = sequelize.define('task', {
             id: {
-              type: Sequelize.INTEGER,
+              type: DataTypes.INTEGER,
               primaryKey: true,
             },
           });
@@ -539,6 +539,15 @@ if (current.dialect.supports.transactions) {
         });
 
         it('should release the connection for a deadlocked transaction (2/2)', async function () {
+          // TODO [>=2022-06-01]: The following code is supposed to cause a deadlock in MariaDB,
+          //  but starting with MariaDB 10.5.15, this does not happen anymore.
+          //  We think it may be a bug in MariaDB, so we temporarily disable this test for that specific version
+          //  If this still happens on newer releases, update this check, or look into why this is not working.
+          //  See https://github.com/sequelize/sequelize/issues/14174
+          if (dialect === 'mariadb' && this.sequelize.options.databaseVersion === '10.5.15') {
+            return;
+          }
+
           const verifyDeadlock = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,

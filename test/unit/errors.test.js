@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const errors = require('@sequelize/core/lib/errors');
+const errors = require('@sequelize/core/_non-semver-use-at-your-own-risk_/errors/index.js');
 
 const { AggregateError } = errors;
 

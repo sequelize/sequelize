@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -36,7 +36,7 @@ if (current.dialect.supports.tmpTableTrigger) {
       beforeEach(async function () {
         User = this.sequelize.define('user', {
           username: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             field: 'user_name',
           },
         }, {

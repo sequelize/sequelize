@@ -75,7 +75,9 @@ export interface SyncOptions extends Logging, Hookable {
 export interface DefaultSetOptions { }
 
 /**
- * Connection Pool options
+ * Connection Pool options.
+ *
+ * Used in {@link Options.pool}
  */
 export interface PoolOptions {
   /**
@@ -167,7 +169,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -175,7 +177,7 @@ export interface RetryOptions {
 }
 
 /**
- * Options for the constructor of Sequelize main class
+ * Options for the constructor of the {@link Sequelize} main class.
  */
 export interface Options extends Logging {
   /**
@@ -345,7 +347,7 @@ export interface Options extends Logging {
 
   /**
    * Sets available operator aliases.
-   * See (https://sequelize.org/master/manual/querying.html#operators) for more information.
+   * See (https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators) for more information.
    * WARNING: Setting this to boolean value was deprecated and is no-op.
    *
    * @default all aliases
@@ -484,8 +486,8 @@ export class Sequelize extends Hooks {
    *
    * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
    *   notation or a string using postgres json syntax.
-   * @param value An optional value to compare against. Produces a string of the form "<json path> =
-   *   '<value>'".
+   * @param value An optional value to compare against.
+   *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'"`.
    */
   public static json: typeof json;
   public json: typeof json;
@@ -1163,7 +1165,7 @@ export class Sequelize extends Hooks {
    * class MyModel extends Model {}
    * MyModel.init({
    *   columnA: {
-   *     type: Sequelize.BOOLEAN,
+   *     type: DataTypes.BOOLEAN,
    *     validate: {
    *       is: ["[a-z]",'i'],    // will only allow letters
    *       max: 23,          // only allow values <= 23
@@ -1175,7 +1177,7 @@ export class Sequelize extends Hooks {
    *     field: 'column_a'
    *     // Other attributes here
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * }, { sequelize })
    *
@@ -1188,16 +1190,16 @@ export class Sequelize extends Hooks {
    * getters.
    *
    * For a list of possible data types, see
-   * https://sequelize.org/master/en/latest/docs/models-definition/#data-types
+   * https://sequelize.org/docs/v7/other-topics/other-data-types
    *
    * For more about getters and setters, see
-   * https://sequelize.org/master/en/latest/docs/models-definition/#getters-setters
+   * https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
    *
    * For more about instance and class methods, see
-   * https://sequelize.org/master/en/latest/docs/models-definition/#expansion-of-models
+   * https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
    *
    * For more about validation, see
-   * https://sequelize.org/master/en/latest/docs/models-definition/#validations
+   * https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
    *
    * @param modelName  The name of the model. The model will be stored in `sequelize.models` under this name
    * @param attributes An object, where each attribute is a column of the table. Each column can be either a
@@ -1499,8 +1501,8 @@ export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
  *
  * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
  *   notation or a string using postgres json syntax.
- * @param value An optional value to compare against. Produces a string of the form "<json path> =
- *   '<value>'".
+ * @param value An optional value to compare against.
+ *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'".
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 

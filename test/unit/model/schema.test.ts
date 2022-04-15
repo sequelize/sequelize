@@ -1,11 +1,11 @@
-'use strict';
+import assert from 'assert';
+import { literal } from '@sequelize/core';
+// eslint-disable-next-line import/order
+import { expect } from 'chai';
 
-const chai = require('chai');
+const Support = require('../support');
 
-const expect = chai.expect;
-const Support   = require('../support');
-
-const current   = Support.sequelize;
+const current = Support.sequelize;
 
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
@@ -15,13 +15,29 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       schemaDelimiter: '&',
     });
 
+    Project.addScope('scope1', { where: literal('') });
+
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.be.null;
+        expect(Project._schema).to.eq('');
       });
 
       it('should apply default schema from define', () => {
         expect(Company._schema).to.equal('default');
+      });
+
+      it('returns the same model if the schema is equal', () => {
+        // eslint-disable-next-line no-self-compare
+        assert(Project.withSchema('newSchema') === Project.withSchema('newSchema'));
+      });
+
+      it('returns a new model if the schema is equal, but scope is different', () => {
+        expect(Project.withScope('scope1').withSchema('newSchema')).not.to.equal(Project.withSchema('newSchema'));
+      });
+
+      it('returns the current model if the schema is identical', () => {
+        assert(Project.withSchema('') === Project);
+        assert(Project.withSchema('test').withSchema('test') === Project.withSchema('test'));
       });
 
       it('should be able to override the default schema', () => {
@@ -29,7 +45,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.be.null;
+        expect(Company.schema(null)._schema).to.eq('');
       });
 
       it('should support multiple, coexistent schema models', () => {

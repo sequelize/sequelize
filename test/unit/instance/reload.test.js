@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support   = require('../support');
 
 const current   = Support.sequelize;
-const { Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -15,12 +15,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let stub; let instance;
       const Model = current.define('User', {
         id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           primaryKey: true,
           autoIncrement: true,
         },
         deletedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       }, {
         paranoid: true,

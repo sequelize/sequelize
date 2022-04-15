@@ -86,6 +86,8 @@ export interface DropOptions extends Logging {
  * Schema Options provided for applying a schema to a model
  */
 export interface SchemaOptions extends Logging {
+  schema: string;
+
   /**
    * The character(s) that separates the schema name from the table name
    */
@@ -236,7 +238,7 @@ type StaticValues<Type> =
  *
  * @typeParam AttributeType - The JS type of the attribute the operator is operating on.
  *
- * See https://sequelize.org/master/en/v3/docs/querying/#operators
+ * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators
  */
 // TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
@@ -308,13 +310,13 @@ export interface WhereOperators<AttributeType = any> {
 
   /**
    * @example: `[Op.like]: '%hat',` becomes `LIKE '%hat'`
-   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.like]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
    * @example: `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
-   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
@@ -322,7 +324,7 @@ export interface WhereOperators<AttributeType = any> {
    * case insensitive PG only
    *
    * @example: `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
-   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.iLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
@@ -330,7 +332,7 @@ export interface WhereOperators<AttributeType = any> {
    * PG only
    *
    * @example: `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
-   * @example: `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.notILike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notILike]?: WhereOperators<AttributeType>[typeof Op.like];
 
@@ -382,15 +384,26 @@ export interface WhereOperators<AttributeType = any> {
    * Strings starts with value.
    */
   [Op.startsWith]?: OperatorValues<Extract<AttributeType, string>>;
-
+  /**
+   * Strings not starts with value.
+   */
+  [Op.notStartsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
    * String ends with value.
    */
   [Op.endsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
+   * String not ends with value.
+   */
+  [Op.notEndsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
    * String contains value.
    */
   [Op.substring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
+   * String not contains value.
+   */
+  [Op.notSubstring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
 
   /**
    * MySQL/PG only
@@ -1940,13 +1953,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
    *
-   * For a list of possible data types, see https://sequelize.org/master/en/latest/docs/models-definition/#data-types
+   * For a list of possible data types, see https://sequelize.org/docs/v7/other-topics/other-data-types
    *
-   * For more about getters and setters, see https://sequelize.org/master/en/latest/docs/models-definition/#getters-setters
+   * For more about getters and setters, see https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
    *
-   * For more about instance and class methods, see https://sequelize.org/master/en/latest/docs/models-definition/#expansion-of-models
+   * For more about instance and class methods, see https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
    *
-   * For more about validation, see https://sequelize.org/master/en/latest/docs/models-definition/#validations
+   * For more about validation, see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
    *
    * @param attributes
    *  An object, where each attribute is a column of the table. Each column can be either a DataType, a
@@ -1990,13 +2003,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * - `"schema"."tableName"`, while the schema will be prepended to the table name for mysql and
    * sqlite - `'schema.tablename'`.
    *
-   * @param schema The name of the schema
-   * @param options
+   * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
+   */
+  public static withSchema<M extends Model>(
+    this: ModelStatic<M>,
+    schema: string | SchemaOptions,
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
+   *  does not mutate the model and instead returns a new one.
    */
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions
+    options?: { schemaDelimiter?: string } | string
   ): ModelCtor<M>;
 
   /**
@@ -2063,10 +2084,43 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @returns Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
    */
+  public static withScope<M extends Model>(
+    this: ModelStatic<M>,
+    options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withScope} to emphasise the fact that
+   *  this method does not mutate the model, but returns a new model.
+   */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
     options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withoutScope} to emphasise the fact that
+   *   this method does not mutate the model, and is not the same as {@link Model.withInitialScope}.
+   */
+  public static unscoped<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns a model without scope, including the default scope.
+   *
+   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
+   */
+  public static withoutScope<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns the base model, with its initial scope.
+   */
+  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
+  public static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Add a new scope to the model
@@ -2419,7 +2473,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @returns Promise<number> The number of destroyed rows
+   * @return The number of destroyed rows
    */
   public static destroy<M extends Model>(
     this: ModelStatic<M>,
@@ -2520,11 +2574,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * their types.
    */
   public static describe(): Promise<object>;
-
-  /**
-   * Unscope the model
-   */
-  public static unscoped<M extends ModelType>(this: M): M;
 
   /**
    * A hook that is run before validation
@@ -3021,7 +3070,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
+  /**
+   * @private
+   */
   public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+
+  /**
+   * @private
+   */
   public static _virtualAttributes: Set<string>;
 
   /**
