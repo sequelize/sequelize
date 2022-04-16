@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
-    it('should a primary key field', () => {
+    it('allows creating an "id" field as the primary key', () => {
       const Bar = current.define('bar', {
         id: {
           type: DataTypes.INTEGER,
