@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -16,6 +16,8 @@ const current = Support.sequelize;
 const promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  let User;
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -28,6 +30,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     await this.User.sync({ force: true });
+
+    User = this.User;
   });
 
   describe('findAll', () => {
@@ -83,6 +87,117 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
           },
         ],
+      });
+    });
+
+    describe('replacements', () => {
+      it('parses replacements in literals', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            console.log(theQuery);
+            query = theQuery;
+          },
+          where: {
+            username: {
+              [Op.eq]: literal(':data'),
+            },
+          },
+          replacements: {
+            data: 'this should be present',
+          },
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'this should be present\';');
+      });
+
+      it('does not parse replacements from literals twice', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            console.log(theQuery);
+            query = theQuery;
+          },
+          where: {
+            username: {
+              [Op.eq]: literal(':data'),
+            },
+          },
+          replacements: {
+            data: ':data2',
+            data2: 'sql injection',
+          },
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \':data2\';');
+      });
+
+      it('does not parse user-provided data as replacements', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            query = theQuery;
+          },
+          where: {
+            username: 'some :data',
+          },
+          replacements: {
+            data: 'OR \' = ',
+          },
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some :data\'');
+      });
+    });
+
+    describe('bind', () => {
+      it('parses bind in literals', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            console.log(theQuery);
+            query = theQuery;
+          },
+          where: {
+            username: {
+              [Op.eq]: literal('$data'),
+            },
+          },
+          bind: {
+            data: 'this should be present',
+          },
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = $1;');
+      });
+
+      it('does not parse user-provided data as replacements', async () => {
+        let query;
+
+        try {
+          await User.findAll({
+            attributes: ['id'],
+            logging: theQuery => {
+              query = theQuery;
+            },
+            where: {
+              username: 'some $data',
+            },
+            bind: {
+              data: 'fail',
+            },
+          });
+        } catch { /* ignore */ }
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some $data\'');
       });
     });
 
