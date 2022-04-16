@@ -1,27 +1,57 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
+import type { AbstractDialect } from '../dialects/abstract/index.js';
+import * as SqlString from '../sql-string';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
 const DataTypes = require('../data-types');
-const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
 
-export function format(arr: unknown[], dialect: string): string {
+export function formatBindOrReplacements(
+  sql: string,
+  replacements: unknown[] | Record<string, unknown>,
+  bind: unknown[] | Record<string, unknown>,
+  dialect: AbstractDialect,
+) {
+  if (replacements) {
+    sql = formatReplacements(sql, replacements, dialect);
+  }
+
+  if (bind) {
+    return dialect.Query.formatBindParameters(sql, bind, dialect.dialectName);
+  }
+
+  return [sql];
+}
+
+export function formatReplacements(
+  sql: string,
+  replacements: unknown[] | Record<string, unknown>,
+  dialect: AbstractDialect,
+): string {
+  if (Array.isArray(replacements)) {
+    return formatPositionalReplacements(sql, replacements, dialect);
+  }
+
+  return formatNamedReplacements(sql, replacements, dialect);
+}
+
+function formatPositionalReplacements(sql: string, replacements: unknown[], dialect: AbstractDialect): string {
   const timeZone = null;
 
   // Make a clone of the array because format modifies the passed args
-  return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
+  return SqlString.format(sql, [...replacements], timeZone, dialect.dialectName);
 }
 
-export function formatNamedParameters(
+function formatNamedReplacements(
   sql: string,
   parameters: Record<string, unknown>,
-  dialect: string,
+  dialect: AbstractDialect,
 ): string {
-  return SqlString.formatNamedParameters(sql, parameters, null, dialect);
+  return SqlString.formatNamedParameters(sql, parameters, null, dialect.dialectName);
 }
 
 export type FinderOptions<TAttributes> = {

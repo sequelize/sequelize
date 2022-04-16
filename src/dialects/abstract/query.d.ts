@@ -118,7 +118,15 @@ export class AbstractQuery {
    * @param {object} [options]
    * @private
    */
-  static formatBindParameters(sql: string, values: object | Array<object>, dialect: string, replacementFunc: replacementFuncType, options: AbstractQueryFormatBindOptions): undefined | [string, unknown[]];
+  static formatBindParameters(
+    sql: string,
+    values: object | Array<object>,
+    dialect: string,
+    // FIXME: these are only optional on child methods.
+    //  Split between an internal method and an external one.
+    replacementFunc?: replacementFuncType,
+    options?: AbstractQueryFormatBindOptions
+  ): undefined | [string, unknown[]];
 
   /**
    * Execute the passed sql query.

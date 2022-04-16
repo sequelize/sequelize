@@ -1047,7 +1047,7 @@ export class AbstractQueryGenerator {
 
     if (value !== null && value !== undefined) {
       if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value);
+        return this.handleSequelizeMethod(value, undefined, undefined, { bind: options.bind, replacements: options.replacements });
       }
 
       if (field && field.type) {
@@ -2253,7 +2253,7 @@ export class AbstractQueryGenerator {
     }
 
     if (smth instanceof Utils.Literal) {
-      return smth.val;
+      return Utils.formatBindOrReplacements(smth.val, options.replacements, options.bind, this._dialect);
     }
 
     if (smth instanceof Utils.Cast) {
@@ -2676,7 +2676,7 @@ export class AbstractQueryGenerator {
         }
 
         if (value.length > 0) {
-          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field, { where: true })).join(', ')})`, comparator, options.prefix);
+          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field, { where: true, replacements: options.replacements, bind: options.bind })).join(', ')})`, comparator, options.prefix);
         }
 
         if (comparator === this.OperatorMap[Op.in]) {
@@ -2688,13 +2688,13 @@ export class AbstractQueryGenerator {
       case Op.all:
         comparator = `${this.OperatorMap[Op.eq]} ${comparator}`;
         if (value[Op.values]) {
-          return this._joinKeyValue(key, `(VALUES ${value[Op.values].map(item => `(${this.escape(item)})`).join(', ')})`, comparator, options.prefix);
+          return this._joinKeyValue(key, `(VALUES ${value[Op.values].map(item => `(${this.escape(item, undefined, { replacements: options.replacements, bind: options.bind })})`).join(', ')})`, comparator, options.prefix);
         }
 
-        return this._joinKeyValue(key, `(${this.escape(value, field)})`, comparator, options.prefix);
+        return this._joinKeyValue(key, `(${this.escape(value, field, { replacements: options.replacements, bind: options.bind })})`, comparator, options.prefix);
       case Op.between:
       case Op.notBetween:
-        return this._joinKeyValue(key, `${this.escape(value[0], field)} AND ${this.escape(value[1], field)}`, comparator, options.prefix);
+        return this._joinKeyValue(key, `${this.escape(value[0], field, { replacements: options.replacements, bind: options.bind })} AND ${this.escape(value[1], field, { replacements: options.replacements, bind: options.bind })}`, comparator, options.prefix);
       case Op.raw:
         throw new Error('The `$raw` where property is no longer supported.  Use `sequelize.literal` instead.');
       case Op.col:
@@ -2735,12 +2735,14 @@ export class AbstractQueryGenerator {
           pattern = `%${value}%`;
         }
 
-        return this._joinKeyValue(key, this.escape(pattern), comparator, options.prefix);
+        return this._joinKeyValue(key, this.escape(pattern, undefined, { replacements: options.replacements, bind: options.bind }), comparator, options.prefix);
       }
     }
 
     const escapeOptions = {
       acceptStrings: comparator.includes(this.OperatorMap[Op.like]),
+      replacements: options.replacements,
+      bind: options.bind,
     };
 
     if (_.isPlainObject(value)) {
@@ -2801,6 +2803,8 @@ export class AbstractQueryGenerator {
         model: factory,
         prefix: prepend && tableName,
         type: options.type,
+        replacements: options.replacements,
+        bind: options.bind,
       });
     }
 
@@ -2819,6 +2823,8 @@ export class AbstractQueryGenerator {
       return this.whereItemsQuery(where, {
         model: factory,
         prefix: prepend && tableName,
+        replacements: options.replacements,
+        bind: options.bind,
       });
     }
 
@@ -2826,6 +2832,8 @@ export class AbstractQueryGenerator {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName,
+        replacements: options.replacements,
+        bind: options.bind,
       });
     }
 
@@ -2851,6 +2859,8 @@ export class AbstractQueryGenerator {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName,
+        replacements: options.replacements,
+        bind: options.bind,
       });
     }
 

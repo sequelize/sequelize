@@ -1,5 +1,6 @@
 'use strict';
 
+import { formatReplacements } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 
@@ -561,23 +562,8 @@ export class Sequelize {
 
     sql = sql.trim();
 
-    if (options.replacements && options.bind) {
-      throw new Error('Both `replacements` and `bind` cannot be set at the same time');
-    }
-
-    if (options.replacements) {
-      if (Array.isArray(options.replacements)) {
-        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
-      } else {
-        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
-      }
-    }
-
     let bindParameters;
-
-    if (options.bind) {
-      [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
-    }
+    [sql, bindParameters] = Utils.formatBindOrReplacements(sql, options.replacements, options.bind, this.dialect);
 
     options.bindParameters = bindParameters;
     delete options.replacements;
@@ -589,7 +575,7 @@ export class Sequelize {
   async rawQuery(sql, options) {
     if ('replacements' in options || 'bind' in options) {
       throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" or "bind" options.
-Only numeric bind parameters can be provided (i.e. "$0", not "$name") and their value must be passed through "options.bindParameters".
+Only numeric bind parameters can be provided (i.e. "$1", not "$name") and their value must be passed through "options.bindParameters".
 Use Sequelize#query if you wish to use "replacements" or "bind"`);
     }
 

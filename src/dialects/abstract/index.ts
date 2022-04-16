@@ -1,3 +1,5 @@
+import type { AbstractQuery } from './query.js';
+
 export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
@@ -96,6 +98,9 @@ export type DialectSupports = {
 };
 
 export abstract class AbstractDialect {
+  declare name: string;
+  declare Query: typeof AbstractQuery;
+
   /**
    * List of features this dialect supports.
    *
