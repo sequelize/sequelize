@@ -534,50 +534,8 @@ export class Sequelize {
    *
    * @see {@link Model.build} for more information about instance option.
    */
-
   async query(sql, options) {
     options = { ...this.options.query, ...options };
-
-    if (options.instance && !options.model) {
-      options.model = options.instance.constructor;
-    }
-
-    if (!options.instance && !options.model) {
-      options.raw = true;
-    }
-
-    // map raw fields to model attributes
-    if (options.mapToModel) {
-      options.fieldMap = _.get(options, 'model.fieldAttributeMap', {});
-    }
-
-    options = _.defaults(options, {
-      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.debug,
-      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
-    });
-
-    if (!options.type) {
-      if (options.model || options.nest || options.plain) {
-        options.type = QueryTypes.SELECT;
-      } else {
-        options.type = QueryTypes.RAW;
-      }
-    }
-
-    // if dialect doesn't support search_path or dialect option
-    // to prepend searchPath is not true delete the searchPath option
-    if (
-      !this.dialect.supports.searchPath
-      || !this.options.dialectOptions
-      || !this.options.dialectOptions.prependSearchPath
-      || options.supportsSearchPath === false
-    ) {
-      delete options.searchPath;
-    } else if (!options.searchPath) {
-      // if user wants to always prepend searchPath (dialectOptions.preprendSearchPath = true)
-      // then set to DEFAULT if none is provided
-      options.searchPath = 'DEFAULT';
-    }
 
     if (typeof sql === 'object') {
       if (sql.values !== undefined) {
@@ -619,6 +577,64 @@ export class Sequelize {
 
     if (options.bind) {
       [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
+    }
+
+    options.bindParameters = bindParameters;
+    delete options.replacements;
+    delete options.bind;
+
+    return this.rawQuery(sql, options);
+  }
+
+  async rawQuery(sql, options) {
+    if ('replacements' in options || 'bind' in options) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" or "bind" options.
+Only numeric bind parameters can be provided (i.e. "$0", not "$name") and their value must be passed through "options.bindParameters".
+Use Sequelize#query if you wish to use "replacements" or "bind"`);
+    }
+
+    options = { ...this.options.query, ...options };
+    const bindParameters = options.bindParameters;
+
+    if (options.instance && !options.model) {
+      options.model = options.instance.constructor;
+    }
+
+    if (!options.instance && !options.model) {
+      options.raw = true;
+    }
+
+    // map raw fields to model attributes
+    if (options.mapToModel) {
+      options.fieldMap = _.get(options, 'model.fieldAttributeMap', {});
+    }
+
+    options = _.defaults(options, {
+      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.debug,
+      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
+    });
+
+    if (!options.type) {
+      if (options.model || options.nest || options.plain) {
+        options.type = QueryTypes.SELECT;
+      } else {
+        options.type = QueryTypes.RAW;
+      }
+    }
+
+    // if dialect doesn't support search_path or dialect option
+    // to prepend searchPath is not true delete the searchPath option
+    if (
+      !this.dialect.supports.searchPath
+      || !this.options.dialectOptions
+      || !this.options.dialectOptions.prependSearchPath
+      || options.supportsSearchPath === false
+    ) {
+      delete options.searchPath;
+    } else if (!options.searchPath) {
+      // if user wants to always prepend searchPath (dialectOptions.preprendSearchPath = true)
+      // then set to DEFAULT if none is provided
+      options.searchPath = 'DEFAULT';
     }
 
     const checkTransaction = () => {
