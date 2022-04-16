@@ -278,7 +278,7 @@ export interface Options extends Logging {
    * used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP
    * and other time related functions have in the right timezone. For best cross platform performance use the
    * format
-   * +/-HH:MM. Will also accept string versions of timezones supported by Intl (e.g. 'America/Los_Angeles');
+   * +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles');
    * this is useful to capture daylight savings time changes.
    *
    * @default '+00:00'
