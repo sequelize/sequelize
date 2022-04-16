@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Bar.rawAttributes).to.have.property('id');
-      expect(Bar.rawAttributes.primaryKey).to.equal(true);
+      expect(Bar.rawAttributes.id.primaryKey).to.equal(true);
     });
 
     it('should not a primary key field', () => {
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Baz.rawAttributes).to.have.property('id');
-      expect(Baz.rawAttributes.primaryKey).to.equal(false);
+      expect(Baz.rawAttributes.id.primaryKey).to.equal(false);
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
