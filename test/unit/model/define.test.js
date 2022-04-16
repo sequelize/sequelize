@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Bar.rawAttributes.id.primaryKey).to.equal(true);
     });
 
-    it('should not a primary key field', () => {
+    it('allows creating an "id" field explicitly marked as non primary key', () => {
       const Baz = current.define('baz', {
         id: {
           type: DataTypes.INTEGER,
