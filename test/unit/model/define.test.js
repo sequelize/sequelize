@@ -60,6 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Baz.rawAttributes).to.have.property('id');
       expect(Baz.rawAttributes.id.primaryKey).to.equal(false);
+      expect(Baz.primaryKeys).to.equal({});
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
