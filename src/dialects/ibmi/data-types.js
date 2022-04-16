@@ -61,14 +61,10 @@ module.exports = BaseTypes => {
     static parse(date) {
       if (!date.includes('+')) {
         // For backwards compat. Dates inserted by sequelize < 2.0dev12 will not have a timestamp set
-        const mome = dayjs.utc(date);
-
-        return mome.toDate();
+        return dayjs.utc(date).toDate();
       }
 
-      const mome = dayjs.utc(date);
-
-      return mome.toDate();
+      return dayjs.utc(date).toDate();
     }
 
     _stringify(date, options) {
