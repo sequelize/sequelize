@@ -107,7 +107,7 @@ export class MySqlConnectionManager extends ConnectionManager {
         // set timezone for this connection
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
-        tzOffset = /\//.test(tzOffset) ? dayjs.tz(tzOffset).format('Z') : tzOffset;
+        tzOffset = /\//.test(tzOffset) ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
         await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       }
 

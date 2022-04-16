@@ -55,7 +55,7 @@ export class MariaDbConnectionManager extends ConnectionManager {
   async connect(config) {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = /\//.test(tzOffset) ? dayjs.tz(tzOffset).format('Z')
+    tzOffset = /\//.test(tzOffset) ? dayjs.tz(undefined, tzOffset).format('Z')
       : tzOffset;
 
     const connectionConfig = {
