@@ -55,7 +55,7 @@ export class AbstractQuery {
    */
   static formatBindParameters(sql, values, dialect, replacementFunc, options) {
     if (!values) {
-      return [sql, []];
+      return sql;
     }
 
     options = options || {};
@@ -114,7 +114,7 @@ export class AbstractQuery {
       return replVal;
     });
 
-    return [sql, []];
+    return sql;
   }
 
   /**

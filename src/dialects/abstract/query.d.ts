@@ -6,6 +6,14 @@ import { Sequelize } from '../../sequelize';
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
 
+export type BindContext = {
+  normalizedBind?: unknown[],
+
+  /**
+   * A mapping of 'parameter name' to 'parameter position in the normalizedBind array'
+   */
+  seenParameters?: Map<string, number>,
+};
 
 export interface AbstractQueryGroupJoinDataOptions {
   checkExisting: boolean;
@@ -121,12 +129,13 @@ export class AbstractQuery {
   static formatBindParameters(
     sql: string,
     values: object | Array<object>,
+    bindContext: BindContext,
     dialect: string,
     // FIXME: these are only optional on child methods.
     //  Split between an internal method and an external one.
     replacementFunc?: replacementFuncType,
     options?: AbstractQueryFormatBindOptions
-  ): undefined | [string, unknown[]];
+  ): string;
 
   /**
    * Execute the passed sql query.

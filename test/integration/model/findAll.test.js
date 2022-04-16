@@ -91,13 +91,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('replacements', () => {
-      it('parses replacements in literals', async () => {
+      it('parses named replacements in literals', async () => {
         let query;
 
         await User.findAll({
           attributes: ['id'],
           logging: theQuery => {
-            console.log(theQuery);
             query = theQuery;
           },
           where: {
@@ -119,7 +118,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.findAll({
           attributes: ['id'],
           logging: theQuery => {
-            console.log(theQuery);
             query = theQuery;
           },
           where: {
@@ -139,7 +137,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.findAll({
           attributes: ['id'],
           logging: theQuery => {
-            console.log(theQuery);
             query = theQuery;
           },
           where: {
@@ -172,31 +169,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some :data\'');
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some :data\';');
       });
     });
 
     describe('bind', () => {
-      it('parses bind in literals', async () => {
+      it('parses named bind in literals', async () => {
         let query;
 
         await User.findAll({
           attributes: ['id'],
           logging: theQuery => {
-            console.log(theQuery);
             query = theQuery;
           },
-          where: {
+          where: or({
             username: {
               [Op.eq]: literal('$data'),
             },
-          },
+          }, {
+            username: {
+              [Op.eq]: literal('$otherData'),
+            },
+          }, {
+            username: {
+              [Op.eq]: literal('$otherData'),
+            },
+          }),
           bind: {
             data: 'this should be present',
+            otherData: 'other data',
           },
         });
 
-        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = $1;');
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2 OR "User"."username" = $2);');
       });
 
       it('parses positional bind in literals', async () => {
@@ -205,7 +210,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.findAll({
           attributes: ['id'],
           logging: theQuery => {
-            console.log(theQuery);
             query = theQuery;
           },
           where: or({
@@ -220,7 +224,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           bind: ['bind param 1', 'bind param 2'],
         });
 
-        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = $1 AND "User"."username" = $2;');
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2);');
       });
 
       it('does not parse user-provided data as bind', async () => {
@@ -241,7 +245,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         } catch { /* ignore */ }
 
-        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some $data\'');
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some $data\';');
       });
     });
 

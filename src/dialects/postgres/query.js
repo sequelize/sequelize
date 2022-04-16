@@ -14,39 +14,49 @@ export class PostgresQuery extends AbstractQuery {
    *
    * @param {string} sql
    * @param {Array|object} values
+   * @param {BindContext} bindContext
    * @param {string} dialect
    * @private
    */
-  static formatBindParameters(sql, values, dialect) {
+  static formatBindParameters(sql, values, bindContext, dialect) {
     const stringReplaceFunc = value => (typeof value === 'string' ? value.replace(/\0/g, '\\0') : value);
 
-    let bindParam;
     if (Array.isArray(values)) {
-      bindParam = values.map(stringReplaceFunc);
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
+      if (!bindContext.normalizedBind) {
+        bindContext.normalizedBind = values.map(stringReplaceFunc);
+      }
+
+      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true });
     } else {
-      bindParam = [];
-      let i = 0;
-      const seen = {};
+      if (!bindContext.normalizedBind) {
+        bindContext.normalizedBind = [];
+      }
+
+      let i = bindContext.normalizedBind.length;
+      if (!bindContext.seenParameters) {
+        bindContext.seenParameters = new Map();
+      }
+
+      const seen = bindContext.seenParameters;
       const replacementFunc = (match, key, values) => {
-        if (seen[key] !== undefined) {
-          return seen[key];
+        if (seen.has(key)) {
+          return seen.get(key);
         }
 
         if (values[key] !== undefined) {
           i = i + 1;
-          bindParam.push(stringReplaceFunc(values[key]));
-          seen[key] = `$${i}`;
+          bindContext.normalizedBind.push(stringReplaceFunc(values[key]));
+          seen.set(key, `$${i}`);
 
           return `$${i}`;
         }
 
       };
 
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
+      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc);
     }
 
-    return [sql, bindParam];
+    return sql;
   }
 
   async run(sql, parameters) {

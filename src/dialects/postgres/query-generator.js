@@ -223,7 +223,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return hasJsonFunction;
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
+  handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
     if (smth instanceof Utils.Json) {
       // Parse nested object
       if (smth.conditions) {
@@ -253,7 +253,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
+    return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend, bindContext);
   }
 
   addColumnQuery(table, key, attribute) {

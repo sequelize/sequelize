@@ -562,25 +562,31 @@ export class Sequelize {
 
     sql = sql.trim();
 
-    let bindParameters;
-    [sql, bindParameters] = Utils.formatBindOrReplacements(sql, options.replacements, options.bind, this.dialect);
+    const bindContext = {};
+    sql = Utils.formatBindOrReplacements(sql, options.replacements, options.bind, bindContext, this.dialect);
 
-    options.bindParameters = bindParameters;
+    options.bindParameters = bindContext.normalizedBind;
     delete options.replacements;
     delete options.bind;
 
-    return this.rawQuery(sql, options);
+    return this.queryRaw(sql, options);
   }
 
-  async rawQuery(sql, options) {
-    if ('replacements' in options || 'bind' in options) {
-      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" or "bind" options.
-Only numeric bind parameters can be provided (i.e. "$1", not "$name") and their value must be passed through "options.bindParameters".
-Use Sequelize#query if you wish to use "replacements" or "bind"`);
+  async queryRaw(sql, options) {
+    if ('replacements' in options) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
+Only numeric bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements or named bind parameters`);
+    }
+
+    if (options.bind && !Array.isArray(options.bind)) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "bind" option to be an object.
+Only numeric bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements or named bind parameters`);
     }
 
     options = { ...this.options.query, ...options };
-    const bindParameters = options.bindParameters;
+    const bindParameters = options.bind;
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;

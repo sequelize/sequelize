@@ -1011,12 +1011,13 @@ export class QueryInterface {
   async select(model, tableName, optionsArg) {
     const options = { ...optionsArg, type: QueryTypes.SELECT, model };
 
-    const sql = this.queryGenerator.selectQuery(tableName, options, model);
+    const bindContext = {};
+    const sql = this.queryGenerator.selectQuery(tableName, options, model, bindContext);
 
     delete options.replacements;
-    delete options.bind;
+    options.bind = bindContext.normalizedBind;
 
-    return await this.sequelize.rawQuery(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
