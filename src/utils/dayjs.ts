@@ -21,5 +21,7 @@ export function isValidTimeZone(tz: string) {
     status = false;
   }
 
-  return history.set(tz, status);
+  history.set(tz, status);
+
+  return status;
 }
