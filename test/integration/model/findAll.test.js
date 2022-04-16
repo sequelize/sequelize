@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal, or } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -113,6 +113,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'this should be present\';');
       });
 
+      it('parses positional replacements in literals', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            console.log(theQuery);
+            query = theQuery;
+          },
+          where: {
+            username: {
+              [Op.eq]: literal('?'),
+            },
+          },
+          replacements: ['this should be present'],
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'this should be present\';');
+      });
+
       it('does not parse replacements from literals twice', async () => {
         let query;
 
@@ -179,7 +199,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = $1;');
       });
 
-      it('does not parse user-provided data as replacements', async () => {
+      it('parses positional bind in literals', async () => {
+        let query;
+
+        await User.findAll({
+          attributes: ['id'],
+          logging: theQuery => {
+            console.log(theQuery);
+            query = theQuery;
+          },
+          where: or({
+            username: {
+              [Op.eq]: literal('$1'),
+            },
+          }, {
+            username: {
+              [Op.eq]: literal('$2'),
+            },
+          }),
+          bind: ['bind param 1', 'bind param 2'],
+        });
+
+        expect(query).to.eq('Executing (default): SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = $1 AND "User"."username" = $2;');
+      });
+
+      it('does not parse user-provided data as bind', async () => {
         let query;
 
         try {
