@@ -36,24 +36,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: DataTypes.INTEGER,
         });
       }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+    });
 
-      expect(() => {
-        current.define('bar', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-      }).to.not.throw('An attribute called \'id\' was defined in model \'bars\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+    it('should not a primary key field', () => {
+      const Baz = current.define('baz', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: false,
+        },
+      });
 
-      expect(() => {
-        current.define('baz', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: false,
-          },
-        });
-      }).to.not.throw('An attribute called \'id\' was defined in model \'baz\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      expect(Baz.rawAttributes).to.have.property('id');
+      expect(Baz.rawAttributes.primaryKey).to.equal(false);
+    });
+
+    it('should a primary key field', () => {
+      const Bar = current.define('bar', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      expect(Bar.rawAttributes).to.have.property('id');
+      expect(Bar.rawAttributes.primaryKey).to.equal(true);
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
