@@ -169,7 +169,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -1165,7 +1165,7 @@ export class Sequelize extends Hooks {
    * class MyModel extends Model {}
    * MyModel.init({
    *   columnA: {
-   *     type: Sequelize.BOOLEAN,
+   *     type: DataTypes.BOOLEAN,
    *     validate: {
    *       is: ["[a-z]",'i'],    // will only allow letters
    *       max: 23,          // only allow values <= 23
@@ -1177,7 +1177,7 @@ export class Sequelize extends Hooks {
    *     field: 'column_a'
    *     // Other attributes here
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * }, { sequelize })
    *

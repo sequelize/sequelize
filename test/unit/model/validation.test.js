@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
-const { Sequelize, Op } = require('@sequelize/core');
+const { Sequelize, Op, DataTypes } = require('@sequelize/core');
 
 const Support = require('../support');
 
@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         const UserFail = this.sequelize.define(`User${Support.rand()}`, {
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             validate: validations,
           },
         });
@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         const UserSuccess = this.sequelize.define(`User${Support.rand()}`, {
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             validate: validations,
           },
         });
@@ -276,12 +276,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     const User = current.define('user', {
-      age: Sequelize.INTEGER,
-      name: Sequelize.STRING,
-      awesome: Sequelize.BOOLEAN,
-      number: Sequelize.DECIMAL,
-      uid: Sequelize.UUID,
-      date: Sequelize.DATE,
+      age: DataTypes.INTEGER,
+      name: DataTypes.STRING,
+      awesome: DataTypes.BOOLEAN,
+      number: DataTypes.DECIMAL,
+      uid: DataTypes.UUID,
+      date: DataTypes.DATE,
     });
 
     before(function () {
@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const User = current.define('user', {
       age: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         validate: {
           customFn(val, next) {
             if (val < 0) {
@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           },
         },
       },
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       validate: {
         customFn() {
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('custom validation functions returning promises', () => {
 
     const User = current.define('user', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       validate: {
         async customFn() {
@@ -621,9 +621,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       before(function () {
         this.User = current.define('user', {
-          age: Sequelize.INTEGER,
+          age: DataTypes.INTEGER,
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             allowNull: true,
             validate: {
               customValidator: this.customValidator,
@@ -690,9 +690,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       before(function () {
         this.User = current.define('user', {
-          age: Sequelize.INTEGER,
+          age: DataTypes.INTEGER,
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             allowNull: false,
             validate: {
               customValidator: this.customValidator,

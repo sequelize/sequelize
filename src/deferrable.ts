@@ -17,7 +17,7 @@ type AbstractQueryGenerator = any;
  * class MyModel extends Model {}
  * MyModel.init({
  *   foreign_id: {
- *     type: Sequelize.INTEGER,
+ *     type: DataTypes.INTEGER,
  *     references: {
  *       model: OtherModel,
  *       key: 'id',

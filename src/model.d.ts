@@ -86,6 +86,8 @@ export interface DropOptions extends Logging {
  * Schema Options provided for applying a schema to a model
  */
 export interface SchemaOptions extends Logging {
+  schema: string;
+
   /**
    * The character(s) that separates the schema name from the table name
    */
@@ -382,15 +384,26 @@ export interface WhereOperators<AttributeType = any> {
    * Strings starts with value.
    */
   [Op.startsWith]?: OperatorValues<Extract<AttributeType, string>>;
-
+  /**
+   * Strings not starts with value.
+   */
+  [Op.notStartsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
    * String ends with value.
    */
   [Op.endsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
+   * String not ends with value.
+   */
+  [Op.notEndsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
    * String contains value.
    */
   [Op.substring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
+  /**
+   * String not contains value.
+   */
+  [Op.notSubstring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
 
   /**
    * MySQL/PG only
@@ -1990,13 +2003,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * - `"schema"."tableName"`, while the schema will be prepended to the table name for mysql and
    * sqlite - `'schema.tablename'`.
    *
-   * @param schema The name of the schema
-   * @param options
+   * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
+   */
+  public static withSchema<M extends Model>(
+    this: ModelStatic<M>,
+    schema: string | SchemaOptions,
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
+   *  does not mutate the model and instead returns a new one.
    */
   public static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
-    options?: SchemaOptions
+    options?: { schemaDelimiter?: string } | string
   ): ModelCtor<M>;
 
   /**
@@ -2063,10 +2084,43 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @returns Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
    */
+  public static withScope<M extends Model>(
+    this: ModelStatic<M>,
+    options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
+  ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withScope} to emphasise the fact that
+   *  this method does not mutate the model, but returns a new model.
+   */
   public static scope<M extends Model>(
     this: ModelStatic<M>,
     options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
+
+  /**
+   * @deprecated this method has been renamed to {@link Model.withoutScope} to emphasise the fact that
+   *   this method does not mutate the model, and is not the same as {@link Model.withInitialScope}.
+   */
+  public static unscoped<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns a model without scope, including the default scope.
+   *
+   * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
+   */
+  public static withoutScope<M extends ModelType>(this: M): M;
+
+  /**
+   * Returns the base model, with its initial scope.
+   */
+  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
+  public static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Add a new scope to the model
@@ -2520,11 +2574,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * their types.
    */
   public static describe(): Promise<object>;
-
-  /**
-   * Unscope the model
-   */
-  public static unscoped<M extends ModelType>(this: M): M;
 
   /**
    * A hook that is run before validation
