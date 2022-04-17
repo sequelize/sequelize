@@ -11,7 +11,7 @@ import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
 import sinonChai from 'sinon-chai';
-import Config from './config/config';
+import { Config } from './config/config';
 
 const expect = chai.expect;
 
