@@ -336,6 +336,34 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
+  test-yugabytedb:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [14, 16]
+        minify-aliases: [true, false]
+    name: YugabyteDB  (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+    runs-on: ubuntu-latest
+    needs: [ unit-test, test-typings ]
+    env:
+      SEQ_PORT: 25099
+      DIALECT: yugabytedb
+      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - uses: actions/download-artifact@v3
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: YugabyteDB docker Container (2.12)
+        run: yarn start-yugabytedb-2.12
+      - name: Integration Tests
+        run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
