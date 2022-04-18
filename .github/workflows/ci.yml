@@ -363,7 +363,7 @@ jobs:
       - name: YugabyteDB docker Container (2.12)
         run: yarn start-yugabytedb-2.12
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn test-integration-yugabytedb
   release:
     name: Release
     runs-on: ubuntu-latest
