@@ -1,14 +1,9 @@
-import type { Sequelize } from '@sequelize/core';
 import { literal } from '@sequelize/core';
-// eslint-disable-next-line import/order -- due to mismatching require with import (require is necessary until support is migrated to TS)
 import { expect } from 'chai';
+import { sequelize, getTestDialectTeaser } from '../../support';
 
-const Support = require('../support');
-
-const current: Sequelize = Support.sequelize;
-
-describe(Support.getTestDialectTeaser('Model.getInitialModel'), () => {
-  const User = current.define('user', {}, {
+describe(getTestDialectTeaser('Model.getInitialModel'), () => {
+  const User = sequelize.define('user', {}, {
     scopes: {
       scope1: {
         where: literal(''),
