@@ -77,12 +77,12 @@ export const Config: Record<Dialect, Options> = {
     username: env.SEQ_YB_USER || env.SEQ_USER || 'yugabyte',
     password: env.SEQ_YB_PW || env.SEQ_PW || 'yugabyte',
     host: env.YUGABYTE_PORT_5432_TCP_ADDR || env.SEQ_YB_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.YUGABYTE_PORT_5432_TCP_PORT || env.SEQ_YB_PORT || env.SEQ_PORT || 25_099,
+    port: Number(env.YUGABYTE_PORT_5432_TCP_PORT || env.SEQ_YB_PORT || env.SEQ_PORT || 25_099),
     pool: {
-      max: env.SEQ_YB_POOL_MAX || env.SEQ_POOL_MAX || 5,
-      idle: env.SEQ_YB_POOL_IDLE || env.SEQ_POOL_IDLE || 3000,
+      max: Number(env.SEQ_YB_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: Number(env.SEQ_YB_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
-    minifyAliases: env.SEQ_YB_MINIFY_ALIASES,
+    minifyAliases: Boolean(env.SEQ_YB_MINIFY_ALIASES),
   },
 
   db2: {
