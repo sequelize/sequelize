@@ -346,9 +346,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
+      SEQ_DB: sequelize_test
+      SEQ_USER: yugabyte
+      SEQ_PW: yugabyte
       SEQ_PORT: 25099
       DIALECT: yugabytedb
-      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
+      SEQ_YB_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
