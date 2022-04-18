@@ -75,14 +75,14 @@ export async function nextUnhandledRejection() {
 }
 
 /**
-   * Pushes all unhandled rejections that occur during this test onto destArray
-   * (instead of failing the test).
-   *
-   * @param destArray the array to push unhandled rejections onto.  If you omit this,
-   * one will be created and returned for you.
-   *
-   * @returns destArray
-   */
+ * Pushes all unhandled rejections that occur during this test onto destArray
+ * (instead of failing the test).
+ *
+ * @param destArray the array to push unhandled rejections onto.  If you omit this,
+ * one will be created and returned for you.
+ *
+ * @returns destArray
+ */
 export function captureUnhandledRejections(destArray = []) {
   unhandledRejections = destArray;
 
@@ -209,14 +209,14 @@ export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
 }
 
 export function getTestDialect(): Dialect {
-  let envDialect = process.env.DIALECT || 'mysql';
+  let envDialect = process.env.DIALECT || '';
 
   if (envDialect === 'postgres-native') {
     envDialect = 'postgres';
   }
 
   if (!getSupportedDialects().includes(envDialect)) {
-    throw new Error(`The dialect you have passed is unknown. Did you really mean: ${envDialect}`);
+    throw new Error(`The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects().map(d => JSON.stringify(d)).join(', ')} instead.`);
   }
 
   return envDialect as Dialect;
@@ -296,15 +296,15 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
 }
 
 /**
-   * Reduces insignificant whitespace from SQL string.
-   *
-   * @param sql the SQL string
-   * @returns the SQL string with insignificant whitespace removed.
-   */
+ * Reduces insignificant whitespace from SQL string.
+ *
+ * @param sql the SQL string
+ * @returns the SQL string with insignificant whitespace removed.
+ */
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
   return sql.replace(/\s+/g, ' ')
-  // remove space before coma
+  // remove space before comma
     .replace(/ ,/g, ',')
   // remove whitespace at start & end
     .trim();
