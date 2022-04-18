@@ -13,37 +13,91 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const Model = current.define('User', {}, {
+      const User = current.define('User', {}, {
         createdAt: 'createdAt',
         updatedAt: 'updatedAt',
         timestamps: true,
         underscored: true,
       });
 
-      expect(Model.rawAttributes).to.haveOwnProperty('createdAt');
-      expect(Model.rawAttributes).to.haveOwnProperty('updatedAt');
+      expect(User.rawAttributes).to.haveOwnProperty('createdAt');
+      expect(User.rawAttributes).to.haveOwnProperty('updatedAt');
 
-      expect(Model._timestampAttributes.createdAt).to.equal('createdAt');
-      expect(Model._timestampAttributes.updatedAt).to.equal('updatedAt');
+      expect(User._timestampAttributes.createdAt).to.equal('createdAt');
+      expect(User._timestampAttributes.updatedAt).to.equal('updatedAt');
 
-      expect(Model.rawAttributes).not.to.have.property('created_at');
-      expect(Model.rawAttributes).not.to.have.property('updated_at');
+      expect(User.rawAttributes).not.to.have.property('created_at');
+      expect(User.rawAttributes).not.to.have.property('updated_at');
     });
 
-    it('should throw when id is added but not marked as PK', () => {
+    it('should throw only when id is added but primaryKey is not set', () => {
       expect(() => {
         current.define('foo', {
           id: DataTypes.INTEGER,
         });
-      }).to.throw('A column called \'id\' was added to the attributes of \'foos\' but not marked with \'primaryKey: true\'');
+      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+    });
 
-      expect(() => {
-        current.define('bar', {
-          id: {
-            type: DataTypes.INTEGER,
-          },
-        });
-      }).to.throw('A column called \'id\' was added to the attributes of \'bars\' but not marked with \'primaryKey: true\'');
+    it('allows creating an "id" field as the primary key', () => {
+      const Bar = current.define('bar', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      expect(Bar.rawAttributes).to.have.property('id');
+      expect(Bar.rawAttributes.id.primaryKey).to.equal(true);
+    });
+
+    it('allows creating an "id" field explicitly marked as non primary key', () => {
+      const Baz = current.define('baz', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: false,
+        },
+      });
+
+      expect(Baz.rawAttributes).to.have.property('id');
+      expect(Baz.rawAttributes.id.primaryKey).to.equal(false);
+      expect(Baz.primaryKeys).to.deepEqual({});
+    });
+
+    it('should not add the default PK when noPrimaryKey is set to true', () => {
+      const User = current.define('User', {}, {
+        noPrimaryKey: true,
+      });
+
+      expect(User.rawAttributes).not.to.have.property('id');
+    });
+
+    it('should add the default `id` field PK if noPrimary is not set and no PK has been defined manually', () => {
+      const User = current.define('User', {});
+
+      expect(User.rawAttributes).to.have.property('id');
+    });
+
+    it('should not add the default `id` field PK if PK has been defined manually', () => {
+      const User = current.define('User', {
+        customId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      expect(User.rawAttributes).not.to.have.property('id');
+    });
+
+    it('should support noPrimaryKey on Sequelize define option', () => {
+      const sequelize = Support.createSequelizeInstance({
+        define: {
+          noPrimaryKey: true,
+        },
+      });
+
+      const User = sequelize.define('User', {});
+
+      expect(User.options.noPrimaryKey).to.equal(true);
     });
 
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
