@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const config = require('../config/config');
+const { Config: config } = require('../config/config');
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();

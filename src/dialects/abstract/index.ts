@@ -1,3 +1,7 @@
+import type { Dialect } from '../../sequelize.js';
+import type { AbstractQueryGenerator } from './query-generator.js';
+import type { AbstractQuery } from './query.js';
+
 export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
@@ -181,12 +185,18 @@ export abstract class AbstractDialect {
     searchPath: false,
   };
 
+  declare readonly defaultVersion: string;
+  declare readonly Query: typeof AbstractQuery;
+  declare readonly name: Dialect;
+  declare readonly TICK_CHAR: string;
+  declare readonly TICK_CHAR_LEFT: string;
+  declare readonly TICK_CHAR_RIGHT: string;
+
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
 
     return Dialect.supports;
   }
 
-  // TODO: Replace with QueryGenerator class once its typings are complete.
-  declare readonly queryGenerator: unknown;
+  declare readonly queryGenerator: AbstractQueryGenerator;
 }

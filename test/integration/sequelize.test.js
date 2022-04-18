@@ -6,7 +6,7 @@ const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const config = require('../config/config');
+const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
