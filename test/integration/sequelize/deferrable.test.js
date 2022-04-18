@@ -70,7 +70,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
           });
 
           describe('INITIALLY_DEFERRED', () => {
-            it('allows the violation of the foreign key constraint', async function () {
+            (Support.getTestDialect() === 'yugabytedb' ? it.skip : it)('allows the violation of the foreign key constraint', async function () {
               const task = await this
                 .run(Sequelize.Deferrable.INITIALLY_DEFERRED);
 

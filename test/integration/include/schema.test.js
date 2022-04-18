@@ -228,16 +228,16 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         Group.bulkCreate([
           { name: 'Developers' },
           { name: 'Designers' },
-        ]).then(() => Group.findAll()),
+        ]).then(() => Group.findAll({ order: [['id', 'ASC']] })),
         Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0 },
-        ]).then(() => Rank.findAll()),
+        ]).then(() => Rank.findAll({ order: [['id', 'ASC']] })),
         Tag.bulkCreate([
           { name: 'A' },
           { name: 'B' },
           { name: 'C' },
-        ]).then(() => Tag.findAll()),
+        ]).then(() => Tag.findAll({ order: [['id', 'ASC']] })),
       ]);
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
