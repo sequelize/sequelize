@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
+        stub = sinon.stub(current, 'queryRaw').resolves(
           {
             _previousDataValues: { id: 3 },
             dataValues: { id: 1 },

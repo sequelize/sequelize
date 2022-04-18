@@ -887,13 +887,16 @@ export class QueryInterface {
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance.constructor.rawAttributes);
+    const bindContext = {};
+    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance.constructor.rawAttributes, bindContext);
 
     options.type = QueryTypes.UPDATE;
-
     options.instance = instance;
 
-    return await this.sequelize.query(sql, options);
+    delete options.replacements;
+    options.bind = bindContext.normalizedBind;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -933,9 +936,14 @@ export class QueryInterface {
 
   async delete(instance, tableName, identifier, options) {
     const cascades = [];
-    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
+
+    const bindContext = {};
+    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor, bindContext);
 
     options = { ...options };
+
+    delete options.replacements;
+    options.bind = bindContext.normalizedBind;
 
     // Check for a restrict field
     if (Boolean(instance.constructor) && Boolean(instance.constructor.associations)) {
@@ -971,7 +979,7 @@ export class QueryInterface {
 
     options.instance = instance;
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -1022,24 +1030,31 @@ export class QueryInterface {
 
   async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
     options = Utils.cloneDeep(options);
-
-    const sql = this.queryGenerator.arithmeticQuery('+', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
-
-    options.type = QueryTypes.UPDATE;
     options.model = model;
 
-    return await this.sequelize.query(sql, options);
+    const bindContext = {};
+    const sql = this.queryGenerator.arithmeticQuery('+', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
+
+    options.type = QueryTypes.UPDATE;
+    delete options.replacements;
+    options.bind = bindContext.normalizedBind;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async decrement(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
     options = Utils.cloneDeep(options);
-
-    const sql = this.queryGenerator.arithmeticQuery('-', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
-
-    options.type = QueryTypes.UPDATE;
     options.model = model;
 
-    return await this.sequelize.query(sql, options);
+    const bindContext = {};
+    const sql = this.queryGenerator.arithmeticQuery('-', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
+
+    options.type = QueryTypes.UPDATE;
+
+    delete options.replacements;
+    options.bind = bindContext.normalizedBind;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {

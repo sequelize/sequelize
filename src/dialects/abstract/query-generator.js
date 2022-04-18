@@ -1,6 +1,7 @@
 'use strict';
 
 import assert from 'assert';
+import { includesPositionalReplacements } from '../../sql-string';
 import { isModelStatic } from '../../utils/model-utils';
 
 const util = require('util');
@@ -374,10 +375,11 @@ export class AbstractQueryGenerator {
    * @param {object} where A hash with conditions (e.g. {name: 'foo'}) OR an ID as integer
    * @param {object} options
    * @param {object} attributes
+   * @param {BindContext} bindContext
    *
    * @private
    */
-  updateQuery(tableName, attrValueHash, where, options, attributes) {
+  updateQuery(tableName, attrValueHash, where, options, attributes, bindContext) {
     options = options || {};
     _.defaults(options, this.options);
 
@@ -398,7 +400,7 @@ export class AbstractQueryGenerator {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect !== 'mssql' && this.dialect !== 'db2') {
-      suffix = ` LIMIT ${this.escape(options.limit)} `;
+      suffix = ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)} `;
     }
 
     if (this._dialect.supports.returnValues && options.returning) {
@@ -446,7 +448,7 @@ export class AbstractQueryGenerator {
       return '';
     }
 
-    const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
+    const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions, bindContext)}${suffix}`.trim();
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
     if (options.bindParam !== false) {
@@ -465,10 +467,11 @@ export class AbstractQueryGenerator {
    * @param {object} incrementAmountsByField     A plain-object with attribute-value-pairs
    * @param {object} extraAttributesToBeUpdated  A plain-object with attribute-value-pairs
    * @param {object} options
+   * @param {BindContext} bindContext
    *
    * @private
    */
-  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext) {
     options = options || {};
     _.defaults(options, { returning: true });
 
@@ -488,14 +491,14 @@ export class AbstractQueryGenerator {
     for (const field in incrementAmountsByField) {
       const incrementAmount = incrementAmountsByField[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedAmount = this.escape(incrementAmount);
+      const escapedAmount = this.escape(incrementAmount, undefined, undefined, bindContext);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
     }
 
     for (const field in extraAttributesToBeUpdated) {
       const newValue = extraAttributesToBeUpdated[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedValue = this.escape(newValue);
+      const escapedValue = this.escape(newValue, undefined, undefined, bindContext);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
 
@@ -505,7 +508,7 @@ export class AbstractQueryGenerator {
       'SET',
       updateSetSqlFragments.join(','),
       outputFragment,
-      this.whereQuery(where),
+      this.whereQuery(where, undefined, bindContext),
       returningFragment,
     ]);
   }
@@ -1044,6 +1047,7 @@ export class AbstractQueryGenerator {
     @private
   */
   escape(value, field, options, bindContext) {
+    assert(bindContext != null, 'bindContext not received by escape');
     options = options || {};
 
     if (value !== null && value !== undefined) {
@@ -1421,7 +1425,7 @@ export class AbstractQueryGenerator {
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this.addLimitAndOffset(options, mainTable.model);
+    const limitOrder = this.addLimitAndOffset(options, mainTable.model, bindContext);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -2174,19 +2178,21 @@ export class AbstractQueryGenerator {
    * Returns an SQL fragment for adding result constraints.
    *
    * @param  {object} options An object with selectQuery options.
+   * @param {ModelStatic} model
+   * @param {BindContext} bindContext
    * @returns {string}         The generated sql query.
    * @private
    */
-  addLimitAndOffset(options) {
+  addLimitAndOffset(options, model, bindContext) {
     let fragment = '';
 
     if (options.offset != null && options.limit == null) {
-      fragment += ` LIMIT ${this.escape(options.offset)}, ${10_000_000_000_000}`;
+      fragment += ` LIMIT ${this.escape(options.offset, undefined, undefined, bindContext)}, ${10_000_000_000_000}`;
     } else if (options.limit != null) {
       if (options.offset != null) {
-        fragment += ` LIMIT ${this.escape(options.offset)}, ${this.escape(options.limit)}`;
+        fragment += ` LIMIT ${this.escape(options.offset, undefined, undefined, bindContext)}, ${this.escape(options.limit, undefined, undefined, bindContext)}`;
       } else {
-        fragment += ` LIMIT ${this.escape(options.limit)}`;
+        fragment += ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}`;
       }
     }
 
@@ -2256,6 +2262,11 @@ export class AbstractQueryGenerator {
     if (smth instanceof Utils.Literal) {
       assert(bindContext != null, 'bind context is missing');
 
+      if (Array.isArray(options.replacements) && includesPositionalReplacements(smth.val)) {
+        throw new TypeError(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
+➜ literal(${JSON.stringify(smth.val)})`);
+      }
+
       return Utils.formatBindOrReplacements(smth.val, options.replacements, options.bind, bindContext, this._dialect);
     }
 
@@ -2302,8 +2313,8 @@ export class AbstractQueryGenerator {
     return smth.toString(this, factory);
   }
 
-  whereQuery(where, options) {
-    const query = this.whereItemsQuery(where, options);
+  whereQuery(where, options, bindContext) {
+    const query = this.whereItemsQuery(where, options, undefined, bindContext);
     if (query && query.length > 0) {
       return `WHERE ${query}`;
     }

@@ -356,10 +356,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = {}, model, bindContext) {
     const table = this.quoteTable(tableName);
-    let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit)}` : '';
+    let whereClause = this.getWhereConditions(where, null, model, options, undefined, bindContext);
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -432,14 +432,15 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     ].filter(Boolean).join(' ');
   }
 
-  addLimitAndOffset(options) {
+  addLimitAndOffset(options, model, bindContext) {
+
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}`;
     }
 
     if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, undefined, bindContext)}`;
     }
 
     return fragment;

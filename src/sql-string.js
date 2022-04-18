@@ -107,6 +107,11 @@ export function escape(val, timeZone, dialect, format) {
   return `${(prependN ? 'N\'' : '\'') + val}'`;
 }
 
+const positionalReplacementRegex = /\?(?![&|])/g;
+export function includesPositionalReplacements(sql) {
+  return positionalReplacementRegex.test(sql);
+}
+
 export function format(sql, values, timeZone, dialect) {
   values = [values].flat();
 
@@ -116,7 +121,7 @@ export function format(sql, values, timeZone, dialect) {
 
   // replace ? expect if it's part of ?& or ?|, as these are Postgres operators
   // https://www.postgresql.org/docs/9.4/functions-json.html
-  return sql.replace(/\?(?![&|])/g, match => {
+  return sql.replace(positionalReplacementRegex, match => {
     if (values.length === 0) {
       return match;
     }

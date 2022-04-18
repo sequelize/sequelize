@@ -3,6 +3,7 @@
 import { AbstractDialect } from './index.js';
 import { WhereOptions } from '../../model.js';
 import { TableName } from './query-interface.js';
+import { BindContext } from './query.js';
 
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
@@ -13,7 +14,7 @@ export class AbstractQueryGenerator {
   whereQuery(options: object): string;
   whereItemsQuery(whereObj: WhereOptions, options?: object, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  escape(value: unknown): string;
+  escape(value: unknown, field: unknown, options: unknown, bindContext: BindContext): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
 }

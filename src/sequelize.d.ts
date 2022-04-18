@@ -1266,6 +1266,16 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
+  // !TODO: exclude replacements & named bind
+  public queryRaw<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
+    options: QueryOptionsWithModel<M> & { plain: true }
+  ): Promise<M | null>;
+  public queryRaw<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
+    options: QueryOptionsWithModel<M>
+  ): Promise<M[]>;
+
   /**
    * Get the fn for random based on the dialect
    */
