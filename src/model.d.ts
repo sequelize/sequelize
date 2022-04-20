@@ -750,7 +750,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
 export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 
 export type FindAttributeOptions =
-  | (string | ProjectionAlias)[]
+  | Array<string | ProjectionAlias | Literal>
   | {
     exclude: string[];
     include?: (string | ProjectionAlias)[];
@@ -837,7 +837,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the results;
    */
-  offset?: number;
+  offset?: number | Literal;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.

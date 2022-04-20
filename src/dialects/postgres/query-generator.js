@@ -433,7 +433,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   addLimitAndOffset(options, model, bindContext) {
-
     let fragment = '';
     if (options.limit != null) {
       fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
