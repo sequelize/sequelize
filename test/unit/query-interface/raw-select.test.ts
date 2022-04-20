@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
 
-describe('QueryInterface#select', () => {
+describe('QueryInterface#rawSelect', () => {
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,
   }, { timestamps: false });
@@ -16,7 +16,7 @@ describe('QueryInterface#select', () => {
   it('does not parse user-provided data as replacements', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().select(User, User.tableName, {
+    await sequelize.getQueryInterface().rawSelect(User.tableName, {
       // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
       attributes: ['id'],
       where: {
@@ -25,7 +25,7 @@ describe('QueryInterface#select', () => {
       replacements: {
         data: 'OR \' = ',
       },
-    });
+    }, 'id', User);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -37,7 +37,7 @@ describe('QueryInterface#select', () => {
   it('does not parse user-provided data as bind', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().select(User, User.tableName, {
+    await sequelize.getQueryInterface().rawSelect(User.tableName, {
       // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
       attributes: ['id'],
       where: {
@@ -46,7 +46,7 @@ describe('QueryInterface#select', () => {
       bind: {
         data: 'fail',
       },
-    });
+    }, 'id', User);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);

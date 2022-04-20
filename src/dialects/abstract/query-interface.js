@@ -1065,13 +1065,16 @@ export class QueryInterface {
       type: QueryTypes.SELECT,
     });
 
-    const sql = this.queryGenerator.selectQuery(tableName, options, Model);
+    const bindContext = {};
+    const sql = this.queryGenerator.selectQuery(tableName, options, Model, bindContext);
 
     if (attributeSelector === undefined) {
       throw new Error('Please pass an attribute selector!');
     }
 
-    const data = await this.sequelize.query(sql, options);
+    options.bind = bindContext.normalizedBind;
+    delete options.replacements;
+    const data = await this.sequelize.queryRaw(sql, options);
     if (!options.plain) {
       return data;
     }
@@ -1084,10 +1087,14 @@ export class QueryInterface {
 
     const dataType = options.dataType;
 
+    // FIXME: DECIMAL is not safely representable as a float!
+    //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.DECIMAL || dataType instanceof DataTypes.FLOAT) && result !== null) {
       return Number.parseFloat(result);
     }
 
+    // FIXME: BIGINT is not safely representable as an int!
+    //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.INTEGER || dataType instanceof DataTypes.BIGINT) && result !== null) {
       return Number.parseInt(result, 10);
     }

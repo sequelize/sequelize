@@ -568,7 +568,7 @@ export class QueryInterface {
   public rawSelect(
     tableName: TableName,
     options: QueryOptionsWithWhere,
-    attributeSelector: string | string[],
+    attributeSelector: string,
     model?: ModelType
   ): Promise<string[]>;
 
