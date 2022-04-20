@@ -70,7 +70,7 @@ export interface Paranoid {
   paranoid?: boolean;
 }
 
-export type GroupOption = string | Fn | Col | (string | Fn | Col)[];
+export type GroupOption = AllowArray<string | Fn | Col | Literal>;
 
 /**
  * Options to pass to Model on drop
@@ -697,7 +697,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * Limit include. Only available when setting `separate` to true.
    */
-  limit?: number;
+  limit?: number | Literal;
 
   /**
    * Run include in separate queries.
@@ -829,7 +829,7 @@ export interface FindOptions<TAttributes = any>
    *   subQuery: false,
    * });
    */
-  limit?: number;
+  limit?: number | Literal;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -1105,7 +1105,7 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
   /**
    * How many rows to delete
    */
-  limit?: number;
+  limit?: number | Literal;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1144,7 +1144,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: number;
+  limit?: number | Literal;
 }
 
 /**
@@ -1192,7 +1192,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * How many rows to update (only for mysql and mariadb)
    */
-  limit?: number;
+  limit?: number | Literal;
 
   /**
    * If true, the updatedAt timestamp will not be updated.

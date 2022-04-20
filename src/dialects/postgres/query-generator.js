@@ -436,11 +436,11 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
     }
 
     if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, undefined, bindContext)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options, bindContext)}`;
     }
 
     return fragment;

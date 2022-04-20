@@ -790,7 +790,7 @@ export class AbstractQueryGenerator {
     potentially also be used for other places where we want to be able to call SQL functions (e.g. as default values)
    @private
   */
-  quote(collection, parent, connector = '.') {
+  quote(collection, parent, connector = '.', options, bindContext) {
     // init
     const validOrderOptions = [
       'ASC',
@@ -928,7 +928,7 @@ export class AbstractQueryGenerator {
 
       // loop through everything past i and append to the sql
       for (const collectionItem of collection.slice(i)) {
-        sql += this.quote(collectionItem, parent, connector);
+        sql += this.quote(collectionItem, parent, connector, options, bindContext);
       }
 
       return sql;
@@ -939,7 +939,7 @@ export class AbstractQueryGenerator {
     }
 
     if (collection instanceof Utils.SequelizeMethod) {
-      return this.handleSequelizeMethod(collection);
+      return this.handleSequelizeMethod(collection, undefined, undefined, options, undefined, bindContext);
     }
 
     if (_.isPlainObject(collection) && collection.raw) {
@@ -1047,7 +1047,6 @@ export class AbstractQueryGenerator {
     @private
   */
   escape(value, field, options, bindContext) {
-    assert(bindContext != null, 'bindContext not received by escape');
     options = options || {};
 
     if (value !== null && value !== undefined) {
@@ -1219,7 +1218,7 @@ export class AbstractQueryGenerator {
       }
     }
 
-    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
+    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as, bindContext);
     attributes.main = attributes.main || (options.include ? [`${mainTable.as}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
@@ -1235,7 +1234,7 @@ export class AbstractQueryGenerator {
           continue;
         }
 
-        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo);
+        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, options, bindContext);
 
         subJoinQueries = subJoinQueries.concat(joinQueries.subQuery);
         mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
@@ -1307,7 +1306,7 @@ export class AbstractQueryGenerator {
               options.attributes.push([order, alias]);
 
               // We don't want to prepend model name when we alias the attributes, so quote them here
-              alias = this.sequelize.literal(this.quote(alias));
+              alias = this.sequelize.literal(this.quote(alias, undefined, undefined, options, bindContext));
 
               if (Array.isArray(options.order[i])) {
                 options.order[i][0] = alias;
@@ -1359,7 +1358,7 @@ export class AbstractQueryGenerator {
               };
             }
 
-            return Utils.spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName));
+            return Utils.spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName, undefined, options, undefined, bindContext));
           }).join(
             this._dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
           )
@@ -1391,7 +1390,7 @@ export class AbstractQueryGenerator {
 
     // Add GROUP BY to sub or main query
     if (options.group) {
-      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options)).join(', ') : this.aliasGrouping(options.group, model, mainTable.as, options);
+      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options, bindContext)).join(', ') : this.aliasGrouping(options.group, model, mainTable.as, options, bindContext);
 
       if (subQuery && options.group) {
         subQueryItems.push(` GROUP BY ${options.group}`);
@@ -1414,7 +1413,7 @@ export class AbstractQueryGenerator {
 
     // Add ORDER to sub or main query
     if (options.order) {
-      const orders = this.getQueryOrders(options, model, subQuery);
+      const orders = this.getQueryOrders(options, model, subQuery, bindContext);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
       }
@@ -1467,18 +1466,18 @@ export class AbstractQueryGenerator {
     return `${query};`;
   }
 
-  aliasGrouping(field, model, tableName, options) {
+  aliasGrouping(field, model, tableName, options, bindContext) {
     const src = Array.isArray(field) ? field[0] : field;
 
-    return this.quote(this._getAliasForField(tableName, src, options) || src, model);
+    return this.quote(this._getAliasForField(tableName, src, options) || src, model, undefined, options, bindContext);
   }
 
-  escapeAttributes(attributes, options, mainTableAs) {
+  escapeAttributes(attributes, options, mainTableAs, bindContext) {
     return attributes && attributes.map(attr => {
       let addTable = true;
 
       if (attr instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(attr);
+        return this.handleSequelizeMethod(attr, undefined, undefined, options, undefined, bindContext);
       }
 
       if (Array.isArray(attr)) {
@@ -1489,7 +1488,7 @@ export class AbstractQueryGenerator {
         attr = [...attr];
 
         if (attr[0] instanceof Utils.SequelizeMethod) {
-          attr[0] = this.handleSequelizeMethod(attr[0]);
+          attr[0] = this.handleSequelizeMethod(attr[0], undefined, undefined, options, undefined, bindContext);
           addTable = false;
         } else if (!attr[0].includes('(') && !attr[0].includes(')')) {
           attr[0] = this.quoteIdentifier(attr[0]);
@@ -1518,7 +1517,7 @@ export class AbstractQueryGenerator {
     });
   }
 
-  generateInclude(include, parentTableName, topLevelInfo) {
+  generateInclude(include, parentTableName, topLevelInfo, options, bindContext) {
     const joinQueries = {
       mainQuery: [],
       subQuery: [],
@@ -1561,14 +1560,15 @@ export class AbstractQueryGenerator {
             verbatim = true;
           }
 
-          attr = attr.map(attrPart => (attrPart instanceof Utils.SequelizeMethod ? this.handleSequelizeMethod(attrPart) : attrPart));
+          attr = attr.map(attrPart => (attrPart instanceof Utils.SequelizeMethod ? this.handleSequelizeMethod(attrPart, undefined, undefined, options, undefined, bindContext) : attrPart));
 
           attrAs = attr[1];
           attr = attr[0];
         }
 
         if (attr instanceof Utils.Literal) {
-          return attr.val; // We trust the user to rename the field correctly
+          // We trust the user to rename the field correctly
+          return this.handleSequelizeMethod(attr, undefined, undefined, options, undefined, bindContext);
         }
 
         if (attr instanceof Utils.Cast || attr instanceof Utils.Fn) {
@@ -1614,10 +1614,10 @@ export class AbstractQueryGenerator {
 
     // through
     if (include.through) {
-      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
+      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo, bindContext);
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
-      joinQuery = this.generateJoin(include, topLevelInfo);
+      joinQuery = this.generateJoin(include, topLevelInfo, options, bindContext);
     }
 
     // handle possible new attributes created in join
@@ -1635,7 +1635,7 @@ export class AbstractQueryGenerator {
           continue;
         }
 
-        const childJoinQueries = this.generateInclude(childInclude, includeAs, topLevelInfo);
+        const childJoinQueries = this.generateInclude(childInclude, includeAs, topLevelInfo, options, bindContext);
 
         if (include.required === false && childInclude.required === true) {
           requiredMismatch = true;
@@ -1718,7 +1718,7 @@ export class AbstractQueryGenerator {
     return null;
   }
 
-  generateJoin(include, topLevelInfo) {
+  generateJoin(include, topLevelInfo, options, bindContext) {
     const association = include.association;
     const parent = include.parent;
     const parentIsTop = Boolean(parent) && !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
@@ -1784,14 +1784,18 @@ export class AbstractQueryGenerator {
       joinOn = this.whereItemsQuery(include.on, {
         prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
         model: include.model,
-      });
+        replacements: options.replacements,
+        bind: options.bind,
+      }, undefined, bindContext);
     }
 
     if (include.where) {
       joinWhere = this.whereItemsQuery(include.where, {
         prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
         model: include.model,
-      });
+        replacements: options.replacements,
+        bind: options.bind,
+      }, undefined, bindContext);
       if (joinWhere) {
         if (include.or) {
           joinOn += ` OR ${joinWhere}`;
@@ -1866,7 +1870,7 @@ export class AbstractQueryGenerator {
     return { outputFragment, returnFields, returningFragment, tmpTable };
   }
 
-  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
+  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, bindContext) {
     const through = include.through;
     const throughTable = through.model.getTableName();
     const throughAs = `${includeAs.internalAs}->${through.as}`;
@@ -1944,7 +1948,7 @@ export class AbstractQueryGenerator {
     targetJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identTarget)}`;
 
     if (through.where) {
-      throughWhere = this.getWhereConditions(through.where, this.sequelize.literal(this.quoteIdentifier(throughAs)), through.model);
+      throughWhere = this.getWhereConditions(through.where, this.sequelize.literal(this.quoteIdentifier(throughAs)), through.model, topLevelInfo.options, undefined, bindContext);
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
@@ -1957,7 +1961,7 @@ export class AbstractQueryGenerator {
     joinCondition = sourceJoinOn;
 
     if ((include.where || include.through.where) && include.where) {
-      targetWhere = this.getWhereConditions(include.where, this.sequelize.literal(this.quoteIdentifier(includeAs.internalAs)), include.model, topLevelInfo.options);
+      targetWhere = this.getWhereConditions(include.where, this.sequelize.literal(this.quoteIdentifier(includeAs.internalAs)), include.model, topLevelInfo.options, undefined, bindContext);
       if (targetWhere) {
         joinCondition += ` AND ${targetWhere}`;
       }
@@ -2092,7 +2096,7 @@ export class AbstractQueryGenerator {
     return copy;
   }
 
-  getQueryOrders(options, model, subQuery) {
+  getQueryOrders(options, model, subQuery, bindContext) {
     const mainQueryOrder = [];
     const subQueryOrder = [];
 
@@ -2113,7 +2117,7 @@ export class AbstractQueryGenerator {
           && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          subQueryOrder.push(this.quote(order, model, '->'));
+          subQueryOrder.push(this.quote(order, model, '->', options, bindContext));
         }
 
         if (subQuery) {
@@ -2127,10 +2131,10 @@ export class AbstractQueryGenerator {
           }
         }
 
-        mainQueryOrder.push(this.quote(order, model, '->'));
+        mainQueryOrder.push(this.quote(order, model, '->', options, bindContext));
       }
     } else if (options.order instanceof Utils.SequelizeMethod) {
-      const sql = this.quote(options.order, model, '->');
+      const sql = this.quote(options.order, model, '->', options, bindContext);
       if (subQuery) {
         subQueryOrder.push(sql);
       }
@@ -2187,12 +2191,12 @@ export class AbstractQueryGenerator {
     let fragment = '';
 
     if (options.offset != null && options.limit == null) {
-      fragment += ` LIMIT ${this.escape(options.offset, undefined, undefined, bindContext)}, ${10_000_000_000_000}`;
+      fragment += ` LIMIT ${this.escape(options.offset, undefined, options, bindContext)}, ${10_000_000_000_000}`;
     } else if (options.limit != null) {
       if (options.offset != null) {
-        fragment += ` LIMIT ${this.escape(options.offset, undefined, undefined, bindContext)}, ${this.escape(options.limit, undefined, undefined, bindContext)}`;
+        fragment += ` LIMIT ${this.escape(options.offset, undefined, options, bindContext)}, ${this.escape(options.limit, undefined, options, bindContext)}`;
       } else {
-        fragment += ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}`;
+        fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
       }
     }
 
@@ -2200,6 +2204,8 @@ export class AbstractQueryGenerator {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
+    assert(bindContext != null, 'bind context is missing');
+
     let result;
 
     if (Object.prototype.hasOwnProperty.call(this.OperatorMap, smth.comparator)) {
@@ -2211,13 +2217,13 @@ export class AbstractQueryGenerator {
       let key;
 
       if (smth.attribute instanceof Utils.SequelizeMethod) {
-        key = this.getWhereConditions(smth.attribute, tableName, factory, options, prepend);
+        key = this.getWhereConditions(smth.attribute, tableName, factory, options, prepend, bindContext);
       } else {
         key = `${this.quoteTable(smth.attribute.Model.name)}.${this.quoteIdentifier(smth.attribute.field || smth.attribute.fieldName)}`;
       }
 
       if (value && value instanceof Utils.SequelizeMethod) {
-        value = this.getWhereConditions(value, tableName, factory, options, prepend);
+        value = this.getWhereConditions(value, tableName, factory, options, prepend, bindContext);
 
         if (value === 'NULL') {
           if (smth.comparator === '=') {
@@ -2260,8 +2266,6 @@ export class AbstractQueryGenerator {
     }
 
     if (smth instanceof Utils.Literal) {
-      assert(bindContext != null, 'bind context is missing');
-
       if (Array.isArray(options.replacements) && includesPositionalReplacements(smth.val)) {
         throw new TypeError(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal(${JSON.stringify(smth.val)})`);
@@ -2307,7 +2311,7 @@ export class AbstractQueryGenerator {
         return '*';
       }
 
-      return this.quote(smth.col, factory);
+      return this.quote(smth.col, factory, undefined, options, bindContext);
     }
 
     return smth.toString(this, factory);
@@ -2356,7 +2360,6 @@ export class AbstractQueryGenerator {
   }
 
   whereItemQuery(key, value, options = {}, bindContext) {
-
     if (value === undefined) {
       throw new Error(`WHERE parameter "${key}" has invalid "undefined" value`);
     }
@@ -2407,7 +2410,7 @@ export class AbstractQueryGenerator {
     }
 
     if (value instanceof Utils.SequelizeMethod && !(key !== undefined && value instanceof Utils.Fn)) {
-      return this.handleSequelizeMethod(value, undefined, undefined, undefined, undefined, bindContext);
+      return this.handleSequelizeMethod(value, undefined, undefined, options, undefined, bindContext);
     }
 
     // Convert where: [] to Op.and if possible, else treat as literal/replacements
@@ -2424,11 +2427,11 @@ export class AbstractQueryGenerator {
     }
 
     if (value[Op.or]) {
-      return this._whereBind(this.OperatorMap[Op.or], key, value[Op.or], options);
+      return this._whereBind(this.OperatorMap[Op.or], key, value[Op.or], options, bindContext);
     }
 
     if (value[Op.and]) {
-      return this._whereBind(this.OperatorMap[Op.and], key, value[Op.and], options);
+      return this._whereBind(this.OperatorMap[Op.and], key, value[Op.and], options, bindContext);
     }
 
     if (isArray && fieldType instanceof DataTypes.ARRAY) {
@@ -2443,7 +2446,7 @@ export class AbstractQueryGenerator {
 
     // If multiple keys we combine the different logic conditions
     if (isPlainObject && valueKeys.length > 1) {
-      return this._whereBind(this.OperatorMap[Op.and], key, value, options);
+      return this._whereBind(this.OperatorMap[Op.and], key, value, options, bindContext);
     }
 
     if (isArray) {
@@ -2512,15 +2515,15 @@ export class AbstractQueryGenerator {
     return value ? `${outerBinding}(${value})` : undefined;
   }
 
-  _whereBind(binding, key, value, options) {
+  _whereBind(binding, key, value, options, bindContext) {
     if (_.isPlainObject(value)) {
       value = Utils.getComplexKeys(value).map(prop => {
         const item = value[prop];
 
-        return this.whereItemQuery(key, { [prop]: item }, options);
+        return this.whereItemQuery(key, { [prop]: item }, options, bindContext);
       });
     } else {
-      value = value.map(item => this.whereItemQuery(key, item, options));
+      value = value.map(item => this.whereItemQuery(key, item, options, bindContext));
     }
 
     value = value.filter(item => item && item.length);
