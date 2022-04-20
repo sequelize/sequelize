@@ -73,7 +73,7 @@ export const Config: Record<Dialect, Options> = {
   },
 
   yugabytedb: {
-    database: env.SEQ_YB_DB || env.SEQ_DB || 'sequelize_test',
+    database: env.SEQ_YB_DB || env.SEQ_DB || 'yugabyte',
     username: env.SEQ_YB_USER || env.SEQ_USER || 'yugabyte',
     password: env.SEQ_YB_PW || env.SEQ_PW || 'yugabyte',
     host: env.YUGABYTE_PORT_5432_TCP_ADDR || env.SEQ_YB_HOST || env.SEQ_HOST || '127.0.0.1',

@@ -7,7 +7,7 @@ services:
     environment:
       YSQL_USER: yugabyte
       YSQL_PASSWORD: yugabyte
-      YSQL_DB: sequelize_test
+      YSQL_DB: yugabyte
     volumes:
       - "./../yugabytedb-init.sql:/docker-entrypoint-initdb.d/yugabytedb-init.sql"
     ports:
