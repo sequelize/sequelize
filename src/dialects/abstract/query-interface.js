@@ -781,12 +781,17 @@ export class QueryInterface {
   async insert(instance, tableName, values, options) {
     options = Utils.cloneDeep(options);
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-    const sql = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
+    let sql = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
 
-    const results = await this.sequelize.query(sql, options);
+    if (sql.bind) {
+      options.bind = sql.bind;
+      sql = sql.query;
+    }
+
+    const results = await this.sequelize.queryRaw(sql, options);
     if (instance) {
       results[0].isNewRecord = false;
     }
@@ -872,13 +877,15 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkInsert(tableName, records, options, attributes) {
-    options = { ...options };
-    options.type = QueryTypes.INSERT;
+    options = { ...options, type: QueryTypes.INSERT };
 
-    const results = await this.sequelize.query(
-      this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes),
-      options,
-    );
+    const bindContext = {};
+    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes, bindContext);
+
+    delete options.replacements;
+    options.bind = bindContext.normalizedBind;
+
+    const results = await this.sequelize.queryRaw(sql, options);
 
     return results[0];
   }

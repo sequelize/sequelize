@@ -539,25 +539,7 @@ export class Sequelize {
     options = { ...this.options.query, ...options };
 
     if (typeof sql === 'object') {
-      if (sql.values !== undefined) {
-        if (options.replacements !== undefined) {
-          throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
-        }
-
-        options.replacements = sql.values;
-      }
-
-      if (sql.bind !== undefined) {
-        if (options.bind !== undefined) {
-          throw new Error('Both `sql.bind` and `options.bind` cannot be set at the same time');
-        }
-
-        options.bind = sql.bind;
-      }
-
-      if (sql.query !== undefined) {
-        sql = sql.query;
-      }
+      throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
     }
 
     sql = sql.trim();
@@ -565,9 +547,9 @@ export class Sequelize {
     const bindContext = {};
     sql = Utils.formatBindOrReplacements(sql, options.replacements, options.bind, bindContext, this.dialect);
 
-    options.bindParameters = bindContext.normalizedBind;
+    // this maps named bind parameters to positional bind parameters
+    options.bind = bindContext.normalizedBind;
     delete options.replacements;
-    delete options.bind;
 
     return this.queryRaw(sql, options);
   }

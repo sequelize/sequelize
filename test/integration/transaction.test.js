@@ -406,7 +406,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('works even if a transaction: null option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: null,
@@ -421,7 +421,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('works even if a transaction: undefined option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: undefined,

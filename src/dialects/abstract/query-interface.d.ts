@@ -86,6 +86,10 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
   fieldMap?: FieldMap;
 }
 
+export interface InsertOptions extends QueryOptions {
+  returning?: string[],
+}
+
 export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
 
 }
@@ -481,7 +485,7 @@ export class QueryInterface {
   /**
    * Inserts a new record
    */
-  public insert(instance: Model | null, tableName: string, values: object, options?: QueryOptions): Promise<object>;
+  public insert(instance: Model | null, tableName: string, values: object, options?: InsertOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
