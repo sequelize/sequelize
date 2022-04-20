@@ -346,7 +346,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
-      SEQ_DB: yugabyte
+      SEQ_DB: sequelize-test
       SEQ_USER: yugabyte
       SEQ_PW: yugabyte
       SEQ_PORT: 25099
