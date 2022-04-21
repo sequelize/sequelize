@@ -14,9 +14,8 @@ import {
   ModelOptions,
   UpdateOptions,
   WhereOperators,
-  ModelCtor,
   Hookable,
-  ModelType,
+  ModelStatic,
   CreationAttributes,
   Attributes,
   ColumnReference,
@@ -239,7 +238,7 @@ export interface Options extends Logging {
   /**
    * The port of the relational database.
    */
-  port?: number;
+  port?: number | string;
 
   /**
    * A flag that defines if is used SSL.
@@ -770,8 +769,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public static afterDefine(name: string, fn: (model: ModelType) => void): void;
-  public static afterDefine(fn: (model: ModelType) => void): void;
+  public static afterDefine(name: string, fn: (model: ModelStatic) => void): void;
+  public static afterDefine(fn: (model: ModelStatic) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
@@ -860,8 +859,8 @@ export class Sequelize extends Hooks {
   /**
    * Dictionary of all models linked with this instance.
    */
-  public readonly models: {
-    [key: string]: ModelCtor<Model>;
+  public models: {
+    [key: string]: ModelStatic<Model>;
   };
 
   /**
@@ -1085,8 +1084,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with factory
    */
-  public afterDefine(name: string, fn: (model: ModelType) => void): void;
-  public afterDefine(fn: (model: ModelType) => void): void;
+  public afterDefine(name: string, fn: (model: ModelStatic) => void): void;
+  public afterDefine(fn: (model: ModelStatic) => void): void;
 
   /**
    * A hook that is run before Sequelize() call
@@ -1211,14 +1210,14 @@ export class Sequelize extends Hooks {
     modelName: string,
     attributes?: ModelAttributes<M, TAttributes>,
     options?: ModelOptions<M>
-  ): ModelCtor<M>;
+  ): ModelStatic<M>;
 
   /**
    * Fetch a Model which is already defined
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  public model(modelName: string): ModelCtor<Model>;
+  public model(modelName: string): ModelStatic<Model>;
 
   /**
    * Checks whether a model with the given name is defined
@@ -1299,7 +1298,7 @@ export class Sequelize extends Hooks {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  public createSchema(schema: string, options: Logging): Promise<unknown>;
+  public createSchema(schema: string, options?: Logging): Promise<unknown>;
 
   /**
    * Show all defined schemas
@@ -1310,7 +1309,7 @@ export class Sequelize extends Hooks {
    *
    * @param options Options supplied
    */
-  public showAllSchemas(options: Logging): Promise<object[]>;
+  public showAllSchemas(options?: Logging): Promise<object[]>;
 
   /**
    * Drop a single schema
@@ -1322,7 +1321,7 @@ export class Sequelize extends Hooks {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  public dropSchema(schema: string, options: Logging): Promise<unknown[]>;
+  public dropSchema(schema: string, options?: Logging): Promise<unknown[]>;
 
   /**
    * Drop all schemas
@@ -1333,7 +1332,7 @@ export class Sequelize extends Hooks {
    *
    * @param options Options supplied
    */
-  public dropAllSchemas(options: Logging): Promise<unknown[]>;
+  public dropAllSchemas(options?: Logging): Promise<unknown[]>;
 
   /**
    * Sync all defined models to the DB.

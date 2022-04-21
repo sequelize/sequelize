@@ -15,8 +15,8 @@ async function test() {
       },
       // foreign key usage
       attr4: {
-        onDelete: 'cascade',
-        onUpdate: 'cascade',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         references: {
           key: 'id',
           model: 'another_table_name',
@@ -24,8 +24,8 @@ async function test() {
         type: DataTypes.INTEGER,
       },
       attr5: {
-        onDelete: 'cascade',
-        onUpdate: 'cascade',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         references: {
           key: 'id',
           model: { schema: '<schema>', tableName: 'another_table_name' },
