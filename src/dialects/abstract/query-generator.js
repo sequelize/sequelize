@@ -56,6 +56,7 @@ export class AbstractQueryGenerator {
     };
   }
 
+  // TODO: always return an object, instead of sometimes an object, sometimes a string
   addSchema(param) {
     if (!param._schema) {
       return param.tableName || param;

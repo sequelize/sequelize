@@ -361,37 +361,31 @@ export enum TRANSACTION_TYPES {
 /**
  * Possible options for row locking. Used in conjunction with `find` calls:
  *
- * ```js
- * t1 // is a transaction
- * t1.LOCK.UPDATE,
- * t1.LOCK.SHARE,
- * t1.LOCK.KEY_SHARE, // Postgres 9.3+ only
- * t1.LOCK.NO_KEY_UPDATE // Postgres 9.3+ only
- * ```
- *
  * Usage:
  * ```js
- * t1 // is a transaction
+ * import { LOCK } from '@sequelize/core';
+ *
  * Model.findAll({
- *   where: ...,
- *   transaction: t1,
- *   lock: t1.LOCK...
+ *   transaction,
+ *   lock: LOCK.UPDATE,
  * });
  * ```
  *
  * Postgres also supports specific locks while eager loading by using OF:
  * ```js
+ * import { LOCK } from '@sequelize/core';
+ *
  * UserModel.findAll({
- *   where: ...,
- *   include: [TaskModel, ...],
- *   transaction: t1,
+ *   transaction,
  *   lock: {
- *   level: t1.LOCK...,
- *   of: UserModel
- *   }
+ *     level: LOCK.KEY_SHARE,
+ *     of: UserModel,
+ *   },
  * });
  * ```
- * UserModel will be locked but TaskModel won't!
+ * UserModel will be locked but other models won't be!
+ *
+ * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
  */
 export enum LOCK {
   UPDATE = 'UPDATE',
