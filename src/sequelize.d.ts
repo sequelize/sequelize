@@ -19,7 +19,7 @@ import {
   CreationAttributes,
   Attributes,
   ColumnReference,
-  WhereAttributeHashValue, ModelStatic,
+  WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
