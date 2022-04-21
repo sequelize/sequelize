@@ -114,7 +114,9 @@ export function format(sql, values, timeZone, dialect) {
     throw new TypeError(`Invalid SQL string provided: ${sql}`);
   }
 
-  return sql.replace(/\?/g, match => {
+  // replace ? expect if it's part of ?& or ?|, as these are Postgres operators
+  // https://www.postgresql.org/docs/9.4/functions-json.html
+  return sql.replace(/\?(?![&|])/g, match => {
     if (values.length === 0) {
       return match;
     }

@@ -18,6 +18,7 @@ import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
+import { AbstractQueryGenerator } from './query-generator.js';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -315,7 +316,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public queryGenerator: unknown;
+  public queryGenerator: AbstractQueryGenerator;
 
   /**
    * Returns the current sequelize instance.

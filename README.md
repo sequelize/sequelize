@@ -40,6 +40,7 @@ Please find upgrade information to major versions here:
 ## :book: Resources
 
 - [Documentation](https://sequelize.org)
+- [Databases Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
 - [Slack Inviter](http://sequelize-slack.herokuapp.com/)

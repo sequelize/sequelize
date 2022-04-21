@@ -19,7 +19,7 @@ import {
   CreationAttributes,
   Attributes,
   ColumnReference,
-  WhereAttributeHashValue,
+  WhereAttributeHashValue, ModelStatic,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
@@ -238,7 +238,7 @@ export interface Options extends Logging {
   /**
    * The port of the relational database.
    */
-  port?: number;
+  port?: number | string;
 
   /**
    * A flag that defines if is used SSL.
@@ -859,7 +859,7 @@ export class Sequelize extends Hooks {
   /**
    * Dictionary of all models linked with this instance.
    */
-  public readonly models: {
+  public models: {
     [key: string]: ModelStatic<Model>;
   };
 
@@ -1208,7 +1208,7 @@ export class Sequelize extends Hooks {
    */
   public define<M extends Model, TAttributes = Attributes<M>>(
     modelName: string,
-    attributes: ModelAttributes<M, TAttributes>,
+    attributes?: ModelAttributes<M, TAttributes>,
     options?: ModelOptions<M>
   ): ModelStatic<M>;
 
@@ -1298,7 +1298,7 @@ export class Sequelize extends Hooks {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  public createSchema(schema: string, options: Logging): Promise<unknown>;
+  public createSchema(schema: string, options?: Logging): Promise<unknown>;
 
   /**
    * Show all defined schemas
@@ -1309,7 +1309,7 @@ export class Sequelize extends Hooks {
    *
    * @param options Options supplied
    */
-  public showAllSchemas(options: Logging): Promise<object[]>;
+  public showAllSchemas(options?: Logging): Promise<object[]>;
 
   /**
    * Drop a single schema
@@ -1321,7 +1321,7 @@ export class Sequelize extends Hooks {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  public dropSchema(schema: string, options: Logging): Promise<unknown[]>;
+  public dropSchema(schema: string, options?: Logging): Promise<unknown[]>;
 
   /**
    * Drop all schemas
@@ -1332,7 +1332,7 @@ export class Sequelize extends Hooks {
    *
    * @param options Options supplied
    */
-  public dropAllSchemas(options: Logging): Promise<unknown[]>;
+  public dropAllSchemas(options?: Logging): Promise<unknown[]>;
 
   /**
    * Sync all defined models to the DB.

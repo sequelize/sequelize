@@ -37,7 +37,6 @@ export class Transaction {
     this.sequelize = sequelize;
 
     // get dialect specific transaction options
-    // @ts-expect-error Typings for .queryGenerator are not available yet (this will error once that is resolved).
     const generateTransactionId = this.sequelize.dialect
       .queryGenerator
       .generateTransactionId;
