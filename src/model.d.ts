@@ -691,6 +691,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * Either one of the values available in {@link Model.associations}, or the name of the association.
    *
    * This can be used instead of providing a model/as pair.
+   *
    * This is the recommended method.
    */
   association?: Association | string;
@@ -2270,17 +2271,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param newAttributes
    */
   public static mergeAttributesDefault(newAttributes: { [key: string]: ModelAttributeColumnOptions }): BuiltModelAttributeColumOptions;
-
-  /**
-   * Merges new attributes with the existing ones.
-   * Only use if you know what you're doing.
-   *
-   * Warning: Attributes are not replaced, they are merged.
-   * The new configuration for an attribute takes priority over the existing configuration.
-   *
-   * @param newAttributes
-   */
-  public static mergeAttributesOverwrite(newAttributes: { [key: string]: ModelAttributeColumnOptions}): BuiltModelAttributeColumOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.

@@ -729,12 +729,6 @@ ${associationOwner._getAssociationDebugList()}`);
     return index;
   }
 
-  // FIXME:
-  //  includes need to be merged more carefully:
-  //   - first normalize the user input
-  //   - normalize scopes
-  //   - merge, and dedupe during merge, instead of after.
-  //   '_conformIncludes' should not happen here.
   static _baseMerge(...args) {
     _.assignWith(...args);
 
@@ -1219,20 +1213,6 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static mergeAttributesDefault(newAttributes) {
     Utils.mergeDefaults(this.rawAttributes, newAttributes);
-
-    this.refreshAttributes();
-
-    return this.rawAttributes;
-  }
-
-  static mergeAttributesOverwrite(newAttributes) {
-    for (const attributeName of Object.keys(newAttributes)) {
-      if (!this.rawAttributes[attributeName]) {
-        this.rawAttributes[attributeName] = newAttributes[attributeName];
-      } else {
-        Object.assign(this.rawAttributes[attributeName], newAttributes[attributeName]);
-      }
-    }
 
     this.refreshAttributes();
 
