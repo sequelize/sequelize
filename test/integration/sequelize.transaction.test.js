@@ -105,7 +105,7 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    (current.dialect.name === 'yugabytedb' ? describe : describe.skip)('concurrency', () => {
+    (current.dialect.name !== 'yugabytedb' ? describe : describe.skip)('concurrency', () => {
       describe('having tables with uniqueness constraints', () => {
         beforeEach(async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);

@@ -181,22 +181,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       beforeEach('build restaurant tables', async function () {
-        await Promise.all([
-          current.createSchema(SCHEMA_ONE),
-          current.createSchema(SCHEMA_TWO),
-        ]);
+        await current.createSchema(SCHEMA_ONE);
+        await current.createSchema(SCHEMA_TWO);
 
-        await Promise.all([
-          this.RestaurantOne.sync({ force: true }),
-          this.RestaurantTwo.sync({ force: true }),
-        ]);
+        await this.RestaurantOne.sync({ force: true });
+        await this.RestaurantTwo.sync({ force: true });
       });
 
       afterEach('drop schemas', async () => {
-        await Promise.all([
-          current.dropSchema(SCHEMA_ONE),
-          current.dropSchema(SCHEMA_TWO),
-        ]);
+
+        await  current.dropSchema(SCHEMA_ONE);
+        await current.dropSchema(SCHEMA_TWO);
       });
 
       describe('Add data via model.create, retrieve via model.findOne', () => {
@@ -354,10 +349,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           const Employee = this.Employee;
 
-          await Promise.all([
-            Employee.schema(SCHEMA_ONE).sync({ force: true }),
-            Employee.schema(SCHEMA_TWO).sync({ force: true }),
-          ]);
+          await  Employee.schema(SCHEMA_ONE).sync({ force: true });
+          await  Employee.schema(SCHEMA_TWO).sync({ force: true });
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', async function () {

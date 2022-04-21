@@ -185,10 +185,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await Support.dropTestSchemas(this.sequelize);
       await this.sequelize.createSchema('acme');
 
-      await Promise.all([
-        AcmeUser.sync({ force: true }),
-        AcmeProject.sync({ force: true }),
-      ]);
+      await AcmeUser.sync({ force: true });
+      await  AcmeProject.sync({ force: true });
 
       await AcmeProjectUsers.sync({ force: true });
       const u = await AcmeUser.create();
