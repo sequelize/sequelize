@@ -10,7 +10,7 @@ import {
   InstanceUpdateOptions,
   ModelAttributes,
   ModelOptions, RestoreOptions, UpdateOptions, UpsertOptions,
-  Attributes, CreationAttributes, ModelType
+  Attributes, CreationAttributes, ModelStatic
 } from './model';
 import { AbstractQuery } from './dialects/abstract/query';
 import { QueryOptions } from './dialects/abstract/query-interface';
@@ -72,7 +72,7 @@ export interface SequelizeHooks<
   TCreationAttributes = TAttributes
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
-  afterDefine(model: ModelType): void;
+  afterDefine(model: ModelStatic): void;
   beforeInit(config: Config, options: Options): void;
   afterInit(sequelize: Sequelize): void;
   beforeConnect(config: DeepWriteable<Config>): HookReturn;
