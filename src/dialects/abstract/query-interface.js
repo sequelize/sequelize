@@ -894,8 +894,7 @@ export class QueryInterface {
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
-    const bindContext = {};
-    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes, bindContext);
+    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
 
     options.type = QueryTypes.UPDATE;
     options.instance = instance;

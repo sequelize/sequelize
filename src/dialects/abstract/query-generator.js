@@ -269,12 +269,7 @@ export class AbstractQueryGenerator {
     }
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query };
-    if (options.bindParam !== false) {
-      result.bind = bindContext.normalizedBind ?? [];
-    }
-
-    return result;
+    return { query, bind: bindContext.normalizedBind };
   }
 
   /**
@@ -377,18 +372,17 @@ export class AbstractQueryGenerator {
    * @param {object} where A hash with conditions (e.g. {name: 'foo'}) OR an ID as integer
    * @param {object} options
    * @param {object} attributes
-   * @param {BindContext} bindContext
    *
    * @private
    */
-  updateQuery(tableName, attrValueHash, where, options, attributes, bindContext) {
+  updateQuery(tableName, attrValueHash, where, options, attributes) {
     options = options || {};
     _.defaults(options, this.options);
 
     attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = [];
+    const bindContext = {};
     const modelAttributeMap = {};
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
@@ -399,7 +393,7 @@ export class AbstractQueryGenerator {
       options.bindParam = false;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this.#createBindParamCollector(bindContext) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect !== 'mssql' && this.dialect !== 'db2') {
       suffix = ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)} `;
@@ -438,7 +432,7 @@ export class AbstractQueryGenerator {
       const value = attrValueHash[key];
 
       if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' })}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', bind: options.bind, replacements: options.replacements }, bindContext)}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
       }
@@ -451,13 +445,12 @@ export class AbstractQueryGenerator {
     }
 
     const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions, bindContext)}${suffix}`.trim();
-    // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query };
-    if (options.bindParam !== false) {
-      result.bind = bind;
-    }
 
-    return result;
+    // Used by Postgres upsertQuery and calls to here with options.exception set to true
+    return {
+      query: `${query};`,
+      bind: bindContext.normalizedBind,
+    };
   }
 
   /**

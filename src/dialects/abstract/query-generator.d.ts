@@ -25,6 +25,7 @@ type SelectOptions<M extends Model> = FindOptions<M> & {
 
 type InsertOptions = ParameterOptions & SearchPathable & {
   exception?: boolean,
+  bindParam?: false | ((value: unknown) => string),
 
   updateOnDuplicate?: string[],
   ignoreDuplicates?: boolean,
@@ -41,6 +42,10 @@ type BulkInsertOptions = ParameterOptions & {
   returning?: boolean | Array<string>,
 };
 
+type UpdateOptions = ParameterOptions & {
+  bindParam?: false | ((value: unknown) => string),
+};
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -55,6 +60,19 @@ export class AbstractQueryGenerator {
   quoteIdentifiers(identifiers: string): string;
 
   selectQuery<M extends Model>(tableName: string, options: SelectOptions<M>, model: ModelStatic<M>, bindContext: BindContext): string;
-  insertQuery(table: TableName, valueHash: object, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }, options: InsertOptions): { query: string, bind?: Array<unknown> };
+  insertQuery(
+    table: TableName,
+    valueHash: object,
+    columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },
+    options: InsertOptions
+  ): { query: string, bind?: Array<unknown> };
   bulkInsertQuery(tableName: TableName, newEntries: Array<object>, options: BulkInsertOptions, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }, bindContext: BindContext): string;
+
+  updateQuery(
+    tableName: TableName,
+    values: object,
+    where: WhereOptions,
+    options: UpdateOptions,
+    columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },
+  ): { query: string, bind?: Array<unknown> };
 }
