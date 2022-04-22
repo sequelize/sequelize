@@ -9,7 +9,7 @@ import {
   Filterable,
   ModelType,
   CreationAttributes,
-  Attributes,
+  Attributes, BuiltModelAttributeColumOptions,
 } from '../../model';
 import { Sequelize, QueryOptions, QueryOptionsWithModel, QueryRawOptions } from '../../sequelize';
 import { Transaction } from '../../transaction';
@@ -457,9 +457,9 @@ export class QueryInterface {
   public bulkUpdate(
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<any>,
+    where: WhereOptions<any>,
     options?: QueryOptions,
-    attributes?: string[] | string
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): Promise<object>;
 
   /**

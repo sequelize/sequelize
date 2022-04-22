@@ -371,11 +371,11 @@ export class AbstractQueryGenerator {
    * @param {object} attrValueHash
    * @param {object} where A hash with conditions (e.g. {name: 'foo'}) OR an ID as integer
    * @param {object} options
-   * @param {object} attributes
+   * @param {object} columnDefinitions
    *
    * @private
    */
-  updateQuery(tableName, attrValueHash, where, options, attributes) {
+  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     options = options || {};
     _.defaults(options, this.options);
 
@@ -400,7 +400,7 @@ export class AbstractQueryGenerator {
     }
 
     if (this._dialect.supports.returnValues && options.returning) {
-      const returnValues = this.generateReturnValues(attributes, options);
+      const returnValues = this.generateReturnValues(columnDefinitions, options);
 
       suffix += returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
@@ -412,8 +412,8 @@ export class AbstractQueryGenerator {
       }
     }
 
-    if (attributes) {
-      _.each(attributes, (attribute, key) => {
+    if (columnDefinitions) {
+      _.each(columnDefinitions, (attribute, key) => {
         modelAttributeMap[key] = attribute;
         if (attribute.field) {
           modelAttributeMap[attribute.field] = attribute;
@@ -441,7 +441,7 @@ export class AbstractQueryGenerator {
     const whereOptions = { ...options, bindParam };
 
     if (values.length === 0) {
-      return '';
+      return { query: '' };
     }
 
     const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions, bindContext)}${suffix}`.trim();

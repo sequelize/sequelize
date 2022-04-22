@@ -70,7 +70,7 @@ export class AbstractQueryGenerator {
 
   updateQuery(
     tableName: TableName,
-    values: object,
+    attrValueHash: object,
     where: WhereOptions,
     options: UpdateOptions,
     columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },

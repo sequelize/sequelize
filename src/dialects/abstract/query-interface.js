@@ -918,26 +918,27 @@ export class QueryInterface {
    *
    * @param {string} tableName     Table name to update
    * @param {object} values        Values to be inserted, mapped to field name
-   * @param {object} identifier    A hash with conditions OR an ID as integer OR a string with conditions
+   * @param {object} where    A hash with conditions OR an ID as integer OR a string with conditions
    * @param {object} [options]     Various options, please see Model.bulkCreate options
-   * @param {object} [attributes]  Attributes on return objects if supported by SQL dialect
+   * @param {object} [columnDefinitions]  Attributes on return objects if supported by SQL dialect
    *
    * @returns {Promise}
    */
-  async bulkUpdate(tableName, values, identifier, options, attributes) {
+  async bulkUpdate(tableName, values, where, options, columnDefinitions) {
     options = Utils.cloneDeep(options);
-    if (typeof identifier === 'object') {
-      identifier = Utils.cloneDeep(identifier);
+    if (typeof where === 'object') {
+      where = Utils.cloneDeep(where);
     }
 
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, attributes);
+    const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
     const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
+    options.bind = bind;
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 
   async delete(instance, tableName, identifier, options) {
