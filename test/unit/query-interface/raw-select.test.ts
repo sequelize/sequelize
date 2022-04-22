@@ -30,7 +30,7 @@ describe('QueryInterface#rawSelect', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expect(firstCall.args[0]).to.eq('SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some :data\';');
-    expect(firstCall.args[1].bind).to.be.undefined;
+    expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 
   // you'll find more bind tests in query-generator tests
@@ -51,6 +51,6 @@ describe('QueryInterface#rawSelect', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expect(firstCall.args[0]).to.eq('SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some $data\';');
-    expect(firstCall.args[1].bind).to.be.undefined;
+    expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

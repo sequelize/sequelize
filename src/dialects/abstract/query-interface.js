@@ -890,20 +890,20 @@ export class QueryInterface {
     return results[0];
   }
 
-  async update(instance, tableName, values, identifier, options) {
+  async update(instance, tableName, values, where, options) {
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
     const bindContext = {};
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance.constructor.rawAttributes, bindContext);
+    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes, bindContext);
 
     options.type = QueryTypes.UPDATE;
     options.instance = instance;
 
     delete options.replacements;
-    options.bind = bindContext.normalizedBind;
+    options.bind = bind;
 
-    return await this.sequelize.queryRaw(sql, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**

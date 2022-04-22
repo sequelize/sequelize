@@ -1,17 +1,44 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
 import { AbstractDialect } from './index.js';
-import { FindOptions, Model, ModelStatic, WhereOptions } from '../../model.js';
-import { BindOrReplacements, TableName } from './query-interface.js';
+import {
+  BuiltModelAttributeColumOptions,
+  FindOptions,
+  Model,
+  ModelStatic,
+  SearchPathable,
+  WhereOptions,
+} from '../../model.js';
+import { TableName } from './query-interface.js';
 import { BindContext } from './query.js';
+import { BindOrReplacements } from '../../sequelize.js';
 
 type ParameterOptions = {
-  replacements?: BindOrReplacements,
+  // only named replacements are allowed
+  replacements?: { [key: string]: unknown },
   bind?: BindOrReplacements,
 };
 
-type SelectQueryOptions<M extends Model> = FindOptions<M> & {
+type SelectOptions<M extends Model> = FindOptions<M> & {
   model: ModelStatic<M>,
+};
+
+type InsertOptions = ParameterOptions & SearchPathable & {
+  exception?: boolean,
+
+  updateOnDuplicate?: string[],
+  ignoreDuplicates?: boolean,
+  upsertKeys?: string[],
+  returning?: boolean | Array<string>,
+};
+
+type BulkInsertOptions = ParameterOptions & {
+  hasTrigger?: boolean,
+
+  updateOnDuplicate?: string[],
+  ignoreDuplicates?: boolean,
+  upsertKeys?: string[],
+  returning?: boolean | Array<string>,
 };
 
 export class AbstractQueryGenerator {
@@ -27,5 +54,7 @@ export class AbstractQueryGenerator {
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
 
-  selectQuery<M extends Model>(tableName: string, options: SelectQueryOptions<M>, model: ModelStatic<M>, bindContext: BindContext): string;
+  selectQuery<M extends Model>(tableName: string, options: SelectOptions<M>, model: ModelStatic<M>, bindContext: BindContext): string;
+  insertQuery(table: TableName, valueHash: object, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }, options: InsertOptions): { query: string, bind?: Array<unknown> };
+  bulkInsertQuery(tableName: TableName, newEntries: Array<object>, options: BulkInsertOptions, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }, bindContext: BindContext): string;
 }

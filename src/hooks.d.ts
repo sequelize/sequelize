@@ -13,8 +13,7 @@ import {
   Attributes, CreationAttributes, ModelType
 } from './model';
 import { AbstractQuery } from './dialects/abstract/query';
-import { QueryOptions } from './dialects/abstract/query-interface';
-import { Config, Options, Sequelize, SyncOptions } from './sequelize';
+import { Config, Options, Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import { DeepWriteable } from './utils';
 
 export type HookReturn = Promise<void> | void;

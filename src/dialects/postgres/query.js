@@ -21,42 +21,36 @@ export class PostgresQuery extends AbstractQuery {
   static formatBindParameters(sql, values, bindContext, dialect) {
     const stringReplaceFunc = value => (typeof value === 'string' ? value.replace(/\0/g, '\\0') : value);
 
-    if (Array.isArray(values)) {
-      if (!bindContext.normalizedBind) {
-        bindContext.normalizedBind = values.map(stringReplaceFunc);
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true });
-    } else {
-      if (!bindContext.normalizedBind) {
-        bindContext.normalizedBind = [];
-      }
-
-      let i = bindContext.normalizedBind.length;
-      if (!bindContext.seenParameters) {
-        bindContext.seenParameters = new Map();
-      }
-
-      const seen = bindContext.seenParameters;
-      const replacementFunc = (match, key, values) => {
-        if (seen.has(key)) {
-          return seen.get(key);
-        }
-
-        if (values[key] !== undefined) {
-          i = i + 1;
-          bindContext.normalizedBind.push(stringReplaceFunc(values[key]));
-          seen.set(key, `$${i}`);
-
-          return `$${i}`;
-        }
-
-      };
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc);
+    if (!bindContext.normalizedBind) {
+      bindContext.normalizedBind = [];
     }
 
-    return sql;
+    if (!bindContext.seenParameters) {
+      bindContext.seenParameters = new Map();
+    }
+
+    const seen = bindContext.seenParameters;
+
+    const replacementFunc = (match, key, values) => {
+      if (seen.has(key)) {
+        return seen.get(key);
+      }
+
+      // works for both named & positional bind param
+      const value = values[key];
+      if (value === undefined) {
+        return;
+      }
+
+      const newLength = bindContext.normalizedBind.push(stringReplaceFunc(values[key]));
+      const bindIdentifier = `$${newLength}`;
+
+      seen.set(key, bindIdentifier);
+
+      return bindIdentifier;
+    };
+
+    return AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc);
   }
 
   async run(sql, parameters) {

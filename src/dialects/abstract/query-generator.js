@@ -115,13 +115,14 @@ export class AbstractQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
+    const bindContext = {};
+
     const modelAttributeMap = {};
-    const bind = [];
     const fields = [];
     const returningModelAttributes = [];
     const values = [];
     const quotedTable = this.quoteTable(table);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this.#createBindParamCollector(bindContext) : options.bindParam;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -185,7 +186,7 @@ export class AbstractQueryGenerator {
           }
 
           if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-            values.push(this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }));
+            values.push(this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements, bind: options.bind }, bindContext));
           } else {
             values.push(this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam));
           }
@@ -270,7 +271,7 @@ export class AbstractQueryGenerator {
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
     if (options.bindParam !== false) {
-      result.bind = bind;
+      result.bind = bindContext.normalizedBind ?? [];
     }
 
     return result;
@@ -283,10 +284,11 @@ export class AbstractQueryGenerator {
    * @param {object} fieldValueHashes
    * @param {object} options
    * @param {object} fieldMappedAttributes
+   * @param {BindContext} bindContext
    *
    * @private
    */
-  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
+  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes, bindContext = {}) {
     options = options || {};
     fieldMappedAttributes = fieldMappedAttributes || {};
 
@@ -320,7 +322,7 @@ export class AbstractQueryGenerator {
           return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
         }
 
-        return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' });
+        return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT', replacements: options.replacements, bind: options.bind }, bindContext);
       });
 
       tuples.push(`(${values.join(',')})`);
@@ -1079,6 +1081,18 @@ export class AbstractQueryGenerator {
       bind.push(value);
 
       return `$${bind.length}`;
+    };
+  }
+
+  #createBindParamCollector(bindContext /* : BindContext */) {
+    return function collect(value) {
+      if (!bindContext.normalizedBind) {
+        bindContext.normalizedBind = [];
+      }
+
+      const bindCount = bindContext.normalizedBind.push(value);
+
+      return `$${bindCount}`;
     };
   }
 

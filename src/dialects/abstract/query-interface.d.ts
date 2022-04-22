@@ -7,124 +7,56 @@ import {
   Transactionable,
   WhereOptions,
   Filterable,
-  Poolable,
-  ModelStatic,
   ModelType,
   CreationAttributes,
   Attributes,
 } from '../../model';
-import { QueryTypes } from '../../query-types';
-import { Sequelize, RetryOptions } from '../../sequelize';
+import { Sequelize, QueryOptions, QueryOptionsWithModel, QueryRawOptions } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
 import { AbstractQueryGenerator } from './query-generator.js';
-
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
-type FieldMap = { [key: string]: string };
+import { BindOrReplacements } from './query.js';
 
 /**
- * Interface for query options
+ * Most of the methods accept options and use only the logger property of the options. That's why the most used
+ * interface type for options in a method is separated here as another interface.
  */
-export interface QueryOptions extends Logging, Transactionable, Poolable {
+export interface QiOptionsWithParameters extends Omit<QueryRawOptions, 'bind'> {
   /**
-   * If true, sequelize will not try to format the results of the query, or build an instance of a model from
-   * the result
+   * Query interface methods accept both named & positional bind parameters.
    */
-  raw?: boolean;
+  bind?: BindOrReplacements,
 
   /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
+   * Only named replacements are allowed in query interface methods.
    */
-  type?: string;
-
-  /**
-   * If true, transforms objects with `.` separated property names into nested objects using
-   * [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes
-   * { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`,
-   * unless otherwise specified
-   *
-   * @default false
-   */
-  nest?: boolean;
-
-  /**
-   * Sets the query type to `SELECT` and return a single row
-   */
-  plain?: boolean;
-
-  /**
-   * Either an object of named parameter replacements in the format `:param` or an array of unnamed
-   * replacements to replace `?` in your SQL.
-   */
-  replacements?: BindOrReplacements;
-
-  /**
-   * Either an object of named parameter bindings in the format `$param` or an array of unnamed
-   * values to bind to `$1`, `$2`, etc in your SQL.
-   */
-  bind?: BindOrReplacements;
-
-  /**
-   * A sequelize instance used to build the return instance
-   */
-  instance?: Model;
-
-  /**
-   * Map returned fields to model's fields if `options.model` or `options.instance` is present.
-   * Mapping will occur before building the model instance.
-   */
-  mapToModel?: boolean;
-
-  retry?: RetryOptions;
-
-  /**
-   * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
-   */
-  fieldMap?: FieldMap;
+  replacements?: { [key: string]: unknown },
 }
 
-export interface InsertOptions extends QueryOptions {
-  returning?: string[],
+export interface QiInsertOptions extends QiOptionsWithParameters {
+  returning?: boolean | string[],
 }
 
-export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
+export interface QiSelectOptions extends QiOptionsWithParameters, Filterable<any> {
 
 }
 
-export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
-  /**
-   * A sequelize model used to build the returned model instances (used to be called callee)
-   */
-  model: ModelStatic<M>;
+export interface QiUpdateOptions extends QiOptionsWithParameters {
+  returning?: boolean | string[],
 }
 
-export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
-  type: T;
-}
-
-export interface QueryOptionsWithForce extends QueryOptions {
+export interface CreateFunctionOptions extends QueryOptions {
   force?: boolean;
 }
-
-/**
-* Most of the methods accept options and use only the logger property of the options. That's why the most used
-* interface type for options in a method is separated here as another interface.
-*/
-export interface QueryInterfaceOptions extends Logging, Transactionable {}
 
 export interface CollateCharsetOptions {
   collate?: string;
   charset?: string;
 }
 
-export interface QueryInterfaceCreateTableOptions extends QueryInterfaceOptions, CollateCharsetOptions {
+export interface QueryInterfaceCreateTableOptions extends QiOptionsWithParameters, CollateCharsetOptions {
   engine?: string;
   /**
    * Used for compound unique keys.
@@ -137,12 +69,12 @@ export interface QueryInterfaceCreateTableOptions extends QueryInterfaceOptions,
   };
 }
 
-export interface QueryInterfaceDropTableOptions extends QueryInterfaceOptions {
+export interface QueryInterfaceDropTableOptions extends QiOptionsWithParameters {
   cascade?: boolean;
   force?: boolean;
 }
 
-export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOptions {
+export interface QueryInterfaceDropAllTablesOptions extends QiOptionsWithParameters {
   skip?: string[];
 }
 
@@ -216,7 +148,7 @@ export interface IndexesOptions {
   prefix?: string;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
+export interface QueryInterfaceIndexOptions extends IndexesOptions, Omit<QiOptionsWithParameters, 'type'> {}
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -310,14 +242,14 @@ export class QueryInterface {
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public createSchema(schema?: string, options?: QueryInterfaceOptions): Promise<void>;
+  public createSchema(schema?: string, options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Drops the specified schema (table).
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public dropSchema(schema?: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropSchema(schema?: string, options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Drops all tables.
@@ -334,7 +266,7 @@ export class QueryInterface {
   /**
    * Return database version
    */
-  public databaseVersion(options?: QueryInterfaceOptions): Promise<string>;
+  public databaseVersion(options?: QiOptionsWithParameters): Promise<string>;
 
   /**
    * Creates a table with specified attributes.
@@ -374,7 +306,7 @@ export class QueryInterface {
   /**
    * Renames a table
    */
-  public renameTable(before: TableName, after: TableName, options?: QueryInterfaceOptions): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Returns all tables
@@ -396,7 +328,7 @@ export class QueryInterface {
     table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
@@ -405,7 +337,7 @@ export class QueryInterface {
   public removeColumn(
     table: TableName,
     attribute: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
@@ -415,7 +347,7 @@ export class QueryInterface {
     tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
@@ -425,7 +357,7 @@ export class QueryInterface {
     tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
@@ -454,13 +386,13 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: TableName,
-    options?: AddConstraintOptions & QueryInterfaceOptions
+    options?: AddConstraintOptions & QiOptionsWithParameters
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Shows the index of a table
@@ -475,17 +407,17 @@ export class QueryInterface {
   /**
    * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string[], options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QiOptionsWithParameters): Promise<object>;
 
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QiOptionsWithParameters): Promise<object>;
 
   /**
    * Inserts a new record
    */
-  public insert(instance: Model | null, tableName: string, values: object, options?: InsertOptions): Promise<object>;
+  public insert(instance: Model | null, tableName: string, values: object, options?: QiInsertOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
@@ -515,8 +447,8 @@ export class QueryInterface {
     instance: M,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<Attributes<M>>,
-    options?: QueryOptions
+    where: WhereOptions<Attributes<M>>,
+    options?: QiUpdateOptions
   ): Promise<object>;
 
   /**
@@ -553,7 +485,7 @@ export class QueryInterface {
   /**
    * Returns selected rows
    */
-  public select(model: ModelType | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: ModelType | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -571,7 +503,7 @@ export class QueryInterface {
    */
   public rawSelect(
     tableName: TableName,
-    options: QueryOptionsWithWhere,
+    options: QiSelectOptions,
     attributeSelector: string,
     model?: ModelType
   ): Promise<string[]>;
@@ -590,13 +522,13 @@ export class QueryInterface {
     functionName: string,
     functionParams: FunctionParam[],
     optionsArray: string[],
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
    * Postgres only. Drops the specified trigger.
    */
-  public dropTrigger(tableName: TableName, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropTrigger(tableName: TableName, triggerName: string, options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
@@ -605,7 +537,7 @@ export class QueryInterface {
     tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**
@@ -618,13 +550,13 @@ export class QueryInterface {
     language: string,
     body: string,
     optionsArray?: string[],
-    options?: QueryOptionsWithForce
+    options?: CreateFunctionOptions
   ): Promise<void>;
 
   /**
    * Postgres only. Drops a function
    */
-  public dropFunction(functionName: string, params: FunctionParam[], options?: QueryInterfaceOptions): Promise<void>;
+  public dropFunction(functionName: string, params: FunctionParam[], options?: QiOptionsWithParameters): Promise<void>;
 
   /**
    * Postgres only. Rename a function
@@ -633,7 +565,7 @@ export class QueryInterface {
     oldFunctionName: string,
     params: FunctionParam[],
     newFunctionName: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithParameters
   ): Promise<void>;
 
   /**

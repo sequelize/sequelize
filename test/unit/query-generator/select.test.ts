@@ -1,7 +1,7 @@
 import type { InferAttributes } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast, Model } from '@sequelize/core';
+import type { BindContext } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import { expect } from 'chai';
-import type { BindContext } from '../../../types/dialects/abstract/query.js';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
