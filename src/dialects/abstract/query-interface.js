@@ -33,7 +33,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.createDatabaseQuery(database, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -48,7 +48,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -63,7 +63,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.createSchema(schema);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -78,7 +78,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.dropSchema(schema);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -116,7 +116,7 @@ export class QueryInterface {
 
     const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
 
-    const schemaNames = await this.sequelize.query(showSchemasSql, options);
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
@@ -131,7 +131,7 @@ export class QueryInterface {
    * @private
    */
   async databaseVersion(options) {
-    return await this.sequelize.query(
+    return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
       { ...options, type: QueryTypes.VERSION },
     );
@@ -228,7 +228,7 @@ export class QueryInterface {
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -246,7 +246,7 @@ export class QueryInterface {
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
-    await this.sequelize.query(sql, options);
+    await this.sequelize.queryRaw(sql, options);
   }
 
   async _dropAllTables(tableNames, skip, options) {
@@ -280,7 +280,7 @@ export class QueryInterface {
       }
 
       for (const foreignKey of foreignKeys[normalizedTableName]) {
-        await this.sequelize.query(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
+        await this.sequelize.queryRaw(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
       }
     }
 
@@ -300,7 +300,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.renameTableQuery(before, after);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -321,7 +321,7 @@ export class QueryInterface {
     };
 
     const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
-    const tableNames = await this.sequelize.query(showTablesSql, options);
+    const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
   }
@@ -371,7 +371,7 @@ export class QueryInterface {
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
-      const data = await this.sequelize.query(sql, options);
+      const data = await this.sequelize.queryRaw(sql, options);
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
@@ -415,7 +415,7 @@ export class QueryInterface {
     options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.query(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
   }
 
   /**
@@ -426,7 +426,7 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.query(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -482,7 +482,7 @@ export class QueryInterface {
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
 
-    return this.sequelize.query(sql, options);
+    return this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -536,7 +536,7 @@ export class QueryInterface {
       this.queryGenerator.attributesToSQL(_options),
     );
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -574,7 +574,7 @@ export class QueryInterface {
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
-    return await this.sequelize.query(sql, { ...options, supportsSearchPath: false });
+    return await this.sequelize.queryRaw(sql, { ...options, supportsSearchPath: false });
   }
 
   /**
@@ -589,7 +589,7 @@ export class QueryInterface {
   async showIndex(tableName, options) {
     const sql = this.queryGenerator.showIndexesQuery(tableName, options);
 
-    return await this.sequelize.query(sql, { ...options, type: QueryTypes.SHOWINDEXES });
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
   }
 
   /**
@@ -607,7 +607,7 @@ export class QueryInterface {
 
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
 
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.query(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
 
     const result = {};
 
@@ -644,7 +644,7 @@ export class QueryInterface {
     };
     const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
 
-    return this.sequelize.query(query, queryOptions);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 
   /**
@@ -661,7 +661,7 @@ export class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.removeIndexQuery(tableName, indexNameOrAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -758,13 +758,13 @@ export class QueryInterface {
 
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async showConstraint(tableName, constraintName, options) {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, constraintName);
 
-    return await this.sequelize.query(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
   }
 
   /**
@@ -775,7 +775,7 @@ export class QueryInterface {
    * @param {object} options         Query options
    */
   async removeConstraint(tableName, constraintName, options) {
-    return this.sequelize.query(this.queryGenerator.removeConstraintQuery(tableName, constraintName), options);
+    return this.sequelize.queryRaw(this.queryGenerator.removeConstraintQuery(tableName, constraintName), options);
   }
 
   async insert(instance, tableName, values, options) {
@@ -852,7 +852,7 @@ export class QueryInterface {
 
     const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -1007,7 +1007,7 @@ export class QueryInterface {
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
-      return this.sequelize.query(
+      return this.sequelize.queryRaw(
         this.queryGenerator.truncateTableQuery(tableName, options),
         options,
       );
@@ -1125,7 +1125,7 @@ export class QueryInterface {
     const sql = this.queryGenerator.createTrigger(tableName, triggerName, timingType, fireOnArray, functionName, functionParams, optionsArray);
     options = options || {};
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1134,7 +1134,7 @@ export class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1143,7 +1143,7 @@ export class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1189,7 +1189,7 @@ export class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1216,7 +1216,7 @@ export class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1245,7 +1245,7 @@ export class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1278,7 +1278,7 @@ export class QueryInterface {
       return;
     }
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async startTransaction(transaction, options) {
@@ -1290,7 +1290,7 @@ export class QueryInterface {
     options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.startTransactionQuery(transaction);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async deferConstraints(transaction, options) {
@@ -1299,7 +1299,7 @@ export class QueryInterface {
     const sql = this.queryGenerator.deferConstraintsQuery(options);
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1321,7 +1321,7 @@ export class QueryInterface {
     };
 
     const sql = this.queryGenerator.commitTransactionQuery(transaction);
-    const promise = this.sequelize.query(sql, options);
+    const promise = this.sequelize.queryRaw(sql, options);
 
     transaction.finished = 'commit';
 
@@ -1341,7 +1341,7 @@ export class QueryInterface {
     };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.rollbackTransactionQuery(transaction);
-    const promise = this.sequelize.query(sql, options);
+    const promise = this.sequelize.queryRaw(sql, options);
 
     transaction.finished = 'rollback';
 
