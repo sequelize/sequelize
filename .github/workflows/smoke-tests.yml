@@ -1,7 +1,7 @@
 name: CI
 on:
   schedule:
-    - cron: "0 9 */5 * *"
+    - cron: "* * * * *"
 
 env:
   SEQ_DB: sequelize_test
