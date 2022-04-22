@@ -1,0 +1,61 @@
+name: CI
+on:
+  schedule:
+    - cron: "0 9 */5 * *"
+
+env:
+  SEQ_DB: sequelize_test
+  SEQ_USER: sequelize_test
+  SEQ_PW: sequelize_test
+
+jobs:
+  install-and-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16]
+    name: Upload install and build artifact (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - name: Install dependencies and build sequelize
+        run: yarn install --frozen-lockfile
+      - name: Compress artifact
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
+      - uses: actions/upload-artifact@v3
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+          path: install-build-node-${{ matrix.node-version }}.tar
+          retention-days: 1
+  test-db2-for-i:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16]
+    name: DB2 for i (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: ibmi
+      SEQ_DB: testdb
+      SEQ_USER: db2inst1
+      SEQ_PW: password
+      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
+      SEQ_PORT: 50000
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - uses: actions/download-artifact@v3
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Integration Tests
+        run: yarn test-integration-ibmi
+  
