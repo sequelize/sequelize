@@ -21,11 +21,12 @@ describe('QueryInterface#update', () => {
     await sequelize.getQueryInterface().update(
       instance,
       User.tableName,
-      { firstName: 'Zoe' },
+      { firstName: ':name' },
       { id: ':id' },
       {
         returning: [':data'],
         replacements: {
+          name: 'Zoe',
           data: 'abc',
         },
       },
@@ -34,6 +35,6 @@ describe('QueryInterface#update', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expect(firstCall.args[0]).to.eq('UPDATE "Users" SET "firstName"=$1 WHERE "id" = $2 RETURNING ":data"');
-    expect(firstCall.args[1]?.bind).to.deep.eq(['Zoe', ':id']);
+    expect(firstCall.args[1]?.bind).to.deep.eq([':name', ':id']);
   });
 });
