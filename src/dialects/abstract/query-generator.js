@@ -1345,8 +1345,8 @@ class QueryGenerator {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
           
-          // For Oracle dialect, a statement that contains both ORDER BY and UNION would require two separate sorting steps-one to satisfy ORDER BY and one to satisfy UNION
-          // https://docs.oracle.com/javadb/10.8.3.0/tuning/ctuntransform14044.html
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
+          // So the top level ORDER BY is required
           if (this._dialect.name !== 'oracle') {
             delete options.order;
           }
