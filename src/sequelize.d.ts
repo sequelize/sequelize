@@ -459,7 +459,7 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
   fieldMap?: FieldMap;
 }
 
-export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryOptions {
+export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {
   /**
    * The type of query you are executing. The query type affects how results are formatted before they are
    * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
@@ -467,7 +467,7 @@ export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryOpti
   type: T;
 }
 
-export interface QueryRawOptionsWithModel<M extends Model> extends QueryOptions {
+export interface QueryRawOptionsWithModel<M extends Model> extends QueryRawOptions {
   /**
    * A sequelize model used to build the returned model instances (used to be called callee)
    */

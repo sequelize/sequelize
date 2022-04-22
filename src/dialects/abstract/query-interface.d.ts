@@ -4,14 +4,13 @@ import {
   Model,
   ModelAttributeColumnOptions,
   ModelAttributes,
-  Transactionable,
   WhereOptions,
   Filterable,
   ModelType,
   CreationAttributes,
   Attributes, BuiltModelAttributeColumOptions, ModelStatic,
 } from '../../model';
-import { Sequelize, QueryOptions, QueryOptionsWithModel, QueryRawOptions } from '../../sequelize';
+import { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
@@ -19,11 +18,7 @@ import { Deferrable } from '../../deferrable';
 import { AbstractQueryGenerator } from './query-generator.js';
 import { BindOrReplacements } from './query.js';
 
-/**
- * Most of the methods accept options and use only the logger property of the options. That's why the most used
- * interface type for options in a method is separated here as another interface.
- */
-export interface QiOptionsWithParameters extends Omit<QueryRawOptions, 'bind'> {
+type WithReplacementsAndNamedBind<T extends QueryRawOptions> = Omit<T, 'bind'> & {
   /**
    * Query interface methods accept both named & positional bind parameters.
    */
@@ -33,29 +28,35 @@ export interface QiOptionsWithParameters extends Omit<QueryRawOptions, 'bind'> {
    * Only named replacements are allowed in query interface methods.
    */
   replacements?: { [key: string]: unknown },
-}
+};
 
-export interface QiInsertOptions extends QiOptionsWithParameters {
+interface QiOptionsWithParameters extends WithReplacementsAndNamedBind<QueryRawOptions> {}
+
+export interface QiInsertOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
   returning?: boolean | string[],
 }
 
-export interface QiSelectOptions extends QiOptionsWithParameters, Filterable<any> {
+export interface QiSelectOptions extends WithReplacementsAndNamedBind<QueryRawOptions>, Filterable<any> {
 
 }
 
-export interface QiUpdateOptions extends QiOptionsWithParameters {
+export interface QiUpdateOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
   returning?: boolean | string[],
 }
 
-export interface QiDeleteOptions extends QiOptionsWithParameters {
+export interface QiDeleteOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
   limit?: number | Literal | null | undefined;
 }
 
-export interface QiArithmeticOptions extends QiOptionsWithParameters {
+export interface QiArithmeticOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
   returning?: boolean | string[],
 }
 
-export interface CreateFunctionOptions extends QueryOptions {
+export interface QiUpsertOptions<M extends Model> extends WithReplacementsAndNamedBind<QueryRawOptionsWithModel<M>> {
+
+}
+
+export interface CreateFunctionOptions extends QueryRawOptions {
   force?: boolean;
 }
 
@@ -64,7 +65,7 @@ export interface CollateCharsetOptions {
   charset?: string;
 }
 
-export interface QueryInterfaceCreateTableOptions extends QiOptionsWithParameters, CollateCharsetOptions {
+export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, CollateCharsetOptions {
   engine?: string;
   /**
    * Used for compound unique keys.
@@ -77,12 +78,12 @@ export interface QueryInterfaceCreateTableOptions extends QiOptionsWithParameter
   };
 }
 
-export interface QueryInterfaceDropTableOptions extends QiOptionsWithParameters {
+export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
   cascade?: boolean;
   force?: boolean;
 }
 
-export interface QueryInterfaceDropAllTablesOptions extends QiOptionsWithParameters {
+export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
   skip?: string[];
 }
 
@@ -201,7 +202,7 @@ export type AddConstraintOptions =
 | AddPrimaryKeyConstraintOptions
 | AddForeignKeyConstraintOptions;
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryOptions {
+export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
 }
 
@@ -250,14 +251,14 @@ export class QueryInterface {
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public createSchema(schema?: string, options?: QiOptionsWithParameters): Promise<void>;
+  public createSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops the specified schema (table).
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public dropSchema(schema?: string, options?: QiOptionsWithParameters): Promise<void>;
+  public dropSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops all tables.
@@ -269,12 +270,12 @@ export class QueryInterface {
    *
    * @param options
    */
-  public showAllSchemas(options?: QueryOptions): Promise<object>;
+  public showAllSchemas(options?: QueryRawOptions): Promise<object>;
 
   /**
    * Return database version
    */
-  public databaseVersion(options?: QiOptionsWithParameters): Promise<string>;
+  public databaseVersion(options?: QueryRawOptions): Promise<string>;
 
   /**
    * Creates a table with specified attributes.
@@ -309,17 +310,17 @@ export class QueryInterface {
    *
    * @param options
    */
-  public dropAllEnums(options?: QueryOptions): Promise<void>;
+  public dropAllEnums(options?: QueryRawOptions): Promise<void>;
 
   /**
    * Renames a table
    */
-  public renameTable(before: TableName, after: TableName, options?: QiOptionsWithParameters): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Returns all tables
    */
-  public showAllTables(options?: QueryOptions): Promise<string[]>;
+  public showAllTables(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Describe a table
@@ -394,18 +395,18 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: TableName,
-    options?: AddConstraintOptions & QiOptionsWithParameters
+    options?: AddConstraintOptions & QueryRawOptions
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: TableName, constraintName: string, options?: QiOptionsWithParameters): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Shows the index of a table
    */
-  public showIndex(tableName: string | object, options?: QueryOptions): Promise<object>;
+  public showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Put a name to an index
@@ -415,12 +416,12 @@ export class QueryInterface {
   /**
    * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string[], options?: QiOptionsWithParameters): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
 
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: TableName, options?: QiOptionsWithParameters): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Inserts a new record
@@ -435,7 +436,7 @@ export class QueryInterface {
     insertValues: object,
     updateValues: object,
     where: object,
-    options?: QueryOptionsWithModel<M>
+    options?: QiUpsertOptions<M>,
   ): Promise<object>;
 
   /**
@@ -444,7 +445,7 @@ export class QueryInterface {
   public bulkInsert(
     tableName: TableName,
     records: object[],
-    options?: QueryOptions,
+    options?: QiOptionsWithParameters,
     attributes?: Record<string, ModelAttributeColumnOptions>
   ): Promise<object | number>;
 
@@ -466,7 +467,7 @@ export class QueryInterface {
     tableName: TableName,
     values: object,
     where: WhereOptions<any>,
-    options?: QueryOptions,
+    options?: QiOptionsWithParameters,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): Promise<object>;
 
@@ -486,7 +487,7 @@ export class QueryInterface {
   public bulkDelete(
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QueryOptions,
+    options?: QiOptionsWithParameters,
     model?: ModelType
   ): Promise<object>;
 
@@ -603,32 +604,32 @@ export class QueryInterface {
   /**
    * Set option for autocommit of a transaction
    */
-  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryOptions): Promise<void>;
+  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Set the isolation level of a transaction
    */
-  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryOptions): Promise<void>;
+  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Begin a new transaction
    */
-  public startTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Defer constraints
    */
-  public deferConstraints(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Commit an already started transaction
    */
-  public commitTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Rollback ( revert ) a transaction that has'nt been commited
    */
-  public rollbackTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Creates a database
@@ -638,5 +639,5 @@ export class QueryInterface {
   /**
    * Creates a database
    */
-  public dropDatabase(name: string, options?: QueryOptions): Promise<void>;
+  public dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
 }

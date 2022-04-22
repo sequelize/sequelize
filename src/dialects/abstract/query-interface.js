@@ -850,9 +850,12 @@ export class QueryInterface {
       options.upsertKeys = _.uniq(options.upsertKeys);
     }
 
-    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
-    return await this.sequelize.queryRaw(sql, options);
+    delete options.replacement;
+    options.bind = bind;
+
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**
