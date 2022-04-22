@@ -51,6 +51,10 @@ type DeleteOptions = ParameterOptions & {
   limit?: number | Literal | null | undefined;
 };
 
+type ArithmeticQueryOptions = ParameterOptions & {
+  returning?: boolean | Array<string>,
+};
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -64,7 +68,7 @@ export class AbstractQueryGenerator {
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
 
-  selectQuery<M extends Model>(tableName: string, options: SelectOptions<M>, model: ModelStatic<M>, bindContext: BindContext): string;
+  selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>, bindContext?: BindContext): string;
   insertQuery(
     table: TableName,
     valueHash: object,
@@ -86,6 +90,16 @@ export class AbstractQueryGenerator {
     where?: WhereOptions,
     options?: DeleteOptions,
     model?: ModelStatic<Model>,
+    bindContext?: BindContext,
+  ): string;
+
+  arithmeticQuery(
+    operator: string,
+    tableName: TableName,
+    where: WhereOptions,
+    incrementAmountsByField: { [key: string]: number | Literal },
+    extraAttributesToBeUpdated: { [key: string]: unknown },
+    options?: ArithmeticQueryOptions,
     bindContext?: BindContext,
   ): string;
 }

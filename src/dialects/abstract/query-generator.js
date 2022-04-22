@@ -466,9 +466,11 @@ export class AbstractQueryGenerator {
    *
    * @private
    */
-  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext) {
+  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext = {}) {
     options = options || {};
     _.defaults(options, { returning: true });
+
+    const bindOrReplacements = _.pick(options, ['bind', 'replacements']);
 
     extraAttributesToBeUpdated = Utils.removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
@@ -486,26 +488,26 @@ export class AbstractQueryGenerator {
     for (const field in incrementAmountsByField) {
       const incrementAmount = incrementAmountsByField[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedAmount = this.escape(incrementAmount, undefined, undefined, bindContext);
+      const escapedAmount = this.escape(incrementAmount, undefined, bindOrReplacements, bindContext);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
     }
 
     for (const field in extraAttributesToBeUpdated) {
       const newValue = extraAttributesToBeUpdated[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedValue = this.escape(newValue, undefined, undefined, bindContext);
+      const escapedValue = this.escape(newValue, undefined, bindOrReplacements, bindContext);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
 
-    return Utils.joinSQLFragments([
+    return `${Utils.joinSQLFragments([
       'UPDATE',
       this.quoteTable(tableName),
       'SET',
       updateSetSqlFragments.join(','),
       outputFragment,
-      this.whereQuery(where, undefined, bindContext),
+      this.whereQuery(where, bindOrReplacements, bindContext),
       returningFragment,
-    ]);
+    ])};`;
   }
 
   /*
@@ -1173,7 +1175,7 @@ export class AbstractQueryGenerator {
       - offset -> An offset value to start from. Only useable with limit!
    @private
   */
-  selectQuery(tableName, options, model, bindContext) {
+  selectQuery(tableName, options, model, bindContext = {}) {
     options = options || {};
     const limit = options.limit;
     const mainQueryItems = [];

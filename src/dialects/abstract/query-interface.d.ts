@@ -9,7 +9,7 @@ import {
   Filterable,
   ModelType,
   CreationAttributes,
-  Attributes, BuiltModelAttributeColumOptions,
+  Attributes, BuiltModelAttributeColumOptions, ModelStatic,
 } from '../../model';
 import { Sequelize, QueryOptions, QueryOptionsWithModel, QueryRawOptions } from '../../sequelize';
 import { Transaction } from '../../transaction';
@@ -49,6 +49,10 @@ export interface QiUpdateOptions extends QiOptionsWithParameters {
 
 export interface QiDeleteOptions extends QiOptionsWithParameters {
   limit?: number | Literal | null | undefined;
+}
+
+export interface QiArithmeticOptions extends QiOptionsWithParameters {
+  returning?: boolean | string[],
 }
 
 export interface CreateFunctionOptions extends QueryOptions {
@@ -495,11 +499,24 @@ export class QueryInterface {
    * Increments a row value
    */
   public increment<M extends Model>(
-    instance: Model,
+    model: ModelStatic<M>,
     tableName: TableName,
-    values: object,
-    identifier: WhereOptions<Attributes<M>>,
-    options?: QueryOptions
+    incrementAmountsByField: object,
+    extraAttributesToBeUpdated?: object,
+    where?: WhereOptions<Attributes<M>>,
+    options?: QiArithmeticOptions,
+  ): Promise<object>;
+
+  /**
+   * Decrements a row value
+   */
+  public decrement<M extends Model>(
+    model: ModelStatic<M>,
+    tableName: TableName,
+    incrementAmountsByField: object,
+    extraAttributesToBeUpdated?: object,
+    where?: WhereOptions<Attributes<M>>,
+    options?: QiArithmeticOptions,
   ): Promise<object>;
 
   /**

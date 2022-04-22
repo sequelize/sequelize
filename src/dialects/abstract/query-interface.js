@@ -1042,28 +1042,21 @@ export class QueryInterface {
   }
 
   async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    options = Utils.cloneDeep(options);
-    options.model = model;
-
-    const bindContext = {};
-    const sql = this.queryGenerator.arithmeticQuery('+', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
-
-    options.type = QueryTypes.UPDATE;
-    delete options.replacements;
-    options.bind = bindContext.normalizedBind;
-
-    return await this.sequelize.queryRaw(sql, options);
+    return this.#arithmeticQuery('+', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
   }
 
   async decrement(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+    return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+  }
+
+  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
     options = Utils.cloneDeep(options);
     options.model = model;
 
     const bindContext = {};
-    const sql = this.queryGenerator.arithmeticQuery('-', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
 
     options.type = QueryTypes.UPDATE;
-
     delete options.replacements;
     options.bind = bindContext.normalizedBind;
 
