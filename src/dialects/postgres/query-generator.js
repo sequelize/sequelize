@@ -359,7 +359,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model, bindContext) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options, undefined, bindContext);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)}` : '';
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']), bindContext)}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 

@@ -47,6 +47,10 @@ export interface QiUpdateOptions extends QiOptionsWithParameters {
   returning?: boolean | string[],
 }
 
+export interface QiDeleteOptions extends QiOptionsWithParameters {
+  limit?: number | Literal | null | undefined;
+}
+
 export interface CreateFunctionOptions extends QueryOptions {
   force?: boolean;
 }
@@ -469,7 +473,7 @@ export class QueryInterface {
     instance: Model | null,
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QueryOptions
+    options?: QiDeleteOptions,
   ): Promise<object>;
 
   /**

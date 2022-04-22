@@ -12,6 +12,7 @@ import {
 import { TableName } from './query-interface.js';
 import { BindContext } from './query.js';
 import { BindOrReplacements } from '../../sequelize.js';
+import { Literal } from '../../utils/index.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
@@ -46,6 +47,10 @@ type UpdateOptions = ParameterOptions & {
   bindParam?: false | ((value: unknown) => string),
 };
 
+type DeleteOptions = ParameterOptions & {
+  limit?: number | Literal | null | undefined;
+};
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -75,4 +80,12 @@ export class AbstractQueryGenerator {
     options: UpdateOptions,
     columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): { query: string, bind?: Array<unknown> };
+
+  deleteQuery(
+    tableName: TableName,
+    where?: WhereOptions,
+    options?: DeleteOptions,
+    model?: ModelStatic<Model>,
+    bindContext?: BindContext,
+  ): string;
 }
