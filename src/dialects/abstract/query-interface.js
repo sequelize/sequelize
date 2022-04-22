@@ -1017,8 +1017,14 @@ export class QueryInterface {
       where = Utils.cloneDeep(where);
     }
 
-    return await this.sequelize.query(
-      this.queryGenerator.deleteQuery(tableName, where, options, model),
+    const bindContext = {};
+    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model, bindContext);
+
+    options.bind = bindContext.normalizedBind;
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(
+      sql,
       options,
     );
   }
