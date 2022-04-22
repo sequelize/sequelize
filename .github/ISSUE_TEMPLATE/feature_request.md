@@ -47,6 +47,8 @@ For general questions, please use one of these:
 - [ ] No, I don't have the time, but my company or I are [supporting Sequelize through donations on OpenCollective](https://opencollective.com/sequelize).
 - [ ] No, I don't have the time, I'm not contributing financially, and I understand that I will need to wait until someone from the community or maintainers is interested in implementing my feature.
 
+---
+
 <!-- do not delete this footer -->
 
 *Indicate your interest in the addition of this feature by adding the 👍 reaction. Comments such as "+1" will be removed.*
