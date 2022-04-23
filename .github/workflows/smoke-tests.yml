@@ -1,4 +1,4 @@
-name: CI
+name: Smoke Test (ibmi)
 on:
   schedule:
     - cron: "0 9 */5 * *"
