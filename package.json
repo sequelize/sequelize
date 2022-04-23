@@ -100,7 +100,7 @@
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
-    "p-timeout": "4.1.0",
+    "p-timeout": "5.0.2",
     "pg": "8.7.3",
     "pg-hstore": "2.3.4",
     "rimraf": "3.0.2",
