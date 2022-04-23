@@ -21,7 +21,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
     }, {}, bindContext);
 
     expectsql(sql, {
-      default: 'INSERT INTO "Users" ("firstName") VALUES (\'a string\');',
+      default: 'INSERT INTO [Users] ([firstName]) VALUES (\'a string\');',
     });
 
     expect(bindContext.normalizedBind).to.be.undefined;

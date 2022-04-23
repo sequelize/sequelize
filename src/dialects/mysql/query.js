@@ -17,20 +17,20 @@ export class MySqlQuery extends AbstractQuery {
     super(connection, sequelize, { showWarnings: false, ...options });
   }
 
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = [];
+  static formatBindParameters(sql, values, bindContext, dialect) {
+    if (!bindContext.normalizedBind) {
+      bindContext.normalizedBind = [];
+    }
+
     const replacementFunc = (match, key, values_) => {
       if (values_[key] !== undefined) {
-        bindParam.push(values_[key]);
+        bindContext.normalizedBind.push(values_[key]);
 
         return '?';
       }
-
     };
 
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam.length > 0 ? bindParam : undefined];
+    return AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc);
   }
 
   async run(sql, parameters) {

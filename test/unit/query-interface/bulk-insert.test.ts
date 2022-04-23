@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
   const User = sequelize.define('User', {
@@ -26,7 +26,10 @@ describe('QueryInterface#bulkInsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('INSERT INTO "Users" ("firstName") VALUES (\':injection\');');
+
+    expectsql(firstCall.args[0] as string, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES (':injection');`,
+    });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 
@@ -43,7 +46,9 @@ describe('QueryInterface#bulkInsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('INSERT INTO "Users" ("firstName") VALUES (\'$injection\');');
+    expectsql(firstCall.args[0] as string, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ('$injection');`,
+    });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

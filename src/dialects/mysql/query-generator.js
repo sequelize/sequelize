@@ -239,7 +239,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
+  handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
     if (smth instanceof Utils.Json) {
       // Parse nested object
       if (smth.conditions) {
@@ -262,7 +262,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
+          str += ` = ${this.escape(smth.value, undefined, options, bindContext)}`;
         }
 
         return str;
@@ -280,7 +280,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
+    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext);
   }
 
   _toJSONValue(value) {
@@ -301,21 +301,19 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
-    let limit = '';
+  deleteQuery(tableName, where, options = {}, model, bindContext = {}) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    if (options.limit) {
-      limit = ` LIMIT ${this.escape(options.limit)}`;
-    }
-
-    where = this.getWhereConditions(where, null, model, options);
-
+    where = this.getWhereConditions(where, null, model, options, undefined, bindContext);
     if (where) {
       query += ` WHERE ${where}`;
     }
 
-    return query + limit;
+    if (options.limit) {
+      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']), bindContext)}`;
+    }
+
+    return `${query};`;
   }
 
   showIndexesQuery(tableName, options) {
@@ -623,6 +621,18 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
 
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
+  }
+
+  _createBindParamCollector(bindContext /* : BindContext */) {
+    return function collect(value) {
+      if (!bindContext.normalizedBind) {
+        bindContext.normalizedBind = [];
+      }
+
+      bindContext.normalizedBind.push(value);
+
+      return '?';
+    };
   }
 }
 

@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#select', () => {
   const User = sequelize.define('User', {
@@ -29,7 +29,9 @@ describe('QueryInterface#select', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some :data\';');
+    expectsql(firstCall.args[0] as string, {
+      default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'some :data';`,
+    });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 
@@ -50,7 +52,9 @@ describe('QueryInterface#select', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('SELECT "id" FROM "Users" AS "User" WHERE "User"."username" = \'some $data\';');
+    expectsql(firstCall.args[0] as string, {
+      default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'some $data';`,
+    });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

@@ -28,7 +28,9 @@ describe('QueryGenerator#updateQuery', () => {
     );
 
     expectsql(query, {
-      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1)`,
+      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1);`,
+      mariadb: 'DELETE FROM `Users` WHERE name = \'Zoe\' LIMIT 1;',
+      mysql: 'DELETE FROM `Users` WHERE name = \'Zoe\' LIMIT 1;',
     });
     expect(bindContext.normalizedBind).to.be.undefined;
   });
@@ -50,8 +52,11 @@ describe('QueryGenerator#updateQuery', () => {
     );
 
     expectsql(query, {
-      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = $1 LIMIT $2)`,
+      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = $1 LIMIT $2);`,
+      mariadb: 'DELETE FROM `Users` WHERE name = ? LIMIT ?;',
+      mysql: 'DELETE FROM `Users` WHERE name = ? LIMIT ?;',
     });
+
     expect(bindContext.normalizedBind).to.deep.eq(['Zoe', 1]);
   });
 
@@ -69,7 +74,9 @@ describe('QueryGenerator#updateQuery', () => {
     );
 
     expectsql(query, {
-      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = $1 LIMIT $2)`,
+      postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = $1 LIMIT $2);`,
+      mariadb: 'DELETE FROM `Users` WHERE name = ? LIMIT ?;',
+      mysql: 'DELETE FROM `Users` WHERE name = ? LIMIT ?;',
     });
 
     // it's normal that the order of the bind parameters has been flipped.

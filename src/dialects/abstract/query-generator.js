@@ -122,7 +122,7 @@ export class AbstractQueryGenerator {
     const returningModelAttributes = [];
     const values = [];
     const quotedTable = this.quoteTable(table);
-    const bindParam = options.bindParam === undefined ? this.#createBindParamCollector(bindContext) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this._createBindParamCollector(bindContext) : options.bindParam;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -393,7 +393,7 @@ export class AbstractQueryGenerator {
       options.bindParam = false;
     }
 
-    const bindParam = options.bindParam === undefined ? this.#createBindParamCollector(bindContext) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this._createBindParamCollector(bindContext) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect !== 'mssql' && this.dialect !== 'db2') {
       suffix = ` LIMIT ${this.escape(options.limit, undefined, undefined, bindContext)} `;
@@ -1079,7 +1079,7 @@ export class AbstractQueryGenerator {
     };
   }
 
-  #createBindParamCollector(bindContext /* : BindContext */) {
+  _createBindParamCollector(bindContext /* : BindContext */) {
     return function collect(value) {
       if (!bindContext.normalizedBind) {
         bindContext.normalizedBind = [];
@@ -2198,15 +2198,15 @@ export class AbstractQueryGenerator {
    */
   addLimitAndOffset(options, model, bindContext) {
     let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT 18446744073709551615`;
+    }
 
-    if (options.offset != null && options.limit == null) {
-      fragment += ` LIMIT ${this.escape(options.offset, undefined, options, bindContext)}, ${10_000_000_000_000}`;
-    } else if (options.limit != null) {
-      if (options.offset != null) {
-        fragment += ` LIMIT ${this.escape(options.offset, undefined, options, bindContext)}, ${this.escape(options.limit, undefined, options, bindContext)}`;
-      } else {
-        fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
-      }
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options, bindContext)}`;
     }
 
     return fragment;

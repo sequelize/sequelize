@@ -377,10 +377,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
       primaryKeysSelection = pks;
 
-      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
+      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit});`;
     }
 
-    return `DELETE FROM ${table}${whereClause}`;
+    return `DELETE FROM ${table}${whereClause};`;
   }
 
   showIndexesQuery(tableName) {
@@ -430,19 +430,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       options && options.concurrently && 'CONCURRENTLY',
       `IF EXISTS ${this.quoteIdentifiers(indexName)}`,
     ].filter(Boolean).join(' ');
-  }
-
-  addLimitAndOffset(options, model, bindContext) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, options, bindContext)}`;
-    }
-
-    if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options, bindContext)}`;
-    }
-
-    return fragment;
   }
 
   attributeToSQL(attribute, options) {

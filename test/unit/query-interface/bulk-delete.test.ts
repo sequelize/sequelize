@@ -31,7 +31,7 @@ describe('QueryInterface#bulkDelete', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `DELETE FROM [Users] WHERE [id] = ':id'`,
+      default: `DELETE FROM [Users] WHERE [id] = ':id';`,
     });
 
     expect(firstCall.args[1]?.bind).to.be.undefined;

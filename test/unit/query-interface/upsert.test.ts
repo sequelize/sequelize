@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#upsert', () => {
   const User = sequelize.define('User', {
@@ -32,7 +32,11 @@ describe('QueryInterface#upsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('INSERT INTO "Users" ("firstName") VALUES ($1) ON CONFLICT ("id") DO UPDATE SET "firstName"=EXCLUDED."firstName";');
+    expectsql(firstCall.args[0] as string, {
+      postgres: 'INSERT INTO "Users" ("firstName") VALUES ($1) ON CONFLICT ("id") DO UPDATE SET "firstName"=EXCLUDED."firstName";',
+      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES (?) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
+      mysql: 'INSERT INTO `Users` (`firstName`) VALUES (?) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
+    });
     expect(firstCall.args[1]?.bind).to.deep.eq([':name']);
   });
 });

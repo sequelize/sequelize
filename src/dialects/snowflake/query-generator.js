@@ -639,17 +639,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addLimitAndOffset(options) {
-    let fragment = [];
-    if (options.offset !== null && options.offset !== undefined && options.offset !== 0) {
-      fragment = [...fragment, ' LIMIT ', this.escape(options.limit), ' OFFSET ', this.escape(options.offset)];
-    } else if (options.limit !== null && options.limit !== undefined) {
-      fragment = [' LIMIT ', this.escape(options.limit)];
-    }
-
-    return fragment.join('');
-  }
-
   /**
    * Quote identifier in sql clause
    *

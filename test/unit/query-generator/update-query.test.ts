@@ -1,6 +1,6 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -21,7 +21,9 @@ describe('QueryGenerator#updateQuery', () => {
       },
     }, {});
 
-    expect(query).to.eq(`UPDATE "Users" SET "firstName"='Zoe' WHERE name = 'Zoe';`);
+    expectsql(query, {
+      default: 'UPDATE [Users] SET [firstName]=\'Zoe\' WHERE name = \'Zoe\';',
+    });
     expect(bind).to.be.undefined;
   });
 
@@ -38,8 +40,17 @@ describe('QueryGenerator#updateQuery', () => {
       },
     }, {});
 
-    expect(query).to.eq('UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3 WHERE name = $2;');
-    expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
+    if (sequelize.dialect.name === 'postgres') {
+      expect(query).to.eq('UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3 WHERE name = $2;');
+      expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
+    } else {
+      expectsql(query, {
+        mariadb: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=? WHERE name = ?;',
+        mysql: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=? WHERE name = ?;',
+      });
+
+      expect(bind).to.deep.eq(['John', 'Doe', 'jd', 'Doe']);
+    }
   });
 
   it('parses positional bind parameters in literals', async () => {
@@ -52,7 +63,11 @@ describe('QueryGenerator#updateQuery', () => {
     }, {});
 
     // lastName's bind position being changed from $1 to $2 is intentional
-    expect(query).to.eq('UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3;');
+    expectsql(query, {
+      postgres: 'UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3;',
+      mysql: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=?;',
+      mariadb: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=?;',
+    });
     expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
   });
 
@@ -69,7 +84,11 @@ describe('QueryGenerator#updateQuery', () => {
     }, {});
 
     // lastName's bind position being changed from $1 to $2 is intentional
-    expect(query).to.eq(`UPDATE "Users" SET "firstName"='John',"lastName"=$1,"username"='jd' WHERE first_name = $2;`);
+    expectsql(query, {
+      postgres: `UPDATE "Users" SET "firstName"='John',"lastName"=$1,"username"='jd' WHERE first_name = $2;`,
+      mysql: 'UPDATE `Users` SET `firstName`=\'John\',`lastName`=?,`username`=\'jd\' WHERE first_name = ?;',
+      mariadb: 'UPDATE `Users` SET `firstName`=\'John\',`lastName`=?,`username`=\'jd\' WHERE first_name = ?;',
+    });
     expect(bind).to.deep.eq(['Doe', 'John']);
   });
 });

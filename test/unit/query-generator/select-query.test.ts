@@ -211,8 +211,18 @@ describe('QueryGenerator#selectQuery', () => {
         },
       }, User, bindContext);
 
-      expect(sql).to.eq('SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2 OR "User"."username" = $2);');
-      expect(bindContext.normalizedBind).to.deep.eq(['this should be present', 'other data']);
+      // postgres supports reusing the same parameters
+      if (sequelize.dialect.name === 'postgres') {
+        expect(sql).to.eq('SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2 OR "User"."username" = $2);');
+        expect(bindContext.normalizedBind).to.deep.eq(['this should be present', 'other data']);
+      } else {
+        expectsql(sql, {
+          mariadb: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ? OR `User`.`username` = ?);',
+          mysql: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ? OR `User`.`username` = ?);',
+        });
+
+        expect(bindContext.normalizedBind).to.deep.eq(['this should be present', 'other data', 'other data']);
+      }
     });
 
     it('parses positional bind in literals', async () => {
@@ -232,8 +242,12 @@ describe('QueryGenerator#selectQuery', () => {
         bind: ['bind param 1', 'bind param 2'],
       }, User, bindContext);
 
-      expect(sql).to.eq('SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $2 OR "User"."username" = $1);');
-      expect(bindContext.normalizedBind).to.deep.eq(['bind param 1', 'bind param 2']);
+      expectsql(sql, {
+        postgres: 'SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2);',
+        mariadb: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ?);',
+        mysql: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ?);',
+      });
+      expect(bindContext.normalizedBind).to.deep.eq(['bind param 2', 'bind param 1']);
     });
   });
 });

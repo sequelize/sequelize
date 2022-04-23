@@ -32,7 +32,7 @@ export class MySqlQueryInterface extends QueryInterface {
       )));
     }
 
-    return await this.sequelize.query(
+    return await this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),
       { raw: true, ...options },
     );
@@ -49,9 +49,11 @@ export class MySqlQueryInterface extends QueryInterface {
     options.upsertKeys = Object.values(options.model.primaryKeys).map(item => item.field);
 
     const model = options.model;
-    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    delete options.replacements;
+    options.bind = bind;
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**
@@ -88,6 +90,6 @@ export class MySqlQueryInterface extends QueryInterface {
       query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
     }
 
-    return await this.sequelize.query(query, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 }

@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#decrement', () => {
   const User = sequelize.define('User', {
@@ -38,7 +38,10 @@ describe('QueryInterface#decrement', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq(`UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data";`);
+    expectsql(firstCall.args[0] as string, {
+      postgres: `UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data";`,
+      default: `UPDATE [Users] SET [age]=[age]- ':age',[name]=':name' WHERE [id] = ':id';`,
+    });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

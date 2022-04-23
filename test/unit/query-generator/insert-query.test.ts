@@ -1,6 +1,6 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -19,7 +19,9 @@ describe('QueryGenerator#insertQuery', () => {
       },
     });
 
-    expect(query).to.eq('INSERT INTO "Users" ("firstName") VALUES (\'Zoe\');');
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
+    });
     expect(bind).to.be.undefined;
   });
 
@@ -34,7 +36,12 @@ describe('QueryGenerator#insertQuery', () => {
       },
     });
 
-    expect(query).to.eq('INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);');
+    expectsql(query, {
+      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);`,
+      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+    });
+
     expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
   });
 
@@ -47,8 +54,12 @@ describe('QueryGenerator#insertQuery', () => {
       bind: ['Doe'],
     });
 
-    // lastName's bind position being changed from $1 to $2 is intentional
-    expect(query).to.eq('INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);');
+    // lastName's bind position being changed from $1 to $2 is intentional: bind array order must match their order in the query in some dialects.
+    expectsql(query, {
+      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);`,
+      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+    });
     expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
   });
 
@@ -62,8 +73,11 @@ describe('QueryGenerator#insertQuery', () => {
       bind: ['Doe'],
     });
 
-    // lastName's bind position being changed from $1 to $2 is intentional
-    expect(query).to.eq(`INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd');`);
+    expectsql(query, {
+      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd');`,
+      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (\'John\',?,\'jd\');',
+      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (\'John\',?,\'jd\');',
+    });
     expect(bind).to.deep.eq(['Doe']);
   });
 });

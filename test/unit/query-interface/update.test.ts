@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#update', () => {
   const User = sequelize.define('User', {
@@ -34,7 +34,10 @@ describe('QueryInterface#update', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expect(firstCall.args[0]).to.eq('UPDATE "Users" SET "firstName"=$1 WHERE "id" = $2 RETURNING ":data"');
+    expectsql(firstCall.args[0] as string, {
+      postgres: 'UPDATE "Users" SET "firstName"=$1 WHERE "id" = $2 RETURNING ":data";',
+      default: 'UPDATE [Users] SET [firstName]=? WHERE [id] = ?;',
+    });
     expect(firstCall.args[1]?.bind).to.deep.eq([':name', ':id']);
   });
 });

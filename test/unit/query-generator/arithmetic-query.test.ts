@@ -1,7 +1,7 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import type { BindContext } from '../../../types/dialects/abstract/query.js';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -36,7 +36,11 @@ describe('QueryGenerator#updateQuery', () => {
       bindContext,
     );
 
-    expect(sql).to.eq(`UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *;`);
+    expectsql(sql, {
+      postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *;`,
+      mariadb: `UPDATE \`Users\` SET \`age\`=\`age\`+ 2,\`name\`='John' WHERE id = 47;`,
+      mysql: `UPDATE \`Users\` SET \`age\`=\`age\`+ 2,\`name\`='John' WHERE id = 47;`,
+    });
     expect(bindContext.normalizedBind).to.be.undefined;
   });
 
@@ -65,7 +69,11 @@ describe('QueryGenerator#updateQuery', () => {
       bindContext,
     );
 
-    expect(sql).to.eq(`UPDATE "Users" SET "age"="age"+ $1,"name"=$2 WHERE id = $3 RETURNING *;`);
+    expectsql(sql, {
+      postgres: `UPDATE "Users" SET "age"="age"+ $1,"name"=$2 WHERE id = $3 RETURNING *;`,
+      mariadb: 'UPDATE `Users` SET `age`=`age`+ ?,`name`=? WHERE id = ?;',
+      mysql: 'UPDATE `Users` SET `age`=`age`+ ?,`name`=? WHERE id = ?;',
+    });
     expect(bindContext.normalizedBind).to.deep.eq([2, 'John', 47]);
   });
 
@@ -90,7 +98,11 @@ describe('QueryGenerator#updateQuery', () => {
       bindContext,
     );
 
-    expect(sql).to.eq(`UPDATE "Users" SET "age"="age"+ $1,"name"=$2 WHERE id = $3 RETURNING *;`);
+    expectsql(sql, {
+      postgres: `UPDATE "Users" SET "age"="age"+ $1,"name"=$2 WHERE id = $3 RETURNING *;`,
+      mariadb: 'UPDATE `Users` SET `age`=`age`+ ?,`name`=? WHERE id = ?;',
+      mysql: 'UPDATE `Users` SET `age`=`age`+ ?,`name`=? WHERE id = ?;',
+    });
     expect(bindContext.normalizedBind).to.deep.eq([2, 'John', 47]);
   });
 });
