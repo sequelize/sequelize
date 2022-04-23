@@ -572,7 +572,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect === 'mysql' || dialect === 'mariadb') {
         it('should allow to use calculated values on duplicate', async function () {
-          const [insertUser] = await this.User.upsert({
+          const insertUser = await this.User.create({
             bar: 10,
           });
           const [user] = await this.User.upsert({
