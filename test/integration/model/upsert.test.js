@@ -570,6 +570,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
+      if (dialect === 'mysql' || dialect === 'mariadb') {
+        it('should allow to use calculated values on duplicate', async function () {
+          const [insertUser] = await this.User.upsert({
+            bar: 10,
+          });
+          const [user] = await this.User.upsert({
+            id: insertUser.id,
+            bar: this.sequelize.literal('`bar` + 1'),
+          });
+          await user.reload();
+          expect(user.bar).to.equal(11);
+        });
+      }
+
       if (current.dialect.supports.returnValues) {
         describe('returns values', () => {
           it('works with upsert on id', async function () {
