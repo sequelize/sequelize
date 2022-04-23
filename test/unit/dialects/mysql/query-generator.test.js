@@ -571,6 +571,13 @@ if (dialect === 'mysql') {
           },
           needsSequelize: true,
         },
+        {
+          arguments: ['myTable', { name: 'foo' }, undefined, { updateOnDuplicate: ['name'] }],
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1) ON DUPLICATE KEY UPDATE `name`=$1;',
+            bind: ['foo'],
+          },
+        },
       ],
 
       bulkInsertQuery: [

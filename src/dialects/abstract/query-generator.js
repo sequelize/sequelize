@@ -118,7 +118,7 @@ export class AbstractQueryGenerator {
     const bind = [];
     const fields = [];
     const returningModelAttributes = [];
-    const values = [];
+    const values = {};
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     let query;
@@ -174,9 +174,9 @@ export class AbstractQueryGenerator {
           if (!this._dialect.supports.autoIncrement.defaultValue) {
             fields.splice(-1, 1);
           } else if (this._dialect.supports.DEFAULT) {
-            values.push('DEFAULT');
+            values[key] = 'DEFAULT';
           } else {
-            values.push(this.escape(null));
+            values[key] = this.escape(null);
           }
         } else {
           if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
@@ -184,9 +184,9 @@ export class AbstractQueryGenerator {
           }
 
           if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-            values.push(this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }));
+            values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' });
           } else {
-            values.push(this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam));
+            values[key] = this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam);
           }
         }
       }
@@ -207,7 +207,7 @@ export class AbstractQueryGenerator {
         // do an update.  Instead, fall back to DO NOTHING.
         onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
       } else {
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
+        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
         // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
         // This will be the primary key in most cases, but it could be some other constraint.
@@ -231,7 +231,7 @@ export class AbstractQueryGenerator {
       onConflictDoNothing: options.ignoreDuplicates ? this._dialect.supports.inserts.onConflictDoNothing : '',
       attributes: fields.join(','),
       output: outputFragment,
-      values: values.join(','),
+      values: Object.values(values).join(','),
       tmpTable,
     };
 
