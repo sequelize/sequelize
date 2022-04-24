@@ -19,7 +19,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sql.addLimitAndOffset(
             options,
             model,
-            {},
           ),
           expectation,
         );

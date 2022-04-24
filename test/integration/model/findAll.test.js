@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize, literal, or } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -16,8 +16,6 @@ const current = Support.sequelize;
 const promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  let User;
-
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -30,8 +28,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     await this.User.sync({ force: true });
-
-    User = this.User;
   });
 
   describe('findAll', () => {

@@ -59,9 +59,9 @@ export class AbstractQueryGenerator {
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
   whereQuery(where: object, options: ParameterOptions): string;
-  whereItemsQuery(where: WhereOptions, options: ParameterOptions, binding: string): string;
+  whereItemsQuery(where: WhereOptions, options: ParameterOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  escape(value: unknown, field: unknown, options: ParameterOptions): string;
+  escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
 
