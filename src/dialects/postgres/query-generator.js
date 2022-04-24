@@ -432,6 +432,19 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     ].filter(Boolean).join(' ');
   }
 
+  addLimitAndOffset(options) {
+    let fragment = '';
+    if (options.limit) {
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+    }
+
+    return fragment;
+  }
+
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {

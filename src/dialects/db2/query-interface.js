@@ -32,7 +32,6 @@ export class Db2QueryInterface extends QueryInterface {
     const model = options.model;
     const wheres = [];
     const attributes = Object.keys(insertValues);
-    let indexes = [];
     let indexFields;
 
     options = _.clone(options);
@@ -42,7 +41,7 @@ export class Db2QueryInterface extends QueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    indexes = _.map(model.uniqueKeys, value => {
+    const indexes = _.map(model.uniqueKeys, value => {
       return value.fields;
     });
 

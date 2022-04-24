@@ -50,9 +50,19 @@ describe('QueryInterface#upsert', () => {
       `,
       // TODO: does snowflake not support upsert?
       snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
+      db2: `
+        MERGE INTO "Users"
+          AS "Users_target"
+        USING (VALUES(':name')) AS "Users_source"("firstName")
+        ON "Users_target"."id" = "Users_source"."id"
+        WHEN MATCHED THEN
+          UPDATE SET "Users_target"."firstName" = ':name'
+        WHEN NOT MATCHED THEN
+          INSERT ("firstName") VALUES(':name');
+      `,
     });
 
-    if (dialectName === 'mssql') {
+    if (dialectName === 'mssql' || dialectName === 'db2') {
       expect(firstCall.args[1]?.bind).to.be.undefined;
     } else {
       expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -88,7 +98,8 @@ describe('QueryInterface#upsert', () => {
         lastName: 'Doe',
       },
       {},
-      dialectName === 'mssql' ? { id: 1 } : {},
+      // TODO: weird mssql/db2 specific behavior that should be unified
+      dialectName === 'mssql' || dialectName === 'db2' ? { id: 1 } : {},
       {
         model: User,
         bind: {
@@ -113,9 +124,16 @@ describe('QueryInterface#upsert', () => {
       `,
       // TODO: does snowflake not support upsert?
       snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1);`,
+      db2: `
+        MERGE INTO "Users" AS "Users_target"
+        USING (VALUES($firstName, 'Doe')) AS "Users_source"("firstName", "lastName")
+        ON "Users_target"."id" = "Users_source"."id"
+        WHEN NOT MATCHED THEN
+          INSERT ("firstName", "lastName") VALUES($firstName, 'Doe');
+      `,
     });
 
-    if (dialectName === 'mssql') {
+    if (dialectName === 'mssql' || dialectName === 'db2') {
       expect(firstCall.args[1]?.bind).to.deep.eq({
         firstName: 'John',
       });
@@ -137,7 +155,8 @@ describe('QueryInterface#upsert', () => {
         lastName: 'Doe',
       },
       {},
-      dialectName === 'mssql' ? { id: 1 } : {},
+      // TODO: weird mssql/db2 specific behavior that should be unified
+      dialectName === 'mssql' || dialectName === 'db2' ? { id: 1 } : {},
       {
         model: User,
         bind: ['John'],
@@ -160,10 +179,17 @@ describe('QueryInterface#upsert', () => {
       `,
       // TODO: does snowflake not support upsert?
       snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1);`,
+      db2: `
+        MERGE INTO "Users" AS "Users_target"
+        USING (VALUES($1, 'Doe')) AS "Users_source"("firstName", "lastName")
+        ON "Users_target"."id" = "Users_source"."id"
+        WHEN NOT MATCHED THEN
+          INSERT ("firstName", "lastName") VALUES($1, 'Doe');
+      `,
     });
 
     // mssql does not generate any bind parameter
-    if (dialectName === 'mssql') {
+    if (dialectName === 'mssql' || dialectName === 'db2') {
       expect(firstCall.args[1]?.bind).to.deep.eq(['John']);
     } else {
       expect(firstCall.args[1]?.bind).to.deep.eq({

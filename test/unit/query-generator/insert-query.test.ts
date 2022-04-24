@@ -22,6 +22,7 @@ describe('QueryGenerator#insertQuery', () => {
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
+      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
     });
     expect(bind).to.deep.eq({});
   });
@@ -35,6 +36,7 @@ describe('QueryGenerator#insertQuery', () => {
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
+      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
     });
 
     expect(bind).to.deep.eq({
@@ -53,6 +55,7 @@ describe('QueryGenerator#insertQuery', () => {
     // lastName's bind position being changed from $1 to $2 is intentional: bind array order must match their order in the query in some dialects.
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
+      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
     });
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
@@ -72,6 +75,7 @@ describe('QueryGenerator#insertQuery', () => {
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
       mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
+      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'));`,
     });
     expect(bind).to.be.undefined;
   });

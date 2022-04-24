@@ -28,6 +28,25 @@ describe('QueryGenerator#selectQuery', () => {
     as: 'contributors',
   });
 
+  it('supports offset without limit', () => {
+    const sql = queryGenerator.selectQuery(User.tableName, {
+      model: User,
+      attributes: ['id'],
+      offset: 1,
+    }, User);
+
+    expectsql(sql, {
+      postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
+      mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+      mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+      sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+      snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT 18446744073709551615 OFFSET 1;',
+      db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
+      ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
+      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+    });
+  });
+
   describe('replacements', () => {
     it('parses named replacements in literals', async () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
@@ -81,6 +100,16 @@ describe('QueryGenerator#selectQuery', () => {
           ORDER BY N'repl2'
           OFFSET N'repl4' ROWS
           FETCH NEXT N'repl3' ROWS ONLY;
+        `,
+        db2: `
+          SELECT uppercase('id') AS "id", 'id2'
+          FROM "Users" AS "User"
+          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          GROUP BY 'the group'
+          HAVING "username" = 'repl1'
+          ORDER BY 'repl2'
+          OFFSET 'repl4' ROWS
+          FETCH NEXT 'repl3' ROWS ONLY;
         `,
       });
     });
