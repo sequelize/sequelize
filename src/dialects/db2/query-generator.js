@@ -300,7 +300,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     attributes = attributes || {};
     let query = 'INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>;';
     if (options.returning) {
-      query = 'SELECT * FROM FINAL TABLE( INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
+      query = 'SELECT * FROM FINAL TABLE (INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
     }
 
     const emptyQuery = 'INSERT INTO <%= table %>';

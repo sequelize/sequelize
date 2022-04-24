@@ -30,6 +30,8 @@ describe('QueryInterface#bulkInsert', () => {
     expectsql(firstCall.args[0] as string, {
       default: `INSERT INTO [Users] ([firstName]) VALUES (':injection');`,
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N':injection');`,
+      // TODO: db2 should use the same system as ibmi
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
     });
   });
 });

@@ -260,7 +260,7 @@ export class AbstractQueryGenerator {
 
     query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
     if (this._dialect.supports.finalTable) {
-      query = `SELECT * FROM FINAL TABLE(${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
+      query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }
 
     if (identityWrapperRequired && this._dialect.supports.autoIncrement.identityInsert) {
@@ -471,6 +471,8 @@ export class AbstractQueryGenerator {
    * @private
    */
   arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+    // TODO: this method should delegate to `updateQuery`
+
     options = options || {};
     _.defaults(options, { returning: true });
 

@@ -31,7 +31,8 @@ describe('QueryInterface#insert', () => {
       postgres: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING ":data";`,
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);',
       mssql: `INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[:data] VALUES ($sequelize_1);`,
-      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: 'Zoe',
@@ -66,7 +67,8 @@ describe('QueryInterface#insert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1);',
-      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1));`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -89,7 +91,8 @@ describe('QueryInterface#insert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1);',
-      db2: `SELECT * FROM FINAL TABLE(INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1));`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

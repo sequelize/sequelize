@@ -111,6 +111,16 @@ describe('QueryGenerator#selectQuery', () => {
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
         `,
+        ibmi: `
+          SELECT uppercase('id') AS "id", 'id2'
+          FROM "Users" AS "User"
+          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          GROUP BY 'the group'
+          HAVING "username" = 'repl1'
+          ORDER BY 'repl2'
+          OFFSET 'repl4' ROWS
+          FETCH NEXT 'repl3' ROWS ONLY
+        `,
       });
     });
 
@@ -170,6 +180,20 @@ describe('QueryGenerator#selectQuery', () => {
           LEFT OUTER JOIN [Users] AS [projects->owner]
             ON [projects].[ownerId] = [projects->owner].[id];
         `,
+        ibmi: `
+          SELECT
+            "User"."id",
+            "projects"."id" AS "projects.id",
+            'repl1',
+            'repl1' AS "projects.id2",
+            "projects->owner"."id" AS "projects.owner.id",
+            'repl2'
+          FROM "Users" AS "User"
+          INNER JOIN "Projects" AS "projects"
+            ON 'on' AND 'where'
+          LEFT OUTER JOIN "Users" AS "projects->owner"
+            ON "projects"."ownerId" = "projects->owner"."id"
+        `,
       });
     });
 
@@ -224,6 +248,21 @@ describe('QueryGenerator#selectQuery', () => {
             AND N'where'
           )
           ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
+        `,
+        ibmi: `
+          SELECT
+            "Project"."id",
+            "contributors"."id" AS "contributors.id",
+            "contributors->ProjectContributor"."ProjectId" AS "contributors.ProjectContributor.ProjectId",
+            "contributors->ProjectContributor"."UserId" AS "contributors.ProjectContributor.UserId"
+          FROM "Projects" AS "Project"
+          LEFT OUTER JOIN (
+            "ProjectContributors" AS "contributors->ProjectContributor"
+            INNER JOIN "Users" AS "contributors"
+            ON "contributors"."id" = "contributors->ProjectContributor"."UserId"
+            AND 'where'
+          )
+          ON "Project"."id" = "contributors->ProjectContributor"."ProjectId"
         `,
       });
     });

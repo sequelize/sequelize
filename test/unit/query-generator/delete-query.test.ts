@@ -30,7 +30,7 @@ describe('QueryGenerator#updateQuery', () => {
       mssql: `DELETE TOP(1) FROM [Users] WHERE name = N'Zoe'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       snowflake: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1);`,
       db2: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY;`,
-      ibmi: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY;`,
+      ibmi: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY`,
     });
   });
 });

@@ -60,6 +60,8 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName") VALUES(':name');
       `,
+      // TODO: does ibmi not support upsert?
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -131,6 +133,8 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName", "lastName") VALUES($firstName, 'Doe');
       `,
+      // TODO: does ibmi not support upsert?
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -186,6 +190,8 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName", "lastName") VALUES($1, 'Doe');
       `,
+      // TODO: does ibmi not support upsert?
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
     });
 
     // mssql does not generate any bind parameter
