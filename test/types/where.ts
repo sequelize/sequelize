@@ -1,9 +1,7 @@
 import { expectTypeOf } from 'expect-type';
 import {
-  AndOperator,
   Model,
   Op,
-  OrOperator,
   Sequelize,
   WhereOptions,
   and,
@@ -32,20 +30,6 @@ expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions
   // @ts-expect-error -- cannot use column references in Op.any
   const b: WhereOptions<MyModel> = { hi: { [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL')], } } }
 }
-
-expectTypeOf({
-  [Op.and]: { a: 5 }, // AND (a = 5)
-}).toMatchTypeOf<AndOperator>();
-expectTypeOf({
-  [Op.and]: { a: 5 }, // AND (a = 5)
-}).toMatchTypeOf<AndOperator<{ a: number }>>();
-
-expectTypeOf({
-  [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
-}).toMatchTypeOf<OrOperator>();
-expectTypeOf({
-  [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
-}).toMatchTypeOf<OrOperator<{ a: number }>>();
 
 // Relations / Associations
 // Find all projects with a least one task where task.state === project.task

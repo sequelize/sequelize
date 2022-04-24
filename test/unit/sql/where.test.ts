@@ -12,12 +12,7 @@ import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
-// eslint-disable-next-line import/order -- issue with mixing require & import
-import { createTester } from '../../support2';
-
-const support = require('../support');
-
-const { sequelize, expectsql } = support;
+import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
 
 const sql = sequelize.dialect.queryGenerator;
 
@@ -89,7 +84,7 @@ TestModel.init({
   aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
 }, { sequelize });
 
-describe(support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(
@@ -256,10 +251,10 @@ describe(support.getTestDialectTeaser('SQL'), () => {
     const testSql = createTester(
       (it, whereObj: TestModelWhere, expectations: Expectations, options?: Options) => {
         it(util.inspect(whereObj, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''), () => {
-          const sqlOrError = attempt(sql.whereItemsQuery.bind(sql), whereObj, {
+          const sqlOrError = attempt(() => sql.whereItemsQuery(whereObj, {
             ...options,
             model: TestModel,
-          });
+          }));
 
           return expectsql(sqlOrError, expectations);
         });
