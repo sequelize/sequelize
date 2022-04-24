@@ -22,27 +22,24 @@ describe('QueryGenerator#insertQuery', () => {
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
     });
-    expect(bind).to.be.undefined;
+    expect(bind).to.deep.eq({});
   });
 
-  it('parses named bind parameters in literals', async () => {
+  it('supports named bind parameters in literals', async () => {
     const { query, bind } = queryGenerator.insertQuery(User.tableName, {
       firstName: 'John',
       lastName: literal('$lastName'),
       username: 'jd',
-    }, {}, {
-      bind: {
-        lastName: 'Doe',
-      },
     });
 
     expectsql(query, {
-      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);`,
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
     });
 
-    expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
   });
 
   it('parses positional bind parameters in literals', async () => {
@@ -50,17 +47,16 @@ describe('QueryGenerator#insertQuery', () => {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
-    }, {}, {
-      bind: ['Doe'],
     });
 
     // lastName's bind position being changed from $1 to $2 is intentional: bind array order must match their order in the query in some dialects.
     expectsql(query, {
-      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ($1,$2,$3);`,
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (?,?,?);',
+      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
     });
-    expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
   });
 
   it('parses bind parameters in literals even with bindParams: false', async () => {
@@ -70,14 +66,11 @@ describe('QueryGenerator#insertQuery', () => {
       username: 'jd',
     }, {}, {
       bindParam: false,
-      bind: ['Doe'],
     });
 
     expectsql(query, {
-      postgres: `INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd');`,
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (\'John\',?,\'jd\');',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`,`username`) VALUES (\'John\',?,\'jd\');',
+      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
     });
-    expect(bind).to.deep.eq(['Doe']);
+    expect(bind).to.be.undefined;
   });
 });

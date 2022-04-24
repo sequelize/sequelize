@@ -258,7 +258,7 @@ export class AbstractQueryGenerator {
       emptyQuery += returningFragment;
     }
 
-    query = `${replacements.attributes.length > 0 ? valueQuery : emptyQuery};`;
+    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
     if (this._dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE(${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }

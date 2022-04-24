@@ -1,6 +1,5 @@
 import type { InferAttributes } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast, Model } from '@sequelize/core';
-import type { BindContext } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import { expect } from 'chai';
 import { expectsql, sequelize } from '../../support';
 
@@ -33,7 +32,6 @@ describe('QueryGenerator#selectQuery', () => {
     it('parses named replacements in literals', async () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
-      const bindContext: BindContext = {};
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: [[fn('uppercase', literal(':attr')), 'id'], literal(':attr2')],
@@ -61,7 +59,7 @@ describe('QueryGenerator#selectQuery', () => {
           offset: 'repl4',
           group: 'the group',
         },
-      }, User, bindContext);
+      }, User);
 
       expectsql(sql, {
         default: `
@@ -75,12 +73,9 @@ describe('QueryGenerator#selectQuery', () => {
           OFFSET 'repl4';
         `,
       });
-
-      expect(bindContext.normalizedBind).to.be.undefined;
     });
 
     it('parses named replacements in literals in includes', async () => {
-      const bindContext: BindContext = {};
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
@@ -105,7 +100,7 @@ describe('QueryGenerator#selectQuery', () => {
           on: 'on',
           where: 'where',
         },
-      }, User, bindContext);
+      }, User);
 
       expectsql(sql, {
         default: `
@@ -123,12 +118,9 @@ describe('QueryGenerator#selectQuery', () => {
             ON [projects].[ownerId] = [projects->owner].[id];
         `,
       });
-
-      expect(bindContext.normalizedBind).to.be.undefined;
     });
 
-    it('parses named replacements in sub-queries through tables', async () => {
-      const bindContext: BindContext = {};
+    it(`parses named replacements in belongsToMany includes' through tables`, async () => {
       const sql = queryGenerator.selectQuery(Project.tableName, {
         model: Project,
         attributes: ['id'],
@@ -147,7 +139,7 @@ describe('QueryGenerator#selectQuery', () => {
         replacements: {
           where: 'where',
         },
-      }, Project, bindContext);
+      }, Project);
 
       expectsql(sql, {
         default: `
@@ -166,9 +158,9 @@ describe('QueryGenerator#selectQuery', () => {
           ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
         `,
       });
-
-      expect(bindContext.normalizedBind).to.be.undefined;
     });
+
+    // TODO: test subQueries
 
     it('rejects positional replacements, because their execution order is hard to determine', async () => {
       await expect(
@@ -180,74 +172,9 @@ describe('QueryGenerator#selectQuery', () => {
             },
           },
           replacements: ['repl1', 'repl2', 'repl3'],
-        }, User, {}),
+        }, User),
       ).to.throw(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
-    });
-  });
-
-  describe('bind', () => {
-    it('parses named bind in literals', async () => {
-      const bindContext: BindContext = {};
-      const sql = queryGenerator.selectQuery(User.tableName, {
-        model: User,
-        attributes: ['id'],
-        where: or({
-          username: {
-            [Op.eq]: literal('$data'),
-          },
-        }, {
-          username: {
-            [Op.eq]: literal('$otherData'),
-          },
-        }, {
-          username: {
-            [Op.eq]: literal('$otherData'),
-          },
-        }),
-        bind: {
-          data: 'this should be present',
-          otherData: 'other data',
-        },
-      }, User, bindContext);
-
-      // postgres supports reusing the same parameters
-      if (sequelize.dialect.name === 'postgres') {
-        expect(sql).to.eq('SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2 OR "User"."username" = $2);');
-        expect(bindContext.normalizedBind).to.deep.eq(['this should be present', 'other data']);
-      } else {
-        expectsql(sql, {
-          mariadb: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ? OR `User`.`username` = ?);',
-          mysql: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ? OR `User`.`username` = ?);',
-        });
-
-        expect(bindContext.normalizedBind).to.deep.eq(['this should be present', 'other data', 'other data']);
-      }
-    });
-
-    it('parses positional bind in literals', async () => {
-      const bindContext: BindContext = {};
-      const sql = queryGenerator.selectQuery(User.tableName, {
-        model: User,
-        attributes: ['id'],
-        where: or({
-          username: {
-            [Op.eq]: literal('$2'),
-          },
-        }, {
-          username: {
-            [Op.eq]: literal('$1'),
-          },
-        }),
-        bind: ['bind param 1', 'bind param 2'],
-      }, User, bindContext);
-
-      expectsql(sql, {
-        postgres: 'SELECT "id" FROM "Users" AS "User" WHERE ("User"."username" = $1 OR "User"."username" = $2);',
-        mariadb: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ?);',
-        mysql: 'SELECT `id` FROM `Users` AS `User` WHERE (`User`.`username` = ? OR `User`.`username` = ?);',
-      });
-      expect(bindContext.normalizedBind).to.deep.eq(['bind param 2', 'bind param 1']);
     });
   });
 });

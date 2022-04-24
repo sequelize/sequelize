@@ -781,19 +781,22 @@ export class QueryInterface {
   }
 
   async insert(instance, tableName, values, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = Utils.cloneDeep(options);
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-    let sql = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
 
-    if (sql.bind) {
-      options.bind = sql.bind;
-      sql = sql.query;
-    }
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+    options.bind = combineBinds(options.bind, bind);
 
-    const results = await this.sequelize.queryRaw(sql, options);
+    const results = await this.sequelize.queryRaw(query, options);
     if (instance) {
       results[0].isNewRecord = false;
     }
@@ -813,6 +816,10 @@ export class QueryInterface {
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     const model = options.model;
@@ -854,8 +861,9 @@ export class QueryInterface {
 
     const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacement;
-    options.bind = bind;
+    options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
   }
@@ -934,6 +942,10 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkUpdate(tableName, values, where, options, columnDefinitions) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = Utils.cloneDeep(options);
     if (typeof where === 'object') {
       where = Utils.cloneDeep(where);
@@ -945,7 +957,7 @@ export class QueryInterface {
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
-    options.bind = bind;
+    options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
   }

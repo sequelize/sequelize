@@ -1,4 +1,4 @@
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, literal, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { expectsql, sequelize } from '../../support';
@@ -35,9 +35,86 @@ describe('QueryInterface#update', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      postgres: 'UPDATE "Users" SET "firstName"=$1 WHERE "id" = $2 RETURNING ":data";',
-      default: 'UPDATE [Users] SET [firstName]=? WHERE [id] = ?;',
+      default: 'UPDATE [Users] SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2;',
+      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING ":data";',
     });
-    expect(firstCall.args[1]?.bind).to.deep.eq([':name', ':id']);
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      sequelize_1: ':name',
+      sequelize_2: ':id',
+    });
+  });
+
+  it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
+    sinon.stub(sequelize, 'queryRaw');
+
+    const instance = new User();
+
+    await expect(sequelize.getQueryInterface().update(
+      instance,
+      User.tableName,
+      { firstName: 'newName' },
+      { id: literal('$sequelize_test') },
+      {
+        bind: {
+          sequelize_test: 'test',
+        },
+      },
+    )).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+  });
+
+  it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+
+    const instance = new User();
+
+    await sequelize.getQueryInterface().update(
+      instance,
+      User.tableName,
+      { firstName: 'newName' },
+      { id: { [Op.eq]: literal('$id') } },
+      {
+        bind: {
+          id: 'test',
+        },
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0] as string, {
+      default: 'UPDATE [Users] SET "firstName"=$sequelize_1 WHERE "id" = $id;',
+    });
+
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      sequelize_1: 'newName',
+      id: 'test',
+    });
+  });
+
+  it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+
+    const instance = new User();
+
+    await sequelize.getQueryInterface().update(
+      instance,
+      User.tableName,
+      { firstName: 'newName' },
+      { id: { [Op.eq]: literal('$1') } },
+      {
+        bind: ['test'],
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0] as string, {
+      default: 'UPDATE [Users] SET "firstName"=$sequelize_1 WHERE "id" = $1;',
+    });
+
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      sequelize_1: 'newName',
+      1: 'test',
+    });
   });
 });

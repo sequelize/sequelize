@@ -19,59 +19,32 @@ describe('QueryGenerator#updateQuery', () => {
       replacements: {
         name: 'Zoe',
       },
-    }, {});
+    });
 
     expectsql(query, {
       default: 'UPDATE [Users] SET [firstName]=\'Zoe\' WHERE name = \'Zoe\';',
     });
-    expect(bind).to.be.undefined;
+    expect(bind).to.deep.eq({});
   });
 
-  it('parses named bind parameters in literals', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
-      firstName: 'John',
-      lastName: literal('$lastName'),
-      username: 'jd',
-    }, {
-      where: literal('name = $lastName'),
-    }, {
-      bind: {
-        lastName: 'Doe',
-      },
-    }, {});
-
-    if (sequelize.dialect.name === 'postgres') {
-      expect(query).to.eq('UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3 WHERE name = $2;');
-      expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
-    } else {
-      expectsql(query, {
-        mariadb: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=? WHERE name = ?;',
-        mysql: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=? WHERE name = ?;',
-      });
-
-      expect(bind).to.deep.eq(['John', 'Doe', 'jd', 'Doe']);
-    }
-  });
-
-  it('parses positional bind parameters in literals', async () => {
+  it('generates extra bind params', async () => {
     const { query, bind } = queryGenerator.updateQuery(User.tableName, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
-    }, {}, {
-      bind: ['Doe'],
     }, {});
 
     // lastName's bind position being changed from $1 to $2 is intentional
     expectsql(query, {
-      postgres: 'UPDATE "Users" SET "firstName"=$1,"lastName"=$2,"username"=$3;',
-      mysql: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=?;',
-      mariadb: 'UPDATE `Users` SET `firstName`=?,`lastName`=?,`username`=?;',
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1,[lastName]=$1,[username]=$sequelize_2;',
     });
-    expect(bind).to.deep.eq(['John', 'Doe', 'jd']);
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
   });
 
-  it('parses positional bind parameters in literals even with bindParams: false', async () => {
+  it('does not generate extra bind params with bindParams: false', async () => {
     const { query, bind } = queryGenerator.updateQuery(User.tableName, {
       firstName: 'John',
       lastName: literal('$1'),
@@ -80,15 +53,13 @@ describe('QueryGenerator#updateQuery', () => {
       where: literal('first_name = $2'),
     }, {
       bindParam: false,
-      bind: ['Doe', 'John'],
-    }, {});
+    });
 
     // lastName's bind position being changed from $1 to $2 is intentional
     expectsql(query, {
-      postgres: `UPDATE "Users" SET "firstName"='John',"lastName"=$1,"username"='jd' WHERE first_name = $2;`,
-      mysql: 'UPDATE `Users` SET `firstName`=\'John\',`lastName`=?,`username`=\'jd\' WHERE first_name = ?;',
-      mariadb: 'UPDATE `Users` SET `firstName`=\'John\',`lastName`=?,`username`=\'jd\' WHERE first_name = ?;',
+      default: `UPDATE [Users] SET [firstName]='John',[lastName]=$1,[username]='jd' WHERE first_name = $2;`,
     });
-    expect(bind).to.deep.eq(['Doe', 'John']);
+
+    expect(bind).to.be.undefined;
   });
 });
