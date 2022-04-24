@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+
 const _ = require('lodash');
 
 const Utils = require('../../utils');
@@ -896,13 +898,18 @@ export class QueryInterface {
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
 
     options.type = QueryTypes.UPDATE;
     options.instance = instance;
 
     delete options.replacements;
-    options.bind = bind;
+
+    options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
   }

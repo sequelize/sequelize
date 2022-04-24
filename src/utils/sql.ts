@@ -1,4 +1,5 @@
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
+import type { BindOrReplacements } from '../sequelize.js';
 
 /**
  * Maps bind parameters from Sequelize's format ($1 or $name) to the dialect's format.
@@ -186,4 +187,38 @@ export function createNamedParamBindCollector(parameterPrefix: string): BindColl
       return null;
     },
   };
+}
+
+export function assertNoReservedBind(bind: BindOrReplacements): void {
+  if (Array.isArray(bind)) {
+    return;
+  }
+
+  for (const key of Object.keys(bind)) {
+    if (key.startsWith('sequelize_')) {
+      throw new Error('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+    }
+  }
+}
+
+export function combineBinds(bindA: BindOrReplacements, bindB: { [key: string]: unknown }) {
+  if (Array.isArray(bindA)) {
+    bindA = arrayBindToNamedBind(bindA);
+  }
+
+  return {
+    ...bindA,
+    ...bindB,
+  };
+}
+
+function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
+  const out = Object.create(null);
+
+  // eslint-disable-next-line unicorn/no-for-loop -- too slow.
+  for (let i = 0; i < bind.length; i++) {
+    out[i + 1] = bind[i];
+  }
+
+  return out;
 }

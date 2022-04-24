@@ -116,7 +116,7 @@ export class AbstractQueryGenerator {
     _.defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = [];
+    const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const values = [];
@@ -385,7 +385,7 @@ export class AbstractQueryGenerator {
     attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = [];
+    const bind = Object.create(null);
     const modelAttributeMap = {};
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
@@ -450,7 +450,7 @@ export class AbstractQueryGenerator {
     const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query };
+    const result = { query: `${query};` };
     if (options.bindParam !== false) {
       result.bind = bind;
     }
@@ -1076,10 +1076,14 @@ export class AbstractQueryGenerator {
   }
 
   bindParam(bind) {
-    return value => {
-      bind.push(value);
+    let i = 0;
 
-      return `$${bind.length}`;
+    return value => {
+      const bindName = `sequelize_${++i}`;
+
+      bind[bindName] = value;
+
+      return `$${bindName}`;
     };
   }
 

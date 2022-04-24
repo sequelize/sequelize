@@ -78,8 +78,8 @@ export class AbstractQueryGenerator {
     tableName: TableName,
     attrValueHash: object,
     where: WhereOptions,
-    options: UpdateOptions,
-    columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },
+    options?: UpdateOptions,
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): { query: string, bind?: Array<unknown> };
 
   deleteQuery(
