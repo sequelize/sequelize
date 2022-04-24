@@ -132,6 +132,10 @@ export function format(sql, values, timeZone, dialect) {
 
 export function formatNamedParameters(sql, values, timeZone, dialect) {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
+    if (values == null) {
+      throw new Error(`SQL string includes named replacement "${value}", but no replacement map has been provided.`);
+    }
+
     if (dialect === 'postgres' && value.slice(0, 2) === '::') {
       return value;
     }
@@ -140,6 +144,6 @@ export function formatNamedParameters(sql, values, timeZone, dialect) {
       return escape(values[key], timeZone, dialect, true);
     }
 
-    throw new Error(`Named parameter "${value}" has no value in the given object.`);
+    throw new Error(`Named replacement "${value}" has no entry in the replacement map.`);
   });
 }

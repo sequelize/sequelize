@@ -2213,8 +2213,6 @@ export class AbstractQueryGenerator {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
-    assert(bindContext != null, 'bind context is missing');
-
     let result;
 
     if (Object.prototype.hasOwnProperty.call(this.OperatorMap, smth.comparator)) {
@@ -2275,12 +2273,16 @@ export class AbstractQueryGenerator {
     }
 
     if (smth instanceof Utils.Literal) {
-      if (Array.isArray(options.replacements) && includesPositionalReplacements(smth.val)) {
+      if (includesPositionalReplacements(smth.val)) {
         throw new TypeError(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal(${JSON.stringify(smth.val)})`);
       }
 
-      return Utils.formatBindOrReplacements(smth.val, options.replacements, options.bind, bindContext, this._dialect);
+      try {
+        return Utils.formatReplacements(smth.val, options.replacements, this._dialect);
+      } catch (error) {
+        throw new Error(`Parsing of literal(${JSON.stringify(smth.val)}) failed.`, { cause: error });
+      }
     }
 
     if (smth instanceof Utils.Cast) {
