@@ -144,22 +144,6 @@ export class MsSqlQuery extends AbstractQuery {
     return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
   }
 
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = {};
-    const replacementFunc = (match, key, valuesIn) => {
-      if (valuesIn[key] !== undefined) {
-        bindParam[key] = valuesIn[key];
-
-        return `@${key}`;
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam];
-  }
-
   /**
    * High level function that handles the results of a query execution.
    *

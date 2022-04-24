@@ -15,37 +15,6 @@ export class SqliteQuery extends AbstractQuery {
     return 'lastID';
   }
 
-  /**
-   * rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = {};
-      for (const [i, v] of values.entries()) {
-        bindParam[`$${i + 1}`] = v;
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = {};
-      if (typeof values === 'object') {
-        for (const k of Object.keys(values)) {
-          bindParam[`$${k}`] = values[k];
-        }
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    }
-
-    return [sql, bindParam];
-  }
-
   _collectModels(include, prefix) {
     const ret = {};
 

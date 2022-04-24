@@ -1,5 +1,7 @@
 'use strict';
 
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { Db2ConnectionManager } = require('./connection-manager');
@@ -34,6 +36,10 @@ export class Db2Dialect extends AbstractDialect {
       sequelize,
     });
     this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);
+  }
+
+  createBindCollector() {
+    return createUnspecifiedOrderedBindCollector();
   }
 }
 

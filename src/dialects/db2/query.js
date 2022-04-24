@@ -182,25 +182,6 @@ export class Db2Query extends AbstractQuery {
     return await this._run(this.connection, sql, parameters);
   }
 
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam = {};
-    const replacementFunc = (match, key, values) => {
-      if (values[key] !== undefined) {
-        bindParam[key] = values[key];
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    if (Array.isArray(values) && typeof values[0] === 'object') {
-      bindParam = values;
-    }
-
-    return [sql, bindParam];
-  }
-
   filterSQLError(err, sql, connection) {
     if (err.message.search('SQL0204N') !== -1 && _.startsWith(sql, 'DROP ')) {
       err = null; // Ignore table not found error for drop table.
