@@ -1030,7 +1030,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
    * @returns {string}
    */
   quoteIdentifier(identifier, force) {
-    return `[${identifier.replace(/['[\]]+/g, '')}]`;
+    let cleanIdentifier = identifier.replace(/[[\]']+/g, '');
+    return cleanIdentifier.endsWith('.dbo') ? cleanIdentifier.split('.').map(part => `[${part}]`).join('.') : `[${cleanIdentifier}]`;
   }
 }
 
