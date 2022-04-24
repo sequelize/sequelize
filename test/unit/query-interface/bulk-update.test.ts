@@ -83,7 +83,7 @@ describe('QueryInterface#bulkUpdate', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: 'UPDATE [Users] SET "firstName"=$sequelize_1 WHERE "firstName" = $one;',
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $one;',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -112,7 +112,7 @@ describe('QueryInterface#bulkUpdate', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: 'UPDATE [Users] SET "firstName"=$sequelize_1 WHERE "firstName" = $1;',
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $1;',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

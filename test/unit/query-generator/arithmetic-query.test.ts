@@ -33,9 +33,8 @@ describe('QueryGenerator#updateQuery', () => {
     );
 
     expectsql(sql, {
+      default: `UPDATE [Users] SET [age]=[age]+ 2,[name]='John' WHERE id = 47;`,
       postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *;`,
-      mariadb: `UPDATE \`Users\` SET \`age\`=\`age\`+ 2,\`name\`='John' WHERE id = 47;`,
-      mysql: `UPDATE \`Users\` SET \`age\`=\`age\`+ 2,\`name\`='John' WHERE id = 47;`,
     });
   });
 });

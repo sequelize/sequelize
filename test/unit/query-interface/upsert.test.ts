@@ -33,7 +33,7 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      postgres: 'INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) ON CONFLICT ("id") DO UPDATE SET "firstName"=EXCLUDED."firstName";',
+      default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
       mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
       mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
     });

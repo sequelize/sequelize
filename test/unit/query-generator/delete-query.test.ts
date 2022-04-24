@@ -24,9 +24,9 @@ describe('QueryGenerator#updateQuery', () => {
     );
 
     expectsql(query, {
+      default: `DELETE FROM [Users] WHERE name = 'Zoe' LIMIT 1;`,
       postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1);`,
-      mariadb: 'DELETE FROM `Users` WHERE name = \'Zoe\' LIMIT 1;',
-      mysql: 'DELETE FROM `Users` WHERE name = \'Zoe\' LIMIT 1;',
+      sqlite: `DELETE FROM \`Users\` WHERE rowid IN (SELECT rowid FROM \`Users\` WHERE name = 'Zoe' LIMIT 1);`,
     });
   });
 });
