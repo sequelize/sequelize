@@ -7,7 +7,6 @@ import {
   WhereOptions,
   Filterable,
   ModelStatic,
-  ModelType,
   CreationAttributes,
   Attributes,
   BuiltModelAttributeColumOptions,
@@ -95,7 +94,34 @@ export type TableName = string | TableNameWithSchema;
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
-export interface IndexesOptions {
+export interface IndexField {
+  /**
+   * The name of the column
+   */
+  name: string;
+
+  /**
+   * Create a prefix index of length chars
+   */
+  length?: number;
+
+  /**
+   * The direction the column should be sorted in
+   */
+  order?: 'ASC' | 'DESC';
+
+  /**
+   * The collation (sort order) for the column
+   */
+  collate?: string;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
+}
+
+export interface IndexOptions {
   /**
    * The name of the index. Defaults to model name + _ + fields concatenated
    */
@@ -117,23 +143,21 @@ export interface IndexesOptions {
   unique?: boolean;
 
   /**
-   * PostgreSQL will build the index without taking any write locks. Postgres only
+   * PostgreSQL will build the index without taking any write locks. Postgres only.
    *
    * @default false
    */
   concurrently?: boolean;
 
   /**
-   * An array of the fields to index. Each field can either be a string containing the name of the field,
-   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name`
-   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column), `operator` (likes IndexesOptions['operator'])
+   * The fields to index.
    */
-  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string } | Fn | Literal)[];
+  fields?: Array<string | IndexField | Fn | Literal>;
 
   /**
-   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-   * postgres, and postgres additionally supports GIST, SPGIST, BRIN and GIN.
+   * The method to create the index by (`USING` statement in SQL).
+   * BTREE and HASH are supported by mysql and postgres.
+   * Postgres additionally supports GIST, SPGIST, BRIN and GIN.
    */
   using?: IndexMethod;
 
@@ -153,7 +177,7 @@ export interface IndexesOptions {
   prefix?: string;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexesOptions, Omit<QiOptionsWithReplacements, 'type'> {}
+export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -484,13 +508,13 @@ export class QueryInterface {
     tableName: TableName,
     identifier: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    model?: ModelType
+    model?: ModelStatic
   ): Promise<object>;
 
   /**
    * Returns selected rows
    */
-  public select(model: ModelType | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;
+  public select(model: ModelStatic | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -523,7 +547,7 @@ export class QueryInterface {
     tableName: TableName,
     options: QiSelectOptions,
     attributeSelector: string,
-    model?: ModelType
+    model?: ModelStatic
   ): Promise<string[]>;
 
   /**
