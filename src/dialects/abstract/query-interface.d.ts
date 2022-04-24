@@ -18,43 +18,37 @@ import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
 import { AbstractQueryGenerator } from './query-generator.js';
-import { BindOrReplacements } from './query.js';
 
-type WithReplacementsAndNamedBind<T extends QueryRawOptions> = Omit<T, 'bind'> & {
-  /**
-   * Query interface methods accept both named & positional bind parameters.
-   */
-  bind?: BindOrReplacements,
-
+interface Replaceable {
   /**
    * Only named replacements are allowed in query interface methods.
    */
   replacements?: { [key: string]: unknown },
-};
+}
 
-interface QiOptionsWithParameters extends WithReplacementsAndNamedBind<QueryRawOptions> {}
+interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
-export interface QiInsertOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
+export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | string[],
 }
 
-export interface QiSelectOptions extends WithReplacementsAndNamedBind<QueryRawOptions>, Filterable<any> {
+export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
 
 }
 
-export interface QiUpdateOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
+export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | string[],
 }
 
-export interface QiDeleteOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
+export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
   limit?: number | Literal | null | undefined;
 }
 
-export interface QiArithmeticOptions extends WithReplacementsAndNamedBind<QueryRawOptions> {
+export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | string[],
 }
 
-export interface QiUpsertOptions<M extends Model> extends WithReplacementsAndNamedBind<QueryRawOptionsWithModel<M>> {
+export interface QiUpsertOptions<M extends Model> extends QueryRawOptionsWithModel<M>, Replaceable {
 
 }
 
@@ -159,7 +153,7 @@ export interface IndexesOptions {
   prefix?: string;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexesOptions, Omit<QiOptionsWithParameters, 'type'> {}
+export interface QueryInterfaceIndexOptions extends IndexesOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -339,7 +333,7 @@ export class QueryInterface {
     table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -348,7 +342,7 @@ export class QueryInterface {
   public removeColumn(
     table: TableName,
     attribute: string,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -358,7 +352,7 @@ export class QueryInterface {
     tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -368,7 +362,7 @@ export class QueryInterface {
     tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -447,7 +441,7 @@ export class QueryInterface {
   public bulkInsert(
     tableName: TableName,
     records: object[],
-    options?: QiOptionsWithParameters,
+    options?: QiOptionsWithReplacements,
     attributes?: Record<string, ModelAttributeColumnOptions>
   ): Promise<object | number>;
 
@@ -469,7 +463,7 @@ export class QueryInterface {
     tableName: TableName,
     values: object,
     where: WhereOptions<any>,
-    options?: QiOptionsWithParameters,
+    options?: QiOptionsWithReplacements,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): Promise<object>;
 
@@ -489,7 +483,7 @@ export class QueryInterface {
   public bulkDelete(
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QiOptionsWithParameters,
+    options?: QiOptionsWithReplacements,
     model?: ModelType
   ): Promise<object>;
 
@@ -546,13 +540,13 @@ export class QueryInterface {
     functionName: string,
     functionParams: FunctionParam[],
     optionsArray: string[],
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
    * Postgres only. Drops the specified trigger.
    */
-  public dropTrigger(tableName: TableName, triggerName: string, options?: QiOptionsWithParameters): Promise<void>;
+  public dropTrigger(tableName: TableName, triggerName: string, options?: QiOptionsWithReplacements): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
@@ -561,7 +555,7 @@ export class QueryInterface {
     tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -580,7 +574,7 @@ export class QueryInterface {
   /**
    * Postgres only. Drops a function
    */
-  public dropFunction(functionName: string, params: FunctionParam[], options?: QiOptionsWithParameters): Promise<void>;
+  public dropFunction(functionName: string, params: FunctionParam[], options?: QiOptionsWithReplacements): Promise<void>;
 
   /**
    * Postgres only. Rename a function
@@ -589,7 +583,7 @@ export class QueryInterface {
     oldFunctionName: string,
     params: FunctionParam[],
     newFunctionName: string,
-    options?: QiOptionsWithParameters
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**

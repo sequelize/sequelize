@@ -3,6 +3,7 @@
 import { formatReplacements } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { mapBindParameters } from './utils/sql';
 
 const url = require('url');
 const path = require('path');
@@ -544,11 +545,9 @@ export class Sequelize {
 
     sql = sql.trim();
 
-    const bindContext = {};
-    sql = Utils.formatBindOrReplacements(sql, options.replacements, options.bind, bindContext, this.dialect);
+    sql = Utils.formatReplacements(sql, options.replacements, this.dialect);
 
-    // this maps named bind parameters to positional bind parameters
-    options.bind = bindContext.normalizedBind;
+    // queryRaw will throw if 'replacements' is specified, as a way to warn users that they are miusing the method.
     delete options.replacements;
 
     return this.queryRaw(sql, options);
@@ -561,14 +560,26 @@ Only numeric bind parameters can be provided, in the dialect-specific syntax.
 Use Sequelize#query if you wish to use replacements or named bind parameters`);
     }
 
-    if (options.bind && !Array.isArray(options.bind)) {
-      throw new TypeError(`Sequelize#rawQuery does not accept the "bind" option to be an object.
-Only numeric bind parameters can be provided, in the dialect-specific syntax.
-Use Sequelize#query if you wish to use replacements or named bind parameters`);
+    let bindParameters;
+    if (options.bind) {
+      const mappedResult = mapBindParameters(sql, this.dialect);
+
+      sql = mappedResult.sql;
+
+      if (mappedResult.bindOrder == null) {
+        bindParameters = options.bind;
+      } else {
+        bindParameters = mappedResult.bindOrder.map(key => {
+          if (options.bind[key] === undefined) {
+            throw new Error(`Query includes bind parameter "$${key}", but no value has been provided for that bind parameter.`);
+          }
+
+          return options.bind[key];
+        });
+      }
     }
 
     options = { ...this.options.query, ...options };
-    const bindParameters = options.bind;
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;

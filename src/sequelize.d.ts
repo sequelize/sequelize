@@ -406,6 +406,9 @@ export interface QueryOptionsTransactionRequired { }
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
 
+/**
+ * Options for {@link Sequelize#queryRaw}.
+ */
 export interface QueryRawOptions extends Logging, Transactionable, Poolable {
   /**
    * If true, sequelize will not try to format the results of the query, or build an instance of a model from
@@ -438,7 +441,7 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
    * Either an object of named parameter bindings in the format `$param` or an array of unnamed
    * values to bind to `$1`, `$2`, etc in your SQL.
    */
-  bind?: unknown[];
+  bind?: BindOrReplacements;
 
   /**
    * A sequelize instance used to build the return instance
@@ -475,20 +478,14 @@ export interface QueryRawOptionsWithModel<M extends Model> extends QueryRawOptio
 }
 
 /**
- * Interface for query options
+ * Options for {@link Sequelize#query}.
  */
-export interface QueryOptions extends Omit<QueryRawOptions, 'bind'> {
+export interface QueryOptions extends QueryRawOptions {
   /**
    * Either an object of named parameter replacements in the format `:param` or an array of unnamed
    * replacements to replace `?` in your SQL.
    */
   replacements?: BindOrReplacements;
-
-  /**
-   * Either an object of named parameter bindings in the format `$param` or an array of unnamed
-   * values to bind to `$1`, `$2`, etc in your SQL.
-   */
-  bind?: BindOrReplacements;
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
@@ -1368,6 +1365,12 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
+  /**
+   * Works like {@link Sequelize#query}, but does not inline replacements. Only bind parameters are supported.
+   *
+   * @param sql The SQL to execute
+   * @param options The options for the query. See {@link QueryRawOptions} for details.
+   */
   public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
   public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
   public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
