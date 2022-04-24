@@ -25,7 +25,7 @@ User.findOne({ where: { '$include1.includeAttr$': 'blah2' } });
 // @ts-ignore
 User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
 
-async () => {
+(async () => {
 
     expectTypeOf(
         await User.findOne({
@@ -66,4 +66,4 @@ async () => {
             rejectOnEmpty: true,
         })
     ).toEqualTypeOf<CustomUser>();
-};
+})();

@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type'
 import { Attributes } from '@sequelize/core';
 import { User } from './models/User';
 
-async () => {
+(async () => {
     const user = await User.findByPk(Buffer.from('asdf'));
     expectTypeOf(user).toEqualTypeOf<User | null>()
 
@@ -31,4 +31,4 @@ async () => {
         raw: true,
     });
     expectTypeOf(customUser).toEqualTypeOf<CustomUser | null>();
-};
+})();
