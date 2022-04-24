@@ -36,10 +36,24 @@ describe('QueryInterface#upsert', () => {
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
       mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
       mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
+      mssql: `
+        MERGE INTO [Users] WITH(HOLDLOCK)
+          AS [Users_target]
+        USING (VALUES(N':name')) AS [Users_source]([firstName])
+        ON [Users_target].[id] = [Users_source].[id]
+        WHEN MATCHED THEN
+          UPDATE SET [Users_target].[firstName] = N':name'
+        WHEN NOT MATCHED THEN
+          INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;`,
     });
-    expect(firstCall.args[1]?.bind).to.deep.eq({
-      sequelize_1: ':name',
-    });
+
+    if (dialectName === 'mssql') {
+      expect(firstCall.args[1]?.bind).to.be.undefined;
+    } else {
+      expect(firstCall.args[1]?.bind).to.deep.eq({
+        sequelize_1: ':name',
+      });
+    }
   });
 
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
@@ -65,11 +79,11 @@ describe('QueryInterface#upsert', () => {
     await sequelize.getQueryInterface().upsert(
       User.tableName,
       {
-        firstName: literal('$firstName'),
+        firstName: 'John',
         lastName: 'Doe',
       },
       {},
-      {},
+      dialectName === 'mssql' ? { id: 1 } : {},
       {
         model: User,
         bind: {
@@ -84,12 +98,26 @@ describe('QueryInterface#upsert', () => {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
       mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      mssql: `
+        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+        USING (VALUES(N'John', N'Doe')) AS [Users_source]([firstName], [lastName])
+        ON [Users_target].[id] = [Users_source].[id]
+        WHEN NOT MATCHED THEN
+          INSERT ([firstName], [lastName]) VALUES(N'John', N'Doe')
+        OUTPUT $action, INSERTED.*;
+      `,
     });
 
-    expect(firstCall.args[1]?.bind).to.deep.eq({
-      firstName: 'John',
-      sequelize_1: 'Doe',
-    });
+    if (dialectName === 'mssql') {
+      expect(firstCall.args[1]?.bind).to.deep.eq({
+        firstName: 'John',
+      });
+    } else {
+      expect(firstCall.args[1]?.bind).to.deep.eq({
+        firstName: 'John',
+        sequelize_1: 'Doe',
+      });
+    }
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
@@ -102,7 +130,7 @@ describe('QueryInterface#upsert', () => {
         lastName: 'Doe',
       },
       {},
-      {},
+      dialectName === 'mssql' ? { id: 1 } : {},
       {
         model: User,
         bind: ['John'],
@@ -115,11 +143,24 @@ describe('QueryInterface#upsert', () => {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
       mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      mssql: `
+        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+        USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
+        ON [Users_target].[id] = [Users_source].[id]
+        WHEN NOT MATCHED THEN
+          INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
+        OUTPUT $action, INSERTED.*;
+      `,
     });
 
-    expect(firstCall.args[1]?.bind).to.deep.eq({
-      1: 'John',
-      sequelize_1: 'Doe',
-    });
+    // mssql does not generate any bind parameter
+    if (dialectName === 'mssql') {
+      expect(firstCall.args[1]?.bind).to.deep.eq(['John']);
+    } else {
+      expect(firstCall.args[1]?.bind).to.deep.eq({
+        1: 'John',
+        sequelize_1: 'Doe',
+      });
+    }
   });
 });

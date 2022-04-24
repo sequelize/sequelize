@@ -31,6 +31,7 @@ describe('QueryInterface#select', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'some :data';`,
+      mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'some :data';`,
     });
   });
 });

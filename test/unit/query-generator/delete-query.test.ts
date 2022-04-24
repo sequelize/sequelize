@@ -27,6 +27,7 @@ describe('QueryGenerator#updateQuery', () => {
       default: `DELETE FROM [Users] WHERE name = 'Zoe' LIMIT 1;`,
       postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1);`,
       sqlite: `DELETE FROM \`Users\` WHERE rowid IN (SELECT rowid FROM \`Users\` WHERE name = 'Zoe' LIMIT 1);`,
+      mssql: `DELETE TOP(1) FROM [Users] WHERE name = N'Zoe'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
   });
 });

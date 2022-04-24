@@ -72,7 +72,12 @@ export class AbstractQueryGenerator {
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
     options?: InsertOptions
   ): { query: string, bind?: Array<unknown> };
-  bulkInsertQuery(tableName: TableName, newEntries: Array<object>, options: BulkInsertOptions, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }): string;
+  bulkInsertQuery(
+    tableName: TableName,
+    newEntries: Array<object>,
+    options?: BulkInsertOptions,
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions }
+  ): string;
 
   updateQuery(
     tableName: TableName,

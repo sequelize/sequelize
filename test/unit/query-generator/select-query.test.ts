@@ -72,6 +72,16 @@ describe('QueryGenerator#selectQuery', () => {
           LIMIT 'repl3'
           OFFSET 'repl4';
         `,
+        mssql: `
+          SELECT uppercase(N'id') AS [id], N'id2'
+          FROM [Users] AS [User]
+          WHERE ([User].[username] = N'repl1' OR uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
+          GROUP BY N'the group'
+          HAVING [username] = N'repl1'
+          ORDER BY N'repl2'
+          OFFSET N'repl4' ROWS
+          FETCH NEXT N'repl3' ROWS ONLY;
+        `,
       });
     });
 
@@ -117,6 +127,20 @@ describe('QueryGenerator#selectQuery', () => {
           LEFT OUTER JOIN [Users] AS [projects->owner]
             ON [projects].[ownerId] = [projects->owner].[id];
         `,
+        mssql: `
+          SELECT
+            [User].[id],
+            [projects].[id] AS [projects.id],
+            N'repl1',
+            N'repl1' AS [projects.id2],
+            [projects->owner].[id] AS [projects.owner.id],
+            N'repl2'
+          FROM [Users] AS [User]
+          INNER JOIN [Projects] AS [projects]
+            ON N'on' AND N'where'
+          LEFT OUTER JOIN [Users] AS [projects->owner]
+            ON [projects].[ownerId] = [projects->owner].[id];
+        `,
       });
     });
 
@@ -154,6 +178,21 @@ describe('QueryGenerator#selectQuery', () => {
             INNER JOIN [Users] AS [contributors]
             ON [contributors].[id] = [contributors->ProjectContributor].[UserId]
             AND 'where'
+          )
+          ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
+        `,
+        mssql: `
+          SELECT
+            [Project].[id],
+            [contributors].[id] AS [contributors.id],
+            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId],
+            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId]
+          FROM [Projects] AS [Project]
+          LEFT OUTER JOIN (
+            [ProjectContributors] AS [contributors->ProjectContributor]
+            INNER JOIN [Users] AS [contributors]
+            ON [contributors].[id] = [contributors->ProjectContributor].[UserId]
+            AND N'where'
           )
           ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
         `,

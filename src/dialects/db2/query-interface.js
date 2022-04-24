@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind } from '../../utils/sql';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { Op } = require('../../operators');
@@ -17,10 +19,14 @@ export class Db2QueryInterface extends QueryInterface {
     };
     const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase());
 
-    return this.sequelize.query(query, queryOptions);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     const model = options.model;
@@ -71,7 +77,10 @@ export class Db2QueryInterface extends QueryInterface {
     options.raw = true;
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
-    const result = await this.sequelize.query(sql, options);
+
+    delete options.replacements;
+
+    const result = await this.sequelize.queryRaw(sql, options);
 
     return [result, undefined];
   }
@@ -140,7 +149,7 @@ export class Db2QueryInterface extends QueryInterface {
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
 }

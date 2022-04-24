@@ -903,12 +903,12 @@ export class QueryInterface {
   }
 
   async update(instance, tableName, values, where, options) {
-    options = { ...options };
-    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-
     if (options.bind) {
       assertNoReservedBind(options.bind);
     }
+
+    options = { ...options };
+    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
     const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
 

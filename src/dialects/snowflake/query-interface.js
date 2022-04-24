@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind } from '../../utils/sql';
+
 const sequelizeErrors = require('../../errors');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -16,7 +18,7 @@ export class SnowflakeQueryInterface extends QueryInterface {
   async removeColumn(tableName, columnName, options) {
     options = options || {};
 
-    const [results] = await this.sequelize.query(
+    const [results] = await this.sequelize.queryRaw(
       this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
         tableName,
         schema: this.sequelize.config.database,
@@ -26,13 +28,13 @@ export class SnowflakeQueryInterface extends QueryInterface {
 
     // Exclude primary key constraint
     if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.query(
+      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
         this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
         { raw: true, ...options },
       )));
     }
 
-    return await this.sequelize.query(
+    return await this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),
       { raw: true, ...options },
     );
@@ -40,6 +42,10 @@ export class SnowflakeQueryInterface extends QueryInterface {
 
   /** @override */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     options.type = QueryTypes.UPSERT;
@@ -48,7 +54,9 @@ export class SnowflakeQueryInterface extends QueryInterface {
     const model = options.model;
     const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /** @override */
@@ -60,7 +68,7 @@ export class SnowflakeQueryInterface extends QueryInterface {
       }, constraintName,
     );
 
-    const constraints = await this.sequelize.query(sql, {
+    const constraints = await this.sequelize.queryRaw(sql, {
       ...options,
       type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
     });
@@ -83,6 +91,6 @@ export class SnowflakeQueryInterface extends QueryInterface {
       query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
     }
 
-    return await this.sequelize.query(query, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 }

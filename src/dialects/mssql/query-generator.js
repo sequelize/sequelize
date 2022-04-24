@@ -380,7 +380,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     if (allAttributes.length > 0) {
       for (const attrValueHash of attrValueHashes) {
         tuples.push(`(${
-          allAttributes.map(key => this.escape(attrValueHash[key])).join(',')
+          allAttributes.map(key => this.escape(attrValueHash[key], undefined, options)).join(',')
         })`);
       }
 
@@ -405,17 +405,18 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return commands.join(';');
   }
 
-  updateQuery(tableName, attrValueHash, where, options, attributes) {
+  updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
     const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
+
     if (options.limit) {
-      const updateArgs = `UPDATE TOP(${this.escape(options.limit)})`;
+      const updateArgs = `UPDATE TOP(${this.escape(options.limit, undefined, options)})`;
       sql.query = sql.query.replace('UPDATE', updateArgs);
     }
 
     return sql;
   }
 
-  upsertQuery(tableName, insertValues, updateValues, where, model) {
+  upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
     const primaryKeysAttrs = [];
@@ -454,7 +455,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
     const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key])).join(', ');
+    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key], undefined, options)).join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -475,8 +476,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       /*
        * Exclude NULL Composite PK/UK. Partial Composite clauses should also be excluded as it doesn't guarantee a single row
        */
-      for (const key in clause) {
-        if (typeof clause[key] === 'undefined' || clause[key] == null) {
+      for (const key of Object.keys(clause)) {
+        if (clause[key] == null) {
           valid = false;
           break;
         }
@@ -517,7 +518,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     // Remove the IDENTITY_INSERT Column from update
     const filteredUpdateClauses = updateKeys.filter(key => !identityAttrs.includes(key))
       .map(key => {
-        const value = this.escape(updateValues[key]);
+        const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${value}`;
@@ -545,7 +546,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     return Utils.joinSQLFragments([
       'DELETE',
-      options.limit && `TOP(${this.escape(options.limit)})`,
+      options.limit && `TOP(${this.escape(options.limit, undefined, options)})`,
       'FROM',
       table,
       whereClause && `WHERE ${whereClause}`,
@@ -573,7 +574,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
   }
 
-  attributeToSQL(attribute) {
+  attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -598,7 +599,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       // enums are a special case
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
-        return this.escape(value);
+        return this.escape(value, undefined, options);
       }).join(', ')}))`;
 
       return template;
@@ -619,7 +620,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
     if (attribute.unique === true) {
@@ -1006,11 +1007,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       }
 
       if (options.offset || options.limit) {
-        fragment += ` OFFSET ${this.escape(offset)} ROWS`;
+        fragment += ` OFFSET ${this.escape(offset, undefined, options)} ROWS`;
       }
 
       if (options.limit) {
-        fragment += ` FETCH NEXT ${this.escape(options.limit)} ROWS ONLY`;
+        fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
       }
     }
 

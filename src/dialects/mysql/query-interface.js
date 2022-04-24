@@ -18,7 +18,7 @@ export class MySqlQueryInterface extends QueryInterface {
   async removeColumn(tableName, columnName, options) {
     options = options || {};
 
-    const [results] = await this.sequelize.query(
+    const [results] = await this.sequelize.queryRaw(
       this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
         tableName,
         schema: this.sequelize.config.database,
@@ -28,7 +28,7 @@ export class MySqlQueryInterface extends QueryInterface {
 
     // Exclude primary key constraint
     if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.query(
+      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
         this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
         { raw: true, ...options },
       )));
@@ -75,7 +75,7 @@ export class MySqlQueryInterface extends QueryInterface {
       }, constraintName,
     );
 
-    const constraints = await this.sequelize.query(sql, {
+    const constraints = await this.sequelize.queryRaw(sql, {
       ...options,
       type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
     });

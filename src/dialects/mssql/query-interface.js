@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind } from '../../utils/sql';
+
 const _ = require('lodash');
 
 const Utils = require('../../utils');
@@ -20,38 +22,42 @@ export class MsSqlQueryInterface extends QueryInterface {
     options = { raw: true, ...options };
 
     const findConstraintSql = this.queryGenerator.getDefaultConstraintQuery(tableName, attributeName);
-    const [results0] = await this.sequelize.query(findConstraintSql, options);
+    const [results0] = await this.sequelize.queryRaw(findConstraintSql, options);
     if (results0.length > 0) {
       // No default constraint found -- we can cleanly remove the column
       const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, results0[0].name);
-      await this.sequelize.query(dropConstraintSql, options);
+      await this.sequelize.queryRaw(dropConstraintSql, options);
     }
 
     const findForeignKeySql = this.queryGenerator.getForeignKeyQuery(tableName, attributeName);
-    const [results] = await this.sequelize.query(findForeignKeySql, options);
+    const [results] = await this.sequelize.queryRaw(findForeignKeySql, options);
     if (results.length > 0) {
       // No foreign key constraints found, so we can remove the column
       const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraint_name);
-      await this.sequelize.query(dropForeignKeySql, options);
+      await this.sequelize.queryRaw(dropForeignKeySql, options);
     }
 
     // Check if the current column is a primaryKey
     const primaryKeyConstraintSql = this.queryGenerator.getPrimaryKeyConstraintQuery(tableName, attributeName);
-    const [result] = await this.sequelize.query(primaryKeyConstraintSql, options);
+    const [result] = await this.sequelize.queryRaw(primaryKeyConstraintSql, options);
     if (result.length > 0) {
       const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, result[0].constraintName);
-      await this.sequelize.query(dropConstraintSql, options);
+      await this.sequelize.queryRaw(dropConstraintSql, options);
     }
 
     const removeSql = this.queryGenerator.removeColumnQuery(tableName, attributeName);
 
-    return this.sequelize.query(removeSql, options);
+    return this.sequelize.queryRaw(removeSql, options);
   }
 
   /**
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     const model = options.model;
     const wheres = [];
 
@@ -84,6 +90,8 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
 
-    return await this.sequelize.query(sql, options);
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 }

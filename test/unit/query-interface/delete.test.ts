@@ -34,6 +34,7 @@ describe('QueryInterface#delete', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: `DELETE FROM [Users] WHERE [id] = ':id';`,
+      mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
 
     expect(firstCall.args[1]?.bind).to.be.undefined;

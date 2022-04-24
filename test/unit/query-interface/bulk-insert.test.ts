@@ -29,6 +29,7 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectsql(firstCall.args[0] as string, {
       default: `INSERT INTO [Users] ([firstName]) VALUES (':injection');`,
+      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N':injection');`,
     });
   });
 });

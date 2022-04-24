@@ -21,6 +21,7 @@ describe('QueryGenerator#insertQuery', () => {
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
+      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
     });
     expect(bind).to.deep.eq({});
   });
@@ -70,6 +71,7 @@ describe('QueryGenerator#insertQuery', () => {
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
+      mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
     });
     expect(bind).to.be.undefined;
   });
