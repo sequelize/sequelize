@@ -13,8 +13,8 @@ Remember to properly format your code in code blocks.
 
 Please note this is an issue tracker, not a support forum.
 For general questions, please use one of these:
-- StackOverflow: https://stackoverflow.com/questions/tagged/sequelize.js
-- GitHub discussions: https://github.com/sequelize/sequelize/discussions
+- Stack Overflow: https://stackoverflow.com/questions/tagged/sequelize.js
+- GitHub Discussions: https://github.com/sequelize/sequelize/discussions
 -->
 
 ## Issue Creation Checklist
