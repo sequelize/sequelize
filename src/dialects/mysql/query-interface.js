@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+
 const sequelizeErrors = require('../../errors');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -42,6 +44,10 @@ export class MySqlQueryInterface extends QueryInterface {
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     options.type = QueryTypes.UPSERT;
@@ -53,7 +59,7 @@ export class MySqlQueryInterface extends QueryInterface {
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
-    options.bind = bind;
+    options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
   }
