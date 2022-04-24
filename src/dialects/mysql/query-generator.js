@@ -239,7 +239,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
+  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
     if (smth instanceof Utils.Json) {
       // Parse nested object
       if (smth.conditions) {
@@ -262,7 +262,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (smth.value) {
-          str += ` = ${this.escape(smth.value, undefined, options, bindContext)}`;
+          str += ` = ${this.escape(smth.value, undefined, options)}`;
         }
 
         return str;
@@ -280,7 +280,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext);
+    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
   }
 
   _toJSONValue(value) {
@@ -301,16 +301,16 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  deleteQuery(tableName, where, options = {}, model, bindContext = {}) {
+  deleteQuery(tableName, where, options = {}, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    where = this.getWhereConditions(where, null, model, options, undefined, bindContext);
+    where = this.getWhereConditions(where, null, model, options);
     if (where) {
       query += ` WHERE ${where}`;
     }
 
     if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']), bindContext)}`;
+      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
     }
 
     return `${query};`;

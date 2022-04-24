@@ -882,11 +882,10 @@ export class QueryInterface {
   async bulkInsert(tableName, records, options, attributes) {
     options = { ...options, type: QueryTypes.INSERT };
 
-    const bindContext = {};
-    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes, bindContext);
+    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
 
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
-    options.bind = bindContext.normalizedBind;
 
     const results = await this.sequelize.queryRaw(sql, options);
 
@@ -947,13 +946,12 @@ export class QueryInterface {
   async delete(instance, tableName, identifier, options) {
     const cascades = [];
 
-    const bindContext = {};
-    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor, bindContext);
+    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
 
     options = { ...options };
 
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
-    options.bind = bindContext.normalizedBind;
 
     // Check for a restrict field
     if (Boolean(instance.constructor) && Boolean(instance.constructor.associations)) {
@@ -1020,10 +1018,9 @@ export class QueryInterface {
       where = Utils.cloneDeep(where);
     }
 
-    const bindContext = {};
-    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model, bindContext);
+    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
 
-    options.bind = bindContext.normalizedBind;
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
 
     return await this.sequelize.queryRaw(
@@ -1035,11 +1032,10 @@ export class QueryInterface {
   async select(model, tableName, optionsArg) {
     const options = { ...optionsArg, type: QueryTypes.SELECT, model };
 
-    const bindContext = {};
-    const sql = this.queryGenerator.selectQuery(tableName, options, model, bindContext);
+    const sql = this.queryGenerator.selectQuery(tableName, options, model);
 
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
-    options.bind = bindContext.normalizedBind;
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -1056,12 +1052,12 @@ export class QueryInterface {
     options = Utils.cloneDeep(options);
     options.model = model;
 
-    const bindContext = {};
-    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options, bindContext);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
 
     options.type = QueryTypes.UPDATE;
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
-    options.bind = bindContext.normalizedBind;
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -1074,15 +1070,15 @@ export class QueryInterface {
       type: QueryTypes.SELECT,
     });
 
-    const bindContext = {};
-    const sql = this.queryGenerator.selectQuery(tableName, options, Model, bindContext);
+    const sql = this.queryGenerator.selectQuery(tableName, options, Model);
 
     if (attributeSelector === undefined) {
       throw new Error('Please pass an attribute selector!');
     }
 
-    options.bind = bindContext.normalizedBind;
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
+
     const data = await this.sequelize.queryRaw(sql, options);
     if (!options.plain) {
       return data;

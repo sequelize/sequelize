@@ -2,7 +2,6 @@ import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
 import type { AbstractDialect } from '../dialects/abstract/index.js';
-import type { BindContext } from '../dialects/abstract/query.js';
 import * as SqlString from '../sql-string';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
@@ -10,26 +9,6 @@ import { Op as operators } from '../operators';
 const DataTypes = require('../data-types');
 
 const operatorsSet = new Set(Object.values(operators));
-
-export function formatBindOrReplacements(
-  sql: string,
-  replacements: unknown[] | Record<string, unknown>,
-  bind: unknown[] | Record<string, unknown>,
-  bindContext: BindContext,
-  dialect: AbstractDialect,
-): string {
-  // TODO: throw if bind and replacement are used at the same time.
-
-  if (bind) {
-    sql = dialect.Query.formatBindParameters(sql, bind, bindContext, dialect.name);
-  }
-
-  if (replacements) {
-    sql = formatReplacements(sql, replacements, dialect);
-  }
-
-  return sql;
-}
 
 export function formatReplacements(
   sql: string,

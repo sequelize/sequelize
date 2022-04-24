@@ -493,10 +493,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
-  deleteQuery(tableName, where, options = {}, model, bindContext) {
+  deleteQuery(tableName, where, options = {}, model) {
     let limit = '';
     if (options.offset || options.limit) {
-      limit = this.addLimitAndOffset(options, model, bindContext);
+      limit = this.addLimitAndOffset(options, model);
     }
 
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;

@@ -50,6 +50,8 @@ export class MySqlQueryInterface extends QueryInterface {
 
     const model = options.model;
     const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
     options.bind = bind;
 

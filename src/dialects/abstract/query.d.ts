@@ -4,16 +4,6 @@ import { Model, ModelType, IncludeOptions } from '../../model';
 import { Sequelize } from '../../sequelize';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
-type FieldMap = { [key: string]: string };
-
-export type BindContext = {
-  normalizedBind?: unknown[],
-
-  /**
-   * A mapping of 'parameter name' to 'parameter position in the normalizedBind array'
-   */
-  seenParameters?: Map<string, number>,
-};
 
 export interface AbstractQueryGroupJoinDataOptions {
   checkExisting: boolean;
@@ -105,37 +95,6 @@ export class AbstractQuery {
   public options: AbstractQueryOptions;
 
   constructor(connection: Connection, sequelize: Sequelize, options?: AbstractQueryOptions);
-
-  /**
-   * rewrite query with parameters
-   *
-   * Examples:
-   *
-   *   query.formatBindParameters('select $1 as foo', ['fooval']);
-   *
-   *   query.formatBindParameters('select $foo as foo', { foo: 'fooval' });
-   *
-   * Options
-   *   skipUnescape: bool, skip unescaping $$
-   *   skipValueReplace: bool, do not replace (but do unescape $$). Check correct syntax and if all values are available
-   *
-   * @param {string} sql
-   * @param {object|Array} values
-   * @param {string} dialect
-   * @param {Function} [replacementFunc]
-   * @param {object} [options]
-   * @private
-   */
-  static formatBindParameters(
-    sql: string,
-    values: object | Array<object>,
-    bindContext: BindContext,
-    dialect: string,
-    // FIXME: these are only optional on child methods.
-    //  Split between an internal method and an external one.
-    replacementFunc?: replacementFuncType,
-    options?: AbstractQueryFormatBindOptions
-  ): string;
 
   /**
    * Execute the passed sql query.

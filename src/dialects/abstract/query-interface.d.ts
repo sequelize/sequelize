@@ -6,9 +6,11 @@ import {
   ModelAttributes,
   WhereOptions,
   Filterable,
+  ModelStatic,
   ModelType,
   CreationAttributes,
-  Attributes, BuiltModelAttributeColumOptions, ModelStatic,
+  Attributes,
+  BuiltModelAttributeColumOptions,
 } from '../../model';
 import { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import { Transaction } from '../../transaction';

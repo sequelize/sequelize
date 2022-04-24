@@ -223,7 +223,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return hasJsonFunction;
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend, bindContext) {
+  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
     if (smth instanceof Utils.Json) {
       // Parse nested object
       if (smth.conditions) {
@@ -253,7 +253,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend, bindContext);
+    return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
   addColumnQuery(table, key, attribute) {
@@ -356,10 +356,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model, bindContext = {}) {
+  deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
-    let whereClause = this.getWhereConditions(where, null, model, options, undefined, bindContext);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']), bindContext)}` : '';
+    let whereClause = this.getWhereConditions(where, null, model, options);
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 

@@ -10,14 +10,11 @@ import {
   WhereOptions,
 } from '../../model.js';
 import { TableName } from './query-interface.js';
-import { BindContext } from './query.js';
-import { BindOrReplacements } from '../../sequelize.js';
 import { Literal } from '../../utils/index.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
   replacements?: { [key: string]: unknown },
-  bind?: BindOrReplacements,
 };
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
@@ -61,21 +58,21 @@ export class AbstractQueryGenerator {
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
-  whereQuery(where: object, options: ParameterOptions, bindContext: BindContext): string;
-  whereItemsQuery(where: WhereOptions, options: ParameterOptions, binding: string, bindContext: BindContext): string;
+  whereQuery(where: object, options: ParameterOptions): string;
+  whereItemsQuery(where: WhereOptions, options: ParameterOptions, binding: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  escape(value: unknown, field: unknown, options: ParameterOptions, bindContext: BindContext): string;
+  escape(value: unknown, field: unknown, options: ParameterOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
 
-  selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>, bindContext?: BindContext): string;
+  selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,
     valueHash: object,
     columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions },
     options: InsertOptions
   ): { query: string, bind?: Array<unknown> };
-  bulkInsertQuery(tableName: TableName, newEntries: Array<object>, options: BulkInsertOptions, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }, bindContext: BindContext): string;
+  bulkInsertQuery(tableName: TableName, newEntries: Array<object>, options: BulkInsertOptions, columnDefinitions: { [columnName: string]: BuiltModelAttributeColumOptions }): string;
 
   updateQuery(
     tableName: TableName,
@@ -90,7 +87,6 @@ export class AbstractQueryGenerator {
     where?: WhereOptions,
     options?: DeleteOptions,
     model?: ModelStatic<Model>,
-    bindContext?: BindContext,
   ): string;
 
   arithmeticQuery(
@@ -100,6 +96,5 @@ export class AbstractQueryGenerator {
     incrementAmountsByField: { [key: string]: number | Literal },
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
-    bindContext?: BindContext,
   ): string;
 }
