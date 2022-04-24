@@ -1,7 +1,7 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
-describe('QueryGenerator#updateQuery', () => {
+describe('QueryGenerator#deleteQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
   const User = sequelize.define('User', {
