@@ -1,6 +1,6 @@
 'use strict';
 
-import { assertNoReservedBind } from '../../utils/sql';
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
 const { QueryInterface } = require('../abstract/query-interface');
@@ -11,7 +11,8 @@ const { QueryTypes } = require('../../query-types');
  */
 export class SnowflakeQueryInterface extends QueryInterface {
   /**
-   * A wrapper that fixes Snowflake's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
+   * A wrapper that fixes Snowflake's inability to cleanly remove columns from existing tables if they have a foreign key
+   * constraint.
    *
    * @override
    */
@@ -52,11 +53,12 @@ export class SnowflakeQueryInterface extends QueryInterface {
     options.updateOnDuplicate = Object.keys(updateValues);
 
     const model = options.model;
-    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
     delete options.replacements;
+    options.bind = combineBinds(options.bind, bind);
 
-    return await this.sequelize.queryRaw(sql, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /** @override */

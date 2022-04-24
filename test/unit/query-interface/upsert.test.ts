@@ -3,6 +3,8 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { expectsql, sequelize } from '../../support';
 
+const dialectName = sequelize.dialect.name;
+
 describe('QueryInterface#upsert', () => {
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,
@@ -44,7 +46,10 @@ describe('QueryInterface#upsert', () => {
         WHEN MATCHED THEN
           UPDATE SET [Users_target].[firstName] = N':name'
         WHEN NOT MATCHED THEN
-          INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;`,
+          INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;
+      `,
+      // TODO: does snowflake not support upsert?
+      snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
     });
 
     if (dialectName === 'mssql') {
@@ -79,7 +84,7 @@ describe('QueryInterface#upsert', () => {
     await sequelize.getQueryInterface().upsert(
       User.tableName,
       {
-        firstName: 'John',
+        firstName: literal('$firstName'),
         lastName: 'Doe',
       },
       {},
@@ -100,12 +105,14 @@ describe('QueryInterface#upsert', () => {
       mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-        USING (VALUES(N'John', N'Doe')) AS [Users_source]([firstName], [lastName])
+        USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
         ON [Users_target].[id] = [Users_source].[id]
         WHEN NOT MATCHED THEN
-          INSERT ([firstName], [lastName]) VALUES(N'John', N'Doe')
+          INSERT ([firstName], [lastName]) VALUES($firstName, N'Doe')
         OUTPUT $action, INSERTED.*;
       `,
+      // TODO: does snowflake not support upsert?
+      snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1);`,
     });
 
     if (dialectName === 'mssql') {
@@ -151,6 +158,8 @@ describe('QueryInterface#upsert', () => {
           INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
         OUTPUT $action, INSERTED.*;
       `,
+      // TODO: does snowflake not support upsert?
+      snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1);`,
     });
 
     // mssql does not generate any bind parameter
