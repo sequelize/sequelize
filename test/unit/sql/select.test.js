@@ -598,8 +598,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         + `WHERE ([Company].[scopeId] IN (42)) AND [Users->Profession].[name] = ${sql.escape('test')} AND ( `
         + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
         + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
-        + `WHERE ([Users].[companyId] = [Company].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User, {})} `
-        + `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company, {})}) AS [Company];`,
+        + `WHERE ([Users].[companyId] = [Company].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} `
+        + `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company)}) AS [Company];`,
       });
     });
 
