@@ -88,7 +88,7 @@ describe('mapBindParameters', () => {
     } else if (dialect.name === 'postgres') {
       expect(bindOrder).to.deep.eq(['id']);
     } else {
-      expect(bindOrder).to.deep.eq(['id', 'id']);
+      expect(bindOrder).to.deep.eq(['id', 'id', 'id']);
     }
   });
 
