@@ -8,6 +8,7 @@ const Support = require('../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
 const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
+const { expectsql } = require('../../../support');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -127,7 +128,10 @@ describe('QueryGenerator', () => {
       const QG = getAbstractQueryGenerator(this.sequelize);
       const out = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'));
 
-      expect(out).to.equal(`upper('$user')`);
+      expectsql(out, {
+        default: `upper('$user')`,
+        mssql: `upper(N'$user')`,
+      });
     });
   });
 

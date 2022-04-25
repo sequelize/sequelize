@@ -58,7 +58,7 @@ describe('mapBindParameters', () => {
     const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $a`, dialect);
 
     expectsql(sql, {
-      default: `SELECT [$id] FROM users WHERE id = ?`,
+      default: `SELECT * FROM users WHERE id = ?`,
       postgres: `SELECT * FROM users WHERE id = $1`,
       sqlite: `SELECT * FROM users WHERE id = $a`,
       mssql: `SELECT * FROM users WHERE id = @a`,
