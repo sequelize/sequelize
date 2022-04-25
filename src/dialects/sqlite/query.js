@@ -1,5 +1,7 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQuery } = require('../abstract/query');
@@ -241,6 +243,16 @@ export class SqliteQuery extends AbstractQuery {
 
           if (!parameters) {
             parameters = [];
+          }
+
+          if (isPlainObject(parameters)) {
+            const newParameters = Object.create(null);
+
+            for (const key of Object.keys(parameters)) {
+              newParameters[`$${key}`] = parameters[key];
+            }
+
+            parameters = newParameters;
           }
 
           conn[method](sql, parameters, afterExecute);
