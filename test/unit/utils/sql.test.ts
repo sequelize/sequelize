@@ -187,4 +187,80 @@ describe('mapBindParameters', () => {
       expect(bindOrder).to.deep.eq(['id']);
     }
   });
+
+  it('does not consider the token to be a bind parameter if it is in a single line comment', () => {
+    const { sql } = mapBindParameters(`
+      SELECT * FROM users -- WHERE id = $id
+      WHERE id = $id
+    `, dialect);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- WHERE id = $id
+        WHERE id = ?
+      `,
+      postgres: `
+        SELECT * FROM users -- WHERE id = $id
+        WHERE id = $1
+      `,
+      sqlite: `
+        SELECT * FROM users -- WHERE id = $id
+        WHERE id = $id
+      `,
+      mssql: `
+        SELECT * FROM users -- WHERE id = $id
+        WHERE id = @id
+      `,
+    });
+  });
+
+  it('does not consider the token to be a bind parameter if it is in string but a previous comment included a string delimiter', () => {
+    const { sql } = mapBindParameters(`
+      SELECT * FROM users -- '
+      WHERE id = ' $id '
+    `, dialect);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- '
+        WHERE id = ' $id '
+      `,
+    });
+  });
+
+  it('does not consider the token to be a bind parameter if it is in a single line comment', () => {
+    const { sql } = mapBindParameters(`
+      SELECT * FROM users /*
+      WHERE id = $id
+      */
+      WHERE id = $id
+    `, dialect);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users /*
+        WHERE id = $id
+        */
+        WHERE id = ?
+      `,
+      postgres: `
+        SELECT * FROM users /*
+        WHERE id = $id
+        */
+        WHERE id = $1
+      `,
+      sqlite: `
+        SELECT * FROM users /*
+        WHERE id = $id
+        */
+        WHERE id = $id
+      `,
+      mssql: `
+        SELECT * FROM users /*
+        WHERE id = $id
+        */
+        WHERE id = @id
+      `,
+    });
+  });
 });

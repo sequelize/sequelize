@@ -21,6 +21,8 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
   let isString = false;
   let isColumn = false;
   let previousSliceEnd = 0;
+  let isSingleLineComment = false;
+  let isCommentBlock = false;
 
   for (let i = 0; i < sqlString.length; i++) {
     const char = sqlString[i];
@@ -57,6 +59,22 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
       continue;
     }
 
+    if (isSingleLineComment) {
+      if (char === '\n') {
+        isSingleLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (isCommentBlock) {
+      if (char === '*' && sqlString[i + 1] === '/') {
+        isCommentBlock = false;
+      }
+
+      continue;
+    }
+
     if (char === dialect.TICK_CHAR_LEFT) {
       isColumn = true;
       continue;
@@ -64,6 +82,16 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
 
     if (char === `'`) {
       isString = true;
+      continue;
+    }
+
+    if (char === '-' && sqlString.slice(i, i + 3) === '-- ') {
+      isSingleLineComment = true;
+      continue;
+    }
+
+    if (char === '/' && sqlString.slice(i, i + 2) === '/*') {
+      isCommentBlock = true;
       continue;
     }
 
