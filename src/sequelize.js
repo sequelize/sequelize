@@ -554,22 +554,29 @@ export class Sequelize {
   }
 
   async queryRaw(sql, options) {
-    if ('replacements' in options) {
+    if (options != null && 'replacements' in options) {
       throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
 Only bind parameters can be provided, in the dialect-specific syntax.
 Use Sequelize#query if you wish to use replacements.`);
     }
 
+    options = { ...this.options.query, ...options };
+
     let bindParameters;
     if (options.bind != null) {
-      if (!isPlainObject(options.bind) && !Array.isArray(options.bind)) {
+      const isBindArray = Array.isArray(options.bind);
+      if (!isPlainObject(options.bind) && !isBindArray) {
         throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
       }
 
       const mappedResult = mapBindParameters(sql, this.dialect);
 
       for (const parameterName of mappedResult.parameterSet) {
-        if (!(parameterName in options.bind)) {
+        if (isBindArray) {
+          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+            throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+          }
+        } else if (!(parameterName in options.bind)) {
           throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
         }
       }
@@ -584,8 +591,6 @@ Use Sequelize#query if you wish to use replacements.`);
         });
       }
     }
-
-    options = { ...this.options.query, ...options };
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;

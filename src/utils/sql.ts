@@ -91,8 +91,8 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
         continue;
       }
 
-      // detect the bind param if it's a valid identifier and it's followed either by ) , whitespace of it's the end of the query.
-      const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s)/i);
+      // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
+      const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::)/i);
       const bindParamName = match?.groups?.name;
       if (!bindParamName) {
         continue;

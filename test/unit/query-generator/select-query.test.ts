@@ -39,7 +39,7 @@ describe('QueryGenerator#selectQuery', () => {
       postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
       mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
       mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+      sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
       snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
       db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
       ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',

@@ -43,6 +43,17 @@ describe('mapBindParameters', () => {
     expect(parameterSet).to.deep.eq(new Set(['1']));
   });
 
+  if (dialect.name === 'postgres') {
+    it('parses bind parameters followed by cast syntax', () => {
+      const { sql } = mapBindParameters(`SELECT * FROM users WHERE id = $param::string`, dialect);
+
+      // this is postgres-only syntax. It doesn't work in other dialects.
+      expectsql(sql, {
+        postgres: `SELECT * FROM users WHERE id = $1::string`,
+      });
+    });
+  }
+
   it('parses single letter bind parameters', () => {
     const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $a`, dialect);
 

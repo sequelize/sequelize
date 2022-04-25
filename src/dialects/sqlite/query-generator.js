@@ -77,6 +77,22 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return this.replaceBooleanDefaults(sql);
   }
 
+  addLimitAndOffset(options, model) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT -1`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+    }
+
+    return fragment;
+  }
+
   booleanValue(value) {
     return value ? 1 : 0;
   }

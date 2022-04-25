@@ -781,7 +781,7 @@ export class QueryInterface {
   }
 
   async insert(instance, tableName, values, options) {
-    if (options.bind) {
+    if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
 
@@ -816,7 +816,7 @@ export class QueryInterface {
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
-    if (options.bind) {
+    if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
 
@@ -903,7 +903,7 @@ export class QueryInterface {
   }
 
   async update(instance, tableName, values, where, options) {
-    if (options.bind) {
+    if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
 
@@ -942,7 +942,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkUpdate(tableName, values, where, options, columnDefinitions) {
-    if (options.bind) {
+    if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
 

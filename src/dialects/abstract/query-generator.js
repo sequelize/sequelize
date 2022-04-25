@@ -2307,7 +2307,7 @@ export class AbstractQueryGenerator {
             return this.whereItemsQuery(arg);
           }
 
-          return this.escape(typeof arg === 'string' ? arg.replace('$', '$$$') : arg, undefined, options);
+          return this.escape(arg, undefined, options);
         }).join(', ')
       })`;
     }

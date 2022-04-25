@@ -329,7 +329,7 @@ if (dialect === 'sqlite') {
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 18446744073709551615 OFFSET 2;',
+          expectation: 'SELECT * FROM `myTable` LIMIT -1 OFFSET 2;',
           context: QueryGenerator,
         }, {
           title: 'multiple where arguments',
