@@ -230,8 +230,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          // postgres uses arrays
-          if (dialect === 'postgres') {
+          // these dialects only support positional bind parameters
+          if (dialect === 'postgres' || dialect === 'mariadb' || dialect === 'mysql') {
             expect(createSql).to.match(/; "john", "john@gmail.com"$/);
             expect(updateSql).to.match(/; "li", 1$/);
           } else {
