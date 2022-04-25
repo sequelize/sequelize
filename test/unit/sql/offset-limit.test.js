@@ -83,6 +83,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ],
     }, {
       default: ` LIMIT 10 OFFSET ''';DELETE FROM user'`,
+      mariadb: ` LIMIT 10 OFFSET '\\';DELETE FROM user'`,
+      mysql: ` LIMIT 10 OFFSET '\\';DELETE FROM user'`,
       db2: ' FETCH NEXT 10 ROWS ONLY',
       mssql: ` OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY`,
       ibmi: ' FETCH NEXT 10 ROWS ONLY',
