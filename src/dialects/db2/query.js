@@ -1,6 +1,6 @@
 'use strict';
 
-import assert from 'node:assert/strict';
+import assert from 'node:assert';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
