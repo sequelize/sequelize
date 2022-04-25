@@ -7,7 +7,7 @@ const dialect = sequelize.dialect;
 const supportsNamedParameters = dialect.name === 'sqlite' || dialect.name === 'mssql';
 
 describe('mapBindParameters', () => {
-  it('parses bind parameters', () => {
+  it('parses named bind parameters', () => {
     const { sql, bindOrder } = mapBindParameters(`SELECT ${dialect.TICK_CHAR_LEFT}$id${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = '$id' OR id = $id OR id = '''$id'''`, dialect);
 
     expectsql(sql, {
@@ -22,6 +22,44 @@ describe('mapBindParameters', () => {
     } else {
       expect(bindOrder).to.deep.eq(['id']);
     }
+  });
+
+  it('parses numeric bind parameters', () => {
+    const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $1`, dialect);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = ?`,
+      postgres: `SELECT * FROM users WHERE id = $1`,
+      sqlite: `SELECT * FROM users WHERE id = $1`,
+      mssql: `SELECT * FROM users WHERE id = @1`,
+    });
+
+    if (supportsNamedParameters) {
+      expect(bindOrder).to.be.null;
+    } else {
+      expect(bindOrder).to.deep.eq(['1']);
+    }
+
+    expect(parameterSet).to.deep.eq(new Set(['1']));
+  });
+
+  it('parses single letter bind parameters', () => {
+    const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $a`, dialect);
+
+    expectsql(sql, {
+      default: `SELECT [$id] FROM users WHERE id = ?`,
+      postgres: `SELECT * FROM users WHERE id = $1`,
+      sqlite: `SELECT * FROM users WHERE id = $a`,
+      mssql: `SELECT * FROM users WHERE id = @a`,
+    });
+
+    if (supportsNamedParameters) {
+      expect(bindOrder).to.be.null;
+    } else {
+      expect(bindOrder).to.deep.eq(['a']);
+    }
+
+    expect(parameterSet).to.deep.eq(new Set(['a']));
   });
 
   it('does not consider the token to be a bind parameter if it does not follow ( , or whitespace', () => {

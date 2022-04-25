@@ -413,10 +413,10 @@ if (current.dialect.supports.transactions) {
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 
@@ -428,10 +428,10 @@ if (current.dialect.supports.transactions) {
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 
