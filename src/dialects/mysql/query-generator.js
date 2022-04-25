@@ -313,7 +313,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
     }
 
-    return `${query};`;
+    return query;
   }
 
   showIndexesQuery(tableName, options) {

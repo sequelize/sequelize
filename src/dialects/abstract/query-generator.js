@@ -450,7 +450,7 @@ export class AbstractQueryGenerator {
     const query = `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query: `${query};` };
+    const result = { query };
     if (options.bindParam !== false) {
       result.bind = bind;
     }
@@ -505,7 +505,7 @@ export class AbstractQueryGenerator {
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
 
-    return `${Utils.joinSQLFragments([
+    return Utils.joinSQLFragments([
       'UPDATE',
       this.quoteTable(tableName),
       'SET',
@@ -513,7 +513,7 @@ export class AbstractQueryGenerator {
       outputFragment,
       this.whereQuery(where, replacementOptions),
       returningFragment,
-    ])};`;
+    ]);
   }
 
   /*
@@ -1791,7 +1791,7 @@ export class AbstractQueryGenerator {
       joinOn = this.whereItemsQuery(include.on, {
         prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
         model: include.model,
-        replacements: options.replacements,
+        replacements: options?.replacements,
       });
     }
 
@@ -1799,7 +1799,7 @@ export class AbstractQueryGenerator {
       joinWhere = this.whereItemsQuery(include.where, {
         prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
         model: include.model,
-        replacements: options.replacements,
+        replacements: options?.replacements,
       });
       if (joinWhere) {
         if (include.or) {
@@ -2273,10 +2273,14 @@ export class AbstractQueryGenerator {
 ➜ literal(${JSON.stringify(smth.val)})`);
       }
 
-      try {
-        return Utils.formatReplacements(smth.val, options.replacements, this._dialect);
-      } catch (error) {
-        throw new Error(`Parsing of literal(${JSON.stringify(smth.val)}) failed.`, { cause: error });
+      if (options?.replacements) {
+        try {
+          return Utils.formatReplacements(smth.val, options.replacements, this._dialect);
+        } catch (error) {
+          throw new Error(`Parsing of literal(${JSON.stringify(smth.val)}) failed.`, { cause: error });
+        }
+      } else {
+        return smth.val;
       }
     }
 

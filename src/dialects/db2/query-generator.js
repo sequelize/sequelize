@@ -538,7 +538,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       query += ` FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY`;
     }
 
-    return `${query.trim()};`;
+    return query.trim();
   }
 
   showIndexesQuery(tableName) {

@@ -220,7 +220,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
     }
 
-    const result = { query: `${query};` };
+    const result = { query };
     if (options.bindParam !== false) {
       result.bind = bind;
     }

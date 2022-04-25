@@ -377,10 +377,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
       primaryKeysSelection = pks;
 
-      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit});`;
+      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
     }
 
-    return `DELETE FROM ${table}${whereClause};`;
+    return `DELETE FROM ${table}${whereClause}`;
   }
 
   showIndexesQuery(tableName) {
@@ -434,7 +434,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   addLimitAndOffset(options) {
     let fragment = '';
-    if (options.limit) {
+    if (options.limit != null) {
       fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     }
 
