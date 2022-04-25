@@ -35,7 +35,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
     expectsql(sql, {
       default: `UPDATE [Users] SET [age]=[age]+ 2,[name]='John' WHERE id = 47`,
       postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *`,
-      mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]=N'John' OUTPUT INSERTED.* WHERE id = 47;`,
+      mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]=N'John' OUTPUT INSERTED.* WHERE id = 47`,
     });
   });
 });

@@ -23,7 +23,7 @@ describe('QueryGenerator#updateQuery', () => {
 
     expectsql(query, {
       default: `UPDATE [Users] SET [firstName]='Zoe' WHERE name = 'Zoe'`,
-      mssql: `UPDATE [Users] SET [firstName]=N'Zoe' WHERE name = N'Zoe';`,
+      mssql: `UPDATE [Users] SET [firstName]=N'Zoe' WHERE name = N'Zoe'`,
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"='Zoe' WHERE name = 'Zoe');`,
     });
     expect(bind).to.deep.eq({});
@@ -61,7 +61,7 @@ describe('QueryGenerator#updateQuery', () => {
     // lastName's bind position being changed from $1 to $2 is intentional
     expectsql(query, {
       default: `UPDATE [Users] SET [firstName]='John',[lastName]=$1,[username]='jd' WHERE first_name = $2`,
-      mssql: `UPDATE [Users] SET [firstName]=N'John',[lastName]=$1,[username]=N'jd' WHERE first_name = $2;`,
+      mssql: `UPDATE [Users] SET [firstName]=N'John',[lastName]=$1,[username]=N'jd' WHERE first_name = $2`,
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"='John',"lastName"=$1,"username"='jd' WHERE first_name = $2);`,
     });
 
