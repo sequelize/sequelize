@@ -26,7 +26,7 @@ describe('QueryGenerator#deleteQuery', () => {
     expectsql(query, {
       default: `DELETE FROM [Users] WHERE name = 'Zoe' LIMIT 1;`,
       postgres: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1)`,
-      sqlite: `DELETE FROM \`Users\` WHERE rowid IN (SELECT rowid FROM \`Users\` WHERE name = 'Zoe' LIMIT 1);`,
+      sqlite: `DELETE FROM \`Users\` WHERE rowid IN (SELECT rowid FROM \`Users\` WHERE name = 'Zoe' LIMIT 1)`,
       mssql: `DELETE TOP(1) FROM [Users] WHERE name = N'Zoe'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       snowflake: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1);`,
       db2: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY;`,

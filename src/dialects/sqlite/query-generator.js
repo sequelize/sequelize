@@ -248,7 +248,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, undefined, options)})`;
     }
 
-    return `${`DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim()};`;
+    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
   }
 
   attributesToSQL(attributes, options) {
