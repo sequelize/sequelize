@@ -1,5 +1,7 @@
 'use strict';
 
+import assert from 'node:assert/strict';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
@@ -26,6 +28,8 @@ export class Db2Query extends AbstractQuery {
   }
 
   async _run(connection, sql, parameters) {
+    assert(typeof sql === 'string', `sql parameter must be a string`);
+
     this.sql = sql;
     const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
     let queryBegin;

@@ -116,4 +116,6 @@ export class AbstractQueryGenerator {
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
   ): string;
+
+  dropSchema(tableName: TableName): string | { query: string, bind?: Array<unknown> };
 }

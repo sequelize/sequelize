@@ -554,6 +554,10 @@ export class Sequelize {
   }
 
   async queryRaw(sql, options) {
+    if (typeof sql !== 'string') {
+      throw new TypeError('Sequelize#rawQuery requires a string as the first parameter.');
+    }
+
     if (options != null && 'replacements' in options) {
       throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
 Only bind parameters can be provided, in the dialect-specific syntax.

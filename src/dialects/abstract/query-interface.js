@@ -78,7 +78,15 @@ export class QueryInterface {
    */
   async dropSchema(schema, options) {
     options = options || {};
-    const sql = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchema(schema);
+
+    let sql;
+    if (typeof query === 'object') {
+      options.bind = query.bind;
+      sql = query.query;
+    } else {
+      sql = query;
+    }
 
     return await this.sequelize.queryRaw(sql, options);
   }
