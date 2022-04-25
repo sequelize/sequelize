@@ -7,10 +7,15 @@ import type { BindOrReplacements } from '../sequelize.js';
  * @param sqlString
  * @param dialect
  */
-export function mapBindParameters(sqlString: string, dialect: AbstractDialect): { sql: string, bindOrder: string[] | null } {
+export function mapBindParameters(sqlString: string, dialect: AbstractDialect): {
+  sql: string,
+  bindOrder: string[] | null,
+  parameterSet: Set<string>,
+} {
   let output: string = '';
 
   const parameterCollector = dialect.createBindCollector();
+  const parameterSet = new Set<string>();
 
   let currentDollarStringTagName = null;
   let isString = false;
@@ -87,13 +92,13 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
       }
 
       // detect the bind param if it's a valid identifier and it's followed either by ) , whitespace of it's the end of the query.
-      const match = remainingString.match(/^\$(?<name>[a-z_][0-9a-z_]+)(?:\)|,|$|\s)/i);
+      const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s)/i);
       const bindParamName = match?.groups?.name;
       if (!bindParamName) {
         continue;
       }
 
-      // TODO: call a method on AbstractDialect to get the name of the parameter.
+      parameterSet.add(bindParamName);
 
       // we found a bind parameter
       const newName = parameterCollector.collect(bindParamName);
@@ -109,7 +114,7 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
 
   output += sqlString.slice(previousSliceEnd, sqlString.length);
 
-  return { sql: output, bindOrder: parameterCollector.getBindParameterOrder() };
+  return { sql: output, bindOrder: parameterCollector.getBindParameterOrder(), parameterSet };
 }
 
 function isBackslashEscaped(string: string, pos: number): boolean {

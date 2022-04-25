@@ -1,6 +1,6 @@
 'use strict';
 
-import { formatReplacements } from './utils';
+import isPlainObject from 'lodash/isPlainObject';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { mapBindParameters } from './utils/sql';
@@ -556,13 +556,23 @@ export class Sequelize {
   async queryRaw(sql, options) {
     if ('replacements' in options) {
       throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
-Only numeric bind parameters can be provided, in the dialect-specific syntax.
-Use Sequelize#query if you wish to use replacements or named bind parameters`);
+Only bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements.`);
     }
 
     let bindParameters;
-    if (options.bind) {
+    if (options.bind != null) {
+      if (!isPlainObject(options.bind) && !Array.isArray(options.bind)) {
+        throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
+      }
+
       const mappedResult = mapBindParameters(sql, this.dialect);
+
+      for (const parameterName of mappedResult.parameterSet) {
+        if (!(parameterName in options.bind)) {
+          throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+        }
+      }
 
       sql = mappedResult.sql;
 
@@ -570,10 +580,6 @@ Use Sequelize#query if you wish to use replacements or named bind parameters`);
         bindParameters = options.bind;
       } else {
         bindParameters = mappedResult.bindOrder.map(key => {
-          if (options.bind[key] === undefined) {
-            throw new Error(`Query includes bind parameter "$${key}", but no value has been provided for that bind parameter.`);
-          }
-
           return options.bind[key];
         });
       }

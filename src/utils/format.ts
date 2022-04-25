@@ -26,7 +26,7 @@ function formatPositionalReplacements(sql: string, replacements: unknown[], dial
   const timeZone = null;
 
   // Make a clone of the array because format modifies the passed args
-  return SqlString.format(sql, [...replacements], timeZone, dialect.name);
+  return SqlString.formatPositionalReplacements(sql, [...replacements], timeZone, dialect.name);
 }
 
 function formatNamedReplacements(
@@ -34,7 +34,7 @@ function formatNamedReplacements(
   parameters: Record<string, unknown>,
   dialect: AbstractDialect,
 ): string {
-  return SqlString.formatNamedParameters(sql, parameters, null, dialect.name);
+  return SqlString.formatNamedReplacements(sql, parameters, null, dialect.name);
 }
 
 export type FinderOptions<TAttributes> = {

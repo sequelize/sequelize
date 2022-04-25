@@ -112,7 +112,7 @@ export function includesPositionalReplacements(sql) {
   return positionalReplacementRegex.test(sql);
 }
 
-export function format(sql, values, timeZone, dialect) {
+export function formatPositionalReplacements(sql, values, timeZone, dialect) {
   values = [values].flat();
 
   if (typeof sql !== 'string') {
@@ -130,7 +130,7 @@ export function format(sql, values, timeZone, dialect) {
   });
 }
 
-export function formatNamedParameters(sql, values, timeZone, dialect) {
+export function formatNamedReplacements(sql, values, timeZone, dialect) {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
     if (values == null) {
       throw new Error(`SQL string includes named replacement "${value}", but no replacement map has been provided.`);
