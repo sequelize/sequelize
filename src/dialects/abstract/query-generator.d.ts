@@ -5,12 +5,14 @@ import {
   BuiltModelAttributeColumOptions,
   FindOptions,
   Model,
+  ModelAttributeColumnOptions,
   ModelStatic,
   SearchPathable,
   WhereOptions,
 } from '../../model.js';
 import { TableName } from './query-interface.js';
 import { Literal } from '../../utils/index.js';
+import { QueryTypes } from '../../query-types.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
@@ -52,14 +54,21 @@ type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string>,
 };
 
+export type WhereItemsQueryOptions = ParameterOptions & {
+  model?: ModelStatic,
+  type?: QueryTypes,
+  prefix?: string | Literal,
+  field?: ModelAttributeColumnOptions,
+};
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
-  whereQuery(where: object, options: ParameterOptions): string;
-  whereItemsQuery(where: WhereOptions, options: ParameterOptions, binding?: string): string;
+  whereQuery(where: object, options?: ParameterOptions): string;
+  whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
   escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
