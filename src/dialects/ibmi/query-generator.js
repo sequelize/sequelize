@@ -663,7 +663,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       }
 
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
-        return this.escape(value, undefined, { replacements: options.replacements });
+        return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
       template = attribute.type.toString(options);
@@ -689,7 +689,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         attribute.defaultValue = 0;
       }
 
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options.replacements })}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
