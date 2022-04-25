@@ -36,7 +36,7 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $sequelize_2;',
-      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING ":data";',
+      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING ":data"',
       mssql: 'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [id] = $sequelize_2;',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2);`,
     });
@@ -84,7 +84,7 @@ describe('QueryInterface#update', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $id;',
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $id',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id);`,
     });
 
@@ -112,7 +112,7 @@ describe('QueryInterface#update', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $1;',
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $1',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1);`,
     });
 

@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     afterEach(() => {
-      current.query.restore();
+      current.queryRaw.restore();
     });
 
     describe('defined by options.hooks', () => {

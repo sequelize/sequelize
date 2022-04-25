@@ -39,7 +39,7 @@ describe('QueryInterface#increment', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data";`,
+      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data"`,
       default: `UPDATE [Users] SET [age]=[age]+ ':age',[name]=':name' WHERE [id] = ':id';`,
       mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [id] = N':id';`,
     });
