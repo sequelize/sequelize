@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id","user_name";',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($sequelize_1));',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1));',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1))',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($sequelize_1));',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
             postgres: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($sequelize_1));',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',

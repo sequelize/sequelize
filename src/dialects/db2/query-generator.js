@@ -374,7 +374,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     const modelAttributeMap = {};
     const values = [];
-    const bind = [];
+    const bind = {};
     const bindParam = options.bindParam || this.bindParam(bind);
 
     if (attributes) {
@@ -605,7 +605,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       // enums are a special case
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
-        return this.escape(value, undefined, { replacements: options.replacements });
+        return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
       template = attribute.type.toString();
@@ -631,7 +631,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options.replacements })}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
     if (attribute.unique === true) {
