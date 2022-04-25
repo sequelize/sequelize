@@ -346,7 +346,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
         whereClause,
         limit,
         ')',
-        ';',
       ]);
     }
 
@@ -354,7 +353,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       'DELETE FROM',
       table,
       whereClause,
-      ';',
     ]);
   }
 
@@ -637,6 +635,18 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
+  }
+
+  addLimitAndOffset(options) {
+    if (options.offset) {
+      return ` LIMIT ${this.escape(options.limit ?? null, undefined, options)} OFFSET ${this.escape(options.offset, undefined, options)}`;
+    }
+
+    if (options.limit != null) {
+      return ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    }
+
+    return '';
   }
 
   /**
