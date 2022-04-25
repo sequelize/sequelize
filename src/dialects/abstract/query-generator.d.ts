@@ -11,7 +11,7 @@ import {
   WhereOptions,
 } from '../../model.js';
 import { TableName } from './query-interface.js';
-import { Literal } from '../../utils/index.js';
+import { Literal, SequelizeMethod } from '../../utils/index.js';
 import { QueryTypes } from '../../query-types.js';
 
 type ParameterOptions = {
@@ -61,6 +61,10 @@ export type WhereItemsQueryOptions = ParameterOptions & {
   field?: ModelAttributeColumnOptions,
 };
 
+type HandleSequelizeMethodOptions = ParameterOptions & {
+
+};
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -73,6 +77,7 @@ export class AbstractQueryGenerator {
   escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
+  handleSequelizeMethod(smth: SequelizeMethod, tableName?: TableName, factory?: ModelStatic, options?: HandleSequelizeMethodOptions, prepend?: boolean): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
