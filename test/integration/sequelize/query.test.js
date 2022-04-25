@@ -230,8 +230,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
-          expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
+          // postgres uses arrays
+          if (dialect === 'postgres') {
+            expect(createSql).to.match(/; "john", "john@gmail.com"$/);
+            expect(updateSql).to.match(/; "li", 1$/);
+          } else {
+            expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
+            expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
+          }
         });
 
         if (dialect !== 'ibmi') {
@@ -519,7 +525,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           .should.be.rejectedWith(Error, /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g);
       });
 
-      it('reject when binds passed as array and a named parameter is also present', async function () {
+      it('rejects when binds passed as array and a named parameter is also present', async function () {
         const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
 
         await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, $foo as baz`, { raw: true, bind: [1, 2] })
@@ -722,7 +728,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-          raw: true, bind: [1], logging(s) {
+          raw: true,
+          bind: [1],
+          logging(s) {
             logSql = s;
           },
         });
@@ -741,7 +749,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(result[0]).to.deep.equal(expected);
       });
 
-      it('does not treat a $ as a bind param if it\'s in the middle of an identifier', async function () {
+      it(`does not treat a $ as a bind param if it's in the middle of an identifier`, async function () {
         const typeCast = ['postgres', 'db2'].includes(dialect) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
         const expected = ['db2', 'ibmi'].includes(dialect) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];

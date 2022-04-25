@@ -587,6 +587,10 @@ Use Sequelize#query if you wish to use replacements.`);
         bindParameters = options.bind;
       } else {
         bindParameters = mappedResult.bindOrder.map(key => {
+          if (isBindArray) {
+            return options.bind[key - 1];
+          }
+
           return options.bind[key];
         });
       }

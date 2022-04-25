@@ -1062,6 +1062,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expectsql(sql, {
             default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
+            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
           });
         },
         returning: ['*'],

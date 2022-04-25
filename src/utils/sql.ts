@@ -86,8 +86,8 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
       }
 
       // we want to be conservative with what we consider to be a bind parameter to avoid risk of conflict with potential operators
-      // users need to add a space before the bind parameter (except after ( and ,)
-      if (previousChar !== undefined && !/[\s(,]/.test(previousChar)) {
+      // users need to add a space before the bind parameter (except after '(', ',', and '=')
+      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
         continue;
       }
 

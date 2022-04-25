@@ -46,6 +46,10 @@ describe(getTestDialectTeaser('Utils'), () => {
     it('should format where clause correctly when the value is false', () => {
       expect(Utils.formatReplacements('foo = ?', [0], sequelize.dialect)).to.equal('foo = 0');
     });
+
+    it('does not interpret ::x as a replacement, as it is a cast', () => {
+      expect(Utils.formatReplacements(`('foo')::string`, [0], sequelize.dialect)).to.equal(`('foo')::string`);
+    });
   });
 
   describe('cloneDeep', () => {

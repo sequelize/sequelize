@@ -131,7 +131,9 @@ export function formatPositionalReplacements(sql, values, timeZone, dialect) {
 }
 
 export function formatNamedReplacements(sql, values, timeZone, dialect) {
-  return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
+  // parse :named replacement tokens
+  // except when it's cast syntax (e.g. ::int)
+  return sql.replace(/(?<!:):([a-z_][a-z0-9_]*)/gi, (value, key) => {
     if (values == null) {
       throw new Error(`SQL string includes named replacement "${value}", but no replacement map has been provided.`);
     }
