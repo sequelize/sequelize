@@ -2,6 +2,8 @@ cd dev/db2/11.5
 
 export DIALECT=db2
 export SEQ_DB="${SEQ_DB:-testdb}"
+# db2 db names must be uppercase
+export SEQ_DB=$(echo "$SEQ_DB" | awk '{print toupper($0)}')
 
 mkdir -p Docker
 if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
