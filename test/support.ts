@@ -1,4 +1,3 @@
-import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
@@ -189,17 +188,7 @@ export async function dropTestSchemas(sequelize: Sequelize) {
     }
   }
 
-  const results = await Promise.allSettled(schemasPromise);
-  const errors = results.filter(result => result.status === 'rejected')
-    .map(result => {
-      assert(result.status === 'rejected');
-
-      return result.reason;
-    });
-
-  if (errors.length > 0) {
-    throw new AggregateError(errors, 'At least one schema deletion operation errored');
-  }
+  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
