@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
-describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe.only(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
@@ -25,6 +25,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable({
         tableName: 'users',
         schema: 'archive',
+        logging: true,
       }, {
         id: {
           type: DataTypes.INTEGER,
@@ -37,6 +38,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.changeColumn({
         tableName: 'users',
         schema: 'archive',
+        logging: true,
       }, 'currency', {
         type: DataTypes.FLOAT,
       });
