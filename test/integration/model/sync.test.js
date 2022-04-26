@@ -193,7 +193,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('indexes', () => {
       describe('with alter:true', () => {
-        it.only('should not duplicate named indexes after multiple sync calls', async function () {
+        it('should not duplicate named indexes after multiple sync calls', async function () {
           const User = this.sequelize.define('testSync', {
             email: {
               type: DataTypes.STRING,
