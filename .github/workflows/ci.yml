@@ -62,5 +62,7 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install Local DB2 Copy
         run: yarn start-db2
+      - name: Print DB2 start logs
+        run: sudo docker logs db2server
       - name: Integration Tests
         run: yarn test-integration
