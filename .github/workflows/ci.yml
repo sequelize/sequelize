@@ -60,6 +60,11 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Generate DB name
+        run: |
+          echo "SEQ_DB=n${{ matrix.node-version }}s$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Print DB name
+        run: echo "DB Name is $SEQ_DB"
       - name: Install Local DB2 Copy
         run: yarn start-db2
       - name: Print DB2 start logs
