@@ -180,15 +180,6 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
   }
 
-  dropTableQuery(tableName) {
-    const query = 'DROP TABLE <%= table %>';
-    const values = {
-      table: this.quoteTable(tableName),
-    };
-
-    return `${_.template(query, this._templateSettings)(values).trim()};`;
-  }
-
   addColumnQuery(table, key, dataType) {
     dataType.field = key;
 
