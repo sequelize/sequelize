@@ -109,6 +109,14 @@ export class Db2Query extends AbstractQuery {
               this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? JSON.stringify(parameters) : ''}`, Date.now() - queryBegin, this.options);
             }
 
+            if (err && err.message) {
+              err = this.filterSQLError(err, this.sql, connection);
+              if (err === null) {
+                stmt.closeSync();
+                resolve(this.formatResults([], 0));
+              }
+            }
+
             if (err) {
               err.sql = sql;
               stmt.closeSync();
@@ -193,56 +201,62 @@ export class Db2Query extends AbstractQuery {
     return [sql, bindParam];
   }
 
-  // filterSQLError(err, sql, connection) {
-  //   if (err.message.search('SQL0204N') !== -1 && _.startsWith(sql, 'DROP ')) {
-  //     err = null; // Ignore table not found error for drop table.
-  //   } else if (err.message.search('SQL0443N') !== -1) {
-  //     if (this.isDropSchemaQuery()) {
-  //       // Delete ERRORSCHEMA.ERRORTABLE if it exist.
-  //       connection.querySync('DROP TABLE ERRORSCHEMA.ERRORTABLE;');
-  //       // Retry deleting the schema
-  //       connection.querySync(this.sql);
-  //     }
-  //
-  //     err = null; // Ignore drop schema error.
-  //   } else if (err.message.search('SQL0601N') !== -1) {
-  //     const match = err.message.match(/SQL0601N {2}The name of the object to be created is identical to the existing name "(.*)" of type "(.*)"./);
-  //     if (match && match.length > 1 && match[2] === 'TABLE') {
-  //       let table;
-  //       const mtarray = match[1].split('.');
-  //       if (mtarray[1]) {
-  //         table = `"${mtarray[0]}"."${mtarray[1]}"`;
-  //       } else {
-  //         table = `"${mtarray[0]}"`;
-  //       }
-  //
-  //       if (connection.dropTable !== false) {
-  //         connection.querySync(`DROP TABLE ${table}`);
-  //         err = connection.querySync(sql);
-  //       } else {
-  //         err = null;
-  //       }
-  //     } else {
-  //       err = null; // Ignore create schema error.
-  //     }
-  //   } else if (err.message.search('SQL0911N') !== -1) {
-  //     if (err.message.search('Reason code "2"') !== -1) {
-  //       err = null; // Ignore deadlock error due to program logic.
-  //     }
-  //   } else if (err.message.search('SQL0605W') !== -1) {
-  //     err = null; // Ignore warning.
-  //   } else if (err.message.search('SQL0668N') !== -1
-  //     && _.startsWith(sql, 'ALTER TABLE ')) {
-  //     connection.querySync(`CALL SYSPROC.ADMIN_CMD('REORG TABLE ${sql.slice(12).split(' ')[0]}')`);
-  //     err = connection.querySync(sql);
-  //   }
-  //
-  //   if (err && err.length === 0) {
-  //     err = null;
-  //   }
-  //
-  //   return err;
-  // }
+  filterSQLError(err, sql, connection) {
+    // This error is safe to ignore:
+    //      [IBM][CLI Driver][DB2/LINUXX8664] SQL0605W  The index was not created because an index "x" with a matching definition already exists.  SQLSTATE=01550
+    if (err.message.search('SQL0605W') !== -1) {
+      return null;
+    }
+
+    //   if (err.message.search('SQL0204N') !== -1 && _.startsWith(sql, 'DROP ')) {
+    //     err = null; // Ignore table not found error for drop table.
+    //   } else if (err.message.search('SQL0443N') !== -1) {
+    //     if (this.isDropSchemaQuery()) {
+    //       // Delete ERRORSCHEMA.ERRORTABLE if it exist.
+    //       connection.querySync('DROP TABLE ERRORSCHEMA.ERRORTABLE;');
+    //       // Retry deleting the schema
+    //       connection.querySync(this.sql);
+    //     }
+    //
+    //     err = null; // Ignore drop schema error.
+    //   } else if (err.message.search('SQL0601N') !== -1) {
+    //     const match = err.message.match(/SQL0601N {2}The name of the object to be created is identical to the existing name "(.*)" of type "(.*)"./);
+    //     if (match && match.length > 1 && match[2] === 'TABLE') {
+    //       let table;
+    //       const mtarray = match[1].split('.');
+    //       if (mtarray[1]) {
+    //         table = `"${mtarray[0]}"."${mtarray[1]}"`;
+    //       } else {
+    //         table = `"${mtarray[0]}"`;
+    //       }
+    //
+    //       if (connection.dropTable !== false) {
+    //         connection.querySync(`DROP TABLE ${table}`);
+    //         err = connection.querySync(sql);
+    //       } else {
+    //         err = null;
+    //       }
+    //     } else {
+    //       err = null; // Ignore create schema error.
+    //     }
+    //   } else if (err.message.search('SQL0911N') !== -1) {
+    //     if (err.message.search('Reason code "2"') !== -1) {
+    //       err = null; // Ignore deadlock error due to program logic.
+    //     }
+    //   } else if (err.message.search('SQL0605W') !== -1) {
+    //     err = null; // Ignore warning.
+    //   } else if (err.message.search('SQL0668N') !== -1
+    //     && _.startsWith(sql, 'ALTER TABLE ')) {
+    //     connection.querySync(`CALL SYSPROC.ADMIN_CMD('REORG TABLE ${sql.slice(12).split(' ')[0]}')`);
+    //     err = connection.querySync(sql);
+    //   }
+    //
+    //   if (err && err.length === 0) {
+    //     err = null;
+    //   }
+    //
+    return err;
+  }
 
   /**
    * High level function that handles the results of a query execution.

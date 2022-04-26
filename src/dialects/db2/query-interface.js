@@ -76,6 +76,13 @@ export class Db2QueryInterface extends QueryInterface {
     return [result, undefined];
   }
 
+  async dropSchema(schema, options) {
+    // error from dropSchema will be stored in this table.
+    await this.dropTable({ tableName: 'ERRORTABLE', schema: 'ERRORSCHEMA' });
+
+    return super.dropSchema(schema, options);
+  }
+
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
