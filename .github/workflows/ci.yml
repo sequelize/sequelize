@@ -44,7 +44,7 @@ jobs:
     needs: [ install-and-build ]
     env:
       DIALECT: db2
-      SEQ_DB: testdb_node_${{ matrix.node-version }}_sha_${{ github.sha }}
+      SEQ_DB: testdbnode${{ matrix.node-version }}sha${{ github.sha }}
       SEQ_USER: db2inst1
       SEQ_PW: password
       SEQ_TEST_CLEANUP_TIMEOUT: 1200000
