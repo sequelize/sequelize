@@ -68,6 +68,10 @@ if (dialect !== 'ibmi') {
           'START TRANSACTION;',
           'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
         ],
+        yugabytedb: [
+          'START TRANSACTION;',
+          'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
+        ],
         sqlite: [
           'BEGIN DEFERRED TRANSACTION;',
           'PRAGMA read_uncommitted = ON;',

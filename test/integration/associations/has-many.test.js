@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
           await this.sequelize.dropSchema('work');
           const schemas = await this.sequelize.showAllSchemas();
-          if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
+          if (['postgres', 'mssql', 'yugabytedb'].includes(dialect) || schemas === 'mariadb') {
             expect(schemas).to.be.empty;
           }
         });
@@ -483,7 +483,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
+        (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -588,7 +588,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
+        (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -679,7 +679,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('setAssociations', () => {
       if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
+        (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -750,7 +750,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('addAssociations', () => {
       if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
+        (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -890,7 +890,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
+        (current.dialect.name !== 'yugabytedb' ? it : it.skip)('supports transactions', async function () {
           const sequelize = await Support.prepareTransactionTest(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });

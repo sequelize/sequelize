@@ -2376,7 +2376,12 @@ export class Model {
           .filter(name => this.rawAttributes[name])
           .map(name => this.rawAttributes[name].field || name);
 
-        const errFieldKeys = Object.keys(error.fields);
+        // YugabyteDB related changes are done at this point for errFieldsKeys variable
+        let errFieldKeys = [];
+        if (error.fields !== undefined) {
+          errFieldKeys = Object.keys(error.fields);
+        }
+
         const errFieldsWhereIntersects = Utils.intersects(errFieldKeys, whereFields);
         if (defaultFields && !errFieldsWhereIntersects && Utils.intersects(errFieldKeys, defaultFields)) {
           throw error;
@@ -2443,7 +2448,7 @@ export class Model {
       const createOptions = { ...options };
 
       // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.options.dialect === 'postgres' && options.transaction) {
+      if ((this.sequelize.options.dialect === 'postgres' || this.sequelize.options.dialect === 'yugabytedb') && options.transaction) {
         createOptions.ignoreDuplicates = true;
       }
 
@@ -2619,7 +2624,7 @@ export class Model {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
+      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi', 'yugabytedb'].includes(dialect)) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 

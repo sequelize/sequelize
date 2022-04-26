@@ -11,7 +11,7 @@ const semver = require('semver');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+(current.dialect.name !== 'yugabytedb' ? describe : describe.skip)(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', () => {
       beforeEach(async function () {

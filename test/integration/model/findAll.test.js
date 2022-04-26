@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(5);
       });
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'yugabytedb') {
         it('should be able to find a row using ilike', async function () {
           const users = await this.User.findAll({
             where: {
@@ -499,7 +499,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].intVal).to.equal(10);
       });
 
-      if (['postgres', 'sqlite'].includes(dialect)) {
+      if (['postgres', 'sqlite'].includes(dialect)) { // Yugabyte not support CITEXT yet
         it('should be able to find multiple users with case-insensitive on CITEXT type', async function () {
           const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
             username: DataTypes.CITEXT,
@@ -1383,7 +1383,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('handles offset and limit', async function () {
         await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
-        const users = await this.User.findAll({ limit: 2, offset: 2 });
+        const users = await this.User.findAll({ limit: 2, offset: 2, order: [['id', 'ASC']] });
         expect(users.length).to.equal(2);
         expect(users[0].id).to.equal(3);
       });

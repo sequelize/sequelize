@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const { Sequelize, DataTypes } = require('@sequelize/core');
 
+// YugabyteDB not support Deferrable Constraints in some cases, refer- https://github.com/yugabyte/yugabyte-db/issues/9288
 if (Support.sequelize.dialect.supports.deferrableConstraints) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('Deferrable', () => {
@@ -40,7 +41,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
           });
 
           describe('INITIALLY_IMMEDIATE', () => {
-            it('allows the violation of the foreign key constraint if the transaction is deferred', async function () {
+            (Support.getTestDialect() === 'yugabytedb' ? it.skip : it)('allows the violation of the foreign key constraint if the transaction is deferred', async function () {
               const task = await this
                 .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE);
 
@@ -54,7 +55,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
               })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
             });
 
-            it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function () {
+            (Support.getTestDialect() === 'yugabytedb' ? it.skip : it)('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function () {
               const taskTableName = `tasks_${Support.rand()}`;
 
               const task = await this
@@ -69,7 +70,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
           });
 
           describe('INITIALLY_DEFERRED', () => {
-            it('allows the violation of the foreign key constraint', async function () {
+            (Support.getTestDialect() === 'yugabytedb' ? it.skip : it)('allows the violation of the foreign key constraint', async function () {
               const task = await this
                 .run(Sequelize.Deferrable.INITIALLY_DEFERRED);
 

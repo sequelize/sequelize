@@ -9,6 +9,11 @@ const Support = require('../support');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+
+  if (dialect === 'yugabytedb') { // changing column type via alter table is not supported yet in yugabytedb due to which these test are failing for yugabytedb.
+    return;
+  }
+
   describe('sync', () => {
     beforeEach(async function () {
       this.testSync = this.sequelize.define('testSync', {
@@ -369,7 +374,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
 
-        if (!['postgres', 'sqlite'].includes(dialect)) {
+        if (!['postgres', 'sqlite', 'yugabytedb'].includes(dialect)) {
           // Postgres/SQLite doesn't support naming indexes in create table
           expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
         }
@@ -398,7 +403,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
-        if (!['postgres', 'sqlite'].includes(dialect)) {
+        if (!['postgres', 'sqlite', 'yugabytedb'].includes(dialect)) {
           // Postgres/SQLite doesn't support naming indexes in create table
           expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
         }

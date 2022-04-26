@@ -66,8 +66,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', async function () {
+
         await this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } });
-        const users = await this.ScopeMe.unscoped().findAll();
+        const users = await this.ScopeMe.unscoped().findAll({ order: [['id', 'ASC']] });
         expect(users).to.have.length(3);
         expect(users[0].get('username')).to.equal('tony');
         expect(users[1].get('username')).to.equal('tobi');
@@ -76,7 +77,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to merge scopes with similar where', async function () {
         await this.ScopeMe.scope('defaultScope', 'lowAccess').destroy();
-        const users = await this.ScopeMe.unscoped().findAll();
+        const users = await this.ScopeMe.unscoped().findAll({ order: [['id', 'ASC']] });
         expect(users).to.have.length(3);
         expect(users[0].get('username')).to.equal('tony');
         expect(users[1].get('username')).to.equal('tobi');

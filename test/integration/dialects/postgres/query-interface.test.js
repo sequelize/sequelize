@@ -9,7 +9,7 @@ const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 const _ = require('lodash');
 
-if (dialect.startsWith('postgres')) {
+if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
   describe('[POSTGRES Specific] QueryInterface', () => {
     beforeEach(function () {
       this.sequelize.options.quoteIdenifiers = true;
@@ -181,7 +181,7 @@ if (dialect.startsWith('postgres')) {
           .to.be.rejectedWith(/function variable must have a name and type/);
       });
 
-      it('uses declared variables', async function () {
+      (dialect.startsWith('postgres') ? it : it.skip)('uses declared variables', async function () {
         const body = 'RETURN myVar + 1;';
         const options = { variables: [{ type: 'integer', name: 'myVar', default: 100 }] };
         await this.queryInterface.createFunction('add_one', [], 'integer', 'plpgsql', body, [], options);

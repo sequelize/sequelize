@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 
-if (dialect === 'postgres') {
+if (dialect === 'postgres' || dialect === 'yugabytedb') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE/DATEONLY Validate and Stringify', () => {
       const now = new Date();

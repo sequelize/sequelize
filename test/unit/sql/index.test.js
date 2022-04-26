@@ -45,8 +45,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       }
     });
-
-    it('type and using', () => {
+    // INDEX CONCURRENTLY is not yet supported in yugabytedb
+    (current.dialect.name !== 'yugabytedb' ? it : it.skip)('type and using', () => {
       expectsql(sql.addIndexQuery('User', ['fieldC'], {
         type: 'FULLTEXT',
         concurrently: true,
@@ -99,12 +99,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    // yugabytedb uses ybgin in place of gin
     if (current.dialect.supports.index.using === 2) {
       it('USING', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
-          using: 'gin',
+          using: current.dialect.name !== 'yugabytedb' ? 'gin' : 'ybgin',
         }), {
+          yugabytedb: 'CREATE INDEX "table_event" ON "table" USING ybgin ("event")',
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
         });
       });
@@ -122,6 +124,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\'',
         });
 
@@ -140,6 +143,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')',
         });
 
@@ -155,18 +159,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          yugabytedb: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         });
       });
     }
 
+    // yugabytedb uses ybgin in place of gin
     if (current.dialect.supports.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
-          using: 'gin',
+          using: current.dialect.name !== 'yugabytedb' ? 'gin' : 'ybgin',
           operator: 'jsonb_path_ops',
         }), {
+          yugabytedb: 'CREATE INDEX "table_event" ON "table" USING ybgin ("event" jsonb_path_ops)',
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
         });
       });
@@ -201,6 +208,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           operator: 'inet_ops',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
+          yugabytedb: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
         });
       });
       it('operator in fields', () => {
@@ -212,6 +220,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
+          yugabytedb: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
         });
       });
       it('operator in fields with order', () => {
@@ -224,6 +233,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
+          yugabytedb: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
         });
       });
       it('operator in multiple fields #1', () => {
@@ -236,6 +246,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
         }), {
           postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
+          yugabytedb: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
         });
       });
       it('operator in multiple fields #2', () => {
@@ -250,6 +261,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'btree',
         }), {
           postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
+          yugabytedb: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
         });
       });
     }

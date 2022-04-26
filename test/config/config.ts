@@ -71,6 +71,20 @@ export const Config: Record<Dialect, Options> = {
     },
     minifyAliases: Boolean(env.SEQ_PG_MINIFY_ALIASES),
   },
+
+  yugabytedb: {
+    database: env.SEQ_YB_DB || env.SEQ_DB || 'yugabyte',
+    username: env.SEQ_YB_USER || env.SEQ_USER || 'yugabyte',
+    password: env.SEQ_YB_PW || env.SEQ_PW || 'yugabyte',
+    host: env.YUGABYTE_PORT_5432_TCP_ADDR || env.SEQ_YB_HOST || env.SEQ_HOST || '127.0.0.1',
+    port: Number(env.YUGABYTE_PORT_5432_TCP_PORT || env.SEQ_YB_PORT || env.SEQ_PORT || 25_099),
+    pool: {
+      max: Number(env.SEQ_YB_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: Number(env.SEQ_YB_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
+    },
+    minifyAliases: Boolean(env.SEQ_YB_MINIFY_ALIASES),
+  },
+
   db2: {
     database: process.env.SEQ_DB2_DB || process.env.SEQ_DB || process.env.IBM_DB_DBNAME || 'testdb',
     username: process.env.SEQ_DB2_USER || process.env.SEQ_USER || process.env.IBM_DB_UID || 'db2inst1',

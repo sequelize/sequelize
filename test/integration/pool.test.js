@@ -13,10 +13,10 @@ const delay = require('delay');
 
 function assertSameConnection(newConnection, oldConnection) {
   switch (dialect) {
+    case 'yugabytedb':
     case 'postgres':
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
-
     case 'mariadb':
     case 'mysql':
       expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
@@ -38,10 +38,10 @@ function assertSameConnection(newConnection, oldConnection) {
 
 function assertNewConnection(newConnection, oldConnection) {
   switch (dialect) {
+    case 'yugabytedb':
     case 'postgres':
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
-
     case 'mariadb':
     case 'mysql':
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
@@ -126,6 +126,8 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
 
             break;
           }
+
+          case 'yugabytedb':
 
           case 'postgres': {
             connection.end();

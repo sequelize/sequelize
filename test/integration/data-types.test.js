@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and bindParam for FLOAT', async () => {
     const Type = new DataTypes.FLOAT();
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'yugabytedb') {
       // Postgres doesn't have float, maps to either decimal or double
       testFailure(Type);
     } else {
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new DataTypes.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'db2', 'ibmi', 'yugabytedb'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for CIDR', async () => {
     const Type = new DataTypes.CIDR();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'yugabytedb'].includes(dialect)) {
       await testSuccess(Type, '10.1.2.3/32');
     } else {
       testFailure(Type);
@@ -331,7 +331,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for INET', async () => {
     const Type = new DataTypes.INET();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'yugabytedb'].includes(dialect)) {
       await testSuccess(Type, '127.0.0.1');
     } else {
       testFailure(Type);
@@ -339,14 +339,16 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   it('calls parse and stringify for CITEXT', async () => {
+
     const Type = new DataTypes.CITEXT();
 
-    if (dialect === 'sqlite') {
+    // yugabytedb doesn't support CITEXT yet
+    if (dialect === 'sqlite' || dialect === 'yugabytedb') {
       // The "field type" sqlite returns is TEXT so is covered under TEXT test above
       return;
     }
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'yugabytedb') {
       await testSuccess(Type, 'foobar');
     } else {
       testFailure(Type);
@@ -356,7 +358,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for MACADDR', async () => {
     const Type = new DataTypes.MACADDR();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'yugabytedb'].includes(dialect)) {
       await testSuccess(Type, '01:23:45:67:89:ab');
     } else {
       testFailure(Type);
@@ -368,7 +370,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for TSVECTOR', async () => {
       const Type = new DataTypes.TSVECTOR();
 
-      if (['postgres'].includes(dialect)) {
+      if (['postgres', 'yugabytedb'].includes(dialect)) {
         await testSuccess(Type, 'swagger');
       } else {
         testFailure(Type);
@@ -379,14 +381,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', async () => {
     const Type = new DataTypes.ENUM('hat', 'cat');
 
-    if (['postgres', 'db2'].includes(dialect)) {
+    if (['postgres', 'db2', 'yugabytedb'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);
     }
   });
 
-  if (current.dialect.supports.GEOMETRY) {
+  if (current.dialect.supports.GEOMETRY && dialect !== 'yugabytedb') {
     it('calls parse and bindParam for GEOMETRY', async () => {
       const Type = new DataTypes.GEOMETRY();
 
@@ -464,7 +466,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (['postgres', 'sqlite'].includes(dialect)) {
+  if (['postgres', 'sqlite', 'yugabytedb'].includes(dialect)) {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', async function () {
       const Model = this.sequelize.define('model', {
@@ -489,7 +491,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (['postgres', 'mysql'].includes(dialect)) {
+  if (['postgres', 'mysql', 'yugabytedb'].includes(dialect)) {
     it('should parse DECIMAL as string', async function () {
       const Model = this.sequelize.define('model', {
         decimal: DataTypes.DECIMAL,
@@ -528,7 +530,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+  if (['postgres', 'mysql', 'mssql', 'yugabytedb'].includes(dialect)) {
     it('should parse BIGINT as string', async function () {
       const Model = this.sequelize.define('model', {
         jewelPurity: DataTypes.BIGINT,
@@ -547,7 +549,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres') {
+  if (dialect === 'postgres') { // INDEX on INT4RANGE not yet supported in yugabytedb
     it('should return Int4 range properly #5747', async function () {
       const Model = this.sequelize.define('M', {
         interval: {
@@ -565,7 +567,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (current.dialect.supports.RANGE) {
+  if (current.dialect.supports.RANGE && dialect !== 'yugabytedb') { // Index on user_defined_column_type not yet supported in yugabytedb
 
     it('should allow date ranges to be generated with default bounds inclusion #8176', async function () {
       const Model = this.sequelize.define('M', {

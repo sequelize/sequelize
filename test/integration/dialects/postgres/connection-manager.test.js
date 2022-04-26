@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
 
-if (dialect.startsWith('postgres')) {
+if (dialect.startsWith('postgres') || dialect === 'yugabytedb') {
   describe('[POSTGRES] Sequelize', () => {
     async function checkTimezoneParsing(baseOptions) {
       const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
@@ -101,7 +101,7 @@ if (dialect.startsWith('postgres')) {
       return User.sync({ force: true });
     }
 
-    it('should fetch regular dynamic oids and create parsers', async () => {
+    (dialect.startsWith('postgres') ? it : it.skip)('should fetch regular dynamic oids and create parsers', async () => {
       const sequelize = Support.sequelize;
       await reloadDynamicOIDs(sequelize);
       for (const type of dynamicTypesToCheck) {
