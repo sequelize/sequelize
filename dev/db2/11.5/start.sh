@@ -1,5 +1,7 @@
 cd dev/db2/11.5
+
 export DIALECT=db2
+export SEQ_DB="${SEQ_DB:-testdb}"
 
 mkdir -p Docker
 if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
@@ -9,7 +11,7 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
-	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database ibmcom/db2-amd64:11.5.7.0
+	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env "DBNAME=$SEQ_DB" --env-file .env_list -v /Docker:/database ibmcom/db2-amd64:11.5.7.0
 	count=1
 	while true
 	do

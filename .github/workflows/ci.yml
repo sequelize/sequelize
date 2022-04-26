@@ -38,13 +38,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16]
+        node-version: [14, 16]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ install-and-build ]
     env:
       DIALECT: db2
-      SEQ_DB: testdb
+      SEQ_DB: testdb-node-${{ matrix.node-version }}-sha-${{ github.sha }}
       SEQ_USER: db2inst1
       SEQ_PW: password
       SEQ_TEST_CLEANUP_TIMEOUT: 1200000
