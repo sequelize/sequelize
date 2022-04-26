@@ -62,7 +62,12 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Generate DB name
         run: |
-          echo "SEQ_DB=n${{ matrix.node-version }}s$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          NODE_VERSION="${{ matrix.node-version }}"
+          SHA=$(git rev-parse --short HEAD)
+
+          # db2 database names cannot be longer than 8 chars.
+          # start with n prefix + last character of node version + 6 first characters of github sha
+          echo "SEQ_DB=n${NODE_VERSION: -1}${SHA:0:6}" >> $GITHUB_ENV
       - name: Print DB name
         run: echo "DB Name is $SEQ_DB"
       - name: Install Local DB2 Copy
