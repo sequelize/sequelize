@@ -267,7 +267,7 @@ export function expectsql(
         // except for ARRAY[...]
         expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         if (dialect.name === 'ibmi') {
-          expectation = expectation.replace(/;$/, '');
+          expectation = expectation.trim().replace(/;$/, '');
         }
       }
     } else {

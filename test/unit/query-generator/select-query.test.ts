@@ -249,20 +249,125 @@ describe('QueryGenerator#selectQuery', () => {
           )
           ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
         `,
+      });
+    });
+
+    it('parses named replacements in literals in includes (subQuery)', async () => {
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: ['id'],
+        // TODO: update after https://github.com/sequelize/sequelize/pull/14280 has been merged
+        // @ts-expect-error
+        include: Model._validateIncludedElements({
+          model: User,
+          include: [{
+            association: User.associations.projects,
+            attributes: [['id', 'id'], literal(':data'), [literal(':data'), 'id2']],
+            on: literal(':on'),
+            where: literal(':where'),
+            include: [{
+              association: Project.associations.owner,
+              attributes: [literal(':data2')],
+            }],
+          }],
+        }).include,
+        limit: literal(':limit'),
+        offset: literal(':offset'),
+        order: literal(':order'),
+        subQuery: true,
+        replacements: {
+          data: 'repl1',
+          data2: 'repl2',
+          on: 'on',
+          where: 'where',
+          limit: 'limit',
+          offset: 'offset',
+          order: 'order',
+        },
+      }, User);
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [projects].[id] AS [projects.id],
+            'repl1',
+            'repl1' AS [projects.id2],
+            [projects->owner].[id] AS [projects.owner.id],
+            'repl2'
+          FROM (
+            SELECT [User].[id]
+            FROM [Users] AS [User]
+            ORDER BY 'order'
+            LIMIT 'limit'
+            OFFSET 'offset'
+          ) AS [User]
+          INNER JOIN [Projects] AS [projects]
+            ON 'on' AND 'where'
+          LEFT OUTER JOIN [Users] AS [projects->owner]
+            ON [projects].[ownerId] = [projects->owner].[id]
+          ORDER BY 'order';
+        `,
+        mssql: `
+          SELECT
+            [User].*,
+            [projects].[id] AS [projects.id],
+            N'repl1',
+            N'repl1' AS [projects.id2],
+            [projects->owner].[id] AS [projects.owner.id],
+            N'repl2'
+          FROM (
+            SELECT [User].[id]
+            FROM [Users] AS [User]
+            ORDER BY N'order'
+            OFFSET N'offset' ROWS
+            FETCH NEXT N'limit' ROWS ONLY
+          ) AS [User]
+          INNER JOIN [Projects] AS [projects]
+            ON N'on' AND N'where'
+          LEFT OUTER JOIN [Users] AS [projects->owner]
+            ON [projects].[ownerId] = [projects->owner].[id]
+          ORDER BY N'order';
+        `,
+        db2: `
+          SELECT
+            "User".*,
+            "projects"."id" AS "projects.id",
+            'repl1',
+            'repl1' AS "projects.id2",
+            "projects->owner"."id" AS "projects.owner.id",
+            'repl2' FROM (
+              SELECT "User"."id"
+              FROM "Users" AS "User"
+              ORDER BY 'order'
+              OFFSET 'offset' ROWS
+              FETCH NEXT 'limit' ROWS ONLY
+            ) AS "User"
+            INNER JOIN "Projects" AS "projects"
+              ON 'on' AND 'where'
+            LEFT OUTER JOIN "Users" AS "projects->owner"
+              ON "projects"."ownerId" = "projects->owner"."id"
+            ORDER BY 'order';
+        `,
         ibmi: `
           SELECT
-            "Project"."id",
-            "contributors"."id" AS "contributors.id",
-            "contributors->ProjectContributor"."ProjectId" AS "contributors.ProjectContributor.ProjectId",
-            "contributors->ProjectContributor"."UserId" AS "contributors.ProjectContributor.UserId"
-          FROM "Projects" AS "Project"
-          LEFT OUTER JOIN (
-            "ProjectContributors" AS "contributors->ProjectContributor"
-            INNER JOIN "Users" AS "contributors"
-            ON "contributors"."id" = "contributors->ProjectContributor"."UserId"
-            AND 'where'
-          )
-          ON "Project"."id" = "contributors->ProjectContributor"."ProjectId"
+            "User".*,
+            "projects"."id" AS "projects.id",
+            'repl1',
+            'repl1' AS "projects.id2",
+            "projects->owner"."id" AS "projects.owner.id",
+            'repl2' FROM (
+              SELECT "User"."id"
+              FROM "Users" AS "User"
+              ORDER BY 'order'
+              OFFSET 'offset' ROWS
+              FETCH NEXT 'limit' ROWS ONLY
+            ) AS "User"
+            INNER JOIN "Projects" AS "projects"
+              ON 'on' AND 'where'
+            LEFT OUTER JOIN "Users" AS "projects->owner"
+              ON "projects"."ownerId" = "projects->owner"."id"
+            ORDER BY 'order'
         `,
       });
     });
