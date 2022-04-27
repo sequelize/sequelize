@@ -53,7 +53,6 @@ export class MssqlDialect extends AbstractDialect {
   }
 
   createBindCollector() {
-    // unlike postgres, sqlite supports $named bind parameters, but it wasn't deemed worth it to implement it.
     return createNamedParamBindCollector('@');
   }
 }

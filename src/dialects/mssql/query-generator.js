@@ -245,8 +245,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   addColumnQuery(table, key, dataType) {
-    // FIXME: attributeToSQL SHOULD be using attributes in addColumnQuery
-    //        but instead we need to pass the key along as the field here
+    // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+    //       but instead we need to pass the key along as the field here
     dataType.field = key;
     let commentStr = '';
 

@@ -90,6 +90,7 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
 
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw, and queryRaw will throw if we use the option
     delete options.replacements;
 
     return await this.sequelize.queryRaw(sql, options);

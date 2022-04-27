@@ -2269,7 +2269,8 @@ export class AbstractQueryGenerator {
 
     if (smth instanceof Utils.Literal) {
       if (includesPositionalReplacements(smth.val)) {
-        throw new TypeError(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
+        throw new TypeError(`The following literal includes positional replacements (?).
+Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal(${JSON.stringify(smth.val)})`);
       }
 

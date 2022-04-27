@@ -1119,13 +1119,13 @@ export class QueryInterface {
 
     const dataType = options.dataType;
 
-    // FIXME: DECIMAL is not safely representable as a float!
+    // TODO: DECIMAL is not safely representable as a float!
     //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.DECIMAL || dataType instanceof DataTypes.FLOAT) && result !== null) {
       return Number.parseFloat(result);
     }
 
-    // FIXME: BIGINT is not safely representable as an int!
+    // TODO: BIGINT is not safely representable as an int!
     //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.INTEGER || dataType instanceof DataTypes.BIGINT) && result !== null) {
       return Number.parseInt(result, 10);

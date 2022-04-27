@@ -129,7 +129,7 @@ describe(getTestDialectTeaser('Utils'), () => {
   }
 
   describe('inflection', () => {
-    it('works better than lingo ;)', () => {
+    it('should pluralize/singularize words correctly', () => {
       expect(Utils.pluralize('buy')).to.equal('buys');
       expect(Utils.pluralize('holiday')).to.equal('holidays');
       expect(Utils.pluralize('days')).to.equal('days');
@@ -142,7 +142,6 @@ describe(getTestDialectTeaser('Utils'), () => {
   describe('flattenObjectDeep', () => {
     it('should return the value if it is not an object', () => {
       const value = 'non-object';
-      // @ts-expect-error
       const returnedValue = Utils.flattenObjectDeep(value);
       expect(returnedValue).to.equal(value);
     });
