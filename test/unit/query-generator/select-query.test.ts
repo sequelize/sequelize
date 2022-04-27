@@ -372,8 +372,6 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    // TODO: test subQueries
-
     it('rejects positional replacements, because their execution order is hard to determine', async () => {
       await expect(
         () => queryGenerator.selectQuery(User.tableName, {
@@ -385,7 +383,8 @@ describe('QueryGenerator#selectQuery', () => {
           },
           replacements: ['repl1', 'repl2', 'repl3'],
         }, User),
-      ).to.throw(`The following literal includes positional replacements (?). Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
+      ).to.throw(`The following literal includes positional replacements (?).
+Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
     });
   });
