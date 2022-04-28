@@ -69,7 +69,6 @@
     "@types/sinon": "10.0.11",
     "@types/sinon-chai": "3.2.8",
     "@types/uuid": "8.3.4",
-    "acorn": "8.7.0",
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
