@@ -43,16 +43,17 @@ describe('mapBindParameters', () => {
     expect(parameterSet).to.deep.eq(new Set(['1']));
   });
 
-  if (dialect.name === 'postgres') {
-    it('parses bind parameters followed by cast syntax', () => {
-      const { sql } = mapBindParameters(`SELECT * FROM users WHERE id = $param::string`, dialect);
+  it('parses bind parameters followed by cast syntax', () => {
+    const { sql } = mapBindParameters(`SELECT * FROM users WHERE id = $param::string`, dialect);
 
-      // this is postgres-only syntax. It doesn't work in other dialects.
-      expectsql(sql, {
-        postgres: `SELECT * FROM users WHERE id = $1::string`,
-      });
+    // this is postgres-only syntax. It doesn't work in other dialects.
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = ?::string`,
+      postgres: `SELECT * FROM users WHERE id = $1::string`,
+      sqlite: `SELECT * FROM users WHERE id = $param::string`,
+      mssql: `SELECT * FROM users WHERE id = @param::string`,
     });
-  }
+  });
 
   it('parses single letter bind parameters', () => {
     const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $a`, dialect);
@@ -290,7 +291,6 @@ describe('injectReplacements (named replacements)', () => {
       id: 1,
     });
 
-    // this is postgres-only syntax. It doesn't work in other dialects.
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = 1::string`,
     });
@@ -439,7 +439,6 @@ describe('injectReplacements (positional replacements)', () => {
   it('parses positional replacements followed by cast syntax', () => {
     const sql = injectReplacements(`SELECT * FROM users WHERE id = ?::string`, dialect, [1]);
 
-    // this is postgres-only syntax. It doesn't work in other dialects.
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = 1::string`,
     });
