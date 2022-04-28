@@ -1656,11 +1656,17 @@ export class AbstractQueryGenerator {
       }
     }
 
+    const indexHintsSubstring = joinQuery.indexHints ? ` ${joinQuery.indexHints}` : '';
+
     if (include.subQuery && topLevelInfo.subQuery) {
       if (requiredMismatch && subChildIncludes.length > 0) {
-        joinQueries.subQuery.push(` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} ) ON ${joinQuery.condition}`);
+        joinQueries.subQuery.push(
+          ` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} )${indexHintsSubstring} ON ${joinQuery.condition}`,
+        );
       } else {
-        joinQueries.subQuery.push(` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`);
+        joinQueries.subQuery.push(
+          ` ${joinQuery.join} ${joinQuery.body}${indexHintsSubstring} ON ${joinQuery.condition}`,
+        );
         if (subChildIncludes.length > 0) {
           joinQueries.subQuery.push(subChildIncludes.join(''));
         }
@@ -1669,9 +1675,13 @@ export class AbstractQueryGenerator {
       joinQueries.mainQuery.push(mainChildIncludes.join(''));
     } else {
       if (requiredMismatch && mainChildIncludes.length > 0) {
-        joinQueries.mainQuery.push(` ${joinQuery.join} ( ${joinQuery.body}${mainChildIncludes.join('')} ) ON ${joinQuery.condition}`);
+        joinQueries.mainQuery.push(
+          ` ${joinQuery.join} ( ${joinQuery.body}${mainChildIncludes.join('')} )${indexHintsSubstring} ON ${joinQuery.condition}`,
+        );
       } else {
-        joinQueries.mainQuery.push(` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`);
+        joinQueries.mainQuery.push(
+          ` ${joinQuery.join} ${joinQuery.body}${indexHintsSubstring} ON ${joinQuery.condition}`,
+        );
         if (mainChildIncludes.length > 0) {
           joinQueries.mainQuery.push(mainChildIncludes.join(''));
         }
@@ -1806,6 +1816,7 @@ export class AbstractQueryGenerator {
     return {
       join: include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
       body: this.quoteTable(tableRight, asRight),
+      indexHints: include.indexHints ? this.indexHintsFragment(include.indexHints) : '',
       condition: joinOn,
       attributes: {
         main: [],
@@ -1887,6 +1898,7 @@ export class AbstractQueryGenerator {
     const tableTarget = includeAs.internalAs;
     const identTarget = association.foreignIdentifierField;
     const attrTarget = association.targetKeyField;
+    const indexHints = include.indexHints ? this.indexHintsFragment(include.indexHints) : '';
 
     const joinType = include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN';
     let joinBody;
@@ -1944,7 +1956,12 @@ export class AbstractQueryGenerator {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)}`;
+    if (indexHints) {
+      joinBody += ` ${indexHints}`;
+    }
+
+    joinBody += ` ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
@@ -1964,6 +1981,10 @@ export class AbstractQueryGenerator {
     return {
       join: joinType,
       body: joinBody,
+      // The indexHints are applied by this function and included in the
+      // joinBody. Pass an empty string to the parent so it doesn't try to apply
+      // it again.
+      indexHints: '',
       condition: joinCondition,
       attributes,
     };
@@ -2159,15 +2180,37 @@ export class AbstractQueryGenerator {
       fragment += ` AS ${mainTableAs}`;
     }
 
-    if (options.indexHints && this._dialect.supports.indexHints) {
-      for (const hint of options.indexHints) {
-        if (IndexHints[hint.type]) {
-          fragment += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifiers(indexName)).join(',')})`;
-        }
+    if (options.indexHints) {
+      const indexHints = this.indexHintsFragment(options.indexHints);
+      if (indexHints) {
+        fragment += ` ${indexHints}`;
       }
     }
 
     return fragment;
+  }
+
+  /**
+   * Return an SQL fragment for index hints.
+   *
+   * @param {Array} indexHints
+   * @returns {string} Index hint like "USE INDEX (my_index)". Returns an empty
+   *                   string if the database engine doesn't support it.
+   */
+  indexHintsFragment(indexHints) {
+    if (!this._dialect.supports.indexHints) {
+      return '';
+    }
+
+    const fragments = [];
+
+    for (const hint of indexHints) {
+      if (IndexHints[hint.type]) {
+        fragments.push(`${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifiers(indexName)).join(',')})`);
+      }
+    }
+
+    return fragments.join(' ');
   }
 
   /**
