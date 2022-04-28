@@ -19,9 +19,11 @@ export function isPrimitive(val: any): val is string | number | boolean {
  * @param value The attribute reference to check.
  *
  * @example
+ * ```javascript
  * isColString('$id$'); // true
  * isColString('$project.name$'); // true
  * isColString('name'); // false
+ * ```
  */
 export function isColString(value: string): boolean {
   return (

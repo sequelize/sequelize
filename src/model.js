@@ -16,7 +16,7 @@ const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema } = require('./utils/deprecations');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema, useModelSet } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -32,8 +32,8 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
 /**
  * A Model represents a table in the database. Instances of this class represent a database row.
  *
- * Model instances operate with the concept of a `dataValues` property, which stores the actual values represented by the instance.
- * By default, the values from dataValues can also be accessed directly from the Instance, that is:
+ * Model instances operate with the concept of a `dataValues` property, which stores the actual values represented by the
+ * instance. By default, the values from dataValues can also be accessed directly from the Instance, that is:
  * ```js
  * instance.field
  * // is the same as
@@ -41,8 +41,9 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * // is the same as
  * instance.getDataValue('field')
  * ```
- * However, if getters and/or setters are defined for `field` they will be invoked, instead of returning the value from `dataValues`.
- * Accessing properties directly or using `get` is preferred for regular use, `getDataValue` should only be used for custom getters.
+ * However, if getters and/or setters are defined for `field` they will be invoked, instead of returning the value from
+ * `dataValues`. Accessing properties directly or using `get` is preferred for regular use, `getDataValue` should only be
+ * used for custom getters.
  *
  * @see {Sequelize#define} for more information about getters and setters
  * @mixes Hooks
@@ -74,7 +75,8 @@ export class Model {
    * @param {object}  [options] instance construction options
    * @param {boolean} [options.raw=false] If set to true, values will ignore field and virtual setters.
    * @param {boolean} [options.isNewRecord=true] Is this a new record
-   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See `set`
+   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See
+   *   `set`
    */
   constructor(values = {}, options = {}) {
     if (!this.constructor._overwrittenAttributesChecked) {
@@ -240,11 +242,9 @@ export class Model {
     let head = {};
 
     // Add id if no primary key was manually added to definition
-    // Can't use this.primaryKeys here, since this function is called before PKs are identified
-    if (!_.some(this.rawAttributes, 'primaryKey')) {
-      if ('id' in this.rawAttributes) {
-        // Something is fishy here!
-        throw new Error(`A column called 'id' was added to the attributes of '${this.tableName}' but not marked with 'primaryKey: true'`);
+    if (!this.options.noPrimaryKey && !_.some(this.rawAttributes, 'primaryKey')) {
+      if ('id' in this.rawAttributes && this.rawAttributes.id.primaryKey === undefined) {
+        throw new Error(`An attribute called 'id' was defined in model '${this.tableName}' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`);
       }
 
       head = {
@@ -301,10 +301,6 @@ export class Model {
     });
 
     this.rawAttributes = newRawAttributes;
-
-    if (Object.keys(this.primaryKeys).length === 0) {
-      this.primaryKeys.id = this.rawAttributes.id;
-    }
   }
 
   /**
@@ -892,6 +888,7 @@ export class Model {
    * Each attribute of the hash represents a column.
    *
    * @example
+   * ```javascript
    * Project.init({
    *   columnA: {
    *     type: Sequelize.BOOLEAN,
@@ -909,71 +906,16 @@ export class Model {
    *   columnB: Sequelize.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * }, {sequelize})
+   * ```
    *
    * sequelize.models.modelName // The model will now be available in models under the class name
    *
-   * @see
-   * <a href="/master/manual/model-basics.html">Model Basics</a> guide
+   * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
+   * @see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
    *
-   * @see
-   * <a href="/master/manual/model-basics.html">Hooks</a> guide
-   *
-   * @see
-   * <a href="/master/manual/validations-and-constraints.html"/>Validations & Constraints</a> guide
-   *
-   * @param {object}                  attributes An object, where each attribute is a column of the table. Each column can be either a DataType, a string or a type-description object, with the properties described below:
-   * @param {string|DataTypes|object} attributes.column The description of a database column
-   * @param {string|DataTypes}        attributes.column.type A string or a data type
-   * @param {boolean}                 [attributes.column.allowNull=true] If false, the column will have a NOT NULL constraint, and a not null validation will be run before an instance is saved.
-   * @param {any}                     [attributes.column.defaultValue=null] A literal default value, a JavaScript function, or an SQL function (see `sequelize.fn`)
-   * @param {string|boolean}          [attributes.column.unique=false] If true, the column will get a unique constraint. If a string is provided, the column will be part of a composite unique index. If multiple columns have the same string, they will be part of the same unique index
-   * @param {boolean}                 [attributes.column.primaryKey=false] If true, this attribute will be marked as primary key
-   * @param {string}                  [attributes.column.field=null] If set, sequelize will map the attribute name to a different name in the database
-   * @param {boolean}                 [attributes.column.autoIncrement=false] If true, this column will be set to auto increment
-   * @param {boolean}                 [attributes.column.autoIncrementIdentity=false] If true, combined with autoIncrement=true, will use Postgres `GENERATED BY DEFAULT AS IDENTITY` instead of `SERIAL`. Postgres 10+ only.
-   * @param {string}                  [attributes.column.comment=null] Comment for this column
-   * @param {string|Model}            [attributes.column.references=null] An object with reference configurations
-   * @param {string|Model}            [attributes.column.references.model] If this column references another table, provide it here as a Model, or a string
-   * @param {string}                  [attributes.column.references.key='id'] The column of the foreign table that this column references
-   * @param {string}                  [attributes.column.onUpdate] What should happen when the referenced key is updated. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or NO ACTION
-   * @param {string}                  [attributes.column.onDelete] What should happen when the referenced key is deleted. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or NO ACTION
-   * @param {Function}                [attributes.column.get] Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying values.
-   * @param {Function}                [attributes.column.set] Provide a custom setter for this column. Use `this.setDataValue(String, Value)` to manipulate the underlying values.
-   * @param {object}                  [attributes.column.validate] An object of validations to execute for this column every time the model is saved. Can be either the name of a validation provided by validator.js, a validation function provided by extending validator.js (see the `DAOValidator` property for more details), or a custom validation function. Custom validation functions are called with the value of the field and the instance itself as the `this` binding, and can possibly take a second callback argument, to signal that they are asynchronous. If the validator is sync, it should throw in the case of a failed validation; if it is async, the callback should be called with the error text.
-   * @param {object}                  options These options are merged with the default define options provided to the Sequelize constructor
-   * @param {object}                  options.sequelize Define the sequelize instance to attach to the new Model. Throw error if none is provided.
-   * @param {string}                  [options.modelName] Set name of the model. By default its same as Class name.
-   * @param {object}                  [options.defaultScope={}] Define the default search scope to use for this model. Scopes have the same form as the options passed to find / findAll
-   * @param {object}                  [options.scopes] More scopes, defined in the same way as defaultScope above. See `Model.scope` for more information about how scopes are defined, and what you can do with them
-   * @param {boolean}                 [options.omitNull] Don't persist null values. This means that all columns with null values will not be saved
-   * @param {boolean}                 [options.timestamps=true] Adds createdAt and updatedAt timestamps to the model.
-   * @param {boolean}                 [options.paranoid=false] Calling `destroy` will not delete the model, but instead set a `deletedAt` timestamp if this is true. Needs `timestamps=true` to work
-   * @param {boolean}                 [options.underscored=false] Add underscored field to all attributes, this covers user defined attributes, timestamps and foreign keys. Will not affect attributes with explicitly set `field` option
-   * @param {boolean}                 [options.freezeTableName=false] If freezeTableName is true, sequelize will not try to alter the model name to get the table name. Otherwise, the model name will be pluralized
-   * @param {object}                  [options.name] An object with two attributes, `singular` and `plural`, which are used when this model is associated to others.
-   * @param {string}                  [options.name.singular=Utils.singularize(modelName)] Singular name for model
-   * @param {string}                  [options.name.plural=Utils.pluralize(modelName)] Plural name for model
-   * @param {Array<object>}           [options.indexes] indexes definitions
-   * @param {string}                  [options.indexes[].name] The name of the index. Defaults to model name + _ + fields concatenated
-   * @param {string}                  [options.indexes[].type] Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
-   * @param {string}                  [options.indexes[].using] The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and postgres, and postgres additionally supports GIST and GIN.
-   * @param {string}                  [options.indexes[].operator] Specify index operator.
-   * @param {boolean}                 [options.indexes[].unique=false] Should the index by unique? Can also be triggered by setting type to `UNIQUE`
-   * @param {boolean}                 [options.indexes[].concurrently=false] PostgresSQL will build the index without taking any write locks. Postgres only
-   * @param {Array<string|object>}    [options.indexes[].fields] An array of the fields to index. Each field can either be a string containing the name of the field, a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name` (field name), `length` (create a prefix index of length chars), `order` (the direction the column should be sorted in), `collate` (the collation (sort order) for the column)
-   * @param {string|boolean}          [options.createdAt] Override the name of the createdAt attribute if a string is provided, or disable it if false. Timestamps must be true. Underscored field will be set with underscored setting.
-   * @param {string|boolean}          [options.updatedAt] Override the name of the updatedAt attribute if a string is provided, or disable it if false. Timestamps must be true. Underscored field will be set with underscored setting.
-   * @param {string|boolean}          [options.deletedAt] Override the name of the deletedAt attribute if a string is provided, or disable it if false. Timestamps must be true. Underscored field will be set with underscored setting.
-   * @param {string}                  [options.tableName] Defaults to pluralized model name, unless freezeTableName is true, in which case it uses model name verbatim
-   * @param {string}                  [options.schema='public'] schema
-   * @param {string}                  [options.engine] Specify engine for model's table
-   * @param {string}                  [options.charset] Specify charset for model's table
-   * @param {string}                  [options.comment] Specify comment for model's table
-   * @param {string}                  [options.collate] Specify collation for model's table
-   * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
-   * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
-   * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
-   *
+   * @param {object} attributes An object, where each attribute is a column of the table. Each column can be either a
+   *   DataType, a string or a type-description object.
+   * @param {object} options These options are merged with the default define options provided to the Sequelize constructor
    * @returns {Model}
    */
   static init(attributes, options = {}) {
@@ -1010,6 +952,7 @@ export class Model {
     delete options.modelName;
 
     this.options = {
+      noPrimaryKey: false,
       timestamps: true,
       validate: {},
       freezeTableName: false,
@@ -1030,9 +973,10 @@ export class Model {
       this.sequelize.modelManager.removeModel(this.sequelize.modelManager.getModel(this.name));
     }
 
-    this.associations = {};
+    this.associations = Object.create(null);
     this._setupHooks(options.hooks);
 
+    // TODO: use private field
     this.underscored = this.options.underscored;
 
     if (!this.options.tableName) {
@@ -1223,10 +1167,10 @@ export class Model {
     this._defaultValues = {};
     this.prototype.validators = {};
 
-    this.fieldRawAttributesMap = {};
+    this.fieldRawAttributesMap = Object.create(null);
 
-    this.primaryKeys = {};
-    this.uniqueKeys = {};
+    this.primaryKeys = Object.create(null);
+    this.uniqueKeys = Object.create(null);
 
     _.each(this.rawAttributes, (definition, name) => {
       definition.type = this.sequelize.normalizeDataType(definition.type);
@@ -1367,11 +1311,9 @@ export class Model {
 
   /**
    * Sync this Model to the DB, that is create the table.
+   * See {@link Sequelize#sync} for options
    *
    * @param {object} [options] sync options
-   *
-   * @see
-   * {@link Sequelize#sync} for options
    *
    * @returns {Promise<Model>}
    */
@@ -1488,32 +1430,37 @@ export class Model {
   /**
    * Drop the table represented by this Model
    *
-   * @param {object}   [options] drop options
-   * @param {boolean}  [options.cascade=false]   Also drop all objects depending on this table, such as views. Only works in postgres
-   * @param {Function} [options.logging=false]   A function that gets executed while running the query to log the sql.
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
+   * @param {object} [options] drop options
    * @returns {Promise}
    */
   static async drop(options) {
     return await this.queryInterface.dropTable(this.getTableName(options), options);
   }
 
+  /**
+   * @param {object | string} schema
+   * @deprecated use {@link Sequelize#dropSchema} or {@link QueryInterface#dropSchema}
+   */
+  // TODO [>=2023-01-01]: remove me in Sequelize >= 8
   static async dropSchema(schema) {
+    noModelDropSchema();
+
     return await this.queryInterface.dropSchema(schema);
   }
 
   /**
-   * Apply a schema to this model. For postgres, this will actually place the schema in front of the table name - `"schema"."tableName"`,
-   * while the schema will be prepended to the table name for mysql and sqlite - `'schema.tablename'`.
+   * Returns a copy of this model with the corresponding table located in the specified schema.
    *
-   * This method is intended for use cases where the same model is needed in multiple schemas. In such a use case it is important
-   * to call `model.schema(schema, [options]).sync()` for each model to ensure the models are created in the correct schema.
+   * For postgres, this will actually place the schema in front of the table name (`"schema"."tableName"`),
+   * while the schema will be prepended to the table name for mysql and sqlite (`'schema.tablename'`).
    *
-   * If a single default schema per model is needed, set the `options.schema='schema'` parameter during the `define()` call
-   * for the model.
+   * This method is intended for use cases where the same model is needed in multiple schemas.
+   * In such a use case it is important to call {@link Model.sync} (or use migrations!) for each model created by this method
+   * to ensure the models are created in the correct schema.
    *
-   * @param {string|object}   schema The name of the schema
+   * If a single default schema per model is needed, set the {@link ModelOptions.schema} option instead.
+   *
+   * @param {string|object} schema The name of the schema
    *
    * @returns {Model}
    */
@@ -1538,14 +1485,18 @@ export class Model {
     });
   }
 
+  /**
+   * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
+   * before any scope or schema was applied.
+   */
   static getInitialModel() {
     // '_initialModel' is set on model variants (withScope, withSchema, etc)
     return this._initialModel ?? this;
   }
 
   /**
-   * Get the table name of the model, taking schema into account. The method will return The name as a string if the model has no schema,
-   * or an object with `tableName`, `schema` and `delimiter` properties.
+   * Get the table name of the model, taking schema into account. The method will return The name as a string if the model
+   * has no schema, or an object with `tableName`, `schema` and `delimiter` properties.
    *
    * @returns {string|object}
    */
@@ -1554,14 +1505,19 @@ export class Model {
   }
 
   /**
-   * Add a new scope to the model. This is especially useful for adding scopes with includes, when the model you want to include is not available at the time this model is defined.
+   * Add a new scope to the model
    *
-   * By default this will throw an error if a scope with that name already exists. Pass `override: true` in the options object to silence this error.
+   * This is especially useful for adding scopes with includes, when the model you want to
+   * include is not available at the time this model is defined.
+   *
+   * By default, this will throw an error if a scope with that name already exists.
+   * Use {@link AddScopeOptions.override} in the options object to silence this error.
+   *
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    *
    * @param {string}          name The name of the scope. Use `defaultScope` to override the default scope
    * @param {object|Function} scope scope or options
    * @param {object}          [options] scope options
-   * @param {boolean}         [options.override=false] override old scope if already defined
    */
   static addScope(name, scope, options) {
     if (this !== this.getInitialModel()) {
@@ -1589,59 +1545,28 @@ export class Model {
   }
 
   /**
-   * Apply a scope created in `define` to the model.
+   * Creates a copy of this model, with one or more scopes applied.
    *
-   * @example <caption>how to create scopes</caption>
-   * const Model = sequelize.define('model', attributes, {
-   *   defaultScope: {
-   *     where: {
-   *       username: 'dan'
-   *     },
-   *     limit: 12
-   *   },
-   *   scopes: {
-   *     isALie: {
-   *       where: {
-   *         stuff: 'cake'
-   *       }
-   *     },
-   *     complexFunction: function(email, accessLevel) {
-   *       return {
-   *         where: {
-   *           email: {
-   *             [Op.like]: email
-   *           },
-   *           access_level {
-   *             [Op.gte]: accessLevel
-   *           }
-   *         }
-   *       }
-   *     }
-   *   }
-   * })
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    *
-   * # As you have defined a default scope, every time you do Model.find, the default scope is appended to your query. Here's a couple of examples:
+   * @param {?Array|object|string} [scopes] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or
+   *   as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For
+   *   scope function, pass an object, with a `method` property. The value can either be a string, if the method does not
+   *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
+   *   arguments to that method. Pass null to remove all scopes, including the default.
    *
-   * Model.findAll() // WHERE username = 'dan'
-   * Model.findAll({ where: { age: { [Op.gt]: 12 } } }) // WHERE age > 12 AND username = 'dan'
-   *
-   * @example <caption>To invoke scope functions you can do</caption>
-   * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
-   * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
-   *
-   * @param {?Array|object|string} [options] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For scope function, pass an object, with a `method` property. The value can either be a string, if the method does not take any arguments, or an array, where the first element is the name of the method, and consecutive elements are arguments to that method. Pass null to remove all scopes, including the default.
-   *
-   * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will clear the previous scope.
+   * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
+   *   clear the previous scope.
    */
-  static withScope(...options) {
-    options = options.flat().filter(Boolean);
+  static withScope(...scopes) {
+    scopes = scopes.flat().filter(Boolean);
 
     const initialModel = this.getInitialModel();
 
     const mergedScope = {};
     const scopeNames = [];
 
-    for (const option of options) {
+    for (const option of scopes) {
       let scope = null;
       let scopeName = null;
 
@@ -1684,6 +1609,11 @@ export class Model {
   }
 
   // TODO [>=2023-01-01]: remove in Sequelize 8
+  /**
+   * Returns a model without scope. The default scope is also omitted.
+   *
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   */
   static unscoped() {
     scopeRenamedToWithScope();
 
@@ -1691,14 +1621,17 @@ export class Model {
   }
 
   /**
-   * Get un-scoped model
+   * Returns a model without scope. The default scope is also omitted.
    *
-   * @returns {Model}
+   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
   static withoutScope() {
     return this.withScope(null);
   }
 
+  /**
+   * Returns the base model, with its initial scope.
+   */
   static withInitialScope() {
     const initialModel = this.getInitialModel();
 
@@ -1773,105 +1706,24 @@ export class Model {
 
   /**
    * Search for multiple instances.
+   * See {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information about querying.
    *
-   * @example <caption>Simple search using AND and =</caption>
+   * __Example of a simple search:__
+   * ```js
    * Model.findAll({
    *   where: {
    *     attr1: 42,
    *     attr2: 'cake'
    *   }
    * })
+   * ```
    *
-   * # WHERE attr1 = 42 AND attr2 = 'cake'
+   * See also:
+   * - {@link Model.findOne}
+   * - {@link Sequelize#query}
    *
-   * @example <caption>Using greater than, less than etc.</caption>
-   * const {gt, lte, ne, in: opIn} = Sequelize.Op;
-   *
-   * Model.findAll({
-   *   where: {
-   *     attr1: {
-   *       [gt]: 50
-   *     },
-   *     attr2: {
-   *       [lte]: 45
-   *     },
-   *     attr3: {
-   *       [opIn]: [1,2,3]
-   *     },
-   *     attr4: {
-   *       [ne]: 5
-   *     }
-   *   }
-   * })
-   *
-   * # WHERE attr1 > 50 AND attr2 <= 45 AND attr3 IN (1,2,3) AND attr4 != 5
-   *
-   * @example <caption>Queries using OR</caption>
-   * const {or, and, gt, lt} = Sequelize.Op;
-   *
-   * Model.findAll({
-   *   where: {
-   *     name: 'a project',
-   *     [or]: [
-   *       {id: [1, 2, 3]},
-   *       {
-   *         [and]: [
-   *           {id: {[gt]: 10}},
-   *           {id: {[lt]: 100}}
-   *         ]
-   *       }
-   *     ]
-   *   }
-   * });
-   *
-   * # WHERE `Model`.`name` = 'a project' AND (`Model`.`id` IN (1, 2, 3) OR (`Model`.`id` > 10 AND `Model`.`id` < 100));
-   *
-   * @see {Sequelize.Op} for possible operators
-   * __Alias__: _all_
-   *
-   * The promise is resolved with an array of Model instances if the query succeeds._
-   *
-   * @param  {object}                                                    [options] A hash of options to describe the scope of the search
-   * @param  {object}                                                    [options.where] A hash of attributes to describe your search. See above for examples.
-   * @param  {Array<string>|object}                                      [options.attributes] A list of the attributes that you want to select, or an object with `include` and `exclude` keys. To rename an attribute, you can pass an array, with two elements - the first is the name of the attribute in the DB (or some kind of expression such as `Sequelize.literal`, `Sequelize.fn` and so on), and the second is the name you want the attribute to have in the returned instance
-   * @param  {Array<string>}                                             [options.attributes.include] Select all the attributes of the model, plus some additional ones. Useful for aggregations, e.g. `{ attributes: { include: [[sequelize.fn('COUNT', sequelize.col('id')), 'total']] }`
-   * @param  {Array<string>}                                             [options.attributes.exclude] Select all the attributes of the model, except some few. Useful for security purposes e.g. `{ attributes: { exclude: ['password'] } }`
-   * @param  {boolean}                                                   [options.paranoid=true] If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if `options.paranoid` is true for the model.
-   * @param  {Array<object|Model|string>}                                [options.include] A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}` or `{ include: ['Alias']}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y).
-   * @param  {Model}                                                     [options.include[].model] The model you want to eagerly load
-   * @param  {string}                                                    [options.include[].as] The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
-   * @param  {Association}                                               [options.include[].association] The association you want to eagerly load. (This can be used instead of providing a model/as pair)
-   * @param  {object}                                                    [options.include[].where] Where clauses to apply to the child models. Note that this converts the eager load to an inner join, unless you explicitly set `required: false`
-   * @param  {boolean}                                                   [options.include[].or=false] Whether to bind the ON and WHERE clause together by OR instead of AND.
-   * @param  {object}                                                    [options.include[].on] Supply your own ON condition for the join.
-   * @param  {Array<string>}                                             [options.include[].attributes] A list of attributes to select from the child model
-   * @param  {boolean}                                                   [options.include[].required] If true, converts to an inner join, which means that the parent model will only be loaded if it has any matching children. True if `include.where` is set, false otherwise.
-   * @param  {boolean}                                                   [options.include[].right] If true, converts to a right join if dialect support it. Ignored if `include.required` is true.
-   * @param  {boolean}                                                   [options.include[].separate] If true, runs a separate query to fetch the associated instances, only supported for hasMany associations
-   * @param  {number}                                                    [options.include[].limit] Limit the joined rows, only supported with include.separate=true
-   * @param  {string}                                                    [options.include[].through.as] The alias for the join model, in case you want to give it a different name than the default one.
-   * @param  {boolean}                                                   [options.include[].through.paranoid] If true, only non-deleted records will be returned from the join table. If false, both deleted and non-deleted records will be returned. Only applies if through model is paranoid.
-   * @param  {object}                                                    [options.include[].through.where] Filter on the join model for belongsToMany relations
-   * @param  {Array}                                                     [options.include[].through.attributes] A list of attributes to select from the join model for belongsToMany relations
-   * @param  {Array<object|Model|string>}                                [options.include[].include] Load further nested related models
-   * @param  {boolean}                                                   [options.include[].duplicating] Mark the include as duplicating, will prevent a subquery from being used.
-   * @param  {Array|Sequelize.fn|Sequelize.col|Sequelize.literal}        [options.order] Specifies an ordering. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not.
-   * @param  {number}                                                    [options.limit] Limit for result
-   * @param  {number}                                                    [options.offset] Offset for result
-   * @param  {Transaction}                                               [options.transaction] Transaction to run query under
-   * @param  {string|object}                                             [options.lock] Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins.
-   * @param  {boolean}                                                   [options.skipLocked] Skip locked rows. Only supported in Postgres.
-   * @param  {boolean}                                                   [options.raw] Return raw result. See sequelize.query for more information.
-   * @param  {Function}                                                  [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param  {boolean}                                                   [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {object}                                                    [options.having] Having options
-   * @param  {string}                                                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   * @param  {boolean|Error}                                             [options.rejectOnEmpty=false] Throws an error when no records found
-   * @param  {boolean}                                                   [options.dotNotation] Allows including tables having the same attribute/column names - which have a dot in them.
-   *
-   * @see {Sequelize#query}
-   *
-   * @returns {Promise<Array<Model>>}
+   * @param {object} options
+   * @returns {Promise} A promise that will resolve with the array containing the results of the SELECT query.
    */
   static async findAll(options) {
     if (options !== undefined && !_.isPlainObject(options)) {
@@ -1882,7 +1734,7 @@ export class Model {
       throw new sequelizeErrors.QueryError('The attributes option must be an array of column names or an object');
     }
 
-    this.warnOnInvalidOptions(options, Object.keys(this.rawAttributes));
+    this._warnOnInvalidOptions(options, Object.keys(this.rawAttributes));
 
     const tableNames = {};
 
@@ -1967,7 +1819,7 @@ export class Model {
     return await Model._findSeparate(results, options);
   }
 
-  static warnOnInvalidOptions(options, validColumnNames) {
+  static _warnOnInvalidOptions(options, validColumnNames) {
     if (!_.isPlainObject(options)) {
       return;
     }
@@ -2065,16 +1917,15 @@ export class Model {
   }
 
   /**
-   * Search for a single instance by its primary key._
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
    * @param  {number|string|Buffer}      param The value of the desired instance's primary key.
    * @param  {object}                    [options] find options
-   * @param  {Transaction}               [options.transaction] Transaction to run query under
-   * @param  {string}                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   *
-   * @see
-   * {@link Model.findAll}           for a full explanation of options, Note that options.where is not supported.
-   *
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
@@ -2098,15 +1949,12 @@ export class Model {
   }
 
   /**
-   * Search for a single instance. Returns the first instance found, or null if none can be found.
+   * Search for a single instance.
+   *
+   * Returns the first instance corresponding matching the query.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
    * @param  {object}       [options] A hash of options to describe the scope of the search
-   * @param  {Transaction}  [options.transaction] Transaction to run query under
-   * @param  {string}       [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   *
-   * @see
-   * {@link Model.findAll} for an explanation of options
-   *
    * @returns {Promise<Model|null>}
    */
   static async findOne(options) {
@@ -2135,20 +1983,16 @@ export class Model {
   }
 
   /**
-   * Run an aggregation method on the specified field
+   * Run an aggregation method on the specified field.
+   *
+   * Returns the aggregate result cast to {@link AggregateOptions.dataType},
+   * unless `options.plain` is false, in which case the complete data result is returned.
    *
    * @param {string}          attribute The attribute to aggregate over. Can be a field name or *
    * @param {string}          aggregateFunction The function to use for aggregation, e.g. sum, max etc.
    * @param {object}          [options] Query options. See sequelize.query for full options
-   * @param {object}          [options.where] A hash of search attributes.
-   * @param {Function}        [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}         [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param {DataTypes|string} [options.dataType] The type of the result. If `field` is a field in this Model, the default will be the type of that field, otherwise defaults to float.
-   * @param {boolean}         [options.distinct] Applies DISTINCT to the field being aggregated over
-   * @param {Transaction}     [options.transaction] Transaction to run query under
-   * @param {boolean}         [options.plain] When `true`, the first returned value of `aggregateFunction` is cast to `dataType` and returned. If additional attributes are specified, along with `group` clauses, set `plain` to `false` to return all values of all returned rows.  Defaults to `true`
    *
-   * @returns {Promise<DataTypes|object>} Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in which case the complete data result is returned.
+   * @returns {Promise<DataTypes|object>}
    */
   static async aggregate(attribute, aggregateFunction, options) {
     options = Utils.cloneDeep(options);
@@ -2210,18 +2054,6 @@ export class Model {
    * If you provide an `include` option, the number of matching associations will be counted instead.
    *
    * @param {object}        [options] options
-   * @param {object}        [options.where] A hash of search attributes.
-   * @param {object}        [options.include] Include options. See `find` for details
-   * @param {boolean}       [options.paranoid=true] Set `true` to count only non-deleted records. Can be used on models with `paranoid` enabled
-   * @param {boolean}       [options.distinct] Apply COUNT(DISTINCT(col)) on primary key or on options.col.
-   * @param {string}        [options.col] Column on which COUNT() should be applied
-   * @param {Array}         [options.attributes] Used in conjunction with `group`
-   * @param {Array}         [options.group] For creating complex counts. Will return multiple rows as needed.
-   * @param {Transaction}   [options.transaction] Transaction to run query under
-   * @param {Function}      [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {boolean}       [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param {string}        [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   *
    * @returns {Promise<number>}
    */
   static async count(options) {
@@ -2266,37 +2098,46 @@ export class Model {
   }
 
   /**
-   * Find all the rows matching your query, within a specified offset / limit, and get the total number of rows matching your query. This is very useful for paging
+   * Finds all the rows matching your query, within a specified offset / limit, and get the total number of
+   * rows matching your query. This is very useful for pagination.
    *
-   * @example
-   * const result = await Model.findAndCountAll({
+   * ```js
+   * Model.findAndCountAll({
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * });
+   * }).then(result => {
+   *   ...
+   * })
+   * ```
+   * In the above example, `result.rows` will contain rows 13 through 24, while `result.count` will return
+   * the total number of rows that matched your query.
    *
-   * # In the above example, `result.rows` will contain rows 13 through 24, while `result.count` will return the total number of rows that matched your query.
+   * When you add includes, only those which are required (either because they have a where clause, or
+   * because required` is explicitly set to true on the include) will be added to the count part.
    *
-   * # When you add includes, only those which are required (either because they have a where clause, or because `required` is explicitly set to true on the include) will be added to the count part.
-   *
-   * # Suppose you want to find all users who have a profile attached:
-   *
+   * Suppose you want to find all users who have a profile attached:
+   * ```js
    * User.findAndCountAll({
    *   include: [
    *      { model: Profile, required: true}
    *   ],
    *   limit: 3
    * });
+   * ```
+   * Because the include for `Profile` has `required` set it will result in an inner join, and only the users
+   * who have a profile will be counted. If we remove `required` from the include, both users with and
+   * without profiles will be counted
    *
-   * # Because the include for `Profile` has `required` set it will result in an inner join, and only the users who have a profile will be counted. If we remove `required` from the include, both users with and without profiles will be counted
+   * This function also support grouping, when `group` is provided, the count will be an array of objects
+   * containing the count for each group and the projected attributes.
+   * ```js
+   * User.findAndCountAll({
+   *   group: 'type'
+   * });
+   * ```
    *
    * @param {object} [options] See findAll options
-   *
-   * @see
-   * {@link Model.findAll} for a specification of find and query options
-   * @see
-   * {@link Model.count} for a specification of count options
-   *
    * @returns {Promise<{count: number | number[], rows: Model[]}>}
    */
   static async findAndCountAll(options) {
@@ -2322,14 +2163,10 @@ export class Model {
   }
 
   /**
-   * Find the maximum value of field
+   * Finds the maximum value of field
    *
    * @param {string} field attribute / field name
    * @param {object} [options] See aggregate
-   *
-   * @see
-   * {@link Model.aggregate} for options
-   *
    * @returns {Promise<*>}
    */
   static async max(field, options) {
@@ -2337,14 +2174,10 @@ export class Model {
   }
 
   /**
-   * Find the minimum value of field
+   * Finds the minimum value of field
    *
    * @param {string} field attribute / field name
    * @param {object} [options] See aggregate
-   *
-   * @see
-   * {@link Model.aggregate} for options
-   *
    * @returns {Promise<*>}
    */
   static async min(field, options) {
@@ -2352,14 +2185,10 @@ export class Model {
   }
 
   /**
-   * Find the sum of field
+   * Retrieves the sum of field
    *
    * @param {string} field attribute / field name
    * @param {object} [options] See aggregate
-   *
-   * @see
-   * {@link Model.aggregate} for options
-   *
    * @returns {Promise<number>}
    */
   static async sum(field, options) {
@@ -2368,12 +2197,11 @@ export class Model {
 
   /**
    * Builds a new model instance.
+   * Unlike {@link Model.create}, the instance is not persisted, you need to call {@link Model#save} yourself.
    *
-   * @param {object|Array} values An object of key value pairs or an array of such. If an array, the function will return an array of instances.
+   * @param {object|Array} values An object of key value pairs or an array of such. If an array, the function will return an
+   *   array of instances.
    * @param {object}  [options] Instance build options
-   * @param {boolean} [options.raw=false] If set to true, values will ignore field and virtual setters.
-   * @param {boolean} [options.isNewRecord=true] Is this new record
-   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See `set`
    *
    * @returns {Model|Array<Model>}
    */
@@ -2385,6 +2213,13 @@ export class Model {
     return new this(values, options);
   }
 
+  /**
+   * Builds multiple new model instances.
+   * Unlike {@link Model.create}, the instances are not persisted, you need to call {@link Model#save} yourself.
+   *
+   * @param {Array} valueSets An array of objects with key value pairs.
+   * @param {object}  [options] Instance build options
+   */
   static bulkBuild(valueSets, options) {
     options = { isNewRecord: true, ...options };
 
@@ -2404,28 +2239,11 @@ export class Model {
   }
 
   /**
-   * Builds a new model instance and calls save on it.
+   * Builds a new model instance and persists it.
+   * Equivalent to calling {@link Model.build} then {@link Model.save}.
    *
-   * @see
-   * {@link Model.build}
-   * @see
-   * {@link Model.save}
-   *
-   * @param  {object}         values                       Hash of data values to create new record with
-   * @param  {object}         [options]                    Build and query options
-   * @param  {boolean}        [options.raw=false]          If set to true, values will ignore field and virtual setters.
-   * @param  {boolean}        [options.isNewRecord=true]   Is this new record
-   * @param  {Array}          [options.include]            An array of include options - Used to build prefetched/included model instances. See `set`
-   * @param  {string[]}       [options.fields]             An optional array of strings, representing database columns. If fields is provided, only those columns will be validated and saved.
-   * @param  {boolean}        [options.silent=false]       If true, the updatedAt timestamp will not be updated.
-   * @param  {boolean}        [options.validate=true]      If false, validations won't be run.
-   * @param  {boolean}        [options.hooks=true]         Run before and after create / update + validate hooks
-   * @param  {Function}       [options.logging=false]      A function that gets executed while running the query to log the sql.
-   * @param  {boolean}        [options.benchmark=false]    Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {Transaction}    [options.transaction]        Transaction to run query under
-   * @param  {string}         [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   * @param  {boolean|Array}  [options.returning=true]     Appends RETURNING <model columns> to get back all defined values; if an array of column names, append RETURNING <columns> to get back specific columns (Postgres only)
-   *
+   * @param {object} values
+   * @param {object} options
    * @returns {Promise<Model>}
    *
    */
@@ -2442,14 +2260,10 @@ export class Model {
   }
 
   /**
-   * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successful result of the promise will be (instance, built)
+   * Find an entity that matches the query, or build (but don't save) the entity if none is found.
+   * The successful result of the promise will be the tuple [instance, initialized].
    *
-   * @param {object}   options find options
-   * @param {object}   options.where A hash of search attributes. If `where` is a plain object it will be appended with defaults to build a new instance.
-   * @param {object}   [options.defaults] Default values to use if building a new instance
-   * @param {object}   [options.transaction] Transaction to run query under
-   *
+   * @param {object} options find options
    * @returns {Promise<Model,boolean>}
    */
   static async findOrBuild(options) {
@@ -2478,21 +2292,20 @@ export class Model {
   }
 
   /**
-   * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created)
+   * Find an entity that matches the query, or {@link Model.create} the entity if none is found
+   * The successful result of the promise will be the tuple [instance, initialized].
    *
-   * If no transaction is passed in the `options` object, a new transaction will be created internally, to prevent the race condition where a matching row is created by another connection after the find but before the insert call.
-   * However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts and another tries to select before the first one has committed. In this case, an instance of sequelize. TimeoutError will be thrown instead.
-   * If a transaction is created, a savepoint will be created instead, and any unique constraint violation will be handled internally.
+   * If no transaction is passed in the `options` object, a new transaction will be created internally, to
+   * prevent the race condition where a matching row is created by another connection after the find but
+   * before the insert call.
+   * However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts
+   * and another tries to select before the first one has committed.
+   * In this case, an instance of {@link TimeoutError} will be thrown instead.
    *
-   * @see
-   * {@link Model.findAll} for a full specification of find and options
+   * If a transaction is passed, a savepoint will be created instead,
+   * and any unique constraint violation will be handled internally.
    *
-   * @param {object}      options find and create options
-   * @param {object}      options.where where A hash of search attributes. If `where` is a plain object it will be appended with defaults to build a new instance.
-   * @param {object}      [options.defaults] Default values to use if creating a new instance
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   *
+   * @param {object} options find and create options
    * @returns {Promise<Model,boolean>}
    */
   static async findOrCreate(options) {
@@ -2599,16 +2412,14 @@ export class Model {
   }
 
   /**
-   * A more performant findOrCreate that may not work under a transaction (working in postgres)
-   * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
+   * A more performant {@link Model.findOrCreate} that will not start its own transaction or savepoint (at least not in
+   * postgres)
    *
-   * @see
-   * {@link Model.findAll} for a full specification of find and options
+   * It will execute a find call, attempt to create if empty, then attempt to find again if a unique constraint fails.
+   *
+   * The successful result of the promise will be the tuple [instance, initialized].
    *
    * @param {object} options find options
-   * @param {object} options.where A hash of search attributes. If `where` is a plain object it will be appended with defaults to build a new instance.
-   * @param {object} [options.defaults] Default values to use if creating a new instance
-   *
    * @returns {Promise<Model,boolean>}
    */
   static async findCreateFind(options) {
@@ -2651,30 +2462,28 @@ export class Model {
   }
 
   /**
-   * Insert or update a single row. An update will be executed if a row which matches the supplied values on either the primary key or a unique key is found. Note that the unique index must be defined in your sequelize model and not just in the table. Otherwise you may experience a unique constraint violation, because sequelize fails to identify the row that should be updated.
+   * Inserts or updates a single entity. An update will be executed if a row which matches the supplied values on
+   * either the primary key or a unique key is found. Note that the unique index must be defined in your
+   * sequelize model and not just in the table. Otherwise, you may experience a unique constraint violation,
+   * because sequelize fails to identify the row that should be updated.
    *
    * **Implementation details:**
    *
-   * * MySQL - Implemented with ON DUPLICATE KEY UPDATE`
-   * * PostgreSQL - Implemented with ON CONFLICT DO UPDATE. If update data contains PK field, then PK is selected as the default conflict key. Otherwise first unique constraint/index will be selected, which can satisfy conflict key requirements.
-   * * SQLite - Implemented with ON CONFLICT DO UPDATE
-   * * MSSQL - Implemented as a single query using `MERGE` and `WHEN (NOT) MATCHED THEN`
+   * * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
+   * * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
+   *   unique_constraint UPDATE
+   * * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed regardless
+   *   of whether the row already existed or not
    *
-   * **Note** that Postgres/SQLite returns null for created, no matter if the row was created or updated
+   * **Note:** SQLite returns null for created, no matter if the row was created or updated. This is
+   * because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know
+   * whether the row was inserted or not.
    *
-   * @param  {object}        values                                        hash of values to upsert
-   * @param  {object}        [options]                                     upsert options
-   * @param  {boolean}       [options.validate=true]                       Run validations before the row is inserted
-   * @param  {Array}         [options.fields=Object.keys(this.attributes)] The fields to update if the record already exists. Defaults to all changed fields.  If none of the specified fields are present on the provided `values` object, an insert will still be attempted, but duplicate key conflicts will be ignored.
-   * @param  {boolean}       [options.hooks=true]                          Run before / after upsert hooks?
-   * @param  {boolean}       [options.returning=true]                      If true, fetches back auto generated values
-   * @param  {Transaction}   [options.transaction]                         Transaction to run query under
-   * @param  {Function}      [options.logging=false]                       A function that gets executed while running the query to log the sql.
-   * @param  {boolean}       [options.benchmark=false]                     Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {string}        [options.searchPath=DEFAULT]                  An optional parameter to specify the schema search_path (Postgres only)
-   * @param  {Array<string>} [options.conflictFields]                      Optional override for the conflict fields in the ON CONFLICT part of the query. Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
-   *
-   * @returns {Promise<Array<Model, boolean | null>>} returns an array with two elements, the first being the new record and the second being `true` if it was just created or `false` if it already existed (except on Postgres and SQLite, which can't detect this and will always return `null` instead of a boolean).
+   * @param  {object} values hash of values to upsert
+   * @param  {object} [options] upsert options
+   * @returns {Promise<Array<Model, boolean | null>>} an array with two elements, the first being the new record and
+   *   the second being `true` if it was just created or `false` if it already existed (except on Postgres and SQLite, which
+   *   can't detect this and will always return `null` instead of a boolean).
    */
   static async upsert(values, options) {
     options = {
@@ -2752,28 +2561,20 @@ export class Model {
   }
 
   /**
-   * Create and insert multiple instances in bulk.
+   * Creates and inserts multiple instances in bulk.
    *
-   * The success handler is passed an array of instances, but please notice that these may not completely represent the state of the rows in the DB. This is because MySQL
-   * and SQLite do not make it easy to obtain back automatically generated IDs and other default values in a way that can be mapped to multiple records.
-   * To obtain Instances for the newly created values, you will need to query for them again.
+   * The promise resolves with an array of instances.
    *
-   * If validation fails, the promise is rejected with an array-like AggregateError
+   * Please note that, depending on your dialect, the resulting instances may not accurately
+   * represent the state of their rows in the database.
+   * This is because MySQL and SQLite do not make it easy to obtain back automatically generated IDs
+   * and other default values in a way that can be mapped to multiple records.
+   * To obtain the correct data for the newly created instance, you will need to query for them again.
+   *
+   * If validation fails, the promise is rejected with {@link AggregateError}
    *
    * @param  {Array}          records                          List of objects (key/value pairs) to create instances from
    * @param  {object}         [options]                        Bulk create options
-   * @param  {Array}          [options.fields]                 Fields to insert (defaults to all fields)
-   * @param  {boolean}        [options.validate=false]         Should each row be subject to validation before it is inserted. The whole insert will fail if one row fails validation
-   * @param  {boolean}        [options.hooks=true]             Run before / after bulk create hooks?
-   * @param  {boolean}        [options.individualHooks=false]  Run before / after create hooks for each individual Instance? BulkCreate hooks will still be run if options.hooks is true.
-   * @param  {boolean}        [options.ignoreDuplicates=false] Ignore duplicate values for primary keys? (not supported by MSSQL or Postgres < 9.5)
-   * @param  {Array}          [options.updateOnDuplicate]      Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL, MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
-   * @param  {Transaction}    [options.transaction]            Transaction to run query under
-   * @param  {Function}       [options.logging=false]          A function that gets executed while running the query to log the sql.
-   * @param  {boolean}        [options.benchmark=false]        Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {boolean|Array}  [options.returning=false]        If true, append RETURNING <model columns> to get back all defined values; if an array of column names, append RETURNING <columns> to get back specific columns (Postgres only)
-   * @param  {string}         [options.searchPath=DEFAULT]     An optional parameter to specify the schema search_path (Postgres only)
-   *
    * @returns {Promise<Array<Model>>}
    */
   static async bulkCreate(records, options = {}) {
@@ -3114,20 +2915,13 @@ export class Model {
   }
 
   /**
-   * Truncate all instances of the model. This is a convenient method for Model.destroy({ truncate: true }).
+   * Destroys all instances of the model.
+   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
    *
-   * @param {object}           [options] The options passed to Model.destroy in addition to truncate
-   * @param {boolean|Function} [options.cascade = false] Truncates all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
-   * @param {boolean}          [options.restartIdentity=false] Automatically restart sequences owned by columns of the truncated table.
-   * @param {Transaction}      [options.transaction] Transaction to run query under
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   * @param {boolean}          [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param {string}           [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
+   * __Danger__: This will completely empty your table!
    *
+   * @param {object} [options] truncate options
    * @returns {Promise}
-   *
-   * @see
-   * {@link Model.destroy} for more information
    */
   static async truncate(options) {
     options = Utils.cloneDeep(options) || {};
@@ -3137,21 +2931,9 @@ export class Model {
   }
 
   /**
-   * Delete multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
+   * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @param  {object}       options                         destroy options
-   * @param  {object}       [options.where]                 Filter the destroy
-   * @param  {boolean}      [options.hooks=true]            Run before / after bulk destroy hooks?
-   * @param  {boolean}      [options.individualHooks=false] If set to true, destroy will SELECT all records matching the where parameter and will execute before / after destroy hooks on each row
-   * @param  {number}       [options.limit]                 How many rows to delete
-   * @param  {boolean}      [options.force=false]           Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
-   * @param  {boolean}      [options.truncate=false]        If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is truncated the where and limit options are ignored
-   * @param  {boolean}      [options.cascade=false]         Only used in conjunction with TRUNCATE. Truncates  all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
-   * @param  {boolean}      [options.restartIdentity=false] Only used in conjunction with TRUNCATE. Automatically restart sequences owned by columns of the truncated table.
-   * @param  {Transaction}  [options.transaction] Transaction to run query under
-   * @param  {Function}     [options.logging=false]         A function that gets executed while running the query to log the sql.
-   * @param  {boolean}      [options.benchmark=false]       Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   *
+   * @param  {object} options destroy options
    * @returns {Promise<number>} The number of destroyed rows
    */
   static async destroy(options) {
@@ -3228,17 +3010,10 @@ export class Model {
   }
 
   /**
-   * Restore multiple instances if `paranoid` is enabled.
+   * Restores multiple paranoid instances.
+   * Only usable if {@link ModelOptions.paranoid} is true.
    *
-   * @param  {object}       options                         restore options
-   * @param  {object}       [options.where]                 Filter the restore
-   * @param  {boolean}      [options.hooks=true]            Run before / after bulk restore hooks?
-   * @param  {boolean}      [options.individualHooks=false] If set to true, restore will find all records within the where parameter and will execute before / after bulkRestore hooks on each row
-   * @param  {number}       [options.limit]                 How many rows to undelete (only for mysql)
-   * @param  {Function}     [options.logging=false]         A function that gets executed while running the query to log the sql.
-   * @param  {boolean}      [options.benchmark=false]       Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {Transaction}  [options.transaction]           Transaction to run query under
-   *
+   * @param {object} options restore options
    * @returns {Promise}
    */
   static async restore(options) {
@@ -3295,27 +3070,16 @@ export class Model {
   }
 
   /**
-   * Update multiple instances that match the where options.
+   * Updates multiple instances that match the where options.
    *
-   * @param  {object}         values                          hash of values to update
-   * @param  {object}         options                         update options
-   * @param  {object}         options.where                   Options to describe the scope of the search.
-   * @param  {boolean}        [options.paranoid=true]         If true, only non-deleted records will be updated. If false, both deleted and non-deleted records will be updated. Only applies if `options.paranoid` is true for the model.
-   * @param  {Array}          [options.fields]                Fields to update (defaults to all fields)
-   * @param  {boolean}        [options.validate=true]         Should each row be subject to validation before it is inserted. The whole insert will fail if one row fails validation
-   * @param  {boolean}        [options.hooks=true]            Run before / after bulk update hooks?
-   * @param  {boolean}        [options.sideEffects=true]      Whether or not to update the side effects of any virtual setters.
-   * @param  {boolean}        [options.individualHooks=false] Run before / after update hooks?. If true, this will execute a SELECT followed by individual UPDATEs. A select is needed, because the row data needs to be passed to the hooks
-   * @param  {boolean|Array}  [options.returning=false]       If true, append RETURNING <model columns> to get back all defined values; if an array of column names, append RETURNING <columns> to get back specific columns (Postgres only)
-   * @param  {number}         [options.limit]                 How many rows to update (only for mysql and mariadb, implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present)
-   * @param  {Function}       [options.logging=false]         A function that gets executed while running the query to log the sql.
-   * @param  {boolean}        [options.benchmark=false]       Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param  {Transaction}    [options.transaction]           Transaction to run query under
-   * @param  {boolean}        [options.silent=false]          If true, the updatedAt timestamp will not be updated.
+   * The promise resolves with an array of one or two elements:
+   * - The first element is always the number of affected rows,
+   * - the second element is the list of affected entities (only supported in postgres and mssql with
+   * {@link UpdateOptions.returning} true.)
    *
-   * @returns {Promise<Array<number,number>>}  The promise returns an array with one or two elements. The first element is always the number
-   * of affected rows, while the second element is the actual affected rows (only supported in postgres with `options.returning` true).
-   *
+   * @param  {object} values hash of values to update
+   * @param  {object} options update options
+   * @returns {Promise<Array<number,number>>}
    */
   static async update(values, options) {
     options = Utils.cloneDeep(options);
@@ -3497,7 +3261,7 @@ export class Model {
   }
 
   /**
-   * Run a describe query on the table.
+   * Runs a describe query on the table.
    *
    * @param {string} [schema] schema name to search table in
    * @param {object} [options] query options
@@ -3548,8 +3312,9 @@ export class Model {
   }
 
   /**
-   * Increment the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The increment is done using a
-   * ``` SET column = column + X WHERE foo = 'bar' ``` query. To get the correct value after an increment into the Instance you should do a reload.
+   * Increments the value of one or more attributes.
+   *
+   * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
    *
    * @example <caption>increment number by 1</caption>
    * Model.increment('number', { where: { foo: 'bar' });
@@ -3558,22 +3323,16 @@ export class Model {
    * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
    *
    * @example <caption>increment answer by 42, and decrement tries by 1</caption>
-   * // `by` is ignored, as each column has its own value
-   * Model.increment({ answer: 42, tries: -1}, { by: 2, where: { foo: 'bar' } });
+   * // `by` cannot be used, as each attribute specifies its own value
+   * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });
    *
-   * @see
-   * {@link Model#reload}
+   * @param  {string|Array|object} fields If a string is provided, that column is incremented by the
+   *   value of `by` given in options. If an array is provided, the same is true for each column.
+   *   If an object is provided, each key is incremented by the corresponding value, `by` is ignored.
+   * @param  {object} options increment options
+   * @param  {object} options.where conditions hash
    *
-   * @param  {string|Array|object}  fields                       If a string is provided, that column is incremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is incremented by the value given.
-   * @param  {object}               options                      increment options
-   * @param  {object}               options.where                conditions hash
-   * @param  {number}               [options.by=1]               The number to increment by
-   * @param  {boolean}              [options.silent=false]       If true, the updatedAt timestamp will not be updated.
-   * @param  {Function}             [options.logging=false]      A function that gets executed while running the query to log the sql.
-   * @param  {Transaction}          [options.transaction]        Transaction to run query under
-   * @param  {string}               [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   *
-   * @returns {Promise<Model[],?number>} returns an array of affected rows and affected count with `options.returning` true, whenever supported by dialect
+   * @returns {Promise<Model[],?number>} an array of affected rows and affected count with `options.returning` true,  whenever supported by dialect
    */
   static async increment(fields, options) {
     options = options || {};
@@ -3664,8 +3423,10 @@ export class Model {
   }
 
   /**
-   * Decrement the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The decrement is done using a
-   * ```sql SET column = column - X WHERE foo = 'bar'``` query. To get the correct value after a decrement into the Instance you should do a reload.
+   * Decrement the value of one or more columns. This is done in the database, which means it does not use the values
+   * currently stored on the Instance. The decrement is done using a
+   * ```sql SET column = column - X WHERE foo = 'bar'``` query. To get the correct value after a decrement into the Instance
+   * you should do a reload.
    *
    * @example <caption>decrement number by 1</caption>
    * Model.decrement('number', { where: { foo: 'bar' });
@@ -3677,16 +3438,15 @@ export class Model {
    * // `by` is ignored, since each column has its own value
    * Model.decrement({ answer: 42, tries: -1}, { by: 2, where: { foo: 'bar' } });
    *
-   * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is incremented by the value given.
+   * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in
+   *   options. If an array is provided, the same is true for each column. If and object is provided, each column is
+   *   incremented by the value given.
    * @param {object} options decrement options, similar to increment
    *
-   * @see
-   * {@link Model.increment}
-   * @see
-   * {@link Model#reload}
    * @since 4.36.0
    *
-   * @returns {Promise<Model[],?number>} returns an array of affected rows and affected count with `options.returning` true, whenever supported by dialect
+   * @returns {Promise<Model[],?number>} returns an array of affected rows and affected count with `options.returning` true,
+   *   whenever supported by dialect
    */
   static async decrement(fields, options) {
     return this.increment(fields, {
@@ -3703,7 +3463,7 @@ export class Model {
   }
 
   /**
-   * Get an object representing the query for this instance, use with `options.where`
+   * Returns an object representing the query for this instance, use with `options.where`
    *
    * @param {boolean} [checkVersion=false] include version attribute in where hash
    *
@@ -3733,10 +3493,12 @@ export class Model {
   }
 
   /**
-   * Get the value of the underlying data value
+   * Returns the underlying data value
    *
-   * @param {string} key key to look in instance data store
+   * Unlike {@link Model#get}, this method returns the value as it was retrieved, bypassing
+   * getters, cloning, virtual attributes.
    *
+   * @param {string} key The name of the attribute to return.
    * @returns {any}
    */
   getDataValue(key) {
@@ -3744,11 +3506,12 @@ export class Model {
   }
 
   /**
-   * Update the underlying data value
+   * Updates the underlying data value
    *
-   * @param {string} key key to set in instance data store
-   * @param {any} value new value for given key
+   * Unlike {@link Model#set}, this method skips any special behavior and directly replaces the raw value.
    *
+   * @param {string} key The name of the attribute to update.
+   * @param {any} value The new value for that attribute.
    */
   setDataValue(key, value) {
     const originalValue = this._previousDataValues[key];
@@ -3763,12 +3526,11 @@ export class Model {
   /**
    * If no key is given, returns all values of the instance, also invoking virtual getters.
    *
-   * If key is given and a field or virtual getter is present for the key it will call that getter - else it will return the value for key.
+   * If key is given and a field or virtual getter is present for the key it will call that getter - else it will return the
+   * value for key.
    *
    * @param {string}  [key] key to get value of
    * @param {object}  [options] get options
-   * @param {boolean} [options.plain=false] If set to true, included instances will be returned as plain objects
-   * @param {boolean} [options.raw=false] If set to true, field and virtual setters will be ignored
    *
    * @returns {object|any}
    */
@@ -3839,12 +3601,14 @@ export class Model {
   }
 
   /**
-   * Set is used to update values on the instance (the sequelize representation of the instance that is, remember that nothing will be persisted before you actually call `save`).
-   * In its most basic form `set` will update a value stored in the underlying `dataValues` object. However, if a custom setter function is defined for the key, that function
-   * will be called instead. To bypass the setter, you can pass `raw: true` in the options object.
+   * Set is used to update values on the instance (the Sequelize representation of the instance that is, remember that
+   * nothing will be persisted before you actually call `save`). In its most basic form `set` will update a value stored in
+   * the underlying `dataValues` object. However, if a custom setter function is defined for the key, that function will be
+   * called instead. To bypass the setter, you can pass `raw: true` in the options object.
    *
-   * If set is called with an object, it will loop over the object, and call set recursively for each key, value pair. If you set raw to true, the underlying dataValues will either be
-   * set directly to the object passed, or used to extend dataValues, if dataValues already contain values.
+   * If set is called with an object, it will loop over the object, and call set recursively for each key, value pair. If
+   * you set raw to true, the underlying dataValues will either be set directly to the object passed, or used to extend
+   * dataValues, if dataValues already contain values.
    *
    * When set is called, the previous value of the field is stored and sets a changed flag(see `changed`).
    *
@@ -3852,16 +3616,13 @@ export class Model {
    * When using set with associations you need to make sure the property key matches the alias of the association
    * while also making sure that the proper include options have been set (from .build() or .findOne())
    *
-   * If called with a dot.separated key on a JSON/JSONB attribute it will set the value nested and flag the entire object as changed.
+   * If called with a dot.separated key on a JSON/JSONB attribute it will set the value nested and flag the entire object as
+   * changed.
    *
-   * @see
-   * {@link Model.findAll} for more information about includes
-   *
-   * @param {string|object} key key to set, it can be string or object. When string it will set that key, for object it will loop over all object properties nd set them.
+   * @param {string|object} key key to set, it can be string or object. When string it will set that key, for object it will
+   *   loop over all object properties nd set them.
    * @param {any} value value to set
    * @param {object} [options] set options
-   * @param {boolean} [options.raw=false] If set to true, field and virtual setters will be ignored
-   * @param {boolean} [options.reset=false] Clear all previously set data values
    *
    * @returns {Model}
    */
@@ -4014,7 +3775,8 @@ export class Model {
   }
 
   /**
-   * If changed is called with a string it will return a boolean indicating whether the value of that key in `dataValues` is different from the value in `_previousDataValues`.
+   * If changed is called with a string it will return a boolean indicating whether the value of that key in `dataValues` is
+   * different from the value in `_previousDataValues`.
    *
    * If changed is called without an argument, it will return an array of keys that have changed.
    *
@@ -4123,22 +3885,17 @@ export class Model {
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    *
-   * Returns a Promise that resolves to the saved instance (or rejects with a `Sequelize.ValidationError`, which will have a property for each of the fields for which the validation failed, with the error message for that field).
+   * Returns a Promise that resolves to the saved instance (or rejects with a {@link ValidationError},
+   * which will have a property for each of the fields for which the validation failed, with the error message for that field).
    *
-   * This method is optimized to perform an UPDATE only into the fields that changed. If nothing has changed, no SQL query will be performed.
+   * This method is optimized to perform an UPDATE only into the fields that changed.
+   * If nothing has changed, no SQL query will be performed.
    *
-   * This method is not aware of eager loaded associations. In other words, if some other model instance (child) was eager loaded with this instance (parent), and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
+   * This method is not aware of eager loaded associations.
+   * In other words, if some other model instance (child) was eager loaded with this instance (parent),
+   * and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    *
-   * @param {object}      [options] save options
-   * @param {string[]}    [options.fields] An optional array of strings, representing database columns. If fields is provided, only those columns will be validated and saved.
-   * @param {boolean}     [options.silent=false] If true, the updatedAt timestamp will not be updated.
-   * @param {boolean}     [options.validate=true] If false, validations won't be run.
-   * @param {boolean}     [options.hooks=true] Run before and after create / update + validate hooks
-   * @param {Function}    [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   * @param {string}      [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   * @param {boolean}     [options.returning] Append RETURNING * to get back auto generated values (Postgres only)
-   *
+   * @param {object} [options] save options
    * @returns {Promise<Model>}
    */
   async save(options) {
@@ -4414,15 +4171,12 @@ export class Model {
   }
 
   /**
-   * Refresh the current instance in-place, i.e. update the object with current data from the DB and return the same object.
-   * This is different from doing a `find(Instance.id)`, because that would create and return a new instance. With this method,
-   * all references to the Instance are updated with the new data and no new objects are created.
-   *
-   * @see
-   * {@link Model.findAll}
+   * Refreshes the current instance in-place, i.e. update the object with current data from the DB and return
+   * the same object. This is different from doing a `find(Instance.id)`, because that would create and
+   * return a new instance. With this method, all references to the Instance are updated with the new data
+   * and no new objects are created.
    *
    * @param {object} [options] Options that are passed on to `Model.find`
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
    *
    * @returns {Promise<Model>}
    */
@@ -4452,15 +4206,12 @@ export class Model {
   }
 
   /**
-  * Validate the attributes of this instance according to validation rules set in the model definition.
-  *
-  * The promise fulfills if and only if validation successful; otherwise it rejects an Error instance containing { field name : [error msgs] } entries.
+   * Validate the attribute of this instance according to validation rules set in the model definition.
+   *
+   * Emits null if and only if validation successful; otherwise an Error instance containing
+   * { field name : [error msgs] } entries.
   *
   * @param {object} [options] Options that are passed to the validator
-  * @param {Array} [options.skip] An array of strings. All properties that are in this array will not be validated
-  * @param {Array} [options.fields] An array of strings. Only the properties that are in this array will be validated
-  * @param {boolean} [options.hooks=true] Run before and after validate hooks
-  *
   * @returns {Promise}
   */
   async validate(options) {
@@ -4468,13 +4219,8 @@ export class Model {
   }
 
   /**
-   * This is the same as calling `set` and then calling `save` but it only saves the
-   * exact values passed to it, making it more atomic and safer.
-   *
-   * @see
-   * {@link Model#set}
-   * @see
-   * {@link Model#save}
+   * This is the same as calling {@link Model#set} followed by calling {@link Model#save},
+   * but it only saves attributes values passed to it, making it safer.
    *
    * @param {object} values See `set`
    * @param {object} options See `save`
@@ -4510,14 +4256,10 @@ export class Model {
   }
 
   /**
-   * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will either be completely deleted, or have its deletedAt timestamp set to the current time.
+   * Destroys the row corresponding to this instance. Depending on your setting for paranoid, the row will either be
+   * completely deleted, or have its deletedAt timestamp set to the current time.
    *
-   * @param {object}      [options={}] destroy options
-   * @param {boolean}     [options.force=false] If set to true, paranoid models will actually be deleted
-   * @param {Function}    [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   * @param {string}      [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   *
+   * @param {object} [options={}] destroy options
    * @returns {Promise}
    */
   async destroy(options) {
@@ -4562,9 +4304,10 @@ export class Model {
   }
 
   /**
-   * Helper method to determine if a instance is "soft deleted".  This is
-   * particularly useful if the implementer renamed the `deletedAt` attribute
-   * to something different.  This method requires `paranoid` to be enabled.
+   * Returns true if this instance is "soft deleted".
+   * Throws an error if {@link ModelOptions.paranoid} is not enabled.
+   *
+   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
    *
    * @returns {boolean}
    */
@@ -4582,12 +4325,12 @@ export class Model {
   }
 
   /**
-   * Restore the row corresponding to this instance. Only available for paranoid models.
+   * Restores the row corresponding to this instance.
+   * Only available for paranoid models.
+   *
+   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
    *
    * @param {object}      [options={}] restore options
-   * @param {Function}    [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   *
    * @returns {Promise}
    */
   async restore(options) {
@@ -4623,11 +4366,13 @@ export class Model {
   }
 
   /**
-   * Increment the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The increment is done using a
+   * Increment the value of one or more columns. This is done in the database, which means it does not use the values
+   * currently stored on the Instance. The increment is done using a
    * ```sql
    * SET column = column + X
    * ```
-   * query. The updated instance will be returned by default in Postgres. However, in other dialects, you will need to do a reload to get the new values.
+   * query. The updated instance will be returned by default in Postgres. However, in other dialects, you will need to do a
+   * reload to get the new values.
    *
    * @example
    * instance.increment('number') // increment number by 1
@@ -4638,17 +4383,10 @@ export class Model {
    * // `by` is ignored, since each column has its own value
    * instance.increment({ answer: 42, tries: 1}, { by: 2 })
    *
-   * @see
-   * {@link Model#reload}
-   *
-   * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is incremented by the value given.
+   * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in
+   *   options. If an array is provided, the same is true for each column. If and object is provided, each column is
+   *   incremented by the value given.
    * @param {object} [options] options
-   * @param {number} [options.by=1] The number to increment by
-   * @param {boolean} [options.silent=false] If true, the updatedAt timestamp will not be updated.
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   * @param {string} [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   * @param {boolean} [options.returning=true] Append RETURNING * to get back auto generated values (Postgres only)
    *
    * @returns {Promise<Model>}
    * @since 4.0.0
@@ -4666,11 +4404,13 @@ export class Model {
   }
 
   /**
-   * Decrement the value of one or more columns. This is done in the database, which means it does not use the values currently stored on the Instance. The decrement is done using a
+   * Decrement the value of one or more columns. This is done in the database, which means it does not use the values
+   * currently stored on the Instance. The decrement is done using a
    * ```sql
    * SET column = column - X
    * ```
-   * query. The updated instance will be returned by default in Postgres. However, in other dialects, you will need to do a reload to get the new values.
+   * query. The updated instance will be returned by default in Postgres. However, in other dialects, you will need to do a
+   * reload to get the new values.
    *
    * @example
    * instance.decrement('number') // decrement number by 1
@@ -4681,17 +4421,10 @@ export class Model {
    * // `by` is ignored, since each column has its own value
    * instance.decrement({ answer: 42, tries: 1}, { by: 2 })
    *
-   * @see
-   * {@link Model#reload}
-   * @param {string|Array|object} fields If a string is provided, that column is decremented by the value of `by` given in options. If an array is provided, the same is true for each column. If and object is provided, each column is decremented by the value given
+   * @param {string|Array|object} fields If a string is provided, that column is decremented by the value of `by` given in
+   *   options. If an array is provided, the same is true for each column. If and object is provided, each column is
+   *   decremented by the value given
    * @param {object}      [options] decrement options
-   * @param {number}      [options.by=1] The number to decrement by
-   * @param {boolean}     [options.silent=false] If true, the updatedAt timestamp will not be updated.
-   * @param {Function}    [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Transaction} [options.transaction] Transaction to run query under
-   * @param {string}      [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
-   * @param {boolean}     [options.returning=true] Append RETURNING * to get back auto generated values (Postgres only)
-   *
    * @returns {Promise}
    */
   async decrement(fields, options) {
@@ -4755,100 +4488,77 @@ export class Model {
   }
 
   /**
-   * Creates a 1:m association between this (the source) and the provided target.
-   * The foreign key is added on the target.
+   * Defines a 1:n association between two models.
+   * The foreign key is added on the target model.
    *
-   * @param {Model}               target Target model
-   * @param {object}              [options] hasMany association options
-   * @param {boolean}             [options.hooks=false] Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks
-   * @param {string|object}       [options.as] The alias of this model. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the pluralized name of target
-   * @param {string|object}       [options.foreignKey] The name of the foreign key in the target table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source
-   * @param {string}              [options.sourceKey] The name of the field to use as the key for the association in the source table. Defaults to the primary key of the source table
-   * @param {object}              [options.scope] A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M)
-   * @param {string}              [options.onDelete='SET&nbsp;NULL|CASCADE'] SET NULL if foreignKey allows nulls, CASCADE if otherwise
-   * @param {string}              [options.onUpdate='CASCADE'] Set `ON UPDATE`
-   * @param {boolean}             [options.constraints=true] Should on update and on delete constraints be enabled on the foreign key.
-   *
-   * @returns {HasMany}
+   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
    *
    * @example
-   * User.hasMany(Profile) // This will add userId to the profile table
+   * ```javascript
+   * Profile.hasMany(User)
+   * ```
+   *
+   * @param {Model} target The model that will be associated with a hasMany relationship
+   * @param {object} options Options for the association
+   * @returns {HasMany} The newly defined association (also available in {@link Model.associations}).
    */
   static hasMany(target, options) {}
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
+   * The foreign keys are added on the through model.
    *
-   * @param {Model}               target Target model
-   * @param {object}              options belongsToMany association options
-   * @param {boolean}             [options.hooks=false] Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks
-   * @param {Model|string|object} options.through The name of the table that is used to join source and target in n:m associations. Can also be a sequelize model if you want to define the junction table yourself and add extra attributes to it.
-   * @param {Model}               [options.through.model] The model used to join both sides of the N:M association.
-   * @param {object}              [options.through.scope] A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model)
-   * @param {boolean}             [options.through.unique=true] If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes)
-   * @param {string|object}       [options.as] The alias of this association. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the pluralized name of target
-   * @param {string|object}       [options.foreignKey] The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source
-   * @param {string|object}       [options.otherKey] The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target
-   * @param {object}              [options.scope] A key/value set that will be used for association create and find defaults on the target. (sqlite not supported for N:M)
-   * @param {boolean}             [options.timestamps=sequelize.options.timestamps] Should the join model have timestamps
-   * @param {string}              [options.onDelete='SET&nbsp;NULL|CASCADE'] Cascade if this is a n:m, and set null if it is a 1:m
-   * @param {string}              [options.onUpdate='CASCADE'] Sets `ON UPDATE`
-   * @param {boolean}             [options.constraints=true] Should on update and on delete constraints be enabled on the foreign key.
-   *
-   * @returns {BelongsToMany}
+   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
    *
    * @example
+   * ```javascript
    * // Automagically generated join model
    * User.belongsToMany(Project, { through: 'UserProjects' })
-   * Project.belongsToMany(User, { through: 'UserProjects' })
    *
    * // Join model with additional attributes
    * const UserProjects = sequelize.define('UserProjects', {
    *   started: Sequelize.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })
-   * Project.belongsToMany(User, { through: UserProjects })
+   * ```
+   *
+   * @param {Model} target Target model
+   * @param {object} options belongsToMany association options
+   * @returns {BelongsToMany} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsToMany(target, options) {}
 
   /**
-   * Creates an association between this (the source) and the provided target. The foreign key is added on the target.
+   * Creates a 1:1 association between this model (the source) and the provided target.
+   * The foreign key is added on the target model.
    *
-   * @param {Model}           target Target model
-   * @param {object}          [options] hasOne association options
-   * @param {boolean}         [options.hooks=false] Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks
-   * @param {string}          [options.as] The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the singularized name of target
-   * @param {string|object}   [options.foreignKey] The name of the foreign key attribute in the target model or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source
-   * @param {string}          [options.sourceKey] The name of the attribute to use as the key for the association in the source table. Defaults to the primary key of the source table
-   * @param {string}          [options.onDelete='SET&nbsp;NULL|CASCADE'] SET NULL if foreignKey allows nulls, CASCADE if otherwise
-   * @param {string}          [options.onUpdate='CASCADE'] Sets 'ON UPDATE'
-   * @param {boolean}         [options.constraints=true] Should on update and on delete constraints be enabled on the foreign key.
-   * @param {string}          [options.uniqueKey] The custom name for unique constraint.
-   *
-   * @returns {HasOne}
+   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
    *
    * @example
-   * User.hasOne(Profile) // This will add userId to the profile table
+   * ```javascript
+   * User.hasOne(Profile)
+   * ```
+   *
+   * @param {Model} target The model that will be associated with hasOne relationship
+   * @param {object} [options] hasOne association options
+   * @returns {HasOne} The newly defined association (also available in {@link Model.associations}).
    */
   static hasOne(target, options) {}
 
   /**
-   * Creates an association between this (the source) and the provided target. The foreign key is added on the source.
+   * Creates an association between this (the source) and the provided target.
+   * The foreign key is added on the source Model.
    *
-   * @param {Model}           target The target model
-   * @param {object}          [options] belongsTo association options
-   * @param {boolean}         [options.hooks=false] Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade. For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking any hooks
-   * @param {string}          [options.as] The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the singularized name of target
-   * @param {string|object}   [options.foreignKey] The name of the foreign key attribute in the source table or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target
-   * @param {string}          [options.targetKey] The name of the attribute to use as the key for the association in the target table. Defaults to the primary key of the target table
-   * @param {string}          [options.onDelete='SET&nbsp;NULL|NO&nbsp;ACTION'] SET NULL if foreignKey allows nulls, NO ACTION if otherwise
-   * @param {string}          [options.onUpdate='CASCADE'] Sets 'ON UPDATE'
-   * @param {boolean}         [options.constraints=true] Should on update and on delete constraints be enabled on the foreign key.
-   *
-   * @returns {BelongsTo}
+   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
    *
    * @example
-   * Profile.belongsTo(User) // This will add userId to the profile table
+   * ```javascript
+   * Profile.belongsTo(User)
+   * ```
+   *
+   * @param {Model} target The target model
+   * @param {object} [options] belongsTo association options
+   * @returns {BelongsTo} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsTo(target, options) {}
 }

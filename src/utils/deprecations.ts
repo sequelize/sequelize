@@ -13,3 +13,4 @@ export const scopeRenamedToWithScope = deprecate(noop, 'Model.scope has been ren
 export const schemaRenamedToWithSchema = deprecate(noop, 'Model.schema has been renamed to Model.withSchema', 'SEQUELIZE0009');
 export const noSequelizeDataType = deprecate(noop, `Accessing DataTypes on the Sequelize constructor is deprecated. Use the DataTypes object instead.
 e.g, instead of using Sequelize.STRING, use DataTypes.STRING`, 'SEQUELIZE0010');
+export const noModelDropSchema = deprecate(noop, 'Do not use Model.dropSchema. Use Sequelize#dropSchema or QueryInterface#dropSchema instead', 'SEQUELIZE0011');

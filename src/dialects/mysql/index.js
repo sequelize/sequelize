@@ -1,7 +1,9 @@
 'use strict';
 
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
+
 const _ = require('lodash');
-const { AbstractDialect } = require('../abstract');
 const { MySqlConnectionManager } = require('./connection-manager');
 const { MySqlQuery } = require('./query');
 const { MySqlQueryGenerator } = require('./query-generator');
@@ -53,6 +55,10 @@ export class MysqlDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+  }
+
+  createBindCollector() {
+    return createUnspecifiedOrderedBindCollector();
   }
 }
 

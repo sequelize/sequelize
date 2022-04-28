@@ -123,9 +123,10 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @returns a flattened object
  * @private
  */
-export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
+export function flattenObjectDeep<T>(value: T): T extends object ? Flatten<T> : T {
   if (!isPlainObject(value)) {
-    return value as Flatten<T>;
+    // TypeScript doesn't know T is an object due to isPlainObject's typings. Cast to any.
+    return value as any;
   }
 
   const flattenedObj: { [key: string]: any } = Object.create(null);
@@ -143,7 +144,7 @@ export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
     return flattenedObj;
   }
 
-  return flattenObject(value) as Flatten<T>;
+  return flattenObject(value) as any;
 }
 
 // taken from
