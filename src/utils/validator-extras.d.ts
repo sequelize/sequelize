@@ -1,7 +1,6 @@
-// tslint:disable-next-line:no-implicit-dependencies
-import * as val from 'validator';
+import origValidator from 'validator';
 
-type OrigValidator = typeof val;
+type OrigValidator = typeof origValidator;
 
 export interface Extensions {
   notEmpty(str: string): boolean;

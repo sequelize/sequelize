@@ -1105,7 +1105,7 @@ class QueryGenerator {
     @private
   */
   validate(value, field, options) {
-    if (this.typeValidation && field.type.validate && value) {
+    if (this.typeValidation && value) {
       try {
         if (options.isList && Array.isArray(value)) {
           for (const item of value) {

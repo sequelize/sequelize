@@ -1218,9 +1218,6 @@ class Model {
       });
     }
 
-    this._dataTypeChanges = {};
-    this._dataTypeSanitizers = {};
-
     this._hasBooleanAttributes = false;
     this._hasDateAttributes = false;
     this._jsonAttributes = new Set();
@@ -1249,14 +1246,6 @@ class Model {
       }
 
       this.fieldRawAttributesMap[definition.field] = definition;
-
-      if (definition.type._sanitize) {
-        this._dataTypeSanitizers[name] = definition.type._sanitize;
-      }
-
-      if (definition.type._isChanged) {
-        this._dataTypeChanges[name] = definition.type._isChanged;
-      }
 
       if (definition.type instanceof DataTypes.BOOLEAN) {
         this._hasBooleanAttributes = true;
@@ -3903,9 +3892,9 @@ class Model {
       // If there's a data type sanitizer
       if (
         !(value instanceof Utils.SequelizeMethod)
-        && Object.prototype.hasOwnProperty.call(this.constructor._dataTypeSanitizers, key)
+        && this.rawAttributes[key].type
       ) {
-        value = this.constructor._dataTypeSanitizers[key].call(this, value, options);
+        value = this.rawAttributes[key].type.sanitize(value, options);
       }
 
       // Set when the value has changed and not raw
@@ -3914,9 +3903,9 @@ class Model {
         && (
           // True when sequelize method
           value instanceof Utils.SequelizeMethod
-          // Check for data type type comparators
-          || !(value instanceof Utils.SequelizeMethod) && this.constructor._dataTypeChanges[key] && this.constructor._dataTypeChanges[key].call(this, value, originalValue, options) // Check default
-          || !this.constructor._dataTypeChanges[key] && !_.isEqual(value, originalValue)
+          // Otherwise, check for data type type comparators
+          || (!(value instanceof Utils.SequelizeMethod) && !this.constructor.rawAttributes[key]?.type.areValuesEqual(value, originalValue, options))
+          || !this.constructor.rawAttributes[key] && !_.isEqual(value, originalValue) // TODO: this line may be removable
         )
       ) {
         this._previousDataValues[key] = originalValue;
