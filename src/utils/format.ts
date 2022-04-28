@@ -5,24 +5,8 @@ import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Att
 import { Op as operators } from '../operators';
 
 const DataTypes = require('../data-types');
-const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
-
-export function format(arr: unknown[], dialect: string): string {
-  const timeZone = null;
-
-  // Make a clone of the array because format modifies the passed args
-  return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
-}
-
-export function formatNamedParameters(
-  sql: string,
-  parameters: Record<string, unknown>,
-  dialect: string,
-): string {
-  return SqlString.formatNamedParameters(sql, parameters, null, dialect);
-}
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],
