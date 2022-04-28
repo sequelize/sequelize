@@ -1,7 +1,7 @@
 'use strict';
 
-import { includesPositionalReplacements } from '../../sql-string';
 import { isModelStatic } from '../../utils/model-utils';
+import { injectReplacements } from '../../utils/sql';
 
 const util = require('util');
 const _ = require('lodash');
@@ -2268,21 +2268,18 @@ export class AbstractQueryGenerator {
     }
 
     if (smth instanceof Utils.Literal) {
-      if (includesPositionalReplacements(smth.val)) {
-        throw new TypeError(`The following literal includes positional replacements (?).
+      if (options?.replacements) {
+        return injectReplacements(smth.val, this._dialect, options.replacements, {
+          onPositionalReplacement: () => {
+            throw new TypeError(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal(${JSON.stringify(smth.val)})`);
+          },
+        });
       }
 
-      if (options?.replacements) {
-        try {
-          return Utils.formatReplacements(smth.val, options.replacements, this._dialect);
-        } catch (error) {
-          throw new Error(`Parsing of literal(${JSON.stringify(smth.val)}) failed.`, { cause: error });
-        }
-      } else {
-        return smth.val;
-      }
+      return smth.val;
+
     }
 
     if (smth instanceof Utils.Cast) {

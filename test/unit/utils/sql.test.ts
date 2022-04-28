@@ -1,4 +1,4 @@
-import { mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { expect } from 'chai';
 import { expectsql, sequelize } from '../../support';
 
@@ -261,6 +261,330 @@ describe('mapBindParameters', () => {
         */
         WHERE id = @id
       `,
+    });
+  });
+});
+
+describe('injectReplacements (named replacements)', () => {
+  it('parses named replacements', () => {
+    const sql = injectReplacements(`SELECT ${dialect.TICK_CHAR_LEFT}:id${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = ':id' OR id = :id OR id = ''':id'''`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT [:id] FROM users WHERE id = ':id' OR id = 1 OR id = ''':id'''`,
+    });
+  });
+
+  it('throws if a named replacement is not provided as an own property', () => {
+    expect(() => {
+      injectReplacements(`SELECT * FROM users WHERE id = :toString`, dialect, {
+        id: 1,
+      });
+    }).to.throw('Named replacement ":toString" has no entry in the replacement map.');
+
+  });
+
+  it('parses named replacements followed by cast syntax', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = :id::string`, dialect, {
+      id: 1,
+    });
+
+    // this is postgres-only syntax. It doesn't work in other dialects.
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = 1::string`,
+    });
+  });
+
+  it('parses single letter named replacements', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = :a`, dialect, {
+      a: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = 1`,
+    });
+  });
+
+  it(`does not consider the token to be a replacement if it does not follow '(', ',', '=' or whitespace`, () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(:id) OR id = fn('a',:id) OR id=:id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = fn(1) OR id = fn('a',1) OR id=1`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = $tag$ :id $tag$ OR id = $$ :id $$`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = $tag$ :id $tag$ OR id = $$ :id $$`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a nested $ quoted string', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = $tag1$ $tag2$ :id $tag2$ $tag1$`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = $tag1$ $tag2$ :id $tag2$ $tag1$`,
+    });
+  });
+
+  it('does consider the token to be a replacement if it is in between two identifiers that look like $ quoted strings', () => {
+    const sql = injectReplacements(`SELECT z$$ :id x$$ * FROM users`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT z$$ 1 x$$ * FROM users`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\':id' OR id = :id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\':id' OR id = 1`,
+    });
+  });
+
+  it('considers the token to be a replacement if it is outside a string ending with an escaped backslash', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\\\' OR id = :id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\\\' OR id = 1`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\\\\\':id' OR id = :id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\\\\\':id' OR id = 1`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in a single line comment', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users -- WHERE id = :id
+      WHERE id = :id
+    `, dialect, { id: 1 });
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- WHERE id = :id
+        WHERE id = 1
+      `,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in string but a previous comment included a string delimiter', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users -- '
+      WHERE id = ' :id '
+    `, dialect, { id: 1 });
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- '
+        WHERE id = ' :id '
+      `,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in a single line comment', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users /*
+      WHERE id = :id
+      */
+      WHERE id = :id
+    `, dialect, { id: 1 });
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users /*
+        WHERE id = :id
+        */
+        WHERE id = 1
+      `,
+    });
+  });
+
+  it('does not interpret ::x as a replacement, as it is a cast', () => {
+    expect(injectReplacements(`('foo')::string`, dialect, [0])).to.equal(`('foo')::string`);
+  });
+});
+
+describe('injectReplacements (positional replacements)', () => {
+  it('parses positional replacements', () => {
+    const sql = injectReplacements(`SELECT ${dialect.TICK_CHAR_LEFT}?${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = '?' OR id = ? OR id = '''?''' OR id2 = ?`, dialect, [1, 2]);
+
+    expectsql(sql, {
+      default: `SELECT [?] FROM users WHERE id = '?' OR id = 1 OR id = '''?''' OR id2 = 2`,
+    });
+  });
+
+  it('parses positional replacements followed by cast syntax', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = ?::string`, dialect, [1]);
+
+    // this is postgres-only syntax. It doesn't work in other dialects.
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = 1::string`,
+    });
+  });
+
+  it(`does not consider the token to be a replacement if it does not follow '(', ',', '=' or whitespace`, () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=?`, dialect, [2, 1, 3]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = fn(2) OR id = fn('a',1) OR id=3`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = $tag$ ? $tag$ OR id = $$ ? $$`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = $tag$ ? $tag$ OR id = $$ ? $$`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a nested $ quoted string', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = $tag1$ $tag2$ ? $tag2$ $tag1$`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = $tag1$ $tag2$ ? $tag2$ $tag1$`,
+    });
+  });
+
+  it('does consider the token to be a replacement if it is in between two identifiers that look like $ quoted strings', () => {
+    const sql = injectReplacements(`SELECT z$$ ? x$$ * FROM users`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT z$$ 1 x$$ * FROM users`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\'?' OR id = ?`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\'?' OR id = 1`,
+    });
+  });
+
+  it('considers the token to be a replacement if it is outside a string ending with an escaped backslash', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\\\' OR id = ?`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\\\' OR id = 1`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = '\\\\\\'?' OR id = ?`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '\\\\\\'?' OR id = 1`,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in a single line comment', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users -- WHERE id = ?
+      WHERE id = ?
+    `, dialect, [1]);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- WHERE id = ?
+        WHERE id = 1
+      `,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in string but a previous comment included a string delimiter', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users -- '
+      WHERE id = ' ? '
+    `, dialect, [1]);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users -- '
+        WHERE id = ' ? '
+      `,
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is in a single line comment', () => {
+    const sql = injectReplacements(`
+      SELECT * FROM users /*
+      WHERE id = ?
+      */
+      WHERE id = ?
+    `, dialect, [1]);
+
+    expectsql(sql, {
+      default: `
+        SELECT * FROM users /*
+        WHERE id = ?
+        */
+        WHERE id = 1
+      `,
+    });
+  });
+
+  // https://github.com/sequelize/sequelize/issues/14358
+  it('does not parse ?& and ?| operators as replacements (#14358)', async () => {
+    const sql = injectReplacements('SELECT * FROM products WHERE tags ?& ARRAY[1] AND tags ?| ARRAY[1] AND id = ?;', dialect, [1]);
+
+    expectsql(sql, {
+      default: 'SELECT * FROM products WHERE tags ?& ARRAY[1] AND tags ?| ARRAY[1] AND id = 1;',
+      // 'default' removes the trailing ; for ibmi, but we actually need to test it's there this time, to ensure '?;' is treated as a replacement + ';'
+      ibmi: 'SELECT * FROM products WHERE tags ?& ARRAY[1] AND tags ?| ARRAY[1] AND id = 1;',
+    });
+  });
+
+  it('formats where clause correctly when the value is falsy', () => {
+    expect(injectReplacements('foo = ?', dialect, [0])).to.equal('foo = 0');
+  });
+
+  it('formats arrays as an expression instead of an ARRAY data type', async () => {
+    const sql = injectReplacements('INSERT INTO users (username, email, created_at, updated_at) VALUES ?;', dialect, [[
+      ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+      ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+    ]]);
+
+    expectsql(sql, {
+      default: `
+        INSERT INTO users (username, email, created_at, updated_at)
+        VALUES
+          ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'),
+          ('michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10');`,
+      // 'default' removes the trailing ; for ibmi, but we actually need to test it's there this time, to ensure '?;' is treated as a replacement + ';'
+      ibmi: `
+        INSERT INTO users (username, email, created_at, updated_at)
+        VALUES
+          ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'),
+          ('michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10');`,
+      mssql: `
+        INSERT INTO users (username, email, created_at, updated_at)
+        VALUES
+          (N'john', N'john@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10'),
+          (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`,
     });
   });
 });

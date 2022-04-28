@@ -124,6 +124,24 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
+    // see the unit tests of 'injectReplacements' for more
+    it('does not parse replacements in strings in literals', async () => {
+      // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
+
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [literal('id')],
+        where: literal(`id = ':id'`),
+        replacements: {
+          id: 1,
+        },
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT id FROM [Users] AS [User] WHERE id = ':id';`,
+      });
+    });
+
     it('parses named replacements in literals in includes', async () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,

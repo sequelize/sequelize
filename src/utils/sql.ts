@@ -1,21 +1,38 @@
+import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
 import type { BindOrReplacements } from '../sequelize.js';
+import { escape as escapeSqlValue } from '../sql-string';
+
+type OnBind = (oldName: string) => string;
+
+type MapSqlOptions = {
+  onPositionalReplacement?(): void,
+};
 
 /**
- * Maps bind parameters from Sequelize's format ($1 or $name) to the dialect's format.
+ * Internal function used by {@link mapBindParameters} and {@link injectReplacements}.
+ * Parse bind parameters & replacements in places where they would be valid SQL values.
  *
- * @param sqlString
- * @param dialect
+ * @param sqlString The SQL that contains the bind parameters & replacements
+ * @param dialect The dialect of the SQL
+ * @param replacements if provided, this method will replace ':named' replacements & positional replacements (?)
+ * @param onBind if provided, sequelize will call this method each time a $bind parameter is found, and replace it with its output.
+ * @param options Options
+ *
+ * @returns The SQL with bind parameters & replacements rewritten in their dialect-specific syntax.
  */
-export function mapBindParameters(sqlString: string, dialect: AbstractDialect): {
-  sql: string,
-  bindOrder: string[] | null,
-  parameterSet: Set<string>,
-} {
-  let output: string = '';
+function mapBindParametersAndReplacements(
+  sqlString: string,
+  dialect: AbstractDialect,
+  replacements?: BindOrReplacements,
+  onBind?: OnBind,
+  options?: MapSqlOptions,
+): string {
+  const isNamedReplacements = isPlainObject(replacements);
+  const isPositionalReplacements = Array.isArray(replacements);
+  let lastConsumedPositionalReplacementIndex = -1;
 
-  const parameterCollector = dialect.createBindCollector();
-  const parameterSet = new Set<string>();
+  let output: string = '';
 
   let currentDollarStringTagName = null;
   let isString = false;
@@ -113,36 +130,149 @@ export function mapBindParameters(sqlString: string, dialect: AbstractDialect): 
         continue;
       }
 
-      // we want to be conservative with what we consider to be a bind parameter to avoid risk of conflict with potential operators
+      if (onBind) {
+        // we want to be conservative with what we consider to be a bind parameter to avoid risk of conflict with potential operators
+        // users need to add a space before the bind parameter (except after '(', ',', and '=')
+        if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+          continue;
+        }
+
+        // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
+        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::)/i);
+        const bindParamName = match?.groups?.name;
+        if (!bindParamName) {
+          continue;
+        }
+
+        // we found a bind parameter
+        const newName: string = onBind(bindParamName);
+
+        // add everything before the bind parameter name
+        output += sqlString.slice(previousSliceEnd, i);
+        // continue after the bind parameter name
+        previousSliceEnd = i + bindParamName.length + 1;
+
+        output += newName;
+      }
+
+      continue;
+    }
+
+    if (isNamedReplacements && char === ':') {
+      const previousChar = sqlString[i - 1];
+      // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
       // users need to add a space before the bind parameter (except after '(', ',', and '=')
       if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
         continue;
       }
 
-      // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
-      const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::)/i);
-      const bindParamName = match?.groups?.name;
-      if (!bindParamName) {
+      const remainingString = sqlString.slice(i, sqlString.length);
+
+      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::)/i);
+      const replacementName = match?.groups?.name;
+      if (!replacementName) {
         continue;
       }
 
-      parameterSet.add(bindParamName);
+      // @ts-expect-error -- isPlainObject does not tell typescript that replacements is a plain object, not an array
+      const replacementValue = replacements[replacementName];
+      if (!Object.prototype.hasOwnProperty.call(replacements, replacementName) || replacementValue === undefined) {
+        throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
+      }
 
-      // we found a bind parameter
-      const newName = parameterCollector.collect(bindParamName);
+      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect.name, true);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
       // continue after the bind parameter name
-      previousSliceEnd = i + bindParamName.length + 1;
+      previousSliceEnd = i + replacementName.length + 1;
 
-      output += newName;
+      output += escapedReplacement;
+
+      continue;
+    }
+
+    if (isPositionalReplacements && char === '?') {
+      const previousChar = sqlString[i - 1];
+
+      // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
+      // users need to add a space before the bind parameter (except after '(', ',', and '=')
+      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+        continue;
+      }
+
+      // don't parse ?| and ?& operators as replacements
+      const nextChar = sqlString[i + 1];
+      if (nextChar === '|' || nextChar === '&') {
+        continue;
+      }
+
+      // this is a positional replacement
+      if (options?.onPositionalReplacement) {
+        options.onPositionalReplacement();
+      }
+
+      const replacementIndex = ++lastConsumedPositionalReplacementIndex;
+      const replacementValue = replacements[lastConsumedPositionalReplacementIndex];
+
+      if (replacementValue === undefined) {
+        throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
+      }
+
+      const escapedReplacement = escapeSqlValue(replacementValue as any, undefined, dialect.name, true);
+
+      // add everything before the bind parameter name
+      output += sqlString.slice(previousSliceEnd, i);
+      // continue after the bind parameter name
+      previousSliceEnd = i + 1;
+
+      output += escapedReplacement;
     }
   }
 
   output += sqlString.slice(previousSliceEnd, sqlString.length);
 
-  return { sql: output, bindOrder: parameterCollector.getBindParameterOrder(), parameterSet };
+  return output;
+}
+
+/**
+ * Maps bind parameters from Sequelize's format ($1 or $name) to the dialect's format.
+ *
+ * @param sqlString
+ * @param dialect
+ */
+export function mapBindParameters(sqlString: string, dialect: AbstractDialect): {
+  sql: string,
+  bindOrder: string[] | null,
+  parameterSet: Set<string>,
+} {
+  const parameterCollector = dialect.createBindCollector();
+  const parameterSet = new Set<string>();
+
+  const newSql = mapBindParametersAndReplacements(sqlString, dialect, undefined, foundBindParamName => {
+    parameterSet.add(foundBindParamName);
+
+    return parameterCollector.collect(foundBindParamName);
+  });
+
+  return { sql: newSql, bindOrder: parameterCollector.getBindParameterOrder(), parameterSet };
+}
+
+export function injectReplacements(
+  sqlString: string,
+  dialect: AbstractDialect,
+  replacements: BindOrReplacements,
+  opts?: MapSqlOptions,
+): string {
+  if (replacements == null) {
+    return sqlString;
+  }
+
+  if (!Array.isArray(replacements) && !isPlainObject(replacements)) {
+    throw new TypeError(`"replacements" must be an array or a plain object, but received ${JSON.stringify(replacements)} instead.`);
+  }
+
+  return mapBindParametersAndReplacements(sqlString, dialect, replacements, undefined, opts);
 }
 
 function isBackslashEscaped(string: string, pos: number): boolean {
@@ -213,7 +343,7 @@ export function createSpecifiedOrderedBindCollector(prefix = '$'): BindCollector
  */
 export function createNamedParamBindCollector(parameterPrefix: string): BindCollector {
   return {
-    collect(bindParameterName) {
+    collect(bindParameterName: string) {
       return parameterPrefix + bindParameterName;
     },
     getBindParameterOrder() {

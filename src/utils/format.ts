@@ -1,41 +1,12 @@
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
-import * as SqlString from '../sql-string';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
 const DataTypes = require('../data-types');
 
 const operatorsSet = new Set(Object.values(operators));
-
-export function formatReplacements(
-  sql: string,
-  replacements: unknown[] | Record<string, unknown>,
-  dialect: AbstractDialect,
-): string {
-  if (Array.isArray(replacements)) {
-    return formatPositionalReplacements(sql, replacements, dialect);
-  }
-
-  return formatNamedReplacements(sql, replacements, dialect);
-}
-
-function formatPositionalReplacements(sql: string, replacements: unknown[], dialect: AbstractDialect): string {
-  const timeZone = null;
-
-  // Make a clone of the array because format modifies the passed args
-  return SqlString.formatPositionalReplacements(sql, [...replacements], timeZone, dialect.name);
-}
-
-function formatNamedReplacements(
-  sql: string,
-  parameters: Record<string, unknown>,
-  dialect: AbstractDialect,
-): string {
-  return SqlString.formatNamedReplacements(sql, parameters, null, dialect.name);
-}
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],

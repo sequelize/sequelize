@@ -3,7 +3,7 @@
 import isPlainObject from 'lodash/isPlainObject';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
-import { mapBindParameters } from './utils/sql';
+import { injectReplacements, mapBindParameters } from './utils/sql';
 
 const url = require('url');
 const path = require('path');
@@ -545,7 +545,9 @@ export class Sequelize {
 
     sql = sql.trim();
 
-    sql = Utils.formatReplacements(sql, options.replacements, this.dialect);
+    if (options.replacements) {
+      sql = injectReplacements(sql, this.dialect, options.replacements);
+    }
 
     // queryRaw will throw if 'replacements' is specified, as a way to warn users that they are miusing the method.
     delete options.replacements;

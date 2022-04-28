@@ -60,60 +60,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
     });
 
-    describe('replacements', () => {
-      it('executes a query with an array value in "replacements"', async function () {
-        await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, `
-          + `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
-          replacements: [[
-            ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
-            ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
-          ]],
-        });
-
-        const rows = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-          type: this.sequelize.QueryTypes.SELECT,
-        });
-
-        expect(rows).to.be.lengthOf(2);
-        expect(rows[0].username).to.be.equal('john');
-        expect(rows[1].username).to.be.equal('michael');
-      });
-
-      if (dialect === 'postgres') {
-        // https://github.com/sequelize/sequelize/issues/14358
-        it('does not parse ?& and ?| operators as replacements (#14358)', async () => {
-          const Product = sequelize.define('Product', {
-            tags: DataTypes.JSONB,
-          }, { tableName: 'products' });
-
-          await Product.sync({ force: true });
-
-          let query;
-          await sequelize.query(`SELECT * FROM products WHERE tags ?& ARRAY[?]; `, {
-            logging: theQuery => {
-              query = theQuery;
-            },
-            replacements: [
-              ['tag1', 'tag2'],
-            ],
-          });
-
-          expect(query).to.equal('Executing (default): SELECT * FROM products WHERE tags ?& ARRAY[\'tag1\', \'tag2\'];');
-
-          await sequelize.query(`SELECT * FROM products WHERE tags ?| ARRAY[?]; `, {
-            logging: theQuery => {
-              query = theQuery;
-            },
-            replacements: [
-              ['tag1', 'tag2'],
-            ],
-          });
-
-          expect(query).to.equal('Executing (default): SELECT * FROM products WHERE tags ?| ARRAY[\'tag1\', \'tag2\'];');
-        });
-      }
-    });
-
     describe('QueryTypes', () => {
       it('RAW', async function () {
         await this.sequelize.query(this.insertQuery, {
@@ -508,24 +454,24 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           .should.be.rejectedWith(Error, /Named replacement ":\w+" has no entry in the replacement map\./g);
       });
 
-      it('reject with the passed number', async function () {
+      it('rejects if replacements is a number', async function () {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
-          .should.be.rejectedWith(Error, /Named replacement ":\w+" has no entry in the replacement map\./g);
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received 2 instead.');
       });
 
-      it('reject with the passed empty object', async function () {
+      it('rejects if a replacement is missing', async function () {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {} })
           .should.be.rejectedWith(Error, /Named replacement ":\w+" has no entry in the replacement map\./g);
       });
 
-      it('reject with the passed string', async function () {
+      it('rejects if replacements is a string', async function () {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar' })
-          .should.be.rejectedWith(Error, /Named replacement ":\w+" has no entry in the replacement map\./g);
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received "foobar" instead.');
       });
 
-      it('reject with the passed date', async function () {
-        await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new Date() })
-          .should.be.rejectedWith(Error, /Named replacement ":\w+" has no entry in the replacement map\./g);
+      it('reject if replacements is not a plain object', async function () {
+        await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new URL('http://example.com') })
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received "http://example.com/" instead.');
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function () {
