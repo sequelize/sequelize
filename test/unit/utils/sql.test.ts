@@ -46,7 +46,6 @@ describe('mapBindParameters', () => {
   it('parses bind parameters followed by cast syntax', () => {
     const { sql } = mapBindParameters(`SELECT * FROM users WHERE id = $param::string`, dialect);
 
-    // this is postgres-only syntax. It doesn't work in other dialects.
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?::string`,
       postgres: `SELECT * FROM users WHERE id = $1::string`,
