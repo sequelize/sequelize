@@ -88,10 +88,21 @@ export class MsSqlQuery extends AbstractQuery {
       const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
 
       if (parameters) {
-        _.forOwn(parameters, (value, key) => {
-          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES);
-          request.addParameter(key, paramType.type, value, paramType.typeOptions);
-        });
+        if (Array.isArray(parameters)) {
+          // eslint-disable-next-line unicorn/no-for-loop
+          for (let i = 0; i < parameters.length; i++) {
+            const parameter = parameters[i];
+
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(String(i + 1), paramType.type, parameter, paramType.typeOptions);
+          }
+        } else {
+          _.forOwn(parameters, (parameter, parameterName) => {
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(parameterName, paramType.type, parameter, paramType.typeOptions);
+          });
+        }
+
       }
 
       request.on('row', columns => {
@@ -142,22 +153,6 @@ export class MsSqlQuery extends AbstractQuery {
     const errForStack = new Error();
 
     return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = {};
-    const replacementFunc = (match, key, valuesIn) => {
-      if (valuesIn[key] !== undefined) {
-        bindParam[key] = valuesIn[key];
-
-        return `@${key}`;
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam];
   }
 
   /**

@@ -191,6 +191,7 @@ export abstract class AbstractDialect {
   declare readonly TICK_CHAR: string;
   declare readonly TICK_CHAR_LEFT: string;
   declare readonly TICK_CHAR_RIGHT: string;
+  declare readonly queryGenerator: AbstractQueryGenerator;
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
@@ -198,5 +199,21 @@ export abstract class AbstractDialect {
     return Dialect.supports;
   }
 
-  declare readonly queryGenerator: AbstractQueryGenerator;
+  abstract createBindCollector(): BindCollector;
 }
+
+export type BindCollector = {
+  /**
+   *
+   *
+   * @param {string} bindParameterName The name of the bind parameter
+   * @returns {string}
+   */
+  collect(bindParameterName: string): string,
+
+  /**
+   * Returns either an array of orders if the bind parameters are mapped to numeric parameters (e.g. '?', $1, @1),
+   * or null if no mapping was necessary because the dialect supports named parameters.
+   */
+  getBindParameterOrder(): string[] | null,
+};
