@@ -589,10 +589,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@ephys/eslint-config-typescript@16.0.2":
-  version "16.0.2"
-  resolved "https://registry.yarnpkg.com/@ephys/eslint-config-typescript/-/eslint-config-typescript-16.0.2.tgz#28b6283fd44ad87e275104a31bc96c978de54187"
-  integrity sha512-GFp9dporc6l3AJ83gPreOjKvuwC3nElI2ga26YC+jdVEL+EwifoNKrf+wOqsG3s1578NmcNWXz5KOqqlREoPZQ==
+"@ephys/eslint-config-typescript@17.0.0":
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/@ephys/eslint-config-typescript/-/eslint-config-typescript-17.0.0.tgz#9474b86fba7916c7aa891b39a01067e626f8e7c6"
+  integrity sha512-E9Zd18opTW+Dw2C4mewiWudy/pPZosLvZrR53gIwUfGdb5NUCGcBiVBRvUrhHCaT65Yh/rs+8h8KIXUyQOj5YA==
   dependencies:
     "@ephys/eslint-config" "^15.0.1"
     "@typescript-eslint/eslint-plugin" "^5.14.0"
