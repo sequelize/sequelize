@@ -74,13 +74,13 @@ describe('mapBindParameters', () => {
   });
 
   it(`does not consider the token to be a bind parameter if it does not follow '(', ',', '=' or whitespace`, () => {
-    const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1`, dialect);
+    const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`, dialect);
 
     expectsql(sql, {
-      default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1`,
-      postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1`,
-      sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1`,
-      mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1`,
+      default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?`,
+      postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
+      sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
+      mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id`,
     });
 
     if (supportsNamedParameters) {
@@ -88,7 +88,7 @@ describe('mapBindParameters', () => {
     } else if (dialect.name === 'postgres') {
       expect(bindOrder).to.deep.eq(['id']);
     } else {
-      expect(bindOrder).to.deep.eq(['id', 'id', 'id']);
+      expect(bindOrder).to.deep.eq(['id', 'id', 'id', 'id']);
     }
   });
 
@@ -307,12 +307,12 @@ describe('injectReplacements (named replacements)', () => {
   });
 
   it(`does not consider the token to be a replacement if it does not follow '(', ',', '=' or whitespace`, () => {
-    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(:id) OR id = fn('a',:id) OR id=:id`, dialect, {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(:id) OR id = fn('a',:id) OR id=:id OR id = :id`, dialect, {
       id: 1,
     });
 
     expectsql(sql, {
-      default: `SELECT * FROM users WHERE id = fn(1) OR id = fn('a',1) OR id=1`,
+      default: `SELECT * FROM users WHERE id = fn(1) OR id = fn('a',1) OR id=1 OR id = 1`,
     });
   });
 
@@ -446,10 +446,10 @@ describe('injectReplacements (positional replacements)', () => {
   });
 
   it(`does not consider the token to be a replacement if it does not follow '(', ',', '=' or whitespace`, () => {
-    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=?`, dialect, [2, 1, 3]);
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id = ?`, dialect, [2, 1, 3, 4]);
 
     expectsql(sql, {
-      default: `SELECT * FROM users WHERE id = fn(2) OR id = fn('a',1) OR id=3`,
+      default: `SELECT * FROM users WHERE id = fn(2) OR id = fn('a',1) OR id=3 OR id = 4`,
     });
   });
 
