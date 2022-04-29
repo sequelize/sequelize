@@ -14,7 +14,7 @@ const current = Support.sequelize;
 if (dialect !== 'ibmi') {
   describe('Transaction', () => {
     before(function () {
-      this.stub = sinon.stub(current, 'query').resolves({});
+      this.stub = sinon.stub(current, 'queryRaw').resolves({});
 
       this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
         .resolves({

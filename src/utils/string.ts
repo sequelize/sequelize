@@ -104,3 +104,11 @@ export function safeStringifyJson(stringifyTarget: any): string {
     return value;
   });
 }
+
+export function removeTrailingSemicolon(str: string): string {
+  if (!str.endsWith(';')) {
+    return str;
+  }
+
+  return str.slice(0, Math.max(0, str.length - 1));
+}

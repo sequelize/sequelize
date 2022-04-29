@@ -1,5 +1,7 @@
 'use strict';
 
+import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { PostgresConnectionManager } = require('./connection-manager');
@@ -64,6 +66,10 @@ export class PostgresDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+  }
+
+  createBindCollector() {
+    return createSpecifiedOrderedBindCollector();
   }
 }
 
