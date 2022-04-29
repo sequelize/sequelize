@@ -65,7 +65,7 @@
     "@types/chai-datetime": "0.0.37",
     "@types/lodash": "4.14.182",
     "@types/mocha": "9.1.1",
-    "@types/node": "16.11.31",
+    "@types/node": "16.11.32",
     "@types/sinon": "10.0.11",
     "@types/sinon-chai": "3.2.8",
     "@types/uuid": "8.3.4",
@@ -112,7 +112,7 @@
     "sqlite3": "5.0.6",
     "tedious": "14.4.0",
     "typedoc": "0.22.15",
-    "typescript": "4.6.3"
+    "typescript": "4.6.4"
   },
   "peerDependenciesMeta": {
     "pg": {
