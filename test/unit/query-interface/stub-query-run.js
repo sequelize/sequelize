@@ -13,6 +13,8 @@ module.exports.stubQueryRun = function stubQueryRun() {
   }
 
   sinon.stub(sequelize.dialect, 'Query').get(() => FakeQuery);
+  sinon.stub(sequelize.connectionManager, 'getConnection').returns({});
+  sinon.stub(sequelize.connectionManager, 'releaseConnection');
 
   return () => {
     return lastExecutedSql;

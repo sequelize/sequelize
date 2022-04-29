@@ -31,7 +31,8 @@ describe('QueryInterface#delete', () => {
 
     expectsql(getSql(), {
       default: 'DELETE FROM [Users] WHERE [id] = \':id\'',
-      mssql: 'DELETE FROM [Users] WHERE [id] = N\':id\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;'
+      mssql: 'DELETE FROM [Users] WHERE [id] = N\':id\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
+      snowflake: 'DELETE FROM "Users" WHERE "id" = \':id\';'
     });
   });
 });
