@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-        expect(
+        await expect(
           this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }),
         ).to.be.rejectedWith(`${dialect} does not support the ignoreDuplicates option.`);
       });

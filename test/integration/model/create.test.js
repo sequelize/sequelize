@@ -1518,7 +1518,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await this.User.create({ uniqueName: 'Peter', secretValue: '42' });
 
-          expect(
+          await expect(
             this.User.create({ uniqueName: 'Peter', secretValue: '13' }, { ignoreDuplicates: true }),
           ).to.be.rejectedWith(`${dialect} does not support the ignoreDuplicates option.`);
         });
