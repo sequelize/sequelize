@@ -426,6 +426,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
+        await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         const users = await this.User.findAll({ order: ['id'] });
         expect(users.length).to.equal(3);
         expect(users[0].uniqueName).to.equal('Peter');
