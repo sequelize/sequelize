@@ -1500,30 +1500,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync({ force: true });
         });
       });
-
-      if (current.dialect.supports.inserts.ignoreDuplicates
-        || current.dialect.supports.inserts.onConflictDoNothing) {
-        it('should support the ignoreDuplicates option', async function () {
-
-          await this.User.create({ uniqueName: 'Peter', secretValue: '42' });
-
-          await this.User.create({ uniqueName: 'Peter', secretValue: '13' }, { ignoreDuplicates: true });
-          const users = await this.User.findAll({ order: ['id'] });
-          expect(users.length).to.equal(1);
-          expect(users[0].uniqueName).to.equal('Peter');
-          expect(users[0].secretValue).to.equal('42');
-        });
-      } else {
-        it('should throw an error when the ignoreDuplicates option is passed', async function () {
-
-          await this.User.create({ uniqueName: 'Peter', secretValue: '42' });
-
-          await expect(
-            this.User.create({ uniqueName: 'Peter', secretValue: '13' }, { ignoreDuplicates: true }),
-          ).to.be.rejectedWith(`${dialect} does not support the ignoreDuplicates option.`);
-        });
-      }
     });
+
+    if (
+      current.dialect.supports.inserts.ignoreDuplicates
+      || current.dialect.supports.inserts.onConflictDoNothing
+    ) {
+      it('should support the ignoreDuplicates option', async function () {
+
+        await this.User.create({ uniqueName: 'Peter', secretValue: '42' });
+
+        await this.User.create({ uniqueName: 'Peter', secretValue: '13' }, { ignoreDuplicates: true });
+        const users = await this.User.findAll({ order: ['id'] });
+        expect(users.length).to.equal(1);
+        expect(users[0].uniqueName).to.equal('Peter');
+        expect(users[0].secretValue).to.equal('42');
+      });
+    } else {
+      it('should throw an error when the ignoreDuplicates option is passed', async function () {
+
+        await this.User.create({ uniqueName: 'Peter', secretValue: '42' });
+
+        await expect(
+          this.User.create({ uniqueName: 'Peter', secretValue: '13' }, { ignoreDuplicates: true }),
+        ).to.be.rejectedWith(`${dialect} does not support the ignoreDuplicates option.`);
+      });
+    }
   });
 
   it('should return autoIncrement primary key (create)', async function () {
