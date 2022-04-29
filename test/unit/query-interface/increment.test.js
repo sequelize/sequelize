@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { expect } = require('chai');
 const sinon = require('sinon');
 const { expectsql, sequelize } = require('../../support');
+const { stubQueryRun } = require('./stub-query-run');
 
 describe('QueryInterface#increment', () => {
   const User = sequelize.define('User', {
@@ -14,7 +14,7 @@ describe('QueryInterface#increment', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw');
+    const getSql = stubQueryRun();
 
     await sequelize.getQueryInterface().increment(
       User,
@@ -36,13 +36,10 @@ describe('QueryInterface#increment', () => {
       }
     );
 
-    expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0], {
+    expectsql(getSql(), {
       default: 'UPDATE [Users] SET [age]=[age]+ \':age\',[name]=\':name\' WHERE [id] = \':id\'',
       postgres: 'UPDATE "Users" SET "age"="age"+ \':age\',"name"=\':name\' WHERE "id" = \':id\' RETURNING ":data"',
       mssql: 'UPDATE [Users] SET [age]=[age]+ N\':age\',[name]=N\':name\' OUTPUT INSERTED.[:data] WHERE [id] = N\':id\''
     });
-    expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

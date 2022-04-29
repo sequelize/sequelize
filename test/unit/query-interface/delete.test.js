@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { expect } = require('chai');
 const sinon = require('sinon');
 const { expectsql, sequelize } = require('../../support');
+const { stubQueryRun } = require('./stub-query-run');
 
 describe('QueryInterface#delete', () => {
   const User = sequelize.define('User', {
@@ -14,8 +14,7 @@ describe('QueryInterface#delete', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw');
-
+    const getSql = stubQueryRun();
     const instance = new User();
 
     await sequelize.getQueryInterface().delete(
@@ -30,13 +29,9 @@ describe('QueryInterface#delete', () => {
       }
     );
 
-    expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0], {
+    expectsql(getSql(), {
       default: 'DELETE FROM [Users] WHERE [id] = \':id\'',
       mssql: 'DELETE FROM [Users] WHERE [id] = N\':id\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;'
     });
-
-    expect(firstCall.args[1]?.bind).to.be.undefined;
   });
 });

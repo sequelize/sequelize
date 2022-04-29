@@ -181,6 +181,9 @@ export function injectReplacements(
       }
 
       const replacementIndex = ++lastConsumedPositionalReplacementIndex;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore -- ts < 4.4 loses the information that 'replacements' is an array when using 'isPositionalReplacements' instead of 'Array.isArray'
+      //  but performance matters here.
       const replacementValue = replacements[lastConsumedPositionalReplacementIndex];
 
       if (replacementValue === undefined) {

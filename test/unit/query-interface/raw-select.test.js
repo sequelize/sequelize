@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { expect } = require('chai');
 const sinon = require('sinon');
 const { expectsql, sequelize } = require('../../support');
+const { stubQueryRun } = require('./stub-query-run');
 
 describe('QueryInterface#rawSelect', () => {
   const User = sequelize.define('User', {
@@ -14,7 +14,7 @@ describe('QueryInterface#rawSelect', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse user-provided data as replacements', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw');
+    const getSql = stubQueryRun();
 
     await sequelize.getQueryInterface().rawSelect(User.tableName, {
       // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
@@ -27,9 +27,7 @@ describe('QueryInterface#rawSelect', () => {
       }
     }, 'id', User);
 
-    expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0], {
+    expectsql(getSql(), {
       default: 'SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = \'some :data\';',
       mssql: 'SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N\'some :data\';'
     });

@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { expect } = require('chai');
 const sinon = require('sinon');
 const { expectsql, sequelize } = require('../../support');
+const { stubQueryRun } = require('./stub-query-run');
 
 describe('QueryInterface#bulkInsert', () => {
   const User = sequelize.define('User', {
@@ -14,7 +14,7 @@ describe('QueryInterface#bulkInsert', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    const getSql = stubQueryRun();
 
     await sequelize.getQueryInterface().bulkInsert(User.tableName, [{
       firstName: ':injection'
@@ -24,10 +24,7 @@ describe('QueryInterface#bulkInsert', () => {
       }
     });
 
-    expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
-
-    expectsql(firstCall.args[0], {
+    expectsql(getSql(), {
       default: 'INSERT INTO [Users] ([firstName]) VALUES (\':injection\');',
       mssql: 'INSERT INTO [Users] ([firstName]) VALUES (N\':injection\');'
     });
