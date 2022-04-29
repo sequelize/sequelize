@@ -851,6 +851,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user.get()).to.have.property('not_on_model');
           }
         });
+
+        it('should handle no returned values (with returning=false)', async function () {
+          const User = this.sequelize.define('user');
+
+          await User.sync({ force: true });
+
+          await User.bulkCreate([
+            {},
+            {},
+            {},
+          ], {
+            returning: false,
+          });
+
+          const actualUsers = await User.findAll();
+          expect(actualUsers.length).to.eql(3);
+        });
       });
     }
 

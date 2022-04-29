@@ -847,6 +847,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.get('maId')).to.be.ok;
           expect(user.get('maId')).to.equal(1);
         });
+
+        it('should handle no returned values', async function () {
+          const User = this.sequelize.define('user', {});
+
+          await User.sync({ force: true });
+          await User.create({}, { returning: false });
+        });
       });
     }
 
