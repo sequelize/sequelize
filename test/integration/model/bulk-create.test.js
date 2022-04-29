@@ -445,11 +445,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
+        let thrown = false;
         try {
           await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         } catch (error) {
+          thrown = true;
           expect(error.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
         }
+
+        expect(thrown).to.equal(true);
       });
     }
 
