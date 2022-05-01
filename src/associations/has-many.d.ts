@@ -1,4 +1,4 @@
-import { DataType } from '../data-types';
+import { DataType } from '../dialects/abstract/data-types.js';
 import {
   CreateOptions,
   CreationAttributes,

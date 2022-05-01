@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
-import type { DataType } from '..';
+import type { DataType } from '../dialects/abstract/data-types.js';
 import { getOperators } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Where } from './sequelize-method';

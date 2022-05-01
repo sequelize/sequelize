@@ -8,12 +8,11 @@ import wkx from 'wkx';
 import { kSetDialectNames } from '../../dialect-toolbox';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
+import type { Rangable } from '../../model.js';
 import { classToInvokable } from '../../utils/class-to-invokable';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { logger } from '../../utils/logger';
 import { validator as Validator } from '../../utils/validator-extras';
-
-const printedWarnings = new Set<string>();
+import type { HstoreRecord } from '../postgres/hstore.js';
 
 // If T is a constructor, returns the type of what `new T()` would return,
 // otherwise, returns T
@@ -57,9 +56,9 @@ export abstract class AbstractDataType<
   AcceptedType,
 > {
   /** @internal */
-  public static readonly types: Record<string, DialectTypeMeta>;
+  static readonly types: Record<string, DialectTypeMeta>;
   /** @internal */
-  public types!: Record<string, DialectTypeMeta>;
+  types!: Record<string, DialectTypeMeta>;
 
   declare readonly key: string;
 
@@ -70,7 +69,7 @@ export abstract class AbstractDataType<
    * @param types The dialect-specific types.
    */
   // TODO: move to utils
-  public static [kSetDialectNames](dialect: string, types: DialectTypeMeta) {
+  static [kSetDialectNames](dialect: string, types: DialectTypeMeta) {
     if (!Object.prototype.hasOwnProperty.call(this, 'types')) {
       const prop = {
         value: {},
@@ -87,11 +86,11 @@ export abstract class AbstractDataType<
     this.types[dialect] = types;
   }
 
-  public static get key() {
+  static get key() {
     throw new Error('Do not try to get the "key" static property on data types, get it on the instance instead.');
   }
 
-  public static get escape() {
+  static get escape() {
     throw new Error('Do not try to get the "escape" static property on data types, get it on the instance instead.');
   }
 
@@ -182,16 +181,6 @@ export abstract class AbstractDataType<
   }
 
   // TODO: move to utils
-  static warn(link: string, text: string) {
-    if (printedWarnings.has(text)) {
-      return;
-    }
-
-    printedWarnings.add(text);
-    logger.warn(`${text} \n>> Check: ${link}`);
-  }
-
-  // TODO: move to utils
   static extend<A, Options>(
     this: new (options: Options) => AbstractDataType<A>,
     oldType: AbstractDataType<A> & { options: Options },
@@ -225,7 +214,7 @@ interface StringTypeOptions {
  * STRING A variable length string
  */
 @classToInvokable
-class STRING extends AbstractDataType<string | Buffer> {
+export class STRING extends AbstractDataType<string | Buffer> {
   readonly key: string = 'STRING';
   readonly options: StringTypeOptions;
 
@@ -249,14 +238,14 @@ class STRING extends AbstractDataType<string | Buffer> {
     Object.freeze(this.options);
   }
 
-  public toSql() {
+  toSql() {
     return joinSQLFragments([
       `VAR_CHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
     ]);
   }
 
-  public validate(value: any): asserts value is string | Buffer {
+  validate(value: any): asserts value is string | Buffer {
     if (typeof value === 'string') {
       return;
     }
@@ -290,9 +279,9 @@ class STRING extends AbstractDataType<string | Buffer> {
  * CHAR A fixed length string
  */
 @classToInvokable
-class CHAR extends STRING {
+export class CHAR extends STRING {
   readonly key = 'CHAR';
-  public toSql() {
+  toSql() {
     return joinSQLFragments([
       `CHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
@@ -303,7 +292,7 @@ class CHAR extends STRING {
 const validTextLengths = ['tiny', 'medium', 'long'];
 export type TextLength = 'tiny' | 'medium' | 'long';
 
-interface TextOptions {
+export interface TextOptions {
   length?: TextLength;
 }
 
@@ -311,7 +300,7 @@ interface TextOptions {
  * Unlimited length TEXT column
  */
 @classToInvokable
-class TEXT extends AbstractDataType<string> {
+export class TEXT extends AbstractDataType<string> {
   readonly key = 'TEXT';
   readonly options: TextOptions;
 
@@ -330,9 +319,13 @@ class TEXT extends AbstractDataType<string> {
     this.options = {
       length: length as TextLength,
     };
+
+    this._checkOptionSupport();
   }
 
-  toSql() {
+  protected _checkOptionSupport() {}
+
+  toSql(): string {
     switch (this.options.length) {
       case 'tiny':
         return 'TINY_TEXT';
@@ -345,7 +338,7 @@ class TEXT extends AbstractDataType<string> {
     }
   }
 
-  public validate(value: any): asserts value is string {
+  validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
@@ -361,10 +354,10 @@ class TEXT extends AbstractDataType<string> {
  * Only available in Postgres and SQLite.
  */
 @classToInvokable
-class CITEXT extends AbstractDataType<string> {
+export class CITEXT extends AbstractDataType<string> {
   readonly key = 'CITEXT';
 
-  public validate(value: any): asserts value is string {
+  validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
@@ -407,7 +400,7 @@ type AcceptedNumber =
  * Base number type which is used to build other types
  */
 @classToInvokable
-class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
+export class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
   readonly key: string = 'NUMBER';
 
   protected options: Options;
@@ -421,7 +414,11 @@ class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractData
       // @ts-expect-error
       this.options = { length: optionsOrLength };
     }
+
+    this._checkOptionSupport();
   }
+
+  protected _checkOptionSupport() {}
 
   toSql(): string {
     let result = this.key;
@@ -492,10 +489,10 @@ class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractData
  * A 32 bit integer
  */
 @classToInvokable
-class INTEGER extends NUMBER {
+export class INTEGER extends NUMBER {
   readonly key: string = 'INTEGER';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (!Validator.isInt(String(value))) {
       throw new ValidationError(
         util.format(`%j is not a valid ${this.key.toLowerCase()}`, value),
@@ -509,7 +506,7 @@ class INTEGER extends NUMBER {
  * A 8 bit integer
  */
 @classToInvokable
-class TINYINT extends INTEGER {
+export class TINYINT extends INTEGER {
   readonly key = 'TINYINT';
 }
 
@@ -517,7 +514,7 @@ class TINYINT extends INTEGER {
  * A 16 bit integer
  */
 @classToInvokable
-class SMALLINT extends INTEGER {
+export class SMALLINT extends INTEGER {
   readonly key = 'SMALLINT';
 }
 
@@ -525,7 +522,7 @@ class SMALLINT extends INTEGER {
  * A 24 bit integer
  */
 @classToInvokable
-class MEDIUMINT extends INTEGER {
+export class MEDIUMINT extends INTEGER {
   readonly key = 'MEDIUMINT';
 }
 
@@ -533,7 +530,7 @@ class MEDIUMINT extends INTEGER {
  * A 64 bit integer
  */
 @classToInvokable
-class BIGINT extends INTEGER {
+export class BIGINT extends INTEGER {
   readonly key = 'BIGINT';
 }
 
@@ -541,7 +538,7 @@ class BIGINT extends INTEGER {
  * Floating point number (4-byte precision).
  */
 @classToInvokable
-class FLOAT extends NUMBER {
+export class FLOAT extends NUMBER {
   readonly key: string = 'FLOAT';
   readonly escape = false;
 
@@ -596,7 +593,7 @@ class FLOAT extends NUMBER {
 }
 
 @classToInvokable
-class REAL extends FLOAT {
+export class REAL extends FLOAT {
   readonly key = 'REAL';
 }
 
@@ -604,7 +601,7 @@ class REAL extends FLOAT {
  * Floating point number (8-byte precision).
  */
 @classToInvokable
-class DOUBLE extends FLOAT {
+export class DOUBLE extends FLOAT {
   readonly key = 'DOUBLE';
 }
 
@@ -617,7 +614,7 @@ interface DecimalOptions extends NumberOptions {
  * Decimal type, variable precision, take length as specified by user
  */
 @classToInvokable
-class DECIMAL extends NUMBER<DecimalOptions> {
+export class DECIMAL extends NUMBER<DecimalOptions> {
   readonly key = 'DECIMAL';
 
   constructor(options?: DecimalOptions);
@@ -661,7 +658,7 @@ class DECIMAL extends NUMBER<DecimalOptions> {
  * A boolean / tinyint column, depending on dialect
  */
 @classToInvokable
-class BOOLEAN extends AbstractDataType<boolean | Falsy> {
+export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   readonly key = 'BOOLEAN';
 
   toSql() {
@@ -717,7 +714,7 @@ class BOOLEAN extends AbstractDataType<boolean | Falsy> {
  * A time column
  */
 @classToInvokable
-class TIME extends AbstractDataType<Date | string | number> {
+export class TIME extends AbstractDataType<Date | string | number> {
   readonly key = 'TIME';
 
   toSql() {
@@ -739,7 +736,7 @@ type AcceptedDate = RawDate | moment.Moment;
  * A date and time.
  */
 @classToInvokable
-class DATE extends AbstractDataType<AcceptedDate> {
+export class DATE extends AbstractDataType<AcceptedDate> {
   readonly key: string = 'DATE';
   readonly options: DateOptions;
 
@@ -765,8 +762,6 @@ class DATE extends AbstractDataType<AcceptedDate> {
         [],
       );
     }
-
-    return true;
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -837,7 +832,7 @@ class DATE extends AbstractDataType<AcceptedDate> {
  * A date only column (no timestamp)
  */
 @classToInvokable
-class DATEONLY extends AbstractDataType<AcceptedDate> {
+export class DATEONLY extends AbstractDataType<AcceptedDate> {
   readonly key = 'DATEONLY';
 
   toSql() {
@@ -878,10 +873,10 @@ class DATEONLY extends AbstractDataType<AcceptedDate> {
  * A key / value store column. Only available in Postgres.
  */
 @classToInvokable
-class HSTORE extends AbstractDataType<Record<string, unknown>> {
+export class HSTORE extends AbstractDataType<HstoreRecord> {
   readonly key = 'HSTORE';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (!isPlainObject(value)) {
       throw new ValidationError(
         util.format('%j is not a valid hstore, it must be a plain object', value),
@@ -895,7 +890,7 @@ class HSTORE extends AbstractDataType<Record<string, unknown>> {
  * A JSON string column. Available in MySQL, Postgres and SQLite
  */
 @classToInvokable
-class JSON extends AbstractDataType<any> {
+export class JSON extends AbstractDataType<any> {
   readonly key: string = 'JSON';
 
   stringify(value: any) {
@@ -907,7 +902,7 @@ class JSON extends AbstractDataType<any> {
  * A binary storage JSON column. Only available in Postgres.
  */
 @classToInvokable
-class JSONB extends JSON {
+export class JSONB extends JSON {
   readonly key = 'JSONB';
 }
 
@@ -915,7 +910,7 @@ class JSONB extends JSON {
  * A default value of the current timestamp.  Not a valid type.
  */
 @classToInvokable
-class NOW extends AbstractDataType<never> {
+export class NOW extends AbstractDataType<never> {
   readonly key = 'NOW';
 }
 
@@ -936,7 +931,7 @@ interface BlobOptions {
  * Binary storage
  */
 @classToInvokable
-class BLOB extends AbstractDataType<AcceptedBlob> {
+export class BLOB extends AbstractDataType<AcceptedBlob> {
   readonly key = 'BLOB';
   readonly escape = false;
   readonly options: BlobOptions;
@@ -952,9 +947,13 @@ class BLOB extends AbstractDataType<AcceptedBlob> {
     this.options = {
       length: typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions,
     };
+
+    this._checkOptionSupport();
   }
 
-  toSql() {
+  protected _checkOptionSupport() {}
+
+  toSql(): string {
     switch (this.options.length) {
       case BlobLength.TINY:
         return 'TINYBLOB';
@@ -1003,9 +1002,11 @@ interface RangeOptions<T> {
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  */
 @classToInvokable
-class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<AcceptedNumber> {
+export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<Rangable<AcceptableTypeOf<T>>> {
   readonly key = 'RANGE';
-  protected _subtype: string;
+  readonly options: {
+    subtype: AbstractDataType<any>,
+  };
 
   /**
    * @param subtypeOrOptions A subtype for range, like RANGE(DATE)
@@ -1022,10 +1023,12 @@ class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataTy
     ? new subtypeRaw()
     : subtypeRaw;
 
-    this._subtype = subtype.key;
+    this.options = {
+      subtype,
+    };
   }
 
-  public validate(value: any) {
+  validate(value: any) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid range', value),
@@ -1047,10 +1050,10 @@ class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataTy
  * Use with `UUIDV1` or `UUIDV4` for default values.
  */
 @classToInvokable
-class UUID extends AbstractDataType<string> {
+export class UUID extends AbstractDataType<string> {
   readonly key = 'UUID';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1064,8 +1067,6 @@ class UUID extends AbstractDataType<string> {
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1073,10 +1074,10 @@ class UUID extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v1 standard
  */
 @classToInvokable
-class UUIDV1 extends AbstractDataType<string> {
+export class UUIDV1 extends AbstractDataType<string> {
   readonly key = 'UUIDV1';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1091,8 +1092,6 @@ class UUIDV1 extends AbstractDataType<string> {
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1100,10 +1099,10 @@ class UUIDV1 extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v4 standard
  */
 @classToInvokable
-class UUIDV4 extends AbstractDataType<string> {
+export class UUIDV4 extends AbstractDataType<string> {
   readonly key = 'UUIDV4';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
@@ -1117,8 +1116,6 @@ class UUIDV4 extends AbstractDataType<string> {
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1163,7 +1160,7 @@ class UUIDV4 extends AbstractDataType<string> {
  *
  */
 @classToInvokable
-class VIRTUAL<T> extends AbstractDataType<T> {
+export class VIRTUAL<T> extends AbstractDataType<T> {
   readonly key = 'VIRTUAL';
 
   returnType?: AbstractDataType<T>;
@@ -1199,7 +1196,7 @@ interface EnumOptions<Member extends string> {
  * });
  */
 @classToInvokable
-class ENUM<Member extends string> extends AbstractDataType<Member> {
+export class ENUM<Member extends string> extends AbstractDataType<Member> {
   readonly key = 'ENUM';
   readonly options: EnumOptions<Member>;
 
@@ -1268,7 +1265,7 @@ interface NormalizedArrayOptions<T extends AbstractDataType<any>> {
  * DataTypes.ARRAY(DataTypes.DECIMAL)
  */
 @classToInvokable
-class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<AcceptableTypeOf<T>>> {
+export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<AcceptableTypeOf<T>>> {
   readonly key = 'ARRAY';
   readonly options: NormalizedArrayOptions<T>;
 
@@ -1289,7 +1286,7 @@ class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<Acce
     return `${this.options.type.toSql(options)}[]`;
   }
 
-  public validate(value: any) {
+  validate(value: any) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid array', value),
@@ -1298,8 +1295,6 @@ class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<Acce
     }
 
     // TODO: validate individual items
-
-    return true;
   }
 
   static is<T extends AbstractDataType<any>>(
@@ -1364,7 +1359,7 @@ interface GeometryOptions {
  * @see {@link DataTypes.GEOGRAPHY}
  */
 @classToInvokable
-class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
+export class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
   readonly key: string = 'GEOMETRY';
   readonly escape = false;
   readonly options: GeometryOptions;
@@ -1421,7 +1416,7 @@ class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
  * DataTypes.GEOGRAPHY('POINT', 4326)
  */
 @classToInvokable
-class GEOGRAPHY extends GEOMETRY {
+export class GEOGRAPHY extends GEOMETRY {
   readonly key = 'GEOGRAPHY';
 }
 
@@ -1431,18 +1426,16 @@ class GEOGRAPHY extends GEOMETRY {
  * Only available for Postgres
  */
 @classToInvokable
-class CIDR extends AbstractDataType<string> {
+export class CIDR extends AbstractDataType<string> {
   readonly key = 'CIDR';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
       throw new ValidationError(
         util.format('%j is not a valid CIDR', value),
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1452,17 +1445,15 @@ class CIDR extends AbstractDataType<string> {
  * Only available for Postgres
  */
 @classToInvokable
-class INET extends AbstractDataType<string> {
+export class INET extends AbstractDataType<string> {
   readonly key = 'INET';
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       throw new ValidationError(
         util.format('%j is not a valid INET', value),
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1472,18 +1463,16 @@ class INET extends AbstractDataType<string> {
  * Only available for Postgres
  */
 @classToInvokable
-class MACADDR extends AbstractDataType<string> {
+export class MACADDR extends AbstractDataType<string> {
   readonly key = 'MACADDR';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new ValidationError(
         util.format('%j is not a valid MACADDR', value),
         [],
       );
     }
-
-    return true;
   }
 }
 
@@ -1493,100 +1482,15 @@ class MACADDR extends AbstractDataType<string> {
  * Only available for Postgres
  */
 @classToInvokable
-class TSVECTOR extends AbstractDataType<string> {
+export class TSVECTOR extends AbstractDataType<string> {
   readonly key = 'TSVECTOR';
 
-  public validate(value: any) {
+  validate(value: any) {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
         [],
       );
     }
-
-    return true;
   }
 }
-
-/**
- * A convenience class holding commonly used data types. The data types are used when defining a new model using `Sequelize.define`, like this:
- * ```js
- * sequelize.define('model', {
- *   column: DataTypes.INTEGER
- * })
- * ```
- * When defining a model you can just as easily pass a string as type, but often using the types defined here is beneficial. For example, using `DataTypes.BLOB`, mean
- * that that column will be returned as an instance of `Buffer` when being fetched by sequelize.
- *
- * To provide a length for the data type, you can invoke it like a function: `INTEGER(2)`
- *
- * Some data types have special properties that can be accessed in order to change the data type.
- * For example, to get an unsigned integer with zerofill you can do `DataTypes.INTEGER.UNSIGNED.ZEROFILL`.
- * The order you access the properties in do not matter, so `DataTypes.INTEGER.ZEROFILL.UNSIGNED` is fine as well.
- *
- * * All number types (`INTEGER`, `BIGINT`, `FLOAT`, `DOUBLE`, `REAL`, `DECIMAL`) expose the properties `UNSIGNED` and `ZEROFILL`
- * * The `CHAR` and `STRING` types expose the `BINARY` property
- *
- * Three of the values provided here (`NOW`, `UUIDV1` and `UUIDV4`) are special default values, that should not be used to define types. Instead they are used as shorthands for
- * defining default values. For example, to get a uuid field with a default value generated following v1 of the UUID standard:
- * ```js
- * sequelize.define('model', {
- *   uuid: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV1,
- *     primaryKey: true
- *   }
- * })
- * ```
- * There may be times when you want to generate your own UUID conforming to some other algorithm. This is accomplished
- * using the defaultValue property as well, but instead of specifying one of the supplied UUID types, you return a value
- * from a function.
- * ```js
- * sequelize.define('model', {
- *   uuid: {
- *     type: DataTypes.UUID,
- *     defaultValue: function() {
- *       return generateMyId()
- *     },
- *     primaryKey: true
- *   }
- * })
- * ```
- */
-export const DataTypes = {
-  AbstractDataType,
-  STRING,
-  CHAR,
-  TEXT,
-  TINYINT,
-  SMALLINT,
-  MEDIUMINT,
-  INTEGER,
-  BIGINT,
-  FLOAT,
-  TIME,
-  DATE,
-  DATEONLY,
-  BOOLEAN,
-  NOW,
-  BLOB,
-  DECIMAL,
-  UUID,
-  UUIDV1,
-  UUIDV4,
-  HSTORE,
-  JSONB,
-  VIRTUAL,
-  ARRAY,
-  ENUM,
-  RANGE,
-  REAL,
-  DOUBLE,
-  GEOMETRY,
-  GEOGRAPHY,
-  CIDR,
-  INET,
-  MACADDR,
-  CITEXT,
-  TSVECTOR,
-};

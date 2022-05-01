@@ -1,4 +1,4 @@
-import { DataType } from '../../data-types';
+import { DataType } from './data-types.js';
 import {
   Logging,
   Model,

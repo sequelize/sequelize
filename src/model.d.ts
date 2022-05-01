@@ -10,7 +10,7 @@ import {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import { DataType } from './data-types';
+import { DataType } from './dialects/abstract/data-types.js';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
@@ -210,20 +210,27 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
 >;
 
 // number is always allowed because -Infinity & +Infinity are valid
+/**
+ * This type represents a valid input when describing a {@link RANGE}.
+ */
 export type Rangable<T> = readonly [
-  lower: T | RangePart<T | number> | number | null,
-  higher: T | RangePart<T | number> | number | null
+  lower: T | InputRangePart<T> | number | null,
+  higher: T | InputRangePart<T> | number | null
 ] | EmptyRange;
 
 /**
  * This type represents the output of the {@link RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
-export type Range<T> = readonly [lower: RangePart<T | number>, higher: RangePart<T | number>] | EmptyRange;
+export type Range<T> = readonly [
+  lower: RangePart<T> | number | null,
+  higher: RangePart<T> | number | null,
+] | EmptyRange;
 
 type EmptyRange = [];
 
-type RangePart<T> = { value: T, inclusive: boolean };
+export type RangePart<T> = { value: T | number | null, inclusive: boolean };
+export type InputRangePart<T> = { value: T | number | null, inclusive?: boolean };
 
 /**
  * Internal type - prone to changes. Do not export.

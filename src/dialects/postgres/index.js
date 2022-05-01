@@ -7,7 +7,7 @@ const { AbstractDialect } = require('../abstract');
 const { PostgresConnectionManager } = require('./connection-manager');
 const { PostgresQuery } = require('./query');
 const { PostgresQueryGenerator } = require('./query-generator');
-const DataTypes = require('../../data-types').postgres;
+const DataTypes = require('./data-types');
 const { PostgresQueryInterface } = require('./query-interface');
 
 export class PostgresDialect extends AbstractDialect {
