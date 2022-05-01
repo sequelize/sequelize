@@ -8,7 +8,7 @@ const deprecations = require('../../utils/deprecations');
 const uuid = require('uuid').v4;
 const { safeStringifyJson } = require('../../utils');
 
-class AbstractQuery {
+export class AbstractQuery {
 
   constructor(connection, sequelize, options) {
     this.uuid = uuid();
@@ -31,90 +31,6 @@ class AbstractQuery {
       // implementations.
       this.formatError = AbstractQuery.prototype.formatError;
     }
-  }
-
-  /**
-   * rewrite query with parameters
-   *
-   * Examples:
-   *
-   *   query.formatBindParameters('select $1 as foo', ['fooval']);
-   *
-   *   query.formatBindParameters('select $foo as foo', { foo: 'fooval' });
-   *
-   * Options
-   *   skipUnescape: bool, skip unescaping $$
-   *   skipValueReplace: bool, do not replace (but do unescape $$). Check correct syntax and if all values are available
-   *
-   * @param {string} sql
-   * @param {object|Array} values
-   * @param {string} dialect
-   * @param {Function} [replacementFunc]
-   * @param {object} [options]
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect, replacementFunc, options) {
-    if (!values) {
-      return [sql, []];
-    }
-
-    options = options || {};
-    if (typeof replacementFunc !== 'function') {
-      options = replacementFunc || {};
-      replacementFunc = undefined;
-    }
-
-    if (!replacementFunc) {
-      if (options.skipValueReplace) {
-        replacementFunc = (match, key, values) => {
-          if (values[key] !== undefined) {
-            return match;
-          }
-
-        };
-      } else {
-        replacementFunc = (match, key, values, timeZone, dialect) => {
-          if (values[key] !== undefined) {
-            return SqlString.escape(values[key], timeZone, dialect);
-          }
-
-        };
-      }
-    } else if (options.skipValueReplace) {
-      const origReplacementFunc = replacementFunc;
-      replacementFunc = (match, key, values, timeZone, dialect, options) => {
-        if (origReplacementFunc(match, key, values, timeZone, dialect, options) !== undefined) {
-          return match;
-        }
-
-      };
-    }
-
-    const timeZone = null;
-    const list = Array.isArray(values);
-    sql = sql.replace(/\B\$(\$|\w+)/g, (match, key) => {
-      if (key === '$') {
-        return options.skipUnescape ? match : key;
-      }
-
-      let replVal;
-      if (list) {
-        if (/^[1-9]\d*$/.test(key)) {
-          key = key - 1;
-          replVal = replacementFunc(match, key, values, timeZone, dialect, options);
-        }
-      } else if (!/^\d*$/.test(key)) {
-        replVal = replacementFunc(match, key, values, timeZone, dialect, options);
-      }
-
-      if (replVal === undefined) {
-        throw new Error(`Named bind parameter "${match}" has no value in the given object.`);
-      }
-
-      return replVal;
-    });
-
-    return [sql, []];
   }
 
   /**
@@ -777,7 +693,3 @@ class AbstractQuery {
     return results;
   }
 }
-
-module.exports = AbstractQuery;
-module.exports.AbstractQuery = AbstractQuery;
-module.exports.default = AbstractQuery;

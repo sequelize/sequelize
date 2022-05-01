@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -26,7 +26,7 @@ const FOREIGN_KEY_FIELDS = [
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-class MySQLQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
 
@@ -262,7 +262,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
+          str += ` = ${this.escape(smth.value, undefined, options)}`;
         }
 
         return str;
@@ -302,20 +302,18 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   deleteQuery(tableName, where, options = {}, model) {
-    let limit = '';
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    if (options.limit) {
-      limit = ` LIMIT ${this.escape(options.limit)}`;
-    }
-
     where = this.getWhereConditions(where, null, model, options);
-
     if (where) {
       query += ` WHERE ${where}`;
     }
 
-    return query + limit;
+    if (options.limit) {
+      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
+    }
+
+    return query;
   }
 
   showIndexesQuery(tableName, options) {
@@ -624,11 +622,21 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
 
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
+
+  _createBindParamCollector(bindContext /* : BindContext */) {
+    return function collect(value) {
+      if (!bindContext.normalizedBind) {
+        bindContext.normalizedBind = [];
+      }
+
+      bindContext.normalizedBind.push(value);
+
+      return '?';
+    };
+  }
 }
 
 // private methods
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-module.exports = MySQLQueryGenerator;

@@ -9,7 +9,7 @@ const _ = require('lodash');
 /**
  * The interface that Sequelize uses to talk with SQLite database
  */
-class SQLiteQueryInterface extends QueryInterface {
+export class SqliteQueryInterface extends QueryInterface {
   /**
    * A wrapper that fixes SQLite's inability to remove columns from existing tables.
    * It will create a backup of the table, drop the table afterwards and create a
@@ -27,7 +27,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
     }
   }
 
@@ -48,7 +48,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
     }
   }
 
@@ -70,7 +70,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
     }
   }
 
@@ -114,7 +114,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
     }
   }
 
@@ -135,7 +135,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const constraintSnippet = this.queryGenerator.getConstraintSnippet(tableName, options);
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
 
-    const constraints = await this.sequelize.query(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
+    const constraints = await this.sequelize.queryRaw(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
     let sql = constraints[0].sql;
     const index = sql.length - 1;
     // Replace ending ')' with constraint snippet - Simulates String.replaceAt
@@ -147,7 +147,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
     }
   }
 
@@ -157,7 +157,7 @@ class SQLiteQueryInterface extends QueryInterface {
   async getForeignKeyReferencesForTable(tableName, options) {
     const database = this.sequelize.config.database;
     const query = this.queryGenerator.getForeignKeysQuery(tableName, database);
-    const result = await this.sequelize.query(query, options);
+    const result = await this.sequelize.queryRaw(query, options);
 
     return result.map(row => ({
       tableName,
@@ -177,9 +177,9 @@ class SQLiteQueryInterface extends QueryInterface {
     const skip = options.skip || [];
 
     const tableNames = await this.showAllTables(options);
-    await this.sequelize.query('PRAGMA foreign_keys = OFF', options);
+    await this.sequelize.queryRaw('PRAGMA foreign_keys = OFF', options);
     await this._dropAllTables(tableNames, skip, options);
-    await this.sequelize.query('PRAGMA foreign_keys = ON', options);
+    await this.sequelize.queryRaw('PRAGMA foreign_keys = ON', options);
   }
 
   /**
@@ -206,7 +206,7 @@ class SQLiteQueryInterface extends QueryInterface {
     const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
 
     try {
-      const data = await this.sequelize.query(sql, options);
+      const data = await this.sequelize.queryRaw(sql, options);
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
@@ -216,7 +216,7 @@ class SQLiteQueryInterface extends QueryInterface {
         throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
-      const indexes = await this.sequelize.query(sqlIndexes, options);
+      const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
       for (const prop in data) {
         data[prop].unique = false;
       }
@@ -247,5 +247,3 @@ class SQLiteQueryInterface extends QueryInterface {
     }
   }
 }
-
-exports.SQLiteQueryInterface = SQLiteQueryInterface;

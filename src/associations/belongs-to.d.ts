@@ -1,10 +1,10 @@
 import { DataType } from '../data-types';
-import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelStatic, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
-// type ModelCtor<M extends Model> = InstanceType<typeof M>;
+// type ModelStatic<M extends Model> = InstanceType<typeof M>;
 /**
- * Options provided when associating models with belongsTo relationship
+ * Options provided when associating models with {@link Model.belongsTo} relationship
  *
  * @see Association class belongsTo method
  */
@@ -23,7 +23,7 @@ export interface BelongsToOptions extends AssociationOptions {
 
 export class BelongsTo<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: BelongsToOptions);
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions);
 }
 
 /**
@@ -38,7 +38,7 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
 }
 
 /**
- * The getAssociation mixin applied to models with belongsTo.
+ * The getAssociation mixin applied to models with {@link Model.belongsTo}.
  * An example of usage is as follows:
  *
  * ```js
@@ -52,7 +52,6 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions<any> {
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
@@ -69,7 +68,7 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
 }
 
 /**
- * The setAssociation mixin applied to models with belongsTo.
+ * The setAssociation mixin applied to models with {@link Model.belongsTo}.
  * An example of usage is as follows:
  *
  * ```js
@@ -83,7 +82,6 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions<any> {
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToSetAssociationMixin<TModel, TPrimaryKey> = (
@@ -99,7 +97,7 @@ export interface BelongsToCreateAssociationMixinOptions
   extends CreateOptions<any>, BelongsToSetAssociationMixinOptions {}
 
 /**
- * The createAssociation mixin applied to models with belongsTo.
+ * The createAssociation mixin applied to models with {@link Model.belongsTo}.
  * An example of usage is as follows:
  *
  * ```js
@@ -113,12 +111,9 @@ export interface BelongsToCreateAssociationMixinOptions
  * }
  * ```
  *
- * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel extends Model> = (
   values?: CreationAttributes<TModel>,
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
-
-export default BelongsTo;

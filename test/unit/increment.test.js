@@ -4,20 +4,20 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../support');
+const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
-const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('increment', () => {
     describe('options tests', () => {
       const Model = current.define('User', {
         id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           primaryKey: true,
           autoIncrement: true,
         },
-        count: Sequelize.BIGINT,
+        count: DataTypes.BIGINT,
       });
 
       it('should reject if options are missing', async () => {

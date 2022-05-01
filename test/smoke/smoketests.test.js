@@ -4,13 +4,10 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../integration/support');
-const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 const sinon = require('sinon');
 
-const Op = Sequelize.Op;
-const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
@@ -304,8 +301,8 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
 
   describe('belongsTo and hasMany at once', () => {
     beforeEach(function () {
-      this.A = this.sequelize.define('a', { name: Sequelize.STRING });
-      this.B = this.sequelize.define('b', { name: Sequelize.STRING });
+      this.A = this.sequelize.define('a', { name: DataTypes.STRING });
+      this.B = this.sequelize.define('b', { name: DataTypes.STRING });
     });
 
     describe('target belongs to source', () => {
@@ -434,17 +431,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User = this.sequelize.define('User', {
           id3: {
             field: 'id',
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
           },
           id: {
             field: 'id2',
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
           },
           id2: {
             field: 'id3',
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
           },
         });

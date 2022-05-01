@@ -1,9 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../../support');
 
@@ -12,17 +11,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('count', () => {
       beforeEach(async function () {
         this.Child = this.sequelize.define('Child', {
-          priority: Sequelize.INTEGER,
+          priority: DataTypes.INTEGER,
         });
         this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: Sequelize.STRING,
-          email: Sequelize.STRING,
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
           aliasValue: {
             field: 'alias_value',
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
           },
-          access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
         }, {
           defaultScope: {
             where: {

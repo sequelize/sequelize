@@ -1,16 +1,18 @@
 'use strict';
 
+import { removeTrailingSemicolon } from '../../utils';
+
 const Utils = require('../../utils');
 const util = require('util');
 const _ = require('lodash');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const DataTypes = require('../../data-types');
-const Model = require('../../model');
+const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
-class IBMiQueryGenerator extends AbstractQueryGenerator {
+export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
   // Version queries
   versionQuery() {
@@ -258,7 +260,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
+          str += util.format(' = %s', this.escape(smth.value, undefined, { replacements: options.replacements }));
         }
 
         return str;
@@ -284,7 +286,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     if (value !== null && value !== undefined) {
       if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value);
+        return this.handleSequelizeMethod(value, undefined, undefined, options);
       }
 
       if (field && field.type) {
@@ -440,6 +442,18 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
   //   return value;
   // }
 
+  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
+    const out = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
+
+    out.query = removeTrailingSemicolon(out.query);
+
+    return out;
+  }
+
+  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+    return removeTrailingSemicolon(super.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options));
+  }
+
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const aliasTable = `temp_${this.quoteTable(tableName)}`;
 
@@ -494,11 +508,6 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   deleteQuery(tableName, where, options = {}, model) {
-    let limit = '';
-    if (options.offset || options.limit) {
-      limit = this.addLimitAndOffset(options);
-    }
-
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
     where = this.getWhereConditions(where, null, model, options);
@@ -507,7 +516,11 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
       query += ` WHERE ${where}`;
     }
 
-    return query + limit;
+    if (options.offset || options.limit) {
+      query += this.addLimitAndOffset(options, model);
+    }
+
+    return query;
   }
 
   /**
@@ -519,19 +532,13 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
    */
   addLimitAndOffset(options) {
     let fragment = '';
-    const offset = options.offset;
-    const limit = options.limit;
 
-    if (offset) {
-      if (typeof offset === 'number' && Number.isSafeInteger(offset)) {
-        fragment += ` OFFSET ${offset} ROWS`;
-      } else {
-        console.warn('"offset" must be an integer. Offset is not added');
-      }
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)} ROWS`;
     }
 
-    if (limit) {
-      fragment += ` FETCH NEXT ${limit} ROWS ONLY`;
+    if (options.limit) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
     }
 
     return fragment;
@@ -656,7 +663,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
       }
 
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
-        return this.escape(value);
+        return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
       template = attribute.type.toString(options);
@@ -682,7 +689,7 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
         attribute.defaultValue = 0;
       }
 
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
@@ -841,5 +848,3 @@ class IBMiQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-exports.QueryGenerator = IBMiQueryGenerator;

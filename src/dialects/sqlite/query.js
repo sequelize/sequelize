@@ -1,8 +1,10 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('sqlite');
@@ -10,40 +12,9 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
-class Query extends AbstractQuery {
+export class SqliteQuery extends AbstractQuery {
   getInsertIdField() {
     return 'lastID';
-  }
-
-  /**
-   * rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = {};
-      for (const [i, v] of values.entries()) {
-        bindParam[`$${i + 1}`] = v;
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = {};
-      if (typeof values === 'object') {
-        for (const k of Object.keys(values)) {
-          bindParam[`$${k}`] = values[k];
-        }
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    }
-
-    return [sql, bindParam];
   }
 
   _collectModels(include, prefix) {
@@ -274,6 +245,16 @@ class Query extends AbstractQuery {
             parameters = [];
           }
 
+          if (isPlainObject(parameters)) {
+            const newParameters = Object.create(null);
+
+            for (const key of Object.keys(parameters)) {
+              newParameters[`$${key}`] = parameters[key];
+            }
+
+            parameters = newParameters;
+          }
+
           conn[method](sql, parameters, afterExecute);
 
           return null;
@@ -392,7 +373,7 @@ class Query extends AbstractQuery {
       case 'SQLITE_CONSTRAINT': {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
           return new sequelizeErrors.ForeignKeyConstraintError({
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }
@@ -436,7 +417,7 @@ class Query extends AbstractQuery {
           });
         }
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
       }
 
       case 'SQLITE_BUSY':
@@ -475,7 +456,3 @@ class Query extends AbstractQuery {
     return 'all';
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

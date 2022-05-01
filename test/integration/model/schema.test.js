@@ -6,10 +6,9 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const Op = Support.Sequelize.Op;
 
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';
@@ -65,7 +64,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('Add data via model.create, retrieve via model.findOne', () => {
         it('should be able to sync model without schema option', function () {
-          expect(this.RestaurantOne._schema).to.be.null;
+          expect(this.RestaurantOne._schema).to.eq('');
           expect(this.RestaurantTwo._schema).to.equal(SCHEMA_TWO);
         });
 

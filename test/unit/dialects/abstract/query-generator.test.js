@@ -7,7 +7,8 @@ const { Op } = require('@sequelize/core');
 const Support = require('../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
-const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
+const { expectsql } = require('../../../support');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -122,10 +123,15 @@ describe('QueryGenerator', () => {
         .should.be.equal('foo IS NOT NULL');
     });
 
-    it('should correctly escape $ in sequelize.fn arguments', function () {
+    // this was a band-aid over a deeper problem ('$bind' being considered to be a bind parameter when it's a string), which has been fixed
+    it('should not escape $ in fn() arguments', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
-      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.include('$$user');
+      const out = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'));
+
+      expectsql(out, {
+        default: `upper('$user')`,
+        mssql: `upper(N'$user')`,
+      });
     });
   });
 

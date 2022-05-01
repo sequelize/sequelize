@@ -1,5 +1,10 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+import { noSequelizeDataType } from './utils/deprecations';
+import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { injectReplacements, mapBindParameters } from './utils/sql';
+
 const url = require('url');
 const path = require('path');
 const pgConnectionString = require('pg-connection-string');
@@ -7,30 +12,30 @@ const retry = require('retry-as-promised');
 const _ = require('lodash');
 
 const Utils = require('./utils');
-const Model = require('./model');
+const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
-const ModelManager = require('./model-manager');
+const { ModelManager } = require('./model-manager');
 const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
 const Hooks = require('./hooks');
-const Association = require('./associations/index');
+const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { QueryInterface } = require('./dialects/abstract/query-interface');
 const { BelongsTo } = require('./associations/belongs-to');
-const HasOne = require('./associations/has-one');
+const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
 
 /**
  * This is the main class, the entry point to sequelize.
  */
-class Sequelize {
+export class Sequelize {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -333,31 +338,31 @@ class Sequelize {
     // require calls static. (Browserify fix)
     switch (this.getDialect()) {
       case 'mariadb':
-        Dialect = require('./dialects/mariadb');
+        Dialect = require('./dialects/mariadb').MariaDbDialect;
         break;
       case 'mssql':
-        Dialect = require('./dialects/mssql');
+        Dialect = require('./dialects/mssql').MssqlDialect;
         break;
       case 'mysql':
-        Dialect = require('./dialects/mysql');
+        Dialect = require('./dialects/mysql').MysqlDialect;
         break;
       case 'postgres':
-        Dialect = require('./dialects/postgres');
+        Dialect = require('./dialects/postgres').PostgresDialect;
         break;
       case 'sqlite':
-        Dialect = require('./dialects/sqlite');
+        Dialect = require('./dialects/sqlite').SqliteDialect;
         break;
       case 'ibmi':
-        Dialect = require('./dialects/ibmi');
+        Dialect = require('./dialects/ibmi').IBMiDialect;
         break;
       case 'db2':
-        Dialect = require('./dialects/db2');
+        Dialect = require('./dialects/db2').Db2Dialect;
         break;
       case 'snowflake':
-        Dialect = require('./dialects/snowflake');
+        Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
 
     this.dialect = new Dialect(this);
@@ -437,7 +442,7 @@ class Sequelize {
    * @example
    * sequelize.define('modelName', {
    *   columnA: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       validate: {
    *         is: ["[a-z]",'i'],        // will only allow letters
    *         max: 23,                  // only allow values <= 23
@@ -448,7 +453,7 @@ class Sequelize {
    *       },
    *       field: 'column_a'
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * });
    *
@@ -531,9 +536,71 @@ class Sequelize {
    *
    * @see {@link Model.build} for more information about instance option.
    */
-
   async query(sql, options) {
     options = { ...this.options.query, ...options };
+
+    if (typeof sql === 'object') {
+      throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
+    }
+
+    sql = sql.trim();
+
+    if (options.replacements) {
+      sql = injectReplacements(sql, this.dialect, options.replacements);
+    }
+
+    // queryRaw will throw if 'replacements' is specified, as a way to warn users that they are miusing the method.
+    delete options.replacements;
+
+    return this.queryRaw(sql, options);
+  }
+
+  async queryRaw(sql, options) {
+    if (typeof sql !== 'string') {
+      throw new TypeError('Sequelize#rawQuery requires a string as the first parameter.');
+    }
+
+    if (options != null && 'replacements' in options) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
+Only bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements.`);
+    }
+
+    options = { ...this.options.query, ...options };
+
+    let bindParameters;
+    if (options.bind != null) {
+      const isBindArray = Array.isArray(options.bind);
+      if (!isPlainObject(options.bind) && !isBindArray) {
+        throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
+      }
+
+      const mappedResult = mapBindParameters(sql, this.dialect);
+
+      for (const parameterName of mappedResult.parameterSet) {
+        if (isBindArray) {
+          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+            throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+          }
+        } else if (!(parameterName in options.bind)) {
+          throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+        }
+      }
+
+      sql = mappedResult.sql;
+
+      if (mappedResult.bindOrder == null) {
+        bindParameters = options.bind;
+      } else {
+        bindParameters = mappedResult.bindOrder.map(key => {
+          if (isBindArray) {
+            return options.bind[key - 1];
+          }
+
+          return options.bind[key];
+        });
+      }
+    }
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;
@@ -574,48 +641,6 @@ class Sequelize {
       // if user wants to always prepend searchPath (dialectOptions.preprendSearchPath = true)
       // then set to DEFAULT if none is provided
       options.searchPath = 'DEFAULT';
-    }
-
-    if (typeof sql === 'object') {
-      if (sql.values !== undefined) {
-        if (options.replacements !== undefined) {
-          throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
-        }
-
-        options.replacements = sql.values;
-      }
-
-      if (sql.bind !== undefined) {
-        if (options.bind !== undefined) {
-          throw new Error('Both `sql.bind` and `options.bind` cannot be set at the same time');
-        }
-
-        options.bind = sql.bind;
-      }
-
-      if (sql.query !== undefined) {
-        sql = sql.query;
-      }
-    }
-
-    sql = sql.trim();
-
-    if (options.replacements && options.bind) {
-      throw new Error('Both `replacements` and `bind` cannot be set at the same time');
-    }
-
-    if (options.replacements) {
-      if (Array.isArray(options.replacements)) {
-        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
-      } else {
-        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
-      }
-    }
-
-    let bindParameters;
-
-    if (options.bind) {
-      [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
     }
 
     const checkTransaction = () => {
@@ -928,143 +953,25 @@ class Sequelize {
     return this.fn('RAND');
   }
 
-  /**
-   * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
-   * If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
-   *
-   * @see
-   * {@link Model.findAll}
-   * @see
-   * {@link Sequelize.define}
-   * @see
-   * {@link Sequelize.col}
-   *
-   * @param {string} fn The function you want to call
-   * @param {any} args All further arguments will be passed as arguments to the function
-   *
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   * @returns {Sequelize.fn}
-   *
-   * @example <caption>Convert a user's username to upper case</caption>
-   * instance.update({
-   *   username: sequelize.fn('upper', sequelize.col('username'))
-   * });
-   */
-  static fn(fn, ...args) {
-    return new Utils.Fn(fn, args);
-  }
+  static fn = fn;
 
-  /**
-   * Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
-   *
-   * @see
-   * {@link Sequelize#fn}
-   *
-   * @param {string} col The name of the column
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.col}
-   */
-  static col(col) {
-    return new Utils.Col(col);
-  }
+  static col = col;
 
-  /**
-   * Creates an object representing a call to the cast function.
-   *
-   * @param {any} val The value to cast
-   * @param {string} type The type to cast it to
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.cast}
-   */
-  static cast(val, type) {
-    return new Utils.Cast(val, type);
-  }
+  static cast = cast;
 
-  /**
-   * Creates an object representing a literal, i.e. something that will not be escaped.
-   *
-   * @param {any} val literal value
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.literal}
-   */
-  static literal(val) {
-    return new Utils.Literal(val);
-  }
+  static literal = literal;
 
-  /**
-   * An AND query
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {...string|object} args Each argument will be joined by AND
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.and}
-   */
-  static and(...args) {
-    return { [Op.and]: args };
-  }
+  static and = and;
 
-  /**
-   * An OR query
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {...string|object} args Each argument will be joined by OR
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.or}
-   */
-  static or(...args) {
-    return { [Op.or]: args };
-  }
+  static or = or;
 
-  /**
-   * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {string|object} conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
-   * @param {string|number|boolean} [value] An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.json}
-   */
-  static json(conditionsOrPath, value) {
-    return new Utils.Json(conditionsOrPath, value);
-  }
+  static json = json;
 
-  /**
-   * A way of specifying attr = condition.
-   *
-   * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
-   * attribute should be defined in your model definition. The attribute can also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
-   *
-   * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your string to be escaped, use `sequelize.literal`.
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {object} attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the POJO syntax
-   * @param {symbol} [comparator='Op.eq'] operator
-   * @param {string|object} logic The condition. Can be both a simply type, or a further condition (`or`, `and`, `.literal` etc.)
-   * @since v2.0.0-dev3
-   */
-  static where(attr, comparator, logic) {
-    return new Utils.Where(attr, comparator, logic);
-  }
+  static where = where;
+
+  static isModelStatic = isModelStatic;
+
+  static isSameInitialModel = isSameInitialModel;
 
   /**
    * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
@@ -1385,8 +1292,14 @@ Sequelize.HasMany = HasMany;
 Sequelize.BelongsToMany = BelongsToMany;
 
 Sequelize.DataTypes = DataTypes;
-for (const dataType in DataTypes) {
-  Sequelize[dataType] = DataTypes[dataType];
+for (const dataTypeName in DataTypes) {
+  Object.defineProperty(Sequelize, dataTypeName, {
+    get() {
+      noSequelizeDataType();
+
+      return DataTypes[dataTypeName];
+    },
+  });
 }
 
 /**
@@ -1429,6 +1342,133 @@ for (const error of Object.keys(sequelizeErrors)) {
   Sequelize[error] = sequelizeErrors[error];
 }
 
-module.exports = Sequelize;
-module.exports.Sequelize = Sequelize;
-module.exports.default = Sequelize;
+/**
+ * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
+ * If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
+ *
+ * @see Model.findAll
+ * @see Sequelize.define
+ * @see Sequelize.col
+ *
+ * @param {string} fn The function you want to call
+ * @param {any} args All further arguments will be passed as arguments to the function
+ *
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ * @returns {Sequelize.fn}
+ *
+ * @example <caption>Convert a user's username to upper case</caption>
+ * instance.update({
+ *   username: sequelize.fn('upper', sequelize.col('username'))
+ * });
+ */
+export function fn(fn, ...args) {
+  return new Utils.Fn(fn, args);
+}
+
+/**
+ * Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
+ *
+ * @see Sequelize#fn
+ *
+ * @param {string} col The name of the column
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.col}
+ */
+export function col(col) {
+  return new Utils.Col(col);
+}
+
+/**
+ * Creates an object representing a call to the cast function.
+ *
+ * @param {any} val The value to cast
+ * @param {string} type The type to cast it to
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.cast}
+ */
+export function cast(val, type) {
+  return new Utils.Cast(val, type);
+}
+
+/**
+ * Creates an object representing a literal, i.e. something that will not be escaped.
+ *
+ * @param {any} val literal value
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.literal}
+ */
+export function literal(val) {
+  return new Utils.Literal(val);
+}
+
+/**
+ * An AND query
+ *
+ * @see Model.findAll
+ *
+ * @param {...string|object} args Each argument will be joined by AND
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.and}
+ */
+export function and(...args) {
+  return { [Op.and]: args };
+}
+
+/**
+ * An OR query
+ *
+ * @see
+ * {@link Model.findAll}
+ *
+ * @param {...string|object} args Each argument will be joined by OR
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.or}
+ */
+export function or(...args) {
+  return { [Op.or]: args };
+}
+
+/**
+ * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
+ *
+ * @see Model.findAll
+ *
+ * @param {string|object} conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
+ * @param {string|number|boolean} [value] An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.json}
+ */
+export function json(conditionsOrPath, value) {
+  return new Utils.Json(conditionsOrPath, value);
+}
+
+/**
+ * A way of specifying attr = condition.
+ *
+ * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
+ * attribute should be defined in your model definition. The attribute can also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
+ *
+ * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your string to be escaped, use `sequelize.literal`.
+ *
+ * @see Model.findAll
+ *
+ * @param {object} attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the POJO syntax
+ * @param {symbol} [comparator='Op.eq'] operator
+ * @param {string|object} logic The condition. Can be both a simply type, or a further condition (`or`, `and`, `.literal` etc.)
+ * @since v2.0.0-dev3
+ */
+export function where(attr, comparator, logic) {
+  return new Utils.Where(attr, comparator, logic);
+}

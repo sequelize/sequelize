@@ -3,10 +3,10 @@
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const MySqlQueryGenerator = require('../mysql/query-generator');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-class SQLiteQueryGenerator extends MySqlQueryGenerator {
+export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchema() {
     return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }
@@ -75,6 +75,22 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
 
     return this.replaceBooleanDefaults(sql);
+  }
+
+  addLimitAndOffset(options, model) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT -1`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+    }
+
+    return fragment;
   }
 
   booleanValue(value) {
@@ -189,8 +205,8 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
 
     const modelAttributeMap = {};
     const values = [];
-    const bind = [];
-    const bindParam = options.bindParam || this.bindParam(bind);
+    const bind = Object.create(null);
+    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (attributes) {
       _.each(attributes, (attribute, key) => {
@@ -205,9 +221,9 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
       const value = attrValueHash[key];
 
       if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' })}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
       }
     }
 
@@ -215,12 +231,17 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const whereOptions = { ...options, bindParam };
 
     if (options.limit) {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit)})`;
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
     } else {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`;
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
     }
 
-    return { query, bind };
+    const result = { query };
+    if (options.bindParam !== false) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   truncateTableQuery(tableName, options = {}) {
@@ -240,13 +261,13 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     }
 
     if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit)})`;
+      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, undefined, options)})`;
     }
 
-    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`;
+    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
   }
 
-  attributesToSQL(attributes) {
+  attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {
       const dataType = attributes[name];
@@ -263,7 +284,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType)}`;
+          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType, options)}`;
         }
 
         if (dataType.unique === true) {
@@ -501,5 +522,3 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return `json_extract(${quotedColumn},${pathStr})`;
   }
 }
-
-module.exports = SQLiteQueryGenerator;

@@ -1,14 +1,16 @@
 'use strict';
 
+import { createNamedParamBindCollector, createSpecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
+const { MsSqlConnectionManager } = require('./connection-manager');
+const { MsSqlQuery } = require('./query');
+const { MsSqlQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').mssql;
-const { MSSqlQueryInterface } = require('./query-interface');
+const { MsSqlQueryInterface } = require('./query-interface');
 
-class MssqlDialect extends AbstractDialect {
+export class MssqlDialect extends AbstractDialect {
   static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
@@ -39,15 +41,19 @@ class MssqlDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
-    this.queryGenerator = new QueryGenerator({
+    this.connectionManager = new MsSqlConnectionManager(this, sequelize);
+    this.queryGenerator = new MsSqlQueryGenerator({
       _dialect: this,
       sequelize,
     });
-    this.queryInterface = new MSSqlQueryInterface(
+    this.queryInterface = new MsSqlQueryInterface(
       sequelize,
       this.queryGenerator,
     );
+  }
+
+  createBindCollector() {
+    return createNamedParamBindCollector('@');
   }
 }
 
@@ -58,11 +64,9 @@ class MssqlDialect extends AbstractDialect {
 // and set the relevant years for the mssql Docker images in the ci.yml file at
 //   .github/workflows/ci.yml
 MssqlDialect.prototype.defaultVersion = '14.0.1000';
-MssqlDialect.prototype.Query = Query;
+MssqlDialect.prototype.Query = MsSqlQuery;
 MssqlDialect.prototype.name = 'mssql';
 MssqlDialect.prototype.TICK_CHAR = '"';
 MssqlDialect.prototype.TICK_CHAR_LEFT = '[';
 MssqlDialect.prototype.TICK_CHAR_RIGHT = ']';
 MssqlDialect.prototype.DataTypes = DataTypes;
-
-module.exports = MssqlDialect;

@@ -1,6 +1,8 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+import assert from 'node:assert';
+
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
 const _ = require('lodash');
@@ -9,7 +11,7 @@ const moment = require('moment');
 
 const debug = logger.debugContext('sql:db2');
 
-class Query extends AbstractQuery {
+export class Db2Query extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -26,6 +28,8 @@ class Query extends AbstractQuery {
   }
 
   async _run(connection, sql, parameters) {
+    assert(typeof sql === 'string', `sql parameter must be a string`);
+
     this.sql = sql;
     const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
     let queryBegin;
@@ -180,25 +184,6 @@ class Query extends AbstractQuery {
 
   async run(sql, parameters) {
     return await this._run(this.connection, sql, parameters);
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam = {};
-    const replacementFunc = (match, key, values) => {
-      if (values[key] !== undefined) {
-        bindParam[key] = values[key];
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    if (Array.isArray(values) && typeof values[0] === 'object') {
-      bindParam = values;
-    }
-
-    return [sql, bindParam];
   }
 
   filterSQLError(err, sql, connection) {
@@ -413,7 +398,7 @@ class Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/SQL0532N {2}A parent row cannot be deleted because the relationship "(.*)" restricts the deletion/)
@@ -423,7 +408,7 @@ class Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -438,7 +423,7 @@ class Query extends AbstractQuery {
         message: match[0],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -530,7 +515,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;
