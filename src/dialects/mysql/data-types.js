@@ -139,7 +139,7 @@ module.exports = BaseTypes => {
 
   class ENUM extends BaseTypes.ENUM {
     toSql(options) {
-      return `ENUM(${this.values.map(value => options.escape(value)).join(', ')})`;
+      return `ENUM(${this.options.values.map(value => options.escape(value)).join(', ')})`;
     }
   }
 

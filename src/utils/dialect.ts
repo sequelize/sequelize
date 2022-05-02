@@ -1,8 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
-
-const DataTypes = require('../data-types');
+import * as DataTypes from '../dialects/abstract/data-types.js';
 
 const dialectsSupportingMilliseconds = new Set([
   'mariadb',
@@ -28,7 +26,7 @@ export function now(dialect: string): Date {
 export function toDefaultValue(value: unknown, dialect: string): unknown {
   if (typeof value === 'function') {
     const tmp = value();
-    if (tmp instanceof DataTypes.ABSTRACT) {
+    if (tmp instanceof DataTypes.AbstractDataType) {
       return tmp.toSql();
     }
 

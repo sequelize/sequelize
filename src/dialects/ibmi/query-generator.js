@@ -298,9 +298,9 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
             field.type.escape = false;
           }
 
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
+          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this._dialect);
 
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
+          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
 
           if (field.type.escape === false) {
             // The data-type already did the required escaping
@@ -312,7 +312,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     const format = (value === null && options.where);
 
-    return SqlString.escape(value, this.options.timezone, this.dialect, format);
+    return SqlString.escape(value, this.options.timezone, this._dialect, format);
   }
 
   /*
@@ -652,17 +652,13 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
       template = attribute.type.toSql();
       if (options && options.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
 
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {

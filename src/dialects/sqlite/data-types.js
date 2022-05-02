@@ -1,5 +1,7 @@
 'use strict';
 
+import { kIsDataTypeOverrideOf } from '../../dialect-toolbox';
+
 module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
 
@@ -43,7 +45,15 @@ module.exports = BaseTypes => {
   BaseTypes.GEOMETRY.types.sqlite = false;
   BaseTypes.JSON.types.sqlite = ['JSON', 'JSONB'];
 
-  class JSONTYPE extends BaseTypes.JSON {
+  class BOOLEAN extends BaseTypes.BOOLEAN {
+    static [kIsDataTypeOverrideOf] = BaseTypes.BOOLEAN;
+
+    stringify(value) {
+      return value ? '1' : '0';
+    }
+  }
+
+  class JSON extends BaseTypes.JSON {
     static parse(data) {
       return JSON.parse(data);
     }
@@ -216,7 +226,8 @@ module.exports = BaseTypes => {
     BIGINT,
     TEXT,
     ENUM,
-    JSON: JSONTYPE,
+    JSON,
     CITEXT,
+    BOOLEAN,
   };
 };

@@ -2,6 +2,7 @@
 
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
+import { escapeMysqlString } from '../mysql/mysql-utils';
 
 const _ = require('lodash');
 const { MariaDbConnectionManager } = require('./connection-manager');
@@ -37,7 +38,6 @@ export class MariaDbDialect extends AbstractDialect {
       },
       indexViaAlter: true,
       indexHints: true,
-      NUMERIC: true,
       GEOMETRY: true,
       JSON: true,
       REGEXP: true,
@@ -60,6 +60,10 @@ export class MariaDbDialect extends AbstractDialect {
 
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
+  }
+
+  escapeString(value) {
+    return escapeMysqlString(value);
   }
 }
 

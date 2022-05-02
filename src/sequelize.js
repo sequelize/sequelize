@@ -1,12 +1,14 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { AbstractDataType } from './dialects/abstract/data-types';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 
 const url = require('url');
 const path = require('path');
+const NodeUtils = require('util');
 const pgConnectionString = require('pg-connection-string');
 const retry = require('retry-as-promised');
 const _ = require('lodash');
@@ -1148,24 +1150,19 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeDataType(Type) {
-    let type = typeof Type === 'function' ? new Type() : Type;
-    const dialectTypes = this.dialect.DataTypes || {};
-
-    if (dialectTypes[type.key]) {
-      type = dialectTypes[type.key].extend(type);
+    if (typeof Type === 'string') {
+      return Type;
     }
 
-    if (type instanceof DataTypes.ARRAY) {
-      if (!type.type) {
-        throw new Error('ARRAY is missing type definition for its values.');
-      }
-
-      if (dialectTypes[type.type.key]) {
-        type.type = dialectTypes[type.type.key].extend(type.type);
-      }
+    if (typeof Type !== 'function' && !(Type instanceof AbstractDataType)) {
+      throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
     }
 
-    return type;
+    const type = typeof Type === 'function'
+      ? new Type()
+      : Type;
+
+    return type.toDialectDataType(this.dialect);
   }
 
   normalizeAttribute(attribute) {
@@ -1185,17 +1182,25 @@ Use Sequelize#query if you wish to use replacements.`);
       attribute.defaultValue = new attribute.defaultValue();
     }
 
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // The ENUM is a special case where the type is an object containing the values
-      if (attribute.values) {
-        attribute.type.values = attribute.type.options.values = attribute.values;
-      } else {
-        attribute.values = attribute.type.values;
-      }
+    if (attribute.type instanceof DataTypes.ENUM && attribute.values) {
+      throw new TypeError(`
+DataTypes.ENUM: Specifying enum values like the following has been removed:
 
-      if (attribute.values.length === 0) {
-        throw new Error('Values for ENUM have not been defined.');
-      }
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+        `.trim());
     }
 
     return attribute;

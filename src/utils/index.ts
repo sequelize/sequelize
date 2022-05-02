@@ -3,7 +3,6 @@ import { getComplexKeys } from './format';
 
 export * from './array';
 export * from './check';
-export * from './class-to-invokable';
 export * from './dialect';
 export * from './format';
 export * from './join-sql-fragments';
@@ -82,3 +81,5 @@ export type MakeNullishOptional<T extends object> = Optional<T, NullishPropertie
 export type Nullish<T> = T | null | undefined;
 export type AllowArray<T> = T | T[];
 export type AllowReadonlyArray<T> = T | readonly T[];
+
+export type ConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? P : never })[keyof T];

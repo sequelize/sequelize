@@ -458,11 +458,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
     ) {
       const enumType = attribute.type.type || attribute.type;
-      let values = attribute.values;
-
-      if (enumType.values && !attribute.values) {
-        values = enumType.values;
-      }
+      const values = enumType.options.values;
 
       if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
@@ -788,8 +784,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const enumName = this.pgEnumName(tableName, attr, options);
     let values;
 
-    if (dataType.values) {
-      values = `ENUM(${dataType.values.map(value => this.escape(value)).join(', ')})`;
+    if (dataType.options.values) {
+      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
     } else {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }

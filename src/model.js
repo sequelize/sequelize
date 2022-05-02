@@ -1170,76 +1170,80 @@ export class Model {
     this.uniqueKeys = Object.create(null);
 
     _.each(this.rawAttributes, (definition, name) => {
-      definition.type = this.sequelize.normalizeDataType(definition.type);
+      try {
+        definition.type = this.sequelize.normalizeDataType(definition.type);
 
-      definition.Model = this;
-      definition.fieldName = name;
-      definition._modelAttribute = true;
+        definition.Model = this;
+        definition.fieldName = name;
+        definition._modelAttribute = true;
 
-      if (definition.field === undefined) {
-        definition.field = Utils.underscoredIf(name, this.underscored);
-      }
-
-      if (definition.primaryKey === true) {
-        this.primaryKeys[name] = definition;
-      }
-
-      this.fieldRawAttributesMap[definition.field] = definition;
-
-      if (definition.type instanceof DataTypes.BOOLEAN) {
-        this._hasBooleanAttributes = true;
-      } else if (definition.type instanceof DataTypes.DATE || definition.type instanceof DataTypes.DATEONLY) {
-        this._hasDateAttributes = true;
-      } else if (definition.type instanceof DataTypes.JSON) {
-        this._jsonAttributes.add(name);
-      } else if (definition.type instanceof DataTypes.VIRTUAL) {
-        this._virtualAttributes.add(name);
-      }
-
-      if (Object.prototype.hasOwnProperty.call(definition, 'defaultValue')) {
-        this._defaultValues[name] = () => Utils.toDefaultValue(definition.defaultValue, this.sequelize.options.dialect);
-      }
-
-      if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
-        let idxName;
-        if (
-          typeof definition.unique === 'object'
-          && Object.prototype.hasOwnProperty.call(definition.unique, 'name')
-        ) {
-          idxName = definition.unique.name;
-        } else if (typeof definition.unique === 'string') {
-          idxName = definition.unique;
-        } else {
-          idxName = `${this.tableName}_${name}_unique`;
+        if (definition.field === undefined) {
+          definition.field = Utils.underscoredIf(name, this.underscored);
         }
 
-        const idx = this.uniqueKeys[idxName] || { fields: [] };
+        if (definition.primaryKey === true) {
+          this.primaryKeys[name] = definition;
+        }
 
-        idx.fields.push(definition.field);
-        idx.msg = idx.msg || definition.unique.msg || null;
-        idx.name = idxName || false;
-        idx.column = name;
-        idx.customIndex = definition.unique !== true;
+        this.fieldRawAttributesMap[definition.field] = definition;
 
-        this.uniqueKeys[idxName] = idx;
-      }
+        if (definition.type instanceof DataTypes.BOOLEAN) {
+          this._hasBooleanAttributes = true;
+        } else if (definition.type instanceof DataTypes.DATE || definition.type instanceof DataTypes.DATEONLY) {
+          this._hasDateAttributes = true;
+        } else if (definition.type instanceof DataTypes.JSON) {
+          this._jsonAttributes.add(name);
+        } else if (definition.type instanceof DataTypes.VIRTUAL) {
+          this._virtualAttributes.add(name);
+        }
 
-      if (Object.prototype.hasOwnProperty.call(definition, 'validate')) {
-        this.prototype.validators[name] = definition.validate;
-      }
+        if (Object.prototype.hasOwnProperty.call(definition, 'defaultValue')) {
+          this._defaultValues[name] = () => Utils.toDefaultValue(definition.defaultValue, this.sequelize.options.dialect);
+        }
 
-      if (definition.index === true && definition.type instanceof DataTypes.JSONB) {
-        this._indexes.push(
-          Utils.nameIndex(
-            this._conformIndex({
-              fields: [definition.field || name],
-              using: 'gin',
-            }),
-            this.getTableName(),
-          ),
-        );
+        if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
+          let idxName;
+          if (
+            typeof definition.unique === 'object'
+          && Object.prototype.hasOwnProperty.call(definition.unique, 'name')
+          ) {
+            idxName = definition.unique.name;
+          } else if (typeof definition.unique === 'string') {
+            idxName = definition.unique;
+          } else {
+            idxName = `${this.tableName}_${name}_unique`;
+          }
 
-        delete definition.index;
+          const idx = this.uniqueKeys[idxName] || { fields: [] };
+
+          idx.fields.push(definition.field);
+          idx.msg = idx.msg || definition.unique.msg || null;
+          idx.name = idxName || false;
+          idx.column = name;
+          idx.customIndex = definition.unique !== true;
+
+          this.uniqueKeys[idxName] = idx;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(definition, 'validate')) {
+          this.prototype.validators[name] = definition.validate;
+        }
+
+        if (definition.index === true && definition.type instanceof DataTypes.JSONB) {
+          this._indexes.push(
+            Utils.nameIndex(
+              this._conformIndex({
+                fields: [definition.field || name],
+                using: 'gin',
+              }),
+              this.getTableName(),
+            ),
+          );
+
+          delete definition.index;
+        }
+      } catch (error) {
+        throw new TypeError(`An error occured while normalizing attribute ${this.name}#${name}.`, { cause: error });
       }
     });
 

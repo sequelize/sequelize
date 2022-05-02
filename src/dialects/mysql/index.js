@@ -2,6 +2,7 @@
 
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
+import { escapeMysqlString } from './mysql-utils';
 
 const _ = require('lodash');
 const { MySqlConnectionManager } = require('./connection-manager');
@@ -36,7 +37,6 @@ export class MysqlDialect extends AbstractDialect {
       },
       indexViaAlter: true,
       indexHints: true,
-      NUMERIC: true,
       GEOMETRY: true,
       JSON: true,
       REGEXP: true,
@@ -60,6 +60,10 @@ export class MysqlDialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  escapeString(value) {
+    return escapeMysqlString(value);
+  }
 }
 
 MysqlDialect.prototype.defaultVersion = '5.7.0'; // minimum supported version
@@ -70,3 +74,4 @@ MysqlDialect.prototype.name = 'mysql';
 MysqlDialect.prototype.TICK_CHAR = '`';
 MysqlDialect.prototype.TICK_CHAR_LEFT = MysqlDialect.prototype.TICK_CHAR;
 MysqlDialect.prototype.TICK_CHAR_RIGHT = MysqlDialect.prototype.TICK_CHAR;
+

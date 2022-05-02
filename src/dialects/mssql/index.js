@@ -34,7 +34,6 @@ export class MssqlDialect extends AbstractDialect {
       using: false,
       where: true,
     },
-    NUMERIC: true,
     tmpTableTrigger: true,
   });
 
@@ -54,6 +53,14 @@ export class MssqlDialect extends AbstractDialect {
 
   createBindCollector() {
     return createNamedParamBindCollector('@');
+  }
+
+  escapeString(value) {
+    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
+    // http://stackoverflow.com/q/603572/130598
+    value = value.replace(/'/g, '\'\'');
+
+    return `N'${value}'`;
   }
 }
 

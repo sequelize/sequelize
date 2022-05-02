@@ -66,13 +66,19 @@ if (current.dialect.supports.JSON) {
 
           if (current.dialect.supports.JSONB) {
             it('array of JSONB', () => {
-              expectsql(sql.escape([
-                { some: 'nested', more: { nested: true }, answer: 42 },
-                43,
-                'joe',
-              ], { type: DataTypes.ARRAY(DataTypes.JSONB) }), {
-                postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
-              });
+              expectsql(
+                sql.escape(
+                  [
+                    { some: 'nested', more: { nested: true }, answer: 42 },
+                    43,
+                    'joe',
+                  ],
+                  { type: DataTypes.ARRAY(DataTypes.JSONB) },
+                ),
+                {
+                  postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+                },
+              );
             });
           }
         }

@@ -1,4 +1,7 @@
+import type { Class } from 'type-fest';
+import { kIsDataTypeOverrideOf } from '../../dialect-toolbox.js';
 import type { Dialect } from '../../sequelize.js';
+import type { AbstractDataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
@@ -83,7 +86,6 @@ export type DialectSupports = {
   JSONB: boolean,
   ARRAY: boolean,
   RANGE: boolean,
-  NUMERIC: boolean,
   GEOMETRY: boolean,
   GEOGRAPHY: boolean,
   REGEXP: boolean,
@@ -170,7 +172,6 @@ export abstract class AbstractDialect {
     indexViaAlter: false,
     JSON: false,
     JSONB: false,
-    NUMERIC: false,
     ARRAY: false,
     RANGE: false,
     GEOMETRY: false,
@@ -185,13 +186,48 @@ export abstract class AbstractDialect {
     searchPath: false,
   };
 
-  declare readonly defaultVersion: string;
-  declare readonly Query: typeof AbstractQuery;
-  declare readonly name: Dialect;
-  declare readonly TICK_CHAR: string;
-  declare readonly TICK_CHAR_LEFT: string;
-  declare readonly TICK_CHAR_RIGHT: string;
-  declare readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly defaultVersion: string;
+  abstract readonly Query: typeof AbstractQuery;
+  abstract readonly name: Dialect;
+  abstract readonly TICK_CHAR: string;
+  abstract readonly TICK_CHAR_LEFT: string;
+  abstract readonly TICK_CHAR_RIGHT: string;
+  abstract readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
+
+  #dataTypeOverridesCache: Map<Class<AbstractDataType<any>>, Class<AbstractDataType<any>>> | undefined;
+
+  /**
+   * A map that lists the dialect-specific data-type extensions.
+   *
+   * e.g. in
+   */
+  get dataTypeOverrides(): Map<Class<AbstractDataType<any>>, Class<AbstractDataType<any>>> {
+    if (this.#dataTypeOverridesCache) {
+      return this.#dataTypeOverridesCache;
+    }
+
+    const dataTypes = this.DataTypes;
+
+    const overrides = new Map();
+    for (const dataType of Object.values(dataTypes)) {
+      // @ts-expect-error
+      const replacedDataType: Class<AbstractDataType<any>> = dataType[kIsDataTypeOverrideOf];
+      if (!replacedDataType) {
+        throw new Error(`Dialect ${this.name} declares a DataType ${dataType.name}, but does not specify which base DataType it is the dialect-specific implementation of.`);
+      }
+
+      if (overrides.has(replacedDataType)) {
+        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ${replacedDataType.name}.`);
+      }
+
+      overrides.set(replacedDataType, dataType);
+    }
+
+    this.#dataTypeOverridesCache = overrides;
+
+    return overrides;
+  }
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
@@ -200,6 +236,34 @@ export abstract class AbstractDialect {
   }
 
   abstract createBindCollector(): BindCollector;
+
+  /**
+   * Produces a safe representation of a Buffer for this dialect, that can be inlined in a SQL string.
+   * Used mainly by DataTypes.
+   *
+   * @param buffer The buffer to escape
+   * @returns The string, escaped for SQL.
+   */
+  escapeBuffer(buffer: Buffer): string {
+    const hex = buffer.toString('hex');
+
+    return `X'${hex}'`;
+  }
+
+  /**
+   * Produces a safe representation of a string for this dialect, that can be inlined in a SQL string.
+   * Used mainly by DataTypes.
+   *
+   * @param value The string to escape
+   * @returns The string, escaped for SQL.
+   */
+  escapeString(value: string): string {
+    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
+    // http://stackoverflow.com/q/603572/130598
+    value = value.replace(/'/g, '\'\'');
+
+    return `'${value}'`;
+  }
 }
 
 export type BindCollector = {

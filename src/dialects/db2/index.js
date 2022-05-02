@@ -23,7 +23,6 @@ export class Db2Dialect extends AbstractDialect {
       using: false,
       where: true,
     },
-    NUMERIC: true,
     tmpTableTrigger: true,
   });
 

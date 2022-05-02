@@ -1049,32 +1049,29 @@ export class AbstractQueryGenerator {
     Escape a value (e.g. a string, number or date)
     @private
   */
-  escape(value, field, options) {
-    options = options || {};
+  escape(value, field, options = {}) {
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
+    }
 
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
-      }
+    if (value != null && field?.type) {
+      // TODO: replace with assert to ensure this is the right DataType implementation.
+      field.type = field.type.toDialectDataType(this._dialect);
 
-      if (field && field.type) {
-        this.validate(value, field, options);
+      this.validate(value, field, options);
 
-        if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
+      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
+      const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this._dialect);
 
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
+      value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
 
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
-        }
+      if (field.type.escape === false) {
+        // The data-type already did the required escaping
+        return value;
       }
     }
 
-    return SqlString.escape(value, this.options.timezone, this.dialect);
+    return SqlString.escape(value, this.options.timezone, this._dialect);
   }
 
   bindParam(bind) {

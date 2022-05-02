@@ -1,6 +1,5 @@
-import DataTypes = require('./data-types');
-export { DataTypes };
-
+export * as DataTypes from './data-types';
+export { DataType, DataTypeClassOrInstance, AbstractDataType } from './dialects/abstract/data-types.js';
 export * as Utils from './utils';
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';
@@ -10,7 +9,6 @@ export * from './transaction';
 
 export type { Connection } from './dialects/abstract/connection-manager';
 export * from './associations/index';
-export * from './data-types';
 export * from './errors';
 export { BaseError as Error } from './errors';
 export * from './model';

@@ -4,15 +4,17 @@ import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import moment from 'moment';
 import momentTz from 'moment-timezone';
+import type { Class } from 'type-fest';
 import wkx from 'wkx';
-import { kSetDialectNames } from '../../dialect-toolbox';
+import { kIsDataTypeOverrideOf, kSetDialectNames } from '../../dialect-toolbox';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { Rangable } from '../../model.js';
-import { classToInvokable } from '../../utils/class-to-invokable';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
+import { isDataType, isDataTypeClass } from './data-types-utils.js';
+import type { AbstractDialect } from './index.js';
 
 // If T is a constructor, returns the type of what `new T()` would return,
 // otherwise, returns T
@@ -23,13 +25,18 @@ export type Constructed<T> = T extends abstract new () => infer Instance
 export type AcceptableTypeOf<T extends DataType> =
   Constructed<T> extends AbstractDataType<infer Acceptable> ? Acceptable : never;
 
-export type DataType<T extends AbstractDataType<any> = AbstractDataType<any>> =
-  | T
-  | { key: string, new (): T };
+export type DataTypeClassOrInstance =
+  | AbstractDataType<any>
+  | Class<AbstractDataType<any>>;
+
+export type DataType =
+  | string
+  | DataTypeClassOrInstance;
 
 // TODO: This typing may not be accurate, validate when query-generator is typed.
 export interface StringifyOptions {
-  escape(str: string): string;
+  dialect: AbstractDialect;
+  escape(value: unknown): string;
   operation?: string;
   timezone?: string;
   // TODO: Update this when query-generator is converted to TS
@@ -38,7 +45,7 @@ export interface StringifyOptions {
 
 // TODO: This typing may not be accurate, validate when query-generator is typed.
 export interface BindParamOptions extends StringifyOptions {
-  bindParam(value: string | Buffer | string[] | null): string;
+  bindParam(value: unknown): string;
 }
 
 export type DialectTypeMeta =
@@ -61,6 +68,7 @@ export abstract class AbstractDataType<
   types!: Record<string, DialectTypeMeta>;
 
   declare readonly key: string;
+  declare static readonly [kIsDataTypeOverrideOf]: Class<AbstractDataType<any>>;
 
   /**
    * Helper used to add a dialect to `types` of a DataType.  It ensures that it doesn't modify the types of its parent.
@@ -106,9 +114,10 @@ export abstract class AbstractDataType<
     return new constructor(...args);
   }
 
+  // TODO: document
   dialectTypes = '';
 
-  protected areValuesEqual(
+  areValuesEqual(
     value: AcceptedType,
     originalValue: AcceptedType,
   ): boolean {
@@ -156,18 +165,15 @@ export abstract class AbstractDataType<
     return options.bindParam(String(value));
   }
 
-  toString(options: StringifyOptions): string {
-    return this.toSql(options);
+  toString(): string {
+    return this.toSql();
   }
 
-  // TODO: rename to 'toSqlDataType'
   /**
    * Returns a SQL declaration of this data type.
    * e.g. 'VARCHAR(255)', 'TEXT', etc…
-   *
-   * @param _options
    */
-  toSql(_options: StringifyOptions): string {
+  toSql(): string {
     // this is defiend via
     if (!this.key) {
       throw new TypeError('Expected a key property to be defined');
@@ -180,25 +186,25 @@ export abstract class AbstractDataType<
     return this.name;
   }
 
-  // TODO: move to utils
-  static extend<A, Options>(
-    this: new (options: Options) => AbstractDataType<A>,
-    oldType: AbstractDataType<A> & { options: Options },
-  ) {
-    return new this(oldType.options);
-  }
+  /**
+   * Returns this DataType, using its dialect-specific subclass.
+   *
+   * @param dialect
+   * @returns
+   */
+  toDialectDataType(dialect: AbstractDialect): this {
+    const subClass = dialect.dataTypeOverrides.get(this.constructor as Class<AbstractDataType<any>>);
 
-  // TODO: move to utils
-  static isType(value: any): value is DataType {
-    if (value.prototype && value.prototype instanceof AbstractDataType) {
-      return true;
+    if (!subClass) {
+      return this;
     }
 
-    return value instanceof AbstractDataType;
+    // @ts-expect-error
+    return new subClass(this.options);
   }
 }
 
-interface StringTypeOptions {
+export interface StringTypeOptions {
   /**
    * @default 255
    */
@@ -213,13 +219,22 @@ interface StringTypeOptions {
 /**
  * STRING A variable length string
  */
-@classToInvokable
 export class STRING extends AbstractDataType<string | Buffer> {
+  readonly escape = false;
   readonly key: string = 'STRING';
   readonly options: StringTypeOptions;
 
   constructor(length: number, binary?: boolean);
   constructor(options?: StringTypeOptions);
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args:
+    | []
+    | [length: number]
+    | [length: number, binary: boolean]
+    | [options: StringTypeOptions]
+  );
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
     super();
 
@@ -240,7 +255,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
 
   toSql() {
     return joinSQLFragments([
-      `VAR_CHAR(${this.options.length})`,
+      `VARCHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
     ]);
   }
@@ -273,14 +288,22 @@ export class STRING extends AbstractDataType<string | Buffer> {
   static get BINARY() {
     return new this({ binary: true });
   }
+
+  stringify(value: string | Buffer, options: StringifyOptions): string {
+    if (Buffer.isBuffer(value)) {
+      return options.dialect.escapeBuffer(value);
+    }
+
+    return options.dialect.escapeString(value);
+  }
 }
 
 /**
  * CHAR A fixed length string
  */
-@classToInvokable
 export class CHAR extends STRING {
   readonly key = 'CHAR';
+
   toSql() {
     return joinSQLFragments([
       `CHAR(${this.options.length})`,
@@ -299,7 +322,6 @@ export interface TextOptions {
 /**
  * Unlimited length TEXT column
  */
-@classToInvokable
 export class TEXT extends AbstractDataType<string> {
   readonly key = 'TEXT';
   readonly options: TextOptions;
@@ -353,7 +375,6 @@ export class TEXT extends AbstractDataType<string> {
  * Original case is preserved but acts case-insensitive when comparing values (such as when finding or unique constraints).
  * Only available in Postgres and SQLite.
  */
-@classToInvokable
 export class CITEXT extends AbstractDataType<string> {
   readonly key = 'CITEXT';
 
@@ -399,11 +420,10 @@ type AcceptedNumber =
 /**
  * Base number type which is used to build other types
  */
-@classToInvokable
 export class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
   readonly key: string = 'NUMBER';
 
-  protected options: Options;
+  readonly options: Options;
 
   constructor(optionsOrLength?: number | Readonly<Options>) {
     super();
@@ -447,13 +467,9 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format(
-          `%j is not a valid ${super
-            .toString({
-              escape(str) {
-                return str;
-              },
-            })
-            .toLowerCase()}`,
+          `%j is not a valid ${
+            super.toString()
+              .toLowerCase()}`,
           value,
         ),
         [],
@@ -466,6 +482,10 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     this.validate(number);
 
     return String(number);
+  }
+
+  bindParam(value: AcceptedNumber, options: BindParamOptions): string {
+    return options.bindParam(value);
   }
 
   get UNSIGNED() {
@@ -488,8 +508,8 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
 /**
  * A 32 bit integer
  */
-@classToInvokable
 export class INTEGER extends NUMBER {
+  readonly escape = false;
   readonly key: string = 'INTEGER';
 
   validate(value: any) {
@@ -505,7 +525,6 @@ export class INTEGER extends NUMBER {
 /**
  * A 8 bit integer
  */
-@classToInvokable
 export class TINYINT extends INTEGER {
   readonly key = 'TINYINT';
 }
@@ -513,7 +532,6 @@ export class TINYINT extends INTEGER {
 /**
  * A 16 bit integer
  */
-@classToInvokable
 export class SMALLINT extends INTEGER {
   readonly key = 'SMALLINT';
 }
@@ -521,7 +539,6 @@ export class SMALLINT extends INTEGER {
 /**
  * A 24 bit integer
  */
-@classToInvokable
 export class MEDIUMINT extends INTEGER {
   readonly key = 'MEDIUMINT';
 }
@@ -529,7 +546,6 @@ export class MEDIUMINT extends INTEGER {
 /**
  * A 64 bit integer
  */
-@classToInvokable
 export class BIGINT extends INTEGER {
   readonly key = 'BIGINT';
 }
@@ -537,7 +553,6 @@ export class BIGINT extends INTEGER {
 /**
  * Floating point number (4-byte precision).
  */
-@classToInvokable
 export class FLOAT extends NUMBER {
   readonly key: string = 'FLOAT';
   readonly escape = false;
@@ -552,6 +567,10 @@ export class FLOAT extends NUMBER {
    * @param decimals number of decimal points, used with length `FLOAT(5, 4)`
    */
   constructor(length: number, decimals?: number);
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args: [length: number, decimals?: number] | [options?: NumberOptions]);
   constructor(length?: number | NumberOptions, decimals?: number) {
     super(typeof length === 'object' ? length : { length, decimals });
   }
@@ -592,7 +611,6 @@ export class FLOAT extends NUMBER {
   }
 }
 
-@classToInvokable
 export class REAL extends FLOAT {
   readonly key = 'REAL';
 }
@@ -600,12 +618,11 @@ export class REAL extends FLOAT {
 /**
  * Floating point number (8-byte precision).
  */
-@classToInvokable
 export class DOUBLE extends FLOAT {
-  readonly key = 'DOUBLE';
+  readonly key: string = 'DOUBLE';
 }
 
-interface DecimalOptions extends NumberOptions {
+export interface DecimalOptions extends NumberOptions {
   scale?: number;
   precision?: number;
 }
@@ -613,7 +630,6 @@ interface DecimalOptions extends NumberOptions {
 /**
  * Decimal type, variable precision, take length as specified by user
  */
-@classToInvokable
 export class DECIMAL extends NUMBER<DecimalOptions> {
   readonly key = 'DECIMAL';
 
@@ -623,6 +639,16 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
    * @param scale defines scale
    */
   constructor(precision: number, scale?: number);
+
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args:
+    | []
+    | [precision: number]
+    | [precision: number, scale: number]
+    | [options: DecimalOptions]
+  );
   constructor(precisionOrOptions?: number | DecimalOptions, scale?: number) {
     if (isObject(precisionOrOptions)) {
       super(precisionOrOptions);
@@ -657,8 +683,8 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
 /**
  * A boolean / tinyint column, depending on dialect
  */
-@classToInvokable
 export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
+  readonly escape = false;
   readonly key = 'BOOLEAN';
 
   toSql() {
@@ -677,6 +703,10 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
 
   sanitize(value: unknown): boolean | null {
     return BOOLEAN.parse(value);
+  }
+
+  stringify(value: boolean | Falsy): string {
+    return value ? 'true' : 'false';
   }
 
   static parse(value: unknown): boolean | null {
@@ -713,7 +743,6 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
 /**
  * A time column
  */
-@classToInvokable
 export class TIME extends AbstractDataType<Date | string | number> {
   readonly key = 'TIME';
 
@@ -722,7 +751,7 @@ export class TIME extends AbstractDataType<Date | string | number> {
   }
 }
 
-interface DateOptions {
+export interface DateOptions {
   /**
    * The precision of the date.
    */
@@ -730,12 +759,11 @@ interface DateOptions {
 }
 
 type RawDate = Date | string | number;
-type AcceptedDate = RawDate | moment.Moment;
+export type AcceptedDate = RawDate | moment.Moment;
 
 /**
  * A date and time.
  */
-@classToInvokable
 export class DATE extends AbstractDataType<AcceptedDate> {
   readonly key: string = 'DATE';
   readonly options: DateOptions;
@@ -815,9 +843,13 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return momentTz(date);
   }
 
+  bindParam(value: AcceptedDate, options: BindParamOptions): string {
+    return super.bindParam(this.stringify(value, options), options);
+  }
+
   stringify(
     date: AcceptedDate,
-    options: { timezone?: string } = {},
+    options: StringifyOptions,
   ) {
     if (!moment.isMoment(date)) {
       date = this._applyTimezone(date, options);
@@ -831,7 +863,6 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 /**
  * A date only column (no timestamp)
  */
-@classToInvokable
 export class DATEONLY extends AbstractDataType<AcceptedDate> {
   readonly key = 'DATEONLY';
 
@@ -855,7 +886,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return value;
   }
 
-  areValuesEqual(value: AcceptedDate, originalValue: AcceptedDate) {
+  areValuesEqual(value: AcceptedDate, originalValue: AcceptedDate): boolean {
     if (originalValue && Boolean(value) && originalValue === value) {
       return true;
     }
@@ -872,7 +903,6 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 /**
  * A key / value store column. Only available in Postgres.
  */
-@classToInvokable
 export class HSTORE extends AbstractDataType<HstoreRecord> {
   readonly key = 'HSTORE';
 
@@ -889,11 +919,10 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 /**
  * A JSON string column. Available in MySQL, Postgres and SQLite
  */
-@classToInvokable
 export class JSON extends AbstractDataType<any> {
   readonly key: string = 'JSON';
 
-  stringify(value: any) {
+  stringify(value: any): string {
     return globalThis.JSON.stringify(value);
   }
 }
@@ -901,7 +930,6 @@ export class JSON extends AbstractDataType<any> {
 /**
  * A binary storage JSON column. Only available in Postgres.
  */
-@classToInvokable
 export class JSONB extends JSON {
   readonly key = 'JSONB';
 }
@@ -909,20 +937,15 @@ export class JSONB extends JSON {
 /**
  * A default value of the current timestamp.  Not a valid type.
  */
-@classToInvokable
 export class NOW extends AbstractDataType<never> {
   readonly key = 'NOW';
 }
 
-type AcceptedBlob = Buffer | string;
+export type AcceptedBlob = Buffer | string;
 
-enum BlobLength {
-  TINY = 'tiny',
-  MEDIUM = 'medium',
-  LONG = 'long',
-}
+export type BlobLength = 'tiny' | 'medium' | 'long';
 
-interface BlobOptions {
+export interface BlobOptions {
   // TODO: must also allow BLOB(255), BLOB(16M) in db2/ibmi
   length?: BlobLength;
 }
@@ -930,7 +953,6 @@ interface BlobOptions {
 /**
  * Binary storage
  */
-@classToInvokable
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   readonly key = 'BLOB';
   readonly escape = false;
@@ -955,11 +977,11 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
 
   toSql(): string {
     switch (this.options.length) {
-      case BlobLength.TINY:
+      case 'tiny':
         return 'TINYBLOB';
-      case BlobLength.MEDIUM:
+      case 'medium':
         return 'MEDIUMBLOB';
-      case BlobLength.LONG:
+      case 'long':
         return 'LONGBLOB';
       default:
         return this.key;
@@ -975,17 +997,10 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     }
   }
 
-  stringify(value: string | Buffer) {
-    const buf
-      = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+  stringify(value: string | Buffer, options: StringifyOptions) {
+    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
-    const hex = buf.toString('hex');
-
-    return this._hexify(hex);
-  }
-
-  protected _hexify(hex: string) {
-    return `X'${hex}'`;
+    return options.dialect.escapeBuffer(buf);
   }
 
   bindParam(value: AcceptedBlob, options: BindParamOptions) {
@@ -993,15 +1008,14 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
   }
 }
 
-interface RangeOptions<T> {
-  subtype?: T;
+export interface RangeOptions {
+  subtype?: DataTypeClassOrInstance;
 }
 
 /**
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  */
-@classToInvokable
 export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<Rangable<AcceptableTypeOf<T>>> {
   readonly key = 'RANGE';
   readonly options: {
@@ -1011,17 +1025,15 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
   /**
    * @param subtypeOrOptions A subtype for range, like RANGE(DATE)
    */
-  constructor(
-    subtypeOrOptions: DataType<T> | RangeOptions<T>,
-  ) {
+  constructor(subtypeOrOptions: DataTypeClassOrInstance | RangeOptions) {
     super();
 
-    const subtypeRaw = (AbstractDataType.isType(subtypeOrOptions) ? subtypeOrOptions : subtypeOrOptions.subtype)
+    const subtypeRaw = (isDataType(subtypeOrOptions) ? subtypeOrOptions : subtypeOrOptions.subtype)
       ?? new INTEGER();
 
-    const subtype = typeof subtypeRaw === 'function'
-    ? new subtypeRaw()
-    : subtypeRaw;
+    const subtype = isDataTypeClass(subtypeRaw)
+      ? new subtypeRaw()
+      : subtypeRaw;
 
     this.options = {
       subtype,
@@ -1049,7 +1061,6 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
  * A column storing a unique universal identifier.
  * Use with `UUIDV1` or `UUIDV4` for default values.
  */
-@classToInvokable
 export class UUID extends AbstractDataType<string> {
   readonly key = 'UUID';
 
@@ -1073,7 +1084,6 @@ export class UUID extends AbstractDataType<string> {
 /**
  * A default unique universal identifier generated following the UUID v1 standard
  */
-@classToInvokable
 export class UUIDV1 extends AbstractDataType<string> {
   readonly key = 'UUIDV1';
 
@@ -1098,7 +1108,6 @@ export class UUIDV1 extends AbstractDataType<string> {
 /**
  * A default unique universal identifier generated following the UUID v4 standard
  */
-@classToInvokable
 export class UUIDV4 extends AbstractDataType<string> {
   readonly key = 'UUIDV4';
 
@@ -1159,7 +1168,6 @@ export class UUIDV4 extends AbstractDataType<string> {
  * }
  *
  */
-@classToInvokable
 export class VIRTUAL<T> extends AbstractDataType<T> {
   readonly key = 'VIRTUAL';
 
@@ -1170,7 +1178,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
    * @param [ReturnType] return type for virtual type
    * @param [fields] array of fields this virtual type is dependent on
    */
-  constructor(ReturnType?: DataType, fields?: string[]) {
+  constructor(ReturnType?: DataTypeClassOrInstance, fields?: string[]) {
     super();
     if (typeof ReturnType === 'function') {
       ReturnType = new ReturnType();
@@ -1181,7 +1189,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   }
 }
 
-interface EnumOptions<Member extends string> {
+export interface EnumOptions<Member extends string> {
   values: Member[];
 }
 
@@ -1195,7 +1203,6 @@ interface EnumOptions<Member extends string> {
  *   values: ['value', 'another value']
  * });
  */
-@classToInvokable
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   readonly key = 'ENUM';
   readonly options: EnumOptions<Member>;
@@ -1206,6 +1213,14 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   constructor(options: EnumOptions<Member>);
   constructor(members: Member[]);
   constructor(...members: Member[]);
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args:
+    | [options: EnumOptions<Member>]
+    | [members: Member[]]
+    | [...members: Member[]]
+  );
   constructor(...args: [Member[] | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
@@ -1250,12 +1265,12 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   }
 }
 
-interface ArrayOptions<T extends AbstractDataType<any>> {
-  type: DataType<T>;
+export interface ArrayOptions {
+  type: DataTypeClassOrInstance;
 }
 
-interface NormalizedArrayOptions<T extends AbstractDataType<any>> {
-  type: T;
+interface NormalizedArrayOptions {
+  type: AbstractDataType<any>;
 }
 
 /**
@@ -1264,26 +1279,29 @@ interface NormalizedArrayOptions<T extends AbstractDataType<any>> {
  * @example
  * DataTypes.ARRAY(DataTypes.DECIMAL)
  */
-@classToInvokable
 export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<AcceptableTypeOf<T>>> {
   readonly key = 'ARRAY';
-  readonly options: NormalizedArrayOptions<T>;
+  readonly options: NormalizedArrayOptions;
 
   /**
    * @param typeOrOptions type of array values
    */
-  constructor(typeOrOptions: DataType<T> | ArrayOptions<T>) {
+  constructor(typeOrOptions: DataTypeClassOrInstance | ArrayOptions) {
     super();
 
-    const rawType = AbstractDataType.isType(typeOrOptions) ? typeOrOptions : typeOrOptions.type;
+    const rawType = isDataType(typeOrOptions) ? typeOrOptions : typeOrOptions?.type;
+
+    if (!rawType) {
+      throw new TypeError('DataTypes.ARRAY is missing type definition for its values.');
+    }
 
     this.options = {
       type: typeof rawType === 'function' ? new rawType() : rawType,
     };
   }
 
-  toSql(options: StringifyOptions) {
-    return `${this.options.type.toSql(options)}[]`;
+  toSql() {
+    return `${this.options.type.toSql()}[]`;
   }
 
   validate(value: any) {
@@ -1297,6 +1315,18 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     // TODO: validate individual items
   }
 
+  toDialectDataType(dialect: AbstractDialect): this {
+    const replacement = super.toDialectDataType(dialect);
+
+    if (replacement === this) {
+      return this;
+    }
+
+    replacement.options.type = replacement.options.type.toDialectDataType(dialect);
+
+    return replacement;
+  }
+
   static is<T extends AbstractDataType<any>>(
     obj: unknown,
     type: new () => T,
@@ -1305,9 +1335,12 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   }
 }
 
-export type GeometryType = Uppercase<keyof typeof wkx>;
+export type GeometryType = 'Point' | 'LineString' | 'Polygon' | 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection';
+export type GeoJSON = {
+  type: GeometryType,
+};
 
-interface GeometryOptions {
+export interface GeometryOptions {
   type?: GeometryType;
   srid?: number;
 }
@@ -1358,8 +1391,7 @@ interface GeometryOptions {
  *
  * @see {@link DataTypes.GEOGRAPHY}
  */
-@classToInvokable
-export class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
+export class GEOMETRY extends AbstractDataType<GeoJSON> {
   readonly key: string = 'GEOMETRY';
   readonly escape = false;
   readonly options: GeometryOptions;
@@ -1370,6 +1402,15 @@ export class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
    */
   constructor(type: GeometryType, srid?: number);
   constructor(options: GeometryOptions);
+
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args:
+    | [type: GeometryType, srid?: number]
+    | [options: GeometryOptions]
+  );
+
   constructor(typeOrOptions: GeometryType | GeometryOptions, srid?: number) {
     super();
 
@@ -1378,16 +1419,13 @@ export class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
       : { type: typeOrOptions, srid };
   }
 
-  stringify(value: string | Buffer, options: StringifyOptions) {
+  stringify(value: GeoJSON, options: StringifyOptions) {
     return `STGeomFromText(${options.escape(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
 
-  bindParam(
-    value: string | Buffer | wkx.Geometry,
-    options: BindParamOptions,
-  ) {
+  bindParam(value: GeoJSON, options: BindParamOptions) {
     return `STGeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
@@ -1415,7 +1453,6 @@ export class GEOMETRY extends AbstractDataType<wkx.Geometry | Buffer | string> {
  * DataTypes.GEOGRAPHY('POINT')
  * DataTypes.GEOGRAPHY('POINT', 4326)
  */
-@classToInvokable
 export class GEOGRAPHY extends GEOMETRY {
   readonly key = 'GEOGRAPHY';
 }
@@ -1425,7 +1462,6 @@ export class GEOGRAPHY extends GEOMETRY {
  *
  * Only available for Postgres
  */
-@classToInvokable
 export class CIDR extends AbstractDataType<string> {
   readonly key = 'CIDR';
 
@@ -1444,7 +1480,6 @@ export class CIDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  */
-@classToInvokable
 export class INET extends AbstractDataType<string> {
   readonly key = 'INET';
   validate(value: any) {
@@ -1462,7 +1497,6 @@ export class INET extends AbstractDataType<string> {
  *
  * Only available for Postgres
  */
-@classToInvokable
 export class MACADDR extends AbstractDataType<string> {
   readonly key = 'MACADDR';
 
@@ -1481,7 +1515,6 @@ export class MACADDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  */
-@classToInvokable
 export class TSVECTOR extends AbstractDataType<string> {
   readonly key = 'TSVECTOR';
 

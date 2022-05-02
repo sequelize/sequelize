@@ -351,7 +351,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       describe('Buffer', () => {
         testSql({ stringAttr: Buffer.from('Sequelize') }, {
           // TODO: (ibmi) - is this correct?
-          ibmi: `"stringAttr" = 'BLOB(X''53657175656c697a65'')'`,
+          ibmi: `"stringAttr" = BLOB(X'53657175656c697a65')`,
           postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
           sqlite: '`stringAttr` = X\'53657175656c697a65\'',
           mariadb: '`stringAttr` = X\'53657175656c697a65\'',
@@ -363,13 +363,13 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         testSql({ stringAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
           // TODO: (ibmi) - is this correct?
-          ibmi: `"stringAttr" IN ('BLOB(X''53657175656c697a6531'')', 'BLOB(X''53657175656c697a6532'')')`,
+          ibmi: `"stringAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
           postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
           sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
           mariadb: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
           mysql: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: '"stringAttr" IN (BLOB(\'Sequelize1\'), BLOB(\'Sequelize2\'))',
-          snowflake: '"stringAttr" IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          db2: `"stringAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
+          snowflake: `"stringAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
           mssql: '[stringAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
         });
       });
@@ -380,18 +380,22 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = 1',
       });
 
-      testSql({ intAttr1: '1' }, {
-        default: `[intAttr1] = '1'`,
-        mssql: `[intAttr1] = N'1'`,
+      testSql({ stringAttr: '1' }, {
+        default: `[stringAttr] = '1'`,
+        mssql: `[stringAttr] = N'1'`,
       });
 
       testSql({ intAttr1: [1, 2] }, {
         default: '[intAttr1] IN (1, 2)',
       });
 
-      testSql({ intAttr1: ['1', '2'] }, {
-        default: `[intAttr1] IN ('1', '2')`,
-        mssql: `[intAttr1] IN (N'1', N'2')`,
+      testSql({ stringAttr: ['1', '2'] }, {
+        default: `[stringAttr] IN ('1', '2')`,
+        mssql: `[stringAttr] IN (N'1', N'2')`,
+      });
+
+      testSql({ intAttr1: ['not-an-int'] }, {
+        default: new Error('"not-an-int" is not a valid integer'),
       });
 
       testSql.skip({ 'stringAttr::integer': 1 }, {

@@ -29,6 +29,7 @@ import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
 import { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
+import { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 
 /**
  * Additional options for table altering during sync
@@ -1551,6 +1552,9 @@ export class Sequelize extends Hooks {
    * instances, and want to garbage collect some of them.
    */
   public close(): Promise<void>;
+
+  normalizeDataType(Type: string): string;
+  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
 
   /**
    * Returns the database version

@@ -1,17 +1,20 @@
-'use strict';
-
+import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
+import type { Sequelize } from '../../sequelize.js';
 import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
+import type { AbstractQueryGenerator } from '../abstract/query-generator.js';
+import type { QueryInterface } from '../abstract/query-interface.js';
+// eslint-disable-next-line import/order
+import * as DataTypes from './data-types';
 
-const _ = require('lodash');
-const { AbstractDialect } = require('../abstract');
 const { PostgresConnectionManager } = require('./connection-manager');
 const { PostgresQuery } = require('./query');
 const { PostgresQueryGenerator } = require('./query-generator');
-const DataTypes = require('./data-types');
 const { PostgresQueryInterface } = require('./query-interface');
 
 export class PostgresDialect extends AbstractDialect {
-  static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
+  static readonly supports = merge(cloneDeep(AbstractDialect.supports), {
     'DEFAULT VALUES': true,
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
@@ -39,7 +42,6 @@ export class PostgresDialect extends AbstractDialect {
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
     },
-    NUMERIC: true,
     ARRAY: true,
     RANGE: true,
     GEOMETRY: true,
@@ -54,7 +56,23 @@ export class PostgresDialect extends AbstractDialect {
     searchPath: true,
   });
 
-  constructor(sequelize) {
+  readonly sequelize: Sequelize;
+
+  // TODO: type these once they have been migrated to TypeScript
+  readonly connectionManager: unknown;
+  readonly queryGenerator: AbstractQueryGenerator;
+  readonly queryInterface: QueryInterface;
+
+  // minimum supported version
+  readonly DataTypes = DataTypes;
+  readonly defaultVersion = '9.5.0';
+  readonly Query = PostgresQuery;
+  readonly name = 'postgres';
+  readonly TICK_CHAR = '"';
+  readonly TICK_CHAR_LEFT = '"';
+  readonly TICK_CHAR_RIGHT = '"';
+
+  constructor(sequelize: Sequelize) {
     super();
     this.sequelize = sequelize;
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
@@ -71,12 +89,21 @@ export class PostgresDialect extends AbstractDialect {
   createBindCollector() {
     return createSpecifiedOrderedBindCollector();
   }
-}
 
-PostgresDialect.prototype.defaultVersion = '9.5.0'; // minimum supported version
-PostgresDialect.prototype.Query = PostgresQuery;
-PostgresDialect.prototype.DataTypes = DataTypes;
-PostgresDialect.prototype.name = 'postgres';
-PostgresDialect.prototype.TICK_CHAR = '"';
-PostgresDialect.prototype.TICK_CHAR_LEFT = PostgresDialect.prototype.TICK_CHAR;
-PostgresDialect.prototype.TICK_CHAR_RIGHT = PostgresDialect.prototype.TICK_CHAR;
+  escapeBuffer(buffer: Buffer): string {
+    const hex = buffer.toString('hex');
+
+    // bytea hex format http://www.postgresql.org/docs/current/static/datatype-binary.html
+    return `E'\\\\x${hex}'`;
+  }
+
+  escapeString(value: string): string {
+    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
+    // http://stackoverflow.com/q/603572/130598
+    value = value.replace(/'/g, '\'\'')
+      // null character is not allowed in Postgres
+      .replace(/\0/g, '\\0');
+
+    return `'${value}'`;
+  }
+}

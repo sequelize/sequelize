@@ -118,4 +118,11 @@ export class AbstractQueryGenerator {
   ): string;
 
   dropSchema(tableName: TableName): string | { query: string, bind?: Array<unknown> };
+
+  /**
+   * Creates a function that can be used to collect bind parameters.
+   *
+   * @param bind A mutable object to which bind parameters will be added.
+   */
+  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 }

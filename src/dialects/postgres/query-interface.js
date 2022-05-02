@@ -87,7 +87,7 @@ export class PostgresQueryInterface extends QueryInterface {
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
-          const vals = enumType.values;
+          const vals = enumType.options.values;
 
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values

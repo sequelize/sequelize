@@ -1,22 +1,19 @@
 import wkx from 'wkx';
-import { kSetDialectNames } from '../../dialect-toolbox';
+import { kIsDataTypeOverrideOf, kSetDialectNames } from '../../dialect-toolbox';
 import type { Rangable } from '../../model.js';
 import { addTicks, generateEnumName } from '../../utils';
-import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
   StringifyOptions,
-  DataType,
   BindParamOptions,
   DialectTypeMeta,
 } from '../abstract/data-types';
+import * as BaseTypes from '../abstract/data-types';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as Hstore from './hstore';
 import * as Range from './range';
 
-const warn = createDataTypesWarn(
-  'https://www.postgresql.org/docs/current/datatype.html',
-);
+const warn = createDataTypesWarn('https://www.postgresql.org/docs/current/datatype.html');
 
 /**
  * Removes unsupported Postgres options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
@@ -24,21 +21,17 @@ const warn = createDataTypesWarn(
  * @param dataType The base integer data type.
  * @private
  */
-function removeUnsupportedIntegerOptions(dataType: DataType) {
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.NUMBER) {
   if (
-    // use Reflect.get to avoid TS assertions
-    Reflect.get(dataType, '_length')
-    || Reflect.get(dataType, 'options')?.length
-    || Reflect.get(dataType, '_unsigned')
-    || Reflect.get(dataType, '_zerofill')
+    dataType.options.length
+    || dataType.options.unsigned
+    || dataType.options.zerofill
   ) {
-    warn(
-      `PostgresSQL does not support '${dataType.key}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`,
-    );
-    Reflect.set(dataType, '_length', undefined);
-    Reflect.get(dataType, 'options').length = undefined;
-    Reflect.set(dataType, '_unsigned', undefined);
-    Reflect.set(dataType, '_zerofill', undefined);
+    warn(`PostgresSQL does not support '${dataType.key}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`);
+
+    delete dataType.options.length;
+    delete dataType.options.unsigned;
+    delete dataType.options.zerofill;
   }
 }
 
@@ -64,6 +57,8 @@ BaseTypes.TIME[kSetDialectNames]('postgres', ['time']);
 
 // TODO: replace with a method to set which datatype is the dialect-specific version
 export class DATEONLY extends BaseTypes.DATEONLY {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.DATEONLY;
+
   stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>) {
     if (value === Number.POSITIVE_INFINITY) {
       return 'Infinity';
@@ -115,7 +110,8 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 BaseTypes.DATEONLY[kSetDialectNames]('postgres', ['date']);
 
 export class DECIMAL extends BaseTypes.DECIMAL {
-  // TODO: remove?
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.DECIMAL;
+
   static parse(value: unknown) {
     return value;
   }
@@ -125,6 +121,8 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 BaseTypes.DECIMAL[kSetDialectNames]('postgres', ['numeric']);
 
 export class STRING extends BaseTypes.STRING {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.STRING;
+
   toSql() {
     if (this.options.binary) {
       return 'BYTEA';
@@ -137,6 +135,8 @@ export class STRING extends BaseTypes.STRING {
 BaseTypes.STRING[kSetDialectNames]('postgres', ['varchar']);
 
 export class TEXT extends BaseTypes.TEXT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.TEXT;
+
   protected _checkOptionSupport() {
     if (this.options.length) {
       warn(
@@ -151,6 +151,8 @@ export class TEXT extends BaseTypes.TEXT {
 BaseTypes.TEXT[kSetDialectNames]('postgres', ['text']);
 
 export class CITEXT extends BaseTypes.CITEXT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.CITEXT;
+
   static parse(value: unknown) {
     return value;
   }
@@ -159,6 +161,8 @@ export class CITEXT extends BaseTypes.CITEXT {
 BaseTypes.CITEXT[kSetDialectNames]('postgres', ['citext']);
 
 export class CHAR extends BaseTypes.CHAR {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.CHAR;
+
   toSql() {
     if (this.options.binary) {
       return 'BYTEA';
@@ -171,6 +175,8 @@ export class CHAR extends BaseTypes.CHAR {
 BaseTypes.CHAR[kSetDialectNames]('postgres', ['char', 'bpchar']);
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.BOOLEAN;
+
   toSql() {
     return 'BOOLEAN';
   }
@@ -214,6 +220,8 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 BaseTypes.BOOLEAN[kSetDialectNames]('postgres', ['bool']);
 
 export class DATE extends BaseTypes.DATE {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.DATE;
+
   toSql() {
     return 'TIMESTAMP WITH TIME ZONE';
   }
@@ -279,6 +287,8 @@ export class DATE extends BaseTypes.DATE {
 BaseTypes.DATE[kSetDialectNames]('postgres', ['timestamptz']);
 
 export class TINYINT extends BaseTypes.TINYINT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.TINYINT;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -288,6 +298,8 @@ export class TINYINT extends BaseTypes.TINYINT {
 BaseTypes.TINYINT[kSetDialectNames]('postgres', ['int2']);
 
 export class SMALLINT extends BaseTypes.SMALLINT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.SMALLINT;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -297,6 +309,8 @@ export class SMALLINT extends BaseTypes.SMALLINT {
 BaseTypes.SMALLINT[kSetDialectNames]('postgres', ['int2']);
 
 export class INTEGER extends BaseTypes.INTEGER {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.INTEGER;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -310,6 +324,8 @@ export class INTEGER extends BaseTypes.INTEGER {
 BaseTypes.INTEGER[kSetDialectNames]('postgres', ['int4']);
 
 export class BIGINT extends BaseTypes.BIGINT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.BIGINT;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -319,6 +335,8 @@ export class BIGINT extends BaseTypes.BIGINT {
 BaseTypes.BIGINT[kSetDialectNames]('postgres', ['int8']);
 
 export class REAL extends BaseTypes.REAL {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.REAL;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -328,6 +346,9 @@ export class REAL extends BaseTypes.REAL {
 BaseTypes.REAL[kSetDialectNames]('postgres', ['float4']);
 
 export class DOUBLE extends BaseTypes.DOUBLE {
+  readonly key: string = 'DOUBLE PRECISION';
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.DOUBLE;
+
   protected _checkOptionSupport() {
     removeUnsupportedIntegerOptions(this);
   }
@@ -337,6 +358,8 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 BaseTypes.DOUBLE[kSetDialectNames]('postgres', ['float8']);
 
 export class FLOAT extends BaseTypes.FLOAT {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.FLOAT;
+
   protected _checkOptionSupport() {
     // POSTGRES does only support lengths as parameter.
     // Values between 1-24 result in REAL
@@ -366,9 +389,9 @@ export class FLOAT extends BaseTypes.FLOAT {
   }
 }
 
-Reflect.deleteProperty(FLOAT, 'parse'); // Float has no separate type in PG
-
 export class BLOB extends BaseTypes.BLOB {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.BLOB;
+
   protected _checkOptionSupport() {
     if (this.options.length) {
       warn(
@@ -381,16 +404,13 @@ export class BLOB extends BaseTypes.BLOB {
   toSql() {
     return 'BYTEA';
   }
-
-  protected _hexify(hex: string) {
-    // bytea hex format http://www.postgresql.org/docs/current/static/datatype-binary.html
-    return `E'\\\\x${hex}'`;
-  }
 }
 
 BaseTypes.BLOB[kSetDialectNames]('postgres', ['bytea']);
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.GEOMETRY;
+
   toSql() {
     let result = this.key;
     if (this.options.type) {
@@ -411,11 +431,11 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
-  protected _stringify(value: string, options: StringifyOptions) {
+  stringify(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: StringifyOptions): string {
     return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
   }
 
-  protected _bindParam(value: string, options: BindParamOptions) {
+  bindParam(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
   }
 }
@@ -423,6 +443,8 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 BaseTypes.GEOMETRY[kSetDialectNames]('postgres', ['geometry']);
 
 export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.GEOGRAPHY;
+
   toSql() {
     let result = 'GEOGRAPHY';
     if (this.options.type) {
@@ -443,14 +465,14 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
-  protected _stringify(
+  stringify(
     value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>,
     options: StringifyOptions,
   ) {
     return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
   }
 
-  bindParam(value: string, options: BindParamOptions) {
+  bindParam(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
   }
 }
@@ -458,6 +480,7 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
 BaseTypes.GEOGRAPHY[kSetDialectNames]('postgres', ['geography']);
 
 export class HSTORE extends BaseTypes.HSTORE {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.HSTORE;
   readonly escape = false;
 
   // TODO: Find types for pg-hstore
@@ -492,6 +515,7 @@ export class HSTORE extends BaseTypes.HSTORE {
 BaseTypes.HSTORE[kSetDialectNames]('postgres', ['hstore']);
 
 export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.RANGE;
   readonly escape = false;
 
   _value(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
@@ -574,6 +598,7 @@ BaseTypes.RANGE[kSetDialectNames]('postgres', {
 });
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.ARRAY;
   readonly escape = false;
 
   _value(
@@ -583,20 +608,18 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     const type = this.options.type;
 
     return values.map((value: any) => {
-      if (options && 'bindParam' in options
+      if ('bindParam' in options
         // TODO: clean up API for _value and declare its type
         // @ts-expect-error
-        && type?._value) {
+        && type._value) {
         // @ts-expect-error
         return type._value(value, options);
       }
 
-      if (type && type.stringify) {
-        value = type.stringify(value, options);
+      value = type.stringify(value, options);
 
-        if (type.escape === false) {
-          return value;
-        }
+      if (type.escape === false) {
+        return value;
       }
 
       return options.escape(value);
@@ -615,7 +638,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
       return str;
     }
 
-    let castKey = this.toSql(options);
+    let castKey = this.toSql();
 
     if (type instanceof BaseTypes.ENUM) {
       const table = options.field.Model.getTableName();
@@ -648,6 +671,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 }
 
 export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
+  static readonly [kIsDataTypeOverrideOf] = BaseTypes.ENUM;
   static parse<Members extends string>(
     this: abstract new () => ENUM<Members>,
     value: Members,
