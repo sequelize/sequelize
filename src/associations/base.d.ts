@@ -1,9 +1,9 @@
-import { ColumnOptions, Model, ModelCtor, Hookable } from '../model';
+import { ColumnOptions, Model, ModelStatic, Hookable } from '../model';
 
 export abstract class Association<S extends Model = Model, T extends Model = Model> {
   public associationType: string;
-  public source: ModelCtor<S>;
-  public target: ModelCtor<T>;
+  public source: ModelStatic<S>;
+  public target: ModelStatic<T>;
   public isSelfAssociation: boolean;
   public isSingleAssociation: boolean;
   public isMultiAssociation: boolean;
@@ -64,12 +64,16 @@ export interface AssociationOptions extends Hookable {
    *
    * Cascade if this is a n:m, and set null if it is a 1:m
    *
+   * One of RESTRICT, CASCADE, NO ACTION, SET DEFAULT, or SET NULL
+   *
    * @default 'SET NULL' or 'CASCADE'
    */
   onDelete?: string;
 
   /**
    * What happens when update occurs
+   *
+   * One of RESTRICT, CASCADE, NO ACTION, SET DEFAULT, or SET NULL
    *
    * @default 'CASCADE'
    */

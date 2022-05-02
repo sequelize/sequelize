@@ -1,21 +1,20 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const expect = chai.expect;
-const Op = Sequelize.Op;
 const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scopes', () => {
     beforeEach(async function () {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
-        username: Sequelize.STRING,
-        email: Sequelize.STRING,
-        access_level: Sequelize.INTEGER,
-        other_value: Sequelize.INTEGER,
-        parent_id: Sequelize.INTEGER,
+        username: DataTypes.STRING,
+        email: DataTypes.STRING,
+        access_level: DataTypes.INTEGER,
+        other_value: DataTypes.INTEGER,
+        parent_id: DataTypes.INTEGER,
       }, {
         defaultScope: {
           where: {
@@ -48,9 +47,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.DefaultScopeExclude = this.sequelize.define('DefaultScopeExclude', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
         other_value: {
-          type: Sequelize.STRING,
+          type: DataTypes.STRING,
           field: 'otherValue',
         },
       }, {
@@ -144,13 +143,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope in associations', () => {
     it('should work when association with a virtual column queried with default scope', async function () {
       const Game = this.sequelize.define('Game', {
-        name: Sequelize.TEXT,
+        name: DataTypes.TEXT,
       });
 
       const User = this.sequelize.define('User', {
-        login: Sequelize.TEXT,
+        login: DataTypes.TEXT,
         session: {
-          type: Sequelize.VIRTUAL,
+          type: DataTypes.VIRTUAL,
           get() {
             return 'New';
           },

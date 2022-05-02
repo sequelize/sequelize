@@ -1,9 +1,5 @@
-// eslint-disable-next-line import/order
 import { expect } from 'chai';
-
-const Support = require('../../support');
-
-const { sequelize } = Support;
+import { sequelize } from '../../../support';
 
 describe('QueryInterface', () => {
   describe('quoteIdentifier', () => {
@@ -15,7 +11,8 @@ describe('QueryInterface', () => {
         .quoteIdentifier(identifier);
       const expectedQuotedIdentifier = sequelize
         .getQueryInterface()
-        .queryGenerator.quoteIdentifier(identifier);
+        .queryGenerator
+        .quoteIdentifier(identifier);
 
       expect(quotedIdentifier).not.to.be.undefined;
       expect(expectedQuotedIdentifier).not.to.be.undefined;
@@ -32,7 +29,8 @@ describe('QueryInterface', () => {
         .quoteIdentifiers(identifier);
       const expectedQuotedIdentifiers = sequelize
         .getQueryInterface()
-        .queryGenerator.quoteIdentifiers(identifier);
+        .queryGenerator
+        .quoteIdentifiers(identifier);
 
       expect(quotedIdentifiers).not.to.be.undefined;
       expect(expectedQuotedIdentifiers).not.to.be.undefined;

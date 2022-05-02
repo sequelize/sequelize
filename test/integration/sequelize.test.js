@@ -2,13 +2,11 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const Sequelize = require('@sequelize/core');
-const config = require('../config/config');
-const { Transaction } = require('@sequelize/core/lib/transaction');
+const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -423,8 +421,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         dialect: this.sequelize.options.dialect,
       });
 
-      sequelize.define('Project', { title: Sequelize.STRING });
-      sequelize.define('Task', { title: Sequelize.STRING });
+      sequelize.define('Project', { title: DataTypes.STRING });
+      sequelize.define('Task', { title: DataTypes.STRING });
 
       await expect(sequelize.sync({ force: true, match: /$phoenix/ }))
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
@@ -473,8 +471,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           dialect: this.sequelize.options.dialect,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -485,8 +483,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           port: 99_999,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -498,8 +496,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           pool: {},
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -507,7 +505,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('returns an error correctly if unable to sync a foreign key referenced model', async function () {
         this.sequelize.define('Application', {
           authorID: {
-            type: Sequelize.BIGINT,
+            type: DataTypes.BIGINT,
             allowNull: false,
             references: {
               model: 'User',
@@ -716,7 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('is a transaction method available', () => {
-          expect(Support.Sequelize).to.respondTo('transaction');
+          expect(Sequelize).to.respondTo('transaction');
         });
 
         it('passes a transaction object to the callback', async function () {

@@ -1,9 +1,5 @@
+import type { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 import { classToInvokable } from './utils/index.js';
-
-// TODO: replace dummy type with
-//   import type { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
-//  once query-generator has been migrated to TS.
-type AbstractQueryGenerator = any;
 
 /**
  * Can be used to
@@ -17,7 +13,7 @@ type AbstractQueryGenerator = any;
  * class MyModel extends Model {}
  * MyModel.init({
  *   foreign_id: {
- *     type: Sequelize.INTEGER,
+ *     type: DataTypes.INTEGER,
  *     references: {
  *       model: OtherModel,
  *       key: 'id',

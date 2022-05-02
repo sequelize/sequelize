@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('mssql');
 const _ = require('lodash');
@@ -21,7 +21,7 @@ function getScale(aNum) {
   return Math.log10(e);
 }
 
-class Query extends AbstractQuery {
+export class MsSqlQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
@@ -88,10 +88,21 @@ class Query extends AbstractQuery {
       const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
 
       if (parameters) {
-        _.forOwn(parameters, (value, key) => {
-          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES);
-          request.addParameter(key, paramType.type, value, paramType.typeOptions);
-        });
+        if (Array.isArray(parameters)) {
+          // eslint-disable-next-line unicorn/no-for-loop
+          for (let i = 0; i < parameters.length; i++) {
+            const parameter = parameters[i];
+
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(String(i + 1), paramType.type, parameter, paramType.typeOptions);
+          }
+        } else {
+          _.forOwn(parameters, (parameter, parameterName) => {
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(parameterName, paramType.type, parameter, paramType.typeOptions);
+          });
+        }
+
       }
 
       request.on('row', columns => {
@@ -142,22 +153,6 @@ class Query extends AbstractQuery {
     const errForStack = new Error();
 
     return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = {};
-    const replacementFunc = (match, key, valuesIn) => {
-      if (valuesIn[key] !== undefined) {
-        bindParam[key] = valuesIn[key];
-
-        return `@${key}`;
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam];
   }
 
   /**
@@ -334,7 +329,7 @@ class Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -344,7 +339,7 @@ class Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -360,7 +355,7 @@ class Query extends AbstractQuery {
         message: match[1],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
     }
@@ -453,7 +448,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

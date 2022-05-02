@@ -8,7 +8,7 @@ const Support = require('./support');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 const delay = require('delay');
 
 function assertSameConnection(newConnection, oldConnection) {

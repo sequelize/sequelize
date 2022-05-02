@@ -1,9 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../../support');
 
@@ -14,11 +13,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const sequelize = this.sequelize;
 
         this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: Sequelize.STRING,
-          email: Sequelize.STRING,
-          access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
-          parent_id: Sequelize.INTEGER,
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
+          parent_id: DataTypes.INTEGER,
         }, {
           defaultScope: {
             where: {
@@ -45,7 +44,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.Project = this.sequelize.define('project', {
-          active: Sequelize.BOOLEAN,
+          active: DataTypes.BOOLEAN,
         }, {
           scopes: {
             active: {
@@ -57,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.Company = this.sequelize.define('company', {
-          active: Sequelize.BOOLEAN,
+          active: DataTypes.BOOLEAN,
         }, {
           defaultScope: {
             where: { active: true },
@@ -75,7 +74,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.Profile = this.sequelize.define('profile', {
-          active: Sequelize.BOOLEAN,
+          active: DataTypes.BOOLEAN,
         }, {
           defaultScope: {
             where: { active: true },
@@ -314,8 +313,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         describe('with find options', () => {
           it('should merge includes correctly', async function () {
-            const Child = this.sequelize.define('Child', { name: Sequelize.STRING });
-            const Parent = this.sequelize.define('Parent', { name: Sequelize.STRING });
+            const Child = this.sequelize.define('Child', { name: DataTypes.STRING });
+            const Parent = this.sequelize.define('Parent', { name: DataTypes.STRING });
             Parent.addScope('testScope1', {
               include: [{
                 model: Child,
@@ -350,7 +349,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('scope with options', () => {
         it('should return correct object included foreign_key', async function () {
           const Child = this.sequelize.define('Child', {
-            secret: Sequelize.STRING,
+            secret: DataTypes.STRING,
           }, {
             scopes: {
               public: {
@@ -373,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should return correct object included foreign_key with defaultScope', async function () {
           const Child = this.sequelize.define('Child', {
-            secret: Sequelize.STRING,
+            secret: DataTypes.STRING,
           }, {
             defaultScope: {
               attributes: {
@@ -393,7 +392,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should not throw error', async function () {
           const Clientfile = this.sequelize.define('clientfile');
-          const Mission = this.sequelize.define('mission', { secret: Sequelize.STRING });
+          const Mission = this.sequelize.define('mission', { secret: DataTypes.STRING });
           const Building = this.sequelize.define('building');
           const MissionAssociation = Clientfile.hasOne(Mission);
           const BuildingAssociation = Clientfile.hasOne(Building);

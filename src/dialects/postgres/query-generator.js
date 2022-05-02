@@ -3,7 +3,7 @@
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -15,7 +15,7 @@ const _ = require('lodash');
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-class PostgresQueryGenerator extends AbstractQueryGenerator {
+export class PostgresQueryGenerator extends AbstractQueryGenerator {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
@@ -359,7 +359,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit)}` : '';
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -435,11 +435,11 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     }
 
-    if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset)}`;
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
     }
 
     return fragment;
@@ -991,5 +991,3 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `(${quotedColumn}${join}${pathStr})`;
   }
 }
-
-module.exports = PostgresQueryGenerator;

@@ -3,7 +3,7 @@
 const Utils = require('./../utils');
 const Helpers = require('./helpers');
 const _ = require('lodash');
-const Association = require('./base');
+const { Association } = require('./base');
 const { Op } = require('../operators');
 
 /**
@@ -14,7 +14,7 @@ const { Op } = require('../operators');
  *
  * @see {@link Model.hasMany}
  */
-class HasMany extends Association {
+export class HasMany extends Association {
   constructor(source, target, options) {
     super(source, target, options);
 
@@ -487,7 +487,3 @@ class HasMany extends Association {
     return !this.isAliased;
   }
 }
-
-module.exports = HasMany;
-module.exports.HasMany = HasMany;
-module.exports.default = HasMany;

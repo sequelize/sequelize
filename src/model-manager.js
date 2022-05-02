@@ -3,7 +3,7 @@
 const Toposort = require('toposort-class');
 const _ = require('lodash');
 
-class ModelManager {
+export class ModelManager {
   constructor(sequelize) {
     this.models = [];
     this.sequelize = sequelize;
@@ -93,7 +93,3 @@ class ModelManager {
     }
   }
 }
-
-module.exports = ModelManager;
-module.exports.ModelManager = ModelManager;
-module.exports.default = ModelManager;

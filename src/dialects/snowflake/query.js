@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
@@ -12,23 +12,7 @@ const ER_NO_REFERENCED_ROW = 1452;
 
 const debug = logger.debugContext('sql:snowflake');
 
-class Query extends AbstractQuery {
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = [];
-    const replacementFunc = (_match, key, values_) => {
-      if (values_[key] !== undefined) {
-        bindParam.push(values_[key]);
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam.length > 0 ? bindParam : undefined];
-  }
-
+export class SnowflakeQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
     const { connection, options } = this;
@@ -273,7 +257,7 @@ class Query extends AbstractQuery {
           ));
         });
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
       }
 
       case ER_ROW_IS_REFERENCED:
@@ -291,7 +275,7 @@ class Query extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
-          parent: err,
+          cause: err,
         });
       }
 
@@ -328,7 +312,3 @@ class Query extends AbstractQuery {
     }));
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

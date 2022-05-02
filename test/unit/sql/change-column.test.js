@@ -2,7 +2,7 @@
 
 const sinon = require('sinon');
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -23,7 +23,7 @@ if (current.dialect.name !== 'sqlite') {
       }, { timestamps: false });
 
       before(function () {
-        this.stub = sinon.stub(current, 'query').resolvesArg(0);
+        this.stub = sinon.stub(current, 'queryRaw').resolvesArg(0);
       });
 
       beforeEach(function () {
