@@ -2230,7 +2230,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param {string} alias
    * @return {boolean}
    */
-  // TODO: rename to hasAssociation to mirror getAssociation.
+  // TODO: deprecate & rename to 'hasAssociation' to mirror getAssociation.
   static hasAlias(alias: string): boolean;
 
   /**
