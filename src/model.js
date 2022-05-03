@@ -1936,7 +1936,7 @@ export class Model {
 
     options = Utils.cloneDeep(options) || {};
 
-    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
+    if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
         [this.primaryKeyAttribute]: param,
       };

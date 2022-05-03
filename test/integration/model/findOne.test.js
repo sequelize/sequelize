@@ -225,6 +225,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(u2.name).to.equal('Johnno');
       });
 
+      it('finds entries via a bigint primary key called id', async function () {
+        const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
+          id: { type: DataTypes.BIGINT, primaryKey: true },
+          name: DataTypes.STRING,
+        });
+
+        await UserPrimary.sync({ force: true });
+
+        await UserPrimary.create({
+          id: 9_007_199_254_740_993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
+          name: 'Johnno',
+        });
+
+        const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
+        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
+        expect(u2.id).to.equal('9007199254740993');
+        expect(u2.name).to.equal('Johnno');
+      });
+
       it('always honors ZERO as primary key', async function () {
         const permutations = [
           0,
