@@ -1,7 +1,6 @@
 import util from 'util';
 import type {
   WhereOptions,
-  ModelAttributeColumnOptions,
   Utils,
   WhereOperators,
   InferAttributes,
@@ -9,6 +8,7 @@ import type {
   Range,
 } from '@sequelize/core';
 import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
+import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
@@ -24,11 +24,7 @@ const sql = sequelize.dialect.queryGenerator;
 //  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
 //  - drop Op.values & automatically determine if Op.any & Op.all need to use Op.values?
 
-type Options = {
-  type?: QueryTypes,
-  prefix?: string | Utils.Literal,
-  field?: ModelAttributeColumnOptions,
-};
+type Options = Omit<WhereItemsQueryOptions, 'model'>;
 
 type Expectations = {
   [dialectName: string]: string | Error,
@@ -311,7 +307,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       }), {
         default: '[yolo].[User].[id] = 1',
 
-        // FIXME: mysql, sqlite - this does not sound right.
+        // TODO: mysql, sqlite - this does not sound right.
         //  this should be '`yolo`.`User`.`id` = 1'
         mysql: '`yolo.User`.`id` = 1',
         sqlite: '`yolo.User`.`id` = 1',

@@ -1,5 +1,7 @@
 'use strict';
 
+import assert from 'node:assert';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
@@ -26,6 +28,8 @@ export class Db2Query extends AbstractQuery {
   }
 
   async _run(connection, sql, parameters) {
+    assert(typeof sql === 'string', `sql parameter must be a string`);
+
     this.sql = sql;
     const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
     let queryBegin;
@@ -180,25 +184,6 @@ export class Db2Query extends AbstractQuery {
 
   async run(sql, parameters) {
     return await this._run(this.connection, sql, parameters);
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam = {};
-    const replacementFunc = (match, key, values) => {
-      if (values[key] !== undefined) {
-        bindParam[key] = values[key];
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    if (Array.isArray(values) && typeof values[0] === 'object') {
-      bindParam = values;
-    }
-
-    return [sql, bindParam];
   }
 
   filterSQLError(err, sql, connection) {

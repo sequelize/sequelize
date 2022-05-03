@@ -1,5 +1,7 @@
 'use strict';
 
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { SnowflakeConnectionManager } = require('./connection-manager');
@@ -51,6 +53,10 @@ export class SnowflakeDialect extends AbstractDialect {
       sequelize,
     });
     this.queryInterface = new SnowflakeQueryInterface(sequelize, this.queryGenerator);
+  }
+
+  createBindCollector() {
+    return createUnspecifiedOrderedBindCollector();
   }
 }
 
