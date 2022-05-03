@@ -33,7 +33,7 @@ export interface ConnectionManager {
    * Get connection from pool. It sets database version if it's not already set.
    * Call pool.acquire to get a connection.
    */
-  getConnection(opts: GetConnectionOptions): Promise<Connection>;
+  getConnection(opts?: GetConnectionOptions): Promise<Connection>;
   /**
    * Release a pooled connection so it can be utilized by other connection requests
    */

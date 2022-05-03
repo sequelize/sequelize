@@ -55,8 +55,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset, undefined, options)}`,
+      options.collate && `DEFAULT COLLATE ${this.escape(options.collate, undefined, options)}`,
       ';',
     ]);
   }
@@ -145,7 +145,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, undefined, options)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
@@ -165,10 +165,10 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
-  showTablesQuery(database) {
+  showTablesQuery(database, options) {
     return Utils.joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
@@ -285,7 +285,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (attr.value) {
-          str += util.format(' = %s', this.escape(attr.value));
+          str += util.format(' = %s', this.escape(attr.value, undefined, options));
         }
 
         return str;
@@ -316,7 +316,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit)}`;
+    const limit = options.limit && ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -346,7 +346,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
         whereClause,
         limit,
         ')',
-        ';',
       ]);
     }
 
@@ -354,7 +353,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       'DELETE FROM',
       table,
       whereClause,
-      ';',
     ]);
   }
 
@@ -419,7 +417,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
       && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
     if (attribute.unique === true) {
@@ -431,7 +429,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment)}`;
+      template += ` COMMENT ${this.escape(attribute.comment, undefined, options)}`;
     }
 
     if (attribute.first) {
@@ -640,14 +638,15 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   addLimitAndOffset(options) {
-    let fragment = [];
-    if (options.offset !== null && options.offset !== undefined && options.offset !== 0) {
-      fragment = [...fragment, ' LIMIT ', this.escape(options.limit), ' OFFSET ', this.escape(options.offset)];
-    } else if (options.limit !== null && options.limit !== undefined) {
-      fragment = [' LIMIT ', this.escape(options.limit)];
+    if (options.offset) {
+      return ` LIMIT ${this.escape(options.limit ?? null, undefined, options)} OFFSET ${this.escape(options.offset, undefined, options)}`;
     }
 
-    return fragment.join('');
+    if (options.limit != null) {
+      return ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    }
+
+    return '';
   }
 
   /**

@@ -1,5 +1,7 @@
 'use strict';
 
+import { createNamedParamBindCollector, createSpecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { MsSqlConnectionManager } = require('./connection-manager');
@@ -48,6 +50,10 @@ export class MssqlDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+  }
+
+  createBindCollector() {
+    return createNamedParamBindCollector('@');
   }
 }
 

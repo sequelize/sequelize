@@ -303,7 +303,7 @@ export function expectsql(
         // except for ARRAY[...]
         expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         if (dialect.name === 'ibmi') {
-          expectation = expectation.replace(/;$/, '');
+          expectation = expectation.trim().replace(/;$/, '');
         }
       }
     } else {
@@ -345,7 +345,7 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
   return sql.replace(/\s+/g, ' ')
-    // remove space before coma
+    // remove space before comma
     .replace(/ ,/g, ',')
     // remove space before )
     .replace(/ \)/g, ')')
