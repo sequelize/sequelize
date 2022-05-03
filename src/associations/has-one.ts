@@ -456,7 +456,7 @@ export interface HasOneCreateAssociationMixinOptions<T extends Model>
  * @see Model.hasOne
  */
 export type HasOneCreateAssociationMixin<T extends Model> = (
-  // TODO: omit the foreign key
+  // TODO: omit the foreign key from CreationAttributes once we have a way to determine which key is the foreign key in typings
   values?: CreationAttributes<T>,
   options?: HasOneCreateAssociationMixinOptions<T>
 ) => Promise<T>;

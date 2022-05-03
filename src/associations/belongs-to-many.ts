@@ -125,11 +125,8 @@ export class BelongsToMany<
    * The name of the Foreign Key attribute, located on the through table, that points to the Target model.
    *
    * Not to be confused with @link {BelongsToMany.foreignKey}, which points to the Source model instead.
-   *
-   * @type {string}
    */
-  // '!' added because this is initialized in constructor through a function call
-  get otherKey() {
+  get otherKey(): string {
     return this.pairedWith.foreignKey;
   }
 
@@ -877,7 +874,6 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
 
   const sequelize = target.sequelize!;
 
-  // TODO: normalize otherKey using the same logic as in normalizeBaseAssociationOptions
   return normalizeBaseAssociationOptions(type, {
     ...options,
     otherKey: normalizeForeignKeyOptions(options.otherKey),

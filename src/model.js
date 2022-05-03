@@ -447,9 +447,6 @@ ${associationOwner._getAssociationDebugList()}`);
     if (!include.as) {
       include.as = include.association.as;
     }
-    // else if (include.association.as !== include.as) {
-    //   throw new TypeError(`Invalid Include: If both "association" and "as" are specified, they must have the same value.`);
-    // }
 
     this._conformIncludes(include, include.model);
 

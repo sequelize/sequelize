@@ -196,7 +196,7 @@ export class HasMany<
 
     const where = Object.create(null);
 
-    // FIXME: scopes should be combined using AND instance of overwriting.
+    // TODO: scopes should be combined using AND instance of overwriting.
     if (this.scope) {
       Object.assign(where, this.scope);
     }

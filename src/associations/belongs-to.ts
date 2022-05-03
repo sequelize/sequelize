@@ -266,7 +266,7 @@ export class BelongsTo<
       instances = [instances];
     }
 
-    // FIXME: the scope is ignored
+    // TODO: the scope is ignored
     const where = Object.create(null);
 
     if (instances.length > 1) {

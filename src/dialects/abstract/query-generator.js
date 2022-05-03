@@ -840,7 +840,7 @@ export class AbstractQueryGenerator {
             if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through?.model === model) {
               // we get here for cases like
               // [manyToManyAssociation, throughModel]
-              // "throughModel" must be replaced by the association  from the many to many to the through model
+              // "throughModel" must be replaced by the association from the many to many to the through model
               item = previousAssociation.fromSourceToThroughOne;
             } else {
               // get association from previous model
