@@ -1,6 +1,7 @@
 'use strict';
 
 import assert from 'node:assert';
+import util from 'node:util';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -107,10 +108,10 @@ export class Db2Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? JSON.stringify(parameters) : ''}`);
+            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
 
             if (benchmark) {
-              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? JSON.stringify(parameters) : ''}`, Date.now() - queryBegin, this.options);
+              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {
