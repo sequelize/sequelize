@@ -239,9 +239,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
-        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
-        expect(u2.id).to.equal('9007199254740993');
         expect(u2.name).to.equal('Johnno');
+
+        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
+        // For now we'll receive a string.
+        if (dialect === 'db2') {
+          // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
+          // https://github.com/ibmdb/node-ibm_db/issues/816
+          // It means that u2.id comes back as 9_007_199_254_740_992 here :(
+          // Hopefully this will be fixed soon.
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+        } else {
+          expect(u2.id).to.equal('9007199254740993');
+        }
       });
 
       it('always honors ZERO as primary key', async function () {
