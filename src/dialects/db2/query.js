@@ -18,11 +18,13 @@ export class Db2Query extends AbstractQuery {
   }
 
   getSQLTypeFromJsType(value) {
-    const param = { ParamType: 'INPUT', Data: value };
     if (Buffer.isBuffer(value)) {
-      param.DataType = 'BLOB';
+      return { ParamType: 'INPUT', DataType: 'BLOB', Data: value };
+    }
 
-      return param;
+    if (typeof value === 'bigint') {
+      // The ibm_db module does not handle bigint, send as a string instead:
+      return value.toString();
     }
 
     return value;
