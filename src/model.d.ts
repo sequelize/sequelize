@@ -1774,7 +1774,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 /**
  * Possible types for primary keys
  */
-export type Identifier = number | string | Buffer;
+export type Identifier = number | BigInt | string | Buffer;
 
 /**
  * Options for model definition.
