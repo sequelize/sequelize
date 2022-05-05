@@ -251,6 +251,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
           const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
           expect(stringifiedId).to.equal('9007199254740993');
+        } else if (dialect === 'mariadb') {
+          // With our current default config, the mariadb driver sends back a Long instance.
+          // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
+          // but that's potentially a big change.
+          // For now, we'll just stringify the Long and make the comparison:
+          expect(u2.id.toString()).to.equal('9007199254740993');
         } else {
           expect(u2.id).to.equal('9007199254740993');
         }
