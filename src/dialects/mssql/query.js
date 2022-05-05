@@ -8,6 +8,9 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
 
+const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
+const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
+
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) {
     return 0;
@@ -27,8 +30,7 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   getSQLTypeFromJsType(value, TYPES) {
-    const paramType = { type: TYPES.VarChar, typeOptions: {} };
-    paramType.type = TYPES.NVarChar;
+    const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
         if (value >= -2_147_483_648 && value <= 2_147_483_647) {
@@ -40,6 +42,13 @@ export class MsSqlQuery extends AbstractQuery {
         paramType.type = TYPES.Numeric;
         // Default to a reasonable numeric precision/scale pending more sophisticated logic
         paramType.typeOptions = { precision: 30, scale: getScale(value) };
+      }
+    } else if (typeof value === 'bigint') {
+      if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
+        paramType.type = TYPES.VarChar;
+        paramType.value = value.toString();
+      } else {
+        return this.getSQLTypeFromJsType(parseInt(value, 10), TYPES);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
@@ -91,15 +100,13 @@ export class MsSqlQuery extends AbstractQuery {
         if (Array.isArray(parameters)) {
           // eslint-disable-next-line unicorn/no-for-loop
           for (let i = 0; i < parameters.length; i++) {
-            const parameter = parameters[i];
-
-            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
-            request.addParameter(String(i + 1), paramType.type, parameter, paramType.typeOptions);
+            const paramType = this.getSQLTypeFromJsType(parameters[i], connection.lib.TYPES);
+            request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
           }
         } else {
           _.forOwn(parameters, (parameter, parameterName) => {
             const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
-            request.addParameter(parameterName, paramType.type, parameter, paramType.typeOptions);
+            request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
           });
         }
 
