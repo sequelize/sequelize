@@ -255,6 +255,14 @@ export class SqliteQuery extends AbstractQuery {
             parameters = newParameters;
           }
 
+          // sqlite3 currently ignores bigint values, so do a last minute translation to string for now
+          // There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501
+          for (const key of Object.keys(parameters)) {
+            if (typeof parameters[key] === 'bigint') {
+              parameters[key] = parameters[key].toString();
+            }
+          }
+
           conn[method](sql, parameters, afterExecute);
 
           return null;

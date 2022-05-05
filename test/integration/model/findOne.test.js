@@ -242,7 +242,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(u2.name).to.equal('Johnno');
 
         // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
-        // For now we'll receive a string.
+        // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
         if (dialect === 'db2') {
           // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
           // https://github.com/ibmdb/node-ibm_db/issues/816
@@ -257,6 +257,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // but that's potentially a big change.
           // For now, we'll just stringify the Long and make the comparison:
           expect(u2.id.toString()).to.equal('9007199254740993');
+        } else if (dialect === 'sqlite') {
+          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
+          // https://github.com/TryGhost/node-sqlite3/issues/922
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
         } else {
           expect(u2.id).to.equal('9007199254740993');
         }
