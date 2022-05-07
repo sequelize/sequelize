@@ -12,6 +12,16 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
+// sqlite3 currently ignores bigint values, so we have to translate to string for now
+// There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501
+function stringifyIfBigint(value) {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  return value;
+}
+
 export class SqliteQuery extends AbstractQuery {
   getInsertIdField() {
     return 'lastID';
@@ -249,18 +259,12 @@ export class SqliteQuery extends AbstractQuery {
             const newParameters = Object.create(null);
 
             for (const key of Object.keys(parameters)) {
-              newParameters[`$${key}`] = parameters[key];
+              newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
             }
 
             parameters = newParameters;
-          }
-
-          // sqlite3 currently ignores bigint values, so do a last minute translation to string for now
-          // There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501
-          for (const key of Object.keys(parameters)) {
-            if (typeof parameters[key] === 'bigint') {
-              parameters[key] = parameters[key].toString();
-            }
+          } else {
+            parameters = parameters.map(stringifyIfBigint);
           }
 
           conn[method](sql, parameters, afterExecute);
