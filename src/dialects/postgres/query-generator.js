@@ -127,6 +127,13 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';";
   }
 
+  tableExistsQuery(tableName) {
+    const table = tableName.tableName || tableName;
+    const schema = tableName.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
+  }
+
   describeTableQuery(tableName, schema) {
     if (!schema) schema = 'public';
 

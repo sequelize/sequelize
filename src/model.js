@@ -1349,15 +1349,17 @@ class Model {
       exists = await this.queryInterface.tableExists(tableName, options);
     }
 
+    // table does not exist: create from scratch
     if (!exists) {
       await this.queryInterface.createTable(tableName, attributes, options, this);
     }
-
-    if (options.alter) {
+    // table exists: update if alter is true
+    else if (options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
         this.queryInterface.getForeignKeyReferencesForTable(tableName, options)
       ]);
+
       const columns = tableInfos[0];
       // Use for alter foreign keys
       const foreignKeyReferences = tableInfos[1];

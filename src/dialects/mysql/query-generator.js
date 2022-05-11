@@ -169,6 +169,23 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     return `${query};`;
   }
 
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    const schemaName = table.schema;
+
+    let sql = `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)}`;
+
+    // TODO: This replicates showTablesQuery, but we should determine the default schema name instead.
+    //  Someone could have created the same table in two different schemas.
+    if (schemaName) {
+      sql += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
+    } else {
+      sql += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')';
+    }
+
+    return sql;
+  }
+
   addColumnQuery(table, key, dataType) {
     return Utils.joinSQLFragments([
       'ALTER TABLE',

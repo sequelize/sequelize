@@ -173,8 +173,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('supports creating tables with cyclic associations', async () => {
-      const A = sequelize.define('A');
-      const B = sequelize.define('B');
+      const A = sequelize.define('A', {}, { timestamps: false });
+      const B = sequelize.define('B', {}, { timestamps: false });
 
       // These models both have a foreign key that references the other model.
       // Sequelize should be able to create them.
@@ -199,45 +199,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(bFks[0].columnName).to.eq('AId');
     });
 
-    // !TODO: move to describe
-
-    // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
-    //  so sync({ alter: true }) cannot know whether the column must be updated.
-    if (dialect !== 'sqlite' && sequelize.dialect.supports.deferrableConstraints) {
-      it('updates the deferrable property of a foreign key', async () => {
-        const A = sequelize.define('A', {
-          BId: {
-            type: DataTypes.INTEGER,
-            references: {
-              deferrable: Deferrable.INITIALLY_IMMEDIATE()
-            }
-          }
-        });
-        const B = sequelize.define('B');
-
-        A.belongsTo(B);
-
-        await sequelize.sync();
-
-        {
-          const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
-
-          expect(aFks.length).to.eq(1);
-          expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
-        }
-
-        A.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
-        await sequelize.sync({ alter: true });
-
-        {
-          const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
-
-          expect(aFks.length).to.eq(1);
-          expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
-        }
-      });
-    }
-
     describe('with { alter: true }', () => {
       it('should properly alter tables when there are foreign keys', async function() {
         const foreignKeyTestSyncA = this.sequelize.define('foreignKeyTestSyncA', {
@@ -255,7 +216,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ alter: true });
       });
 
+      // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
+      //  so sync({ alter: true }) cannot know whether the column must be updated.
+      if (dialect !== 'sqlite' && sequelize.dialect.supports.deferrableConstraints) {
+        it('updates the deferrable property of a foreign key', async () => {
+          const A = sequelize.define('A', {
+            BId: {
+              type: DataTypes.INTEGER,
+              references: {
+                deferrable: Deferrable.INITIALLY_IMMEDIATE()
+              }
+            }
+          });
+          const B = sequelize.define('B');
 
+          A.belongsTo(B);
+
+          await sequelize.sync();
+
+          {
+            const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+            expect(aFks.length).to.eq(1);
+            expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
+          }
+
+          A.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+          await sequelize.sync({ alter: true });
+
+          {
+            const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+            expect(aFks.length).to.eq(1);
+            expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
+          }
+        });
+      }
     });
 
     describe('indexes', () => {
