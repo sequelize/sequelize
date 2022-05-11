@@ -398,7 +398,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);

@@ -66,6 +66,10 @@ AbstractDialect.prototype.supports = {
   groupedLimit: true,
   indexViaAlter: false,
   JSON: false,
+  /**
+   * This dialect supports marking a column's constraints as deferrable.
+   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+   */
   deferrableConstraints: false
 };
 

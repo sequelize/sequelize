@@ -219,7 +219,11 @@ class QueryInterface {
       });
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
+    attributes = this.queryGenerator.attributesToSQL(attributes, {
+      table: tableName,
+      context: 'createTable',
+      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints
+    });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.query(sql, options);

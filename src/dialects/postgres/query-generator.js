@@ -524,24 +524,26 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       let referencesKey;
 
-      if (attribute.references.key) {
-        referencesKey = this.quoteIdentifiers(attribute.references.key);
-      } else {
-        referencesKey = this.quoteIdentifier('id');
-      }
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
 
-      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-      if (attribute.onDelete) {
-        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
 
-      if (attribute.onUpdate) {
-        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
 
-      if (attribute.references.deferrable) {
-        sql += ` ${attribute.references.deferrable.toString(this)}`;
+        if (attribute.references.deferrable) {
+          sql += ` ${attribute.references.deferrable.toString(this)}`;
+        }
       }
     }
 
@@ -865,6 +867,8 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       'tc.table_name as table_name,' +
       'tc.table_schema as table_schema,' +
       'tc.table_catalog as table_catalog,' +
+      'tc.initially_deferred as initially_deferred,' +
+      'tc.is_deferrable as is_deferrable,' +
       'kcu.column_name as column_name,' +
       'ccu.table_schema  AS referenced_table_schema,' +
       'ccu.table_catalog  AS referenced_table_catalog,' +

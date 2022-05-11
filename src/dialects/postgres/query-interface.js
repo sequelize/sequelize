@@ -4,6 +4,7 @@ const DataTypes = require('../../data-types');
 const QueryTypes = require('../../query-types');
 const { QueryInterface } = require('../abstract/query-interface');
 const Utils = require('../../utils');
+const Deferrable = require('../../deferrable');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
@@ -158,7 +159,17 @@ class PostgresQueryInterface extends QueryInterface {
     // in order to keep same result with other dialects.
     const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
     const result = await this.sequelize.query(query, queryOptions);
-    return result.map(Utils.camelizeObjectKeys);
+
+    return result.map(fkMeta => {
+      const { initiallyDeferred, isDeferrable, ...remaining } = Utils.camelizeObjectKeys(fkMeta);
+
+      return {
+        ...remaining,
+        deferrable: isDeferrable === 'NO' ? Deferrable.NOT
+          : initiallyDeferred === 'NO' ? Deferrable.INITIALLY_IMMEDIATE
+            : Deferrable.INITIALLY_DEFERRED
+      };
+    });
   }
 
   /**
