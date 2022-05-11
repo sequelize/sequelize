@@ -100,19 +100,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('retry',  () => {
       it('properly bind parameters on extra retries', async function() {
-        let payload = {
+        const payload = {
           username: 'test',
-          createdAt: '2010-10-10 00:00:00',
-          updatedAt: '2010-10-10 00:00:00'
+          createdAt: dialect === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00',
+          updatedAt: dialect === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00'
         };
 
-        if (dialect === 'oracle') {
-          payload = {
-            username: 'test',
-            createdAt: new Date('2010-10-10 00:00:00'),
-            updatedAt: new Date('2010-10-10 00:00:00')
-          };
-        }
         const spy = sinon.spy();
 
         await this.User.create(payload);
