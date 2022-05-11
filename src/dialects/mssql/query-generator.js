@@ -557,7 +557,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
   }
 
-  attributeToSQL(attribute) {
+  attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute
@@ -613,7 +613,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
 
       if (attribute.references.key) {

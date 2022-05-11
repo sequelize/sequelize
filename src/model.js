@@ -1339,13 +1339,19 @@ class Model {
       await this.runHooks('beforeSync', options);
     }
 
-    if (options.force) {
-      await this.drop(options);
-    }
-
     const tableName = this.getTableName(options);
 
-    await this.queryInterface.createTable(tableName, attributes, options, this);
+    let exists;
+    if (options.force) {
+      await this.drop(options);
+      exists = false;
+    } else {
+      exists = await this.queryInterface.tableExists(tableName, options);
+    }
+
+    if (!exists) {
+      await this.queryInterface.createTable(tableName, attributes, options, this);
+    }
 
     if (options.alter) {
       const tableInfos = await Promise.all([

@@ -230,6 +230,24 @@ class QueryInterface {
   }
 
   /**
+   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
+   *
+   * @param {TableName} tableName - The name of the table
+   * @param {QueryOptions} options - Query options
+   * @returns {Promise<boolean>}
+   */
+  async tableExists(tableName, options) {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+
+    const out = await this.sequelize.query(sql, {
+      ...options,
+      type: QueryTypes.SHOWTABLES
+    });
+
+    return out.length === 1;
+  }
+
+  /**
    * Drop a table from database
    *
    * @param {string} tableName Table name to drop
