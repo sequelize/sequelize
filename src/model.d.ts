@@ -207,7 +207,7 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
   | Fn
   | Where
   | Json
->;
+> & TAttributes;
 
 // number is always allowed because -Infinity & +Infinity are valid
 export type Rangable<T> = readonly [
