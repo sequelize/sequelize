@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
-    // oracle has a _bindParam function that checks if DATE was created with
+    // Oracle has a _bindParam function that checks if DATE was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects 
     let bindParam;
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         if (!moment.isMoment(value)) {
           value = this._applyTimezone(value, options);
         }
-        // For ORACLE, use TO_DATE()
+        // For the Oracle dialect, use TO_DATE()
         const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
         const format = 'YYYY-MM-DD HH24:mi:ss';
         return `TO_DATE('${formatedDate}', '${format}')`;
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', async () => {
       const Type = new Sequelize.JSON();
 
-      // oracle has a _bindParam function that checks if JSON was created with
+      // Oracle has a _bindParam function that checks if JSON was created with
       // the boolean param (if so it outputs a Buffer bind param). This override
       // isn't needed for other dialects
       if (dialect === 'oracle') {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DATE', async () => {
     const Type = new Sequelize.DATE();
 
-    // oracle has a _bindParam function that checks if DATE was created with
+    // Oracle has a _bindParam function that checks if DATE was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'oracle') {
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DATEONLY', async () => {
     const Type = new Sequelize.DATEONLY();
 
-    // oracle has a _bindParam function that checks if DATEONLY was created with
+    // Oracle has a _bindParam function that checks if DATEONLY was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'oracle') {
@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for BLOB', async () => {
     const Type = new Sequelize.BLOB();
 
-    // oracle has a _bindParam function that checks if BLOB was created with
+    // Oracle has a _bindParam function that checks if BLOB was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'oracle') {
@@ -221,10 +221,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for CHAR', async () => {
     const Type = new Sequelize.CHAR();
 
-    // mssql/oracle has a _bindParam function that checks if STRING was created with
+    // Oracle has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql' || dialect === 'oracle') {
+    if (dialect === 'oracle') {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -234,7 +234,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify/bindParam for STRING', async () => {
     const Type = new Sequelize.STRING();
 
-    // mssql/oracle has a _bindParam function that checks if STRING was created with
+    // mssql/Oracle has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'mssql' || dialect === 'db2' || dialect === 'oracle') {

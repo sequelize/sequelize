@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
               err.message.includes('A communication error has been detected') ||
-              err.message.includes('ORA-12545: Connect failed because target host or object does not exist') ||
+              err.message.includes('ORA-12545') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'db2') {
             expect(err.message).to.include('A communication error has been detected');
           } else if (dialect === 'oracle') {
-            expect(err.message).to.equal('NJS-007: invalid value for "password" in parameter 1');
+            expect(err.message).to.include('NJS-007');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }
