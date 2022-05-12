@@ -303,7 +303,7 @@ export interface Options extends Logging {
    * Use read / write replication. To enable replication, pass an object, with two properties, read and write.
    * Write should be an object (a single server for handling writes), and read an array of object (several
    * servers to handle reads). Each read/write server can have the following properties: `host`, `port`,
-   * `username`, `password`, `database`
+   * `username`, `password`, `database`.  Connection strings can be used instead of objects.
    *
    * @default false
    */

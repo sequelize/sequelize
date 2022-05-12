@@ -159,7 +159,7 @@ export class Sequelize {
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
-   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`
+   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
    * @param {number}   [options.pool.max=5] Maximum number of connection in pool
    * @param {number}   [options.pool.min=0] Minimum number of connection in pool
@@ -332,6 +332,60 @@ export class Sequelize {
       keepDefaultTimezone: this.options.keepDefaultTimezone,
       dialectOptions: this.options.dialectOptions,
     };
+
+    // Convert replication connection strings to objects
+    if (this.options.replication) {
+      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
+        const urlParts = url.parse(this.options.replication.write, true);
+        const write = {};
+        write.host = urlParts.hostname;
+        if (urlParts.pathname) {
+          write.database = urlParts.pathname.replace(/^\//, '');
+        }
+
+        if (urlParts.port) {
+          write.port = urlParts.port;
+        }
+
+        if (urlParts.auth) {
+          const authParts = urlParts.auth.split(':');
+          write.username = authParts[0];
+          if (authParts.length > 1) {
+            write.password = authParts.slice(1).join(':');
+          }
+        }
+
+        this.options.replication.write = write;
+      }
+
+      if (this.options.replication.read && this.options.replication.read.length) {
+        for (const i in this.options.replication.read) {
+          const server = this.options.replication.read[i];
+          if (typeof server === 'string') {
+            const urlParts = url.parse(server, true);
+            const read = {};
+            read.host = urlParts.hostname;
+            if (urlParts.pathname) {
+              read.database = urlParts.pathname.replace(/^\//, '');
+            }
+
+            if (urlParts.port) {
+              read.port = urlParts.port;
+            }
+
+            if (urlParts.auth) {
+              const authParts = urlParts.auth.split(':');
+              read.username = authParts[0];
+              if (authParts.length > 1) {
+                read.password = authParts.slice(1).join(':');
+              }
+            }
+
+            this.options.replication.read[i] = read;
+          }
+        }
+      }
+    }
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
