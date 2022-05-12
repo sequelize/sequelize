@@ -1341,20 +1341,22 @@ class Model {
 
     const tableName = this.getTableName(options);
 
-    let exists;
+    let tableExists;
     if (options.force) {
       await this.drop(options);
-      exists = false;
+      tableExists = false;
     } else {
-      exists = await this.queryInterface.tableExists(tableName, options);
+      tableExists = await this.queryInterface.tableExists(tableName, options);
     }
 
-    // table does not exist: create from scratch
-    if (!exists) {
+    if (!tableExists) {
       await this.queryInterface.createTable(tableName, attributes, options, this);
+    } else {
+      // enums are always updated, even if alter is not set. createTable calls it too.
+      await this.queryInterface.ensureEnums(tableName, attributes, options, this);
     }
-    // table exists: update if alter is true
-    else if (options.alter) {
+
+    if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
         this.queryInterface.getForeignKeyReferencesForTable(tableName, options)
