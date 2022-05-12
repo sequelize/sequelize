@@ -922,6 +922,17 @@ class Sequelize {
       }
     }
 
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.drop(options);
+        }
+      });
+
+      return;
+    }
+
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.modelManager.models) {
       const tableName = model.getTableName();

@@ -50,8 +50,7 @@ SqliteDialect.prototype.supports = _.merge(
       dropConstraint: false
     },
     groupedLimit: false,
-    JSON: true,
-    deferrableConstraints: true
+    JSON: true
   }
 );
 
