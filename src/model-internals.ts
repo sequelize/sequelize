@@ -8,14 +8,13 @@ import { isModelStatic } from './utils/model-utils.js';
 // This reduces the risk of having a user implement a static method with the same name as us in their Model subclass,
 // it also prevents accessing internal methods.
 
-export function _validateIncludedElements(options: any, tableNames: any) {
+export function _validateIncludedElements(options: any, tableNames: any = {}) {
   if (!isModelStatic(options.model)) {
     throw new TypeError('options.model must be provided, and a Model subclass.');
   }
 
   const ModelSubclass = options.model;
 
-  tableNames = tableNames || {};
   options.includeNames = [];
   options.includeMap = {};
 
