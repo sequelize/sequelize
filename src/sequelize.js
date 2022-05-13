@@ -284,7 +284,7 @@ export class Sequelize {
       }
 
       if (this.options.replication.read && this.options.replication.read.length) {
-        for (const i in this.options.replication.read) {
+        for (let i = 0; i < this.options.replication.read.length; i++) {
           const server = this.options.replication.read[i];
           if (typeof server === 'string') {
             this.options.replication.read[i] = this.parseConnectionString(server);
