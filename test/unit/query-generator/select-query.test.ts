@@ -58,7 +58,7 @@ describe('QueryGenerator#selectQuery', () => {
       model: Project,
       attributes: ['id'],
       where: {
-        duration: { [Op.eq]: BigInt('9007199254740993') },
+        duration: { [Op.eq]: 9007199254740993n },
       },
     }, Project);
 
