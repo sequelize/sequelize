@@ -16,7 +16,12 @@ export function parseConnectionString(connectionString: string, options?: Option
   const urlParts = url.parse(connectionString, true);
   options = options || {};
   if (urlParts.protocol) {
-    options.dialect = urlParts.protocol.replace(/:$/, '') as Dialect;
+    let protocol = urlParts.protocol.replace(/:$/, '');
+    if (protocol === 'postgresql') {
+      protocol = 'postgres';
+    }
+
+    options.dialect = protocol as Dialect;
   }
 
   if (urlParts.hostname) {
@@ -70,7 +75,7 @@ export function parseConnectionString(connectionString: string, options?: Option
 
   // For postgres, we can use this helper to load certs directly from the
   // connection string.
-  if (['postgres', 'postgresql'].includes(options.dialect!)) {
+  if (options.dialect === 'postgres') {
     Object.assign(options.dialectOptions, pgConnectionString.parse(connectionString));
   }
 
