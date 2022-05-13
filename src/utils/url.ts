@@ -8,7 +8,7 @@ import type { Dialect, Options } from '../sequelize';
  * Converts a connection string into an object with connection properties
  *
  * @param connectionString string value to convert
- * @param options an optional parameter to use an existing options object
+ * @param options if provided use an existing Options object
  *
  * @returns
  */
