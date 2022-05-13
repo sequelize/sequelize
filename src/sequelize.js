@@ -193,63 +193,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      const urlParts = url.parse(arguments[0], true);
-
-      options.dialect = urlParts.protocol.replace(/:$/, '');
-      options.host = urlParts.hostname;
-
-      if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-        const storagePath = path.join(options.host, urlParts.pathname);
-        options.storage = path.resolve(options.storage || storagePath);
-      }
-
-      if (urlParts.pathname) {
-        config.database = urlParts.pathname.replace(/^\//, '');
-      }
-
-      if (urlParts.port) {
-        options.port = urlParts.port;
-      }
-
-      if (urlParts.auth) {
-        const authParts = urlParts.auth.split(':');
-
-        config.username = authParts[0];
-
-        if (authParts.length > 1) {
-          config.password = authParts.slice(1).join(':');
-        }
-      }
-
-      if (urlParts.query) {
-        // Allow host query argument to override the url host.
-        // Enables specifying domain socket hosts which cannot be specified via the typical
-        // host part of a url.
-        if (urlParts.query.host) {
-          options.host = urlParts.query.host;
-        }
-
-        if (options.dialectOptions) {
-          Object.assign(options.dialectOptions, urlParts.query);
-        } else {
-          options.dialectOptions = urlParts.query;
-          if (urlParts.query.options) {
-            try {
-              const o = JSON.parse(urlParts.query.options);
-              options.dialectOptions.options = o;
-            } catch {
-              // Nothing to do, string is not a valid JSON
-              // an thus does not need any further processing
-            }
-          }
-        }
-      }
-
-      // For postgres, we can use this helper to load certs directly from the
-      // connection string.
-      if (['postgres', 'postgresql'].includes(options.dialect)) {
-        Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
-      }
+      this.parseConnectionString(arguments[0], options);
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
@@ -336,52 +280,14 @@ export class Sequelize {
     // Convert replication connection strings to objects
     if (this.options.replication) {
       if (this.options.replication.write && typeof this.options.replication.write === 'string') {
-        const urlParts = url.parse(this.options.replication.write, true);
-        const write = {};
-        write.host = urlParts.hostname;
-        if (urlParts.pathname) {
-          write.database = urlParts.pathname.replace(/^\//, '');
-        }
-
-        if (urlParts.port) {
-          write.port = urlParts.port;
-        }
-
-        if (urlParts.auth) {
-          const authParts = urlParts.auth.split(':');
-          write.username = authParts[0];
-          if (authParts.length > 1) {
-            write.password = authParts.slice(1).join(':');
-          }
-        }
-
-        this.options.replication.write = write;
+        this.options.replication.write = this.parseConnectionString(this.options.replication.write);
       }
 
       if (this.options.replication.read && this.options.replication.read.length) {
         for (const i in this.options.replication.read) {
           const server = this.options.replication.read[i];
           if (typeof server === 'string') {
-            const urlParts = url.parse(server, true);
-            const read = {};
-            read.host = urlParts.hostname;
-            if (urlParts.pathname) {
-              read.database = urlParts.pathname.replace(/^\//, '');
-            }
-
-            if (urlParts.port) {
-              read.port = urlParts.port;
-            }
-
-            if (urlParts.auth) {
-              const authParts = urlParts.auth.split(':');
-              read.username = authParts[0];
-              if (authParts.length > 1) {
-                read.password = authParts.slice(1).join(':');
-              }
-            }
-
-            this.options.replication.read[i] = read;
+            this.options.replication.read[i] = this.parseConnectionString(server);
           }
         }
       }
@@ -737,6 +643,73 @@ Use Sequelize#query if you wish to use replacements.`);
         }
       }
     }, retryOptions);
+  }
+
+  /**
+   * Converts a connection string into an object with connection properties
+   *
+   * @param {string} connectionString string value to convert
+   * @param {object} options an optional parameter to use an existing options object
+   *
+   * @returns {object}
+   */
+  parseConnectionString(connectionString, options) {
+    const urlParts = url.parse(connectionString, true);
+    options = options || {};
+    options.dialect = urlParts.protocol.replace(/:$/, '');
+    options.host = urlParts.hostname;
+    if (urlParts.pathname) {
+      options.database = urlParts.pathname.replace(/^\//, '');
+    }
+
+    if (urlParts.port) {
+      options.port = urlParts.port;
+    }
+
+    if (urlParts.auth) {
+      const authParts = urlParts.auth.split(':');
+      options.username = authParts[0];
+      if (authParts.length > 1) {
+        options.password = authParts.slice(1).join(':');
+      }
+    }
+
+    if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
+      const storagePath = path.join(options.host, urlParts.pathname);
+      options.storage = path.resolve(options.storage || storagePath);
+    }
+
+    if (urlParts.query) {
+      // Allow host query argument to override the url host.
+      // Enables specifying domain socket hosts which cannot be specified via the typical
+      // host part of a url.
+      if (urlParts.query.host) {
+        options.host = urlParts.query.host;
+      }
+
+      if (options.dialectOptions) {
+        Object.assign(options.dialectOptions, urlParts.query);
+      } else {
+        options.dialectOptions = urlParts.query;
+        if (urlParts.query.options) {
+          try {
+            const o = JSON.parse(urlParts.query.options);
+            options.dialectOptions.options = o;
+          } catch {
+            // Nothing to do, string is not a valid JSON
+            // an thus does not need any further processing
+          }
+        }
+      }
+    }
+
+    // For postgres, we can use this helper to load certs directly from the
+    // connection string.
+    if (['postgres', 'postgresql'].includes(options.dialect)) {
+      Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
+    }
+
+    return options;
   }
 
   /**
