@@ -26,6 +26,7 @@ const { BelongsTo } = require('./associations/belongs-to');
 const HasOne = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
+const { injectReplacements } = require('./utils/sql');
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -598,11 +599,7 @@ class Sequelize {
     }
 
     if (options.replacements) {
-      if (Array.isArray(options.replacements)) {
-        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
-      } else {
-        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
-      }
+      sql = injectReplacements(sql, this.dialect, options.replacements);
     }
 
     let bindParameters;
@@ -629,7 +626,7 @@ class Sequelize {
       checkTransaction();
 
       const connection = await (options.transaction ? options.transaction.connection : this.connectionManager.getConnection(options));
-      
+
       if (this.options.dialect === 'db2' && options.alter) {
         if (options.alter.drop === false) {
           connection.dropTable = false;

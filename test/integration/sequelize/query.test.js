@@ -457,27 +457,27 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('reject when key is missing in the passed object', async function() {
         await this.sequelize.query('select :one as foo, :two as bar, :three as baz', { raw: true, replacements: { one: 1, two: 2 } })
-          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+          .should.be.rejectedWith(Error, 'Named replacement ":three" has no entry in the replacement map.');
       });
 
       it('reject with the passed number', async function() {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
-          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received 2 instead.');
       });
 
       it('reject with the passed empty object', async function() {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {} })
-          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+          .should.be.rejectedWith(Error, 'Named replacement ":one" has no entry in the replacement map.');
       });
 
       it('reject with the passed string', async function() {
         await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar' })
-          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received "foobar" instead.');
       });
 
       it('reject with the passed date', async function() {
-        await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new Date() })
-          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+        await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new Buffer([1]) })
+          .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received {"type":"Buffer","data":[1]} instead.');
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function() {
