@@ -163,10 +163,7 @@ export interface Config {
   readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
-  readonly dialectOptions?: {
-    readonly charset?: string;
-    readonly timeout?: number;
-  };
+  readonly dialectOptions?: DialectOptions;
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
@@ -205,7 +202,7 @@ export interface Options extends Logging {
   /**
    * An object of additional options, which are passed directly to the connection library
    */
-  dialectOptions?: object;
+  dialectOptions?: DialectOptions;
 
   /**
    * Only used by sqlite.
@@ -400,6 +397,18 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+}
+
+
+export interface DialectOptions {
+  account?: string;
+  role?: string;
+  warehouse?: string;
+  schema?: string;
+  odbcConnectionString?: string;
+  charset?: string;
+  timeout?: number;
+  options?: object;
 }
 
 export interface QueryOptionsTransactionRequired { }
