@@ -129,9 +129,9 @@ export interface ConnectionOptions {
  * Interface for replication Options in the sequelize constructor
  */
 export interface ReplicationOptions {
-  read: ConnectionOptions[];
+  read: ConnectionOptions[] | string[];
 
-  write: ConnectionOptions;
+  write: ConnectionOptions | string;
 }
 
 /**
