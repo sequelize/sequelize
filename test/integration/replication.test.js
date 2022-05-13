@@ -89,11 +89,11 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
       sandbox = sinon.createSandbox();
 
       const db = Support.getConnectionOptionsWithoutPool();
-      const connectionString = `${dialect}://${db.username}:${db.password}@${db.host}:${db.port}/${db.database}`;
+      const connectionString = new URL(`${dialect}://${db.username}:${db.password}@${db.host}:${db.port}/${db.database}`);
       this.sequelize = Support.getSequelizeInstance(null, null, null, {
         replication: {
-          write: connectionString,
-          read: [connectionString],
+          write: connectionString.toString(),
+          read: [connectionString.toString()],
         },
       });
 
