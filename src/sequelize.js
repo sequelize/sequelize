@@ -4,10 +4,8 @@ import isPlainObject from 'lodash/isPlainObject';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { parseConnectionString } from './utils/url';
 
-const url = require('url');
-const path = require('path');
-const pgConnectionString = require('pg-connection-string');
 const retry = require('retry-as-promised');
 const _ = require('lodash');
 
@@ -193,7 +191,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      this.parseConnectionString(arguments[0], options);
+      parseConnectionString(arguments[0], options);
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
@@ -280,14 +278,14 @@ export class Sequelize {
     // Convert replication connection strings to objects
     if (this.options.replication) {
       if (this.options.replication.write && typeof this.options.replication.write === 'string') {
-        this.options.replication.write = this.parseConnectionString(this.options.replication.write);
+        this.options.replication.write = parseConnectionString(this.options.replication.write);
       }
 
       if (this.options.replication.read) {
         for (let i = 0; i < this.options.replication.read.length; i++) {
           const server = this.options.replication.read[i];
           if (typeof server === 'string') {
-            this.options.replication.read[i] = this.parseConnectionString(server);
+            this.options.replication.read[i] = parseConnectionString(server);
           }
         }
       }
@@ -643,73 +641,6 @@ Use Sequelize#query if you wish to use replacements.`);
         }
       }
     }, retryOptions);
-  }
-
-  /**
-   * Converts a connection string into an object with connection properties
-   *
-   * @param {string} connectionString string value to convert
-   * @param {object} options an optional parameter to use an existing options object
-   *
-   * @returns {object}
-   */
-  parseConnectionString(connectionString, options) {
-    const urlParts = url.parse(connectionString, true);
-    options = options || {};
-    options.dialect = urlParts.protocol.replace(/:$/, '');
-    options.host = urlParts.hostname;
-    if (urlParts.pathname) {
-      options.database = urlParts.pathname.replace(/^\//, '');
-    }
-
-    if (urlParts.port) {
-      options.port = urlParts.port;
-    }
-
-    if (urlParts.auth) {
-      const authParts = urlParts.auth.split(':');
-      options.username = authParts[0];
-      if (authParts.length > 1) {
-        options.password = authParts.slice(1).join(':');
-      }
-    }
-
-    if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-      const storagePath = path.join(options.host, urlParts.pathname);
-      options.storage = path.resolve(options.storage || storagePath);
-    }
-
-    if (urlParts.query) {
-      // Allow host query argument to override the url host.
-      // Enables specifying domain socket hosts which cannot be specified via the typical
-      // host part of a url.
-      if (urlParts.query.host) {
-        options.host = urlParts.query.host;
-      }
-
-      if (options.dialectOptions) {
-        Object.assign(options.dialectOptions, urlParts.query);
-      } else {
-        options.dialectOptions = urlParts.query;
-        if (urlParts.query.options) {
-          try {
-            const o = JSON.parse(urlParts.query.options);
-            options.dialectOptions.options = o;
-          } catch {
-            // Nothing to do, string is not a valid JSON
-            // an thus does not need any further processing
-          }
-        }
-      }
-    }
-
-    // For postgres, we can use this helper to load certs directly from the
-    // connection string.
-    if (['postgres', 'postgresql'].includes(options.dialect)) {
-      Object.assign(options.dialectOptions, pgConnectionString.parse(connectionString));
-    }
-
-    return options;
   }
 
   /**
