@@ -15,7 +15,7 @@ if (dialect.name.startsWith('postgres')) {
         const value: GeoJSON = { type: 'Point' };
         const bind = {};
         const bindParam = queryGenerator.bindParam(bind);
-        const result = DataTypes.GEOMETRY('Point').toDialectDataType(dialect).bindParam(value, { bindParam, escape: identity });
+        const result = DataTypes.GEOMETRY('Point').toDialectDataType(dialect).bindParam(value, { bindParam, escape: identity, dialect });
         expect(result).to.equal('ST_GeomFromGeoJSON($sequelize_1)');
         expect(bind).to.eql({ sequelize_1: value });
       });
@@ -26,7 +26,7 @@ if (dialect.name.startsWith('postgres')) {
         const value: GeoJSON = { type: 'Point' };
         const bind = {};
         const bindParam = queryGenerator.bindParam(bind);
-        const result = DataTypes.GEOGRAPHY('Point').toDialectDataType(dialect).bindParam(value, { bindParam, escape: identity });
+        const result = DataTypes.GEOGRAPHY('Point').toDialectDataType(dialect).bindParam(value, { bindParam, escape: identity, dialect });
         expect(result).to.equal('ST_GeomFromGeoJSON($sequelize_1)');
         expect(bind).to.eql({ sequelize_1: value });
       });

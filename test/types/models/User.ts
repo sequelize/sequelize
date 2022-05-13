@@ -43,7 +43,7 @@ export class User extends Model<
 User.init(
   {
     id: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
       primaryKey: true
     },
     firstName: {
@@ -52,7 +52,7 @@ User.init(
     },
     lastName: DataTypes.STRING,
     username: DataTypes.STRING,
-    groupId: DataTypes.NUMBER,
+    groupId: DataTypes.INTEGER,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },

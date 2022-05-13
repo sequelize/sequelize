@@ -506,11 +506,11 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     return options.bindParam(value);
   }
 
-  get UNSIGNED() {
+  get UNSIGNED(): this {
     return this._construct<typeof NUMBER>({ ...this.options, unsigned: true });
   }
 
-  get ZEROFILL() {
+  get ZEROFILL(): this {
     return this._construct<typeof NUMBER>({ ...this.options, zerofill: true });
   }
 
