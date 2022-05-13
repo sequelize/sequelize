@@ -2,7 +2,7 @@ import util from 'util';
 import type { DataTypeClassOrInstance, AbstractDataType } from '@sequelize/core';
 import { DataTypes, ValidationError } from '@sequelize/core';
 import { expect } from 'chai';
-import uuid from 'uuid';
+import { v1 as uuidV1, v4 as uuidV4 } from 'uuid';
 import { expectsql, sequelize, getTestDialect, getTestDialectTeaser, createTester } from '../../support';
 
 const dialect = getTestDialect();
@@ -24,7 +24,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(255)',
       });
 
-      testsql('STRING(1234)', DataTypes.STRING(''), {
+      testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
         mssql: 'NVARCHAR(1234)',
       });
@@ -57,8 +57,6 @@ describe(getTestDialectTeaser('SQL'), () => {
           const type = new DataTypes.STRING();
 
           expect(() => type.validate('foobar')).not.to.throw();
-          // eslint-disable-next-line no-new-wrappers,unicorn/new-for-builtins -- you should never create boxed primitives yourself, but we still want to test that our validation works with them.
-          expect(() => type.validate(new String('foobar'))).not.to.throw();
           expect(() => type.validate(12)).not.to.throw();
         });
       });
@@ -333,7 +331,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         it('should not throw if `value` is an uuid', () => {
           const type = DataTypes.UUID();
 
-          expect(() => type.validate(uuid.v4())).not.to.throw();
+          expect(() => type.validate(uuidV4())).not.to.throw();
         });
       });
     });
@@ -359,7 +357,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         it('should not throw if `value` is an uuid', () => {
           const type = DataTypes.UUIDV1();
 
-          expect(() => type.validate(uuid.v1())).not.to.throw();
+          expect(() => type.validate(uuidV1())).not.to.throw();
         });
       });
     });
@@ -372,7 +370,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV4();
-          const value = uuid.v1();
+          const value = uuidV1();
 
           expect(() => {
             type.validate(value);
@@ -386,7 +384,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         it('should not throw if `value` is an uuid', () => {
           const type = DataTypes.UUIDV4();
 
-          expect(() => type.validate(uuid.v4())).not.to.throw();
+          expect(() => type.validate(uuidV4())).not.to.throw();
         });
       });
     });

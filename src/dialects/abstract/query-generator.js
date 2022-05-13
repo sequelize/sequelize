@@ -1,5 +1,6 @@
 'use strict';
 
+import { getTextDataTypeForDialect } from '../../sql-string';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 
@@ -1045,34 +1046,48 @@ export class AbstractQueryGenerator {
     return table;
   }
 
-  /*
-    Escape a value (e.g. a string, number or date)
-    @private
-  */
+  /**
+   * Escape a value (e.g. a string, number or date)
+   *
+   * @param {unknown} value
+   * @param {object} field
+   * @param {object} options
+   * @private
+   */
   escape(value, field, options = {}) {
     if (value instanceof Utils.SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    if (value != null && field?.type) {
-      // TODO: replace with assert to ensure this is the right DataType implementation.
-      field.type = field.type.toDialectDataType(this._dialect);
-
-      this.validate(value, field, options);
-
-      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-      const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this._dialect);
-
-      value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
-
-      if (field.type.escape === false) {
-        // The data-type already did the required escaping
-        return value;
-      }
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this._dialect);
     }
 
-    return SqlString.escape(value, this.options.timezone, this._dialect);
+    field.type = field.type.toDialectDataType(this._dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
+    }
+
+    this.validate(value, field, options);
+
+    return field.type.stringify(value, {
+      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
+      escape: this.simpleEscape,
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this._dialect,
+    });
   }
+
+  // this is meant to be a property! Let's only create this function once.
+  simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this._dialect);
 
   bindParam(bind) {
     let i = 0;
@@ -1114,16 +1129,10 @@ export class AbstractQueryGenerator {
     Validate a value against a field specification
     @private
   */
-  validate(value, field, options) {
-    if (this.typeValidation && value) {
+  validate(value, field) {
+    if (this.typeValidation && value != null) {
       try {
-        if (options.isList && Array.isArray(value)) {
-          for (const item of value) {
-            field.type.validate(item, options);
-          }
-        } else {
-          field.type.validate(value, options);
-        }
+        field.type.validate(value);
       } catch (error) {
         if (error instanceof sequelizeError.ValidationError) {
           error.errors.push(new sequelizeError.ValidationErrorItem(
@@ -2763,9 +2772,20 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     const escapeOptions = {
-      acceptStrings: comparator.includes(this.OperatorMap[Op.like]),
       replacements: options.replacements,
     };
+
+    // because UUID is implemented as CHAR() in most dialects (except postgres)
+    //  we accept comparing to non-uuid values when using LIKE and similar operators.
+    // TODO: https://github.com/sequelize/sequelize/issues/13828 - in postgres, automatically cast to CHAR(36)
+    //  to have the same behavior as the others dialects.
+    if (comparator.includes(this.OperatorMap[Op.like]) && field?.type) {
+      field = {
+        ...field,
+        // replace DataType with DataTypes.TEXT() to accept all string values.
+        type: getTextDataTypeForDialect(this._dialect),
+      };
+    }
 
     if (_.isPlainObject(value)) {
       if (value[Op.col]) {

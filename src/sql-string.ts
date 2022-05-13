@@ -21,6 +21,17 @@ function arrayToList(array: unknown[], timeZone: string | undefined, dialect: Ab
   }, '');
 }
 
+const textDataTypeMap = new Map<string, AbstractDataType<any>>();
+export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDataType<any> {
+  let type = textDataTypeMap.get(dialect.name);
+  if (type == null) {
+    type = new DataTypes.STRING().toDialectDataType(dialect);
+    textDataTypeMap.set(dialect.name, type);
+  }
+
+  return type;
+}
+
 function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
   switch (typeof val) {
     case 'bigint':
@@ -62,7 +73,7 @@ function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): Abstrac
       break;
 
     case 'string':
-      return new DataTypes.STRING().toDialectDataType(dialect);
+      return getTextDataTypeForDialect(dialect);
 
     default:
   }

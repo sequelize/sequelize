@@ -19,6 +19,13 @@ type ParameterOptions = {
   replacements?: { [key: string]: unknown },
 };
 
+type EscapeOptions = ParameterOptions & {
+  /**
+   * Set to true if the value to escape is in a list (e.g. used inside of Op.any or Op.all).
+   */
+  isList?: boolean
+};
+
 type SelectOptions<M extends Model> = FindOptions<M> & {
   model: ModelStatic<M>,
 };
@@ -74,7 +81,8 @@ export class AbstractQueryGenerator {
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
+  validate(value: unknown, field?: BuiltModelAttributeColumOptions): void;
+  escape(value: unknown, field?: BuiltModelAttributeColumOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(smth: SequelizeMethod, tableName?: TableName, factory?: ModelStatic, options?: HandleSequelizeMethodOptions, prepend?: boolean): string;

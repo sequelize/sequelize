@@ -212,10 +212,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
-          expect(true).to.equal(console.warn.calledOnce);
+          expect(console.warn.calledOnce).to.eq(true);
           expect(console.warn.args[0][0]).to.contain('does not support \'TINYINT\'');
         } else {
-          expect(false).to.equal(console.warn.calledOnce);
+          expect(console.warn.calledOnce).to.equal(false);
         }
       });
     });

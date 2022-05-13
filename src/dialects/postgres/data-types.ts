@@ -59,7 +59,7 @@ BaseTypes.TIME[kSetDialectNames]('postgres', ['time']);
 export class DATEONLY extends BaseTypes.DATEONLY {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.DATEONLY;
 
-  stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>) {
+  stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
     if (value === Number.POSITIVE_INFINITY) {
       return 'Infinity';
     }
@@ -68,7 +68,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
       return '-Infinity';
     }
 
-    return super.stringify(value);
+    return super.stringify(value, options);
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -180,41 +180,6 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql() {
     return 'BOOLEAN';
   }
-
-  sanitize(value: unknown): boolean | null {
-    return BOOLEAN.parse(value);
-  }
-
-  static parse(value: unknown): boolean | null {
-    if (value == null) {
-      return null;
-    }
-
-    if (Buffer.isBuffer(value) && value.length === 1) {
-      // Bit fields are returned as buffers
-      value = value[0];
-    }
-
-    if (typeof value === 'string') {
-      if (value === 'true' || value === 't') {
-        return true;
-      }
-
-      if (value === 'false' || value === 'f') {
-        return false;
-      }
-    } else if (typeof value === 'number') {
-      if (value === 1) {
-        return true;
-      }
-
-      if (value === 0) {
-        return false;
-      }
-    }
-
-    throw new TypeError(`Could not parse value ${value} as a boolean`);
-  }
 }
 
 BaseTypes.BOOLEAN[kSetDialectNames]('postgres', ['bool']);
@@ -241,11 +206,11 @@ export class DATE extends BaseTypes.DATE {
     options: StringifyOptions,
   ): string {
     if (value === Number.POSITIVE_INFINITY) {
-      return 'Number.POSITIVE_INFINITY';
+      return options.escape('infinity');
     }
 
     if (value === Number.NEGATIVE_INFINITY) {
-      return 'Number.NEGATIVE_INFINITY';
+      return options.escape('-infinity');
     }
 
     return super.stringify(value, options);
@@ -414,7 +379,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
   toSql() {
     let result = this.key;
     if (this.options.type) {
-      result += `(${this.options.type}`;
+      result += `(${this.options.type.toUpperCase()}`;
       if (this.options.srid) {
         result += `,${this.options.srid}`;
       }
@@ -481,7 +446,6 @@ BaseTypes.GEOGRAPHY[kSetDialectNames]('postgres', ['geography']);
 
 export class HSTORE extends BaseTypes.HSTORE {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.HSTORE;
-  readonly escape = false;
 
   // TODO: Find types for pg-hstore
   private _value(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
@@ -516,7 +480,6 @@ BaseTypes.HSTORE[kSetDialectNames]('postgres', ['hstore']);
 
 export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.RANGE;
-  readonly escape = false;
 
   _value(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
     if (!Array.isArray(values)) {
@@ -599,7 +562,6 @@ BaseTypes.RANGE[kSetDialectNames]('postgres', {
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.ARRAY;
-  readonly escape = false;
 
   _value(
     values: Array<AcceptableTypeOf<T>>,
@@ -616,13 +578,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
         return type._value(value, options);
       }
 
-      value = type.stringify(value, options);
-
-      if (type.escape === false) {
-        return value;
-      }
-
-      return options.escape(value);
+      return type.stringify(value, options);
     });
   }
 

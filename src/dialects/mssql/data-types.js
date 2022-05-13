@@ -92,8 +92,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  STRING.prototype.escape = false;
-
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       // TEXT is deprecated in mssql and it would normally be saved as a non-unicode string.

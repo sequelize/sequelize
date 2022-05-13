@@ -1,21 +1,17 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import type { BuiltModelAttributeColumOptions, AbstractDataType } from '@sequelize/core';
+import { expect } from 'chai';
+import type { Class } from 'type-fest';
+import { sequelize, getTestDialectTeaser } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../support');
-
-const current = Support.sequelize;
-const { DataTypes } = require('@sequelize/core');
-
-function assertDataType(property, dataType) {
-  expect(property.type.constructor.key).to.equal(dataType.key);
+function assertDataType(property: BuiltModelAttributeColumOptions, dataType: Class<AbstractDataType<any>>) {
+  expect(property.type).to.be.instanceof(dataType);
 }
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe(getTestDialectTeaser('Model'), () => {
   describe('getAttributes', () => {
     it('should return attributes with getAttributes()', () => {
-      const Model = current.define(
+      const Model = sequelize.define(
         'User',
         { username: DataTypes.STRING },
         { timestamps: false },
@@ -47,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('will contain timestamps if enabled', () => {
-      const Model = current.define('User', { username: DataTypes.STRING });
+      const Model = sequelize.define('User', { username: DataTypes.STRING });
       const attributes = Model.getAttributes();
 
       expect(Object.keys(attributes)).to.include.members([
@@ -78,7 +74,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('will contain timestamps if enabled', () => {
-      const Model = current.define(
+      const Model = sequelize.define(
         'User',
         {
           username: DataTypes.STRING,

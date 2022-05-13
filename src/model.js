@@ -3735,8 +3735,9 @@ export class Model {
 
       // If there's a data type sanitizer
       if (
-        !(value instanceof Utils.SequelizeMethod)
-        && this.rawAttributes[key].type
+        value != null
+        && !(value instanceof Utils.SequelizeMethod)
+        && this.rawAttributes[key]?.type
       ) {
         value = this.rawAttributes[key].type.sanitize(value, options);
       }
@@ -3748,8 +3749,8 @@ export class Model {
           // True when sequelize method
           value instanceof Utils.SequelizeMethod
           // Otherwise, check for data type type comparators
-          || (!(value instanceof Utils.SequelizeMethod) && !this.constructor.rawAttributes[key]?.type.areValuesEqual(value, originalValue, options))
-          || !this.constructor.rawAttributes[key] && !_.isEqual(value, originalValue) // TODO: this line may be removable
+          || (value != null && !(value instanceof Utils.SequelizeMethod) && !this.constructor.rawAttributes[key]?.type.areValuesEqual(value, originalValue, options))
+          || (value == null || !this.constructor.rawAttributes[key]) && !_.isEqual(value, originalValue)
         )
       ) {
         this._previousDataValues[key] = originalValue;

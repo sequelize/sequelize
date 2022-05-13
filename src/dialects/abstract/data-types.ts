@@ -99,10 +99,12 @@ export abstract class AbstractDataType<
   }
 
   static get escape() {
-    throw new Error('Do not try to get the "escape" static property on data types, get it on the instance instead.');
+    throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
   }
 
-  declare readonly escape: boolean | ((str: string, opts: StringifyOptions) => string);
+  get escape() {
+    throw new Error('The "escape" property has been removed. Each DataType is responsible for escaping its value correctly.');
+  }
 
   // TODO: move to utils?
   protected _construct<Constructor extends abstract new () => AbstractDataType<any>>(
@@ -148,11 +150,11 @@ export abstract class AbstractDataType<
    * Converts a JS value to a SQL value, compatible with the SQL data type
    *
    * @param value
-   * @param _options
+   * @param options
    * @protected
    */
-  stringify(value: AcceptedType, _options: StringifyOptions): string {
-    return String(value);
+  stringify(value: AcceptedType, options: StringifyOptions): string {
+    return options.dialect.escapeString(String(value));
   }
 
   /**
@@ -187,6 +189,16 @@ export abstract class AbstractDataType<
   }
 
   /**
+   * Override this method to emit an error or a warning if the Data Type, as it is configured, is not compatible
+   * with the current dialect.
+   *
+   * @param _dialect The dialect using this data type.
+   * @protected
+   * @internal
+   */
+  protected _checkOptionSupport(_dialect: AbstractDialect) {}
+
+  /**
    * Returns this DataType, using its dialect-specific subclass.
    *
    * @param dialect
@@ -196,11 +208,16 @@ export abstract class AbstractDataType<
     const subClass = dialect.dataTypeOverrides.get(this.constructor as Class<AbstractDataType<any>>);
 
     if (!subClass) {
+      this._checkOptionSupport(dialect);
+
       return this;
     }
 
     // @ts-expect-error
-    return new subClass(this.options);
+    const replacement = new subClass(this.options);
+    replacement._checkOptionSupport(dialect);
+
+    return replacement as this;
   }
 }
 
@@ -220,7 +237,6 @@ export interface StringTypeOptions {
  * STRING A variable length string
  */
 export class STRING extends AbstractDataType<string | Buffer> {
-  readonly escape = false;
   readonly key: string = 'STRING';
   readonly options: StringTypeOptions;
 
@@ -341,11 +357,7 @@ export class TEXT extends AbstractDataType<string> {
     this.options = {
       length: length as TextLength,
     };
-
-    this._checkOptionSupport();
   }
-
-  protected _checkOptionSupport() {}
 
   toSql(): string {
     switch (this.options.length) {
@@ -368,6 +380,10 @@ export class TEXT extends AbstractDataType<string> {
       );
     }
   }
+
+  stringify(value: string, options: StringifyOptions): string {
+    return options.dialect.escapeString(value);
+  }
 }
 
 /**
@@ -385,6 +401,10 @@ export class CITEXT extends AbstractDataType<string> {
         [],
       );
     }
+  }
+
+  stringify(value: string, options: StringifyOptions): string {
+    return options.dialect.escapeString(value);
   }
 }
 
@@ -434,11 +454,9 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
       // @ts-expect-error
       this.options = { length: optionsOrLength };
     }
-
-    this._checkOptionSupport();
   }
 
-  protected _checkOptionSupport() {}
+  protected checkOptionSupport() {}
 
   toSql(): string {
     let result = this.key;
@@ -509,7 +527,6 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
  * A 32 bit integer
  */
 export class INTEGER extends NUMBER {
-  readonly escape = false;
   readonly key: string = 'INTEGER';
 
   validate(value: any) {
@@ -555,7 +572,6 @@ export class BIGINT extends INTEGER {
  */
 export class FLOAT extends NUMBER {
   readonly key: string = 'FLOAT';
-  readonly escape = false;
 
   constructor(options?: NumberOptions);
 
@@ -684,7 +700,6 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
  * A boolean / tinyint column, depending on dialect
  */
 export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
-  readonly escape = false;
   readonly key = 'BOOLEAN';
 
   toSql() {
@@ -720,23 +735,40 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     }
 
     const type = typeof value;
+    if (type === 'boolean') {
+      return value as boolean;
+    }
+
     if (type === 'string') {
       // Only take action on valid boolean strings.
-      if (value === 'true') {
+      if (value === 'true' || value === '1' || value === 't') {
         return true;
       }
 
-      if (value === 'false') {
+      if (value === 'false' || value === '0' || value === 'f') {
         return false;
       }
-    } else if (
-      type === 'number' // Only take action on valid boolean integers.
-      && (value === 0 || value === 1)
-    ) {
-      return Boolean(value);
+
+      // Only take action on valid boolean integers.
+    } else if (typeof value === 'number') {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+    } else if (typeof value === 'bigint') {
+      if (value === 1n) {
+        return true;
+      }
+
+      if (value === 0n) {
+        return false;
+      }
     }
 
-    return null;
+    throw new Error(`Valid cannot be parsed as boolean: ${value}`);
   }
 }
 
@@ -844,19 +876,23 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 
   bindParam(value: AcceptedDate, options: BindParamOptions): string {
-    return super.bindParam(this.stringify(value, options), options);
+    return super.bindParam(this.#value(value, options), options);
+  }
+
+  #value(date: AcceptedDate, options: { timezone?: string }) {
+    if (!moment.isMoment(date)) {
+      date = this._applyTimezone(date, options);
+    }
+
+    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 
   stringify(
     date: AcceptedDate,
     options: StringifyOptions,
   ) {
-    if (!moment.isMoment(date)) {
-      date = this._applyTimezone(date, options);
-    }
-
     // Z here means current timezone, *not* UTC
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return options.dialect.escapeString(this.#value(date, options));
   }
 }
 
@@ -870,8 +906,8 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return 'DATE';
   }
 
-  stringify(date: AcceptedDate) {
-    return moment(date).format('YYYY-MM-DD');
+  stringify(date: AcceptedDate, options: StringifyOptions) {
+    return options.dialect.escapeString(moment(date).format('YYYY-MM-DD'));
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -922,8 +958,8 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 export class JSON extends AbstractDataType<any> {
   readonly key: string = 'JSON';
 
-  stringify(value: any): string {
-    return globalThis.JSON.stringify(value);
+  stringify(value: unknown, options: StringifyOptions): string {
+    return options.dialect.escapeString(globalThis.JSON.stringify(value));
   }
 }
 
@@ -937,6 +973,7 @@ export class JSONB extends JSON {
 /**
  * A default value of the current timestamp.  Not a valid type.
  */
+// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware.
 export class NOW extends AbstractDataType<never> {
   readonly key = 'NOW';
 }
@@ -955,7 +992,6 @@ export interface BlobOptions {
  */
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   readonly key = 'BLOB';
-  readonly escape = false;
   readonly options: BlobOptions;
 
   /**
@@ -969,11 +1005,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     this.options = {
       length: typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions,
     };
-
-    this._checkOptionSupport();
   }
-
-  protected _checkOptionSupport() {}
 
   toSql(): string {
     switch (this.options.length) {
@@ -1065,14 +1097,7 @@ export class UUID extends AbstractDataType<string> {
   readonly key = 'UUID';
 
   validate(value: any) {
-    if (typeof value !== 'string') {
-      throw new ValidationError(
-        util.format('%j is not a valid uuid', value),
-        [],
-      );
-    }
-
-    if (!Validator.isUUID(value)) {
+    if (typeof value !== 'string' || !Validator.isUUID(value)) {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
         [],
@@ -1088,15 +1113,8 @@ export class UUIDV1 extends AbstractDataType<string> {
   readonly key = 'UUIDV1';
 
   validate(value: any) {
-    if (typeof value !== 'string') {
-      throw new ValidationError(
-        util.format('%j is not a valid uuid', value),
-        [],
-      );
-    }
-
     // @ts-expect-error -- the typings for isUUID are missing '1' as a valid uuid version, but its implementation does accept it
-    if (!Validator.isUUID(value, 1)) {
+    if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv1', value),
         [],
@@ -1111,15 +1129,8 @@ export class UUIDV1 extends AbstractDataType<string> {
 export class UUIDV4 extends AbstractDataType<string> {
   readonly key = 'UUIDV4';
 
-  validate(value: any) {
-    if (typeof value !== 'string') {
-      throw new ValidationError(
-        util.format('%j is not a valid uuid', value),
-        [],
-      );
-    }
-
-    if (!Validator.isUUID(value, 4)) {
+  validate(value: unknown) {
+    if (typeof value !== 'string' || !Validator.isUUID(value, 4)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv4', value),
         [],
@@ -1393,7 +1404,6 @@ export interface GeometryOptions {
  */
 export class GEOMETRY extends AbstractDataType<GeoJSON> {
   readonly key: string = 'GEOMETRY';
-  readonly escape = false;
   readonly options: GeometryOptions;
 
   /**

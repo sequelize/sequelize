@@ -132,8 +132,6 @@ module.exports = BaseTypes => {
     }
   }
 
-  STRING.prototype.escape = false;
-
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       let len = 0;

@@ -1,5 +1,7 @@
 'use strict';
 
+import { ENUM } from './data-types';
+
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
@@ -784,7 +786,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const enumName = this.pgEnumName(tableName, attr, options);
     let values;
 
-    if (dataType.options.values) {
+    if (dataType instanceof ENUM && dataType.options.values) {
       values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
     } else {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];

@@ -293,19 +293,9 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         this.validate(value, field, options);
 
         if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          if (field.type._binary) {
-            field.type.escape = false;
-          }
+          value = field.type.stringify(value, { escape: this.simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
 
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this._dialect);
-
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
-
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
+          return value;
         }
       }
     }
