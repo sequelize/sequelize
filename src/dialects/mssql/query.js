@@ -48,7 +48,7 @@ export class MsSqlQuery extends AbstractQuery {
         paramType.type = TYPES.VarChar;
         paramType.value = value.toString();
       } else {
-        return this.getSQLTypeFromJsType(parseInt(value, 10), TYPES);
+        return this.getSQLTypeFromJsType(Number(value), TYPES);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
