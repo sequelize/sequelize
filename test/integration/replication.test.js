@@ -89,7 +89,13 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
       sandbox = sinon.createSandbox();
 
       const db = Support.getConnectionOptionsWithoutPool();
-      const connectionString = new URL(`${dialect}://${db.username}:${db.password}@${db.host}:${db.port}/${db.database}`);
+      const connectionString = new URL('protocol://username:password@host/database');
+      connectionString.protocol = dialect;
+      connectionString.host = db.host;
+      connectionString.port = db.port;
+      connectionString.username = db.username;
+      connectionString.password = db.password;
+      connectionString.pathname = `/${db.database}`;
       this.sequelize = Support.getSequelizeInstance(null, null, null, {
         replication: {
           write: connectionString.toString(),
