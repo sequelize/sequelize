@@ -706,7 +706,7 @@ Use Sequelize#query if you wish to use replacements.`);
     // For postgres, we can use this helper to load certs directly from the
     // connection string.
     if (['postgres', 'postgresql'].includes(options.dialect)) {
-      Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
+      Object.assign(options.dialectOptions, pgConnectionString.parse(connectionString));
     }
 
     return options;
