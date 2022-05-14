@@ -5,14 +5,13 @@ import pgConnectionString from 'pg-connection-string';
 import type { Dialect, Options } from '../sequelize';
 
 /**
- * Converts a connection string into an object with connection properties
+ * Parses a connection string into an Options object with connection properties
  *
- * @param connectionString string value to convert
- * @param options if provided use an existing Options object
+ * @param connectionString string value in format schema://username:password@host:port/database
  */
-export function parseConnectionString(connectionString: string, options?: Options): Options {
+export function parseConnectionString(connectionString: string): Options {
   const urlParts = url.parse(connectionString, true);
-  options = options || {};
+  const options: Options = {};
   if (urlParts.protocol) {
     let protocol = urlParts.protocol.replace(/:$/, '');
     if (protocol === 'postgresql') {
@@ -55,18 +54,14 @@ export function parseConnectionString(connectionString: string, options?: Option
       options.host = urlParts.query.host as string;
     }
 
-    if (options.dialectOptions) {
-      Object.assign(options.dialectOptions, urlParts.query);
-    } else {
-      options.dialectOptions = urlParts.query as object;
-      if (urlParts.query.options) {
-        try {
-          const o = JSON.parse(urlParts.query.options as string);
-          options.dialectOptions.options = o;
-        } catch {
-          // Nothing to do, string is not a valid JSON
-          // an thus does not need any further processing
-        }
+    options.dialectOptions = urlParts.query as object;
+    if (urlParts.query.options) {
+      try {
+        const o = JSON.parse(urlParts.query.options as string);
+        options.dialectOptions.options = o;
+      } catch {
+        // Nothing to do, string is not a valid JSON
+        // an thus does not need any further processing
       }
     }
   }
