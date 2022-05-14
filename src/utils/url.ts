@@ -69,6 +69,7 @@ export function parseConnectionString(connectionString: string): Options {
   // For postgres, we can use this helper to load certs directly from the
   // connection string.
   if (options.dialect === 'postgres') {
+    options.dialectOptions = options.dialectOptions || {};
     Object.assign(options.dialectOptions, pgConnectionString.parse(connectionString));
   }
 
