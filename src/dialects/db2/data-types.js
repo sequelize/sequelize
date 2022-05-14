@@ -247,10 +247,6 @@ module.exports = BaseTypes => {
         value = value.string();
       }
 
-      if (value === null) {
-        return value;
-      }
-
       value = new Date(momentTz.utc(value));
 
       return value;

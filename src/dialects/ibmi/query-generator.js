@@ -293,7 +293,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         this.validate(value, field, options);
 
         if (field.type.stringify) {
-          value = field.type.stringify(value, { escape: this.simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
+          value = field.type.escape(value, { escape: this.simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
 
           return value;
         }

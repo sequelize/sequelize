@@ -529,47 +529,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
-    it('properly adds and escapes replacement value', async function () {
-      let logSql;
-      const number  = 1;
-      const date = new Date();
-      const string = 't\'e"st';
-      const boolean = true;
-      const buffer = Buffer.from('t\'e"st');
-
-      date.setMilliseconds(0);
-      let sql = 'select ? as number, ? as date,? as string,? as boolean,? as buffer';
-      if (dialect === 'db2') {
-        sql = 'select ? as "number", ? as "date",? as "string",? as "boolean",? as "buffer"';
-      } else if (dialect === 'ibmi') {
-        sql = `select ? as "number", ? as "date",? as "string",? as "boolean",? as "buffer" FROM SYSIBM.SYSDUMMY1`;
-      }
-
-      const result = await this.sequelize.query(sql, {
-        replacements: [number, date, string, boolean, buffer],
-        type: this.sequelize.QueryTypes.SELECT,
-        logging(s) {
-          logSql = s;
-        },
-      });
-
-      const res = result[0] || {};
-      res.date = res.date && new Date(res.date);
-      res.boolean = res.boolean && true;
-      if (typeof res.buffer === 'string' && res.buffer.startsWith('\\x')) {
-        res.buffer = Buffer.from(res.buffer.slice(2), 'hex');
-      }
-
-      expect(res).to.deep.equal({
-        number,
-        date,
-        string,
-        boolean,
-        buffer,
-      });
-      expect(logSql).to.not.include('?');
-    });
-
     it('dot separated attributes when doing a raw query without nest', async function () {
       const tickChar = ['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect) ? '"' : '`';
       const sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;

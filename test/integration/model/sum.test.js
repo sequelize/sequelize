@@ -11,8 +11,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.Payment = this.sequelize.define('Payment', {
       amount: DataTypes.DECIMAL,
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
 

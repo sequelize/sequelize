@@ -268,20 +268,18 @@ if (dialect.startsWith('postgres')) {
         const DummyModel = this.sequelize.define('Dummy-pg', {
           username: DataTypes.STRING,
           theEnumOne: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 
@@ -297,21 +295,19 @@ if (dialect.startsWith('postgres')) {
           username: DataTypes.STRING,
           theEnumOne: {
             field: 'oh_my_this_enum_one',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
             field: 'oh_my_this_enum_two',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 

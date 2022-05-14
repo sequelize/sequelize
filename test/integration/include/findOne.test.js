@@ -358,7 +358,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Post = this.sequelize.define('Post', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, unique: true },
         owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
-        owner_type: { type: DataTypes.ENUM, values: ['user', 'org'], defaultValue: 'user', unique: 'combiIndex' },
+        owner_type: { type: DataTypes.ENUM(['user', 'org']), defaultValue: 'user', unique: 'combiIndex' },
         private: { type: DataTypes.BOOLEAN, defaultValue: false },
       }, { underscored: true });
 

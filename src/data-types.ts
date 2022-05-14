@@ -1,6 +1,7 @@
 import * as DataTypes from './dialects/abstract/data-types.js';
 import { classToInvokable } from './utils/class-to-invokable.js';
 
+export const ABSTRACT = DataTypes.AbstractDataType;
 export const STRING = classToInvokable(DataTypes.STRING);
 export const CHAR = classToInvokable(DataTypes.CHAR);
 export const TEXT = classToInvokable(DataTypes.TEXT);

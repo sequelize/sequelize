@@ -25,9 +25,12 @@ export type Constructed<T> = T extends abstract new () => infer Instance
 export type AcceptableTypeOf<T extends DataType> =
   Constructed<T> extends AbstractDataType<infer Acceptable> ? Acceptable : never;
 
+export type DataTypeInstance = AbstractDataType<any>;
+export type DataTypeClass = Class<AbstractDataType<any>>;
+
 export type DataTypeClassOrInstance =
-  | AbstractDataType<any>
-  | Class<AbstractDataType<any>>;
+  | DataTypeInstance
+  | DataTypeClass;
 
 export type DataType =
   | string
@@ -102,10 +105,6 @@ export abstract class AbstractDataType<
     throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
   }
 
-  get escape() {
-    throw new Error('The "escape" property has been removed. Each DataType is responsible for escaping its value correctly.');
-  }
-
   // TODO: move to utils?
   protected _construct<Constructor extends abstract new () => AbstractDataType<any>>(
     ...args: ConstructorParameters<Constructor>): this {
@@ -115,9 +114,6 @@ export abstract class AbstractDataType<
 
     return new constructor(...args);
   }
-
-  // TODO: document
-  dialectTypes = '';
 
   areValuesEqual(
     value: AcceptedType,
@@ -146,15 +142,8 @@ export abstract class AbstractDataType<
    */
   validate(value: any): asserts value is AcceptedType {}
 
-  /**
-   * Converts a JS value to a SQL value, compatible with the SQL data type
-   *
-   * @param value
-   * @param options
-   * @protected
-   */
-  stringify(value: AcceptedType, options: StringifyOptions): string {
-    return options.dialect.escapeString(String(value));
+  escape(value: AcceptedType, options: StringifyOptions): string {
+    return options.dialect.escapeString(this.stringify(value, options));
   }
 
   /**
@@ -164,7 +153,17 @@ export abstract class AbstractDataType<
    * @param options
    */
   bindParam(value: AcceptedType, options: BindParamOptions): string {
-    return options.bindParam(String(value));
+    return options.bindParam(this.stringify(value, options));
+  }
+
+  /**
+   * Converts a JS value to a SQL value, compatible with the SQL data type
+   *
+   * @param value
+   * @param _options
+   */
+  stringify(value: AcceptedType, _options: StringifyOptions): string {
+    return String(value);
   }
 
   toString(): string {
@@ -305,7 +304,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     return new this({ binary: true });
   }
 
-  stringify(value: string | Buffer, options: StringifyOptions): string {
+  escape(value: string | Buffer, options: StringifyOptions): string {
     if (Buffer.isBuffer(value)) {
       return options.dialect.escapeBuffer(value);
     }
@@ -380,10 +379,6 @@ export class TEXT extends AbstractDataType<string> {
       );
     }
   }
-
-  stringify(value: string, options: StringifyOptions): string {
-    return options.dialect.escapeString(value);
-  }
 }
 
 /**
@@ -401,10 +396,6 @@ export class CITEXT extends AbstractDataType<string> {
         [],
       );
     }
-  }
-
-  stringify(value: string, options: StringifyOptions): string {
-    return options.dialect.escapeString(value);
   }
 }
 
@@ -433,6 +424,7 @@ export interface NumberOptions {
 
 type AcceptedNumber =
   | number
+  | bigint
   | boolean
   | string
   | null;
@@ -495,7 +487,11 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     }
   }
 
-  stringify(number: AcceptedNumber): string {
+  escape(value: AcceptedNumber, options: StringifyOptions): string {
+    return this.stringify(value, options);
+  }
+
+  stringify(number: AcceptedNumber, _options: StringifyOptions): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(number);
 
@@ -600,7 +596,7 @@ export class FLOAT extends NUMBER {
     }
   }
 
-  _value(value: AcceptedNumber) {
+  stringify(value: AcceptedNumber) {
     const num = typeof value === 'number' ? value : Number(String(value));
 
     if (Number.isNaN(num)) {
@@ -614,16 +610,6 @@ export class FLOAT extends NUMBER {
     }
 
     return num.toString();
-  }
-
-  stringify(value: AcceptedNumber) {
-    this.validate(value);
-
-    return `'${this._value(value)}'`;
-  }
-
-  bindParam(value: AcceptedNumber, options: BindParamOptions) {
-    return options.bindParam(this._value(value));
   }
 }
 
@@ -720,15 +706,15 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     return BOOLEAN.parse(value);
   }
 
+  escape(value: boolean | Falsy): string {
+    return this.stringify(value);
+  }
+
   stringify(value: boolean | Falsy): string {
     return value ? 'true' : 'false';
   }
 
-  static parse(value: unknown): boolean | null {
-    if (value == null) {
-      return null;
-    }
-
+  static parse(value: unknown): boolean {
     if (Buffer.isBuffer(value) && value.length === 1) {
       // Bit fields are returned as buffers
       value = value[0];
@@ -791,7 +777,7 @@ export interface DateOptions {
 }
 
 type RawDate = Date | string | number;
-export type AcceptedDate = RawDate | moment.Moment;
+export type AcceptedDate = RawDate | moment.Moment | number;
 
 /**
  * A date and time.
@@ -875,24 +861,15 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return momentTz(date);
   }
 
-  bindParam(value: AcceptedDate, options: BindParamOptions): string {
-    return super.bindParam(this.#value(value, options), options);
-  }
-
-  #value(date: AcceptedDate, options: { timezone?: string }) {
+  stringify(
+    date: AcceptedDate,
+    options: StringifyOptions,
+  ) {
     if (!moment.isMoment(date)) {
       date = this._applyTimezone(date, options);
     }
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
-  }
-
-  stringify(
-    date: AcceptedDate,
-    options: StringifyOptions,
-  ) {
-    // Z here means current timezone, *not* UTC
-    return options.dialect.escapeString(this.#value(date, options));
   }
 }
 
@@ -906,8 +883,8 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return 'DATE';
   }
 
-  stringify(date: AcceptedDate, options: StringifyOptions) {
-    return options.dialect.escapeString(moment(date).format('YYYY-MM-DD'));
+  stringify(date: AcceptedDate, _options: StringifyOptions) {
+    return moment(date).format('YYYY-MM-DD');
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -958,8 +935,8 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 export class JSON extends AbstractDataType<any> {
   readonly key: string = 'JSON';
 
-  stringify(value: unknown, options: StringifyOptions): string {
-    return options.dialect.escapeString(globalThis.JSON.stringify(value));
+  stringify(value: any): string {
+    return globalThis.JSON.stringify(value);
   }
 }
 
@@ -1029,7 +1006,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     }
   }
 
-  stringify(value: string | Buffer, options: StringifyOptions) {
+  escape(value: string | Buffer, options: StringifyOptions) {
     const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
     return options.dialect.escapeBuffer(buf);
@@ -1048,7 +1025,9 @@ export interface RangeOptions {
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  */
-export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<Rangable<AcceptableTypeOf<T>>> {
+export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<
+  Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>
+> {
   readonly key = 'RANGE';
   readonly options: {
     subtype: AbstractDataType<any>,
@@ -1063,7 +1042,7 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
     const subtypeRaw = (isDataType(subtypeOrOptions) ? subtypeOrOptions : subtypeOrOptions.subtype)
       ?? new INTEGER();
 
-    const subtype = isDataTypeClass(subtypeRaw)
+    const subtype: DataTypeInstance = isDataTypeClass(subtypeRaw)
       ? new subtypeRaw()
       : subtypeRaw;
 

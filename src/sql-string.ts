@@ -105,7 +105,7 @@ export function escape(
 
   const dataType = bestGuessDataTypeOfVal(val, dialect);
 
-  return dataType.stringify(val, {
+  return dataType.escape(val, {
     dialect,
     timezone: timeZone,
     escape: (escVal: string) => escape(escVal, timeZone, dialect, format),

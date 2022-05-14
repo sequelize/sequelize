@@ -350,7 +350,6 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('Buffer', () => {
         testSql({ stringAttr: Buffer.from('Sequelize') }, {
-          // TODO: (ibmi) - is this correct?
           ibmi: `"stringAttr" = BLOB(X'53657175656c697a65')`,
           postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
           sqlite: '`stringAttr` = X\'53657175656c697a65\'',
@@ -362,7 +361,6 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
 
         testSql({ stringAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
-          // TODO: (ibmi) - is this correct?
           ibmi: `"stringAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
           postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
           sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',

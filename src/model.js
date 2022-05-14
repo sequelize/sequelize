@@ -4046,8 +4046,8 @@ export class Model {
 
     const versionFieldName = _.get(this.constructor.rawAttributes[versionAttr], 'field') || versionAttr;
     const values = Utils.mapValueFieldNames(this.dataValues, options.fields, this.constructor);
-    let query = null;
-    let args = [];
+    let query;
+    let args;
     let where;
 
     if (this.isNewRecord) {
@@ -4064,6 +4064,7 @@ export class Model {
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);
+
     if (versionAttr) {
       // Check to see that a row was updated, otherwise it's an optimistic locking error.
       if (rowsUpdated < 1) {

@@ -7,7 +7,7 @@ const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('connection:pg');
 const sequelizeErrors = require('../../errors');
 const semver = require('semver');
-const dataTypes = require('../../data-types');
+const dataTypes = require('./data-types');
 const momentTz = require('moment-timezone');
 const { promisify } = require('util');
 
@@ -21,7 +21,7 @@ export class PostgresConnectionManager extends ConnectionManager {
 
     this._clearDynamicOIDs();
     this._clearTypeParser();
-    this.refreshTypeParser(dataTypes.postgres);
+    this.refreshTypeParser(dataTypes);
   }
 
   // Expose this as a method so that the parsing may be updated when the user has added additional, custom types
@@ -35,7 +35,7 @@ export class PostgresConnectionManager extends ConnectionManager {
     };
 
     // Set range parsers
-    if (dataType.key.toLowerCase() === 'range') {
+    if (dataType === dataTypes.RANGE) {
       for (const name in this.nameOidMap) {
         const entry = this.nameOidMap[name];
         if (!entry.rangeOid) {
@@ -61,7 +61,7 @@ export class PostgresConnectionManager extends ConnectionManager {
     const arrayParser = arrayParserBuilder(parser);
 
     // Set enum parsers
-    if (dataType.key.toLowerCase() === 'enum') {
+    if (dataType === dataTypes.ENUM) {
       for (const oid of this.enumOids.oids) {
         this.oidParserMap.set(oid, parser);
       }
@@ -348,7 +348,7 @@ export class PostgresConnectionManager extends ConnectionManager {
     this.nameOidMap = newNameOidMap;
     this.enumOids = newEnumOids;
 
-    this.refreshTypeParser(dataTypes.postgres);
+    this.refreshTypeParser(dataTypes);
   }
 
   _clearDynamicOIDs() {

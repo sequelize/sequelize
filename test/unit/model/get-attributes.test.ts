@@ -1,10 +1,9 @@
 import { DataTypes } from '@sequelize/core';
-import type { BuiltModelAttributeColumOptions, AbstractDataType } from '@sequelize/core';
+import type { BuiltModelAttributeColumOptions, DataType } from '@sequelize/core';
 import { expect } from 'chai';
-import type { Class } from 'type-fest';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
-function assertDataType(property: BuiltModelAttributeColumOptions, dataType: Class<AbstractDataType<any>>) {
+function assertDataType(property: BuiltModelAttributeColumOptions, dataType: DataType) {
   expect(property.type).to.be.instanceof(dataType);
 }
 

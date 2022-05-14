@@ -1,30 +1,33 @@
-'use strict';
+import assert from 'assert';
+import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import pTimeout from 'p-timeout';
+import * as Support from '../support';
+
+// Mocha still relies on 'this' https://github.com/mochajs/mocha/issues/2657
+/* eslint-disable @typescript-eslint/no-invalid-this */
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
+
 const { setTimeout, clearTimeout } = global;
+const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? '', 10) || 10_000;
 
-const pTimeout = require('p-timeout');
-const Support = require('../support');
+let runningQueries = new Set<AbstractQuery>();
 
-const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 10_000;
-
-let runningQueries = new Set();
-
-before(function () {
-  this.sequelize.addHook('beforeQuery', (options, query) => {
+before(() => {
+  Support.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
-  this.sequelize.addHook('afterQuery', (options, query) => {
+  Support.sequelize.addHook('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
 });
 
-beforeEach(async function () {
-  await Support.clearDatabase(this.sequelize);
+beforeEach(async () => {
+  await Support.clearDatabase(Support.sequelize);
 });
 
-afterEach(async function () {
+afterEach(async function checkRunningQueries() {
   // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
 
   let runningQueriesProblem;
@@ -42,32 +45,35 @@ afterEach(async function () {
 
   try {
     await pTimeout(
-      Support.clearDatabase(this.sequelize),
+      Support.clearDatabase(Support.sequelize),
       CLEANUP_TIMEOUT,
       `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
       { customTimers: { setTimeout, clearTimeout } },
     );
   } catch (error) {
+    assert(error instanceof Error, 'A non-Error error was thrown');
+
     let message = error.message;
     if (runningQueriesProblem) {
       message += `\n\n     Also, ${runningQueriesProblem}`;
     }
 
-    message += `\n\n     Full test name:\n       ${this.currentTest.fullTitle()}`;
+    message += `\n\n     Full test name:\n       ${this.currentTest!.fullTitle()}`;
 
     // Throw, aborting the entire Mocha execution
     throw new Error(message);
   }
 
   if (runningQueriesProblem) {
-    if (this.test.ctx.currentTest.state === 'passed') {
+    if (this.test!.ctx!.currentTest!.state === 'passed') {
       // `this.test.error` is an obscure Mocha API that allows failing a test from the `afterEach` hook
       // This is better than throwing because throwing would cause the entire Mocha execution to abort
-      this.test.error(new Error(`This test passed, but ${runningQueriesProblem}`));
+      // @ts-expect-error -- it is not declared in mocha's typings
+      this.test!.error(new Error(`This test passed, but ${runningQueriesProblem}`));
     } else {
-      console.log(`     ${runningQueriesProblem}`);
+      console.error(`     ${runningQueriesProblem}`);
     }
   }
 });
 
-module.exports = Support;
+export * from '../support';

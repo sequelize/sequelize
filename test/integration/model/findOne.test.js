@@ -918,7 +918,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by findByPk', async function () {
-        await expect(this.User.findByPk(4_732_322_332_323_333_232_344_334_354_234, {
+        await expect(this.User.findByPk(2, {
           rejectOnEmpty: true,
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });

@@ -1,5 +1,5 @@
 import util from 'util';
-import type { DataTypeClassOrInstance, AbstractDataType } from '@sequelize/core';
+import type { DataTypeClassOrInstance, DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationError } from '@sequelize/core';
 import { expect } from 'chai';
 import { v1 as uuidV1, v4 as uuidV4 } from 'uuid';
@@ -108,7 +108,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.TEXT();
+          const type: DataTypeInstance = DataTypes.TEXT();
 
           expect(() => {
             type.validate(12_345);
@@ -132,7 +132,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.CITEXT();
+          const type: DataTypeInstance = DataTypes.CITEXT();
 
           expect(() => {
             type.validate(12_345);
@@ -211,7 +211,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.BOOLEAN();
+          const type: DataTypeInstance = DataTypes.BOOLEAN();
 
           expect(() => {
             type.validate(12_345);
@@ -1334,7 +1334,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.FLOAT();
+          const type: DataTypeInstance = DataTypes.FLOAT();
 
           expect(() => {
             type.validate('foobar');
@@ -1394,7 +1394,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.DECIMAL(10);
+          const type: DataTypeInstance = DataTypes.DECIMAL(10);
 
           expect(() => {
             type.validate('foobar');
@@ -1425,14 +1425,21 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('ENUM', () => {
-      // TODO: Fix Enums and add more tests
-      // testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
-      //   default: 'ENUM'
-      // });
+      testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
+        default: 'ENUM',
+      });
+
+      it('raises an error if no values are defined', () => {
+        expect(() => {
+          sequelize.define('omnomnom', {
+            bla: { type: DataTypes.ENUM },
+          });
+        }).to.throw(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
+      });
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: AbstractDataType<any> = DataTypes.ENUM('foo');
+          const type: DataTypeInstance = DataTypes.ENUM('foo');
 
           expect(() => {
             type.validate('foobar');
@@ -1618,6 +1625,14 @@ describe(getTestDialectTeaser('SQL'), () => {
             postgres: 'CITEXT[]',
           });
         }
+
+        it('raises an error if no values are defined', () => {
+          expect(() => {
+            sequelize.define('omnomnom', {
+              bla: { type: DataTypes.ARRAY },
+            });
+          }).to.throw(Error, 'ARRAY is missing type definition for its values.');
+        });
 
         describe('validate', () => {
           it('should throw an error if `value` is invalid', () => {

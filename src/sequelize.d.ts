@@ -943,7 +943,7 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
-  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'typeValidation'>;
 
   public readonly dialect: AbstractDialect;
 

@@ -1076,7 +1076,7 @@ export class AbstractQueryGenerator {
 
     this.validate(value, field, options);
 
-    return field.type.stringify(value, {
+    return field.type.escape(value, {
       // Users shouldn't have to worry about these args - just give them a function that takes a single arg
       escape: this.simpleEscape,
       field,
@@ -1117,7 +1117,7 @@ export class AbstractQueryGenerator {
         this.validate(value, field, options);
 
         if (field.type.bindParam) {
-          return field.type.bindParam(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam });
+          return field.type.bindParam(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam, dialect: this._dialect });
         }
       }
     }

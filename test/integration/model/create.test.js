@@ -1398,7 +1398,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
-          state: { type: DataTypes.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
         });
 
         await Item.sync({ force: true });
@@ -1410,8 +1410,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('allows null values', async function () {
         const Enum = this.sequelize.define('Enum', {
           state: {
-            type: DataTypes.ENUM,
-            values: ['happy', 'sad'],
+            type: DataTypes.ENUM(['happy', 'sad']),
             allowNull: true,
           },
         });
@@ -1473,8 +1472,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('through the factory', async function () {
           const Enum = this.sequelize.define('Enum', {
             state: {
-              type: DataTypes.ENUM,
-              values: ['happy', 'sad'],
+              type: DataTypes.ENUM(['happy', 'sad']),
               allowNull: true,
             },
           });
@@ -1488,8 +1486,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('through sequelize', async function () {
           this.sequelize.define('Enum', {
             state: {
-              type: DataTypes.ENUM,
-              values: ['happy', 'sad'],
+              type: DataTypes.ENUM(['happy', 'sad']),
               allowNull: true,
             },
           });

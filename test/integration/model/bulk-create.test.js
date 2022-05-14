@@ -858,7 +858,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
-          state: { type: DataTypes.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
           name: DataTypes.STRING,
         });
 

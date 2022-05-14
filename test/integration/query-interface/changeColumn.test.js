@@ -113,8 +113,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         await this.queryInterface.changeColumn('users', 'firstName', {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3'],
+          type: DataTypes.ENUM(['value1', 'value2', 'value3']),
         });
       });
 

@@ -14,8 +14,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         allowNull: false,
       },
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
     await this.sequelize.sync({ force: true });

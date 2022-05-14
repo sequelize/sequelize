@@ -61,11 +61,11 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 
   stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
     if (value === Number.POSITIVE_INFINITY) {
-      return 'Infinity';
+      return 'infinity';
     }
 
     if (value === Number.NEGATIVE_INFINITY) {
-      return '-Infinity';
+      return '-infinity';
     }
 
     return super.stringify(value, options);
@@ -468,10 +468,6 @@ export class HSTORE extends BaseTypes.HSTORE {
   }
 
   static parse(value: string) {
-    if (value == null) {
-      return value;
-    }
-
     return Hstore.parse(value);
   }
 }
@@ -481,22 +477,18 @@ BaseTypes.HSTORE[kSetDialectNames]('postgres', ['hstore']);
 export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.RANGE;
 
-  _value(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
+  stringify(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
     if (!Array.isArray(values)) {
       return this.options.subtype.stringify(values, options);
     }
 
     return Range.stringify(values, rangePart => {
-      if (this.options.subtype.stringify) {
-        return this.options.subtype.stringify(rangePart, options);
-      }
-
-      return options.escape(rangePart as string);
+      return this.options.subtype.stringify(rangePart, options);
     });
   }
 
-  stringify(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions): string {
-    const value = this._value(values, options);
+  escape(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions): string {
+    const value = this.stringify(values, options);
     if (!Array.isArray(values)) {
       return `'${value}'::${this.#toCastType()}`;
     }
@@ -508,7 +500,7 @@ export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> exten
     values: Rangable<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ): string {
-    const value = this._value(values, options);
+    const value = this.stringify(values, options);
     if (!Array.isArray(values)) {
       return `${options.bindParam(value ?? '')}::${this.#toCastType()}`;
     }
@@ -531,10 +523,6 @@ export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> exten
   }
 
   static parse(value: unknown, options = { parser: <Type>(val: Type) => val }) {
-    if (value === null) {
-      return null;
-    }
-
     if (typeof value !== 'string') {
       throw new TypeError(`Sequelize could not parse range "${value}" as its format is incompatible`);
     }
@@ -563,32 +551,15 @@ BaseTypes.RANGE[kSetDialectNames]('postgres', {
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {
   static readonly [kIsDataTypeOverrideOf] = BaseTypes.ARRAY;
 
-  _value(
-    values: Array<AcceptableTypeOf<T>>,
-    options: BindParamOptions | StringifyOptions,
-  ) {
-    const type = this.options.type;
-
-    return values.map((value: any) => {
-      if ('bindParam' in options
-        // TODO: clean up API for _value and declare its type
-        // @ts-expect-error
-        && type._value) {
-        // @ts-expect-error
-        return type._value(value, options);
-      }
-
-      return type.stringify(value, options);
-    });
-  }
-
-  stringify(
+  escape(
     values: Array<AcceptableTypeOf<T>>,
     options: StringifyOptions,
   ) {
     const type = this.options.type;
 
-    let str = `ARRAY[${this._value(values, options).join(',')}]`;
+    let str = `ARRAY[${values.map((value: any) => {
+      return type.escape(value, options);
+    }).join(',')}]`;
 
     if (!type) {
       return str;
@@ -622,7 +593,9 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     values: Array<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ) {
-    return options.bindParam(this._value(values, options));
+    return options.bindParam(values.map((value: any) => {
+      return value.stringify(value, options);
+    }));
   }
 }
 

@@ -45,7 +45,7 @@ export class ConnectionManager {
 
   refreshTypeParser(dataTypes) {
     _.each(dataTypes, dataType => {
-      if (Object.prototype.hasOwnProperty.call(dataType, 'parse')) {
+      if ('parse' in dataType) {
         if (dataType.types[this.dialectName]) {
           this._refreshTypeParser(dataType);
         } else {
