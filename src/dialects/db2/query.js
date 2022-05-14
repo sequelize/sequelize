@@ -1,6 +1,7 @@
 'use strict';
 
 import assert from 'node:assert';
+import util from 'node:util';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -17,11 +18,13 @@ export class Db2Query extends AbstractQuery {
   }
 
   getSQLTypeFromJsType(value) {
-    const param = { ParamType: 'INPUT', Data: value };
     if (Buffer.isBuffer(value)) {
-      param.DataType = 'BLOB';
+      return { ParamType: 'INPUT', DataType: 'BLOB', Data: value };
+    }
 
-      return param;
+    if (typeof value === 'bigint') {
+      // The ibm_db module does not handle bigint, send as a string instead:
+      return value.toString();
     }
 
     return value;
@@ -107,10 +110,10 @@ export class Db2Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? JSON.stringify(parameters) : ''}`);
+            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
 
             if (benchmark) {
-              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? JSON.stringify(parameters) : ''}`, Date.now() - queryBegin, this.options);
+              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {

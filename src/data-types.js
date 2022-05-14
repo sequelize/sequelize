@@ -240,7 +240,7 @@ class NUMBER extends ABSTRACT {
   }
 
   _stringify(number) {
-    if (typeof number === 'number' || typeof number === 'boolean' || number === null || number === undefined) {
+    if (typeof number === 'number' || typeof number === 'bigint' || typeof number === 'boolean' || number === null || number === undefined) {
       return number;
     }
 
