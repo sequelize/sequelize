@@ -1174,15 +1174,7 @@ Use Sequelize#query if you wish to use replacements.`);
       return attribute;
     }
 
-    attribute.type = this.normalizeDataType(attribute.type);
-
-    if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
-        && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
-    ) {
-      attribute.defaultValue = new attribute.defaultValue();
-    }
-
-    if (attribute.type instanceof DataTypes.ENUM && attribute.values) {
+    if (attribute.values) {
       throw new TypeError(`
 DataTypes.ENUM: Specifying enum values like the following has been removed:
 
@@ -1201,6 +1193,14 @@ sequelize.define('MyModel', {
   },
 });
         `.trim());
+    }
+
+    attribute.type = this.normalizeDataType(attribute.type);
+
+    if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
+        && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
+    ) {
+      attribute.defaultValue = new attribute.defaultValue();
     }
 
     return attribute;

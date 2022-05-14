@@ -1,5 +1,7 @@
 'use strict';
 
+import { getDataTypeDialectMeta } from '../../dialect-toolbox';
+
 const { Pool, TimeoutError } = require('sequelize-pool');
 const _ = require('lodash');
 const semver = require('semver');
@@ -46,11 +48,7 @@ export class ConnectionManager {
   refreshTypeParser(dataTypes) {
     _.each(dataTypes, dataType => {
       if ('parse' in dataType) {
-        if (dataType.types[this.dialectName]) {
-          this._refreshTypeParser(dataType);
-        } else {
-          throw new Error(`Parse function not supported for type ${dataType.key} in dialect ${this.dialectName}`);
-        }
+        this._refreshTypeParser(dataType);
       }
     });
   }

@@ -80,7 +80,7 @@ export class HasOne extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type: this.options.keyType || this.source.rawAttributes[this.sourceKey].type,
+        type: this.options.keyType || this.source.rawAttributes[this.sourceKey].type.clone(),
         allowNull: true,
         ...this.foreignKeyAttribute,
       },

@@ -634,13 +634,19 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Tasks = {};
 
       await Promise.all(dataTypes.map(async dataType => {
-        const tableName = `TaskXYZ_${dataType.key}`;
+        const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
         User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
-        await Tasks[dataType].sync({ force: true });
-        expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+        try {
+          await Tasks[dataType].sync({ force: true, logging: true });
+          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+        } catch (error) {
+          console.dir(error);
+          throw error;
+        }
+
       }));
     });
 

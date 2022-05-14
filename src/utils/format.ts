@@ -237,17 +237,3 @@ export function removeNullishValuesFromHash(
 
   return result;
 }
-
-/**
- * Returns ENUM name by joining table and column name
- *
- * @param tableName
- * @param columnName
- * @private
- */
-export function generateEnumName(
-  tableName: string,
-  columnName: string,
-): string {
-  return `enum_${tableName}_${columnName}`;
-}

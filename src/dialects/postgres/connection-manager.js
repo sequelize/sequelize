@@ -1,5 +1,7 @@
 'use strict';
 
+import { getDataTypeDialectMeta } from '../../dialect-toolbox';
+
 const _ = require('lodash');
 const { ConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
@@ -74,7 +76,7 @@ export class PostgresConnectionManager extends ConnectionManager {
     }
 
     // Set parsers for normal data types
-    for (const name of dataType.types.postgres) {
+    for (const name of getDataTypeDialectMeta(dataType, 'postgres')) {
       if (!this.nameOidMap[name]) {
         continue;
       }

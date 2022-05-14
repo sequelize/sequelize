@@ -56,9 +56,6 @@ module.exports = BaseTypes => {
 
     static parse(value, options) {
       value = value.string();
-      if (value === null) {
-        return value;
-      }
 
       if (momentTz.tz.zone(options.timezone)) {
         value = momentTz.tz(value, options.timezone).toDate();

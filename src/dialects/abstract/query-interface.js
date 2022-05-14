@@ -1,6 +1,7 @@
 'use strict';
 
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
@@ -417,13 +418,20 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
+
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
 
     return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
   }

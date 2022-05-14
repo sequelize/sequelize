@@ -1,5 +1,6 @@
 'use strict';
 
+import { AbstractDataType } from './dialects/abstract/data-types';
 import { isModelStatic } from './utils/model-utils';
 
 const assert = require('assert');
@@ -1001,6 +1002,13 @@ export class Model {
 
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
+      if (attribute.type instanceof AbstractDataType) {
+        attribute.type.attachUsageContext({
+          model: this,
+          attributeName: name,
+          sequelize: this.sequelize,
+        });
+      }
 
       // Checks whether the name is ambiguous with Utils.isColString
       // we check whether the attribute starts *or* ends because the following query:
@@ -1172,6 +1180,13 @@ export class Model {
     _.each(this.rawAttributes, (definition, name) => {
       try {
         definition.type = this.sequelize.normalizeDataType(definition.type);
+        if (definition.type instanceof AbstractDataType) {
+          definition.type.attachUsageContext({
+            model: this,
+            attributeName: name,
+            sequelize: this.sequelize,
+          });
+        }
 
         definition.Model = this;
         definition.fieldName = name;
@@ -1693,6 +1708,18 @@ export class Model {
     const model = class extends this {};
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
+
+    model.rawAttributes = _.mapValues(this.rawAttributes, attributeDefinition => {
+      return {
+        ...attributeDefinition,
+        // DataTypes can only belong to one model at a time. The variant must receive a copy, or their usage context will be wrong.
+        type: attributeDefinition.type instanceof AbstractDataType
+          ? attributeDefinition.type.clone()
+          : attributeDefinition.type,
+      };
+    });
+
+    model.refreshAttributes();
 
     return model;
   }

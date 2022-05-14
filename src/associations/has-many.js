@@ -114,7 +114,7 @@ export class HasMany extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type,
+        type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type.clone(),
         allowNull: true,
         ...this.foreignKeyAttribute,
       },

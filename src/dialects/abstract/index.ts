@@ -1,5 +1,4 @@
 import type { Class } from 'type-fest';
-import { kIsDataTypeOverrideOf } from '../../dialect-toolbox.js';
 import type { Dialect } from '../../sequelize.js';
 import type { AbstractDataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
@@ -195,14 +194,14 @@ export abstract class AbstractDialect {
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
-  #dataTypeOverridesCache: Map<Class<AbstractDataType<any>>, Class<AbstractDataType<any>>> | undefined;
+  #dataTypeOverridesCache: Map<string, Class<AbstractDataType<any>>> | undefined;
 
   /**
    * A map that lists the dialect-specific data-type extensions.
    *
    * e.g. in
    */
-  get dataTypeOverrides(): Map<Class<AbstractDataType<any>>, Class<AbstractDataType<any>>> {
+  get dataTypeOverrides(): Map<string, Class<AbstractDataType<any>>> {
     if (this.#dataTypeOverridesCache) {
       return this.#dataTypeOverridesCache;
     }
@@ -211,17 +210,13 @@ export abstract class AbstractDialect {
 
     const overrides = new Map();
     for (const dataType of Object.values(dataTypes)) {
-      // @ts-expect-error
-      const replacedDataType: Class<AbstractDataType<any>> = dataType[kIsDataTypeOverrideOf];
-      if (!replacedDataType) {
-        throw new Error(`Dialect ${this.name} declares a DataType ${dataType.name}, but does not specify which base DataType it is the dialect-specific implementation of.`);
+      const replacedDataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
+
+      if (overrides.has(replacedDataTypeId)) {
+        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ID ${replacedDataTypeId}.`);
       }
 
-      if (overrides.has(replacedDataType)) {
-        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ${replacedDataType.name}.`);
-      }
-
-      overrides.set(replacedDataType, dataType);
+      overrides.set(replacedDataTypeId, dataType);
     }
 
     this.#dataTypeOverridesCache = overrides;

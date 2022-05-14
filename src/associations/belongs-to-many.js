@@ -284,8 +284,8 @@ export class BelongsToMany extends Association {
     const targetKey = this.target.rawAttributes[this.targetKey];
     const targetKeyType = targetKey.type;
     const targetKeyField = this.targetKeyField;
-    const sourceAttribute = { type: sourceKeyType, ...this.foreignKeyAttribute };
-    const targetAttribute = { type: targetKeyType, ...this.otherKeyAttribute };
+    const sourceAttribute = { type: sourceKeyType.clone(), ...this.foreignKeyAttribute };
+    const targetAttribute = { type: targetKeyType.clone(), ...this.otherKeyAttribute };
 
     if (this.primaryKeyDeleted === true) {
       targetAttribute.primaryKey = sourceAttribute.primaryKey = true;

@@ -33,7 +33,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
       if (
         type instanceof DataTypes.ENUM
-        || type instanceof DataTypes.ARRAY && type.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
+        || type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
       ) {
         sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
         promises.push(this.sequelize.queryRaw(
@@ -73,7 +73,7 @@ export class PostgresQueryInterface extends QueryInterface {
     for (i = 0; i < keyLen; i++) {
       const attribute = attributes[keys[i]];
       const type = attribute.type;
-      const enumType = type.type || type;
+      const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
       const field = attribute.field || keys[i];
 
       if (

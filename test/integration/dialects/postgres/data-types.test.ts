@@ -1,83 +1,35 @@
-'use strict';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+import { DataTypes, fn } from '@sequelize/core';
+import { expect } from 'chai';
+import { sequelize, getTestDialect } from '../../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../../support');
-
-const dialect = Support.getTestDialect();
-const { DataTypes } = require('@sequelize/core');
-
-if (dialect === 'postgres') {
+if (getTestDialect() === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
-    describe('DATE/DATEONLY Validate and Stringify', () => {
-      const now = new Date();
-      const nowString = now.toISOString();
-
-      it('DATE should validate a Date as normal', () => {
-        expect(DataTypes[dialect].DATE().validate(now)).to.equal(true);
-        expect(DataTypes[dialect].DATE().validate(nowString)).to.equal(true);
-      });
-
-      it('DATE should validate Infinity/-Infinity as true', () => {
-        expect(DataTypes[dialect].DATE().validate(Number.POSITIVE_INFINITY)).to.equal(true);
-        expect(DataTypes[dialect].DATE().validate(Number.NEGATIVE_INFINITY)).to.equal(true);
-      });
-
-      it('DATE should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(DataTypes[dialect].DATE().stringify(Number.POSITIVE_INFINITY)).to.equal('Infinity');
-        expect(DataTypes[dialect].DATE().stringify(Number.NEGATIVE_INFINITY)).to.equal('-Infinity');
-      });
-
-      it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(DataTypes[dialect].DATEONLY().stringify(Number.POSITIVE_INFINITY)).to.equal('Infinity');
-        expect(DataTypes[dialect].DATEONLY().stringify(Number.NEGATIVE_INFINITY)).to.equal('-Infinity');
-      });
+    let initialTypeValidation: boolean;
+    before(() => {
+      initialTypeValidation = sequelize.options.typeValidation;
+      sequelize.options.typeValidation = true;
     });
 
-    describe('DATE/DATEONLY Sanitize', () => {
-      const now = new Date();
-      const nowString = now.toISOString();
-      const nowDateOnly = nowString.slice(0, 10);
-
-      it('DATE should sanitize a Date as normal', () => {
-        expect(DataTypes[dialect].DATE()._sanitize(now)).to.equalTime(now);
-        expect(DataTypes[dialect].DATE()._sanitize(nowString)).to.equalTime(now);
-      });
-
-      it('DATE should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATE()._sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
-        expect(DataTypes[dialect].DATE()._sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
-      });
-
-      it('DATE should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATE()._sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
-        expect(DataTypes[dialect].DATE()._sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
-      });
-
-      it('DATEONLY should sanitize a Date as normal', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize(now)).to.equal(nowDateOnly);
-        expect(DataTypes[dialect].DATEONLY()._sanitize(nowString)).to.equal(nowDateOnly);
-      });
-
-      it('DATEONLY should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
-        expect(DataTypes[dialect].DATEONLY()._sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
-      });
-
-      it('DATEONLY should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
-        expect(DataTypes[dialect].DATEONLY()._sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
-      });
+    after(() => {
+      sequelize.options.typeValidation = initialTypeValidation;
     });
 
     describe('DATE SQL', () => {
       // create dummy user
-      it('should be able to create and update records with Infinity/-Infinity', async function () {
-        this.sequelize.options.typeValidation = true;
+      it('should be able to create and update records with Infinity/-Infinity', async () => {
+        sequelize.options.typeValidation = true;
+
+        interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+          username: string | null;
+          beforeTime: Date | number | null;
+          sometime: Date | number | null;
+          anotherTime: Date | number | null;
+          afterTime: Date | number | null;
+        }
 
         const date = new Date();
-        const User = this.sequelize.define('User', {
+        const User = sequelize.define<TUser>('User', {
           username: DataTypes.STRING,
           beforeTime: {
             type: DataTypes.DATE,
@@ -85,7 +37,7 @@ if (dialect === 'postgres') {
           },
           sometime: {
             type: DataTypes.DATE,
-            defaultValue: this.sequelize.fn('NOW'),
+            defaultValue: fn('NOW'),
           },
           anotherTime: {
             type: DataTypes.DATE,
@@ -130,7 +82,7 @@ if (dialect === 'postgres') {
         expect(user2.sometime).to.equal(Number.POSITIVE_INFINITY);
 
         const user1 = await user2.update({
-          sometime: this.sequelize.fn('NOW'),
+          sometime: fn('NOW'),
         }, {
           returning: true,
         });
@@ -159,11 +111,18 @@ if (dialect === 'postgres') {
 
     describe('DATEONLY SQL', () => {
       // create dummy user
-      it('should be able to create and update records with Infinity/-Infinity', async function () {
-        this.sequelize.options.typeValidation = true;
-
+      it('should be able to create and update records with Infinity/-Infinity', async () => {
         const date = new Date();
-        const User = this.sequelize.define('User', {
+
+        interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+          username: string | null;
+          beforeTime: string | number | null;
+          sometime: CreationOptional<string | number>;
+          anotherTime: string | number | null;
+          afterTime: string | number | null;
+        }
+
+        const User = sequelize.define<TUser>('User', {
           username: DataTypes.STRING,
           beforeTime: {
             type: DataTypes.DATEONLY,
@@ -171,7 +130,8 @@ if (dialect === 'postgres') {
           },
           sometime: {
             type: DataTypes.DATEONLY,
-            defaultValue: this.sequelize.fn('NOW'),
+            defaultValue: fn('NOW'),
+            allowNull: false,
           },
           anotherTime: {
             type: DataTypes.DATEONLY,
@@ -216,7 +176,7 @@ if (dialect === 'postgres') {
         expect(user2.sometime).to.equal(Number.POSITIVE_INFINITY);
 
         const user1 = await user2.update({
-          sometime: this.sequelize.fn('NOW'),
+          sometime: fn('NOW'),
         }, {
           returning: true,
         });
@@ -243,6 +203,5 @@ if (dialect === 'postgres') {
         expect(user.sometime).to.equal('1969-07-20');
       });
     });
-
   });
 }

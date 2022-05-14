@@ -72,9 +72,6 @@ module.exports = BaseTypes => {
 
     static parse(value, options) {
       value = value.string();
-      if (value === null) {
-        return value;
-      }
 
       if (momentTz.tz.zone(options.timezone)) {
         value = momentTz.tz(value, options.timezone).toDate();
@@ -123,6 +120,7 @@ module.exports = BaseTypes => {
       // Empty buffer, MySQL doesn't support POINT EMPTY
       // check, https://dev.mysql.com/worklog/task/?id=2381
       if (!value || value.length === 0) {
+        // TODO: throw
         return null;
       }
 

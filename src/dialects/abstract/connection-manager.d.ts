@@ -18,7 +18,7 @@ export type Connection = {
   uuid: string | undefined
 };
 
-export interface ConnectionManager {
+export class ConnectionManager {
   refreshTypeParser(dataTypes: object): void;
   /**
    * Drain the pool and close it permanently

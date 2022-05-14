@@ -7,6 +7,7 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
+const { getDataTypeDialectMeta } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialect-toolbox.js');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Sequelize', () => {
@@ -105,10 +106,10 @@ if (dialect.startsWith('postgres')) {
       const sequelize = Support.sequelize;
       await reloadDynamicOIDs(sequelize);
       for (const type of dynamicTypesToCheck) {
-        expect(type.types.postgres,
+        expect(getDataTypeDialectMeta(type, 'postgres'),
           `DataType.${type.key}.types.postgres`).to.not.be.empty;
 
-        for (const name of type.types.postgres) {
+        for (const name of getDataTypeDialectMeta(type, 'postgres')) {
           const entry = sequelize.connectionManager.nameOidMap[name];
           const oidParserMap = sequelize.connectionManager.oidParserMap;
 
@@ -120,7 +121,6 @@ if (dialect.startsWith('postgres')) {
           expect(oidParserMap.get(entry.arrayOid),
             `oidParserMap.get(nameOidMap[${name}].arrayOid)`).to.be.a('function');
         }
-
       }
     });
 

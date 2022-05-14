@@ -81,7 +81,7 @@ export class BelongsTo extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type: this.options.keyType || this.target.rawAttributes[this.targetKey].type,
+        type: this.options.keyType || this.target.rawAttributes[this.targetKey].type.clone(),
         allowNull: true,
         ...this.foreignKeyAttribute,
       },

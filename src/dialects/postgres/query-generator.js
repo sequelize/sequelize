@@ -269,8 +269,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
-    } else if (dataType.type && dataType.type instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType.type) + query;
+    } else if (dataType instanceof DataTypes.ARRAY && dataType.options.type instanceof DataTypes.ENUM) {
+      query = this.pgEnum(table, key, dataType.options.type) + query;
     }
 
     return query;
@@ -754,11 +754,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, attr, options) {
-    options = options || {};
-
+  pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr), '"');
+    let enumName = Utils.addTicks(`enum_${tableDetails.tableName}_${columnName}`, '"');
 
     // pgListEnums requires the enum name only, without the schema
     if (options.schema !== false && tableDetails.schema) {
