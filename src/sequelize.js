@@ -191,7 +191,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      parseConnectionString(arguments[0], options);
+      _.merge(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
