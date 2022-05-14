@@ -182,8 +182,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(updateSql).to.match(/; "li", 1$/);
           } else if (dialect === 'db2') {
             // TODO: db2 should be unified with the other positional parameter dialects
-            expect(createSql).to.match(/; \["john","john@gmail.com"]$/);
-            expect(updateSql).to.match(/; \["li",1]$/);
+            expect(createSql).to.match(/; \[ 'john', 'john@gmail.com' ]$/);
+            expect(updateSql).to.match(/; \[ 'li', 1 ]$/);
           } else {
             expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
             expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
@@ -207,7 +207,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             if (dialect === 'db2') {
               // TODO: db2 should be unified with the other positional parameter dialects
-              expect(logSql).to.match(/; \["foo","bar"]$/);
+              expect(logSql).to.match(/; \[ 'foo', 'bar' ]$/);
             } else {
               expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
             }
