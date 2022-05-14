@@ -1,3 +1,4 @@
+import type { Rangable } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import type {
   GeoJSON,
@@ -5,7 +6,6 @@ import type {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import { expect } from 'chai';
 import identity from 'lodash/identity';
-import type { Rangable } from '../../../../src/index.js';
 import { sequelize } from '../../../support';
 
 const dialect = sequelize.dialect;
