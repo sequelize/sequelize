@@ -401,6 +401,7 @@ export interface Options extends Logging {
 
 
 export interface DialectOptions {
+  [key: string]: any;
   account?: string;
   role?: string;
   warehouse?: string;
