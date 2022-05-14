@@ -163,7 +163,7 @@ export interface Config {
   readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
-  readonly dialectOptions?: DialectOptions;
+  readonly dialectOptions?: Readonly<DialectOptions>;
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
