@@ -9,8 +9,6 @@ import type { Dialect, Options } from '../sequelize';
  *
  * @param connectionString string value to convert
  * @param options if provided use an existing Options object
- *
- * @returns
  */
 export function parseConnectionString(connectionString: string, options?: Options): Options {
   const urlParts = url.parse(connectionString, true);
