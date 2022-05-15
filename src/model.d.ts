@@ -3694,6 +3694,7 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  * ```
  */
+// TODO: accept Fn & Literal!
 export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M['_creationAttributes']>;
 
 /**

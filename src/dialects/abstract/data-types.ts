@@ -547,6 +547,13 @@ export class INTEGER extends NUMBER {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
 
   validate(value: any) {
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) {
+      throw new ValidationError(
+        util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+        [],
+      );
+    }
+
     if (!Validator.isInt(String(value))) {
       throw new ValidationError(
         util.format(`%j is not a valid integer`, value),
