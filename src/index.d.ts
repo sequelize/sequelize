@@ -1,5 +1,7 @@
+import { GeoJsonLineString, GeoJsonPoint, GeoJsonPolygon } from './dialects/abstract/data-types.js';
+
 export * as DataTypes from './data-types';
-export { DataType, DataTypeClassOrInstance, DataTypeClass, DataTypeInstance } from './dialects/abstract/data-types.js';
+export { DataType, DataTypeClassOrInstance, DataTypeClass, DataTypeInstance, GeoJson, GeoJsonPoint, GeoJsonLineString, GeoJsonPolygon, GeometryType } from './dialects/abstract/data-types.js';
 export * as Utils from './utils';
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';

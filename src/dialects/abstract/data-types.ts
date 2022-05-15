@@ -1428,9 +1428,38 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 }
 
 export type GeometryType = 'Point' | 'LineString' | 'Polygon' | 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection';
-export type GeoJSON = {
-  type: GeometryType,
-};
+
+interface BaseGeoJson {
+  properties?: object;
+
+  crs?: {
+    type: 'name',
+    properties: {
+      name: string,
+    },
+  };
+}
+
+export interface GeoJsonPoint extends BaseGeoJson {
+  type: 'Point';
+  coordinates: [x: number, y: number] | [];
+}
+
+export interface GeoJsonLineString extends BaseGeoJson {
+  type: 'LineString';
+  coordinates: Array<[x: number, y: number]>;
+}
+
+export interface GeoJsonPolygon extends BaseGeoJson {
+  type: 'Polygon';
+  coordinates: Array<Array<[x: number, y: number]>>;
+}
+
+export type GeoJson =
+  | GeoJsonPoint
+  | GeoJsonLineString
+  | GeoJsonPolygon
+  | { type: 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection' };
 
 export interface GeometryOptions {
   type?: GeometryType;
@@ -1483,7 +1512,7 @@ export interface GeometryOptions {
  *
  * @see {@link DataTypes.GEOGRAPHY}
  */
-export class GEOMETRY extends AbstractDataType<GeoJSON> {
+export class GEOMETRY extends AbstractDataType<GeoJson> {
   static readonly [kDataTypeIdentifier]: string = 'GEOMETRY';
   readonly options: GeometryOptions;
 
@@ -1510,13 +1539,13 @@ export class GEOMETRY extends AbstractDataType<GeoJSON> {
       : { type: typeOrOptions, srid };
   }
 
-  stringify(value: GeoJSON, options: StringifyOptions) {
+  stringify(value: GeoJson, options: StringifyOptions) {
     return `STGeomFromText(${options.escape(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
 
-  bindParam(value: GeoJSON, options: BindParamOptions) {
+  bindParam(value: GeoJson, options: BindParamOptions) {
     return `STGeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;

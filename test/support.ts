@@ -4,13 +4,16 @@ import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import {
+  AbstractQueryGenerator,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
+import { beforeEach } from 'mocha';
 import sinonChai from 'sinon-chai';
 import { Config } from './config/config';
 
@@ -356,4 +359,21 @@ export function createTester<Params extends any[]>(
   };
 
   return tester;
+}
+
+/**
+ * Works like {@link beforeEach}, but returns an object that contains the values returned by its latest execution.
+ * @param cb
+ */
+export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
+  // it's not the right shape but we're cheating. We'll be updating the value of this object before each test!
+  const out = {} as T;
+
+  beforeEach(async () => {
+    const out2 = await cb();
+
+    Object.assign(out, out2);
+  });
+
+  return out;
 }
