@@ -117,7 +117,7 @@ exports.pluralize = pluralize;
 /**
  * @deprecated use {@link injectReplacements} instead. This method has been removed in v7.
  *
- * @param {[string, ...unknown[]]} arr - first item is the SQL, following items are the positional replacements.
+ * @param {unknown[]} arr - first item is the SQL, following items are the positional replacements.
  * @param {AbstractDialect} dialect
  */
 function format(arr, dialect) {
