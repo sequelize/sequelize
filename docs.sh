@@ -14,7 +14,7 @@ node docs/redirects/create-redirects.js
 rimraf esdoc/file esdoc/source.html
 
 set +e
-GREP_RESULT=$(echo "$OUT" | grep -c 'could not parse the following code')
+GREP_RESULT=$(echo "$OUT" | grep -c 'could not parse the following code\|SyntaxError')
 set -e
 
 if [ "$GREP_RESULT" -ge 1 ]; then
