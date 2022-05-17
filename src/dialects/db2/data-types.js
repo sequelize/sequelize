@@ -227,9 +227,7 @@ module.exports = BaseTypes => {
     }
 
     _stringify(date, options) {
-      if (!dayjs.isDayjs(date)) {
-        date = this._applyTimezone(date, options);
-      }
+      date = this._applyTimezone(date, options);
 
       if (this._length > 0) {
         let msec = '.';

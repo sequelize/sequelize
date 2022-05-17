@@ -58,11 +58,7 @@ module.exports = BaseTypes => {
     }
 
     _stringify(date, options) {
-      if (!dayjs.isDayjs(date)) {
-        date = this._applyTimezone(date, options);
-      }
-
-      return date.format('YYYY-MM-DD HH:mm:ss.SSS');
+      return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS');
     }
 
     static parse(value, options) {

@@ -28,11 +28,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
 
     const stringify = DataTypes.DATE.prototype.stringify = sinon.spy(function (value, options) {
-      if (!dayjs.isDayjs(value)) {
-        value = this._applyTimezone(value, options);
-      }
-
-      return value.format('YYYY-MM-DD HH:mm:ss');
+      return this._applyTimezone(value, options).format('YYYY-MM-DD HH:mm:ss');
     });
 
     current.refreshTypes();

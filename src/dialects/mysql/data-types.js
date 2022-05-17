@@ -58,9 +58,7 @@ module.exports = BaseTypes => {
     }
 
     _stringify(date, options) {
-      if (!dayjs.isDayjs(date)) {
-        date = this._applyTimezone(date, options);
-      }
+      date = this._applyTimezone(date, options);
 
       // Fractional DATETIMEs only supported on MySQL 5.6.4+
       if (this._length) {

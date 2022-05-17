@@ -529,12 +529,8 @@ class DATE extends ABSTRACT {
   }
 
   _stringify(date, options) {
-    if (!dayjs.isDayjs(date)) {
-      date = this._applyTimezone(date, options);
-    }
-
     // Z here means current timezone, _not_ UTC
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
