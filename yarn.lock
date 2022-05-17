@@ -409,14 +409,14 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@commitlint/cli@16.2.4":
-  version "16.2.4"
-  resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-16.2.4.tgz#f22707918d08c27a19779798788a7c793f1d38e6"
-  integrity sha512-rbvqvz9JI+uiKxV2nH65BtSU01fsADd3bxe9fWtO3rM0c+CI/H9FfzKkDLvSRmXjvk1G2/wXlCGeqO9IBT4X9g==
+"@commitlint/cli@16.3.0":
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/@commitlint/cli/-/cli-16.3.0.tgz#5689f5c2abbb7880d5ff13329251e5648a784b16"
+  integrity sha512-P+kvONlfsuTMnxSwWE1H+ZcPMY3STFaHb2kAacsqoIkNx66O0T7sTpBxpxkMrFPyhkJiLJnJWMhk4bbvYD3BMA==
   dependencies:
     "@commitlint/format" "^16.2.1"
     "@commitlint/lint" "^16.2.4"
-    "@commitlint/load" "^16.2.4"
+    "@commitlint/load" "^16.3.0"
     "@commitlint/read" "^16.2.1"
     "@commitlint/types" "^16.2.1"
     lodash "^4.17.19"
@@ -424,17 +424,17 @@
     resolve-global "1.0.0"
     yargs "^17.0.0"
 
-"@commitlint/config-angular-type-enum@^16.2.1":
-  version "16.2.1"
-  resolved "https://registry.yarnpkg.com/@commitlint/config-angular-type-enum/-/config-angular-type-enum-16.2.1.tgz#275f27d677105d20471145a5954f8abbbd5ae3c8"
-  integrity sha512-RvYyBKXswXt/rg3y9T966a8bWWhwlfPIdmrJ7jmnGSHOlVYQUKOeVOTd9KWfEN0I+YrJdgB1piH1xoLBo/HQXw==
+"@commitlint/config-angular-type-enum@^16.3.0":
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/@commitlint/config-angular-type-enum/-/config-angular-type-enum-16.3.0.tgz#477e312c30102c2fb8251944af3f39ef75107cc9"
+  integrity sha512-WkSqmNOOWX2uukAl+jYuOcJYCPpfARPQgfTN6Ir3ZPR20sKJSRdBAxlKI0wK3Al84/wMfsG0kt+dSZohLFLJrw==
 
-"@commitlint/config-angular@16.2.4":
-  version "16.2.4"
-  resolved "https://registry.yarnpkg.com/@commitlint/config-angular/-/config-angular-16.2.4.tgz#25b17839868c4af4c1626178369514d3b55df05b"
-  integrity sha512-ASxCg8ueW+z1J2VK4vy+SQSCIiRQ1cHsNMvgQ3Qq4YVCAFc/A1vIqqQ744od8TsxvlLsNChZOU1vwRrM7n40Bw==
+"@commitlint/config-angular@16.3.0":
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/@commitlint/config-angular/-/config-angular-16.3.0.tgz#0e86ec9e8813075fad9cc77398b38d077f213985"
+  integrity sha512-3By+tzCPv2ot2KhzEJlfTDoMDkJRLnR/yUyMZLIQpkxz8ZCYvgO2KucTsjfOB4R4J9Nf+g5jHZTEQkUj4lCLKA==
   dependencies:
-    "@commitlint/config-angular-type-enum" "^16.2.1"
+    "@commitlint/config-angular-type-enum" "^16.3.0"
 
 "@commitlint/config-validator@^16.2.1":
   version "16.2.1"
@@ -483,10 +483,10 @@
     "@commitlint/rules" "^16.2.4"
     "@commitlint/types" "^16.2.1"
 
-"@commitlint/load@^16.2.4":
-  version "16.2.4"
-  resolved "https://registry.yarnpkg.com/@commitlint/load/-/load-16.2.4.tgz#32c9f4c6538b21cf48cf40266312bb1adb65f435"
-  integrity sha512-HjANm3/29ROV+zt4yfaY/K6gpr9Dbzgtlp0kSwZGW0poDXlD/yqVYgPQ6JolJzZii5FUz5R4yVLC15hVL/w60w==
+"@commitlint/load@^16.3.0":
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/@commitlint/load/-/load-16.3.0.tgz#e674ccc9edefd64a2d8b82d175de81ec3bb70eca"
+  integrity sha512-3tykjV/iwbkv2FU9DG+NZ/JqmP0Nm3b7aDwgCNQhhKV5P74JAuByULkafnhn+zsFGypG1qMtI5u+BZoa9APm0A==
   dependencies:
     "@commitlint/config-validator" "^16.2.1"
     "@commitlint/execute-rule" "^16.2.1"
@@ -495,7 +495,7 @@
     "@types/node" ">=12"
     chalk "^4.0.0"
     cosmiconfig "^7.0.0"
-    cosmiconfig-typescript-loader "^1.0.0"
+    cosmiconfig-typescript-loader "^2.0.0"
     lodash "^4.17.19"
     resolve-from "^5.0.0"
     typescript "^4.4.3"
@@ -2553,10 +2553,10 @@ core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz#a6042d3634c2b27e9328f837b965fac83808db85"
   integrity sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==
 
-cosmiconfig-typescript-loader@^1.0.0:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/cosmiconfig-typescript-loader/-/cosmiconfig-typescript-loader-1.0.9.tgz#69c523f7e8c3d9f27f563d02bbeadaf2f27212d3"
-  integrity sha512-tRuMRhxN4m1Y8hP9SNYfz7jRwt8lZdWxdjg/ohg5esKmsndJIn4yT96oJVcf5x0eA11taXl+sIp+ielu529k6g==
+cosmiconfig-typescript-loader@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/cosmiconfig-typescript-loader/-/cosmiconfig-typescript-loader-2.0.0.tgz#bc4f5bfcaa11a353714ecdef00c4f2226ef191b8"
+  integrity sha512-2NlGul/E3vTQEANqPziqkA01vfiuUU8vT0jZAuUIjEW8u3eCcnCQWLggapCjhbF76s7KQF0fM0kXSKmzaDaG1g==
   dependencies:
     cosmiconfig "^7"
     ts-node "^10.7.0"
