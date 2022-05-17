@@ -35,14 +35,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('proxies', () => {
     beforeEach(() => {
-      sinon.stub(current, 'query').resolves([{
+      sinon.stub(current, 'queryRaw').resolves([{
         _previousDataValues: {},
         dataValues: { id: 1, name: 'abc' },
       }]);
     });
 
     afterEach(() => {
-      current.query.restore();
+      current.queryRaw.restore();
     });
 
     describe('defined by options.hooks', () => {

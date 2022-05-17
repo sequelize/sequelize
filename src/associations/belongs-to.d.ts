@@ -1,8 +1,8 @@
 import { DataType } from '../data-types';
-import { CreateOptions, CreationAttributes, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
+import { CreateOptions, CreationAttributes, FindOptions, Model, ModelStatic, SaveOptions } from '../model';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
-// type ModelCtor<M extends Model> = InstanceType<typeof M>;
+// type ModelStatic<M extends Model> = InstanceType<typeof M>;
 /**
  * Options provided when associating models with {@link Model.belongsTo} relationship
  *
@@ -23,7 +23,7 @@ export interface BelongsToOptions extends AssociationOptions {
 
 export class BelongsTo<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: BelongsToOptions);
+  constructor(source: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToOptions);
 }
 
 /**

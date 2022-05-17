@@ -14,6 +14,7 @@ const dayjs = require('dayjs');
 const current = Support.sequelize;
 const semver = require('semver');
 const pMap = require('p-map');
+const { expectsql } = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   let isMySQL8;
@@ -1045,6 +1046,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         secretValue: DataTypes.STRING,
       }, {
         paranoid: true,
+        tableName: 'users1',
       });
 
       let test = false;
@@ -1054,11 +1056,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fields: ['secretValue'],
         logging(sql) {
           test = true;
-          if (['mssql', 'ibmi'].includes(dialect)) {
-            expect(sql).to.not.contain('createdAt');
-          } else {
-            expect(sql).to.match(/UPDATE\s+["`]+User1s["`]+\s+SET\s+["`]+secretValue["`]=(\$1|\?),["`]+updatedAt["`]+=(\$2|\?)\s+WHERE ["`]+id["`]+\s=\s(\$3|\?)/);
-          }
+
+          expect(sql).to.match(/^Executing \(default\): /);
+          sql = sql.slice(21);
+
+          expectsql(sql, {
+            default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
+            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
+            mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+            mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+            mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
+            db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
+            ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+          });
         },
         returning: ['*'],
       });

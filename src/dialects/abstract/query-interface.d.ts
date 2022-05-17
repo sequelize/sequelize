@@ -4,122 +4,63 @@ import {
   Model,
   ModelAttributeColumnOptions,
   ModelAttributes,
-  Transactionable,
   WhereOptions,
   Filterable,
-  Poolable,
   ModelStatic,
-  ModelType,
   CreationAttributes,
   Attributes,
+  BuiltModelAttributeColumOptions,
 } from '../../model';
-import { QueryTypes } from '../../query-types';
-import { Sequelize, RetryOptions } from '../../sequelize';
+import { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
+import { AbstractQueryGenerator } from './query-generator.js';
 
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
-type FieldMap = { [key: string]: string };
-
-/**
- * Interface for query options
- */
-export interface QueryOptions extends Logging, Transactionable, Poolable {
+interface Replaceable {
   /**
-   * If true, sequelize will not try to format the results of the query, or build an instance of a model from
-   * the result
+   * Only named replacements are allowed in query interface methods.
    */
-  raw?: boolean;
-
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
-  type?: string;
-
-  /**
-   * If true, transforms objects with `.` separated property names into nested objects using
-   * [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes
-   * { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`,
-   * unless otherwise specified
-   *
-   * @default false
-   */
-  nest?: boolean;
-
-  /**
-   * Sets the query type to `SELECT` and return a single row
-   */
-  plain?: boolean;
-
-  /**
-   * Either an object of named parameter replacements in the format `:param` or an array of unnamed
-   * replacements to replace `?` in your SQL.
-   */
-  replacements?: BindOrReplacements;
-
-  /**
-   * Either an object of named parameter bindings in the format `$param` or an array of unnamed
-   * values to bind to `$1`, `$2`, etc in your SQL.
-   */
-  bind?: BindOrReplacements;
-
-  /**
-   * A sequelize instance used to build the return instance
-   */
-  instance?: Model;
-
-  /**
-   * Map returned fields to model's fields if `options.model` or `options.instance` is present.
-   * Mapping will occur before building the model instance.
-   */
-  mapToModel?: boolean;
-
-  retry?: RetryOptions;
-
-  /**
-   * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
-   */
-  fieldMap?: FieldMap;
+  replacements?: { [key: string]: unknown },
 }
 
-export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
+interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
+
+export interface QiInsertOptions extends QueryRawOptions, Replaceable {
+  returning?: boolean | string[],
+}
+
+export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
 
 }
 
-export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
-  /**
-   * A sequelize model used to build the returned model instances (used to be called callee)
-   */
-  model: ModelStatic<M>;
+export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
+  returning?: boolean | string[],
 }
 
-export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
-  type: T;
+export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
+  limit?: number | Literal | null | undefined;
 }
 
-export interface QueryOptionsWithForce extends QueryOptions {
+export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
+  returning?: boolean | string[],
+}
+
+export interface QiUpsertOptions<M extends Model> extends QueryRawOptionsWithModel<M>, Replaceable {
+
+}
+
+export interface CreateFunctionOptions extends QueryRawOptions {
   force?: boolean;
 }
-
-/**
-* Most of the methods accept options and use only the logger property of the options. That's why the most used
-* interface type for options in a method is separated here as another interface.
-*/
-export interface QueryInterfaceOptions extends Logging, Transactionable {}
 
 export interface CollateCharsetOptions {
   collate?: string;
   charset?: string;
 }
 
-export interface QueryInterfaceCreateTableOptions extends QueryInterfaceOptions, CollateCharsetOptions {
+export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, CollateCharsetOptions {
   engine?: string;
   /**
    * Used for compound unique keys.
@@ -132,12 +73,12 @@ export interface QueryInterfaceCreateTableOptions extends QueryInterfaceOptions,
   };
 }
 
-export interface QueryInterfaceDropTableOptions extends QueryInterfaceOptions {
+export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
   cascade?: boolean;
   force?: boolean;
 }
 
-export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOptions {
+export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
   skip?: string[];
 }
 
@@ -153,7 +94,34 @@ export type TableName = string | TableNameWithSchema;
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
-export interface IndexesOptions {
+export interface IndexField {
+  /**
+   * The name of the column
+   */
+  name: string;
+
+  /**
+   * Create a prefix index of length chars
+   */
+  length?: number;
+
+  /**
+   * The direction the column should be sorted in
+   */
+  order?: 'ASC' | 'DESC';
+
+  /**
+   * The collation (sort order) for the column
+   */
+  collate?: string;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
+}
+
+export interface IndexOptions {
   /**
    * The name of the index. Defaults to model name + _ + fields concatenated
    */
@@ -175,23 +143,21 @@ export interface IndexesOptions {
   unique?: boolean;
 
   /**
-   * PostgreSQL will build the index without taking any write locks. Postgres only
+   * PostgreSQL will build the index without taking any write locks. Postgres only.
    *
    * @default false
    */
   concurrently?: boolean;
 
   /**
-   * An array of the fields to index. Each field can either be a string containing the name of the field,
-   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name`
-   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column), `operator` (likes IndexesOptions['operator'])
+   * The fields to index.
    */
-  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string } | Fn | Literal)[];
+  fields?: Array<string | IndexField | Fn | Literal>;
 
   /**
-   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-   * postgres, and postgres additionally supports GIST, SPGIST, BRIN and GIN.
+   * The method to create the index by (`USING` statement in SQL).
+   * BTREE and HASH are supported by mysql and postgres.
+   * Postgres additionally supports GIST, SPGIST, BRIN and GIN.
    */
   using?: IndexMethod;
 
@@ -211,7 +177,7 @@ export interface IndexesOptions {
   prefix?: string;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
+export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -256,7 +222,7 @@ export type AddConstraintOptions =
 | AddPrimaryKeyConstraintOptions
 | AddForeignKeyConstraintOptions;
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryOptions {
+export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
 }
 
@@ -291,7 +257,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public queryGenerator: unknown;
+  public queryGenerator: AbstractQueryGenerator;
 
   /**
    * Returns the current sequelize instance.
@@ -305,14 +271,14 @@ export class QueryInterface {
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public createSchema(schema?: string, options?: QueryInterfaceOptions): Promise<void>;
+  public createSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops the specified schema (table).
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public dropSchema(schema?: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops all tables.
@@ -324,12 +290,12 @@ export class QueryInterface {
    *
    * @param options
    */
-  public showAllSchemas(options?: QueryOptions): Promise<object>;
+  public showAllSchemas(options?: QueryRawOptions): Promise<object>;
 
   /**
    * Return database version
    */
-  public databaseVersion(options?: QueryInterfaceOptions): Promise<string>;
+  public databaseVersion(options?: QueryRawOptions): Promise<string>;
 
   /**
    * Creates a table with specified attributes.
@@ -364,17 +330,17 @@ export class QueryInterface {
    *
    * @param options
    */
-  public dropAllEnums(options?: QueryOptions): Promise<void>;
+  public dropAllEnums(options?: QueryRawOptions): Promise<void>;
 
   /**
    * Renames a table
    */
-  public renameTable(before: TableName, after: TableName, options?: QueryInterfaceOptions): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Returns all tables
    */
-  public showAllTables(options?: QueryOptions): Promise<string[]>;
+  public showAllTables(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Describe a table
@@ -391,7 +357,7 @@ export class QueryInterface {
     table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -400,7 +366,7 @@ export class QueryInterface {
   public removeColumn(
     table: TableName,
     attribute: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -410,7 +376,7 @@ export class QueryInterface {
     tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -420,7 +386,7 @@ export class QueryInterface {
     tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -449,18 +415,18 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: TableName,
-    options?: AddConstraintOptions & QueryInterfaceOptions
+    options?: AddConstraintOptions & QueryRawOptions
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Shows the index of a table
    */
-  public showIndex(tableName: string | object, options?: QueryOptions): Promise<object>;
+  public showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Put a name to an index
@@ -470,17 +436,17 @@ export class QueryInterface {
   /**
    * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string[], options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
 
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Inserts a new record
    */
-  public insert(instance: Model | null, tableName: string, values: object, options?: QueryOptions): Promise<object>;
+  public insert(instance: Model | null, tableName: string, values: object, options?: QiInsertOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
@@ -490,7 +456,7 @@ export class QueryInterface {
     insertValues: object,
     updateValues: object,
     where: object,
-    options?: QueryOptionsWithModel<M>
+    options?: QiUpsertOptions<M>,
   ): Promise<object>;
 
   /**
@@ -499,7 +465,7 @@ export class QueryInterface {
   public bulkInsert(
     tableName: TableName,
     records: object[],
-    options?: QueryOptions,
+    options?: QiOptionsWithReplacements,
     attributes?: Record<string, ModelAttributeColumnOptions>
   ): Promise<object | number>;
 
@@ -510,8 +476,8 @@ export class QueryInterface {
     instance: M,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<Attributes<M>>,
-    options?: QueryOptions
+    where: WhereOptions<Attributes<M>>,
+    options?: QiUpdateOptions
   ): Promise<object>;
 
   /**
@@ -520,9 +486,9 @@ export class QueryInterface {
   public bulkUpdate(
     tableName: TableName,
     values: object,
-    identifier: WhereOptions<any>,
-    options?: QueryOptions,
-    attributes?: string[] | string
+    where: WhereOptions<any>,
+    options?: QiOptionsWithReplacements,
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
   ): Promise<object>;
 
   /**
@@ -532,7 +498,7 @@ export class QueryInterface {
     instance: Model | null,
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QueryOptions
+    options?: QiDeleteOptions,
   ): Promise<object>;
 
   /**
@@ -541,24 +507,37 @@ export class QueryInterface {
   public bulkDelete(
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QueryOptions,
-    model?: ModelType
+    options?: QiOptionsWithReplacements,
+    model?: ModelStatic
   ): Promise<object>;
 
   /**
    * Returns selected rows
    */
-  public select(model: ModelType | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: ModelStatic | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;
 
   /**
    * Increments a row value
    */
   public increment<M extends Model>(
-    instance: Model,
+    model: ModelStatic<M>,
     tableName: TableName,
-    values: object,
-    identifier: WhereOptions<Attributes<M>>,
-    options?: QueryOptions
+    incrementAmountsByField: object,
+    extraAttributesToBeUpdated?: object,
+    where?: WhereOptions<Attributes<M>>,
+    options?: QiArithmeticOptions,
+  ): Promise<object>;
+
+  /**
+   * Decrements a row value
+   */
+  public decrement<M extends Model>(
+    model: ModelStatic<M>,
+    tableName: TableName,
+    incrementAmountsByField: object,
+    extraAttributesToBeUpdated?: object,
+    where?: WhereOptions<Attributes<M>>,
+    options?: QiArithmeticOptions,
   ): Promise<object>;
 
   /**
@@ -566,9 +545,9 @@ export class QueryInterface {
    */
   public rawSelect(
     tableName: TableName,
-    options: QueryOptionsWithWhere,
-    attributeSelector: string | string[],
-    model?: ModelType
+    options: QiSelectOptions,
+    attributeSelector: string,
+    model?: ModelStatic
   ): Promise<string[]>;
 
   /**
@@ -585,13 +564,13 @@ export class QueryInterface {
     functionName: string,
     functionParams: FunctionParam[],
     optionsArray: string[],
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
    * Postgres only. Drops the specified trigger.
    */
-  public dropTrigger(tableName: TableName, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropTrigger(tableName: TableName, triggerName: string, options?: QiOptionsWithReplacements): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
@@ -600,7 +579,7 @@ export class QueryInterface {
     tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -613,13 +592,13 @@ export class QueryInterface {
     language: string,
     body: string,
     optionsArray?: string[],
-    options?: QueryOptionsWithForce
+    options?: CreateFunctionOptions
   ): Promise<void>;
 
   /**
    * Postgres only. Drops a function
    */
-  public dropFunction(functionName: string, params: FunctionParam[], options?: QueryInterfaceOptions): Promise<void>;
+  public dropFunction(functionName: string, params: FunctionParam[], options?: QiOptionsWithReplacements): Promise<void>;
 
   /**
    * Postgres only. Rename a function
@@ -628,7 +607,7 @@ export class QueryInterface {
     oldFunctionName: string,
     params: FunctionParam[],
     newFunctionName: string,
-    options?: QueryInterfaceOptions
+    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -645,32 +624,32 @@ export class QueryInterface {
   /**
    * Set option for autocommit of a transaction
    */
-  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryOptions): Promise<void>;
+  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Set the isolation level of a transaction
    */
-  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryOptions): Promise<void>;
+  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Begin a new transaction
    */
-  public startTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Defer constraints
    */
-  public deferConstraints(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Commit an already started transaction
    */
-  public commitTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Rollback ( revert ) a transaction that has'nt been commited
    */
-  public rollbackTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
+  public rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Creates a database
@@ -680,5 +659,5 @@ export class QueryInterface {
   /**
    * Creates a database
    */
-  public dropDatabase(name: string, options?: QueryOptions): Promise<void>;
+  public dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
 }
