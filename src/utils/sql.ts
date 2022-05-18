@@ -134,14 +134,14 @@ export function injectReplacements(
     if (isNamedReplacements && char === ':') {
       const previousChar = sqlString[i - 1];
       // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
-      // users need to add a space before the bind parameter (except after '(', ',', and '=')
-      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+      // users need to add a space before the bind parameter (except after '(', ',', and '=', '[' (for arrays))
+      if (previousChar !== undefined && !/[\s(,=[]/.test(previousChar)) {
         continue;
       }
 
       const remainingString = sqlString.slice(i, sqlString.length);
 
-      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::)/i);
+      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::|;|])/i);
       const replacementName = match?.groups?.name;
       if (!replacementName) {
         continue;
@@ -169,8 +169,8 @@ export function injectReplacements(
       const previousChar = sqlString[i - 1];
 
       // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
-      // users need to add a space before the bind parameter (except after '(', ',', and '=')
-      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+      // users need to add a space before the bind parameter (except after '(', ',', and '=', '[' (for arrays))
+      if (previousChar !== undefined && !/[\s(,=[]/.test(previousChar)) {
         continue;
       }
 
