@@ -34,6 +34,31 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('parses named replacements followed by a semicolon', () => {
+    const sql = injectReplacements('SELECT * FROM users WHERE id = :id;', dialect, {
+      id: 1
+    });
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE id = 1;'
+    });
+  });
+
+  // this is a workaround.
+  // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
+  if (sequelize.dialect.supports.ARRAY) {
+    it('parses named replacements inside ARRAY[]', () => {
+      const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[:id1]::int[] OR id = ARRAY[:id1,:id2]::int[] OR id = ARRAY[:id1, :id2]::int[];', dialect, {
+        id1: 1,
+        id2: 4
+      });
+
+      expectsql(sql, {
+        default: 'SELECT * FROM users WHERE id = ARRAY[1]::int[] OR id = ARRAY[1,4]::int[] OR id = ARRAY[1, 4]::int[];'
+      });
+    });
+  }
+
   it('parses single letter named replacements', () => {
     const sql = injectReplacements('SELECT * FROM users WHERE id = :a', dialect, {
       a: 1
@@ -181,6 +206,26 @@ describe('injectReplacements (positional replacements)', () => {
       default: 'SELECT * FROM users WHERE id = 1::string'
     });
   });
+
+  it('parses positional replacements followed by a semicolon', () => {
+    const sql = injectReplacements('SELECT * FROM users WHERE id = ?;', dialect, [1]);
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE id = 1;'
+    });
+  });
+
+  // this is a workaround.
+  // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
+  if (sequelize.dialect.supports.ARRAY) {
+    it('parses positional replacements inside ARRAY[]', () => {
+      const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[?]::int[] OR ARRAY[?,?]::int[] OR ARRAY[?, ?]::int[];', dialect, [1, 1, 4, 1, 4]);
+
+      expectsql(sql, {
+        default: 'SELECT * FROM users WHERE id = ARRAY[1]::int[] OR ARRAY[1,4]::int[] OR ARRAY[1, 4]::int[];'
+      });
+    });
+  }
 
   it('does not consider the token to be a replacement if it does not follow \'(\', \',\', \'=\' or whitespace', () => {
     const sql = injectReplacements('SELECT * FROM users WHERE id = fn(?) OR id = fn(\'a\',?) OR id=? OR id = ?', dialect, [2, 1, 3, 4]);
