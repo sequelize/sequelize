@@ -10,7 +10,7 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const current = Support.sequelize;
 const promiseProps = require('p-props');
@@ -392,11 +392,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(10);
       });
 
-      it('should be able to find a row using greater than or equal to logic with moment dates', async function () {
+      it('should be able to find a row using greater than or equal to logic with dayjs dates', async function () {
         const users = await this.User.findAll({
           where: {
             theDate: {
-              [Op.gte]: moment('2013-01-09'),
+              [Op.gte]: dayjs('2013-01-09'),
             },
           },
         });
@@ -1348,8 +1348,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('normal findAll', () => {
       beforeEach(async function () {
-        const user = await this.User.create({ username: 'user', data: 'foobar', theDate: moment().toDate() });
-        const user2 = await this.User.create({ username: 'user2', data: 'bar', theDate: moment().toDate() });
+        const user = await this.User.create({ username: 'user', data: 'foobar', theDate: dayjs().toDate() });
+        const user2 = await this.User.create({ username: 'user2', data: 'bar', theDate: dayjs().toDate() });
         this.users = [user].concat(user2);
       });
 
@@ -1376,7 +1376,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('sorts the results via a date column', async function () {
-        await this.User.create({ username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate() });
+        await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
         expect(users[0].id).to.be.above(users[2].id);
       });
