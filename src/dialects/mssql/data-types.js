@@ -1,6 +1,6 @@
 'use strict';
 
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx');
@@ -138,7 +138,7 @@ module.exports = BaseTypes => {
 
   class DATEONLY extends BaseTypes.DATEONLY {
     static parse(value) {
-      return moment(value).format('YYYY-MM-DD');
+      return dayjs(value).format('YYYY-MM-DD');
     }
   }
 

@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -974,7 +974,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         ]);
 
         await article.setLabels([label1, label2]);
-        const labels = await article.getLabels({ where: { until: { [Op.gt]: moment('2014-01-02').toDate() } } });
+        const labels = await article.getLabels({ where: { until: { [Op.gt]: dayjs('2014-01-02').toDate() } } });
         expect(labels).to.be.instanceof(Array);
         expect(labels).to.have.length(1);
         expect(labels[0].text).to.equal('Epicness');

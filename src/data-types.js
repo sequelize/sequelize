@@ -5,13 +5,13 @@ const _ = require('lodash');
 const wkx = require('wkx');
 const sequelizeErrors = require('./errors');
 const Validator = require('./utils/validator-extras').validator;
-const momentTz = require('moment-timezone');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const { logger } = require('./utils/logger');
 
 const warnings = {};
 const { classToInvokable } = require('./utils/class-to-invokable');
 const { joinSQLFragments } = require('./utils/join-sql-fragments');
+const { isValidTimeZone } = require('./utils/dayjs');
 
 class ABSTRACT {
   toString(options) {
@@ -518,23 +518,19 @@ class DATE extends ABSTRACT {
 
   _applyTimezone(date, options) {
     if (options.timezone) {
-      if (momentTz.tz.zone(options.timezone)) {
-        return momentTz(date).tz(options.timezone);
+      if (isValidTimeZone(options.timezone)) {
+        return dayjs(date).tz(options.timezone);
       }
 
-      return moment(date).utcOffset(options.timezone);
+      return dayjs(date).utcOffset(options.timezone);
     }
 
-    return momentTz(date);
+    return dayjs(date);
   }
 
   _stringify(date, options) {
-    if (!moment.isMoment(date)) {
-      date = this._applyTimezone(date, options);
-    }
-
     // Z here means current timezone, _not_ UTC
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
@@ -547,12 +543,12 @@ class DATEONLY extends ABSTRACT {
   }
 
   _stringify(date) {
-    return moment(date).format('YYYY-MM-DD');
+    return dayjs(date).format('YYYY-MM-DD');
   }
 
   _sanitize(value, options) {
     if ((!options || options && !options.raw) && Boolean(value)) {
-      return moment(value).format('YYYY-MM-DD');
+      return dayjs(value).format('YYYY-MM-DD');
     }
 
     return value;

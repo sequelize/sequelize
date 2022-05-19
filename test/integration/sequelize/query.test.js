@@ -8,7 +8,7 @@ const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyCo
 const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;
 const sinon = require('sinon');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }
 
       const [result] = await this.sequelize.query(`SELECT ${datetime} AS t${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`);
-      expect(moment(result[0].t).isValid()).to.be.true;
+      expect(dayjs(result[0].t).isValid()).to.be.true;
     });
 
     if (Support.getTestDialect() === 'postgres') {
