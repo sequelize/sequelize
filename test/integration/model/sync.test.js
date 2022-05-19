@@ -199,6 +199,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(bFks[0].columnName).to.eq('AId');
     });
 
+    it('supports creating two identically named tables in different schemas', async () => {
+      const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
+      const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
+
+      await Model1.sync();
+      await Model2.sync();
+
+      await Model1.create();
+      await Model2.create();
+    });
+
     describe('with { alter: true }', () => {
       it('should properly alter tables when there are foreign keys', async function() {
         const foreignKeyTestSyncA = this.sequelize.define('foreignKeyTestSyncA', {
