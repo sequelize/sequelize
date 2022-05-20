@@ -21,7 +21,7 @@ export function parseConnectionString(connectionString: string): Options {
     options.dialect = protocol as Dialect;
   }
 
-  if (urlParts.hostname) {
+  if (urlParts.hostname != null) {
     options.host = urlParts.hostname;
   }
 
