@@ -83,6 +83,8 @@ jobs:
         run: yarn test-unit-postgres
       - name: Unit tests (postgres-native)
         run: yarn test-unit-postgres-native
+      - name: Unit tests (sqlite)
+        run: yarn test-unit-sqlite
       - name: Unit tests (mssql)
         run: yarn test-unit-mssql
       - name: Unit tests (db2)
