@@ -200,6 +200,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('supports creating two identically named tables in different schemas', async () => {
+      await sequelize.queryInterface.createSchema('custom_schema');
+
       const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
       const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
 
