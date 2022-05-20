@@ -1836,8 +1836,8 @@ ${associationOwner._getAssociationDebugList()}`);
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
-   * @param  {number|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                    [options] find options
+   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
+   * @param  {object}                           [options] find options
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
@@ -1848,7 +1848,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     options = Utils.cloneDeep(options) || {};
 
-    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
+    if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
         [this.primaryKeyAttribute]: param,
       };
