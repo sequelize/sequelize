@@ -1,3 +1,4 @@
+import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
@@ -266,7 +267,7 @@ export function expectsql(
         // except for ARRAY[...]
         expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         if (dialect.name === 'ibmi') {
-          expectation = expectation.replace(/;$/, '');
+          expectation = expectation.trim().replace(/;$/, '');
         }
       }
     } else {
@@ -274,10 +275,14 @@ export function expectsql(
     }
   }
 
-  if (query instanceof Error) {
-    expect(query.message).to.equal(expectation instanceof Error ? expectation.message : undefined);
+  if (expectation instanceof Error) {
+    assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
+
+    expect(query.message).to.equal(expectation.message);
   } else {
-    expect(isObject(query) ? query.query : query).to.equal(expectation);
+    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+
+    expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
   if ('bind' in assertions) {
@@ -304,9 +309,13 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
   return sql.replace(/\s+/g, ' ')
-  // remove space before comma
+    // remove space before comma
     .replace(/ ,/g, ',')
-  // remove whitespace at start & end
+    // remove space before )
+    .replace(/ \)/g, ')')
+    // replace space after (
+    .replace(/\( /g, '(')
+    // remove whitespace at start & end
     .trim();
 }
 

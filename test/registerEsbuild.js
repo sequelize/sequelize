@@ -29,7 +29,7 @@ function compileFor(loader) {
   return (source, sourcefile) => {
     const { code, map } = esbuild.transformSync(source, {
       sourcemap: true,
-      target: 'node10',
+      target: 'node14',
       format: 'cjs',
       sourcefile,
       loader,

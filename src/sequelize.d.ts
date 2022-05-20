@@ -19,13 +19,15 @@ import {
   CreationAttributes,
   Attributes,
   ColumnReference,
+  Transactionable,
+  Poolable,
   WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import type { AbstractDialect } from './dialects/abstract';
-import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
+import { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
 
 /**
@@ -68,7 +70,6 @@ export interface SyncOptions extends Logging, Hookable {
    * An optional parameter to specify the schema search_path (Postgres only)
    */
   searchPath?: string;
-
 }
 
 export interface DefaultSetOptions { }
@@ -277,7 +278,7 @@ export interface Options extends Logging {
    * used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP
    * and other time related functions have in the right timezone. For best cross platform performance use the
    * format
-   * +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles');
+   * +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles');
    * this is useful to capture daylight savings time changes.
    *
    * @default '+00:00'
@@ -402,6 +403,106 @@ export interface Options extends Logging {
 }
 
 export interface QueryOptionsTransactionRequired { }
+
+type BindOrReplacements = { [key: string]: unknown } | unknown[];
+type FieldMap = { [key: string]: string };
+
+/**
+ * Options for {@link Sequelize#queryRaw}.
+ */
+export interface QueryRawOptions extends Logging, Transactionable, Poolable {
+  /**
+   * If true, sequelize will not try to format the results of the query, or build an instance of a model from
+   * the result
+   */
+  raw?: boolean;
+
+  /**
+   * The type of query you are executing. The query type affects how results are formatted before they are
+   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
+   */
+  type?: string;
+
+  /**
+   * If true, transforms objects with `.` separated property names into nested objects using
+   * [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes
+   * { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`,
+   * unless otherwise specified
+   *
+   * @default false
+   */
+  nest?: boolean;
+
+  /**
+   * Sets the query type to `SELECT` and return a single row
+   */
+  plain?: boolean;
+
+  /**
+   * Either an object of named parameter bindings in the format `$param` or an array of unnamed
+   * values to bind to `$1`, `$2`, etc in your SQL.
+   */
+  bind?: BindOrReplacements;
+
+  /**
+   * A sequelize instance used to build the return instance
+   */
+  instance?: Model;
+
+  /**
+   * Map returned fields to model's fields if `options.model` or `options.instance` is present.
+   * Mapping will occur before building the model instance.
+   */
+  mapToModel?: boolean;
+
+  retry?: RetryOptions;
+
+  /**
+   * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
+   */
+  fieldMap?: FieldMap;
+}
+
+export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {
+  /**
+   * The type of query you are executing. The query type affects how results are formatted before they are
+   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
+   */
+  type: T;
+}
+
+export interface QueryRawOptionsWithModel<M extends Model> extends QueryRawOptions {
+  /**
+   * A sequelize model used to build the returned model instances (used to be called callee)
+   */
+  model: ModelStatic<M>;
+}
+
+/**
+ * Options for {@link Sequelize#query}.
+ */
+export interface QueryOptions extends QueryRawOptions {
+  /**
+   * Either an object of named parameter replacements in the format `:param` or an array of unnamed
+   * replacements to replace `?` in your SQL.
+   */
+  replacements?: BindOrReplacements;
+}
+
+export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
+  /**
+   * The type of query you are executing. The query type affects how results are formatted before they are
+   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
+   */
+  type: T;
+}
+
+export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
+  /**
+   * A sequelize model used to build the returned model instances (used to be called callee)
+   */
+  model: ModelStatic<M>;
+}
 
 /**
  * This is the main class, the entry point to sequelize. To use it, you just need to
@@ -1264,6 +1365,33 @@ export class Sequelize extends Hooks {
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
   public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
+
+  /**
+   * Works like {@link Sequelize#query}, but does not inline replacements. Only bind parameters are supported.
+   *
+   * @param sql The SQL to execute
+   * @param options The options for the query. See {@link QueryRawOptions} for details.
+   */
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
+  public queryRaw<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
+    options: QueryRawOptionsWithModel<M> & { plain: true }
+  ): Promise<M | null>;
+  public queryRaw<M extends Model>(
+    sql: string | { query: string; values: unknown[] },
+    options: QueryRawOptionsWithModel<M>
+  ): Promise<M[]>;
+  public queryRaw<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
+  public queryRaw<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options: (QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
+  public queryRaw(sql: string | { query: string; values: unknown[] }, options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
    * Get the fn for random based on the dialect

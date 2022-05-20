@@ -14,8 +14,8 @@ import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { IndexOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
-import { Sequelize, SyncOptions } from './sequelize';
+import { IndexOptions, TableName } from './dialects/abstract/query-interface';
+import { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import {
   AllowArray,
   AllowReadonlyArray,
@@ -119,7 +119,7 @@ export interface Paranoid {
   paranoid?: boolean;
 }
 
-export type GroupOption = string | Fn | Col | (string | Fn | Col)[];
+export type GroupOption = AllowArray<string | Fn | Col | Literal>;
 
 /**
  * Options to pass to Model on drop
@@ -728,7 +728,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -783,7 +783,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
 export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 
 export type FindAttributeOptions =
-  | (string | ProjectionAlias)[]
+  | Array<string | ProjectionAlias | Literal>
   | {
     exclude: string[];
     include?: (string | ProjectionAlias)[];
@@ -871,7 +871,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -879,7 +879,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: number;
+  offset?: number | Literal;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
@@ -1164,7 +1164,7 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1209,7 +1209,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 }
 
 /**
@@ -1262,7 +1262,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -1774,7 +1774,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 /**
  * Possible types for primary keys
  */
-export type Identifier = number | string | Buffer;
+export type Identifier = number | bigint | string | Buffer;
 
 /**
  * Options for model definition.
