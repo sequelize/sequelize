@@ -9,7 +9,7 @@ import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { isValidTimeZone } from '../../utils/index.js';
+import { isValidTimeZone } from '../../utils/dayjs.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
@@ -87,8 +87,16 @@ export abstract class AbstractDataType<
     throw new Error('The "types" static property has been removed. Use getDataTypeDialectMeta.');
   }
 
+  static get key() {
+    throw new Error('The "key" static property has been removed.');
+  }
+
   get types() {
     throw new Error('The "types" instance property has been removed.');
+  }
+
+  get key() {
+    throw new Error('The "key" instance property has been removed.');
   }
 
   // TODO: move to utils?
@@ -546,12 +554,21 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
 export class INTEGER extends NUMBER {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
 
-  validate(value: any) {
-    if (typeof value === 'number' && !Number.isSafeInteger(value)) {
-      throw new ValidationError(
-        util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
-        [],
-      );
+  validate(value: unknown) {
+    if (typeof value === 'number') {
+      if (!Number.isInteger(value)) {
+        throw new ValidationError(
+          util.format(`%j is not a valid integer`, value),
+          [],
+        );
+      }
+
+      if (!Number.isSafeInteger(value)) {
+        throw new ValidationError(
+          util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+          [],
+        );
+      }
     }
 
     if (!Validator.isInt(String(value))) {
@@ -1010,6 +1027,10 @@ export class JSON extends AbstractDataType<any> {
  */
 export class JSONB extends JSON {
   static readonly [kDataTypeIdentifier]: string = 'JSONB';
+
+  toSql(): string {
+    return 'JSONB';
+  }
 }
 
 /**
@@ -1020,7 +1041,7 @@ export class NOW extends AbstractDataType<never> {
   static readonly [kDataTypeIdentifier]: string = 'NOW';
 
   toSql(): string {
-    throw new Error('toSQL should not be called on DataTypes.NOW');
+    return 'NOW';
   }
 }
 
@@ -1186,6 +1207,7 @@ export class UUIDV1 extends AbstractDataType<string> {
 /**
  * A default unique universal identifier generated following the UUID v4 standard
  */
+// TODO: this should not be a DataType, but a simple function.
 export class UUIDV4 extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
 

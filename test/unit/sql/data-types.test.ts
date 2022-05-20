@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import util from 'util';
 import type { DataTypeClassOrInstance, DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationError } from '@sequelize/core';
@@ -337,10 +338,6 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('UUIDV1', () => {
-      testsql('UUIDV1', DataTypes.UUIDV1, {
-        default: 'UUIDV1',
-      });
-
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV1();
@@ -363,10 +360,6 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('UUIDV4', () => {
-      testsql('UUIDV4', DataTypes.UUIDV4, {
-        default: 'UUIDV4',
-      });
-
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV4();
@@ -626,11 +619,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid tinyint');
+          }).to.throw(ValidationError, '"foobar" is not a valid integer');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationError, '123.45 is not a valid tinyint');
+          }).to.throw(ValidationError, '123.45 is not a valid integer');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -780,11 +773,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid smallint');
+          }).to.throw(ValidationError, '"foobar" is not a valid integer');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationError, '123.45 is not a valid smallint');
+          }).to.throw(ValidationError, '123.45 is not a valid integer');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -894,11 +887,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid mediumint');
+          }).to.throw(ValidationError, '"foobar" is not a valid integer');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationError, '123.45 is not a valid mediumint');
+          }).to.throw(ValidationError, '123.45 is not a valid integer');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -991,11 +984,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid bigint');
+          }).to.throw(ValidationError, '"foobar" is not a valid integer');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationError, '123.45 is not a valid bigint');
+          }).to.throw(ValidationError, '123.45 is not a valid integer');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -1425,8 +1418,17 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('ENUM', () => {
-      testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
-        default: 'ENUM',
+      it('produces an enum', () => {
+        const User = sequelize.define('User', {
+          anEnum: DataTypes.ENUM('value 1', 'value 2'),
+        });
+
+        const enumType = User.rawAttributes.anEnum.type;
+        assert(typeof enumType !== 'string');
+
+        expectsql(enumType.toSql(), {
+          postgres: '"public"."enum_Users_anEnum"',
+        });
       });
 
       it('raises an error if no values are defined', () => {

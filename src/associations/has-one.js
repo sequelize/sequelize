@@ -1,5 +1,7 @@
 'use strict';
 
+import { cloneDataType } from '../dialects/abstract/data-types-utils';
+
 const Utils = require('./../utils');
 const Helpers = require('./helpers');
 const _ = require('lodash');
@@ -80,7 +82,7 @@ export class HasOne extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type: this.options.keyType || this.source.rawAttributes[this.sourceKey].type.clone(),
+        type: this.options.keyType || cloneDataType(this.source.rawAttributes[this.sourceKey].type),
         allowNull: true,
         ...this.foreignKeyAttribute,
       },

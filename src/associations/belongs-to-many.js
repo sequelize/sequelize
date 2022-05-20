@@ -1,5 +1,7 @@
 'use strict';
 
+import { cloneDataType } from '../dialects/abstract/data-types-utils';
+
 const Utils = require('./../utils');
 const Helpers = require('./helpers');
 const _ = require('lodash');
@@ -284,8 +286,8 @@ export class BelongsToMany extends Association {
     const targetKey = this.target.rawAttributes[this.targetKey];
     const targetKeyType = targetKey.type;
     const targetKeyField = this.targetKeyField;
-    const sourceAttribute = { type: sourceKeyType.clone(), ...this.foreignKeyAttribute };
-    const targetAttribute = { type: targetKeyType.clone(), ...this.otherKeyAttribute };
+    const sourceAttribute = { type: cloneDataType(sourceKeyType), ...this.foreignKeyAttribute };
+    const targetAttribute = { type: cloneDataType(targetKeyType), ...this.otherKeyAttribute };
 
     if (this.primaryKeyDeleted === true) {
       targetAttribute.primaryKey = sourceAttribute.primaryKey = true;

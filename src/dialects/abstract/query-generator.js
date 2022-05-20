@@ -1141,7 +1141,7 @@ export class AbstractQueryGenerator {
             field.fieldName,
             value,
             null,
-            `${field.type.key} validator`,
+            `${field.type.constructor.name} validator`,
           ));
         }
 

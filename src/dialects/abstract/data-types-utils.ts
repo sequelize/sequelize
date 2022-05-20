@@ -1,5 +1,5 @@
 import { logger } from '../../utils/logger.js';
-import type { DataType, DataTypeClass } from './data-types.js';
+import type { DataType, DataTypeClass, DataTypeInstance } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 
 const printedWarnings = new Set<string>();
@@ -21,4 +21,12 @@ export function isDataType(value: any): value is DataType {
 
 export function isDataTypeClass(value: any): value is DataTypeClass {
   return typeof value === 'function' && value.prototype instanceof AbstractDataType;
+}
+
+export function cloneDataType(value: DataTypeInstance | string): DataTypeInstance | string {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  return value.clone();
 }

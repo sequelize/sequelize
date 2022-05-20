@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
+      expect(() => Utils.toDefaultValue(DataTypes.UUIDV4)).to.throw();
     });
     it('return uuid v1', () => {
       expect(/^[\da-z-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);

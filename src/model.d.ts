@@ -10,7 +10,7 @@ import {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import { DataType } from './dialects/abstract/data-types.js';
+import { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
@@ -1761,11 +1761,16 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 }
 
-export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends ModelAttributeColumnOptions {
+export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions, 'type'> {
   /**
    * The name of the attribute (JS side).
    */
   fieldName: string;
+
+  /**
+   * Like {@link ModelAttributeColumnOptions.type}, but normalized.
+   */
+  type: string | AbstractDataType<any>;
 }
 
 /**
