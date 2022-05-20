@@ -192,7 +192,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      _.merge(options, parseConnectionString(arguments[0]));
+      _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
@@ -205,6 +205,7 @@ export class Sequelize {
       dialect: null,
       dialectModule: null,
       dialectModulePath: null,
+      dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
       define: {},
