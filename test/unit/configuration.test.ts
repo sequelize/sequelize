@@ -1,15 +1,9 @@
-'use strict';
+import path from 'node:path';
+import { Sequelize } from '@sequelize/core';
+import { expect } from 'chai';
+import { getTestDialect } from '../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('./support');
-
-const { Sequelize } = require('@sequelize/core');
-
-const dialect = Support.getTestDialect();
-const path = require('path');
-
+const dialect = getTestDialect();
 describe('Sequelize', () => {
   describe('dialect is required', () => {
     it('throw error when no dialect is supplied', () => {
@@ -31,6 +25,7 @@ describe('Sequelize', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test', {
         dialect: 'mysql',
+        // @ts-expect-error -- we're testing that this throws an error
         pool: false,
       });
     }).to.throw('Support for pool:false was removed in v4.0');
@@ -73,9 +68,8 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
-    describe('sqllite path inititalization', () => {
-      const current   = Support.sequelize;
-      if (current.dialect.name === 'sqlite') {
+    describe('SQLite path inititalization', () => {
+      if (dialect === 'sqlite') {
         it('should accept relative paths for sqlite', () => {
           const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
           const options = sequelize.options;
@@ -179,13 +173,13 @@ describe('Sequelize', () => {
 
       expect(options.storage).to.equal('/completely/different/path.db');
       expect(dialectOptions.supportBigNumbers).to.be.true;
-      expect(dialectOptions.application_name).to.equal('client');
+      expect(dialectOptions.application_name).to.equal('server');
       expect(dialectOptions.ssl).to.equal('true');
     });
 
     it('should handle JSON options', () => {
       const sequelizeWithOptions = new Sequelize('mysql://example.com:9821/dbname?options={"encrypt":true}&anotherOption=1');
-      expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.be.true;
+      expect(sequelizeWithOptions.options.dialectOptions.options?.encrypt).to.be.true;
       expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
     });
 
