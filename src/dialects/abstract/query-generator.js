@@ -2832,7 +2832,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     }
 
-    if (typeof smth === 'number') {
+    if (typeof smth === 'number' || typeof smth === 'bigint') {
       let primaryKeys = factory ? Object.keys(factory.primaryKeys) : [];
 
       if (primaryKeys.length > 0) {
