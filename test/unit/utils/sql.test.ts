@@ -73,14 +73,14 @@ describe('mapBindParameters', () => {
     expect(parameterSet).to.deep.eq(new Set(['a']));
   });
 
-  it(`does not consider the token to be a bind parameter if it does not follow '(', ',', '=' or whitespace`, () => {
-    const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`, dialect);
+  it(`does not consider the token to be a bind parameter if it does not follow '(', ',', '=', ';' or whitespace`, () => {
+    const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id;`, dialect);
 
     expectsql(sql, {
-      default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?`,
-      postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
-      sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
-      mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id`,
+      default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?;`,
+      postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1;`,
+      sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id;`,
+      mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id;`,
     });
 
     if (supportsNamedParameters) {

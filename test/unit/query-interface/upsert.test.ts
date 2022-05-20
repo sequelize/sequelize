@@ -36,8 +36,8 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
-      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
-      mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=VALUES(`firstName`);',
+      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
+      mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK)
           AS [Users_target]
