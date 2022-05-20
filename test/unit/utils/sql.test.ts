@@ -81,6 +81,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1;`,
       sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id;`,
       mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id;`,
+      ibmi: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?;`,
     });
 
     if (supportsNamedParameters) {
