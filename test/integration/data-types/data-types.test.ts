@@ -6,6 +6,7 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, fn, Model } from '@sequelize/core';
 import { expect } from 'chai';
+import dayjs from 'dayjs';
 import moment from 'moment';
 import type { Moment } from 'moment-timezone';
 import { beforeEach2, sequelize } from '../support';
@@ -599,8 +600,7 @@ describe('DataTypes.DECIMAL', () => {
 describe('DataTypes.DATE', () => {
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {
-      // TODO: Test against dayjs, momentjs
-      declare dateAttr: Date | string | number | Moment;
+      declare dateAttr: Date | string | number | Moment | dayjs.Dayjs;
     }
 
     User.init({
@@ -625,11 +625,20 @@ describe('DataTypes.DATE', () => {
     await testSimpleInOut(vars.User, 'dateAttr', 1_640_995_200_000, date);
   });
 
-  it('handles timezones', async () => {
+  it('handles timezones (moment)', async () => {
     await testSimpleInOut(
       vars.User,
       'dateAttr',
       moment.tz('2014-06-01 12:00', 'America/New_York'),
+      new Date('2014-06-01T16:00:00.000Z'),
+    );
+  });
+
+  it('handles timezones (dayjs)', async () => {
+    await testSimpleInOut(
+      vars.User,
+      'dateAttr',
+      dayjs('2014-06-01 12:00'),
       new Date('2014-06-01T16:00:00.000Z'),
     );
   });

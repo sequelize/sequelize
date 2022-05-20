@@ -9,6 +9,7 @@ export * from './join-sql-fragments';
 export * from './object';
 export * from './sequelize-method';
 export * from './string';
+export * from './dayjs';
 
 /**
  * getComplexSize

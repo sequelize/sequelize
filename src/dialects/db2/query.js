@@ -8,7 +8,7 @@ const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -160,7 +160,7 @@ export class Db2Query extends AbstractQuery {
                       if (parse) {
                         data[i][column] = parse(value);
                       } else if (coltypes[column] === 'TIMESTAMP') {
-                        data[i][column] = new Date(moment.utc(value));
+                        data[i][column] = new Date(dayjs.utc(value));
                       } else if (coltypes[column] === 'BLOB') {
                         data[i][column] = new Buffer.from(value);
                       } else if (coltypes[column].indexOf('FOR BIT DATA') > 0) {

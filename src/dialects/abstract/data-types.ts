@@ -1,15 +1,16 @@
 import util from 'util';
+import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
-import moment from 'moment';
-import momentTz from 'moment-timezone';
+import type { Moment } from 'moment';
 import type { Class } from 'type-fest';
 import wkx from 'wkx';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import { isValidTimeZone } from '../../utils/index.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
@@ -837,7 +838,7 @@ export interface DateOptions {
 }
 
 type RawDate = Date | string | number;
-export type AcceptedDate = RawDate | moment.Moment | number;
+export type AcceptedDate = RawDate | Moment | dayjs.Dayjs | number;
 
 /**
  * A date and time.
@@ -911,25 +912,22 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 
   private _applyTimezone(date: AcceptedDate, options: { timezone?: string }) {
     if (options.timezone) {
-      if (momentTz.tz.zone(options.timezone)) {
-        return momentTz(date).tz(options.timezone);
+      if (isValidTimeZone(options.timezone)) {
+        return dayjs(date).tz(options.timezone);
       }
 
-      return moment(date).utcOffset(options.timezone);
+      return dayjs(date).utcOffset(options.timezone);
     }
 
-    return momentTz(date);
+    return dayjs(date);
   }
 
   stringify(
     date: AcceptedDate,
     options: StringifyOptions,
   ) {
-    if (!moment.isMoment(date)) {
-      date = this._applyTimezone(date, options);
-    }
-
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    // Z here means current timezone, _not_ UTC
+    return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
@@ -944,7 +942,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 
   stringify(date: AcceptedDate, _options: StringifyOptions) {
-    return moment(date).format('YYYY-MM-DD');
+    return dayjs(date).format('YYYY-MM-DD');
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -953,7 +951,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     }
 
     if (!options?.raw && value) {
-      return moment(value).format('YYYY-MM-DD');
+      return dayjs(value).format('YYYY-MM-DD');
     }
 
     return value;
