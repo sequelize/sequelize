@@ -185,7 +185,7 @@ export class AbstractQueryGenerator {
           }
 
           if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-            values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' replacements: options.replacements });
+            values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements });
           } else {
             values[key] = this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam);
           }
