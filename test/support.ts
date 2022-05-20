@@ -377,3 +377,20 @@ export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> 
 
   return out;
 }
+
+/**
+ * Works like {@link before}, but returns an object that contains the values returned by its latest execution.
+ * @param cb
+ */
+export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
+  // it's not the right shape but we're cheating. We'll be updating the value of this object before each test!
+  const out = {} as T;
+
+  before(async () => {
+    const out2 = await cb();
+
+    Object.assign(out, out2);
+  });
+
+  return out;
+}

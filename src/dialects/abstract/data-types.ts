@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Moment } from 'moment';
 import type { Class } from 'type-fest';
 import wkx from 'wkx';
 import { ValidationError } from '../../errors';
@@ -838,7 +837,7 @@ export interface DateOptions {
 }
 
 type RawDate = Date | string | number;
-export type AcceptedDate = RawDate | Moment | dayjs.Dayjs | number;
+export type AcceptedDate = RawDate | dayjs.Dayjs | number;
 
 /**
  * A date and time.
