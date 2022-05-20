@@ -163,7 +163,7 @@ export interface Config {
   readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
-  readonly dialectOptions?: Readonly<DialectOptions>;
+  readonly dialectOptions: Readonly<DialectOptions>;
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
@@ -409,7 +409,7 @@ export interface DialectOptions {
   odbcConnectionString?: string;
   charset?: string;
   timeout?: number;
-  options?: object;
+  options?: Record<string, any>;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -952,7 +952,7 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
-  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions'>;
 
   public readonly dialect: AbstractDialect;
 
