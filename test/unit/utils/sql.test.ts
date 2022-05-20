@@ -62,6 +62,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = $1;`,
       sqlite: `SELECT * FROM users WHERE id = $id;`,
       mssql: `SELECT * FROM users WHERE id = @id;`,
+      ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
     });
   });
 
@@ -324,6 +325,7 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE id = 1;',
+      ibmi: `SELECT * FROM users WHERE id = 1;`, // 'default' removes the ; for ibmi
     });
   });
 
@@ -495,6 +497,7 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE id = 1;',
+      ibmi: 'SELECT * FROM users WHERE id = 1;', // 'default' removes the ; for ibmi
     });
   });
 
