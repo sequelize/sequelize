@@ -71,7 +71,7 @@
     "chai": "4.3.6",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
-    "cheerio": "1.0.0-rc.10",
+    "cheerio": "1.0.0-rc.11",
     "cls-hooked": "4.2.2",
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
