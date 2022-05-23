@@ -34,6 +34,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         unique: 'foobar',
         type: DataTypes.INTEGER,
       },
+      counter: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       baz: {
         type: DataTypes.STRING,
         field: 'zab',
@@ -572,15 +576,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect === 'mysql' || dialect === 'mariadb') {
         it('should allow to use calculated values on duplicate', async function () {
-          const insertUser = await this.User.create({
-            bar: 10,
+          const [insertUser] = await this.User.upsert({
+            counter: this.sequelize.literal('`counter` + 1'),
           });
           const [user] = await this.User.upsert({
             id: insertUser.id,
-            bar: this.sequelize.literal('`bar` + 1'),
+            counter: this.sequelize.literal('`counter` + 1'),
           });
           await user.reload();
-          expect(user.bar).to.equal(11);
+          expect(user.counter).to.equal(2);
         });
       }
 

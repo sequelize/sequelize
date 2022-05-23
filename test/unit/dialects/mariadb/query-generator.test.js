@@ -621,15 +621,6 @@ if (dialect === 'mariadb') {
           },
           needsSequelize: true,
         },
-        {
-          arguments: ['myTable', { name: 'foo' }, undefined, { updateOnDuplicate: ['name'] }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `name`=$sequelize_1;',
-            bind: {
-              sequelize_1: 'foo',
-            },
-          },
-        },
       ],
 
       bulkInsertQuery: [

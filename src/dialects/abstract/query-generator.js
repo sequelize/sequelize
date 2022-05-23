@@ -119,7 +119,7 @@ export class AbstractQueryGenerator {
     const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
-    const values = {};
+    const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     let query;
