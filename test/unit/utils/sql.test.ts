@@ -54,6 +54,29 @@ describe('mapBindParameters', () => {
     });
   });
 
+  it('parses bind parameters followed by a semicolon', () => {
+    const { sql } = mapBindParameters('SELECT * FROM users WHERE id = $id;', dialect);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = ?;`,
+      postgres: `SELECT * FROM users WHERE id = $1;`,
+      sqlite: `SELECT * FROM users WHERE id = $id;`,
+      mssql: `SELECT * FROM users WHERE id = @id;`,
+      ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
+    });
+  });
+
+  if (sequelize.dialect.supports.ARRAY) {
+    it('does not parse bind parameters inside ARRAY[]', () => {
+      const { sql } = mapBindParameters('SELECT * FROM users WHERE id = ARRAY[$id1]::int[];', dialect);
+
+      expectsql(sql, {
+        // it's a syntax error, but we still check because we accept this in replacements.
+        default: 'SELECT * FROM users WHERE id = ARRAY[$id1]::int[];',
+      });
+    });
+  }
+
   it('parses single letter bind parameters', () => {
     const { sql, bindOrder, parameterSet } = mapBindParameters(`SELECT * FROM users WHERE id = $a`, dialect);
 
@@ -296,6 +319,32 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('parses named replacements followed by a semicolon', () => {
+    const sql = injectReplacements('SELECT * FROM users WHERE id = :id;', dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE id = 1;',
+      ibmi: `SELECT * FROM users WHERE id = 1;`, // 'default' removes the ; for ibmi
+    });
+  });
+
+  // this is an officially supported workaround.
+  // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
+  if (sequelize.dialect.supports.ARRAY) {
+    it('parses named replacements inside ARRAY[]', () => {
+      const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[:id1]::int[] OR id = ARRAY[:id1,:id2]::int[] OR id = ARRAY[:id1, :id2]::int[];', dialect, {
+        id1: 1,
+        id2: 4,
+      });
+
+      expectsql(sql, {
+        default: 'SELECT * FROM users WHERE id = ARRAY[1]::int[] OR id = ARRAY[1,4]::int[] OR id = ARRAY[1, 4]::int[];',
+      });
+    });
+  }
+
   it('parses single letter named replacements', () => {
     const sql = injectReplacements(`SELECT * FROM users WHERE id = :a`, dialect, {
       a: 1,
@@ -443,6 +492,27 @@ describe('injectReplacements (positional replacements)', () => {
       default: `SELECT * FROM users WHERE id = 1::string`,
     });
   });
+
+  it('parses positional replacements followed by a semicolon', () => {
+    const sql = injectReplacements('SELECT * FROM users WHERE id = ?;', dialect, [1]);
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE id = 1;',
+      ibmi: 'SELECT * FROM users WHERE id = 1;', // 'default' removes the ; for ibmi
+    });
+  });
+
+  // this is an officially supported workaround.
+  // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
+  if (sequelize.dialect.supports.ARRAY) {
+    it('parses positional replacements inside ARRAY[]', () => {
+      const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[?]::int[] OR ARRAY[?,?]::int[] OR ARRAY[?, ?]::int[];', dialect, [1, 1, 4, 1, 4]);
+
+      expectsql(sql, {
+        default: 'SELECT * FROM users WHERE id = ARRAY[1]::int[] OR ARRAY[1,4]::int[] OR ARRAY[1, 4]::int[];',
+      });
+    });
+  }
 
   it(`does not consider the token to be a replacement if it does not follow '(', ',', '=' or whitespace`, () => {
     const sql = injectReplacements(`SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id = ?`, dialect, [2, 1, 3, 4]);
