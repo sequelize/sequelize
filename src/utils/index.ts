@@ -83,3 +83,6 @@ export type MakeNullishOptional<T extends object> = Optional<T, NullishPropertie
 export type Nullish<T> = T | null | undefined;
 export type AllowArray<T> = T | T[];
 export type AllowReadonlyArray<T> = T | readonly T[];
+
+type NonConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;

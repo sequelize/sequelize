@@ -134,8 +134,8 @@ interface NumberDataTypeConstructor extends AbstractDataTypeConstructor {
   options: NumberDataTypeOptions;
   UNSIGNED: this;
   ZEROFILL: this;
-  new (options?: NumberDataTypeOptions): NumberDataType;
-  (options?: NumberDataTypeOptions): NumberDataType;
+  new (options?: NumberDataTypeOptions | number): NumberDataType;
+  (options?: NumberDataTypeOptions | number): NumberDataType;
   validate(value: unknown): boolean;
 }
 

@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(databaseError).to.have.property('parent');
       expect(databaseError).to.have.property('original');
       expect(databaseError.name).to.equal('SequelizeDatabaseError');
-      expect(databaseError.message).to.equal('original database error message');
+      expect(databaseError.message).to.include('original database error message');
     });
 
     it('SequelizeDatabaseError should keep the original sql and the parameters', () => {
@@ -206,7 +206,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('ConnectionRefusedError should keep original message', () => {
@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionRefusedError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('AccessDeniedError should keep original message', () => {
@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeAccessDeniedError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('HostNotFoundError should keep original message', () => {
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeHostNotFoundError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('HostNotReachableError should keep original message', () => {
@@ -246,7 +246,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeHostNotReachableError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('InvalidConnectionError should keep original message', () => {
@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeInvalidConnectionError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
 
     it('ConnectionTimedOutError should keep original message', () => {
@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(connectionError).to.have.property('parent');
       expect(connectionError).to.have.property('original');
       expect(connectionError.name).to.equal('SequelizeConnectionTimedOutError');
-      expect(connectionError.message).to.equal('original connection error message');
+      expect(connectionError.message).to.include('original connection error message');
     });
   });
 
