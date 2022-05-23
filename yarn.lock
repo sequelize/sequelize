@@ -5046,14 +5046,15 @@ lazystream@^1.0.0:
   dependencies:
     readable-stream "^2.0.5"
 
-lcov-result-merger@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-3.1.0.tgz#ae6d1be663dbf7d586d8004642359d39de72039e"
-  integrity sha512-vGXaMNGZRr4cYvW+xMVg+rg7qd5DX9SbGXl+0S3k85+gRZVK4K7UvxPWzKb/qiMwe+4bx3EOrW2o4mbdb1WnsA==
+lcov-result-merger@3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-3.2.0.tgz#93572de28f3023eedc15e04d5d58911dfe6e2256"
+  integrity sha512-gE4b+2bIFoAfxkLi6OVCyawN+zJtzBCZV36rVKdHYl1ithsYxRvCjksOcF+nHHNz998dFHPDqjnht7dXRBRBzQ==
   dependencies:
     through2 "^2.0.3"
     vinyl "^2.1.0"
     vinyl-fs "^3.0.2"
+    yargs "^16.2.0"
 
 lead@^1.0.0:
   version "1.0.0"
