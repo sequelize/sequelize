@@ -576,14 +576,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect === 'mysql' || dialect === 'mariadb') {
         it('should allow to use calculated values on duplicate', async function () {
-          const [insertUser] = await this.User.upsert({
+          await this.User.upsert({
+            id: 1,
             counter: this.sequelize.literal('`counter` + 1'),
           });
-          const [user] = await this.User.upsert({
-            id: insertUser.id,
+          await this.User.upsert({
+            id: 1,
             counter: this.sequelize.literal('`counter` + 1'),
           });
-          await user.reload();
+          const user = await this.User.findByPk(1);
           expect(user.counter).to.equal(2);
         });
       }
