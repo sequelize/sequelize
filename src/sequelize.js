@@ -1,11 +1,11 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { injectReplacements, mapBindParameters } from './utils/sql';
+import { parseConnectionString } from './utils/url';
 
-const url = require('url');
-const path = require('path');
-const pgConnectionString = require('pg-connection-string');
 const retry = require('retry-as-promised');
 const _ = require('lodash');
 
@@ -29,6 +29,7 @@ const { BelongsTo } = require('./associations/belongs-to');
 const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
+require('./utils/dayjs');
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -150,14 +151,14 @@ export class Sequelize {
    * @param {string}   [options.schema=null] A schema to use
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
-   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
-   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`
+   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
    * @param {number}   [options.pool.max=5] Maximum number of connection in pool
    * @param {number}   [options.pool.min=0] Minimum number of connection in pool
@@ -191,63 +192,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      const urlParts = url.parse(arguments[0], true);
-
-      options.dialect = urlParts.protocol.replace(/:$/, '');
-      options.host = urlParts.hostname;
-
-      if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-        const storagePath = path.join(options.host, urlParts.pathname);
-        options.storage = path.resolve(options.storage || storagePath);
-      }
-
-      if (urlParts.pathname) {
-        config.database = urlParts.pathname.replace(/^\//, '');
-      }
-
-      if (urlParts.port) {
-        options.port = urlParts.port;
-      }
-
-      if (urlParts.auth) {
-        const authParts = urlParts.auth.split(':');
-
-        config.username = authParts[0];
-
-        if (authParts.length > 1) {
-          config.password = authParts.slice(1).join(':');
-        }
-      }
-
-      if (urlParts.query) {
-        // Allow host query argument to override the url host.
-        // Enables specifying domain socket hosts which cannot be specified via the typical
-        // host part of a url.
-        if (urlParts.query.host) {
-          options.host = urlParts.query.host;
-        }
-
-        if (options.dialectOptions) {
-          Object.assign(options.dialectOptions, urlParts.query);
-        } else {
-          options.dialectOptions = urlParts.query;
-          if (urlParts.query.options) {
-            try {
-              const o = JSON.parse(urlParts.query.options);
-              options.dialectOptions.options = o;
-            } catch {
-              // Nothing to do, string is not a valid JSON
-              // an thus does not need any further processing
-            }
-          }
-        }
-      }
-
-      // For postgres, we can use this helper to load certs directly from the
-      // connection string.
-      if (['postgres', 'postgresql'].includes(options.dialect)) {
-        Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
-      }
+      _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
@@ -260,6 +205,7 @@ export class Sequelize {
       dialect: null,
       dialectModule: null,
       dialectModulePath: null,
+      dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
       define: {},
@@ -330,6 +276,22 @@ export class Sequelize {
       keepDefaultTimezone: this.options.keepDefaultTimezone,
       dialectOptions: this.options.dialectOptions,
     };
+
+    // Convert replication connection strings to objects
+    if (this.options.replication) {
+      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
+        this.options.replication.write = parseConnectionString(this.options.replication.write);
+      }
+
+      if (this.options.replication.read) {
+        for (let i = 0; i < this.options.replication.read.length; i++) {
+          const server = this.options.replication.read[i];
+          if (typeof server === 'string') {
+            this.options.replication.read[i] = parseConnectionString(server);
+          }
+        }
+      }
+    }
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
@@ -534,9 +496,71 @@ export class Sequelize {
    *
    * @see {@link Model.build} for more information about instance option.
    */
-
   async query(sql, options) {
     options = { ...this.options.query, ...options };
+
+    if (typeof sql === 'object') {
+      throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
+    }
+
+    sql = sql.trim();
+
+    if (options.replacements) {
+      sql = injectReplacements(sql, this.dialect, options.replacements);
+    }
+
+    // queryRaw will throw if 'replacements' is specified, as a way to warn users that they are miusing the method.
+    delete options.replacements;
+
+    return this.queryRaw(sql, options);
+  }
+
+  async queryRaw(sql, options) {
+    if (typeof sql !== 'string') {
+      throw new TypeError('Sequelize#rawQuery requires a string as the first parameter.');
+    }
+
+    if (options != null && 'replacements' in options) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
+Only bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements.`);
+    }
+
+    options = { ...this.options.query, ...options };
+
+    let bindParameters;
+    if (options.bind != null) {
+      const isBindArray = Array.isArray(options.bind);
+      if (!isPlainObject(options.bind) && !isBindArray) {
+        throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
+      }
+
+      const mappedResult = mapBindParameters(sql, this.dialect);
+
+      for (const parameterName of mappedResult.parameterSet) {
+        if (isBindArray) {
+          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+            throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+          }
+        } else if (!(parameterName in options.bind)) {
+          throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+        }
+      }
+
+      sql = mappedResult.sql;
+
+      if (mappedResult.bindOrder == null) {
+        bindParameters = options.bind;
+      } else {
+        bindParameters = mappedResult.bindOrder.map(key => {
+          if (isBindArray) {
+            return options.bind[key - 1];
+          }
+
+          return options.bind[key];
+        });
+      }
+    }
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;
@@ -577,48 +601,6 @@ export class Sequelize {
       // if user wants to always prepend searchPath (dialectOptions.preprendSearchPath = true)
       // then set to DEFAULT if none is provided
       options.searchPath = 'DEFAULT';
-    }
-
-    if (typeof sql === 'object') {
-      if (sql.values !== undefined) {
-        if (options.replacements !== undefined) {
-          throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
-        }
-
-        options.replacements = sql.values;
-      }
-
-      if (sql.bind !== undefined) {
-        if (options.bind !== undefined) {
-          throw new Error('Both `sql.bind` and `options.bind` cannot be set at the same time');
-        }
-
-        options.bind = sql.bind;
-      }
-
-      if (sql.query !== undefined) {
-        sql = sql.query;
-      }
-    }
-
-    sql = sql.trim();
-
-    if (options.replacements && options.bind) {
-      throw new Error('Both `replacements` and `bind` cannot be set at the same time');
-    }
-
-    if (options.replacements) {
-      if (Array.isArray(options.replacements)) {
-        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
-      } else {
-        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
-      }
-    }
-
-    let bindParameters;
-
-    if (options.bind) {
-      [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
     }
 
     const checkTransaction = () => {

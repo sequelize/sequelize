@@ -42,6 +42,8 @@ describe('model', () => {
           logging: sql => {
             if (/^mysql|mariadb/.test(dialect)) {
               expect(sql).to.include('?');
+            } else if (dialect === 'sqlite') {
+              expect(sql).to.include('$sequelize_1');
             } else {
               expect(sql).to.include('$1');
             }

@@ -9,46 +9,6 @@ const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('sql:pg');
 
 export class PostgresQuery extends AbstractQuery {
-  /**
-   * Rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    const stringReplaceFunc = value => (typeof value === 'string' ? value.replace(/\0/g, '\\0') : value);
-
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = values.map(stringReplaceFunc);
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = [];
-      let i = 0;
-      const seen = {};
-      const replacementFunc = (match, key, values) => {
-        if (seen[key] !== undefined) {
-          return seen[key];
-        }
-
-        if (values[key] !== undefined) {
-          i = i + 1;
-          bindParam.push(stringReplaceFunc(values[key]));
-          seen[key] = `$${i}`;
-
-          return `$${i}`;
-        }
-
-      };
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    }
-
-    return [sql, bindParam];
-  }
-
   async run(sql, parameters) {
     const { connection } = this;
 

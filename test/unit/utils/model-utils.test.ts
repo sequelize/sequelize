@@ -1,9 +1,6 @@
-import type { Sequelize } from '@sequelize/core';
 import { isModelStatic, isSameInitialModel, Model } from '@sequelize/core';
-// eslint-disable-next-line import/order
 import { expect } from 'chai';
-
-const sequelize: Sequelize = require('../../support').sequelize;
+import { sequelize } from '../../support';
 
 describe('isModelStatic', () => {
   it('returns true for model subclasses', () => {

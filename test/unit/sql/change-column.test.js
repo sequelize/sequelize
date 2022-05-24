@@ -23,7 +23,7 @@ if (current.dialect.name !== 'sqlite') {
       }, { timestamps: false });
 
       before(function () {
-        this.stub = sinon.stub(current, 'query').resolvesArg(0);
+        this.stub = sinon.stub(current, 'queryRaw').resolvesArg(0);
       });
 
       beforeEach(function () {

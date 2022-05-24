@@ -30,14 +30,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
-            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
-            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id","user_name";',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
-          bind: ['triggertest'],
+          bind: { sequelize_1: 'triggertest' },
         });
 
     });
@@ -54,14 +54,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.insertQuery(M.tableName, { id: 0 }, M.rawAttributes),
         {
           query: {
-            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($1); SET IDENTITY_INSERT [ms] OFF;',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($1))',
-            postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
-            snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
-            default: 'INSERT INTO `ms` (`id`) VALUES ($1);',
+            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1));',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
+            snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
+            default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
           },
-          bind: [0],
+          bind: { sequelize_1: 0 },
         });
     });
   });
@@ -83,21 +83,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
-            postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
-            snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
-            mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`date`) VALUES ($1);',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
-            ibmi: ['2015-01-20 00:00:00.000'],
-            sqlite: ['2015-01-20 00:00:00.000 +00:00'],
-            db2: ['2015-01-20 01:00:00'],
-            mysql: ['2015-01-20 01:00:00'],
-            snowflake: ['2015-01-20 01:00:00'],
-            mariadb: ['2015-01-20 01:00:00.000'],
-            default: ['2015-01-20 01:00:00.000 +01:00'],
+            ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
+            sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            db2: { sequelize_1: '2015-01-20 01:00:00' },
+            mysql: { sequelize_1: '2015-01-20 01:00:00' },
+            snowflake: { sequelize_1: '2015-01-20 01:00:00' },
+            mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
+            default: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
           },
         });
     });
@@ -118,21 +118,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($1))',
-            postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
-            snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
-            mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`date`) VALUES ($1);',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
-            ibmi: ['2015-01-20 01:02:03.089'],
-            sqlite: ['2015-01-20 01:02:03.089 +00:00'],
-            mariadb: ['2015-01-20 02:02:03.089'],
-            mysql: ['2015-01-20 02:02:03.089'],
-            db2: ['2015-01-20 02:02:03.089'],
-            snowflake: ['2015-01-20 02:02:03.089'],
-            default: ['2015-01-20 02:02:03.089 +01:00'],
+            ibmi: { sequelize_1: '2015-01-20 01:02:03.089' },
+            sqlite: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            mariadb: { sequelize_1: '2015-01-20 02:02:03.089' },
+            mysql: { sequelize_1: '2015-01-20 02:02:03.089' },
+            db2: { sequelize_1: '2015-01-20 02:02:03.089' },
+            snowflake: { sequelize_1: '2015-01-20 02:02:03.089' },
+            default: { sequelize_1: '2015-01-20 02:02:03.089 +01:00' },
           },
         });
     });
@@ -152,16 +152,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.rawAttributes),
         {
           query: {
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($1))',
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
-            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
           bind: {
-            postgres: ['null\u0000test'],
-            default: ['null\0test'],
+            postgres: { sequelize_1: 'null\u0000test' },
+            default: { sequelize_1: 'null\0test' },
           },
         });
     });

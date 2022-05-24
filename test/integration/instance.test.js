@@ -164,10 +164,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should store the current date in touchedAt', function () {
-        const clock = sinon.useFakeTimers();
-        clock.tick(5000);
+        this.clock.tick(5000);
         const user = this.User.build({ username: 'a user' });
-        clock.restore();
+        this.clock.restore();
         expect(Number(user.touchedAt)).to.be.equal(5000);
       });
     });
@@ -293,7 +292,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         username: { type: DataTypes.STRING },
       }, { paranoid: true });
 
-      this.ParanoidUser.hasOne(this.ParanoidUser);
+      this.ParanoidUser.hasOne(this.ParanoidUser, { as: 'paranoidParent', inverse: { as: 'paranoidChild' } });
       await this.ParanoidUser.sync({ force: true });
     });
 
@@ -428,7 +427,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'fnord' });
       const users = await this.ParanoidUser.findAll();
       const linkedUser = await this.ParanoidUser.create({ username: 'linkedFnord' });
-      const user = await users[0].setParanoidUser(linkedUser);
+      const user = await users[0].setParanoidParent(linkedUser);
       expect(user.deletedAt).not.to.exist;
     });
 
