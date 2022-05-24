@@ -1799,7 +1799,7 @@ export type Identifier = number | bigint | string | Buffer;
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize#define} and {@link Model.init}
+ * Used by {@link Sequelize.define} and {@link Model.init}
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
