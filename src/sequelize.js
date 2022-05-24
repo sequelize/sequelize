@@ -1188,7 +1188,7 @@ class Sequelize {
       } catch (err) {
         try {
           await transaction.rollback();
-        } catch {
+        } catch (ignore) {
           // ignore, because 'rollback' will already print the error before killing the connection
         }
 
