@@ -301,9 +301,19 @@ class ConnectionManager {
    *
    * @returns {Promise}
    */
-  async releaseConnection(connection) {
+  releaseConnection(connection) {
     this.pool.release(connection);
     debug('connection released');
+  }
+
+  /**
+   * Destroys a pooled connection and removes it from the pool.
+   *
+   * @param {Connection} connection
+   */
+  async destroyConnection(connection) {
+    await this.pool.destroy(connection);
+    debug(`connection ${connection.uuid} destroyed`);
   }
 
   /**

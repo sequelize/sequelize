@@ -57,10 +57,16 @@ class Transaction {
     }
 
     try {
-      return await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      const out = await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      this.cleanup();
+      return out;
+    } catch (e) {
+      console.warn(`Committing transaction ${this.id} failed with error ${JSON.stringify(e.message)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw e;
     } finally {
       this.finished = 'commit';
-      this.cleanup();
       for (const hook of this._afterCommitHooks) {
         await hook.apply(this, [this]);
       }
@@ -82,12 +88,19 @@ class Transaction {
     }
 
     try {
-      return await this
+      const out = await this
         .sequelize
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
-    } finally {
+
       this.cleanup();
+
+      return out;
+    } catch (e) {
+      console.warn(`Rolling back transaction ${this.id} failed with error ${JSON.stringify(e.message)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw e;
     }
   }
 
@@ -98,12 +111,8 @@ class Transaction {
    * @param {boolean} useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
    * @returns {Promise}
    */
-  async prepareEnvironment(useCLS) {
+  async prepareEnvironment(useCLS = true) {
     let connectionPromise;
-
-    if (useCLS === undefined) {
-      useCLS = true;
-    }
 
     if (this.parent) {
       connectionPromise = Promise.resolve(this.parent.connection);
@@ -131,6 +140,7 @@ class Transaction {
       }
     }
 
+    // TODO (@ephys) [>=7.0.0]: move this inside of sequelize.transaction, remove parameter.
     if (useCLS && this.sequelize.constructor._cls) {
       this.sequelize.constructor._cls.set('transaction', this);
     }
@@ -163,12 +173,31 @@ class Transaction {
   cleanup() {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || this.connection.uuid === undefined) return;
+    if (this.parent || this.connection.uuid === undefined) {
+      return;
+    }
 
     this._clearCls();
-    const res = this.sequelize.connectionManager.releaseConnection(this.connection);
+    this.sequelize.connectionManager.releaseConnection(this.connection);
     this.connection.uuid = undefined;
-    return res;
+  }
+
+  /**
+   * Kills the connection this transaction uses.
+   * Used as a last resort, for instance because COMMIT or ROLLBACK resulted in an error
+   * and the transaction is left in a broken state,
+   * and releasing the connection to the pool would be dangerous.
+   */
+  async forceCleanup() {
+    // Don't release the connection if there's a parent transaction or
+    // if we've already cleaned up
+    if (this.parent || this.connection.uuid === undefined) {
+      return;
+    }
+
+    this._clearCls();
+    await this.sequelize.connectionManager.destroyConnection(this.connection);
+    this.connection.uuid = undefined;
   }
 
   _clearCls() {
