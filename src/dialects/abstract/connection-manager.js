@@ -298,8 +298,6 @@ class ConnectionManager {
    * Release a pooled connection so it can be utilized by other connection requests
    *
    * @param {Connection} connection
-   *
-   * @returns {Promise}
    */
   releaseConnection(connection) {
     this.pool.release(connection);
