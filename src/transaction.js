@@ -57,9 +57,8 @@ class Transaction {
     }
 
     try {
-      const out = await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
       this.cleanup();
-      return out;
     } catch (e) {
       console.warn(`Committing transaction ${this.id} failed with error ${JSON.stringify(e.message)}. We are killing its connection as it is now in an undetermined state.`);
       await this.forceCleanup();
@@ -88,14 +87,12 @@ class Transaction {
     }
 
     try {
-      const out = await this
+      await this
         .sequelize
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
 
       this.cleanup();
-
-      return out;
     } catch (e) {
       console.warn(`Rolling back transaction ${this.id} failed with error ${JSON.stringify(e.message)}. We are killing its connection as it is now in an undetermined state.`);
       await this.forceCleanup();
