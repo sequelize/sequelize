@@ -16,14 +16,14 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
     return;
   }
 
-  const stubs = [];
+  let stubs = [];
 
   afterEach(() => {
     for (const stub of stubs) {
       stub.restore();
     }
 
-    stubs.length = 0;
+    stubs = [];
   });
 
   describe('Transaction#commit', () => {
