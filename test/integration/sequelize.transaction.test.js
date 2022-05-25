@@ -8,13 +8,22 @@ const chai = require('chai'),
   current = Support.sequelize,
   delay = require('delay');
 
+const sequelize = Support.sequelize;
+const dialectName = sequelize.dialect.name;
+
 describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
   if (!current.dialect.supports.transactions) {
     return;
   }
 
+  const stubs = [];
+
   afterEach(() => {
-    sinon.restore();
+    for (const stub of stubs) {
+      stub.restore();
+    }
+
+    stubs.length = 0;
   });
 
   describe('Transaction#commit', () => {
@@ -26,20 +35,24 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
       await expect(t.commit()).to.eventually.equal(undefined);
     });
 
-    it('does not pollute the pool with broken connections if commit fails', async function() {
-      const initialPoolSize = this.sequelize.connectionManager.pool.size;
+    // we cannot close a sqlite connection, but there also cannot be a network error with sqlite.
+    // so this test is not necessary for that dialect.
+    if (dialectName !== 'sqlite') {
+      it('does not pollute the pool with broken connections if commit fails', async function() {
+        const initialPoolSize = this.sequelize.connectionManager.pool.size;
 
-      sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
+        stubs.push(sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!')));
 
-      const t = await this
-        .sequelize
-        .transaction();
+        const t = await this
+          .sequelize
+          .transaction();
 
-      await expect(t.commit()).to.be.rejectedWith('Oh no, an error!');
+        await expect(t.commit()).to.be.rejectedWith('Oh no, an error!');
 
-      // connection should have been destroyed
-      expect(this.sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
-    });
+        // connection should have been destroyed
+        expect(this.sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+      });
+    }
   });
 
   describe('Transaction#rollback', () => {
@@ -51,20 +64,24 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
       expect(t.rollback()).to.eventually.equal(undefined);
     });
 
-    it('does not pollute the pool with broken connections if the rollback fails', async function() {
-      const initialPoolSize = this.sequelize.connectionManager.pool.size;
+    // we cannot close a sqlite connection, but there also cannot be a network error with sqlite.
+    // so this test is not necessary for that dialect.
+    if (dialectName !== 'sqlite') {
+      it('does not pollute the pool with broken connections if the rollback fails', async function() {
+        const initialPoolSize = this.sequelize.connectionManager.pool.size;
 
-      sinon.stub(this.sequelize.queryInterface, 'rollbackTransaction').rejects(new Error('Oh no, an error!'));
+        stubs.push(sinon.stub(this.sequelize.queryInterface, 'rollbackTransaction').rejects(new Error('Oh no, an error!')));
 
-      const t = await this
-        .sequelize
-        .transaction();
+        const t = await this
+          .sequelize
+          .transaction();
 
-      await expect(t.rollback()).to.be.rejectedWith('Oh no, an error!');
+        await expect(t.rollback()).to.be.rejectedWith('Oh no, an error!');
 
-      // connection should have been destroyed
-      expect(this.sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
-    });
+        // connection should have been destroyed
+        expect(this.sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+      });
+    }
   });
 
   if (Support.getTestDialect() !== 'sqlite' && Support.getTestDialect() !== 'db2') {
