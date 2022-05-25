@@ -1780,6 +1780,14 @@ axios@^0.21.1, axios@^0.21.4:
   dependencies:
     follow-redirects "^1.14.0"
 
+axios@^0.27.2:
+  version "0.27.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
+  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
+  dependencies:
+    follow-redirects "^1.14.9"
+    form-data "^4.0.0"
+
 axobject-query@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/axobject-query/-/axobject-query-2.2.0.tgz#943d47e10c0b704aa42275e20edf3722648989be"
@@ -3700,7 +3708,7 @@ fn.name@1.x.x:
   resolved "https://registry.yarnpkg.com/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
-follow-redirects@^1.14.0:
+follow-redirects@^1.14.0, follow-redirects@^1.14.9:
   version "1.15.0"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.0.tgz#06441868281c86d0dda4ad8bdaead2d02dca89d4"
   integrity sha512-aExlJShTV4qOUOL7yF1U5tvLCB0xQuudbf6toyYA0E/acBNw71mvjFTnLaRp50aQaYocMR0a/RMMBIHeZnGyjQ==
@@ -7643,10 +7651,10 @@ smart-buffer@^4.2.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
-snowflake-sdk@1.6.9:
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.9.tgz#036a85796bb250d5f564cfa7486936662cf15355"
-  integrity sha512-Rt16zh5t++mZH+CXUBq3sYUUaEQnEMKT86mFtzfgIUk8MnZFJ4qBOwdheSWYU7OI9QnLqLmy8nZN40o9CFgm5A==
+snowflake-sdk@1.6.10:
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.10.tgz#c6c4f267edbc50d3c1ef6fcc2651188bb8545dce"
+  integrity sha512-kguQQSGhmNqZfmN/yZNDaIaMMktTcrTYBjtyx+szJzV69b5F+5b77btpYp+bCFqao69otVM+IPUtb3sugvCVnQ==
   dependencies:
     "@azure/storage-blob" "^12.5.0"
     "@techteamer/ocsp" "1.0.0"
@@ -7654,7 +7662,7 @@ snowflake-sdk@1.6.9:
     asn1.js-rfc2560 "^5.0.0"
     asn1.js-rfc5280 "^3.0.0"
     aws-sdk "^2.878.0"
-    axios "^0.21.4"
+    axios "^0.27.2"
     big-integer "^1.6.43"
     bignumber.js "^2.4.0"
     binascii "0.0.2"
