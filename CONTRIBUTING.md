@@ -101,7 +101,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
   - [Docker](https://docs.docker.com/get-docker/)
     - It is not mandatory because you can easily locally run tests against SQLite without it.
-    - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres,Db2 and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
+    - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, PostgreSQL, Db2 and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
   - [Visual Studio Code](https://code.visualstudio.com/)
     - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
       - Also run `npm install --global editorconfig` to make sure this extension will work properly
