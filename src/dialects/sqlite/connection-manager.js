@@ -67,7 +67,7 @@ export class SqliteConnectionManager extends ConnectionManager {
       return this.connections[options.inMemory || options.uuid];
     }
 
-    if (!options.inMemory && (options.readWriteMode & this.lib.OPEN_CREATE) !== 0) {
+    if (!options.inMemory && (options.readWriteMode & this.lib.OPEN_CREATE) !== 0 && !fs.existsSync(path.dirname(options.storage)) ) {
       // automatic path provision for `options.storage`
       fs.mkdirSync(path.dirname(options.storage), { recursive: true });
     }
