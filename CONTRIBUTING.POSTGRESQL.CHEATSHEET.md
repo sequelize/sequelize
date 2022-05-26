@@ -1,4 +1,4 @@
-# Contributing: Cheatsheet
+# Contributing: Cheatsheet (PostgreSQL)
 
 The [CONTRIBUTING](CONTRIBUTING.md) doc provides an extensive amount of information. Below is a summary of that info to get up-and-running quickly, with a few additional explanations.
 
