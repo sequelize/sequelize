@@ -6,7 +6,7 @@ You can use the information below to contact maintainers directly. We will try t
 ## Via Email
 
 - **Sascha Depold** sascha@depold.com
-- **Fauzan** fncolon@pm.me
+- **Fauzan** developerfauzan@gmail.com (security reports, dependencies vulnerabilities)
 - **Zoé Cox** zoe@ephys.dev (accepts CoC violation reports, security reports)
 
 ## Via Slack
