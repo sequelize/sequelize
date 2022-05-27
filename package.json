@@ -79,7 +79,7 @@
     "esbuild": "0.14.39",
     "eslint": "8.16.0",
     "eslint-plugin-jsdoc": "39.3.2",
-    "eslint-plugin-mocha": "10.0.4",
+    "eslint-plugin-mocha": "10.0.5",
     "expect-type": "0.13.0",
     "fast-glob": "3.2.11",
     "fs-jetpack": "4.3.1",
