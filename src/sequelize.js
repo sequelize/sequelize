@@ -642,7 +642,7 @@ class Sequelize {
       } finally {
         await this.runHooks('afterQuery', options, query);
         if (!options.transaction) {
-          await this.connectionManager.releaseConnection(connection);
+          this.connectionManager.releaseConnection(connection);
         }
       }
     }, retryOptions);
@@ -1174,30 +1174,29 @@ class Sequelize {
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment(false);
+      await transaction.prepareEnvironment(/* cls */ false);
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
+      await transaction.prepareEnvironment(/* cls */ true);
+
+      let result;
       try {
-        await transaction.prepareEnvironment();
-        const result = await autoCallback(transaction);
-        await transaction.commit();
-        return await result;
+        result = await autoCallback(transaction);
       } catch (err) {
         try {
-          if (!transaction.finished) {
-            await transaction.rollback();
-          } else {
-            // release the connection, even if we don't need to rollback
-            await transaction.cleanup();
-          }
-        } catch (err0) {
-          // ignore
+          await transaction.rollback();
+        } catch (ignore) {
+          // ignore, because 'rollback' will already print the error before killing the connection
         }
+
         throw err;
       }
+
+      await transaction.commit();
+      return result;
     });
   }
 
