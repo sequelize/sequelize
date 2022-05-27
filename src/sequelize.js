@@ -4,10 +4,8 @@ import isPlainObject from 'lodash/isPlainObject';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { parseConnectionString } from './utils/url';
 
-const url = require('url');
-const path = require('path');
-const pgConnectionString = require('pg-connection-string');
 const retry = require('retry-as-promised');
 const _ = require('lodash');
 
@@ -31,6 +29,7 @@ const { BelongsTo } = require('./associations/belongs-to');
 const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
+require('./utils/dayjs');
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -152,14 +151,14 @@ export class Sequelize {
    * @param {string}   [options.schema=null] A schema to use
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
-   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
-   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`
+   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
    * @param {number}   [options.pool.max=5] Maximum number of connection in pool
    * @param {number}   [options.pool.min=0] Minimum number of connection in pool
@@ -193,63 +192,7 @@ export class Sequelize {
       config = {};
       options = username || {};
 
-      const urlParts = url.parse(arguments[0], true);
-
-      options.dialect = urlParts.protocol.replace(/:$/, '');
-      options.host = urlParts.hostname;
-
-      if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-        const storagePath = path.join(options.host, urlParts.pathname);
-        options.storage = path.resolve(options.storage || storagePath);
-      }
-
-      if (urlParts.pathname) {
-        config.database = urlParts.pathname.replace(/^\//, '');
-      }
-
-      if (urlParts.port) {
-        options.port = urlParts.port;
-      }
-
-      if (urlParts.auth) {
-        const authParts = urlParts.auth.split(':');
-
-        config.username = authParts[0];
-
-        if (authParts.length > 1) {
-          config.password = authParts.slice(1).join(':');
-        }
-      }
-
-      if (urlParts.query) {
-        // Allow host query argument to override the url host.
-        // Enables specifying domain socket hosts which cannot be specified via the typical
-        // host part of a url.
-        if (urlParts.query.host) {
-          options.host = urlParts.query.host;
-        }
-
-        if (options.dialectOptions) {
-          Object.assign(options.dialectOptions, urlParts.query);
-        } else {
-          options.dialectOptions = urlParts.query;
-          if (urlParts.query.options) {
-            try {
-              const o = JSON.parse(urlParts.query.options);
-              options.dialectOptions.options = o;
-            } catch {
-              // Nothing to do, string is not a valid JSON
-              // an thus does not need any further processing
-            }
-          }
-        }
-      }
-
-      // For postgres, we can use this helper to load certs directly from the
-      // connection string.
-      if (['postgres', 'postgresql'].includes(options.dialect)) {
-        Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
-      }
+      _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
@@ -262,6 +205,7 @@ export class Sequelize {
       dialect: null,
       dialectModule: null,
       dialectModulePath: null,
+      dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
       define: {},
@@ -332,6 +276,22 @@ export class Sequelize {
       keepDefaultTimezone: this.options.keepDefaultTimezone,
       dialectOptions: this.options.dialectOptions,
     };
+
+    // Convert replication connection strings to objects
+    if (this.options.replication) {
+      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
+        this.options.replication.write = parseConnectionString(this.options.replication.write);
+      }
+
+      if (this.options.replication.read) {
+        for (let i = 0; i < this.options.replication.read.length; i++) {
+          const server = this.options.replication.read[i];
+          if (typeof server === 'string') {
+            this.options.replication.read[i] = parseConnectionString(server);
+          }
+        }
+      }
+    }
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the

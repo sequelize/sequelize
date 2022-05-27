@@ -25,9 +25,45 @@ chai.use(sinonChai);
 // Using util.inspect to correctly assert objects with symbols
 // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
 chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai function
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
   expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
 });
+
+/**
+ * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
+ * that is also checks whether the message is present in the error cause.
+ */
+chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+function withInlineCause(cb: (() => any)): () => void {
+  return () => {
+    try {
+      return cb();
+    } catch (error) {
+      assert(error instanceof Error);
+
+      error.message = inlineErrorCause(error);
+
+      throw error;
+    }
+  };
+}
+
+function inlineErrorCause(error: Error) {
+  let message = error.message;
+
+  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
+  const cause = error.cause;
+  if (cause) {
+    message += `\nCaused by: ${inlineErrorCause(cause)}`;
+  }
+
+  return message;
+}
 
 chai.config.includeStack = true;
 chai.should();
@@ -320,6 +356,12 @@ export function minifySql(sql: string): string {
 }
 
 export const sequelize = createSequelizeInstance();
+
+export function resetSequelizeInstance(): void {
+  for (const model of sequelize.modelManager.all) {
+    sequelize.modelManager.removeModel(model);
+  }
+}
 
 before(function onBefore() {
   // legacy, remove once all tests have been migrated

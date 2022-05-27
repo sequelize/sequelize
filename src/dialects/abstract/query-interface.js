@@ -990,7 +990,7 @@ export class QueryInterface {
         association = instance.constructor.associations[keys[i]];
         if (association.options && association.options.onDelete
           && association.options.onDelete.toLowerCase() === 'cascade'
-          && association.options.useHooks === true) {
+          && association.options.hooks === true) {
           cascades.push(association.accessors.get);
         }
       }

@@ -1,5 +1,6 @@
-import type { InferAttributes } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast, Model } from '@sequelize/core';
+import type { InferAttributes, Model } from '@sequelize/core';
+import { Op, literal, DataTypes, or, fn, where, cast } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
 import { expectsql, sequelize } from '../../support';
 
@@ -14,7 +15,13 @@ describe('QueryGenerator#selectQuery', () => {
     username: DataTypes.STRING,
   }, { timestamps: false });
 
-  const Project = sequelize.define('Project', {}, { timestamps: false });
+  interface TProject extends Model<InferAttributes<TProject>> {
+    duration: bigint;
+  }
+
+  const Project = sequelize.define<TProject>('Project', {
+    duration: DataTypes.BIGINT,
+  }, { timestamps: false });
 
   const ProjectContributor = sequelize.define('ProjectContributor', {}, { timestamps: false });
 
@@ -44,6 +51,27 @@ describe('QueryGenerator#selectQuery', () => {
       db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
       ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
       mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+    });
+  });
+
+  it('supports querying for bigint values', () => {
+    const sql = queryGenerator.selectQuery(Project.tableName, {
+      model: Project,
+      attributes: ['id'],
+      where: {
+        duration: { [Op.eq]: 9_007_199_254_740_993n },
+      },
+    }, Project);
+
+    expectsql(sql, {
+      postgres: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
+      mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+      mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+      sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+      snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
+      db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
+      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = '9007199254740993'`,
+      mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });
 
@@ -146,9 +174,7 @@ describe('QueryGenerator#selectQuery', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
-        // TODO: update after https://github.com/sequelize/sequelize/pull/14280 has been merged
-        // @ts-expect-error
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           model: User,
           include: [{
             association: User.associations.projects,
@@ -219,9 +245,7 @@ describe('QueryGenerator#selectQuery', () => {
       const sql = queryGenerator.selectQuery(Project.tableName, {
         model: Project,
         attributes: ['id'],
-        // TODO: update after https://github.com/sequelize/sequelize/pull/14280 has been merged
-        // @ts-expect-error
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           model: Project,
           include: [{
             attributes: ['id'],
@@ -241,8 +265,8 @@ describe('QueryGenerator#selectQuery', () => {
           SELECT
             [Project].[id],
             [contributors].[id] AS [contributors.id],
-            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId],
-            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId]
+            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId],
+            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId]
           FROM [Projects] AS [Project]
           LEFT OUTER JOIN (
             [ProjectContributors] AS [contributors->ProjectContributor]
@@ -256,8 +280,8 @@ describe('QueryGenerator#selectQuery', () => {
           SELECT
             [Project].[id],
             [contributors].[id] AS [contributors.id],
-            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId],
-            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId]
+            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId],
+            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId]
           FROM [Projects] AS [Project]
           LEFT OUTER JOIN (
             [ProjectContributors] AS [contributors->ProjectContributor]
@@ -274,9 +298,7 @@ describe('QueryGenerator#selectQuery', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
-        // TODO: update after https://github.com/sequelize/sequelize/pull/14280 has been merged
-        // @ts-expect-error
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           model: User,
           include: [{
             association: User.associations.projects,
