@@ -1,5 +1,8 @@
 import { IndexHints } from './index-hints';
 import {
+  AfterAssociateEventData,
+  AssociationOptions,
+  BeforeAssociateEventData,
   Association,
   BelongsTo,
   BelongsToMany,
@@ -9,13 +12,13 @@ import {
   HasManyOptions,
   HasOne,
   HasOneOptions,
-} from './associations/index';
+} from './associations';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { IndexOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
-import { Sequelize, SyncOptions } from './sequelize';
+import { IndexOptions, TableName } from './dialects/abstract/query-interface';
+import { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import {
   AllowArray,
   AllowReadonlyArray,
@@ -27,6 +30,7 @@ import {
   Literal,
   MakeNullishOptional,
   Nullish,
+  OmitConstructors,
   Where,
 } from './utils';
 import { LOCK, Op, Optional, Transaction } from './index';
@@ -119,7 +123,7 @@ export interface Paranoid {
   paranoid?: boolean;
 }
 
-export type GroupOption = string | Fn | Col | (string | Fn | Col)[];
+export type GroupOption = AllowArray<string | Fn | Col | Literal>;
 
 /**
  * Options to pass to Model on drop
@@ -134,7 +138,7 @@ export interface DropOptions extends Logging {
 /**
  * Schema Options provided for applying a schema to a model
  */
-export interface SchemaOptions extends Logging {
+export interface SchemaOptions {
   schema: string;
 
   /**
@@ -665,6 +669,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * The model you want to eagerly load.
    *
+   * This option only works if this model is only associated once to the parent model of this query.
    * We recommend specifying {@link IncludeOptions.association} instead.
    */
   model?: ModelStatic;
@@ -675,6 +680,9 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * This must be specified if the association has an alias (i.e. "as" was used when defining the association).
    * For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany` / `belongsToMany`,
    * it should be the plural.
+   *
+   * @deprecated using "as" is the same as using {@link IncludeOptions.association}
+   *  because "as" is always the name of the association.
    */
   as?: string;
 
@@ -728,7 +736,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -783,7 +791,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
 export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 
 export type FindAttributeOptions =
-  | (string | ProjectionAlias)[]
+  | Array<string | ProjectionAlias | Literal>
   | {
     exclude: string[];
     include?: (string | ProjectionAlias)[];
@@ -871,7 +879,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -879,7 +887,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: number;
+  offset?: number | Literal;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
@@ -1164,7 +1172,7 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1209,7 +1217,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 }
 
 /**
@@ -1262,7 +1270,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number>;
+  limit?: Nullish<number | Literal>;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -1382,6 +1390,8 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default false
    */
   omitNull?: boolean;
+
+  association?: boolean;
 
   /**
    * Return the affected rows (only for postgres)
@@ -1752,6 +1762,14 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * Use {@link Model.setDataValue} to access the underlying values.
    */
   set?(this: M, val: unknown): void;
+
+  /**
+   * This attribute was added by sequelize. Do not use!
+   *
+   * @private
+   * @internal
+   */
+  _autoGenerated?: boolean;
 }
 
 export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends ModelAttributeColumnOptions {
@@ -1759,6 +1777,8 @@ export interface BuiltModelAttributeColumOptions<M extends Model = Model> extend
    * The name of the attribute (JS side).
    */
   fieldName: string;
+
+  references?: ModelAttributeColumnReferencesOptions;
 }
 
 /**
@@ -1774,12 +1794,12 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 /**
  * Possible types for primary keys
  */
-export type Identifier = number | string | Buffer;
+export type Identifier = number | bigint | string | Buffer;
 
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize#define} and {@link Model.init}
+ * Used by {@link Sequelize.define} and {@link Model.init}
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
@@ -1912,10 +1932,12 @@ export interface ModelOptions<M extends Model = Model> {
    */
   tableName?: string;
 
+  // TODO: merge these two together into one using SchemaOptions, or replace with tableName: TableNameWithSchema
   /**
    * The database schema in which this table will be located.
    */
   schema?: string;
+  schemaDelimiter?: string;
 
   /**
    * The name of the database storage engine to use (e.g. MyISAM, InnoDB).
@@ -2208,7 +2230,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param {string} alias
    * @return {boolean}
    */
+  // TODO: deprecate & rename to 'hasAssociation' to mirror getAssociation.
   static hasAlias(alias: string): boolean;
+
+  /**
+   * Returns the association that matches the name parameter.
+   * Throws if no such association has been defined.
+   *
+   * @param name
+   */
+  static getAssociation(name: string): Association;
 
   /**
    * Returns all associations that have 'target' as their target.
@@ -2217,8 +2248,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Returns the association for which the target matches the 'target' parameter, and the alias ("as") matches the 'alias' parameter
+   *
+   * Throws if no such association were found.
    */
-  static getAssociationForAlias<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T> | null;
+  static getAssociationWithModel<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T>;
 
   /**
    * Remove attribute from model definition.
@@ -2227,6 +2260,17 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param attribute
    */
   public static removeAttribute(attribute: string): void;
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   * The existing configuration for an attribute takes priority over the new configuration.
+   *
+   * @param newAttributes
+   */
+  public static mergeAttributesDefault(newAttributes: { [key: string]: ModelAttributeColumnOptions }): BuiltModelAttributeColumOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.
@@ -3162,6 +3206,15 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
 
+  public static beforeAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  public static beforeAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
+  public static afterAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  public static afterAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
+  public static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
+  public static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
+
   /**
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
@@ -3177,9 +3230,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options hasOne association options
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static hasOne<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasOneOptions
-  ): HasOne<M, T>;
+  public static hasOne<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOne<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -3196,9 +3252,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options Options for the association
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static belongsTo<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: BelongsToOptions
-  ): BelongsTo<M, T>;
+  public static belongsTo<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SKey, TKey>): BelongsTo<S, T, SKey, TKey>;
 
   /**
    * Defines a 1:n association between two models.
@@ -3215,9 +3274,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options Options for the association
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static hasMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasManyOptions
-  ): HasMany<M, T>;
+  public static hasMany<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SKey, TKey>): HasMany<S, T, SKey, TKey>;
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -3241,9 +3303,15 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options belongsToMany association options
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static belongsToMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
-  ): BelongsToMany<M, T>;
+  public static belongsToMany<
+    S extends Model,
+    T extends Model,
+    ThroughModel extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(
+    this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
+  ): BelongsToMany<S, T, ThroughModel, SKey, TKey>;
 
   /**
    * @private
@@ -3499,13 +3567,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public isSoftDeleted(): boolean;
 }
 
-type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
-type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
-
 export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model = Model> = NonConstructor<typeof Model> & { new(): M };
+export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new(): M };
 
 /**
  * Type will be true is T is branded with Brand, false otherwise
@@ -3721,3 +3786,5 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  * ```
  */
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
+
+export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;

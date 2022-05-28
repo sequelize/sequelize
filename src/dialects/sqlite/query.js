@@ -1,5 +1,7 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQuery } = require('../abstract/query');
@@ -10,40 +12,19 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
+// sqlite3 currently ignores bigint values, so we have to translate to string for now
+// There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501
+function stringifyIfBigint(value) {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  return value;
+}
+
 export class SqliteQuery extends AbstractQuery {
   getInsertIdField() {
     return 'lastID';
-  }
-
-  /**
-   * rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = {};
-      for (const [i, v] of values.entries()) {
-        bindParam[`$${i + 1}`] = v;
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = {};
-      if (typeof values === 'object') {
-        for (const k of Object.keys(values)) {
-          bindParam[`$${k}`] = values[k];
-        }
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    }
-
-    return [sql, bindParam];
   }
 
   _collectModels(include, prefix) {
@@ -272,6 +253,18 @@ export class SqliteQuery extends AbstractQuery {
 
           if (!parameters) {
             parameters = [];
+          }
+
+          if (isPlainObject(parameters)) {
+            const newParameters = Object.create(null);
+
+            for (const key of Object.keys(parameters)) {
+              newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
+            }
+
+            parameters = newParameters;
+          } else {
+            parameters = parameters.map(stringifyIfBigint);
           }
 
           conn[method](sql, parameters, afterExecute);

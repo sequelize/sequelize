@@ -406,32 +406,32 @@ if (current.dialect.supports.transactions) {
     });
 
     it('works even if a transaction: null option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: null,
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 
     it('works even if a transaction: undefined option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: undefined,
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 

@@ -42,6 +42,7 @@ export function escape(val, timeZone, dialect, format) {
 
       return (Boolean(val)).toString();
     case 'number':
+    case 'bigint':
       return val.toString();
     case 'string':
     // In mssql, prepend N to all quoted vals which are originally a string (for
@@ -105,36 +106,4 @@ export function escape(val, timeZone, dialect, format) {
   }
 
   return `${(prependN ? 'N\'' : '\'') + val}'`;
-}
-
-export function format(sql, values, timeZone, dialect) {
-  values = [values].flat();
-
-  if (typeof sql !== 'string') {
-    throw new TypeError(`Invalid SQL string provided: ${sql}`);
-  }
-
-  // replace ? expect if it's part of ?& or ?|, as these are Postgres operators
-  // https://www.postgresql.org/docs/9.4/functions-json.html
-  return sql.replace(/\?(?![&|])/g, match => {
-    if (values.length === 0) {
-      return match;
-    }
-
-    return escape(values.shift(), timeZone, dialect, true);
-  });
-}
-
-export function formatNamedParameters(sql, values, timeZone, dialect) {
-  return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
-    if (dialect === 'postgres' && value.slice(0, 2) === '::') {
-      return value;
-    }
-
-    if (values[key] !== undefined) {
-      return escape(values[key], timeZone, dialect, true);
-    }
-
-    throw new Error(`Named parameter "${value}" has no value in the given object.`);
-  });
 }

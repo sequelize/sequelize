@@ -32,7 +32,7 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
   declare removeProjects: HasManyRemoveAssociationsMixin<Project, number>;
   declare hasProject: HasManyHasAssociationMixin<Project, number>;
   declare hasProjects: HasManyHasAssociationsMixin<Project, number>;
-  declare countProjects: HasManyCountAssociationsMixin;
+  declare countProjects: HasManyCountAssociationsMixin<Project>;
   declare createProject: HasManyCreateAssociationMixin<Project, 'ownerId'>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you

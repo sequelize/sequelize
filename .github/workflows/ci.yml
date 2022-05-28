@@ -2,7 +2,6 @@ name: CI
 on:
   push:
     branches:
-      - v6
       - v7
   pull_request:
 
@@ -10,6 +9,13 @@ env:
   SEQ_DB: sequelize_test
   SEQ_USER: sequelize_test
   SEQ_PW: sequelize_test
+
+# This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
+# This does not affect pushes to the v7 branch itself, only PRs.
+# from https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-a-fallback-value
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   install-and-build:
@@ -77,6 +83,8 @@ jobs:
         run: yarn test-unit-postgres
       - name: Unit tests (postgres-native)
         run: yarn test-unit-postgres-native
+      - name: Unit tests (sqlite)
+        run: yarn test-unit-sqlite
       - name: Unit tests (mssql)
         run: yarn test-unit-mssql
       - name: Unit tests (db2)
@@ -105,7 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.4", "4.5", "4.6"]
+        ts-version: ["4.4", "4.5", "4.6", "4.7"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
