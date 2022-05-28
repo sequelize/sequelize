@@ -56,7 +56,7 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "17.0.0",
+    "@commitlint/cli": "17.0.1",
     "@commitlint/config-angular": "17.0.0",
     "@ephys/eslint-config-typescript": "17.0.0",
     "@rushstack/eslint-patch": "1.1.3",
@@ -76,10 +76,10 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.39",
+    "esbuild": "0.14.41",
     "eslint": "8.16.0",
     "eslint-plugin-jsdoc": "39.3.2",
-    "eslint-plugin-mocha": "10.0.4",
+    "eslint-plugin-mocha": "10.0.5",
     "expect-type": "0.13.0",
     "fast-glob": "3.2.11",
     "fs-jetpack": "4.3.1",
@@ -105,12 +105,12 @@
     "semantic-release-fail-on-major-bump": "1.0.0",
     "sinon": "14.0.0",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.9",
+    "snowflake-sdk": "1.6.10",
     "source-map-support": "0.5.21",
     "sqlite3": "5.0.8",
     "tedious": "14.4.0",
     "typedoc": "0.22.15",
-    "typescript": "4.6.4"
+    "typescript": "4.7.2"
   },
   "peerDependenciesMeta": {
     "pg": {
