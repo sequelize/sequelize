@@ -869,13 +869,142 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {string} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
+   * @param   {string|object} tableName string: Name of table
+   *                                    object: { tableName: Name of table, schema: name of schema }
+   * @param   {object}        options   Pass to extractTableDetails
+   * @returns {string}                  The generated sql query.
    * @private
    */
-  getForeignKeysQuery(tableName) {
-    return 'SELECT conname as constraint_name, pg_catalog.pg_get_constraintdef(r.oid, true) as condef FROM pg_catalog.pg_constraint r '
-      + `WHERE r.conrelid = (SELECT oid FROM pg_class WHERE relname = '${tableName}' LIMIT 1) AND r.contype = 'f' ORDER BY 1;`;
+  getForeignKeysQuery(tableName, options) {
+    const tableDetails = this.extractTableDetails(tableName, options);
+
+    // remove comments as they would interfere in a single-line statement
+    // make string single-line to execute correctly
+    const SQL = Utils.toSingleLine(`
+      SELECT
+          main.contypid::regclass  AS domain,
+
+          -- TABLE INFO
+          schema.nspname             AS "tableSchema",
+          -- strip off the schema prefix
+          --   NOTE: parse_ident available in 9.6 and later
+          (parse_ident(main.conrelid::regclass::text))[
+            array_length(parse_ident(main.conrelid::regclass::text),1)
+          ]                          AS "tableName",
+          ARRAY_AGG(tbl_att.attname) AS "tableColumnNames",
+
+          -- CONSTRAINT INFO
+          'FOREIGN KEY'              AS "constraintType",
+          schema.nspname             AS "constraintSchema",
+          main.conname               AS "constraintName",
+          pg_catalog.pg_get_constraintdef(main.oid, true) AS "constraintDefinition",
+          CASE main.confupdtype
+            WHEN 'a' THEN 'NO ACTION'
+            WHEN 'r' THEN 'RESTRICT'
+            WHEN 'c' THEN 'CASCADE'
+            WHEN 'n' THEN 'SET NULL'
+            WHEN 'd' THEN 'SET DEFAULT'
+          END AS on_update,
+
+          CASE main.confdeltype
+            WHEN 'a' THEN 'NO ACTION'
+            WHEN 'r' THEN 'RESTRICT'
+            WHEN 'c' THEN 'CASCADE'
+            WHEN 'n' THEN 'SET NULL'
+            WHEN 'd' THEN 'SET DEFAULT'
+          END AS on_delete,
+
+          CASE main.confmatchtype
+            WHEN 'f' THEN 'FULL'
+            WHEN 'p' THEN 'PARTIAL'
+            WHEN 's' THEN 'SIMPLE'
+          END AS match,
+
+          -- FOREIGN TABLE INFO
+          -- strip off the schema prefix
+          --   NOTE: parse_ident available in 9.6 and later
+          CASE
+            WHEN array_length(parse_ident(main.confrelid::regclass::text),1) > 1
+                THEN (parse_ident(main.confrelid::regclass::text))[1]
+            ELSE 'public'
+          END                        AS "referencedTableSchema",
+          -- FOREIGN TABLE INFO
+          -- strip off the schema prefix
+          --   NOTE: parse_ident available in 9.6 and later
+          (parse_ident(main.confrelid::regclass::text))[
+            array_length(parse_ident(main.confrelid::regclass::text),1)
+          ]                          AS "referencedTableName",
+          ARRAY_AGG(frn_att.attname) AS "referencedTableColumnNames",
+          conindid::regclass         AS "referencedTableConstraintName"
+      FROM
+              -- CONSTRAINT INFO
+              (
+                select *, oid,
+                      unnest(conkey)  as ckey, -- unnest for join
+                      unnest(confkey) as cfkey -- unnest for join
+                from pg_catalog.pg_constraint
+              ) AS main
+
+              -- CONSTRAINT TABLE ATTRIBUTES
+              JOIN  pg_catalog.pg_attribute AS tbl_att
+                    ON (tbl_att.attrelid = conrelid  AND tbl_att.attnum = ckey)
+
+              -- FOREIGN TABLE ATTRIBUTES
+              JOIN  pg_catalog.pg_attribute AS frn_att
+                    ON (frn_att.attrelid = confrelid AND frn_att.attnum = cfkey)
+
+              -- SCHEMA INFO
+              JOIN  (
+                select  cl.oid, ns.nspname
+                from    pg_class cl
+                join    pg_namespace ns on (cl.relnamespace = ns.oid)
+                where   relname = '${tableDetails.tableName}'
+                    and nspname = '${tableDetails.schema}'
+              ) AS schema ON(schema.oid = main.conrelid)
+      WHERE
+              main.contype = 'f'
+      GROUP BY
+                domain,
+                "tableSchema",
+                "tableName",
+                "constraintType",
+                "constraintSchema",
+                "constraintName",
+                "constraintDefinition",
+                on_update,
+                on_delete,
+                match,
+                "referencedTableSchema",
+                "referencedTableName",
+                "referencedTableConstraintName"
+      ORDER BY 1;
+    `.replace(/--.*/g, ''));
+
+    return SQL;
+
+    // lookups against information_schema are significantly slower
+    //   instead, perform lookups against pg_catalog and attribute tables
+    //   this is kept as a future note to answer why a more complicated query
+    //   was use and as a reference to use in the future should things change
+    //
+    // return Utils.toSingleLine(`
+    //   SELECT table_catalog,
+    //          table_schema,
+    //          table_name,
+    //          --table_column_names,
+    //          constraint_type,
+    //          constraint_catalog,
+    //          constraint_schema,
+    //          constraint_name,
+    //          --foreign_table_name,
+    //          --foreign_table_column_names,
+    //          is_deferrable,
+    //          initially_deferred
+    //   FROM   information_schema.table_constraints
+    //   WHERE  table_schema = '${tableDetails.schema}'
+    //      AND table_name   = '${tableDetails.tableName}'
+    //      AND constraint_type = 'FOREIGN KEY'
+    // `);
   }
 
   /**

@@ -618,7 +618,6 @@ export class QueryInterface {
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
 
     const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
-
     const result = {};
 
     for (let [i, tableName] of tableNames.entries()) {
@@ -626,9 +625,10 @@ export class QueryInterface {
         tableName = `${tableName.schema}.${tableName.tableName}`;
       }
 
+      // sqlite has no constraintName so use `${id}_${seq}` as stand-in
       result[tableName] = Array.isArray(results[i])
-        ? results[i].map(r => r.constraint_name)
-        : [results[i] && results[i].constraint_name];
+        ? results[i].map(r => r?.constraint_name || r?.constraintName || [r?.id, r?.seq].join('_'))
+        : [results[i] && (results[i]?.constraint_name || results[i]?.constraintName || [results[i]?.id, results[i]?.seq].join('_'))];
 
       result[tableName] = result[tableName].filter(_.identity);
     }
