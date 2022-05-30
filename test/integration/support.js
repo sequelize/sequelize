@@ -11,7 +11,11 @@ const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10
 
 let runningQueries = new Set();
 
+const _OriginalTz = process.env.TZ;
+
 before(function () {
+  // set code timezone to same as database to avoid TZ errors when comparing dates
+  process.env.TZ = 'UTC';
   this.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
@@ -68,6 +72,11 @@ afterEach(async function () {
       console.log(`     ${runningQueriesProblem}`);
     }
   }
+});
+
+after(() => {
+  // return TZ to original state
+  process.env.TZ = _OriginalTz;
 });
 
 module.exports = Support;

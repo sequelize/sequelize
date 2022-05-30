@@ -366,7 +366,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (tableNames?.[0]?.tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
 

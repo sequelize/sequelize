@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
+    this.sequelize.options.quoteIdentifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 

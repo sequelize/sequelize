@@ -12,7 +12,7 @@ const _ = require('lodash');
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
     beforeEach(function () {
-      this.sequelize.options.quoteIdenifiers = true;
+      this.sequelize.options.quoteIdentifiers = true;
       this.queryInterface = this.sequelize.getQueryInterface();
     });
 
@@ -84,16 +84,16 @@ if (dialect.startsWith('postgres')) {
         // make sure we don't have a pre-existing function called create_job
         // this is needed to cover the edge case of afterEach not getting called because of an unexpected issue or stopage with the
         // test suite causing a failure of afterEach's cleanup to be called.
-        await this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
-          // suppress errors here. if create_job doesn't exist thats ok.
-          .catch(() => {});
+
+        // cleanup ;; `.catch(()=>{}) is used to suppress errors. if the function doesn't exist thats ok.
+        await this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }]).catch(() => {});
+        await this.queryInterface.dropFunction('add_one', []).catch(() => {});
       });
 
       after(async function () {
-        // cleanup
-        await this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
-          // suppress errors here. if create_job doesn't exist thats ok.
-          .catch(() => {});
+        // cleanup ;; `.catch(()=>{}) is used to suppress errors. if the function doesn't exist thats ok.
+        await this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }]).catch(() => {});
+        await this.queryInterface.dropFunction('add_one', []).catch(() => {});
       });
 
       it('creates a stored procedure', async function () {

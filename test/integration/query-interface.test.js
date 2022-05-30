@@ -11,8 +11,9 @@ const current = Support.sequelize;
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
+    this.sequelize.options.quoteIdentifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -53,7 +54,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
-      if (tableNames[0] && tableNames[0].tableName) {
+      if (tableNames?.[0]?.tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -109,7 +110,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (tableNames?.[0]?.tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -153,7 +154,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (tableNames?.[0]?.tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -219,10 +220,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const Users = this.sequelize.define('_Users', {
           username: DataTypes.STRING,
         }, { freezeTableName: true });
-
         await Users.sync({ force: true });
+
         await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
         const table = await this.queryInterface.describeTable('_Users');
+
         expect(table).to.have.property('pseudo');
         expect(table).to.not.have.property('username');
       });
@@ -454,9 +456,31 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
       });
     });
+    afterEach(async function () {
+      await this.queryInterface.dropTable('hosts');
+      await this.queryInterface.dropTable('users');
+    });
 
+    it('should be able to retrieve list of foreign key names using getForeignKeysForTables', async function () {
+
+      const foreignKeys = await this.queryInterface.getForeignKeysForTables(['hosts']);
+      expect(foreignKeys.hosts).to.have.length(3);
+
+      switch (dialect) {
+        case 'postgres':
+          expect(foreignKeys.hosts).to.include('hosts_admin_fkey');
+          break;
+        case 'mysql':
+          expect(foreignKeys.hosts).to.include('hosts_ibfk_1');
+          break;
+        case 'sqlite':
+          expect(foreignKeys.hosts).to.include('0_0');
+          break;
+      }
+    });
+
+    // test against first and second foreign key response for data-consistency
     it('should get a list of foreign keys for the table', async function () {
-
       const foreignKeys = await this.sequelize.query(
         this.queryInterface.queryGenerator.getForeignKeysQuery(
           'hosts',
@@ -464,19 +488,28 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         ),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );
-
       expect(foreignKeys).to.have.length(3);
+      const firstForeignKeyProperties = Object.keys(foreignKeys[0]);
+      const secondForeignKeyProperties = Object.keys(foreignKeys[0]);
+
+      // should consider standardizing foreignKeys and adding `constraintName: null` to sqlite
+      if (/* all dialects except */ dialect !== 'sqlite') {
+        expect(firstForeignKeyProperties).to.include('constraintName');
+        expect(secondForeignKeyProperties).to.include('constraintName');
+      }
 
       if (dialect === 'postgres') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
-        expect(Object.keys(foreignKeys[1])).to.have.length(7);
-        expect(Object.keys(foreignKeys[2])).to.have.length(7);
+        expect(firstForeignKeyProperties).to.have.length(15);
+        expect(secondForeignKeyProperties).to.have.length(15);
       } else if (['sqlite', 'db2'].includes(dialect)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(8);
+        expect(firstForeignKeyProperties).to.have.length(8);
+        expect(secondForeignKeyProperties).to.have.length(8);
       } else if (dialect === 'ibmi') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(9);
+        expect(firstForeignKeyProperties).to.have.length(9);
+        expect(secondForeignKeyProperties).to.have.length(9);
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(12);
+        expect(firstForeignKeyProperties).to.have.length(12);
+        expect(secondForeignKeyProperties).to.have.length(12);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
       }

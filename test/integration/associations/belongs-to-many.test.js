@@ -3085,7 +3085,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'postgres'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 
@@ -3102,7 +3102,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'postgres'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 

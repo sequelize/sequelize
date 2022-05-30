@@ -10,7 +10,7 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
+    this.sequelize.options.quoteIdentifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -114,6 +114,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }, {
         schema: 'hero',
       });
+
+      // Retrieve tables in schema
+      const tableDetails = await this.queryInterface.showAllTables({ schema: 'hero' });
+      expect(tableDetails).to.have.length(1);
+
+      let tableNames = tableDetails;
+      if (tableDetails?.[0]?.tableName) {
+        tableNames = tableDetails.map(v => v.tableName);
+      }
+
+      if (Support.sequelize.dialect.supports.schemas) {
+        expect(tableDetails[0]).to.include.all.keys('tableName', 'schema');
+        expect(tableNames).to.deep.equal(['User']);
+      } else {
+        expect(tableNames).to.deep.equal(['hero.User']);
+      }
     });
 
     describe('enums', () => {
