@@ -112,3 +112,16 @@ export function removeTrailingSemicolon(str: string): string {
 
   return str.slice(0, Math.max(0, str.length - 1));
 }
+
+/**
+ * Convert multi-line string into a singular string.
+ *
+ * Example: converting SQL statements as multi-line template literals
+ *   and converting to a single-line statement for execution
+ *
+ * @param str any single-line or multi-line string
+ * @returns single-line string
+ */
+export function toSingleLine(str: string): string {
+  return str.split(/\s*?\n+\s+/).join(' ');
+}
