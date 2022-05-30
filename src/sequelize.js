@@ -639,7 +639,7 @@ Use Sequelize#query if you wish to use replacements.`);
       } finally {
         await this.runHooks('afterQuery', options, query);
         if (!options.transaction) {
-          await this.connectionManager.releaseConnection(connection);
+          this.connectionManager.releaseConnection(connection);
         }
       }
     }, retryOptions);
@@ -988,33 +988,34 @@ Use Sequelize#query if you wish to use replacements.`);
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment(false);
+      await transaction.prepareEnvironment();
 
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
-      try {
-        await transaction.prepareEnvironment();
-        const result = await autoCallback(transaction);
-        await transaction.commit();
+      await transaction.prepareEnvironment();
+      if (Sequelize._cls) {
+        Sequelize._cls.set('transaction', this);
+      }
 
-        return await result;
+      let result;
+      try {
+        result = await autoCallback(transaction);
       } catch (error) {
         try {
-          if (!transaction.finished) {
-            await transaction.rollback();
-          } else {
-            // release the connection, even if we don't need to rollback
-            await transaction.cleanup();
-          }
+          await transaction.rollback();
         } catch {
-          // ignore
+          // ignore, because 'rollback' will already print the error before killing the connection
         }
 
         throw error;
       }
+
+      await transaction.commit();
+
+      return result;
     });
   }
 

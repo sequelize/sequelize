@@ -72,10 +72,15 @@ export class Transaction {
     }
 
     try {
-      return await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      this.cleanup();
+    } catch (error) {
+      console.warn(`Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw error;
     } finally {
       this.finished = 'commit';
-      await this.cleanup();
       for (const hook of this._afterCommitHooks) {
         // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
         await Reflect.apply(hook, this, [this]);
@@ -96,26 +101,25 @@ export class Transaction {
     }
 
     try {
-      return await this
+      await this
         .sequelize
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
-    } finally {
-      await this.cleanup();
+
+      this.cleanup();
+    } catch (error) {
+      console.warn(`Rolling back transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw error;
     }
   }
 
   /**
    * Called to acquire a connection to use and set the correct options on the connection.
    * We should ensure all of the environment that's set up is cleaned up in `cleanup()` below.
-   *
-   * @param useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
    */
-  async prepareEnvironment(useCLS?: boolean) {
-    if (useCLS === undefined) {
-      useCLS = true;
-    }
-
+  async prepareEnvironment() {
     let connection;
     if (this.parent) {
       connection = this.parent.connection;
@@ -132,23 +136,17 @@ export class Transaction {
 
     this.connection = connection;
 
-    let result;
     try {
       await this.begin();
-      result = await this.setDeferrable();
+
+      return await this.setDeferrable();
     } catch (error) {
       try {
-        result = await this.rollback();
+        await this.rollback();
       } finally {
         throw error; // eslint-disable-line no-unsafe-finally -- while this will mask the error thrown by `rollback`, the previous error is more important.
       }
     }
-
-    if (useCLS && this.sequelize.Sequelize._cls) {
-      this.sequelize.Sequelize._cls.set('transaction', this);
-    }
-
-    return result;
   }
 
   async setDeferrable(): Promise<void> {
@@ -174,7 +172,7 @@ export class Transaction {
     return queryInterface.startTransaction(this, this.options);
   }
 
-  async cleanup(): Promise<void> {
+  cleanup(): void {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
     if (this.parent || this.connection?.uuid === undefined) {
@@ -182,10 +180,26 @@ export class Transaction {
     }
 
     this._clearCls();
-    const res = this.sequelize.connectionManager.releaseConnection(this.connection);
+    this.sequelize.connectionManager.releaseConnection(this.connection);
     this.connection.uuid = undefined;
+  }
 
-    await res;
+  /**
+   * Kills the connection this transaction uses.
+   * Used as a last resort, for instance because COMMIT or ROLLBACK resulted in an error
+   * and the transaction is left in a broken state,
+   * and releasing the connection to the pool would be dangerous.
+   */
+  async forceCleanup() {
+    // Don't release the connection if there's a parent transaction or
+    // if we've already cleaned up
+    if (this.parent || this.connection?.uuid === undefined) {
+      return;
+    }
+
+    this._clearCls();
+    await this.sequelize.connectionManager.destroyConnection(this.connection);
+    this.connection.uuid = undefined;
   }
 
   _clearCls() {
