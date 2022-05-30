@@ -12,6 +12,7 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
+import { removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
@@ -104,14 +105,14 @@ export class HasOne<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = BelongsTo.associate(secret, target, source, {
+    this.inverse = BelongsTo.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
       targetKey: options.sourceKey,
       foreignKeyConstraints: options.foreignKeyConstraints,
       hooks: options.hooks,
-    }, this);
+    }), this);
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);
