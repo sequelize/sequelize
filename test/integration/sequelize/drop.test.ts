@@ -1,5 +1,5 @@
+import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
-import type { ReferentialAction } from '../../../src/index.js';
 import { sequelize } from '../support';
 
 const dialect = sequelize.getDialect();
