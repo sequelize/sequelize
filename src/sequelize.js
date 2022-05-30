@@ -613,7 +613,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     const retryOptions = { ...this.options.retry, ...options.retry };
 
-    return retry(async () => {
+    return await retry(async () => {
       if (options.transaction === undefined && Sequelize._cls) {
         options.transaction = Sequelize._cls.get('transaction');
       }
