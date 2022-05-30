@@ -279,7 +279,6 @@ export class QueryInterface {
   async dropAllTables(options) {
     options = options || {};
     const skip = options.skip || [];
-
     const tableNames = await this.showAllTables(options);
     const foreignKeys = await this.getForeignKeysForTables(tableNames, options);
 
@@ -316,9 +315,10 @@ export class QueryInterface {
   /**
    * Get all tables in current database
    *
-   * @param {object}    [options] Query options
-   * @param {boolean}   [options.raw=true] Run query in raw mode
-   * @param {QueryType} [options.type=QueryType.SHOWTABLE] query type
+   * @param {object}       [options] Query options
+   * @param {boolean}      [options.raw=true] Run query in raw mode
+   * @param {QueryType}    [options.type=QueryType.SHOWTABLE] query type
+   * @param {string|Array} [options.schema] (optional) passed to showTablesQuery
    *
    * @returns {Promise<Array>}
    * @private
@@ -330,7 +330,8 @@ export class QueryInterface {
       type: QueryTypes.SHOWTABLES,
     };
 
-    const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
+    // Snowflake is the only dialect that expects database name
+    const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database, options);
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();

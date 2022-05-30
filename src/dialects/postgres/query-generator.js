@@ -124,8 +124,39 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}${options.cascade ? ' CASCADE' : ''};`;
   }
 
-  showTablesQuery() {
-    return 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\' AND table_type LIKE \'%TABLE\' AND table_name != \'spatial_ref_sys\';';
+  /**
+   *
+   * @param {*} _       Unused variable (database name)
+   * @param {object}    [options] Options
+   * @param {string}    [options.schema] Schema name to search for (defaults to 'public')
+   * @returns {string}  SQL statement to show all tables, including tableName and schema
+   */
+  showTablesQuery(_, options) {
+    const settings = {
+      schema: {
+        name: 'public',
+        op: '=',
+      },
+    };
+    settings.schema.name = options?.schema || settings.schema.name;
+
+    if (Array.isArray(settings.schema.name)) {
+      settings.schema.op = 'SIMILAR TO';
+      settings.schema.name = `(${settings.schema.name.join('|')})`;
+    }
+
+    if (['all', '*', '%'].includes(settings.schema.name?.toLowerCase())) {
+      settings.schema.op = 'LIKE';
+      settings.schema.name = '%';
+    }
+
+    return Utils.toSingleLine(`
+      SELECT table_name as "tableName", table_schema as schema
+      FROM information_schema.tables
+      WHERE table_schema ${settings.schema.op} '${settings.schema.name}'
+        AND table_type LIKE '%TABLE'
+        AND table_name != 'spatial_ref_sys';
+    `);
   }
 
   describeTableQuery(tableName, schema) {
