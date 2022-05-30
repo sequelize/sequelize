@@ -1,5 +1,8 @@
 import { DataTypes, Deferrable } from '@sequelize/core';
+import type { ReferentialAction } from '../../../src/index.js';
 import { sequelize } from '../support';
+
+const dialect = sequelize.getDialect();
 
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
@@ -25,10 +28,13 @@ describe('Sequelize#drop', () => {
       },
     });
 
+    // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
+    const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction } : null;
+
     // These models both have a foreign key that references the other model.
     // Sequelize should be able to create them.
-    A.belongsTo(B, { foreignKey: { allowNull: false } });
-    B.belongsTo(A, { foreignKey: { allowNull: false } });
+    A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+    B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
 
     await sequelize.sync();
 

@@ -181,10 +181,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const A = sequelize.define('A', {}, { timestamps: false });
       const B = sequelize.define('B', {}, { timestamps: false });
 
+      // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
+      const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' } : null;
+
       // These models both have a foreign key that references the other model.
       // Sequelize should be able to create them.
-      A.belongsTo(B, { foreignKey: { allowNull: false } });
-      B.belongsTo(A, { foreignKey: { allowNull: false } });
+      A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+      B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
 
       await sequelize.sync();
 
