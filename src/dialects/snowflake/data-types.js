@@ -1,7 +1,7 @@
 'use strict';
 
-const momentTz = require('moment-timezone');
-const moment = require('moment');
+const dayjs = require('dayjs');
+const { isValidTimeZone } = require('../../utils/dayjs');
 
 module.exports = BaseTypes => {
   BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
@@ -43,9 +43,7 @@ module.exports = BaseTypes => {
     }
 
     _stringify(date, options) {
-      if (!moment.isMoment(date)) {
-        date = this._applyTimezone(date, options);
-      }
+      date = this._applyTimezone(date, options);
 
       if (this._length) {
         return date.format('YYYY-MM-DD HH:mm:ss.SSS');
@@ -60,8 +58,8 @@ module.exports = BaseTypes => {
         return value;
       }
 
-      if (momentTz.tz.zone(options.timezone)) {
-        value = momentTz.tz(value, options.timezone).toDate();
+      if (isValidTimeZone(options.timezone)) {
+        value = dayjs.tz(value, options.timezone).toDate();
       } else {
         value = new Date(`${value} ${options.timezone}`);
       }

@@ -129,9 +129,9 @@ export interface ConnectionOptions {
  * Interface for replication Options in the sequelize constructor
  */
 export interface ReplicationOptions {
-  read: ConnectionOptions[];
+  read: Array<ConnectionOptions | string>;
 
-  write: ConnectionOptions;
+  write: ConnectionOptions | string;
 }
 
 /**
@@ -163,10 +163,7 @@ export interface Config {
   readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
-  readonly dialectOptions?: {
-    readonly charset?: string;
-    readonly timeout?: number;
-  };
+  readonly dialectOptions: Readonly<DialectOptions>;
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
@@ -205,7 +202,7 @@ export interface Options extends Logging {
   /**
    * An object of additional options, which are passed directly to the connection library
    */
-  dialectOptions?: object;
+  dialectOptions?: DialectOptions;
 
   /**
    * Only used by sqlite.
@@ -278,7 +275,7 @@ export interface Options extends Logging {
    * used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP
    * and other time related functions have in the right timezone. For best cross platform performance use the
    * format
-   * +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles');
+   * +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles');
    * this is useful to capture daylight savings time changes.
    *
    * @default '+00:00'
@@ -303,7 +300,7 @@ export interface Options extends Logging {
    * Use read / write replication. To enable replication, pass an object, with two properties, read and write.
    * Write should be an object (a single server for handling writes), and read an array of object (several
    * servers to handle reads). Each read/write server can have the following properties: `host`, `port`,
-   * `username`, `password`, `database`
+   * `username`, `password`, `database`.  Connection strings can be used instead of objects.
    *
    * @default false
    */
@@ -400,6 +397,19 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+}
+
+
+export interface DialectOptions {
+  [key: string]: any;
+  account?: string;
+  role?: string;
+  warehouse?: string;
+  schema?: string;
+  odbcConnectionString?: string;
+  charset?: string;
+  timeout?: number;
+  options?: Record<string, any>;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -942,7 +952,7 @@ export class Sequelize extends Hooks {
    */
   public readonly config: Config;
 
-  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel'>;
+  public readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions'>;
 
   public readonly dialect: AbstractDialect;
 
@@ -1531,7 +1541,7 @@ export class Sequelize extends Hooks {
    * ```js
    * const cls = require('cls-hooked');
    * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('@sequelize/core');
+   * const { Sequelize } = require('@sequelize/core');
    * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
