@@ -1,12 +1,14 @@
 'use strict';
 
 const chai = require('chai');
-const { DataTypes } = require('@sequelize/core');
+const { Deferrable, DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
+
+const sequelize = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('sync', () => {
@@ -158,6 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(data.dataValues.name).to.eql('test3');
       expect(data.dataValues.age).to.eql('1');
     });
+
     it('should properly create composite index that fails on constraint violation', async function () {
       const testSync = this.sequelize.define('testSync', {
         name: DataTypes.STRING,
@@ -174,21 +177,100 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('should properly alter tables when there are foreign keys', async function () {
-      const foreignKeyTestSyncA = this.sequelize.define('foreignKeyTestSyncA', {
-        dummy: DataTypes.STRING,
+    it('supports creating tables with cyclic associations', async () => {
+      const A = sequelize.define('A', {}, { timestamps: false });
+      const B = sequelize.define('B', {}, { timestamps: false });
+
+      // These models both have a foreign key that references the other model.
+      // Sequelize should be able to create them.
+      A.belongsTo(B, { foreignKey: { allowNull: false } });
+      B.belongsTo(A, { foreignKey: { allowNull: false } });
+
+      await sequelize.sync();
+
+      const [aFks, bFks] = await Promise.all([
+        sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName()),
+        sequelize.queryInterface.getForeignKeyReferencesForTable(B.getTableName()),
+      ]);
+
+      expect(aFks.length).to.eq(1);
+      expect(aFks[0].referencedTableName).to.eq('Bs');
+      expect(aFks[0].referencedColumnName).to.eq('id');
+      expect(aFks[0].columnName).to.eq('BId');
+
+      expect(bFks.length).to.eq(1);
+      expect(bFks[0].referencedTableName).to.eq('As');
+      expect(bFks[0].referencedColumnName).to.eq('id');
+      expect(bFks[0].columnName).to.eq('AId');
+    });
+
+    it('supports creating two identically named tables in different schemas', async () => {
+      await sequelize.queryInterface.createSchema('custom_schema');
+
+      const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
+      const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
+
+      await Model1.sync();
+      await Model2.sync();
+
+      await Model1.create();
+      await Model2.create();
+    });
+
+    describe('with { alter: true }', () => {
+      it('should properly alter tables when there are foreign keys', async function () {
+        const foreignKeyTestSyncA = this.sequelize.define('foreignKeyTestSyncA', {
+          dummy: DataTypes.STRING,
+        });
+
+        const foreignKeyTestSyncB = this.sequelize.define('foreignKeyTestSyncB', {
+          dummy: DataTypes.STRING,
+        });
+
+        foreignKeyTestSyncA.hasMany(foreignKeyTestSyncB);
+        foreignKeyTestSyncB.belongsTo(foreignKeyTestSyncA);
+
+        await this.sequelize.sync({ alter: true });
+        await this.sequelize.sync({ alter: true });
       });
 
-      const foreignKeyTestSyncB = this.sequelize.define('foreignKeyTestSyncB', {
-        dummy: DataTypes.STRING,
-      });
+      // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
+      //  so sync({ alter: true }) cannot know whether the column must be updated.
+      //  so for now, deferrableConstraints is disabled for sqlite (as it's only used in tests)
+      if (sequelize.dialect.supports.deferrableConstraints) {
+        it('updates the deferrable property of a foreign key', async () => {
+          const A = sequelize.define('A', {
+            BId: {
+              type: DataTypes.INTEGER,
+              references: {
+                deferrable: Deferrable.INITIALLY_IMMEDIATE(),
+              },
+            },
+          });
+          const B = sequelize.define('B');
 
-      foreignKeyTestSyncA.hasMany(foreignKeyTestSyncB);
-      foreignKeyTestSyncB.belongsTo(foreignKeyTestSyncA);
+          A.belongsTo(B);
 
-      await this.sequelize.sync({ alter: true });
+          await sequelize.sync();
 
-      await this.sequelize.sync({ alter: true });
+          {
+            const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+            expect(aFks.length).to.eq(1);
+            expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
+          }
+
+          A.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+          await sequelize.sync({ alter: true });
+
+          {
+            const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+            expect(aFks.length).to.eq(1);
+            expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
+          }
+        });
+      }
     });
 
     describe('indexes', () => {

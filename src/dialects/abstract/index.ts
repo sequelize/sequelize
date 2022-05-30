@@ -93,10 +93,14 @@ export type DialectSupports = {
   IREGEXP: boolean,
   HSTORE: boolean,
   TSVECTOR: boolean,
-  deferrableConstraints: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
+  /**
+   * This dialect supports marking a column's constraints as deferrable.
+   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+   */
+  deferrableConstraints: false,
 };
 
 export abstract class AbstractDialect {
