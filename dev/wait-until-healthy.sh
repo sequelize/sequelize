@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-for _ in {1..50}
+for _ in {1..75}
 do
   state=$(docker inspect -f '{{ .State.Health.Status }}' $1 2>&1)
   return_code=$?
@@ -16,5 +16,5 @@ do
   sleep 0.4
 done
 
->&2 echo "Timeout of 20s exceeded when waiting for container to be healthy: $1"
+>&2 echo "Timeout of 30s exceeded when waiting for container to be healthy: $1"
 exit 1
