@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('createTable', () => {
-    it('should create a auto increment primary key', async function () {
+    it('should create an auto increment primary key', async function () {
       await this.queryInterface.createTable('TableWithPK', {
         table_id: {
           type: DataTypes.INTEGER,

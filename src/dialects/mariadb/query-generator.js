@@ -45,12 +45,18 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     ]);
   }
 
-  showTablesQuery(database) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
+  showTablesQuery(database, options) {
+    const searchDatabase = options?.schema || database;
+
+    let query = Utils.toSingleLine(`
+      SELECT TABLE_NAME, TABLE_SCHEMA
+      FROM   information_schema.tables
+      WHERE  TABLE_TYPE = 'BASE TABLE'
+    `);
     if (database) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
+      query += ` AND TABLE_SCHEMA = ${this.escape(searchDatabase)}`;
     } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\')';
+      query += ` AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA')`;
     }
 
     return `${query};`;
