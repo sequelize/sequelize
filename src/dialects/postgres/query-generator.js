@@ -908,6 +908,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
    */
   getForeignKeysQuery(tableName, options) {
     const tableDetails = this.extractTableDetails(tableName, options);
+    const canParseIdent = semver.lt(this.sequelize.options.databaseVersion, '9.6.0');
 
     // remove comments as they would interfere in a single-line statement
     // make string single-line to execute correctly
@@ -919,9 +920,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
           schema.nspname             AS "tableSchema",
           -- strip off the schema prefix
           --   NOTE: parse_ident available in 9.6 and later
-          (parse_ident(main.conrelid::regclass::text))[
-            array_length(parse_ident(main.conrelid::regclass::text),1)
-          ]                          AS "tableName",
+          ${(canParseIdent)
+             ? `(regexp_split_to_array(main.conrelid::regclass::text, '\\.'))[
+                  array_length(regexp_split_to_array(main.conrelid::regclass::text, '\\.'),1)
+                ]`
+             : `(parse_ident(main.conrelid::regclass::text))[
+                  array_length(parse_ident(main.conrelid::regclass::text),1)
+                ]`}                  AS "tableName",
           ARRAY_AGG(tbl_att.attname) AS "tableColumnNames",
 
           -- CONSTRAINT INFO
@@ -954,17 +959,31 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
           -- FOREIGN TABLE INFO
           -- strip off the schema prefix
           --   NOTE: parse_ident available in 9.6 and later
-          CASE
-            WHEN array_length(parse_ident(main.confrelid::regclass::text),1) > 1
-                THEN (parse_ident(main.confrelid::regclass::text))[1]
-            ELSE 'public'
-          END                        AS "referencedTableSchema",
-          -- FOREIGN TABLE INFO
+          ${(canParseIdent)
+            ? `
+                CASE
+                  WHEN array_length(regexp_split_to_array(main.confrelid::regclass::text, '\\.'),1) > 1
+                      THEN (regexp_split_to_array(main.confrelid::regclass::text, '\\.'))[1]
+                  ELSE 'public'
+                END
+              `
+            : `
+                CASE
+                  WHEN array_length(parse_ident(main.confrelid::regclass::text),1) > 1
+                      THEN (parse_ident(main.confrelid::regclass::text))[1]
+                  ELSE 'public'
+                END
+          `}                         AS "referencedTableSchema",
+
           -- strip off the schema prefix
           --   NOTE: parse_ident available in 9.6 and later
-          (parse_ident(main.confrelid::regclass::text))[
-            array_length(parse_ident(main.confrelid::regclass::text),1)
-          ]                          AS "referencedTableName",
+          ${(canParseIdent)
+            ? `(regexp_split_to_array(main.confrelid::regclass::text, '\\.'))[
+                 array_length(regexp_split_to_array(main.confrelid::regclass::text, '\\.'),1)
+               ]`
+            : `(parse_ident(main.confrelid::regclass::text))[
+                 array_length(parse_ident(main.confrelid::regclass::text),1)
+               ]`}                   AS "referencedTableName",
           ARRAY_AGG(frn_att.attname) AS "referencedTableColumnNames",
           conindid::regclass         AS "referencedTableConstraintName"
       FROM
