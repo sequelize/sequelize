@@ -11,7 +11,7 @@ interface UnknownConstraintErrorOptions {
 /**
  * Thrown when constraint name is not found in the database
  */
-class UnknownConstraintError extends DatabaseError implements UnknownConstraintErrorOptions {
+class UnknownConstraintError extends DatabaseError {
   constraint: string | undefined;
   fields: Record<string, string | number> | undefined;
   table: string | undefined;

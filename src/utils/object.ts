@@ -4,7 +4,9 @@ import getValue from 'lodash/get';
 import isEqual from 'lodash/isEqual';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
+import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
+import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
@@ -212,4 +214,10 @@ export function camelizeObjectKeys(obj: { [key: string]: any }) {
   }
 
   return newObj;
+}
+
+type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
+
+export function removeUndefined<T>(val: T): NoUndefinedField<T> {
+  return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }
