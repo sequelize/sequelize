@@ -45,7 +45,7 @@ For general questions, please use one of these:
 - [ ] Yes, I have the time and I know how to start.
 - [ ] Yes, I have the time but I will need guidance.
 - [ ] No, I don't have the time, but my company or I are [supporting Sequelize through donations on OpenCollective](https://opencollective.com/sequelize).
-- [ ] No, I don't have the time, I'm not contributing financially, and I understand that I will need to wait until someone from the community or maintainers is interested in implementing my feature.
+- [ ] No, I don't have the time, and I understand that I will need to wait until someone from the community or maintainers is interested in implementing my feature.
 
 ---
 
