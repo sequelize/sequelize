@@ -2,19 +2,18 @@ import assert from 'assert';
 import NodeUtils from 'util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
-import isUndefined from 'lodash/isUndefined';
 import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
-import omitBy from 'lodash/omitBy';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
-import * as Utils from '../utils/index.js';
 import type { OmitConstructors } from '../utils/index.js';
+import * as Utils from '../utils/index.js';
+import { removeUndefined } from '../utils/index.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
-import type { Association, AssociationOptions, NormalizedAssociationOptions, ForeignKeyOptions } from './base';
+import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
   if (Object.prototype.hasOwnProperty.call(source.getAttributes(), associationName)) {
@@ -98,7 +97,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
  * @internal
  * @private do not expose outside sequelize
  */
-export const AssociationConstructorSecret = Symbol('AssociationConstructorPrivateKey');
+export const AssociationSecret = Symbol('AssociationConstructorPrivateKey');
 
 export function getModel<M extends Model>(
   sequelize: Sequelize,
@@ -113,10 +112,6 @@ export function getModel<M extends Model>(
   }
 
   return model;
-}
-
-export function removeUndefined<T>(val: T): T {
-  return omitBy(val, isUndefined) as T;
 }
 
 export function assertAssociationUnique(

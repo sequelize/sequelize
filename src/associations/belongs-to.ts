@@ -14,6 +14,7 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
+import { removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
@@ -135,11 +136,11 @@ export class BelongsTo<
 
     this.foreignKey = foreignKey as SourceKey;
 
-    const newForeignKeyAttribute = {
+    const newForeignKeyAttribute = removeUndefined({
       type: this.target.rawAttributes[this.targetKey].type,
       ...foreignKeyAttributeOptions,
       allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
-    };
+    });
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
@@ -164,13 +165,13 @@ export class BelongsTo<
     this.#mixin(source.prototype);
 
     if (options.inverse) {
-      const passDown = {
+      const passDown = removeUndefined({
         ...options,
         as: options.inverse.as,
         scope: options.inverse?.scope,
         sourceKey: options.targetKey,
         inverse: undefined,
-      };
+      });
 
       delete passDown.targetKey;
 
