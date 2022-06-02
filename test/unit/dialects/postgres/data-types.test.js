@@ -22,22 +22,22 @@ if (dialect.startsWith('postgres')) {
     describe('GEOMETRY', () => {
       it('should use bindParam fn', function () {
         const value = { type: 'Point' };
-        const bind = [];
+        const bind = {};
         const bindParam = this.queryGenerator.bindParam(bind);
         const result = DataTypes.GEOMETRY.prototype.bindParam(value, { bindParam });
-        expect(result).to.equal('ST_GeomFromGeoJSON($1)');
-        expect(bind).to.eql([value]);
+        expect(result).to.equal('ST_GeomFromGeoJSON($sequelize_1)');
+        expect(bind).to.eql({ sequelize_1: value });
       });
     });
 
     describe('GEOGRAPHY', () => {
       it('should use bindParam fn', function () {
         const value = { type: 'Point' };
-        const bind = [];
+        const bind = {};
         const bindParam = this.queryGenerator.bindParam(bind);
         const result = DataTypes.GEOGRAPHY.prototype.bindParam(value, { bindParam });
-        expect(result).to.equal('ST_GeomFromGeoJSON($1)');
-        expect(bind).to.eql([value]);
+        expect(result).to.equal('ST_GeomFromGeoJSON($sequelize_1)');
+        expect(bind).to.eql({ sequelize_1: value });
       });
     });
   });

@@ -428,71 +428,71 @@ if (dialect === 'db2') {
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name") VALUES ($1));',
-            bind: ['foo'],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name") VALUES ($sequelize_1));',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name") VALUES ($1));',
-            bind: ['foo\';DROP TABLE myTable;'],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name") VALUES ($sequelize_1));',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;' },
           },
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","birthday") VALUES ($1,$2));',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","birthday") VALUES ($sequelize_1,$sequelize_2));',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","foo") VALUES ($1,$2));',
-            bind: ['foo', 1],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","foo") VALUES ($sequelize_1,$sequelize_2));',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("data") VALUES ($1));',
-            bind: [Buffer.from('Sequelize')],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("data") VALUES ($sequelize_1));',
+            bind: { sequelize_1: Buffer.from('Sequelize') },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","foo","nullValue") VALUES ($1,$2,$3));',
-            bind: ['foo', 1, null],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","foo","nullValue") VALUES ($sequelize_1,$sequelize_2,$sequelize_3));',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","foo","nullValue") VALUES ($1,$2,$3));',
-            bind: ['foo', 1, null],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","foo","nullValue") VALUES ($sequelize_1,$sequelize_2,$sequelize_3));',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","foo") VALUES ($1,$2));',
-            bind: ['foo', 1],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","foo") VALUES ($sequelize_1,$sequelize_2));',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name","foo") VALUES ($1,$2));',
-            bind: ['foo', 1],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("name","foo") VALUES ($sequelize_1,$sequelize_2));',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { foo: false }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("foo") VALUES ($1));',
-            bind: [false],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("foo") VALUES ($sequelize_1));',
+            bind: { sequelize_1: false },
           },
         }, {
           arguments: ['myTable', { foo: true }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("foo") VALUES ($1));',
-            bind: [true],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("foo") VALUES ($sequelize_1));',
+            bind: { sequelize_1: true },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -501,8 +501,8 @@ if (dialect === 'db2') {
             };
           }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("foo") VALUES (NOW()));',
-            bind: [],
+            query: 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("foo") VALUES (NOW()));',
+            bind: {},
           },
           needsSequelize: true,
         },
@@ -549,59 +549,59 @@ if (dialect === 'db2') {
         {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3);',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
           },
 
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3);',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
-            bind: [2, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2);',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1 WHERE "name" = $2);',
-            bind: ['foo\';DROP TABLE myTable;', 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2);',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;', sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3);',
-            bind: [2, null, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1,"nullValue"=$sequelize_2 WHERE "name" = $sequelize_3);',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3);',
-            bind: [2, null, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1,"nullValue"=$sequelize_2 WHERE "name" = $sequelize_3);',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
-            bind: [2, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2);',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { bar: false }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
-            bind: [false, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2);',
+            bind: { sequelize_1: false, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: true }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
-            bind: [true, 'foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2);',
+            bind: { sequelize_1: true, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -610,8 +610,8 @@ if (dialect === 'db2') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $1);',
-            bind: ['foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         }, {
@@ -621,8 +621,8 @@ if (dialect === 'db2') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"="foo" WHERE "name" = $1);',
-            bind: ['foo'],
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"="foo" WHERE "name" = $sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         },

@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('./support');
 const sinon = require('sinon');
 const _ = require('lodash');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const current = Support.sequelize;
 const uuid = require('uuid');
@@ -24,15 +24,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('allows me to return values from a custom parse function', async () => {
     const parse = DataTypes.DATE.parse = sinon.spy(value => {
-      return moment(value, 'YYYY-MM-DD HH:mm:ss');
+      return dayjs(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
     const stringify = DataTypes.DATE.prototype.stringify = sinon.spy(function (value, options) {
-      if (!moment.isMoment(value)) {
-        value = this._applyTimezone(value, options);
-      }
-
-      return value.format('YYYY-MM-DD HH:mm:ss');
+      return this._applyTimezone(value, options).format('YYYY-MM-DD HH:mm:ss');
     });
 
     current.refreshTypes();
@@ -46,7 +42,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     await current.sync({ force: true });
 
     await User.create({
-      dateField: moment('2011 10 31', 'YYYY MM DD'),
+      dateField: dayjs('2011 10 31', 'YYYY MM DD'),
     });
 
     const obj = await User.findAll();
@@ -54,7 +50,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(parse).to.have.been.called;
     expect(stringify).to.have.been.called;
 
-    expect(moment.isMoment(user.dateField)).to.be.ok;
+    expect(dayjs.isDayjs(user.dateField)).to.be.ok;
 
     delete DataTypes.DATE.parse;
   });
@@ -154,13 +150,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DATEONLY', async () => {
     const Type = new DataTypes.DATEONLY();
 
-    await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    await testSuccess(Type, dayjs().format('YYYY-MM-DD'));
   });
 
   it('calls parse and stringify for TIME', async () => {
     const Type = new DataTypes.TIME();
 
-    await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    await testSuccess(Type, dayjs().format('HH:mm:ss'));
   });
 
   it('calls parse and stringify for BLOB', async () => {
@@ -674,7 +670,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Model = this.sequelize.define('user', {
       stamp: DataTypes.DATEONLY,
     });
-    const testDate = moment().format('YYYY-MM-DD');
+    const testDate = dayjs().format('YYYY-MM-DD');
     const newDate = new Date();
 
     await Model.sync({ force: true });
@@ -710,7 +706,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Model = this.sequelize.define('user', {
       stamp: DataTypes.DATEONLY,
     });
-    const testDate = moment().format('YYYY-MM-DD');
+    const testDate = dayjs().format('YYYY-MM-DD');
 
     await Model.sync({ force: true });
     const record2 = await Model.create({ stamp: testDate });

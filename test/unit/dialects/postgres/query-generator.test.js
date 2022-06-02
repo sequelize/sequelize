@@ -8,7 +8,7 @@ const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const current = Support.sequelize;
 const _ = require('lodash');
@@ -366,9 +366,9 @@ if (dialect.startsWith('postgres')) {
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',
           context: QueryGenerator,
         }, {
-          title: 'uses offset 0',
+          title: 'omits offset 0',
           arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+          expectation: 'SELECT * FROM "myTable";',
           context: QueryGenerator,
         }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
@@ -614,107 +614,112 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', {}],
           expectation: {
             query: 'INSERT INTO "myTable" DEFAULT VALUES;',
-            bind: [],
+            bind: {},
           },
         },
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo' }, {}, { ignoreDuplicates: true }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING;',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) ON CONFLICT DO NOTHING;',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo' }, {}, { returning: true }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1) RETURNING *;',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) RETURNING *;',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo' }, {}, { ignoreDuplicates: true, returning: true }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING RETURNING *;',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) ON CONFLICT DO NOTHING RETURNING *;',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1);',
-            bind: ['foo\';DROP TABLE myTable;'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: `foo';DROP TABLE myTable;` },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name","birthday") VALUES ($1,$2);',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()],
+            query: 'INSERT INTO "myTable" ("name","birthday") VALUES ($sequelize_1,$sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
+            },
           },
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("data") VALUES ($1);',
-            bind: [Buffer.from('Sequelize')],
+            query: 'INSERT INTO "myTable" ("data") VALUES ($sequelize_1);',
+            bind: {
+              sequelize_1: Buffer.from('Sequelize'),
+            },
           },
         }, {
           arguments: ['myTable', { name: 'foo', numbers: [1, 2, 3] }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name","numbers") VALUES ($1,$2);',
-            bind: ['foo', [1, 2, 3]],
+            query: 'INSERT INTO "myTable" ("name","numbers") VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: [1, 2, 3] },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name","foo") VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO "myTable" ("name","foo") VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2);',
-            bind: ['foo', null],
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: null },
           },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2);',
-            bind: ['foo', null],
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: null },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: undefined }],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: JSON.stringify({ info: 'Look ma a " quote' }) }],
           expectation: {
-            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1);',
-            bind: ['{"info":"Look ma a \\" quote"}'],
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: '{"info":"Look ma a \\" quote"}' },
           },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo\';DROP TABLE mySchema.myTable;' }],
           expectation: {
-            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1);',
-            bind: ['foo\';DROP TABLE mySchema.myTable;'],
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo\';DROP TABLE mySchema.myTable;' },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -724,7 +729,7 @@ if (dialect.startsWith('postgres')) {
           }],
           expectation: {
             query: 'INSERT INTO "myTable" ("foo") VALUES (NOW());',
-            bind: [],
+            bind: {},
           },
           needsSequelize: true,
         },
@@ -733,85 +738,85 @@ if (dialect.startsWith('postgres')) {
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO myTable (name) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }],
           expectation: {
-            query: 'INSERT INTO myTable (name) VALUES ($1);',
-            bind: ['foo\';DROP TABLE myTable;'],
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
-            query: 'INSERT INTO myTable (name,birthday) VALUES ($1,$2);',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()],
+            query: 'INSERT INTO myTable (name,birthday) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', numbers: [1, 2, 3] }],
           expectation: {
-            query: 'INSERT INTO myTable (name,numbers) VALUES ($1,$2);',
-            bind: ['foo', [1, 2, 3]],
+            query: 'INSERT INTO myTable (name,numbers) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: [1, 2, 3] },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
           expectation: {
-            query: 'INSERT INTO myTable (name,foo) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO myTable (name,foo) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2);',
-            bind: ['foo', null],
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: null },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2);',
-            bind: ['foo', null],
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: null },
           },
           context: { options: { omitNull: false, quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: null }],
           expectation: {
-            query: 'INSERT INTO myTable (name) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { omitNull: true, quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo', nullValue: undefined }],
           expectation: {
-            query: 'INSERT INTO myTable (name) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { omitNull: true, quoteIdentifiers: false } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: JSON.stringify({ info: 'Look ma a " quote' }) }],
           expectation: {
-            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1);',
-            bind: ['{"info":"Look ma a \\" quote"}'],
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: '{"info":"Look ma a \\" quote"}' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo\';DROP TABLE mySchema.myTable;' }],
           expectation: {
-            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1);',
-            bind: ['foo\';DROP TABLE mySchema.myTable;'],
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo\';DROP TABLE mySchema.myTable;' },
           },
           context: { options: { quoteIdentifiers: false } },
         },
@@ -837,7 +842,7 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', [{ name: 'foo\';DROP TABLE myTable;' }, { name: 'bar' }]],
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'\';DROP TABLE myTable;\'),(\'bar\');',
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO "myTable" ("name","birthday") VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
@@ -881,7 +886,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'INSERT INTO myTable (name) VALUES (\'foo\'\';DROP TABLE myTable;\'),(\'bar\');',
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO myTable (name,birthday) VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
           context: { options: { quoteIdentifiers: false } },
         }, {
@@ -921,79 +926,79 @@ if (dialect.startsWith('postgres')) {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }, { returning: true }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2 RETURNING *',
-            bind: [2, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2 RETURNING *',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { numbers: [1, 2, 3] }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "numbers"=$1 WHERE "name" = $2',
-            bind: [[1, 2, 3], 'foo'],
+            query: 'UPDATE "myTable" SET "numbers"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: [1, 2, 3], sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "name"=$1 WHERE "name" = $2',
-            bind: ['foo\';DROP TABLE myTable;', 'foo'],
+            query: 'UPDATE "myTable" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;', sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1,"nullValue"=$sequelize_2 WHERE "name" = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1,"nullValue"=$sequelize_2 WHERE "name" = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: undefined }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE "myTable" SET "bar"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE "mySchema"."myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE "mySchema"."myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo\';DROP TABLE mySchema.myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "mySchema"."myTable" SET "name"=$1 WHERE "name" = $2',
-            bind: ['foo\';DROP TABLE mySchema.myTable;', 'foo'],
+            query: 'UPDATE "mySchema"."myTable" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2',
+            bind: { sequelize_1: 'foo\';DROP TABLE mySchema.myTable;', sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -1002,8 +1007,8 @@ if (dialect.startsWith('postgres')) {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $1',
-            bind: ['foo'],
+            query: 'UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         }, {
@@ -1013,88 +1018,88 @@ if (dialect.startsWith('postgres')) {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE "myTable" SET "bar"="foo" WHERE "name" = $1',
-            bind: ['foo'],
+            query: 'UPDATE "myTable" SET "bar"="foo" WHERE "name" = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         },
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE myTable SET name=$1,birthday=$2 WHERE id = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE myTable SET name=$1,birthday=$2 WHERE id = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE myTable SET bar=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { numbers: [1, 2, 3] }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET numbers=$1 WHERE name = $2',
-            bind: [[1, 2, 3], 'foo'],
+            query: 'UPDATE myTable SET numbers=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: [1, 2, 3], sequelize_2: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET name=$1 WHERE name = $2',
-            bind: ['foo\';DROP TABLE myTable;', 'foo'],
+            query: 'UPDATE myTable SET name=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;', sequelize_2: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET bar=$1,nullValue=$2 WHERE name = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE myTable SET bar=$sequelize_1,nullValue=$sequelize_2 WHERE name = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET bar=$1,nullValue=$2 WHERE name = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE myTable SET bar=$sequelize_1,nullValue=$sequelize_2 WHERE name = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
           context: { options: { omitNull: false, quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE myTable SET bar=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true, quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: undefined }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE myTable SET bar=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true, quoteIdentifiers: false } },
         }, {
-          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE mySchema.myTable SET name=$1,birthday=$2 WHERE id = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE mySchema.myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo\';DROP TABLE mySchema.myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE mySchema.myTable SET name=$1 WHERE name = $2',
-            bind: ['foo\';DROP TABLE mySchema.myTable;', 'foo'],
+            query: 'UPDATE mySchema.myTable SET name=$sequelize_1 WHERE name = $sequelize_2',
+            bind: { sequelize_1: 'foo\';DROP TABLE mySchema.myTable;', sequelize_2: 'foo' },
           },
           context: { options: { quoteIdentifiers: false } },
         },

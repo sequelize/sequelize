@@ -9,11 +9,12 @@ const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const _ = require('lodash');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const current = Support.sequelize;
 const semver = require('semver');
 const pMap = require('p-map');
+const { expectsql } = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   let isMySQL8;
@@ -113,11 +114,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         aNumber: DataTypes.INTEGER,
         createdAt: {
           type: DataTypes.DATE,
-          defaultValue: moment('2012-01-01').toDate(),
+          defaultValue: dayjs('2012-01-01').toDate(),
         },
         updatedAt: {
           type: DataTypes.DATE,
-          defaultValue: moment('2012-01-02').toDate(),
+          defaultValue: dayjs('2012-01-02').toDate(),
         },
       }, { timestamps: true });
 
@@ -125,11 +126,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const user = await UserTable.create({ aNumber: 5 });
       await UserTable.bulkCreate([{ aNumber: 10 }, { aNumber: 12 }]);
       const users = await UserTable.findAll({ where: { aNumber: { [Op.gte]: 10 } } });
-      expect(moment(user.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01');
-      expect(moment(user.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02');
+      expect(dayjs(user.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01');
+      expect(dayjs(user.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02');
       for (const u of users) {
-        expect(moment(u.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01');
-        expect(moment(u.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02');
+        expect(dayjs(u.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01');
+        expect(dayjs(u.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02');
       }
     });
 
@@ -439,7 +440,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync();
           expect.fail();
         } catch (error) {
-          expect(error.message).to.equal('The storage engine for the table doesn\'t support descending indexes');
+          expect(error.message).to.include('The storage engine for the table doesn\'t support descending indexes');
         }
       });
 
@@ -1045,6 +1046,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         secretValue: DataTypes.STRING,
       }, {
         paranoid: true,
+        tableName: 'users1',
       });
 
       let test = false;
@@ -1054,11 +1056,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fields: ['secretValue'],
         logging(sql) {
           test = true;
-          if (['mssql', 'ibmi'].includes(dialect)) {
-            expect(sql).to.not.contain('createdAt');
-          } else {
-            expect(sql).to.match(/UPDATE\s+["`]+User1s["`]+\s+SET\s+["`]+secretValue["`]=(\$1|\?),["`]+updatedAt["`]+=(\$2|\?)\s+WHERE ["`]+id["`]+\s=\s(\$3|\?)/);
-          }
+
+          expect(sql).to.match(/^Executing \(default\): /);
+          sql = sql.slice(21);
+
+          expectsql(sql, {
+            default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
+            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
+            mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+            mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+            mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
+            db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
+            ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+          });
         },
         returning: ['*'],
       });
@@ -1556,7 +1566,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await ParanoidUser.bulkCreate(data);
 
       // since we save in UTC, let's format to UTC time
-      const date = moment().utc().format('YYYY-MM-DD h:mm');
+      const date = dayjs().utc().format('YYYY-MM-DD h:mm');
       await ParanoidUser.destroy({ where: { secretValue: '42' } });
 
       let users = await ParanoidUser.findAll({ order: ['id'] });
@@ -1571,7 +1581,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users[0].username).to.equal('Peter');
       expect(users[1].username).to.equal('Paul');
 
-      const formatDate = val => moment(new Date(val)).utc().format('YYYY-MM-DD h:mm');
+      const formatDate = val => dayjs(val).utc().format('YYYY-MM-DD h:mm');
 
       expect(formatDate(users[0].deletedAt)).to.equal(date);
       expect(formatDate(users[1].deletedAt)).to.equal(date);
@@ -2257,7 +2267,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: DataTypes.STRING,
       }, { schema: 'prefix' });
 
-      UserPub.hasMany(ItemPub, { foreignKeyConstraint: true });
+      UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
       if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi'].includes(dialect)) {
         await Support.dropTestSchemas(this.sequelize);

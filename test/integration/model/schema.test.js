@@ -28,11 +28,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.LocationOne = current.define('location', {
           name: DataTypes.STRING,
         });
-        this.RestaurantOne.belongsTo(this.LocationOne,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
+        this.RestaurantOne.belongsTo(this.LocationOne, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
         current.options.schema = SCHEMA_TWO;
         this.RestaurantTwo = current.define('restaurant', {
           foo: DataTypes.STRING,
@@ -41,11 +40,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.LocationTwo = current.define('location', {
           name: DataTypes.STRING,
         });
-        this.RestaurantTwo.belongsTo(this.LocationTwo,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
+        this.RestaurantTwo.belongsTo(this.LocationTwo, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
         current.options.schema = null;
       });
 
@@ -162,19 +160,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         { tableName: 'employees' });
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
-        this.Restaurant.belongsTo(this.Location,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
-        this.Employee.belongsTo(this.Restaurant,
-          {
-            foreignKey: 'restaurant_id',
-            constraints: false,
-          });
+        this.Restaurant.belongsTo(this.Location, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
+
+        this.Employee.belongsTo(this.Restaurant, {
+          foreignKey: 'restaurant_id',
+          foreignKeyConstraints: false,
+        });
+
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
         this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);
@@ -427,8 +425,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           const obj0 = await this.RestaurantTwo.findOne({
-            where: { foo: 'two' }, include: [{
-              model: this.Employee.schema(SCHEMA_TWO), as: 'employees',
+            where: { foo: 'two' },
+            include: [{
+              model: this.Employee.schema(SCHEMA_TWO),
+              as: 'employees',
             }],
           });
 

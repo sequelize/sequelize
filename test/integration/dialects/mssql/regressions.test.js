@@ -163,11 +163,11 @@ if (dialect.startsWith('mssql')) {
       );
 
       Child.hasOne(Toys, {
-        onDelete: 'CASCADE',
+        foreignKey: { onDelete: 'CASCADE' },
       });
 
       Parent.hasOne(Toys, {
-        onDelete: 'CASCADE',
+        foreignKey: { onDelete: 'CASCADE' },
       });
 
       const spy = sinon.spy();

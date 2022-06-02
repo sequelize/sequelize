@@ -42,8 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           timestamps: false,
         });
 
-        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId' });
-        this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
+        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId', otherKey: 'CourseId' });
 
         await this.sequelize.sync({ force: true });
 
@@ -63,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         expect(score.test_value).to.equal(1001);
-        expect(courses[0].score.toJSON().test_value).to.equal(1001);
+        expect(courses[0].studentCourse.toJSON().test_value).to.equal(1001);
         expect(callCount).to.equal(1);
       });
 

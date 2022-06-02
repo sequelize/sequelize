@@ -17,22 +17,6 @@ export class MySqlQuery extends AbstractQuery {
     super(connection, sequelize, { showWarnings: false, ...options });
   }
 
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = [];
-    const replacementFunc = (match, key, values_) => {
-      if (values_[key] !== undefined) {
-        bindParam.push(values_[key]);
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam.length > 0 ? bindParam : undefined];
-  }
-
   async run(sql, parameters) {
     this.sql = sql;
     const { connection, options } = this;

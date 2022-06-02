@@ -1,5 +1,7 @@
 'use strict';
 
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
 const { IBMiConnectionManager } = require('./connection-manager');
@@ -43,6 +45,10 @@ export class IBMiDialect extends AbstractDialect {
       sequelize,
     });
     this.queryInterface = new IBMiQueryInterface(this.sequelize, this.queryGenerator);
+  }
+
+  createBindCollector() {
+    return createUnspecifiedOrderedBindCollector();
   }
 }
 
