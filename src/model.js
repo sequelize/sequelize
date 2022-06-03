@@ -1875,18 +1875,8 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     options = Utils.cloneDeep(options);
-
-    if (options.limit === undefined) {
-      const uniqueSingleColumns = _.chain(this.uniqueKeys).values().filter(c => c.fields.length === 1)
-        .map('column')
-        .value();
-
-      // Don't add limit if querying directly on the pk or a unique column
-      if (!options.where || !_.some(options.where, (value, key) => (key === this.primaryKeyAttribute || uniqueSingleColumns.includes(key))
-          && (Utils.isPrimitive(value) || Buffer.isBuffer(value)))) {
-        options.limit = 1;
-      }
-    }
+    // findOne only ever needs one result
+    options.limit = 1;
 
     // Bypass a possible overloaded findAll.
     return await Model.findAll.call(this, (_.defaults(options, {
