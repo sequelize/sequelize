@@ -1,7 +1,7 @@
 services:
-  postgres-10:
-    container_name: sequelize-pg-95
-    image: sushantdhiman/postgres:9.5
+  postgres-12:
+    container_name: sequelize-pg-12
+    image: sushantdhiman/postgres:12
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
@@ -16,4 +16,4 @@ services:
 
 networks:
   default:
-    name: sequelize-pg-95-network
+    name: sequelize-pg-12-network
