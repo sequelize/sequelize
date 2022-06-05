@@ -1,0 +1,19 @@
+services:
+  postgres-12:
+    container_name: sequelize-pg-12
+    image: sushantdhiman/postgres:12
+    environment:
+      POSTGRES_USER: sequelize_test
+      POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
+    ports:
+      - 23012:5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sequelize_test"]
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-pg-12-network

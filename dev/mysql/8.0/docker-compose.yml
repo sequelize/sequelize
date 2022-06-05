@@ -8,7 +8,7 @@ services:
       MYSQL_PASSWORD: sequelize_test
       MYSQL_ROOT_PASSWORD: sequelize_test
     ports:
-      - 20057:3306
+      - 20080:3306
     # tmpfs: /var/lib/mysql:rw
     healthcheck:
       test: ["CMD", "mysqladmin", "-usequelize_test", "-psequelize_test", "status"]

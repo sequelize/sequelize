@@ -11,6 +11,7 @@ docker-compose -p sequelize-mysql-57 up -d
 docker exec sequelize-mysql-57 \
   mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
 
-node check.js
+# test connection with Sequelize
+DIALECT=mysql node ../../db-connection-check.js
 
 echo "Local MySQL-5.7 instance is ready for Sequelize tests."
