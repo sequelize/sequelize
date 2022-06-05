@@ -9,7 +9,7 @@ const Dottie = require('dottie');
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
 const { BelongsTo, BelongsToMany, Association, HasMany, HasOne } = require('./associations');
-const { AssociationConstructorSecret } = require('./associations/helpers');
+const { AssociationSecret } = require('./associations/helpers');
 const { InstanceValidator } = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
@@ -4462,7 +4462,7 @@ Instead of specifying a Model, either:
    * @returns {HasMany} The newly defined association (also available in {@link Model.associations}).
    */
   static hasMany(target, options) {
-    return HasMany.associate(AssociationConstructorSecret, this, target, options);
+    return HasMany.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4488,7 +4488,7 @@ Instead of specifying a Model, either:
    * @returns {BelongsToMany} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsToMany(target, options) {
-    return BelongsToMany.associate(AssociationConstructorSecret, this, target, options);
+    return BelongsToMany.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4507,7 +4507,7 @@ Instead of specifying a Model, either:
    * @returns {HasOne} The newly defined association (also available in {@link Model.associations}).
    */
   static hasOne(target, options) {
-    return HasOne.associate(AssociationConstructorSecret, this, target, options);
+    return HasOne.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4526,7 +4526,7 @@ Instead of specifying a Model, either:
    * @returns {BelongsTo} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsTo(target, options) {
-    return BelongsTo.associate(AssociationConstructorSecret, this, target, options);
+    return BelongsTo.associate(AssociationSecret, this, target, options);
   }
 }
 
