@@ -213,3 +213,53 @@ export function camelizeObjectKeys(obj: { [key: string]: any }) {
 
   return newObj;
 }
+
+/**
+ * camelizeKeys recursively turns object keys camelCased, works on
+ *   arrays of objects, and object-key's array values, which may
+ *   contain column names
+ * This does not replace camelizedObjectKeys because of its
+ *   aggressive (recursive) nature, which is a little more greedy
+ *
+ * @param arg <Array|object|string>
+ * @returns An object with camelized keys or camelized string
+ */
+export function camelizeKeys(arg: any) {
+  let response: any;
+
+  if (typeof arg === 'string') {
+    return camelize(arg);
+  } else if (Array.isArray(arg)) {
+    response = [];
+
+    for (const [i, element] of arg.entries()) {
+      if (typeof element === 'string') {
+        response[i] = camelize(element);
+      } else { // array/object/etc
+        response[i] = camelizeKeys(element);
+      }
+    }
+  } else if (typeof arg === 'object') {
+    response = {};
+
+    for (const key of Object.keys(arg)) {
+      const value = arg[key];
+
+      if (typeof key === 'string') {
+        // TODO: consider camelizizing values that are columns and reference columns:
+        //    let isColumnKey = key.toLowerCase().includes('column')
+        //    response[camelize(key)] = isColumnKey ? camelizeKeys(value) : value
+        //    REM: camelizing values may have considerable impact on user expectations
+        //      this requires a lot of consideration
+        response[camelize(key)] = value;
+      } else {
+        // TODO: (cont.) consider camelizing values that are columns and reference columns:
+        //    response[camelizeKeys(key)] = typeof value !== 'string' ? camelizeKeys(value) : value
+        //    (Also see remark above)
+        response[camelizeKeys(key)] = value;
+      }
+    }
+  }
+
+  return response;
+}
