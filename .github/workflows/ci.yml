@@ -191,7 +191,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [14, 18]
-        postgres-version: [9.5, 10]
+        postgres-version: [10, 12]
         minify-aliases: [true, false]
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
