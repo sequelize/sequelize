@@ -304,7 +304,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
           const referencesTable = this.quoteTable(dataType.references.model);
 
           let referencesKey;
-          const foreignKeys = Array.from([dataType.references.key]).flat().filter(v => !!v);
+          const foreignKeys = Array.from([dataType.references.key]).flat().filter(Boolean);
 
           if (dataType.references?.key && foreignKeys.length) {
             referencesKey = foreignKeys.map(foreignKeyColumn => this.quoteIdentifier(foreignKeyColumn)).join(', ');
