@@ -2,6 +2,7 @@
 
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const Utils = require('./../../utils');
+const semver = require('semver');
 const _ = require('lodash');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
@@ -23,6 +24,32 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
 
   dropSchema(schema) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)};`;
+  }
+
+  getForeignKeysQuery(table, schemaName) {
+    // retrieve SQL from `super` (MySQL)
+    let SQL = super.getForeignKeysQuery(table, schemaName);
+    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
+
+    // modify it for MariaDb <v10.5
+    if (databaseVersion && semver.lt(this.sequelize.options.databaseVersion, '10.5.0')) {
+      SQL = SQL.replace(/JSON_ARRAYAGG/g, 'GROUP_CONCAT');
+    }
+
+    return SQL;
+  }
+
+  getForeignKeyQuery(table, columnName) {
+    // retrieve SQL from `super` (MySQL)
+    let SQL = super.getForeignKeyQuery(table, columnName);
+    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
+
+    // modify it for MariaDb <v10.5
+    if (databaseVersion && semver.lt(this.sequelize.options.databaseVersion, '10.5.0')) {
+      SQL = SQL.replace(/JSON_ARRAYAGG/g, 'GROUP_CONCAT');
+    }
+
+    return SQL;
   }
 
   showSchemasQuery(options) {

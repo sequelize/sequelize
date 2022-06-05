@@ -106,7 +106,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should work with schemas', async function () {
       await this.sequelize.createSchema('hero');
-
       await this.queryInterface.createTable('User', {
         name: {
           type: DataTypes.STRING,

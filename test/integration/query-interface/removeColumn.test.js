@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('firstName');
       });
 
-      it('should be able to remove a column without default value', async function () {
+      it('should be able to remove a column without a default value', async function () {
         await this.queryInterface.removeColumn('users', 'lastName');
         const table = await this.queryInterface.describeTable('users');
         expect(table).to.not.have.property('lastName');
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('manager');
       });
 
-      it('should be able to remove a column with primaryKey', async function () {
+      it('should be able to remove a column with a primaryKey', async function () {
         await this.queryInterface.removeColumn('users', 'manager');
         const table0 = await this.queryInterface.describeTable('users');
         expect(table0).to.not.have.property('manager');
@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       //      - Used in a CHECK or UNIQUE constraint.
       // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
       if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', async function () {
+        it('should be able to remove a column with a unique contraint', async function () {
           await this.queryInterface.removeColumn('users', 'email');
           const table = await this.queryInterface.describeTable('users');
           expect(table).to.not.have.property('email');

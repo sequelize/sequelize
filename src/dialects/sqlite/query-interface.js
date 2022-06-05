@@ -155,18 +155,46 @@ export class SqliteQueryInterface extends QueryInterface {
    * @override
    */
   async getForeignKeyReferencesForTable(tableName, options) {
-    const database = this.sequelize.config.database;
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, database);
-    const result = await this.sequelize.queryRaw(query, options);
+    const queryOptions = {
+      ...options,
+      type: QueryTypes.FOREIGNKEYS,
+    };
 
-    return result.map(row => ({
-      tableName,
-      columnName: row.from,
-      referencedTableName: row.table,
-      referencedColumnName: row.to,
-      tableCatalog: database,
-      referencedTableCatalog: database,
-    }));
+    const database = this.sequelize.config.database;
+    const query = this.queryGenerator.getForeignKeysQuery(tableName, database, queryOptions);
+    const foreignKeys = await this.sequelize.queryRaw(query, queryOptions);
+
+    // field name translation
+    const changeKey = new Map();
+    changeKey.set('from', 'tableColumnNames');
+    changeKey.set('table', 'referencedTableName');
+    changeKey.set('to', 'referencedTableColumnNames');
+
+    // convert Column field values to array
+    Array.from([foreignKeys]).flat().forEach(foreignKeyObject => {
+      for (let key in foreignKeyObject) {
+        if (changeKey.has(key)) {
+          const newKey = changeKey.get(key);
+          foreignKeyObject[newKey] = foreignKeyObject[key];
+          delete foreignKeyObject[key];
+          key = newKey;
+        }
+
+        // ensure column values are arrays
+        if (foreignKeyObject[key] && key.toLowerCase().includes('column')) {
+          foreignKeyObject[key] = Array.from([foreignKeyObject[key]]).flat();
+        }
+      }
+
+      // Add in missing fields
+      Object.assign(foreignKeyObject, {
+        tableName,
+        tableCatalog: database,
+        referencedTableCatalog: database,
+      });
+    });
+
+    return foreignKeys;
   }
 
   /**
@@ -231,10 +259,12 @@ export class SqliteQueryInterface extends QueryInterface {
 
       const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
       for (const foreignKey of foreignKeys) {
-        data[foreignKey.columnName].references = {
-          model: foreignKey.referencedTableName,
-          key: foreignKey.referencedColumnName,
-        };
+        foreignKey.tableColumnNames.forEach(fk => {
+          data[fk].references = {
+            model: foreignKey.referencedTableName,
+            key: foreignKey.referencedTableColumnNames,
+          };
+        });
       }
 
       return data;

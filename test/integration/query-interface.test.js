@@ -108,8 +108,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable('my_test_table', {
         name: DataTypes.STRING,
       });
+
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
+
       if (tableNames?.[0]?.tableName) {
         tableNames = tableNames.map(v => v.tableName);
       }
@@ -416,6 +418,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('describeForeignKeys', () => {
+    before(function () {
+      // const defaultSchemas = {
+      //   postgres: 'public',
+      //   // `username` is not defined for sqlite connection, so use optional chaining
+      //   db2: this.sequelize.config.username?.toUpperCase(),
+      // };
+      const defaultSchema = this.queryInterface.queryGenerator.defaultSchema();
+
+      this.options = {};
+      if (current.dialect.supports.schemas && defaultSchema) {
+        this.options.schema = defaultSchema; // defaultSchemas[dialect];
+      }
+    });
+
     beforeEach(async function () {
       await this.queryInterface.createTable('users', {
         id: {
@@ -456,6 +472,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
       });
     });
+
     afterEach(async function () {
       await this.queryInterface.dropTable('hosts');
       await this.queryInterface.dropTable('users');
@@ -463,7 +480,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should be able to retrieve list of foreign key names using getForeignKeysForTables', async function () {
 
-      const foreignKeys = await this.queryInterface.getForeignKeysForTables(['hosts']);
+      const foreignKeys = await this.queryInterface.getForeignKeysForTables(['hosts'], this.options);
       expect(foreignKeys.hosts).to.have.length(3);
 
       switch (dialect) {
@@ -481,16 +498,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     // test against first and second foreign key response for data-consistency
     it('should get a list of foreign keys for the table', async function () {
-      const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeysQuery(
-          'hosts',
-          dialect === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
-        ),
-        { type: this.sequelize.QueryTypes.FOREIGNKEYS },
-      );
+      let SQL = this.queryInterface.queryGenerator.getForeignKeysQuery('hosts', null, this.options);
+      let foreignKeys = await this.sequelize.query(SQL, { type: this.sequelize.QueryTypes.FOREIGNKEYS });
       expect(foreignKeys).to.have.length(3);
-      const firstForeignKeyProperties = Object.keys(foreignKeys[0]);
-      const secondForeignKeyProperties = Object.keys(foreignKeys[0]);
+
+      let firstForeignKeyProperties = Object.keys(foreignKeys[0]);
+      let secondForeignKeyProperties = Object.keys(foreignKeys[0]);
 
       // should consider standardizing foreignKeys and adding `constraintName: null` to sqlite
       if (/* all dialects except */ dialect !== 'sqlite') {
@@ -498,20 +511,43 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(secondForeignKeyProperties).to.include('constraintName');
       }
 
-      if (dialect === 'postgres') {
-        expect(firstForeignKeyProperties).to.have.length(15);
-        expect(secondForeignKeyProperties).to.have.length(15);
-      } else if (['sqlite', 'db2'].includes(dialect)) {
-        expect(firstForeignKeyProperties).to.have.length(8);
-        expect(secondForeignKeyProperties).to.have.length(8);
-      } else if (dialect === 'ibmi') {
-        expect(firstForeignKeyProperties).to.have.length(9);
-        expect(secondForeignKeyProperties).to.have.length(9);
-      } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
+      switch (dialect) {
+        case 'postgres':
+          expect(firstForeignKeyProperties).to.have.length(15);
+          expect(secondForeignKeyProperties).to.have.length(15);
+          break;
+
+        case 'sqlite':
+          expect(firstForeignKeyProperties).to.have.length(8);
+          expect(secondForeignKeyProperties).to.have.length(8);
+          break;
+
+        case 'ibmi':
+        case 'mssql':
+          expect(firstForeignKeyProperties).to.have.length(9);
+          expect(secondForeignKeyProperties).to.have.length(9);
+          break;
+
+        case 'mariadb':
+        case 'mysql':
+        case 'db2':
+          expect(firstForeignKeyProperties).to.have.length(14);
+          expect(secondForeignKeyProperties).to.have.length(14);
+          break;
+
+        default:
+          throw new Error(`This test doesn't support ${dialect}`);
+      }
+
+      if (dialect === 'mssql') {
+        // expect more keys when using a catalog
+        SQL = this.queryInterface.queryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database, this.options);
+        foreignKeys = await this.sequelize.query(SQL, { type: this.sequelize.QueryTypes.FOREIGNKEYS });
+        firstForeignKeyProperties = Object.keys(foreignKeys[0]);
+        secondForeignKeyProperties = Object.keys(foreignKeys[0]);
+
         expect(firstForeignKeyProperties).to.have.length(12);
         expect(secondForeignKeyProperties).to.have.length(12);
-      } else {
-        throw new Error(`This test doesn't support ${dialect}`);
       }
 
       if (dialect === 'mysql') {
@@ -523,15 +559,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign key references details for the table', async function () {
-      const references = await this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options);
+      const references = await this.queryInterface.getForeignKeyReferencesForTable('hosts', { ...this.sequelize.options, ...this.options });
       expect(references).to.have.length(3);
+
       for (const ref of references) {
         expect(ref.tableName).to.equal('hosts');
-        expect(ref.referencedColumnName).to.equal('id');
+        expect(ref.referencedTableColumnNames).to.deep.equal(['id']);
         expect(ref.referencedTableName).to.equal('users');
       }
 
-      const columnNames = references.map(reference => reference.columnName);
+      const columnNames = references.flatMap(reference => reference.tableColumnNames);
       expect(columnNames).to.have.same.members(['owner', 'operator', 'admin']);
     });
   });
@@ -539,7 +576,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('constraints', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('users', {
-        // Db2 does not allow unique constraint for a nullable column, Db2
+        // DB2 does not allow unique constraint for a nullable column, DB2
         // throws SQL0542N error if we create constraint on nullable column.
         username: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
         email: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,

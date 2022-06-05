@@ -1,9 +1,9 @@
 'use strict';
 
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const DataTypes = require('../../data-types');
 const Utils = require('../../utils');
 const util = require('util');
-const DataTypes = require('../../data-types');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -126,12 +126,12 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   /**
    *
-   * @param {*} _       Unused variable (database name)
-   * @param {object}    [options] Options
-   * @param {string}    [options.schema] Schema name to search for (defaults to 'public')
-   * @returns {string}  SQL statement to show all tables, including tableName and schema
+   * @param {*} _database Unused variable (database name)
+   * @param {object}      [options] Options
+   * @param {string}      [options.schema] Schema name to search for (defaults to 'public')
+   * @returns {string}    SQL statement to show all tables, including tableName and schema
    */
-  showTablesQuery(_, options) {
+  showTablesQuery(_database, options) {
     const settings = {
       schema: {
         name: 'public',
@@ -153,7 +153,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return Utils.toSingleLine(`
       SELECT table_name as "tableName", table_schema as schema
       FROM information_schema.tables
-      WHERE table_schema ${settings.schema.op} '${settings.schema.name}'
+      WHERE table_schema ${settings.schema.op} ${this.escape(settings.schema.name)}
         AND table_type LIKE '%TABLE'
         AND table_name != 'spatial_ref_sys';
     `);
@@ -900,137 +900,146 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param   {string|object} tableName string: Name of table
+   * @param   {string|object} tableArg  string: Name of table
    *                                    object: { tableName: Name of table, schema: name of schema }
    * @param   {object}        options   Pass to extractTableDetails
    * @returns {string}                  The generated sql query.
    * @private
    */
-  getForeignKeysQuery(tableName, options) {
+  getForeignKeysQuery(tableArg, options) {
+    let { columnName, ...tableName } = tableArg;
+    if (typeof tableArg === 'string') {
+      tableName = tableArg;
+    }
+
     const tableDetails = this.extractTableDetails(tableName, options);
-    const canParseIdent = semver.lt(this.sequelize.options.databaseVersion, '9.6.0');
 
-    // remove comments as they would interfere in a single-line statement
     // make string single-line to execute correctly
-    const SQL = Utils.toSingleLine(`
+    const SQL = `
       SELECT
-          main.contypid::regclass  AS domain,
+              -----------------------------------------------
+              -- TABLE INFO
+              -----------------------------------------------
+              main.contypid::regclass    AS domain,
+              schema.nspname             AS "tableSchema",
+              -- use parse_ident to strip off the schema prefix
+              (parse_ident(main.conrelid::regclass::text))[
+                array_length(parse_ident(main.conrelid::regclass::text),1)
+              ]                          AS "tableName",
+              JSON_AGG(tbl_att.attname)  AS "tableColumnNames",
 
-          -- TABLE INFO
-          schema.nspname             AS "tableSchema",
-          -- strip off the schema prefix
-          --   NOTE: parse_ident available in 9.6 and later
-          ${(canParseIdent)
-             ? `(regexp_split_to_array(main.conrelid::regclass::text, '\\.'))[
-                  array_length(regexp_split_to_array(main.conrelid::regclass::text, '\\.'),1)
-                ]`
-             : `(parse_ident(main.conrelid::regclass::text))[
-                  array_length(parse_ident(main.conrelid::regclass::text),1)
-                ]`}                  AS "tableName",
-          ARRAY_AGG(tbl_att.attname) AS "tableColumnNames",
-
-          -- CONSTRAINT INFO
-          'FOREIGN KEY'              AS "constraintType",
-          schema.nspname             AS "constraintSchema",
-          main.conname               AS "constraintName",
-          pg_catalog.pg_get_constraintdef(main.oid, true) AS "constraintDefinition",
-          CASE main.confupdtype
-            WHEN 'a' THEN 'NO ACTION'
-            WHEN 'r' THEN 'RESTRICT'
-            WHEN 'c' THEN 'CASCADE'
-            WHEN 'n' THEN 'SET NULL'
-            WHEN 'd' THEN 'SET DEFAULT'
-          END AS on_update,
-
-          CASE main.confdeltype
-            WHEN 'a' THEN 'NO ACTION'
-            WHEN 'r' THEN 'RESTRICT'
-            WHEN 'c' THEN 'CASCADE'
-            WHEN 'n' THEN 'SET NULL'
-            WHEN 'd' THEN 'SET DEFAULT'
-          END AS on_delete,
-
-          CASE main.confmatchtype
-            WHEN 'f' THEN 'FULL'
-            WHEN 'p' THEN 'PARTIAL'
-            WHEN 's' THEN 'SIMPLE'
-          END AS match,
-
-          -- FOREIGN TABLE INFO
-          -- strip off the schema prefix
-          --   NOTE: parse_ident available in 9.6 and later
-          ${(canParseIdent)
-            ? `
-                CASE
-                  WHEN array_length(regexp_split_to_array(main.confrelid::regclass::text, '\\.'),1) > 1
-                      THEN (regexp_split_to_array(main.confrelid::regclass::text, '\\.'))[1]
-                  ELSE 'public'
-                END
-              `
-            : `
-                CASE
-                  WHEN array_length(parse_ident(main.confrelid::regclass::text),1) > 1
-                      THEN (parse_ident(main.confrelid::regclass::text))[1]
-                  ELSE 'public'
-                END
-          `}                         AS "referencedTableSchema",
-
-          -- strip off the schema prefix
-          --   NOTE: parse_ident available in 9.6 and later
-          ${(canParseIdent)
-            ? `(regexp_split_to_array(main.confrelid::regclass::text, '\\.'))[
-                 array_length(regexp_split_to_array(main.confrelid::regclass::text, '\\.'),1)
-               ]`
-            : `(parse_ident(main.confrelid::regclass::text))[
-                 array_length(parse_ident(main.confrelid::regclass::text),1)
-               ]`}                   AS "referencedTableName",
-          ARRAY_AGG(frn_att.attname) AS "referencedTableColumnNames",
-          conindid::regclass         AS "referencedTableConstraintName"
-      FROM
+              -----------------------------------------------
               -- CONSTRAINT INFO
+              -----------------------------------------------
+              'FOREIGN KEY'              AS "constraintType",
+              schema.nspname             AS "constraintSchema",
+              main.conname               AS "constraintName",
+              pg_catalog.pg_get_constraintdef(main.constraint_oid, true) AS "constraintDefinition",
+              CASE main.confupdtype
+                WHEN 'a' THEN 'NO ACTION'
+                WHEN 'r' THEN 'RESTRICT'
+                WHEN 'c' THEN 'CASCADE'
+                WHEN 'n' THEN 'SET NULL'
+                WHEN 'd' THEN 'SET DEFAULT'
+              END AS on_update,
+
+              CASE main.confdeltype
+                WHEN 'a' THEN 'NO ACTION'
+                WHEN 'r' THEN 'RESTRICT'
+                WHEN 'c' THEN 'CASCADE'
+                WHEN 'n' THEN 'SET NULL'
+                WHEN 'd' THEN 'SET DEFAULT'
+              END AS on_delete,
+
+              CASE main.confmatchtype
+                WHEN 'f' THEN 'FULL'
+                WHEN 'p' THEN 'PARTIAL'
+                WHEN 's' THEN 'SIMPLE'
+              END AS match,
+
+              -----------------------------------------------
+              -- FOREIGN TABLE INFO
+              -----------------------------------------------
+              -- use parse_ident to strip off the schema prefix
+              CASE
+                WHEN array_length(parse_ident(main.confrelid::regclass::text),1) > 1
+                    THEN (parse_ident(main.confrelid::regclass::text))[1]
+                ELSE 'public'
+              END                        AS "referencedTableSchema",
+
+              -- use parse_ident to strip off the schema prefix
+              (parse_ident(main.confrelid::regclass::text))[
+                array_length(parse_ident(main.confrelid::regclass::text),1)
+              ]                          AS "referencedTableName",
+              JSON_AGG(frn_att.attname) AS "referencedTableColumnNames",
+              conindid::regclass         AS "referencedTableConstraintName"
+
+      FROM
+              -----------------------------------------------
+              -- CONSTRAINTS
+              -----------------------------------------------
               (
-                select *, oid,
+                select *,                    -- oid column is added in v12, but not included in v10
+                      oid AS constraint_oid, -- specify for version <12 and alias to reduce ambiguity conflict
                       unnest(conkey)  as ckey, -- unnest for join
                       unnest(confkey) as cfkey -- unnest for join
-                from pg_catalog.pg_constraint
+                from pg_catalog.pg_constraint pgc
               ) AS main
 
-              -- CONSTRAINT TABLE ATTRIBUTES
+              -----------------------------------------------
+              -- CONSTRAINT-TABLE ATTRIBUTES
+              -----------------------------------------------
               JOIN  pg_catalog.pg_attribute AS tbl_att
                     ON (tbl_att.attrelid = conrelid  AND tbl_att.attnum = ckey)
 
-              -- FOREIGN TABLE ATTRIBUTES
+              -----------------------------------------------
+              -- CONSTRAINT-REFERENCE-TABLE ATTRIBUTES
+              -----------------------------------------------
               JOIN  pg_catalog.pg_attribute AS frn_att
                     ON (frn_att.attrelid = confrelid AND frn_att.attnum = cfkey)
 
+              -----------------------------------------------
               -- SCHEMA INFO
+              -----------------------------------------------
               JOIN  (
                 select  cl.oid, ns.nspname
                 from    pg_class cl
                 join    pg_namespace ns on (cl.relnamespace = ns.oid)
-                where   relname = '${tableDetails.tableName}'
-                    and nspname = '${tableDetails.schema}'
+                where   relname = ${this.escape(tableDetails.tableName)}
+                    and nspname = ${this.escape(tableDetails.schema)}
               ) AS schema ON(schema.oid = main.conrelid)
+
       WHERE
               main.contype = 'f'
-      GROUP BY
-                domain,
-                "tableSchema",
-                "tableName",
-                "constraintType",
-                "constraintSchema",
-                "constraintName",
-                "constraintDefinition",
-                on_update,
-                on_delete,
-                match,
-                "referencedTableSchema",
-                "referencedTableName",
-                "referencedTableConstraintName"
-      ORDER BY 1;
-    `.replace(/--.*/g, ''));
 
-    return SQL;
+      GROUP BY
+              domain,
+              "tableSchema",
+              "tableName",
+              "constraintType",
+              "constraintSchema",
+              "constraintName",
+              "constraintDefinition",
+              on_update,
+              on_delete,
+              match,
+              "referencedTableSchema",
+              "referencedTableName",
+              "referencedTableConstraintName"
+      ${columnName ? `
+      HAVING
+              "tableColumnNames" && {${this.escape(columnName)}}::text[]
+      ` : ''}
+
+      ORDER BY
+              "domain",
+              "tableSchema",
+              "tableName",
+              "constraintName"
+      ;
+    `.replace(/--.*/g, ''); // remove comments as they would interfere in a single-line statement
+
+    return Utils.toSingleLine(SQL);
 
     // lookups against information_schema are significantly slower
     //   instead, perform lookups against pg_catalog and attribute tables
@@ -1058,31 +1067,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   /**
-   * Generate common SQL prefix for getForeignKeyReferencesQuery.
-   *
-   * @returns {string}
-   */
-  _getForeignKeyReferencesQueryPrefix() {
-    return 'SELECT '
-      + 'DISTINCT tc.constraint_name as constraint_name, '
-      + 'tc.constraint_schema as constraint_schema, '
-      + 'tc.constraint_catalog as constraint_catalog, '
-      + 'tc.table_name as table_name,'
-      + 'tc.table_schema as table_schema,'
-      + 'tc.table_catalog as table_catalog,'
-      + 'kcu.column_name as column_name,'
-      + 'ccu.table_schema  AS referenced_table_schema,'
-      + 'ccu.table_catalog  AS referenced_table_catalog,'
-      + 'ccu.table_name  AS referenced_table_name,'
-      + 'ccu.column_name AS referenced_column_name '
-      + 'FROM information_schema.table_constraints AS tc '
-      + 'JOIN information_schema.key_column_usage AS kcu '
-      + 'ON tc.constraint_name = kcu.constraint_name '
-      + 'JOIN information_schema.constraint_column_usage AS ccu '
-      + 'ON ccu.constraint_name = tc.constraint_name ';
-  }
-
-  /**
    * Generates an SQL query that returns all foreign keys details of a table.
    *
    * As for getForeignKeysQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
@@ -1092,19 +1076,18 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
    * @param {string} schemaName
    */
   getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
-      catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
-    }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
+    return this.getForeignKeysQuery({ tableName, schema: schemaName });
   }
 
   getForeignKeyReferenceQuery(table, columnName) {
     const tableName = table.tableName || table;
     const schema = table.schema;
 
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
+    return this.getForeignKeysQuery({ tableName, schema, columnName });
+
+    // return `${this._getForeignKeyReferencesQueryPrefix()
+    // }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
+    //   schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
   }
 
   /**

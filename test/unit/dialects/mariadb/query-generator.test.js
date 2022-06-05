@@ -9,6 +9,8 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
+const { createSecureContext } = require('tls');
+const { sequelize, createSequelizeInstance } = require('../../support');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {
@@ -765,12 +767,22 @@ if (dialect === 'mariadb') {
           expectation: 'DROP INDEX `user_foo_bar` ON `User`',
         },
       ],
-      getForeignKeyQuery: [
-        {
-          arguments: ['User', 'email'],
-          expectation: 'SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,COLUMN_NAME as columnName,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,REFERENCED_COLUMN_NAME as referencedColumnName FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = \'User\' AND REFERENCED_COLUMN_NAME = \'email\') OR (TABLE_NAME = \'User\' AND COLUMN_NAME = \'email\' AND REFERENCED_TABLE_NAME IS NOT NULL)',
-        },
-      ],
+      getForeignKeyQuery: {
+        '10.3.0': [
+          {
+            arguments: ['User', 'email'],
+            // expectation: 'SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,COLUMN_NAME as columnName,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,REFERENCED_COLUMN_NAME as referencedColumnName FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = \'User\' AND REFERENCED_COLUMN_NAME = \'email\') OR (TABLE_NAME = \'User\' AND COLUMN_NAME = \'email\' AND REFERENCED_TABLE_NAME IS NOT NULL)',
+            expectation: ` SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,GROUP_CONCAT(COLUMN_NAME) as tableColumnNames,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,GROUP_CONCAT(REFERENCED_COLUMN_NAME) as referencedTableColumnNames,GROUP_CONCAT(ORDINAL_POSITION) as ordinalPosition,GROUP_CONCAT(POSITION_IN_UNIQUE_CONSTRAINT) as positionInUniqueConstraint FROM    INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE   ( REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email' ) OR ( TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL ) GROUP BY CONSTRAINT_NAME, CONSTRAINT_SCHEMA, TABLE_NAME, TABLE_SCHEMA, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME `,
+          },
+        ],
+        '10.5.0': [
+          {
+            arguments: ['User', 'email'],
+            // expectation: 'SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,COLUMN_NAME as columnName,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,REFERENCED_COLUMN_NAME as referencedColumnName FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = \'User\' AND REFERENCED_COLUMN_NAME = \'email\') OR (TABLE_NAME = \'User\' AND COLUMN_NAME = \'email\' AND REFERENCED_TABLE_NAME IS NOT NULL)',
+            expectation: ` SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,JSON_ARRAYAGG(COLUMN_NAME) as tableColumnNames,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,JSON_ARRAYAGG(REFERENCED_COLUMN_NAME) as referencedTableColumnNames,JSON_ARRAYAGG(ORDINAL_POSITION) as ordinalPosition,JSON_ARRAYAGG(POSITION_IN_UNIQUE_CONSTRAINT) as positionInUniqueConstraint FROM    INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE   ( REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email' ) OR ( TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL ) GROUP BY CONSTRAINT_NAME, CONSTRAINT_SCHEMA, TABLE_NAME, TABLE_SCHEMA, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME `,
+          },
+        ],
+      },
 
       selectFromTableFragment: [
         {
@@ -820,35 +832,65 @@ if (dialect === 'mariadb') {
       ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    _.each(suites, (suiteValue, suiteTitle) => {
       describe(suiteTitle, () => {
+        let generator;
         beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+          // mocha test context
+          //   REM: `this` behaves different with arrow functions
+          const ctx = this;
+          ctx.queryGenerator = new QueryGenerator({
+            sequelize: ctx.sequelize,
+            _dialect: ctx.sequelize.dialect,
           });
+          generator = ctx.queryGenerator;
         });
 
-        for (const test of tests) {
-          const query = test.expectation.query || test.expectation;
-          const title = test.title || `MariaDB correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
-            if (test.needsSequelize) {
-              if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+        // Assume objects have a version key and arrays are collection of tests
+        //   create an empty array of one element to iterate for all other
+        //   tests that don't have explicit versions set
+        const versions = Array.isArray(suiteValue) ? new Array(1) : Object.keys(suiteValue);
+        for (const version of versions) {
+          // when version is not supplied in test setup, `tests`
+          //   defaults to the array of tests
+          const tests = version ? suiteValue[version] : suiteValue;
+
+          for (const test of tests) {
+            const query = test.expectation.query || test.expectation;
+            const title = test.title || `MariaDB ${version ? `(v${version})` : ''} correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
+
+            it(title, function () {
+              // OVERRIDES
+              if (version) {
+                // Create a new sequelize instance so we don't corrupt other
+                //   tests by modifying options (like databaseVersion)
+                const newSequelize = createSequelizeInstance();
+
+                // setup a new generator for the specified version
+                const versionedQueryGenerator = new QueryGenerator({
+                  sequelize: newSequelize,
+                  _dialect: newSequelize.dialect,
+                });
+                versionedQueryGenerator.sequelize.options.databaseVersion = version;
+                generator = versionedQueryGenerator;
               }
 
-              if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+              if (test.needsSequelize) {
+                if (typeof test.arguments[1] === 'function') {
+                  test.arguments[1] = test.arguments[1](this.sequelize);
+                }
+
+                if (typeof test.arguments[2] === 'function') {
+                  test.arguments[2] = test.arguments[2](this.sequelize);
+                }
               }
-            }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
-
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
-            expect(conditions).to.deep.equal(test.expectation);
-          });
+              // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+              generator.options = { ...generator.options, ...test.context && test.context.options };
+              const conditions = generator[suiteTitle](...test.arguments);
+              expect(conditions).to.deep.equal(test.expectation);
+            });
+          }
         }
       });
     });

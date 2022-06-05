@@ -160,7 +160,7 @@ export class PostgresQueryInterface extends QueryInterface {
     const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
     const result = await this.sequelize.queryRaw(query, queryOptions);
 
-    return result.map(Utils.camelizeObjectKeys);
+    return result.map(Utils.camelizeKeys);
   }
 
   /**

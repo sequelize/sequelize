@@ -650,7 +650,7 @@ if (dialect === 'db2') {
       getForeignKeyQuery: [
         {
           arguments: ['User', 'email'],
-          expectation: 'SELECT R.CONSTNAME AS "constraintName", TRIM(R.TABSCHEMA) AS "constraintSchema", R.TABNAME AS "tableName", TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,\', \') WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName", TRIM(R.REFTABSCHEMA) AS "referencedTableSchema", R.REFTABNAME AS "referencedTableName", TRIM(R.PK_COLNAMES) AS "referencedColumnName" FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA AND R.TABNAME = C.TABNAME AND R.TABNAME = \'User\' AND C.COLNAME = \'email\' GROUP BY R.REFTABSCHEMA, R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
+          expectation: ` SELECT fktable_cat   AS "tableCatalog", fktable_schem AS "tableSchema", fktable_name  AS "tableName", LISTAGG(fkcolumn_name, ', ') WITHIN GROUP (ORDER BY key_seq) AS "tableColumnNames", 'FOREIGN KEY' AS "constraintType", fktable_schem AS "constraintSchema", fk_name       AS "constraintName", update_rule   AS "on_update", delete_rule   AS "on_delete", pktable_cat   AS "referencedTableCatalog", pktable_schem AS "referencedTableSchema", pktable_name  AS "referencedTableName", LISTAGG(pkcolumn_name, ', ') WITHIN GROUP (ORDER BY key_seq) AS "referencedTableColumnNames", pk_name       AS "referencedTableConstraintName" FROM    sysibm.sqlforeignkeys WHERE  AND R.TABNAME = 'User' AND C.COLNAME = 'email' GROUP BY fktable_cat, fktable_schem, fktable_name, 'FOREIGN KEY', fktable_schem, fk_name, update_rule, delete_rule, pktable_cat, pktable_schem, pktable_name, pk_name `,
         },
       ],
     };
@@ -682,6 +682,7 @@ if (dialect === 'db2') {
             this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
 
             const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+
             expect(conditions).to.deep.equal(test.expectation);
           });
         }

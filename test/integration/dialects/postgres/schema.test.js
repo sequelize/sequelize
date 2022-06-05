@@ -32,7 +32,7 @@ if (dialect.startsWith('postgres')) {
         // create a new user that will have restricted privileges
         await sequelize.query(`DROP USER IF EXISTS ${restricted.username};`);
         await sequelize.query(`CREATE USER ${restricted.username} WITH PASSWORD '${restricted.password}';`);
-        await sequelize.query(`REVOKE CREATE ON SCHEMA public FROM ${restricted.username};`);
+        await sequelize.query(`GRANT CREATE ON SCHEMA public TO public;`);
         await sequelize.query(`GRANT ALL PRIVILEGES ON SCHEMA testschema TO ${restricted.username};`);
 
         // connect restricted user to database
@@ -48,6 +48,7 @@ if (dialect.startsWith('postgres')) {
           },
         );
         this.restrictedConnection.options.quoteIdentifiers = true;
+        await this.restrictedConnection.authenticate();
 
         // query interfaces
         this.queryInterface = await sequelize.getQueryInterface();
@@ -55,32 +56,41 @@ if (dialect.startsWith('postgres')) {
       });
 
       afterEach(async () => {
-        const query = await sequelize.getQueryInterface();
-        await query.dropTable({ schema: 'public',     tableName: 'my_test_table' });
-        await query.dropTable({ schema: 'testschema', tableName: 'my_test_table' });
-        await query.dropTable({ schema: 'public',     tableName: 'shouldnt_create' });
-        await query.dropTable({ schema: 'testschema', tableName: 'shouldnt_create' });
+        await sequelize.query(`GRANT CREATE ON SCHEMA public TO public;`);
+
+        const qi = sequelize.getQueryInterface();
+        await qi.dropTable({ schema: 'public',     tableName: 'my_test_table' });
+        await qi.dropTable({ schema: 'testschema', tableName: 'my_test_table' });
+        await qi.dropTable({ schema: 'public',     tableName: 'shouldnt_create' });
+        await qi.dropTable({ schema: 'testschema', tableName: 'shouldnt_create' });
         await sequelize.dropSchema('testschema');
         await sequelize.query(`DROP USER IF EXISTS ${restricted.username};`);
       });
 
-      it.skip('prevents schema-privileged user from creating public tables', async () => {
-        expect(() => {
-          this.restrictedUserQI.createTable(
-            'shouldnt_create',
-            { name: DataTypes.STRING },
-            { schema: 'public' },
-          );
-        }).to.throw(); // or to.be.rejected
+      it('prevents an unauthorized user from creating tables in public schema', async () => {
+        // In Postgres exists a restricted 'public' role by default, which can't be deleted.
+        //   Everyone user inherits from it. Permissions are additive, which means users
+        //   can be revoked permissions individually, while still inheriting public's
+        //   permissions. But permissions can be removed from the 'public' role, which users
+        //   inherit.
+        // Remove 'public' role's permission from 'public' schema:
+        await sequelize.query(`REVOKE CREATE ON SCHEMA public FROM public;`);
+
+        await expect(this.restrictedUserQI.createTable(
+          'shouldnt_create',
+          { name: DataTypes.STRING },
+          { schema: 'public' },
+        )).to.be.rejectedWith(Error);
       });
 
-      it('allows schema-privileged user to create tables in schema', async () => {
+      it('allows an authorized user to create tables in a protected schema', async () => {
         // Create table in schema
-        await this.restrictedUserQI.createTable(
+        const response = this.restrictedUserQI.createTable(
           'my_test_table',
           { name: DataTypes.STRING },
           { schema: 'testschema' },
         );
+        await expect(response).to.eventually.be.fulfilled;
 
         // Retrieve tables in schema
         let tableNames = await this.restrictedUserQI.showAllTables({ schema: 'testschema' });
@@ -91,17 +101,17 @@ if (dialect.startsWith('postgres')) {
         expect(tableNames).to.deep.equal(['my_test_table']);
       });
 
-      it.skip('prevents schema-privileged from creating tables in protected schema', async () => {
-        await sequelize.query(`REVOKE CREATE PRIVILEGES ON SCHEMA testschema FROM ${restricted.username};`);
+      it('prevents an unauthorized user from creating tables in a protected schema', async () => {
+        await sequelize.query(`REVOKE CREATE ON SCHEMA testschema FROM ${restricted.username};`);
 
-        expect(() => {
+        await expect(
           // Create table in schema
           this.restrictedUserQI.createTable(
             'my_test_table',
             { name: DataTypes.STRING },
             { schema: 'testschema' },
-          );
-        }).to.throw();
+          ),
+        ).to.be.rejectedWith(Error);
 
         // Retrieve tables in schema
         let tableNames = await this.restrictedUserQI.showAllTables({ schema: 'testschema' });

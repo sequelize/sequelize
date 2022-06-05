@@ -1240,7 +1240,6 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     const tableName = this.getTableName(options);
-
     await this.queryInterface.createTable(tableName, attributes, options, this);
 
     if (options.alter) {
@@ -1248,9 +1247,8 @@ ${associationOwner._getAssociationDebugList()}`);
         this.queryInterface.describeTable(tableName, options),
         this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
       ]);
-      const columns = tableInfos[0];
-      // Use for alter foreign keys
-      const foreignKeyReferences = tableInfos[1];
+      // foreignKeyReferences are used for 'alter' foreign keys
+      const [columns, foreignKeyReferences] = tableInfos;
       const removedConstraints = {};
 
       for (const columnName in attributes) {
@@ -1284,14 +1282,19 @@ ${associationOwner._getAssociationDebugList()}`);
           if (currentAttribute.references) {
             const database = this.sequelize.config.database;
             const schema = this.sequelize.config.schema;
-            // Find existed foreign keys
+
+            // Find existing foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
+
+              // TODO: fix src/associations/helpers.ts::addForeignKeyConstraints to accept composite keys
+              const keys = new Set(Array.from([references.key]).flat());
+
               if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === references.model
-                && foreignKeyReference.referencedColumnName === references.key
+                && foreignKeyReference.referencedTableColumnNames.every(column => keys.has(column))
                 && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
                 && !removedConstraints[constraintName])
                 || this.sequelize.options.dialect === 'ibmi') {

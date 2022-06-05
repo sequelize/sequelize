@@ -17,9 +17,24 @@ export class Db2QueryInterface extends QueryInterface {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase());
+    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase(), options);
+    const foreignKeys = await this.sequelize.queryRaw(query, queryOptions);
 
-    return this.sequelize.queryRaw(query, queryOptions);
+    // convert Column field values to array
+    Array.from([foreignKeys]).flat().forEach(tuple => {
+      for (const key in tuple) {
+        if (key.toLowerCase().includes('column')) {
+          // db2/query-generator currently only supports LISTAGG()
+          //   this will need to be updated if it ever supports array_agg or
+          //   json_arrayagg refer to abstract/query-interface in that case
+          //   for a generic array-value gnerator
+          const listaggDelimiter = ', ';
+          tuple[key] = tuple[key].split(listaggDelimiter);
+        }
+      }
+    });
+
+    return foreignKeys;
   }
 
   async upsert(tableName, insertValues, updateValues, where, options) {

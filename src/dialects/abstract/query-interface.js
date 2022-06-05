@@ -2,12 +2,11 @@
 
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
-const _ = require('lodash');
-
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { Transaction } = require('../../transaction');
 const { QueryTypes } = require('../../query-types');
+const _ = require('lodash');
 
 /**
  * The interface that Sequelize uses to talk to all databases
@@ -330,7 +329,7 @@ export class QueryInterface {
       type: QueryTypes.SHOWTABLES,
     };
 
-    // Snowflake is the only dialect that expects database name
+    // Snowflake, MariaDb, and MySQL expect database name; `options` may include `schema`
     const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database, options);
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
@@ -612,13 +611,21 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async getForeignKeysForTables(tableNames, options) {
+    const generator = this.queryGenerator;
+    tableNames = Array.from([tableNames]).flat(); // force array
+
     if (tableNames.length === 0) {
       return {};
     }
 
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
+    const tablesDetails = tableNames.map(v => generator.extractTableDetails(v, options));
 
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+    const results = await Promise.all(tablesDetails.map(async tableParts => {
+      const foreignKeysQuery = this.queryGenerator.getForeignKeysQuery(tableParts, this.sequelize.config.database, options);
+
+      return this.sequelize.queryRaw(foreignKeysQuery, options);
+    }));
     const result = {};
 
     for (let [i, tableName] of tableNames.entries()) {
@@ -641,8 +648,8 @@ export class QueryInterface {
    * Get foreign key references details for the table
    *
    * Those details contains constraintSchema, constraintName, constraintCatalog
-   * tableCatalog, tableSchema, tableName, columnName,
-   * referencedTableCatalog, referencedTableCatalog, referencedTableSchema, referencedTableName, referencedColumnName.
+   * tableCatalog, tableSchema, tableName, tableColumnNames,
+   * referencedTableCatalog, referencedTableCatalog, referencedTableSchema, referencedTableName, referencedTableColumnNames.
    * Remind: constraint informations won't return if it's sqlite.
    *
    * @param {string} tableName table name
@@ -653,9 +660,20 @@ export class QueryInterface {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
 
-    return this.sequelize.queryRaw(query, queryOptions);
+    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database, options);
+    const foreignKeys = await this.sequelize.queryRaw(query, queryOptions);
+
+    // convert Column field values to array
+    Array.from([foreignKeys]).flat().forEach(tuple => {
+      for (const key in tuple) {
+        if (key.toLowerCase().includes('column')) {
+          tuple[key] = Array.from([tuple[key]]).flat();
+        }
+      }
+    });
+
+    return foreignKeys;
   }
 
   /**

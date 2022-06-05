@@ -269,6 +269,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
 
   attributesToSQL(attributes, options) {
     const result = {};
+
     for (const name in attributes) {
       const dataType = attributes[name];
       const fieldName = dataType.field || name;
@@ -303,8 +304,10 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
           const referencesTable = this.quoteTable(dataType.references.model);
 
           let referencesKey;
-          if (dataType.references.key) {
-            referencesKey = this.quoteIdentifier(dataType.references.key);
+          const foreignKeys = Array.from([dataType.references.key]).flat().filter(v => !!v);
+
+          if (dataType.references?.key && foreignKeys.length) {
+            referencesKey = foreignKeys.map(foreignKeyColumn => this.quoteIdentifier(foreignKeyColumn)).join(', ');
           } else {
             referencesKey = this.quoteIdentifier('id');
           }

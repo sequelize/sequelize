@@ -722,23 +722,26 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
    * @returns {string}
    */
   _getForeignKeysQueryPrefix(catalogName) {
-    return `SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, ${
-      catalogName ? `constraintCatalog = '${catalogName}', ` : ''
-    }constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), `
-      + 'tableName = TB.NAME, '
-      + `tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), ${
-        catalogName ? `tableCatalog = '${catalogName}', ` : ''
-      }columnName = COL.NAME, `
-      + `referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), ${
-        catalogName ? `referencedCatalog = '${catalogName}', ` : ''
-      }referencedTableName = RTB.NAME, `
-      + 'referencedColumnName = RCOL.NAME '
-      + 'FROM sys.foreign_key_columns FKC '
-      + 'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID '
-      + 'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID '
-      + 'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID '
-      + 'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID '
-      + 'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID';
+    return Utils.toSingleLine(`
+      SELECT constraint_name = OBJ.NAME,
+             constraintName = OBJ.NAME,
+             ${catalogName ? `constraintCatalog = '${catalogName}', ` : ''}
+             constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
+             tableName = TB.NAME,
+             tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
+             ${catalogName ? `tableCatalog = '${catalogName}', ` : ''}
+             tableColumnNames = COL.NAME,
+             referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
+             ${catalogName ? `referencedCatalog = '${catalogName}', ` : ''}
+             referencedTableName = RTB.NAME,
+             referencedTableColumnNames = RCOL.NAME
+      FROM sys.foreign_key_columns FKC
+      INNER JOIN sys.objects OBJ  ON OBJ.OBJECT_ID  = FKC.CONSTRAINT_OBJECT_ID
+      INNER JOIN sys.tables TB    ON TB.OBJECT_ID   = FKC.PARENT_OBJECT_ID
+      INNER JOIN sys.columns COL  ON COL.COLUMN_ID  = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID
+      INNER JOIN sys.tables RTB   ON RTB.OBJECT_ID  = FKC.REFERENCED_OBJECT_ID
+      INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID
+    `);
   }
 
   /**

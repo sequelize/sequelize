@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           expect(newForeignKeys).to.be.an('array');
           expect(newForeignKeys).to.have.lengthOf(1);
-          expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+          expect(newForeignKeys[0].tableColumnNames).to.eql(['level_id']); // `to.eql` is deep-equal of arrays
         });
 
         it('able to change column property without affecting other properties', async function () {
@@ -205,8 +205,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             onDelete: 'cascade',
           });
 
-          const keys = await this.queryInterface.getForeignKeyReferencesForTable('users');
-          const firstForeignKeys = keys;
+          const firstForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
@@ -215,8 +214,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
-          expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
-          expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
+          expect(firstForeignKeys[0].tableColumnNames).to.eql(['level_id']);
+          expect(firstForeignKeys[0].tableColumnNames).to.eql(newForeignKeys[0].tableColumnNames);
 
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
@@ -342,27 +341,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
-
         await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
         let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
         expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].tableColumnNames).to.eql(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedTableColumnNames).to.eql(['id']);
 
         await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
         refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
         expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].tableColumnNames).to.eql(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedTableColumnNames).to.eql(['id']);
 
         await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
         refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
         expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].tableColumnNames).to.eql(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedTableColumnNames).to.eql(['id']);
       });
     }
   });

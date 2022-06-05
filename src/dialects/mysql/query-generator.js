@@ -1,10 +1,10 @@
 'use strict';
 
-const _ = require('lodash');
-const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
-const util = require('util');
 const { Op } = require('../../operators');
+const Utils = require('../../utils');
+const util = require('util');
+const _ = require('lodash');
 
 const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
 const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
@@ -17,11 +17,13 @@ const FOREIGN_KEY_FIELDS = [
   'TABLE_NAME as tableName',
   'TABLE_SCHEMA as tableSchema',
   'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
+  'JSON_ARRAYAGG(COLUMN_NAME) as tableColumnNames',
   'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
   'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
   'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
+  'JSON_ARRAYAGG(REFERENCED_COLUMN_NAME) as referencedTableColumnNames',
+  'JSON_ARRAYAGG(ORDINAL_POSITION) as ordinalPosition',
+  'JSON_ARRAYAGG(POSITION_IN_UNIQUE_CONSTRAINT) as positionInUniqueConstraint',
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
@@ -515,15 +517,25 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
    */
   getForeignKeysQuery(table, schemaName) {
     const tableName = table.tableName || table;
+    schemaName = schemaName ?? this.sequelize.config.database;
 
-    return Utils.joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
-      `AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='${schemaName}'`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ';',
-    ]);
+    return Utils.toSingleLine(`
+      SELECT
+              ${FOREIGN_KEY_FIELDS}
+      FROM    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+      WHERE   TABLE_NAME = ${this.escape(tableName)}
+              AND CONSTRAINT_NAME != 'PRIMARY'
+              AND CONSTRAINT_SCHEMA = ${this.escape(schemaName)}
+              AND REFERENCED_TABLE_NAME IS NOT NULL
+      GROUP BY
+              CONSTRAINT_NAME,
+              CONSTRAINT_SCHEMA,
+              TABLE_NAME,
+              TABLE_SCHEMA,
+              REFERENCED_TABLE_SCHEMA,
+              REFERENCED_TABLE_NAME
+      ;
+    `);
   }
 
   /**
@@ -539,25 +551,29 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     const quotedTableName = wrapSingleQuote(table.tableName || table);
     const quotedColumnName = wrapSingleQuote(columnName);
 
-    return Utils.joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE (',
-      [
-        `REFERENCED_TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
-      ],
-      ') OR (',
-      [
-        `TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND COLUMN_NAME = ${quotedColumnName}`,
-        'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ],
-      ')',
-    ]);
+    return Utils.toSingleLine(`
+      SELECT
+              ${FOREIGN_KEY_FIELDS}
+      FROM    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+      WHERE   (
+                REFERENCED_TABLE_NAME = ${quotedTableName}
+                ${table.schema ? `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}` : ''}
+                AND REFERENCED_COLUMN_NAME = ${quotedColumnName}
+              )
+              OR (
+                TABLE_NAME = ${quotedTableName}
+                ${table.schema ? `AND TABLE_SCHEMA = ${quotedSchemaName}` : ''}
+                AND COLUMN_NAME = ${quotedColumnName}
+                AND REFERENCED_TABLE_NAME IS NOT NULL
+              )
+      GROUP BY
+              CONSTRAINT_NAME,
+              CONSTRAINT_SCHEMA,
+              TABLE_NAME,
+              TABLE_SCHEMA,
+              REFERENCED_TABLE_SCHEMA,
+              REFERENCED_TABLE_NAME
+    `);
   }
 
   /**

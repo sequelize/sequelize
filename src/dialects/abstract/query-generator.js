@@ -47,12 +47,24 @@ export class AbstractQueryGenerator {
     this._initQuoteIdentifier();
   }
 
+  defaultSchema(dialect = this.options.dialect) {
+    const config = this.sequelize.config;
+
+    return {
+      postgres: 'public',
+      db2: config.username?.toUpperCase(),
+      mssql: 'Dbo',
+      mysql: config.database,
+      mariadb: config.database,
+    }[dialect];
+  }
+
   extractTableDetails(tableName, options) {
     options = options || {};
     tableName = tableName || {};
 
     return {
-      schema: tableName.schema || options.schema || 'public',
+      schema: tableName.schema || options.schema || this.defaultSchema() || '',
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.',
     };

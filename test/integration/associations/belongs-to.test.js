@@ -665,19 +665,21 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
-
       await this.sequelize.sync({ force: true });
+
       const newUser = await User.create({ username: 'bob' });
       const newTask = await Task.create({ title: 'some task' });
       await newTask.setUser(newUser);
+
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
+
       const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'username',
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedTableColumnNames: ['username'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        tableColumnNames: ['user_name'],
       });
     });
 
@@ -703,10 +705,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
       const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'user_name',
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedTableColumnNames: ['user_name'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        tableColumnNames: ['user_name'],
       });
     });
 
@@ -731,10 +733,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
       const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedTableColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        tableColumnNames: ['user_name'],
       });
     });
 
@@ -768,10 +770,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
       const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedTableColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        tableColumnNames: ['user_name'],
       });
     });
   });

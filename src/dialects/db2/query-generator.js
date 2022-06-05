@@ -26,11 +26,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   createSchema(schema) {
-    return [
-      'CREATE SCHEMA',
-      this.quoteIdentifier(schema),
-      ';',
-    ].join(' ');
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   dropSchema(schema) {
@@ -49,8 +45,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   showSchemasQuery() {
-    return 'SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE '
-      + '(SCHEMANAME NOT LIKE \'SYS%\') AND SCHEMANAME NOT IN (\'NULLID\', \'SQLJ\', \'ERRORSCHEMA\')';
+    return Utils.toSingleLine(`
+      SELECT TRIM(schemaname) AS "schema_name"
+      FROM   syscat.schemata
+      WHERE  (schemaname NOT LIKE 'SYS%')
+         AND schemaname NOT IN ('NULLID', 'SQLJ', 'ERRORSCHEMA')
+    `);
   }
 
   versionQuery() {
@@ -181,8 +181,20 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     });
   }
 
-  showTablesQuery() {
-    return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
+  showTablesQuery(_database, options) {
+    // TODO: research if 'USER' is correct --
+    //   it was left in from a prior commit. DB2 used to (and still may)
+    //   default to logged-in user
+    // const schemaName = options.schema || 'USER';
+    const schemaName = options.schema || '';
+
+    return Utils.toSingleLine(`
+      SELECT   TRIM(tabname)   AS "tableName",
+               TRIM(tabschema) AS "schema"
+      FROM     syscat.tables
+      WHERE    type = 'T' AND tabschema ${schemaName ? `= ${this.escape(schemaName)}` : `NOT IN ('SYSIBM', 'SYSTOOLS')`}
+      ORDER BY tabschema, tabname;
+    `);
   }
 
   dropTableQuery(tableName) {
@@ -751,59 +763,114 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
    * @returns {string}
    */
   _getForeignKeysQuerySQL(condition) {
-    return 'SELECT R.CONSTNAME AS "constraintName", '
-        + 'TRIM(R.TABSCHEMA) AS "constraintSchema", '
-        + 'R.TABNAME AS "tableName", '
-        + 'TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,\', \') '
-        + 'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName", '
-        + 'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema", '
-        + 'R.REFTABNAME AS "referencedTableName", '
-        + 'TRIM(R.PK_COLNAMES) AS "referencedColumnName" '
-        + 'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C '
-        + 'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA '
-        + `AND R.TABNAME = C.TABNAME${condition} GROUP BY R.REFTABSCHEMA, `
-        + 'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES';
+    const SQL = `
+      SELECT
+              fktable_cat   AS "tableCatalog",
+              fktable_schem AS "tableSchema",
+              fktable_name  AS "tableName",
+              LISTAGG(fkcolumn_name, ', ') WITHIN GROUP (ORDER BY key_seq) AS "tableColumnNames",
+              'FOREIGN KEY' AS "constraintType",
+              fktable_schem AS "constraintSchema",
+              fk_name       AS "constraintName",
+              update_rule   AS "on_update",
+              delete_rule   AS "on_delete",
+              pktable_cat   AS "referencedTableCatalog",
+              pktable_schem AS "referencedTableSchema",
+              pktable_name  AS "referencedTableName",
+              LISTAGG(pkcolumn_name, ', ') WITHIN GROUP (ORDER BY key_seq) AS "referencedTableColumnNames",
+              pk_name       AS "referencedTableConstraintName"
+      FROM    sysibm.sqlforeignkeys
+      ${condition && `WHERE ${condition}`}
+      GROUP BY
+              fktable_cat,
+              fktable_schem,
+              fktable_name,
+              'FOREIGN KEY',
+              fktable_schem,
+              fk_name,
+              update_rule,
+              delete_rule,
+              pktable_cat,
+              pktable_schem,
+              pktable_name,
+              pk_name
+    `;
+
+    return Utils.toSingleLine(SQL);
   }
 
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param {Stirng|object} table The name of the table.
-   * @param {string} schemaName   The name of the schema.
-   * @returns {string}            The generated sql query.
+   * @param {string|object|Array} table
+   *        The name of the table as a tring
+   *        The tableName and/or schema in an object
+   *        An array of objets
+   *
+   * @param {string} _database
+   *        The name of the database
+   *
+   * @param {object} [options]
+   * @param {string} [options.schema]
+   *        The name of the schema
+   *
+   * @returns {string} The generated sql query.
    */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-    schemaName = table.schema || schemaName;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
-    }
+  getForeignKeysQuery(table, _database, options) {
+    let tableName = table.tableName || table;
+    let schemaName = table?.schema || options?.schema || '';
 
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
-    }
+    const tableDetails = Array.isArray(table) ? table : [{ tableName, schema: schemaName }];
 
-    return this._getForeignKeysQuerySQL(sql);
+    /*
+      Example expected translation:
+        FROM:  [ {tableName: 'foo'}, {tableName: 'bar', schema: 'private'}, {}]
+        TO:    "( ref.tabname = 'foo' ) OR ( ref.tabname = 'bar' AND ref.tabschema = 'private' ) "
+
+      Syntax Help:
+        `filter(v => !!v)` is used to discard falsy values ( or keep truthy)
+    */
+    let whereConditions = tableDetails.map(tableAndOrSchema => {
+      tableName = tableAndOrSchema.tableName || '';
+      schemaName = tableAndOrSchema?.schema || options?.schema || '';
+
+      const expressions = [];
+
+      if (tableName) {
+        expressions.push(`fktable_name = ${this.escape(tableName)}`);
+      }
+
+      if (schemaName) {
+        expressions.push(`fktable_schem = ${this.escape(schemaName)}`);
+      }
+
+      return expressions.filter(v => !!v).join(' AND ');
+    });
+
+    // filter out undefineds & blank strings and wrap in parentheses
+    whereConditions = whereConditions.filter(v => !!v).map(expr => `( ${expr} )`).join(' OR ');
+
+    return this._getForeignKeysQuerySQL(whereConditions);
   }
 
   getForeignKeyQuery(table, columnName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
-    let sql = '';
+
+    const whereConditions = [];
     if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
+      whereConditions.push(` AND R.TABNAME = ${wrapSingleQuote(tableName)}`);
     }
 
     if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
+      whereConditions.push(` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`);
     }
 
     if (columnName) {
-      sql += ` AND C.COLNAME = ${wrapSingleQuote(columnName)}`;
+      whereConditions.push(` AND C.COLNAME = ${wrapSingleQuote(columnName)}`);
     }
 
-    return this._getForeignKeysQuerySQL(sql);
+    return this._getForeignKeysQuerySQL(whereConditions.join(''));
   }
 
   getPrimaryKeyConstraintQuery(table, attributeName) {
@@ -820,7 +887,9 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {
-    return _.template('ALTER TABLE <%= table %> DROP <%= key %>', this._templateSettings)({
+    const sql = 'ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;';
+
+    return _.template(sql, this._templateSettings)({
       table: this.quoteTable(tableName),
       key: this.quoteIdentifier(foreignKey),
     });
