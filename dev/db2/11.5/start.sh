@@ -4,13 +4,15 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 
 export DIALECT=db2
 
-mkdir -p /Docker
+# This is local for the online workflow
+mkdir -p Docker
+
 if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ]; 
 	then
     # cleanup
     sudo docker rm -f db2server
-		sudo rm -rf /Docker
+		sudo rm -rf Docker
 	fi
 	# NOTE: consider adding --cpus and --memory options to improve performance
 	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database ibmcom/db2-amd64:11.5.6.0a
