@@ -28,7 +28,7 @@ import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
-import { camelize } from '../utils';
+import { camelize, removeUndefined } from '../utils';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type {
   AssociationScope,
@@ -45,9 +45,9 @@ import { HasMany } from './has-many';
 import { HasOne } from './has-one';
 import type { AssociationStatic } from './helpers';
 import {
-  AssociationConstructorSecret,
+  AssociationSecret,
   defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions, normalizeForeignKeyOptions, removeUndefined,
+  mixinMethods, normalizeBaseAssociationOptions, normalizeForeignKeyOptions,
 } from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
@@ -227,27 +227,27 @@ export class BelongsToMany<
         secret,
         target,
         source,
-        {
+        removeUndefined({
           ...options,
           // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
           as: options.inverse?.as,
           scope: options.inverse?.scope,
           foreignKeyConstraints: options.inverse?.foreignKeyConstraints,
 
-          inverse: {
+          inverse: removeUndefined({
             as: options.as,
             scope: options.scope,
             foreignKeyConstraints: options.foreignKeyConstraints,
-          },
+          }),
           sourceKey: options.targetKey,
           targetKey: options.sourceKey,
           foreignKey: options.otherKey,
           otherKey: options.foreignKey,
-          through: {
+          through: removeUndefined({
             ...options.through,
             scope: undefined,
-          },
-        },
+          }),
+        }),
         this,
         this,
       );
@@ -271,7 +271,7 @@ export class BelongsToMany<
 
     const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
 
-    this.fromSourceToThrough = HasMany.associate(AssociationConstructorSecret, this.source, this.throughModel, {
+    this.fromSourceToThrough = HasMany.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
       as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
       scope: this.through.scope,
       foreignKey: {
@@ -288,9 +288,9 @@ export class BelongsToMany<
       inverse: {
         as: this.pairedWith.name.singular,
       },
-    }, this);
+    }), this);
 
-    this.fromSourceToThroughOne = HasOne.associate(AssociationConstructorSecret, this.source, this.throughModel, {
+    this.fromSourceToThroughOne = HasOne.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
       as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
       scope: this.through.scope,
       // foreignKey: this.options.foreignKey,
@@ -308,7 +308,7 @@ export class BelongsToMany<
       inverse: {
         as: this.pairedWith.name.singular,
       },
-    }, this);
+    }), this);
 
     // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
     const plural = upperFirst(this.options.name.plural);
@@ -465,13 +465,13 @@ Add your own primary key to the through model, on different attributes than the 
       };
     }
 
-    addInclude(findOptions, {
+    addInclude(findOptions, removeUndefined({
       association: this.fromTargetToThroughOne,
       attributes: options?.joinTableAttributes,
       required: true,
       paranoid: options?.through?.paranoid ?? true,
       where: throughWhere,
-    });
+    }));
 
     let model = this.target;
     if (options?.scope != null) {
@@ -836,7 +836,7 @@ function normalizeThroughOptions<M extends Model>(
   } else if (sequelize.isDefined(through.model)) {
     model = sequelize.model(through.model) as ModelStatic<M>;
   } else {
-    model = sequelize.define(through.model, {} as ModelAttributes<M>, {
+    model = sequelize.define(through.model, {} as ModelAttributes<M>, removeUndefined({
       tableName: through.model,
       indexes: [], // we don't want indexes here (as referenced in #2416)
       paranoid: through.paranoid || false, // Default to non-paranoid join (referenced in #11991)
@@ -847,14 +847,14 @@ function normalizeThroughOptions<M extends Model>(
       schema: source._schema,
       // @ts-expect-error
       schemaDelimiter: source._schemaDelimiter,
-    });
+    }));
   }
 
-  return {
+  return removeUndefined({
     ...through,
     timestamps,
     model,
-  };
+  });
 }
 
 function normalizeOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
