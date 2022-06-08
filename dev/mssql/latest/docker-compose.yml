@@ -1,6 +1,6 @@
 services:
-  mssql-2022:
-    container_name: sequelize-mssql-2022
+  mssql-latest:
+    container_name: sequelize-mssql-latest
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: Y
@@ -15,4 +15,4 @@ services:
 
 networks:
   default:
-    name: sequelize-mssql-2022-network
+    name: sequelize-mssql-latest-network
