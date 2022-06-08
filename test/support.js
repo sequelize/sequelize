@@ -223,14 +223,15 @@ const Support = {
   expectsql(query, assertions) {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
+    const dialect = Support.sequelize.dialect;
 
     if (!expectation) {
       if (expectations['default'] !== undefined) {
         expectation = expectations['default'];
         if (typeof expectation === 'string') {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          // replace [...] with the proper quote character for the dialect
+          // except for ARRAY[...]
+          expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         }
       } else {
         throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
@@ -240,7 +241,7 @@ const Support = {
     if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
-      expect(query.query || query).to.equal(expectation);
+      expect(Support.minifySql(query.query || query)).to.equal(Support.minifySql(expectation));
     }
 
     if (assertions.bind) {
@@ -266,8 +267,12 @@ const Support = {
   minifySql(sql) {
     // replace all consecutive whitespaces with a single plain space character
     return sql.replace(/\s+/g, ' ')
-      // remove space before coma
+      // remove space before comma
       .replace(/ ,/g, ',')
+      // remove space before )
+      .replace(/ \)/g, ')')
+      // replace space after (
+      .replace(/\( /g, '(')
       // remove whitespace at start & end
       .trim();
   },

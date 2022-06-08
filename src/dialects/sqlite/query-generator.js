@@ -457,12 +457,16 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {string} tableName  The name of the table.
+   * @param  {TableName} tableName  The name of the table.
    * @returns {string}            The generated sql query.
    * @private
    */
   getForeignKeysQuery(tableName) {
     return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+  }
+
+  tableExistsQuery(tableName) {
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
   }
 
   /**

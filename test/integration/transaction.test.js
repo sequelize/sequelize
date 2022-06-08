@@ -422,7 +422,11 @@ if (current.dialect.supports.transactions) {
     });
 
     if (['mysql', 'mariadb'].includes(dialect)) {
-      describe('deadlock handling', () => {
+      // Both MariaDB and MySQL (probably innoDB) seem to have changed the way they handle this deadlock
+      //  and the deadlock does not occur anymore.
+      // We have not managed to recreate this deadlock and, for now, are disabling this test.
+      // See https://github.com/sequelize/sequelize/issues/14174
+      describe.skip('deadlock handling', () => {
         // Create the `Task` table and ensure it's initialized with 2 rows
         const getAndInitializeTaskModel = async sequelize => {
           const Task = sequelize.define('task', {

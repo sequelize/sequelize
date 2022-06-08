@@ -380,6 +380,11 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
+  tableExistsQuery(table) {
+    const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
+    return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${wrapSingleQuote(tableName)} AND OWNER = ${table.schema ? wrapSingleQuote(schemaName) : 'USER'}`;
+  }
+
   /**
    * Generates a name for an unique constraint with the pattern : uniqTABLENAMECOLUMNNAMES
    * If this indexName is too long for Oracle, it's hashed to have an acceptable length
@@ -904,7 +909,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
-  attributeToSQL(attribute) {
+  attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute
@@ -998,7 +1003,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
 
       if (attribute.references.key) {
@@ -1007,7 +1012,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
         template += ` (${this.quoteIdentifier('id') })`;
       }
 
-      if (attribute.onDelete) {
+      if (attribute.onDelete && attribute.onDelete.toUpperCase() !== 'NO ACTION') {
         template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
       }
     }

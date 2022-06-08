@@ -175,6 +175,16 @@ class Db2QueryGenerator extends AbstractQueryGenerator {
     return "SELECT TABNAME AS \"tableName\", TRIM(TABSCHEMA) AS \"tableSchema\" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME";
   }
 
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    // The default schema is the authorization ID of the owner of the plan or package.
+    // https://www.ibm.com/docs/en/db2-for-zos/12?topic=concepts-db2-schemas-schema-qualifiers
+    const schemaName = table.schema || this.sequelize.config.username.toUpperCase();
+
+    // https://www.ibm.com/docs/en/db2-for-zos/11?topic=tables-systables
+    return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
+  }
+
   dropTableQuery(tableName) {
     const query = 'DROP TABLE <%= table %>';
     const values = {
@@ -621,7 +631,7 @@ class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = `${options.tableName }_${ attrName }_fidx`;

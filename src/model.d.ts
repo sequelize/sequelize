@@ -6,8 +6,8 @@ import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { IndexesOptions, QueryOptions, TableName } from './dialects/abstract/query-interface';
 import { Sequelize, SyncOptions } from './sequelize';
-import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction } from './utils';
-import { LOCK, Transaction, Op } from './index';
+import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json } from './utils';
+import { LOCK, Transaction, Op, Optional } from './index';
 import { SetRequired } from './utils/set-required';
 
 export interface Logging {
@@ -106,225 +106,430 @@ export interface ScopeOptions {
   method: string | readonly [string, ...unknown[]];
 }
 
+type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
+
+/**
+ * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
+ * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
+ *
+ * Example of plain-array treated as `Op.and`:
+ * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
+ *
+ * Meant to be used by {@link WhereOptions}.
+ */
+type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
+  // this is the equivalent of Op.and
+  | T
+  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
+  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
+  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
+>;
+
+/**
+ * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
+ * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
+ *
+ * Example of plain-array NOT treated as Op.and:
+ * User.findAll({ where: { id: [1, 2] } });
+ *
+ * Meant to be used by {@link WhereAttributeHashValue}.
+ */
+type AllowNotOrAndRecursive<T> =
+  | T
+  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
+  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
+  | { [Op.not]: AllowNotOrAndRecursive<T> };
+
+type AllowArray<T> = T | T[];
+type AllowAnyAll<T> =
+  | T
+  // Op.all: [x, z] results in ALL (ARRAY[x, z])
+  // Some things cannot go in ARRAY. Op.values must be used to support them.
+  | { [Op.all]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
+  | { [Op.any]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
+
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions<TAttributes = any> =
+export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
   | WhereAttributeHash<TAttributes>
-  | AndOperator<TAttributes>
-  | OrOperator<TAttributes>
   | Literal
   | Fn
-  | Where;
+  | Where
+  | Json
+>;
 
 /**
- * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
- *
- * _PG only_
+ * @deprecated unused
  */
 export interface AnyOperator {
-  [Op.any]: readonly (string | number)[];
+  [Op.any]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
-/** TODO: Undocumented? */
+/** @deprecated unused */
 export interface AllOperator {
-  [Op.all]: readonly (string | number | Date | Literal)[];
+  [Op.all]: readonly (string | number | Date | Literal)[] | Literal;
 }
 
-export type Rangable = readonly [number, number] | readonly [Date, Date] | readonly [string, string] | Literal;
+// number is always allowed because -Infinity & +Infinity are valid
+export type Rangable<T> = readonly [
+  lower: T | RangePart<T | number> | number | null,
+  higher: T | RangePart<T | number> | number | null
+] | EmptyRange;
 
 /**
- * Operators that can be used in WhereOptions
+ * This type represents the output of the {@link RANGE} data type.
+ */
+// number is always allowed because -Infinity & +Infinity are valid
+export type Range<T> = readonly [lower: RangePart<T | number>, higher: RangePart<T | number>] | EmptyRange;
+
+type EmptyRange = [];
+
+type RangePart<T> = { value: T, inclusive: boolean };
+
+/**
+ * Internal type - prone to changes. Do not export.
+ * @private
+ */
+export type ColumnReference = Col | { [Op.col]: string };
+
+/**
+ * Internal type - prone to changes. Do not export.
+ * @private
+ */
+type WhereSerializableValue = boolean | string | number | Buffer | Date;
+
+/**
+ * Internal type - prone to changes. Do not export.
+ * @private
+ */
+type OperatorValues<AcceptableValues> =
+  | StaticValues<AcceptableValues>
+  | DynamicValues<AcceptableValues>;
+
+/**
+ * Represents acceptable Dynamic values.
+ *
+ * Dynamic values, as opposed to {@link StaticValues}. i.e. column references, functions, etc...
+ */
+type DynamicValues<AcceptableValues> =
+  | Literal
+  | ColumnReference
+  | Fn
+  | Cast
+  // where() can only be used on boolean attributes
+  | (AcceptableValues extends boolean ? Where : never)
+
+/**
+ * Represents acceptable Static values.
+ *
+ * Static values, as opposed to {@link DynamicValues}. i.e. booleans, strings, etc...
+ */
+type StaticValues<Type> =
+  Type extends Range<infer RangeType> ? [lower: RangeType | RangePart<RangeType>, higher: RangeType | RangePart<RangeType>]
+  : Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]>}
+  : Type extends null ? Type | WhereSerializableValue | null
+  : Type | WhereSerializableValue;
+
+/**
+ * Operators that can be used in {@link WhereOptions}
+ *
+ * @typeParam AttributeType - The JS type of the attribute the operator is operating on.
  *
  * See https://sequelize.org/master/en/v3/docs/querying/#operators
  */
-export interface WhereOperators {
-  /**
-   * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
-   *
-   * _PG only_
-   */
-
-   /** Example: `[Op.eq]: 6,` becomes `= 6` */
-  [Op.eq]?: null | boolean | string | number | Literal | WhereOperators | Col | AndOperator | OrOperator;
-
-  [Op.any]?: readonly (string | number | Literal)[] | Literal;
-
-  /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date | Literal | Col;
-
-  /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date | Literal | Col;
-
-  /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date | Literal | Col;
-
-  /** Example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
-  [Op.match]?: Fn;
-
-  /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: null | string | number | Literal | WhereOperators;
-
-  /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
-
-  /** Example: `[Op.is]: null,` becomes `IS NULL` */
-  [Op.is]?: null;
-
-  /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: Rangable;
-
-  /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: readonly (string | number | Literal)[] | Literal;
-
-  /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: readonly (string | number | Literal)[] | Literal;
+// TODO: default to something more strict than `any` which lists serializable values
+export interface WhereOperators<AttributeType = any> {
+   /**
+    * @example: `[Op.eq]: 6,` becomes `= 6`
+    * @example: `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
+    * @example: `[Op.eq]: null` becomes `IS NULL`
+    * @example: `[Op.eq]: true` becomes `= true`
+    * @example: `[Op.eq]: literal('raw sql')` becomes `= raw sql`
+    * @example: `[Op.eq]: col('column')` becomes `= "column"`
+    * @example: `[Op.eq]: fn('NOW')` becomes `= NOW()`
+    */
+  [Op.eq]?: AllowAnyAll<OperatorValues<AttributeType>>;
 
   /**
-   * Examples:
-   *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
-   *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.ne]: 20,` becomes `!= 20`
+   * @example: `[Op.ne]: [20, 21]` becomes `!= ARRAY[20, 21]`
+   * @example: `[Op.ne]: null` becomes `IS NOT NULL`
+   * @example: `[Op.ne]: true` becomes `!= true`
+   * @example: `[Op.ne]: literal('raw sql')` becomes `!= raw sql`
+   * @example: `[Op.ne]: col('column')` becomes `!= "column"`
+   * @example: `[Op.ne]: fn('NOW')` becomes `!= NOW()`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator | Fn;
+  [Op.ne]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq
 
   /**
-   * Examples:
-   *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
-   *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.is]: null` becomes `IS NULL`
+   * @example: `[Op.is]: true` becomes `IS TRUE`
+   * @example: `[Op.is]: literal('value')` becomes `IS value`
    */
-  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
+
+  /**
+   * @example: `[Op.not]: true` becomes `IS NOT TRUE`
+   * @example: `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
+   */
+  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+
+  /** @example: `[Op.gte]: 6` becomes `>= 6` */
+  [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
+
+  /** @example: `[Op.lte]: 10` becomes `<= 10` */
+  [Op.lte]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
+
+  /** @example: `[Op.lt]: 10` becomes `< 10` */
+  [Op.lt]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
+
+  /** @example: `[Op.gt]: 6` becomes `> 6` */
+  [Op.gt]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
+
+  /**
+   * @example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10`
+   */
+  [Op.between]?:
+    | [
+      lowerInclusive: OperatorValues<NonNullable<AttributeType>>,
+      higherInclusive: OperatorValues<NonNullable<AttributeType>>,
+    ]
+    | Literal;
+
+  /** @example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
+  [Op.notBetween]?: WhereOperators<AttributeType>[typeof Op.between];
+
+  /** @example: `[Op.in]: [1, 2],` becomes `IN (1, 2)` */
+  [Op.in]?: ReadonlyArray<OperatorValues<NonNullable<AttributeType>>> | Literal;
+
+  /** @example: `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)` */
+  [Op.notIn]?: WhereOperators<AttributeType>[typeof Op.in];
+
+  /**
+   * @example: `[Op.like]: '%hat',` becomes `LIKE '%hat'`
+   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   */
+  [Op.like]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
+
+  /**
+   * @example: `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
+   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
+   */
+  [Op.notLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
    * case insensitive PG only
    *
-   * Examples:
-   *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
-   *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
+   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
-
-  /**
-   * PG array overlap operator
-   *
-   * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
-   */
-  [Op.overlap]?: Rangable;
-
-  /**
-   * PG array contains operator
-   *
-   * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
-   */
-  [Op.contains]?: readonly (string | number)[] | Rangable;
-
-  /**
-   * PG array contained by operator
-   *
-   * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
-   */
-  [Op.contained]?: readonly (string | number)[] | Rangable;
-
-  /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date | Literal | Col;
+  [Op.iLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
    * PG only
    *
-   * Examples:
-   *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
-   *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
+   * @example: `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
+   * @example: `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notILike]?: WhereOperators<AttributeType>[typeof Op.like];
 
-  /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-  [Op.notBetween]?: Rangable;
+  /**
+   * PG array & range 'overlaps' operator
+   *
+   * @example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
+   */
+  // https://www.postgresql.org/docs/14/functions-range.html range && range
+  // https://www.postgresql.org/docs/14/functions-array.html array && array
+  [Op.overlap]?: AllowAnyAll<
+    | (
+      // RANGE && RANGE
+      AttributeType extends Range<infer RangeType> ? Rangable<RangeType>
+      // ARRAY && ARRAY
+      : AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>>
+      : never
+    )
+    | DynamicValues<AttributeType>
+  >;
+
+  /**
+   * PG array & range 'contains' operator
+   *
+   * @example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
+   */
+  // https://www.postgresql.org/docs/14/functions-json.html jsonb @> jsonb
+  // https://www.postgresql.org/docs/14/functions-range.html range @> range ; range @> element
+  // https://www.postgresql.org/docs/14/functions-array.html array @> array
+  [Op.contains]?:
+    // RANGE @> ELEMENT
+    | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>> : never
+    // ARRAY @> ARRAY ; RANGE @> RANGE
+    | WhereOperators<AttributeType>[typeof Op.overlap];
+
+  /**
+   * PG array & range 'contained by' operator
+   *
+   * @example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
+   */
+  [Op.contained]?:
+    AttributeType extends any[]
+      // ARRAY <@ ARRAY ; RANGE <@ RANGE
+      ? WhereOperators<AttributeType>[typeof Op.overlap]
+      // ELEMENT <@ RANGE
+      : AllowAnyAll<OperatorValues<Rangable<AttributeType>>>;
 
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: string;
+  [Op.startsWith]?: OperatorValues<Extract<AttributeType, string>>;
 
   /**
    * String ends with value.
    */
-  [Op.endsWith]?: string;
+  [Op.endsWith]?: WhereOperators<AttributeType>[typeof Op.startsWith];
   /**
    * String contains value.
    */
-  [Op.substring]?: string;
+  [Op.substring]?: WhereOperators<AttributeType>[typeof Op.startsWith];
 
   /**
    * MySQL/PG only
    *
    * Matches regular expression, case sensitive
    *
-   * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
+   * @example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: string;
+  [Op.regexp]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
    * MySQL/PG only
    *
    * Does not match regular expression, case sensitive
    *
-   * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
+   * @example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
-  [Op.notRegexp]?: string;
+  [Op.notRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
   /**
    * PG only
    *
    * Matches regular expression, case insensitive
    *
-   * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
+   * @example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
-  [Op.iRegexp]?: string;
+  [Op.iRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
   /**
    * PG only
    *
    * Does not match regular expression, case insensitive
    *
-   * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
+   * @example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
-  [Op.notIRegexp]?: string;
+  [Op.notIRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
+
+  /** @example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  [Op.match]?: AllowAnyAll<DynamicValues<AttributeType>>;
 
   /**
    * PG only
    *
-   * Forces the operator to be strictly left eg. `<< [a, b)`
+   * Whether the range is strictly left of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.strictLeft]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" << [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.strictLeft]?: Rangable;
+  [Op.strictLeft]?:
+    | AttributeType extends Range<infer RangeType> ? Rangable<RangeType> : never
+    | DynamicValues<AttributeType>;
 
   /**
    * PG only
    *
-   * Forces the operator to be strictly right eg. `>> [a, b)`
+   * Whether the range is strictly right of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.strictRight]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" >> [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.strictRight]?: Rangable;
+  [Op.strictRight]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&> [1, 2)`
+   * Whether the range extends to the left of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.noExtendLeft]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" &> [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.noExtendLeft]?: Rangable;
+  [Op.noExtendLeft]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&< [1, 2)`
+   * Whether the range extends to the right of the other range.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.noExtendRight]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" &< [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.noExtendRight]?: Rangable;
+  [Op.noExtendRight]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 
+  /**
+   * PG only
+   *
+   * Whether the two ranges are adjacent.
+   *
+   * @example:
+   * ```typescript
+   * { rangeAttribute: { [Op.adjacent]: [1, 2] } }
+   * // results in
+   * // "rangeAttribute" -|- [1, 2)
+   * ```
+   *
+   * https://www.postgresql.org/docs/14/functions-range.html
+   */
+  [Op.adjacent]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
 }
 
-/** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
+/**
+ * Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)`
+ *
+ * @deprecated do not use me!
+ */
+// TODO [>6]: Remove me
 export interface OrOperator<TAttributes = any> {
   [Op.or]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
 
-/** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
+/**
+ * Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)`
+ *
+ * @deprecated do not use me!
+ */
+// TODO [>6]: Remove me
 export interface AndOperator<TAttributes = any> {
   [Op.and]: WhereOptions<TAttributes> | readonly WhereOptions<TAttributes>[] | WhereValue<TAttributes> | readonly WhereValue<TAttributes>[];
 }
@@ -340,7 +545,10 @@ export interface WhereGeometryOptions {
 /**
  * Used for the right hand side of WhereAttributeHash.
  * WhereAttributeHash is in there for JSON columns.
+ *
+ * @deprecated do not use me
  */
+// TODO [>6]: remove this
 export type WhereValue<TAttributes = any> =
   | string
   | number
@@ -349,43 +557,61 @@ export type WhereValue<TAttributes = any> =
   | Date
   | Buffer
   | null
-  | WhereOperators
   | WhereAttributeHash<any> // for JSON columns
   | Col // reference another column
   | Fn
-  | OrOperator<TAttributes>
-  | AndOperator<TAttributes>
   | WhereGeometryOptions
-  | readonly (string | number | Buffer | WhereAttributeHash<TAttributes>)[]; // implicit [Op.or]
 
 /**
  * A hash of attributes to describe your search.
+ *
+ * Possible key values:
+ *
+ * - An attribute name: `{ id: 1 }`
+ * - A nested attribute: `{ '$projects.id$': 1 }`
+ * - A JSON key: `{ 'object.key': 1 }`
+ * - A cast: `{ 'id::integer': 1 }`
+ *
+ * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
  */
 export type WhereAttributeHash<TAttributes = any> = {
-  /**
-   * Possible key values:
-   * - A simple attribute name
-   * - A nested key for JSON columns
-   *
-   *  {
-   *    "meta.audio.length": {
-   *      [Op.gt]: 20
-   *    }
-   *  }
-   *
-   * - An $attribute$ name
-   */
-  [attribute in keyof TAttributes as attribute extends string ? attribute | `$${attribute}$` : attribute]?: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  // support 'attribute' & '$attribute$'
+  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
 } & {
-  /**
-   * Makes $nested.syntax$ valid, but does not type-check the name of the include nor the name of the include's attribute.
-   */
+  [AttributeName in keyof TAttributes as AttributeName extends string ?
+    // support 'json.path', '$json$.path'
+    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
+    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
+    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
+  : never]?: WhereAttributeHashValue<any>;
+} & {
+  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
   // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
   // TypeScript < 4.4 does not support using a Template Literal Type as a key.
   //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
   // @ts-ignore
-  [attribute: `$${string}.${string}$`]: WhereValue<TAttributes> | WhereOptions<TAttributes>;
+  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>;
 }
+
+/**
+ * Types that can be compared to an attribute in a WHERE context.
+ */
+export type WhereAttributeHashValue<AttributeType> =
+  | AllowNotOrAndRecursive<
+    // if the right-hand side is an array, it will be equal to Op.in
+    // otherwise it will be equal to Op.eq
+    // Exception: array attribtues always use Op.eq, never Op.in.
+    | AttributeType extends any[]
+      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
+      : (
+        | WhereOperators<AttributeType>[typeof Op.in]
+        | WhereOperators<AttributeType>[typeof Op.eq]
+        | WhereOperators<AttributeType>
+      )
+    >
+  // TODO: this needs a simplified version just for JSON columns
+  | WhereAttributeHash<any> // for JSON columns
+
 /**
  * Through options for Include Options
  */
@@ -1736,7 +1962,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
     this: MS,
-    attributes: ModelAttributes<M, Attributes<M>>, options: InitOptions<M>
+    attributes: ModelAttributes<
+      M,
+      // 'foreign keys' are optional in Model.init as they are added by association declaration methods
+      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
+    >,
+    options: InitOptions<M>
   ): MS;
 
   /**
@@ -2219,7 +2450,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     values: {
         [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
     },
-    options: UpdateOptions<Attributes<M>> & { returning: true }
+    options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
+      & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
 
   /**
@@ -3045,6 +3277,10 @@ type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omi
   ? false
   : true;
 
+type BrandedKeysOf<T, Brand extends symbol> = {
+  [P in keyof T]-?: IsBranded<T[P], Brand> extends true ? P : never
+}[keyof T];
+
 /**
  * Dummy Symbol used as branding by {@link NonAttribute}.
  *
@@ -3057,13 +3293,31 @@ declare const NonAttributeBrand: unique symbol;
  * You can use it to tag fields from your class that are NOT attributes.
  * They will be ignored by {@link InferAttributes} and {@link InferCreationAttributes}
  */
-
 export type NonAttribute<T> =
   // we don't brand null & undefined as they can't have properties.
   // This means `NonAttribute<null>` will not work, but who makes an attribute that only accepts null?
   // Note that `NonAttribute<string | null>` does work!
   T extends null | undefined ? T
   : (T & { [NonAttributeBrand]?: true });
+
+/**
+ * Dummy Symbol used as branding by {@link ForeignKey}.
+ *
+ * Do not export, Do not use.
+ */
+declare const ForeignKeyBrand: unique symbol;
+
+/**
+ * This is a Branded Type.
+ * You can use it to tag fields from your class that are foreign keys.
+ * They will become optional in {@link Model.init} (as foreign keys are added by association methods, like {@link Model.hasMany}.
+ */
+export type ForeignKey<T> =
+  // we don't brand null & undefined as they can't have properties.
+  // This means `ForeignKey<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `ForeignKey<string | null>` does work!
+  T extends null | undefined ? T
+  : (T & { [ForeignKeyBrand]?: true });
 
 /**
  * Option bag for {@link InferAttributes}.
@@ -3139,8 +3393,8 @@ declare const CreationAttributeBrand: unique symbol;
  */
 export type CreationOptional<T> =
   // we don't brand null & undefined as they can't have properties.
-  // This means `CreationAttributeBrand<null>` will not work, but who makes an attribute that only accepts null?
-  // Note that `CreationAttributeBrand<string | null>` does work!
+  // This means `CreationOptional<null>` will not work, but who makes an attribute that only accepts null?
+  // Note that `CreationOptional<string | null>` does work!
   T extends null | undefined ? T
   : (T & { [CreationAttributeBrand]?: true });
 
