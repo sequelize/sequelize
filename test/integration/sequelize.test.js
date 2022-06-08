@@ -3,12 +3,12 @@
 const { expect, assert } = require('chai');
 const Support = require('./support');
 const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
-
-const dialect = Support.getTestDialect();
+const { Config } = require('../config/config');
 const _ = require('lodash');
-const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
+const dialect = Support.getTestDialect();
+const config = Config(dialect);
 const current = Support.sequelize;
 
 const qq = str => {
@@ -63,17 +63,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     if (dialect === 'postgres') {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
-        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
+        const connectionUri = getConnectionUri({ ...config, protocol: 'postgres' });
         // postgres://...
         new Sequelize(connectionUri);
       });
       it('should work with connection strings (postgresql protocol)', () => {
-        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgresql' });
+        const connectionUri = getConnectionUri({ ...config, protocol: 'postgresql' });
         // postgresql://...
         new Sequelize(connectionUri);
       });
       it('should work with options in the connection string (postgresql protocol)', async () => {
-        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgresql', options: '-c%20search_path%3dtest_schema' });
+        const connectionUri = getConnectionUri({ ...config, protocol: 'postgresql', options: '-c%20search_path%3dtest_schema' });
         const sequelize = new Sequelize(connectionUri);
         const result = await sequelize.query('SHOW search_path');
         expect(result[0].search_path).to.equal('test_schema');

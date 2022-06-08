@@ -6,7 +6,7 @@ const { Pool } = require('sequelize-pool');
 const { Config } = require('../../../config/config');
 
 const expect = chai.expect;
-const baseConf = Config[Support.getTestDialect()];
+const baseConf = Config(Support.getTestDialect());
 const poolEntry = {
   host: baseConf.host,
   port: baseConf.port,

@@ -73,7 +73,7 @@ function attachMSSQLUniqueId(connection) {
 }
 
 describe(Support.getTestDialectTeaser('Pooling'), () => {
-  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
+  if (dialect === 'sqlite' || Support.getDialectName(process.env.DIALECT) === 'postgres-native') {
     return;
   }
 

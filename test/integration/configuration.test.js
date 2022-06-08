@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Config: config } = require('../config/config');
+const { Config } = require('../config/config');
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
@@ -18,6 +18,8 @@ if (dialect === 'sqlite') {
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
+  const config = Config(dialect);
+
   describe('Connections problems should fail with a nice message', () => {
     if (dialect !== 'db2') {
       it('when we don\'t have the correct server details', async () => {
@@ -29,9 +31,9 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         };
 
         const constructorArgs = [
-          config[dialect].database,
-          config[dialect].username,
-          config[dialect].password,
+          config.database,
+          config.username,
+          config.password,
           options,
         ];
 
@@ -59,7 +61,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         return;
       }
 
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
+      const seq = new Sequelize(config.database, config.username, 'fakepass123', { logging: false, host: config.host, port: 1, dialect });
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
@@ -74,7 +76,16 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
-        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
+        new Sequelize(
+          config.database,
+          config.username,
+          config.password,
+          {
+            host: '0.0.0.1',
+            port: config.port,
+            dialect: 'some-fancy-dialect',
+          },
+        );
       }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.');
     });
   });

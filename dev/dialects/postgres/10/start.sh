@@ -6,9 +6,13 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 docker-compose -p sequelize-postgres-10 down --remove-orphans
 docker-compose -p sequelize-postgres-10 up -d
 
-./../../wait-until-healthy.sh sequelize-postgres-10
+devdir="$(git rev-parse --show-toplevel)/dev"
+$devdir/wait-until-healthy.sh sequelize-postgres-10
 
 # docker exec sequelize-postgres-10 \
 #   bash -c "export PGPASSWORD=sequelize_test && psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'"
+
+# test connection with Sequelize
+DIALECT=postgres10 yarn ts-node "$devdir/db-connection-check.ts"
 
 echo "Local Postgres-10 instance is ready for Sequelize tests."

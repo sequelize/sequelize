@@ -153,14 +153,15 @@ export async function prepareTransactionTest(sequelize: Sequelize) {
 }
 
 export function createSequelizeInstance(options: Options = {}) {
-  options.dialect = getTestDialect();
+  options.dialect = getTestDialect(); // only returns translated dialectName "mysql8"->"mysql"
 
-  const config = Config[options.dialect];
+  // pass process.env.DIALECT b/c it may contain version "postgres12" config can use
+  const config = Config(process.env.DIALECT);
 
   const sequelizeOptions = defaults(options, {
     host: options.host || config.host,
     logging: process.env.SEQ_LOG ? console.debug : false,
-    dialect: options.dialect,
+    dialect: getDialectName(options.dialect),
     port: options.port || process.env.SEQ_PORT || config.port,
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
@@ -180,7 +181,7 @@ export function createSequelizeInstance(options: Options = {}) {
 
 export function getConnectionOptionsWithoutPool() {
   // Do not break existing config object - shallow clone before `delete config.pool`
-  const config = { ...Config[getTestDialect()] };
+  const config = { ...Config(getTestDialect()) };
   delete config.pool;
 
   return config;
@@ -245,24 +246,58 @@ export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
   return new ModdedQueryGenerator({ sequelize, _dialect: sequelize.dialect });
 }
 
-export function getTestDialect(): Dialect {
-  let envDialect = process.env.DIALECT || '';
-
-  if (envDialect === 'postgres-native') {
-    envDialect = 'postgres';
+export function getDialectName(dialect: string): Dialect | string {
+  if (!dialect) {
+    return '';
   }
 
-  if (!getSupportedDialects().includes(envDialect)) {
+  // dialects that end with a nubmer in their name
+  let _dialectVersion: string;
+  let _fullString: string;
+  let dialectName: Dialect | string;
+  let didEncounterSpecialCase = false;
+
+  const specialCases: [Dialect] = ['db2'];
+  for (const specialCase of specialCases) {
+    if (dialect.startsWith(specialCase)) {
+      didEncounterSpecialCase = true;
+      const re: RegExp = new RegExp(`(${specialCase})(.*)`);
+
+      // can use `.match()!` (with bang) b/c we know `re` will match based on `if` condition
+      [_fullString, dialectName, _dialectVersion] = dialect.match(re)!;
+      dialectName = dialectName || '';
+      break;
+    }
+  }
+
+  if (!didEncounterSpecialCase) {
+    // strip off version
+    dialectName = dialect.replace(/(?:[^a-z-]+)$/, '');
+  }
+
+  // bang used because we know it was set as special-case or in follow-up
+  return dialectName!;
+}
+
+export function getTestDialect(): Dialect {
+  const envDialect = process.env.DIALECT || '';
+  let dialectName = getDialectName(envDialect);
+
+  if (dialectName === 'postgres-native') {
+    dialectName = 'postgres';
+  }
+
+  if (!getSupportedDialects().includes(dialectName)) {
     throw new Error(`The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects().map(d => JSON.stringify(d)).join(', ')} instead.`);
   }
 
-  return envDialect as Dialect;
+  return dialectName as Dialect;
 }
 
 export function getTestDialectTeaser(moduleName: string): string {
   let dialect: string = getTestDialect();
 
-  if (process.env.DIALECT === 'postgres-native') {
+  if (getDialectName(process.env.DIALECT || '') === 'postgres-native') {
     dialect = 'postgres-native';
   }
 
@@ -270,7 +305,7 @@ export function getTestDialectTeaser(moduleName: string): string {
 }
 
 export function getPoolMax(): number {
-  return Config[getTestDialect()].pool?.max ?? 1;
+  return Config(getTestDialect()).pool?.max ?? 1;
 }
 
 type ExpectationKey = Dialect | 'default';

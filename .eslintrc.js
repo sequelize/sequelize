@@ -149,6 +149,15 @@ module.exports = {
       'no-multi-spaces': 'off',
     },
   }, {
+    files: ['test/**/*.ts'],
+    rules: {
+      // ignore the [_unusedVar, variable]
+      '@typescript-eslint/no-unused-vars': ['error', {
+        destructuredArrayIgnorePattern: '^_',
+        varsIgnorePattern: '[iI]gnore',
+      }],
+    },
+  }, {
     // Disable slow rules that are not important in tests (perf)
     files: ['test/**/*'],
     rules: {

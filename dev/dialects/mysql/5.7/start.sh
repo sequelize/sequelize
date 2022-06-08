@@ -6,11 +6,13 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 docker-compose -p sequelize-mysql-57 down --remove-orphans
 docker-compose -p sequelize-mysql-57 up -d
 
-./../../wait-until-healthy.sh sequelize-mysql-57
+devdir="$(git rev-parse --show-toplevel)/dev"
+$devdir/wait-until-healthy.sh sequelize-mysql-57
 
 docker exec sequelize-mysql-57 \
   mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
 
-node check.js
+# test connection with Sequelize
+DIALECT=mysql5.7 yarn ts-node "$devdir/db-connection-check.ts"
 
 echo "Local MySQL-5.7 instance is ready for Sequelize tests."
