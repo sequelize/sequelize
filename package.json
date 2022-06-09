@@ -99,7 +99,7 @@
     "mysql2": "^2.3.3",
     "node-hook": "^1.0.0",
     "nyc": "^15.1.0",
-    "oracledb": "file:../node-oracledb/oracledb-5.4.0-dev.tgz",
+    "oracledb": "^5.4.0",
     "p-map": "^4.0.0",
     "p-props": "^4.0.0",
     "p-settle": "^4.1.1",

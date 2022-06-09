@@ -6394,9 +6394,9 @@ optionator@^0.9.1:
     word-wrap "^1.2.3"
 
 oracledb@^5.4.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-5.3.0.tgz#a15e6cd16757d8711a2c006a28bd7ecd3b8466f7"
-  integrity sha512-HMJzQ6lCf287ztvvehTEmjCWA21FQ3RMvM+mgoqd4i8pkREuqFWO+y3ovsGR9moJUg4T0xjcwS8rl4mggWPxmg==
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-5.4.0.tgz#0ae79faa9a3c04d39b845b897d1e58342d275a85"
+  integrity sha512-JirwPg+HobTV6EuXcHoHA0n55wJiWCNHaS2TRSHLSxOB9WbDyrT8q6E5PPB7nre1V/kFCd5luHkV1z780Voyfw==
 
 ordered-read-streams@^1.0.0:
   version "1.0.1"
