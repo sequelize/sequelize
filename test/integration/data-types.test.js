@@ -208,14 +208,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for BLOB', async () => {
     const Type = new Sequelize.BLOB();
 
-    // oracle has a _bindParam function that checks if BLOB was created with
-    // the boolean param (if so it outputs a Buffer bind param). This override
-    // isn't needed for other dialects
-    if (dialect === 'oracle') {
-      await testSuccess(Type, 'foobar', { useBindParam: true });
-    } else {
-      await testSuccess(Type, 'foobar');
-    }
+    await testSuccess(Type, 'foobar', { useBindParam: true });
   });
 
   it('calls parse and stringify for CHAR', async () => {
