@@ -3,7 +3,7 @@ export DIALECT=db2
 
 mkdir -p Docker
 if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
-    if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ]; 
+    if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ];
 	then
     # cleanup
     sudo docker rm -f db2server
@@ -14,7 +14,7 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	while true
 	do
 	  if (sudo docker logs db2server | grep 'Setup has completed')
-	  then	  
+	  then
 		sudo docker exec db2server bash -c "su db2inst1 & disown"
 		break
 	  fi
@@ -25,5 +25,8 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	  sleep 20
 	  let "count=count+1"
 	done
-  echo "Local DB2-11.5 instance is ready for Sequelize tests."
 fi
+
+DIALECT=db2 ts-node ../../check-connection.ts
+
+echo "Local DB2-11.5 instance is ready for Sequelize tests."
