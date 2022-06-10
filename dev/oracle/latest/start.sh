@@ -35,7 +35,8 @@ then
     hdiutil mount instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
     /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru/install_ic.sh &&
     hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru &&
-    rm instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg
+    rm instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+    ln -s ~/Downloads/instantclient_19_8/libclntsh.dylib node_modules/oracledb/build/Release/
 
     echo "Local Oracle instant client has been setup!"
 fi
