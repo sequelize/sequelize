@@ -213,11 +213,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
       const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
 
-      await Model1.sync();
-      await Model2.sync();
+      await sequelize.sync({ force: true });
 
-      await Model1.create();
-      await Model2.create();
+      await Model1.create({ id: 1 });
+      await Model2.create({ id: 2 });
     });
 
     describe('with { alter: true }', () => {
@@ -274,90 +273,92 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
       }
+
+      it('should not duplicate named indexes after multiple sync calls', async function () {
+        const User = this.sequelize.define('testSync', {
+          email: {
+            type: DataTypes.STRING,
+          },
+          phone: {
+            type: DataTypes.STRING,
+          },
+          mobile: {
+            type: DataTypes.STRING,
+          },
+        }, {
+          indexes: [
+            { name: 'another_index_email_mobile', fields: ['email', 'mobile'] },
+            { name: 'another_index_phone_mobile', fields: ['phone', 'mobile'], unique: true },
+            { name: 'another_index_email', fields: ['email'] },
+            { name: 'another_index_mobile', fields: ['mobile'] },
+          ],
+        });
+
+        await User.sync({ sync: true });
+        await User.sync({ alter: true });
+        await User.sync({ alter: true });
+        await User.sync({ alter: true });
+        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
+        if (dialect === 'sqlite') {
+          // SQLite doesn't treat primary key as index
+          // However it does create an extra "autoindex", except primary == false
+          expect(results).to.have.length(4 + 1);
+        } else {
+          expect(results).to.have.length(4 + 1);
+          expect(results.filter(r => r.primary)).to.have.length(1);
+        }
+
+        if (dialect === 'sqlite') {
+          expect(results.filter(r => r.name === 'sqlite_autoindex_testSyncs_1')).to.have.length(1);
+        }
+
+        expect(results.filter(r => r.name === 'another_index_email_mobile')).to.have.length(1);
+        expect(results.filter(r => r.name === 'another_index_phone_mobile')).to.have.length(1);
+        expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
+        expect(results.filter(r => r.name === 'another_index_mobile')).to.have.length(1);
+      });
+
+      it('should not duplicate unnamed indexes after multiple sync calls', async function () {
+        const User = this.sequelize.define('testSync', {
+          email: {
+            type: DataTypes.STRING,
+          },
+          phone: {
+            type: DataTypes.STRING,
+          },
+          mobile: {
+            type: DataTypes.STRING,
+          },
+        }, {
+          indexes: [
+            { fields: ['email', 'mobile'] },
+            { fields: ['phone', 'mobile'], unique: true },
+            { fields: ['email'] },
+            { fields: ['mobile'] },
+          ],
+        });
+
+        await User.sync({ sync: true });
+
+        // At some point, a weird bug caused this property to be marked as unique.
+        expect(User.rawAttributes.email.unique).not.to.ok;
+
+        await User.sync({ alter: true });
+        await User.sync({ alter: true });
+        await User.sync({ alter: true });
+        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
+        if (dialect === 'sqlite') {
+          // SQLite doesn't treat primary key as index
+          // However it does create an extra "autoindex", except primary == false
+          expect(results).to.have.length(4 + 1);
+        } else {
+          expect(results).to.have.length(4 + 1);
+          expect(results.filter(r => r.primary)).to.have.length(1);
+        }
+      });
     });
 
     describe('indexes', () => {
-      describe('with alter:true', () => {
-        it('should not duplicate named indexes after multiple sync calls', async function () {
-          const User = this.sequelize.define('testSync', {
-            email: {
-              type: DataTypes.STRING,
-            },
-            phone: {
-              type: DataTypes.STRING,
-            },
-            mobile: {
-              type: DataTypes.STRING,
-            },
-          }, {
-            indexes: [
-              { name: 'another_index_email_mobile', fields: ['email', 'mobile'] },
-              { name: 'another_index_phone_mobile', fields: ['phone', 'mobile'], unique: true },
-              { name: 'another_index_email', fields: ['email'] },
-              { name: 'another_index_mobile', fields: ['mobile'] },
-            ],
-          });
-
-          await User.sync({ sync: true });
-          await User.sync({ alter: true });
-          await User.sync({ alter: true });
-          await User.sync({ alter: true });
-          const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-          if (dialect === 'sqlite') {
-            // SQLite doesn't treat primary key as index
-            // However it does create an extra "autoindex", except primary == false
-            expect(results).to.have.length(4 + 1);
-          } else {
-            expect(results).to.have.length(4 + 1);
-            expect(results.filter(r => r.primary)).to.have.length(1);
-          }
-
-          if (dialect === 'sqlite') {
-            expect(results.filter(r => r.name === 'sqlite_autoindex_testSyncs_1')).to.have.length(1);
-          }
-
-          expect(results.filter(r => r.name === 'another_index_email_mobile')).to.have.length(1);
-          expect(results.filter(r => r.name === 'another_index_phone_mobile')).to.have.length(1);
-          expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
-          expect(results.filter(r => r.name === 'another_index_mobile')).to.have.length(1);
-        });
-
-        it('should not duplicate unnamed indexes after multiple sync calls', async function () {
-          const User = this.sequelize.define('testSync', {
-            email: {
-              type: DataTypes.STRING,
-            },
-            phone: {
-              type: DataTypes.STRING,
-            },
-            mobile: {
-              type: DataTypes.STRING,
-            },
-          }, {
-            indexes: [
-              { fields: ['email', 'mobile'] },
-              { fields: ['phone', 'mobile'], unique: true },
-              { fields: ['email'] },
-              { fields: ['mobile'] },
-            ],
-          });
-
-          await User.sync({ sync: true });
-          await User.sync({ alter: true });
-          await User.sync({ alter: true });
-          await User.sync({ alter: true });
-          const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-          if (dialect === 'sqlite') {
-            // SQLite doesn't treat primary key as index
-            // However it does create an extra "autoindex", except primary == false
-            expect(results).to.have.length(4 + 1);
-          } else {
-            expect(results).to.have.length(4 + 1);
-            expect(results.filter(r => r.primary)).to.have.length(1);
-          }
-        });
-      });
-
       it('should create only one unique index for unique:true column', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
