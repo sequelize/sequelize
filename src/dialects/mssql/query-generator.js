@@ -623,7 +623,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
-    if (attribute.unique === true) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 
