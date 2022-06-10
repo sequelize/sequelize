@@ -45,7 +45,7 @@ export class Db2QueryInterface extends QueryInterface {
       return value.fields;
     });
 
-    for (const value of model._indexes) {
+    for (const value of model.getIndexes()) {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
         indexFields = value.fields.map(field => {

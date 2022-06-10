@@ -432,7 +432,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     // Add unique indexes defined by indexes option to uniqueAttrs
-    for (const index of model._indexes) {
+    for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;

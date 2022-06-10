@@ -772,6 +772,26 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
+   * Indexes created from options.indexes when calling Model.init
+   */
+  static _manualIndexes;
+
+  /**
+   * Indexes created from {@link ModelAttributeColumnOptions.unique}
+   */
+  static _attributeIndexes;
+
+  static getIndexes() {
+    return [
+      ...this._manualIndexes,
+      ...this._attributeIndexes,
+      // TODO: (during TS migration) stop using 'uniqueKeys' internally in favor of '_attributeIndexes'
+      //       make 'uniqueKeys' a getter the filters getIndexes?
+      ...Object.values(this.uniqueKeys),
+    ];
+  }
+
+  /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
    * The table columns are defined by the hash that is given as the first argument.
@@ -931,7 +951,7 @@ ${associationOwner._getAssociationDebugList()}`);
     });
 
     const tableName = this.getTableName();
-    this._indexes = this.options.indexes
+    this._manualIndexes = this.options.indexes
       .map(index => Utils.nameIndex(this._conformIndex(index), tableName));
 
     this.primaryKeys = {};
@@ -1062,6 +1082,8 @@ ${associationOwner._getAssociationDebugList()}`);
     this.primaryKeys = Object.create(null);
     this.uniqueKeys = Object.create(null);
 
+    this._attributeIndexes = [];
+
     _.each(this.rawAttributes, (definition, name) => {
       definition.type = this.sequelize.normalizeDataType(definition.type);
 
@@ -1121,6 +1143,7 @@ ${associationOwner._getAssociationDebugList()}`);
         idx.name = idxName || false;
         idx.column = name;
         idx.customIndex = definition.unique !== true;
+        idx.unique = true;
 
         this.uniqueKeys[idxName] = idx;
       }
@@ -1130,7 +1153,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (definition.index === true && definition.type instanceof DataTypes.JSONB) {
-        this._indexes.push(
+        this._attributeIndexes.push(
           Utils.nameIndex(
             this._conformIndex({
               fields: [definition.field || name],
@@ -1308,7 +1331,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let indexes = await this.queryInterface.showIndex(tableName, options);
-    indexes = this._indexes.filter(item1 => !indexes.some(item2 => item1.name === item2.name)).sort((index1, index2) => {
+    indexes = this.getIndexes().filter(item1 => !indexes.some(item2 => item1.name === item2.name)).sort((index1, index2) => {
       if (this.sequelize.options.dialect === 'postgres') {
       // move concurrent indexes to the bottom to avoid weird deadlocks
         if (index1.concurrently === true) {
@@ -2668,7 +2691,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
           const upsertKeys = [];
 
-          for (const i of model._indexes) {
+          for (const i of model.getIndexes()) {
             if (i.unique && !i.where) { // Don't infer partial indexes
               upsertKeys.push(...i.fields);
             }

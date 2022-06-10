@@ -839,7 +839,7 @@ export class QueryInterface {
     if (options.upsertKeys.length === 0) {
       const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
       const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-      const indexKeys = Object.values(model._indexes).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
