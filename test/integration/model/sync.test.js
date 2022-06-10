@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
           });
 
-          await User.sync({ sync: true });
+          await User.sync();
           await User.sync({ alter: true });
           await User.sync({ alter: true });
           await User.sync({ alter: true });
@@ -257,10 +257,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
           });
 
-          await User.sync({ sync: true });
+          const initialEmailUnique = User.rawAttributes.email.unique;
+          expect(initialEmailUnique).not.to.be.ok;
+
+          await User.sync();
+
+          // db2 had a broken implementation which marked all attributes that were part of an index as 'unique'
+          //  during the call to QueryInterface#createTable
+          // This was a terrible idea with unpredictable side effects, this test is there to ensure it's not added back.
+          // https://github.com/sequelize/sequelize/pull/14572#issuecomment-1152578770
+          expect(User.rawAttributes.email.unique).to.eq(initialEmailUnique, 'User.sync should not modify attributes!');
+
           await User.sync({ alter: true });
           await User.sync({ alter: true });
           await User.sync({ alter: true });
+
+          expect(User.rawAttributes.email.unique).to.eq(initialEmailUnique);
+
           const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
@@ -270,6 +283,107 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(results).to.have.length(4 + 1);
             expect(results.filter(r => r.primary)).to.have.length(1);
           }
+        });
+
+        it('should be able to add a unique index to an existing table (unique attribute option)', async function () {
+          const User1 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+            },
+          }, { timestamps: false });
+
+          // create without the unique index
+          await User1.sync({ force: true });
+
+          // replace model (to emulate code changes)
+          const User2 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          }, { timestamps: false });
+
+          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out1).to.have.length(1);
+
+          // alter to add the unique index
+          await User2.sync({ alter: true });
+
+          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out2).to.have.length(2);
+          const uniques = out2.filter(index => index.primary !== true);
+          expect(uniques).to.have.length(1);
+          expect(uniques[0].unique).to.be.true;
+        });
+
+        it('should be able to add a unique index to an existing table (index option)', async function () {
+          const User1 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+            },
+          }, { timestamps: false });
+
+          // create without the unique index
+          await User1.sync({ force: true });
+
+          // replace model (to emulate code changes)
+          const User2 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+            },
+          }, {
+            timestamps: false,
+            indexes: [
+              { fields: ['email'], unique: true },
+            ],
+          });
+
+          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out1).to.have.length(1);
+
+          // alter to add the unique index
+          await User2.sync({ alter: true });
+
+          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out2).to.have.length(2);
+          const uniques = out2.filter(index => index.primary !== true);
+          expect(uniques).to.have.length(1);
+          expect(uniques[0].unique).to.be.true;
+        });
+
+        it('should be able to add a non-unique index to an existing table', async function () {
+          const User1 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+            },
+          }, { timestamps: false });
+
+          // create without the unique index
+          await User1.sync({ force: true });
+
+          // replace model (to emulate code changes)
+          const User2 = this.sequelize.define('User', {
+            email: {
+              type: DataTypes.STRING,
+            },
+          }, {
+            timestamps: false,
+            indexes: [
+              { fields: ['email'] },
+            ],
+          });
+
+          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out1).to.have.length(1);
+
+          // alter to add the unique index
+          await User2.sync({ alter: true });
+
+          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
+          expect(out2).to.have.length(2);
+          const nonUniques = out2.filter(index => index.primary !== true);
+          expect(nonUniques).to.have.length(1);
+          expect(nonUniques[0].unique).to.be.false;
         });
       });
 
