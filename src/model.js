@@ -1876,7 +1876,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
     options = Utils.cloneDeep(options);
     // findOne only ever needs one result
-    options.limit = 1;
+    // conditional temporarily fixes 14618
+    // https://github.com/sequelize/sequelize/issues/14618
+    if (options.limit === undefined) {
+      options.limit = 1;
+    }
 
     // Bypass a possible overloaded findAll.
     return await Model.findAll.call(this, (_.defaults(options, {
