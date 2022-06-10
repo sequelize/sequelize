@@ -1,7 +1,8 @@
 import { useErrorCause } from '../utils/deprecations.js';
+import type { Nullish } from '../utils/index.js';
 
 export interface SequelizeErrorOptions {
-  stack?: string;
+  stack?: Nullish<string>;
 }
 
 export interface CommonErrorProperties {
@@ -13,7 +14,7 @@ export interface CommonErrorProperties {
 //  Remove me in Sequelize 8, where this is added natively by TypeScript (>= 4.6):
 //  This is a breaking change and must be done in a MAJOR release.
 export type ErrorOptions = {
-  cause?: Error,
+  cause?: Nullish<Error>,
 };
 
 const supportsErrorCause = (() => {
@@ -33,7 +34,7 @@ const supportsErrorCause = (() => {
  * This means that errors can be accessed using `Sequelize.ValidationError`
  */
 abstract class BaseError extends Error {
-  declare cause: Error | undefined;
+  declare cause?: Error;
 
   get parent(): this['cause'] {
     useErrorCause();
@@ -54,11 +55,11 @@ abstract class BaseError extends Error {
     super(supportsErrorCause ? message : addCause(message, options?.cause), options);
     this.name = 'SequelizeBaseError';
 
-    if (!supportsErrorCause) {
+    if (!supportsErrorCause && options?.cause) {
       // TODO [>=2023-04-30]:
       //  Once all supported node versions have support for Error.cause (added in Node 16.9.0), delete this line:
       //  This is a breaking change and must be done in a MAJOR release.
-      this.cause = options?.cause;
+      this.cause = options.cause;
     }
   }
 }

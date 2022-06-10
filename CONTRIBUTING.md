@@ -130,7 +130,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `yarn start-mariadb`
 - `yarn start-mysql`
 - `yarn start-postgres`
-- `yarn start-mssql`
+- `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
 - `yarn start-db2`
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
