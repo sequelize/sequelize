@@ -25,8 +25,14 @@
       "require": "./lib/index.js",
       "types": "./types/index.d.ts"
     },
-    "./lib/*": "./lib/*.js",
-    "./lib/errors": "./lib/errors/index.js",
+    "./lib/*": {
+      "default": "./lib/*.js",
+      "types": "./types/*.d.ts"
+    },
+    "./lib/errors": {
+      "default": "./lib/errors/index.js",
+      "types": "./types/errors/index.d.ts"
+    },
     "./*": "./*"
   },
   "engines": {
