@@ -171,6 +171,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     const syncResults = await getNonPrimaryIndexes(User);
     expect(syncResults).to.have.length(1);
+    expect(syncResults[0].name).to.eq('test_syncs_email_unique');
+    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
 
     await User.sync({ alter: true });
 
@@ -198,20 +200,20 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
     await User.sync({ force: true });
 
     const syncResults = await getNonPrimaryIndexes(User);
-
     syncResults.sort((a, b) => a.name.localeCompare(b.name));
 
     expect(syncResults).to.have.length(3);
     expect(syncResults[0].name).to.eq('test_syncs_email_unique');
-    expect(syncResults[0].fields.map(f => f.attribute)).to.deep.eq(['email']);
+    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
+    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
 
     expect(syncResults[1].name).to.eq('test_syncs_phone_unique');
-    expect(syncResults[1].fields.map(f => f.attribute)).to.deep.eq(['phone']);
+    expect(getIndexFields(syncResults[1])).to.deep.eq(['phone']);
+    expect(syncResults[1].unique).to.eq(true, 'index should be unique');
 
     expect(syncResults[2].name).to.eq('wow_my_index');
-    expect(syncResults[2].fields.map(f => f.attribute).sort()).to.deep.eq(['email', 'phone']);
-
-    expect(syncResults.filter(r => r.name === 'wow_my_index')).to.have.length(1);
+    expect(getIndexFields(syncResults[2])).to.deep.eq(['email', 'phone']);
+    expect(syncResults[2].unique).to.eq(true, 'index should be unique');
 
     await User.sync({ alter: true });
 
@@ -233,7 +235,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     expect(syncResults).to.have.length(1);
     expect(syncResults[0].name).to.eq('wow_my_index');
-    expect(syncResults[0].fields.map(field => field.attribute).sort()).to.deep.eq(['email']);
+    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
+    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
 
     await User.sync({ alter: true });
 
@@ -259,7 +262,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     expect(syncResults).to.have.length(1);
     expect(syncResults[0].name).to.eq('wow_my_index');
-    expect(syncResults[0].fields.map(field => field.attribute).sort()).to.deep.eq(['email', 'phone']);
+    expect(getIndexFields(syncResults[0])).to.deep.eq(['email', 'phone']);
+    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
 
     await User.sync({ alter: true });
 
@@ -308,14 +312,14 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
     await User2.sync({ alter: true });
 
     const out2 = await getNonPrimaryIndexes(User1);
-    expect(out2).to.have.length(1);
 
-    const uniques = out2.filter(index => index.primary !== true);
-    expect(uniques).to.have.length(1);
-    expect(uniques[0].unique).to.eq(true, 'index should be unique');
+    expect(out2).to.have.length(1);
+    expect(out2[0].name).to.eq('users_email_unique');
+    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+    expect(out2[0].unique).to.eq(true, 'index should be unique');
   });
 
-  it('should be able to add a unique index to an existing table (index option)', async () => {
+  it('adds missing unique indexes to existing tables (index option)', async () => {
     const User1 = sequelize.define('User', {
       email: {
         type: DataTypes.STRING,
@@ -345,12 +349,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     const out2 = await getNonPrimaryIndexes(User1);
     expect(out2).to.have.length(1);
-    const uniques = out2.filter(index => index.primary !== true);
-    expect(uniques).to.have.length(1);
-    expect(uniques[0].unique).to.be.true;
+    expect(out2[0].name).to.eq('users_email_unique');
+    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+    expect(out2[0].unique).to.eq(true, 'index should be unique');
   });
 
-  it('should be able to add a non-unique index to an existing table', async () => {
+  it('adds missing non-unique indexes to existing tables (index option)', async () => {
     const User1 = sequelize.define('User', {
       email: {
         type: DataTypes.STRING,
@@ -380,9 +384,38 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     const out2 = await getNonPrimaryIndexes(User1);
     expect(out2).to.have.length(1);
-    const nonUniques = out2.filter(index => index.primary !== true);
-    expect(nonUniques).to.have.length(1);
-    expect(nonUniques[0].unique).to.be.false;
+    expect(out2[0].name).to.eq('users_email');
+    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+    expect(out2[0].unique).to.eq(false, 'index should not be unique');
+  });
+
+  it('adds missing unique columns to existing tables', async () => {
+    const User1 = sequelize.define('User', {}, { timestamps: false });
+
+    // create without the unique index
+    await User1.sync({ force: true });
+
+    // replace model (to emulate code changes)
+    const User2 = sequelize.define('User', {
+      email: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
+    }, {
+      timestamps: false,
+    });
+
+    const out1 = await getNonPrimaryIndexes(User1);
+    expect(out1).to.have.length(0);
+
+    // alter to add the unique index
+    await User2.sync({ alter: true });
+
+    const out2 = await getNonPrimaryIndexes(User1);
+    expect(out2).to.have.length(1);
+    expect(out2[0].name).to.eq('users_email_unique');
+    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+    expect(out2[0].unique).to.eq(true, 'index should not be unique');
   });
 });
 
@@ -390,4 +423,8 @@ async function getNonPrimaryIndexes(model) {
   return (await sequelize.getQueryInterface().showIndex(model.getTableName()))
     .filter(r => !r.primary)
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getIndexFields(index) {
+  return index.fields.map(field => field.attribute).sort();
 }
