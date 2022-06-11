@@ -139,8 +139,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
     await testSync.create({ name: 'test', age: '1' });
     await sequelize.sync({ alter: true });
     const data = await testSync.findOne();
-    expect(data.dataValues.name).to.eql('test');
-    expect(data.dataValues.age).to.eql('1');
+    expect(data.name).to.eql('test');
+    expect(data.age).to.eql('1');
   });
 
   it('should properly alter tables when there are foreign keys', async () => {
@@ -410,7 +410,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
     });
 
     // alter to add the unique index
-    await User2.sync({ alter: true, logging: true });
+    await User2.sync({ alter: true });
 
     // db2 had a bug which re-created the table in some circumstances.
     // this ensures the table is not recreated, but altered.
