@@ -394,6 +394,10 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
     // create without the unique index
     await User1.sync({ force: true });
+    await User1.create({ id: 1 });
+
+    const out1 = await getNonPrimaryIndexes(User1);
+    expect(out1).to.have.length(0);
 
     // replace model (to emulate code changes)
     const User2 = sequelize.define('User', {
@@ -405,11 +409,13 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
       timestamps: false,
     });
 
-    const out1 = await getNonPrimaryIndexes(User1);
-    expect(out1).to.have.length(0);
-
     // alter to add the unique index
-    await User2.sync({ alter: true });
+    await User2.sync({ alter: true, logging: true });
+
+    // db2 had a bug which re-created the table in some circumstances.
+    // this ensures the table is not recreated, but altered.
+    const existingData = await User2.findAll();
+    expect(existingData).to.have.length(1);
 
     const out2 = await getNonPrimaryIndexes(User1);
     expect(out2).to.have.length(1);
