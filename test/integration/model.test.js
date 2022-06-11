@@ -298,6 +298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           break;
         }
 
+        case 'db2':
         case 'mssql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
