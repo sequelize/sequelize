@@ -293,51 +293,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
       });
+
       await User.sync({ force: true });
-      const indexes = await this.sequelize.queryInterface.showIndex(User.tableName);
-      let idxUnique;
+      const indexes = (await this.sequelize.queryInterface.showIndex(User.getTableName()))
+        .filter(index => !index.primary);
+
+      expect(indexes).to.have.length(1);
+      const index = indexes[0];
+      expect(index.primary).to.equal(false);
+      expect(index.unique).to.equal(true);
+      expect(index.name).to.equal('user_name_unique');
+
       switch (dialect) {
-        case 'sqlite': {
-          expect(indexes).to.have.length(1);
-          idxUnique = indexes[0];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
-
-          break;
-        }
-
         case 'mysql': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
-          expect(idxUnique.type).to.equal('BTREE');
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
+          expect(index.type).to.equal('BTREE');
 
           break;
         }
 
         case 'postgres': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, order: undefined, length: undefined }]);
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, order: undefined, length: undefined }]);
 
           break;
         }
 
         case 'mssql': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
           break;
         }
-      // No default
+
+        case 'sqlite':
+        default: {
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
+
+          break;
+        }
       }
     });
 
