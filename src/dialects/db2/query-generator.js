@@ -616,8 +616,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     if (options && options.context === 'changeColumn' && attribute.type) {
       template = `DATA TYPE ${template}`;
-    } else if (attribute.allowNull === false || attribute.primaryKey === true
-             || attribute.unique) {
+    } else if (attribute.allowNull === false || attribute.primaryKey === true) {
       template += ' NOT NULL';
       changeNull = 0;
     }
