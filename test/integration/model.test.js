@@ -268,27 +268,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await UserTable.count()).to.equal(1);
     });
 
-    it('allows multiple column unique keys to be defined', async function () {
-      const User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: DataTypes.STRING, unique: 'user_and_email' },
-        email: { type: DataTypes.STRING, unique: 'user_and_email' },
-        aCol: { type: DataTypes.STRING, unique: 'a_and_b' },
-        bCol: { type: DataTypes.STRING, unique: 'a_and_b' },
-      });
-
-      await User.sync({
-        force: true, logging: _.after(2, _.once(sql => {
-          if (dialect === 'mssql') {
-            expect(sql).to.match(/CONSTRAINT\s*(["[`]?user_and_email["\]`]?)?\s*UNIQUE\s*\(["[`]?username["\]`]?, ["[`]?email["\]`]?\)/);
-            expect(sql).to.match(/CONSTRAINT\s*(["[`]?a_and_b["\]`]?)?\s*UNIQUE\s*\(["[`]?aCol["\]`]?, ["[`]?bCol["\]`]?\)/);
-          } else {
-            expect(sql).to.match(/UNIQUE\s*(["`]?user_and_email["`]?)?\s*\(["`]?username["`]?, ["`]?email["`]?\)/);
-            expect(sql).to.match(/UNIQUE\s*(["`]?a_and_b["`]?)?\s*\(["`]?aCol["`]?, ["`]?bCol["`]?\)/);
-          }
-        })),
-      });
-    });
-
     it('allows unique on column with field aliases', async function () {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
@@ -2848,44 +2827,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
   }
-
-  describe('Unique', () => {
-    it('should set unique when unique is true', async function () {
-      const uniqueTrue = this.sequelize.define('uniqueTrue', {
-        str: { type: DataTypes.STRING, unique: true },
-      });
-
-      await uniqueTrue.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).to.match(/UNIQUE/);
-        })),
-      });
-    });
-
-    it('should not set unique when unique is false', async function () {
-      const uniqueFalse = this.sequelize.define('uniqueFalse', {
-        str: { type: DataTypes.STRING, unique: false },
-      });
-
-      await uniqueFalse.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).not.to.match(/UNIQUE/);
-        })),
-      });
-    });
-
-    it('should not set unique when unique is unset', async function () {
-      const uniqueUnset = this.sequelize.define('uniqueUnset', {
-        str: { type: DataTypes.STRING },
-      });
-
-      await uniqueUnset.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).not.to.match(/UNIQUE/);
-        })),
-      });
-    });
-  });
 
   it('should be possible to use a key named UUID as foreign key', async function () {
     this.sequelize.define('project', {
