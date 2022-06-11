@@ -303,14 +303,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           }, { timestamps: false });
 
-          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out1).to.have.length(1);
+          const out1 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out1).to.have.length(0);
 
           // alter to add the unique index
           await User2.sync({ alter: true });
 
-          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out2).to.have.length(2);
+          const out2 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out2).to.have.length(1);
 
           const uniques = out2.filter(index => index.primary !== true);
           expect(uniques).to.have.length(1);
@@ -339,14 +341,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
           });
 
-          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out1).to.have.length(1);
+          const out1 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out1).to.have.length(0);
 
           // alter to add the unique index
           await User2.sync({ alter: true });
 
-          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out2).to.have.length(2);
+          const out2 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out2).to.have.length(1);
           const uniques = out2.filter(index => index.primary !== true);
           expect(uniques).to.have.length(1);
           expect(uniques[0].unique).to.be.true;
@@ -374,14 +378,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
           });
 
-          const out1 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out1).to.have.length(1);
+          const out1 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out1).to.have.length(0);
 
           // alter to add the unique index
           await User2.sync({ alter: true });
 
-          const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
-          expect(out2).to.have.length(2);
+          const out2 = (await this.sequelize.getQueryInterface().showIndex(User1.getTableName()))
+            .filter(r => !r.primary);
+          expect(out2).to.have.length(1);
           const nonUniques = out2.filter(index => index.primary !== true);
           expect(nonUniques).to.have.length(1);
           expect(nonUniques[0].unique).to.be.false;
