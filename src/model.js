@@ -789,6 +789,10 @@ ${associationOwner._getAssociationDebugList()}`);
     ];
   }
 
+  static get _indexes() {
+    throw new Error('Model._indexes has been replaced with Model.getIndexes()');
+  }
+
   static _nameIndex(newIndex) {
     if (Object.prototype.hasOwnProperty.call(newIndex, 'name')) {
       return newIndex;

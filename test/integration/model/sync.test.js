@@ -418,7 +418,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { fields: ['email'], unique: true },
             ],
           });
-        }).to.throw('Sequelize tried to give the name "testSyncs:email:unique" to index');
+        }).to.throw('Sequelize tried to give the name "test_syncs_email_unique" to index');
       });
 
       it('creates one unique index per unique:true columns, and per entry in options.indexes', async function () {
@@ -447,10 +447,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         results.sort((a, b) => a.name.localeCompare(b.name));
 
         expect(results).to.have.length(3);
-        expect(results[0].name).to.eq('testSyncs:email:unique');
+        expect(results[0].name).to.eq('test_syncs_email_unique');
         expect(results[0].fields.map(f => f.attribute)).to.deep.eq(['email']);
 
-        expect(results[1].name).to.eq('testSyncs:phone:unique');
+        expect(results[1].name).to.eq('test_syncs_phone_unique');
         expect(results[1].fields.map(f => f.attribute)).to.deep.eq(['phone']);
 
         expect(results[2].name).to.eq('wow_my_index');

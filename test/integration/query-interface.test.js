@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
       let indexes = await this.queryInterface.showIndex('Group');
       let indexColumns = _.uniq(indexes.map(index => index.name));
-      expect(indexColumns).to.include('Group:username+isAdmin');
+      expect(indexColumns).to.include('group_username_is_admin');
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
       indexColumns = _.uniq(indexes.map(index => index.name));
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'table',
       });
       expect(indexes.length).to.eq(1);
-      expect(indexes[0].name).to.eq('table:name+isAdmin');
+      expect(indexes[0].name).to.eq('table_name_is_admin');
     });
 
     it('does not fail on reserved keywords', async function () {

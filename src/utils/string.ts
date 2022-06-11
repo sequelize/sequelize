@@ -113,13 +113,13 @@ ${NodeUtil.inspect(index)}`);
     return field.name;
   });
 
-  let out = `${tableName}:${fields.join('+')}`;
+  let out = `${tableName}_${fields.join('_')}`;
 
   if (index.unique) {
-    out += ':unique';
+    out += '_unique';
   }
 
-  return out;
+  return underscore(out);
 }
 
 /**
