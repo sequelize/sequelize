@@ -284,6 +284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(index.name).to.equal('user_name_unique');
 
       switch (dialect) {
+        case 'mariadb':
         case 'mysql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
           expect(index.type).to.equal('BTREE');
