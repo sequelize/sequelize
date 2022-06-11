@@ -388,5 +388,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
 
 async function getNonPrimaryIndexes(model) {
   return (await sequelize.getQueryInterface().showIndex(model.getTableName()))
-    .filter(r => !r.primary);
+    .filter(r => !r.primary)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
