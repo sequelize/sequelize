@@ -623,7 +623,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(idx1.unique).to.be.ok;
 
       if (!['mssql', 'db2', 'ibmi'].includes(dialect)) {
-        expect(idx2.name).to.equal('models_field_c');
+        expect(idx2.name).to.equal('models:fieldC');
         expect(idx2.unique).not.to.be.ok;
       }
     });

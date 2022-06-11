@@ -3348,8 +3348,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      expect(UserTasksLong.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
-      expect(UserTasksLong.rawAttributes.id_task_very_long_field.unique).to.equal('custom_user_group_unique');
+      expect(UserTasksLong.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
+      expect(UserTasksLong.rawAttributes.id_task_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
     });
   });
 

@@ -158,6 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(data.dataValues.name).to.eql('test3');
       expect(data.dataValues.age).to.eql('1');
     });
+
     it('should properly create composite index that fails on constraint violation', async function () {
       const testSync = this.sequelize.define('testSync', {
         name: DataTypes.STRING,
@@ -187,7 +188,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       foreignKeyTestSyncB.belongsTo(foreignKeyTestSyncA);
 
       await this.sequelize.sync({ alter: true });
-
       await this.sequelize.sync({ alter: true });
     });
 
@@ -311,9 +311,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const out2 = await this.sequelize.getQueryInterface().showIndex(User1.getTableName());
           expect(out2).to.have.length(2);
+
           const uniques = out2.filter(index => index.primary !== true);
           expect(uniques).to.have.length(1);
-          expect(uniques[0].unique).to.be.true;
+          expect(uniques[0].unique).to.eq(true, 'index should be unique');
         });
 
         it('should be able to add a unique index to an existing table (index option)', async function () {
@@ -387,7 +388,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should create only one unique index for unique:true column', async function () {
+      it('creates one unique index for unique:true column', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
             type: DataTypes.STRING,
@@ -396,44 +397,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         await User.sync({ force: true });
-        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-        if (dialect === 'sqlite') {
-          // SQLite doesn't treat primary key as index
-          expect(results).to.have.length(1);
-        } else {
-          expect(results).to.have.length(2);
-          expect(results.filter(r => r.primary)).to.have.length(1);
-        }
+        await User.sync({ alter: true });
 
-        expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
+        const results = (await this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+          .filter(r => !r.primary);
+
+        expect(results).to.have.length(1);
       });
 
-      it('should create only one unique index for unique:true columns', async function () {
-        const User = this.sequelize.define('testSync', {
-          email: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-          phone: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-        });
-
-        await User.sync({ force: true });
-        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-        if (dialect === 'sqlite') {
-          // SQLite doesn't treat primary key as index
-          expect(results).to.have.length(2);
-        } else {
-          expect(results).to.have.length(3);
-          expect(results.filter(r => r.primary)).to.have.length(1);
-        }
-
-        expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(2);
+      it('throws if a name collision occurs between two indexes', async function () {
+        expect(() => {
+          this.sequelize.define('testSync', {
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          }, {
+            timestamps: false,
+            indexes: [
+              { fields: ['email'], unique: true },
+            ],
+          });
+        }).to.throw('Sequelize tried to give the name "testSyncs:email:unique" to index');
       });
 
-      it('should create only one unique index for unique:true columns taking care of options.indexes', async function () {
+      it('creates one unique index per unique:true columns, and per entry in options.indexes', async function () {
         const User = this.sequelize.define('testSync', {
           email: {
             type: DataTypes.STRING,
@@ -444,22 +432,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             unique: true,
           },
         }, {
+          timestamps: false,
           indexes: [
             { name: 'wow_my_index', fields: ['email', 'phone'], unique: true },
           ],
         });
 
         await User.sync({ force: true });
-        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-        if (dialect === 'sqlite') {
-          // SQLite doesn't treat primary key as index
-          expect(results).to.have.length(3);
-        } else {
-          expect(results).to.have.length(4);
-          expect(results.filter(r => r.primary)).to.have.length(1);
-        }
+        await User.sync({ alter: true });
 
-        expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(3);
+        const results = (await this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+          .filter(r => !r.primary);
+
+        results.sort((a, b) => a.name.localeCompare(b.name));
+
+        expect(results).to.have.length(3);
+        expect(results[0].name).to.eq('testSyncs:email:unique');
+        expect(results[0].fields.map(f => f.attribute)).to.deep.eq(['email']);
+
+        expect(results[1].name).to.eq('testSyncs:phone:unique');
+        expect(results[1].fields.map(f => f.attribute)).to.deep.eq(['phone']);
+
+        expect(results[2].name).to.eq('wow_my_index');
+        expect(results[2].fields.map(f => f.attribute).sort()).to.deep.eq(['email', 'phone']);
+
         expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
       });
 
@@ -472,21 +468,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         await User.sync({ force: true });
-        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-        if (dialect === 'sqlite') {
-          // SQLite doesn't treat primary key as index
-          expect(results).to.have.length(1);
-        } else {
-          expect(results).to.have.length(2);
-          expect(results.filter(r => r.primary)).to.have.length(1);
-        }
+        await User.sync({ alter: true });
 
-        expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
+        const results = (await this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+          .filter(r => !r.primary);
 
-        if (!['postgres', 'sqlite'].includes(dialect)) {
-          // Postgres/SQLite doesn't support naming indexes in create table
-          expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
-        }
+        expect(results).to.have.length(1);
+        expect(results[0].name).to.eq('wow_my_index');
+        expect(results[0].fields.map(field => field.attribute).sort()).to.deep.eq(['email']);
       });
 
       it('should create only one unique index for unique:name columns', async function () {
@@ -502,20 +491,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         await User.sync({ force: true });
-        const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
-        if (dialect === 'sqlite') {
-          // SQLite doesn't treat primary key as index
-          expect(results).to.have.length(1);
-        } else {
-          expect(results).to.have.length(2);
-          expect(results.filter(r => r.primary)).to.have.length(1);
-        }
+        await User.sync({ alter: true });
 
-        expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
-        if (!['postgres', 'sqlite'].includes(dialect)) {
-          // Postgres/SQLite doesn't support naming indexes in create table
-          expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
-        }
+        const results = (await this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+          .filter(r => !r.primary);
+
+        expect(results).to.have.length(1);
+        expect(results[0].name).to.eq('wow_my_index');
+        expect(results[0].fields.map(field => field.attribute).sort()).to.deep.eq(['email', 'phone']);
       });
     });
   });

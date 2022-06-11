@@ -153,7 +153,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
+            indexName = Utils.generateIndexName(tableName, columns);
           }
 
           attributesClauseParts.push(`CONSTRAINT ${

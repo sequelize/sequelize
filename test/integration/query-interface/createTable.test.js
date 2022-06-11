@@ -61,47 +61,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
       });
 
-      const indexes = await this.queryInterface.showIndex('MyTable');
-      switch (dialect) {
-        case 'postgres':
-        case 'postgres-native':
-        case 'sqlite':
-        case 'mssql':
+      const indexes = (await this.queryInterface.showIndex('MyTable'))
+        .filter(index => !index.primary)
+        .sort((a, b) => a.name.localeCompare(b.name));
 
-          // name + email
-          expect(indexes[0].unique).to.be.true;
-          expect(indexes[0].fields[0].attribute).to.equal('name');
-          expect(indexes[0].fields[1].attribute).to.equal('email');
-
-          // name
-          expect(indexes[1].unique).to.be.true;
-          expect(indexes[1].fields[0].attribute).to.equal('name');
-          break;
-        case 'mariadb':
-        case 'mysql':
-        case 'db2':
-          // name + email
-          expect(indexes[1].unique).to.be.true;
-          expect(indexes[1].fields[0].attribute).to.equal('name');
-          expect(indexes[1].fields[1].attribute).to.equal('email');
-
-          // name
-          expect(indexes[2].unique).to.be.true;
-          expect(indexes[2].fields[0].attribute).to.equal('name');
-          break;
-        case 'ibmi':
-          // name + email
-          expect(indexes[1].unique).to.be.true;
-          expect(indexes[1].fields[0].attribute).to.equal('email');
-          expect(indexes[1].fields[1].attribute).to.equal('name');
-
-          // name
-          expect(indexes[2].unique).to.be.true;
-          expect(indexes[2].fields[0].attribute).to.equal('name');
-          break;
-        default:
-          throw new Error(`Not implemented fpr ${dialect}`);
+      for (const index of indexes) {
+        index.fields.sort((a, b) => a.attribute.localeCompare(b.attribute));
       }
+
+      // name + email
+      expect(indexes[0].unique).to.be.true;
+      expect(indexes[0].fields[0].attribute).to.equal('email');
+      expect(indexes[0].fields[1].attribute).to.equal('name');
+
+      // name
+      expect(indexes[1].unique).to.be.true;
+      expect(indexes[1].fields[0].attribute).to.equal('name');
     });
 
     it('should work with schemas', async function () {
