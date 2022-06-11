@@ -740,6 +740,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           {
             unique: true,
             fields: ['UserUserSecondId', 'GroupGroupSecondId'],
+            name: 'UserHasGroup_Second_Unique',
           },
         ],
       });
