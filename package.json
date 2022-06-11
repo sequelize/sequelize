@@ -22,7 +22,8 @@
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./types/index.d.ts"
     },
     "./lib/*": "./lib/*.js",
     "./lib/errors": "./lib/errors/index.js",
