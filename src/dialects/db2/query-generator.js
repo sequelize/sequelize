@@ -58,7 +58,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   createTableQuery(tableName, attributes, options) {
-    const query = 'CREATE TABLE <%= table %> (<%= attributes %>)';
+    const query = 'CREATE TABLE IF NOT EXISTS <%= table %> (<%= attributes %>)';
     const primaryKeys = [];
     const foreignKeys = {};
     const attrStr = [];
