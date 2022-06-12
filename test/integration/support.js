@@ -11,7 +11,7 @@ const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10
 
 let runningQueries = new Set();
 
-before(async function () {
+before(function () {
   this.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
