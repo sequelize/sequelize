@@ -258,7 +258,13 @@ export class BelongsTo<
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema(options.schema);
+    } else if (!Array.isArray(instances)) {
+      const instance: any = instances;
+      if (instance._options && instance._options._schema) {
+        // console.log('======> ', instances);
+        Target = Target.withSchema(instance._options._schema);
+      }
     }
 
     let isManyMode = true;
