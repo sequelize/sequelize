@@ -22,7 +22,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable({
         tableName: 'users',
         schema: 'archive',
-        logging: true,
       }, {
         id: {
           type: DataTypes.INTEGER,
