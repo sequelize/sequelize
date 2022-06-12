@@ -41,7 +41,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should not contain views', async function () {
       async function cleanup(sequelize) {
         if (dialect === 'db2') {
-          await sequelize.query('DROP VIEW V_Fail');
+          // DB2 does not support DROP VIEW IF EXISTS
+          try {
+            await sequelize.query('DROP VIEW V_Fail');
+          } catch (error) {
+            // -204 means V_Fail does not exist
+            // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
+            if (error.cause.sqlcode !== -204) {
+              throw error;
+            }
+          }
         } else {
           await sequelize.query('DROP VIEW IF EXISTS V_Fail');
         }
@@ -634,10 +643,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.STRING,
           allowNull: false,
         });
+
+        // in db2, after the above "change column" query, the "users" table is in "reorg pending state"
+        // and the subsequent "add constraint" will fail.
+        // 'REORG TABLE' forces the reorg to happen now.
+        // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
+        if (dialect === 'db2') {
+          await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE "users"')`);
+        }
+
         await this.queryInterface.addConstraint('users', {
           type: 'PRIMARY KEY',
           fields: ['username'],
         });
+
         await this.queryInterface.addConstraint('posts', {
           fields: ['username'],
           references: {
