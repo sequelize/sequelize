@@ -166,7 +166,7 @@ if (dialect === 'db2') {
       dropTableQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'DROP TABLE "myTable";',
+          expectation: 'DROP TABLE IF EXISTS "myTable";',
         },
       ],
 
