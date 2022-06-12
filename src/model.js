@@ -1,22 +1,23 @@
 'use strict';
 
-import { isModelStatic } from './utils/model-utils';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 
 const assert = require('assert');
+const NodeUtil = require('util');
 const _ = require('lodash');
 const Dottie = require('dottie');
-
 const Utils = require('./utils');
 const { logger } = require('./utils/logger');
-const { BelongsTo, BelongsToMany, Association, HasMany } = require('./associations');
+const { BelongsTo, BelongsToMany, Association, HasMany, HasOne } = require('./associations');
+const { AssociationSecret } = require('./associations/helpers');
 const { InstanceValidator } = require('./instance-validator');
 const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
-const { Mixin: associationsMixin } = require('./associations/mixin');
 const { Op } = require('./operators');
-const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema, useModelSet } = require('./utils/deprecations');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude } = require('./model-internals');
+const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -107,6 +108,7 @@ export class Model {
       _schema: this.constructor._schema,
       _schemaDelimiter: this.constructor._schemaDelimiter,
       ...options,
+      model: this.constructor,
     };
 
     if (options.attributes) {
@@ -117,7 +119,7 @@ export class Model {
       this.constructor._conformIncludes(options, this.constructor);
       if (options.include) {
         this.constructor._expandIncludeAll(options);
-        this.constructor._validateIncludedElements(options);
+        _validateIncludedElements(options);
       }
     }
 
@@ -204,7 +206,7 @@ export class Model {
     }
 
     // apply paranoid when groupedLimit is used
-    if (_.get(options, 'groupedLimit.on.options.paranoid')) {
+    if (_.get(options, 'groupedLimit.on.through.model.options.paranoid')) {
       const throughModel = _.get(options, 'groupedLimit.on.through.model');
       if (throughModel) {
         options.groupedLimit.through = this._paranoidClause(throughModel, options.groupedLimit.through);
@@ -329,7 +331,40 @@ export class Model {
     }
   }
 
-  static _conformIncludes(options, self) {
+  static _getAssociationDebugList() {
+    return `The following associations are defined on "${this.name}": ${Object.keys(this.associations).map(associationName => `"${associationName}"`).join(', ')}`;
+  }
+
+  static getAssociation(associationName) {
+    if (!Object.prototype.hasOwnProperty.call(this.associations, associationName)) {
+      throw new Error(`Association with alias "${associationName}" does not exist on ${this.name}.
+${this._getAssociationDebugList()}`);
+    }
+
+    return this.associations[associationName];
+  }
+
+  static _getAssociationsByModel(model) {
+    const matchingAssociations = [];
+
+    for (const associationName of Object.keys(this.associations)) {
+      const association = this.associations[associationName];
+      if (!isSameInitialModel(association.target, model)) {
+        continue;
+      }
+
+      matchingAssociations.push(association);
+    }
+
+    return matchingAssociations;
+  }
+
+  static _normalizeIncludes(options, associationOwner) {
+    this._conformIncludes(options, associationOwner);
+    this._expandIncludeAll(options, associationOwner);
+  }
+
+  static _conformIncludes(options, associationOwner) {
     if (!options.include) {
       return;
     }
@@ -344,89 +379,87 @@ export class Model {
     }
 
     // convert all included elements to { model: Model } form
-    options.include = options.include.map(include => this._conformInclude(include, self));
+    options.include = options.include.map(include => this._conformInclude(include, associationOwner));
   }
 
-  static _transformStringAssociation(include, self) {
-    if (self && typeof include === 'string') {
-      if (!Object.prototype.hasOwnProperty.call(self.associations, include)) {
-        throw new Error(`Association with alias "${include}" does not exist on ${self.name}`);
+  static _conformInclude(include, associationOwner) {
+    if (!include) {
+      throwInvalidInclude(include);
+    }
+
+    if (!associationOwner || !isModelStatic(associationOwner)) {
+      throw new TypeError(`Sequelize sanity check: associationOwner must be a model subclass. Got ${NodeUtil.inspect(associationOwner)} (${typeof associationOwner})`);
+    }
+
+    if (include._pseudo) {
+      return include;
+    }
+
+    if (include.all) {
+      this._conformIncludes(include, associationOwner);
+
+      return include;
+    }
+
+    // normalize to IncludeOptions
+    if (!_.isPlainObject(include)) {
+      if (isModelStatic(include)) {
+        include = {
+          model: include,
+        };
+      } else {
+        include = {
+          association: include,
+        };
+      }
+    } else {
+      // copy object so we can mutate it without side effects
+      include = { ...include };
+    }
+
+    if (include.as && !include.association) {
+      include.association = include.as;
+    }
+
+    if (!include.association) {
+      include.association = associationOwner.getAssociationWithModel(include.model, include.as);
+    } else if (typeof include.association === 'string') {
+      include.association = associationOwner.getAssociation(include.association);
+    } else {
+      if (!(include.association instanceof Association)) {
+        throwInvalidInclude(include);
       }
 
-      return self.associations[include];
+      if (!isSameInitialModel(include.association.source, associationOwner)) {
+        throw new Error(`Invalid Include received: the specified association "${include.association.as}" is not defined on model "${associationOwner.name}". It is owned by model "${include.association.source.name}".
+${associationOwner._getAssociationDebugList()}`);
+      }
     }
+
+    if (!include.model) {
+      include.model = include.association.target;
+    }
+
+    if (!isSameInitialModel(include.model, include.association.target)) {
+      throw new TypeError(`Invalid Include received: the specified "model" option ("${include.model.name}") does not match the target ("${include.association.target.name}") of the "${include.association.as}" association.`);
+    }
+
+    if (!include.as) {
+      include.as = include.association.as;
+    }
+
+    this._conformIncludes(include, include.model);
 
     return include;
   }
 
-  static _conformInclude(include, self) {
-    if (include) {
-      let model;
-
-      if (include._pseudo) {
-        return include;
-      }
-
-      include = this._transformStringAssociation(include, self);
-
-      if (include instanceof Association) {
-        if (self && include.target.name === self.name) {
-          model = include.source;
-        } else {
-          model = include.target;
-        }
-
-        return { model, association: include, as: include.as };
-      }
-
-      if (isModelStatic(include)) {
-        return { model: include };
-      }
-
-      if (_.isPlainObject(include)) {
-        if (include.association) {
-          include.association = this._transformStringAssociation(include.association, self);
-
-          if (self && include.association.target.name === self.name) {
-            model = include.association.source;
-          } else {
-            model = include.association.target;
-          }
-
-          if (!include.model) {
-            include.model = model;
-          }
-
-          if (!include.as) {
-            include.as = include.association.as;
-          }
-
-          this._conformIncludes(include, model);
-
-          return include;
-        }
-
-        if (include.model) {
-          this._conformIncludes(include, include.model);
-
-          return include;
-        }
-
-        if (include.all) {
-          this._conformIncludes(include);
-
-          return include;
-        }
-      }
-    }
-
-    throw new Error('Include unexpected. Element has to be either a Model, an Association or an object.');
-  }
-
   static _expandIncludeAllElement(includes, include) {
     // check 'all' attribute provided is valid
-    let all = include.all;
-    delete include.all;
+    let { all, nested, ...includeOptions } = include;
+
+    if (Object.keys(includeOptions).length > 0) {
+      throw new Error('"include: { all: true }" does not allow extra options (except for "nested") because they are unsafe. Select includes one by one if you want to specify more options.');
+    }
 
     if (all !== true) {
       if (!Array.isArray(all)) {
@@ -468,159 +501,56 @@ export class Model {
       }
     }
 
-    // add all associations of types specified to includes
-    const nested = include.nested;
-    if (nested) {
-      delete include.nested;
-
-      if (!include.include) {
-        include.include = [];
-      } else if (!Array.isArray(include.include)) {
-        include.include = [include.include];
-      }
-    }
-
-    const used = [];
-    (function addAllIncludes(parent, includes) {
+    const visitedModels = [];
+    const addAllIncludes = (parent, includes) => {
       _.forEach(parent.associations, association => {
         if (all !== true && !all.includes(association.associationType)) {
           return;
         }
 
-        // check if model already included, and skip if so
+        // 'fromSourceToThroughOne' is a bit hacky and should not be included when { all: true } is specified
+        //  because its parent 'belongsToMany' will be replaced by it in query generator.
+        if (association.parentAssociation instanceof BelongsToMany
+          && association === association.parentAssociation.fromSourceToThroughOne) {
+          return;
+        }
+
+        // skip if the association is already included
+        if (includes.some(existingInclude => existingInclude.association === association)) {
+          return;
+        }
+
+        const newInclude = { association };
+
         const model = association.target;
-        const as = association.options.as;
 
-        const predicate = { model };
-        if (as) {
-          // We only add 'as' to the predicate if it actually exists
-          predicate.as = as;
-        }
-
-        if (_.some(includes, predicate)) {
+        // skip if recursing over a model whose associations have already been included
+        // to prevent infinite loops with associations such as this:
+        // user -> projects -> user
+        if (nested && visitedModels.includes(model)) {
           return;
         }
-
-        // skip if recursing over a model already nested
-        if (nested && used.includes(model)) {
-          return;
-        }
-
-        used.push(parent);
 
         // include this model
-        const thisInclude = Utils.cloneDeep(include);
-        thisInclude.model = model;
-        if (as) {
-          thisInclude.as = as;
-        }
-
-        includes.push(thisInclude);
+        const normalizedNewInclude = this._conformInclude(newInclude, parent);
+        includes.push(normalizedNewInclude);
 
         // run recursively if nested
         if (nested) {
-          addAllIncludes(model, thisInclude.include);
-          if (thisInclude.include.length === 0) {
-            delete thisInclude.include;
+          visitedModels.push(parent);
+
+          const subIncludes = [];
+          addAllIncludes(model, subIncludes);
+          visitedModels.pop();
+
+          if (subIncludes.length > 0) {
+            normalizedNewInclude.include = subIncludes;
           }
         }
       });
-      used.pop();
-    }(this, includes));
-  }
+    };
 
-  static _validateIncludedElements(options, tableNames) {
-    if (!options.model) {
-      options.model = this;
-    }
-
-    tableNames = tableNames || {};
-    options.includeNames = [];
-    options.includeMap = {};
-
-    /* Legacy */
-    options.hasSingleAssociation = false;
-    options.hasMultiAssociation = false;
-
-    if (!options.parent) {
-      options.topModel = options.model;
-      options.topLimit = options.limit;
-    }
-
-    options.include = options.include.map(include => {
-      include = this._conformInclude(include);
-      include.parent = options;
-      include.topLimit = options.topLimit;
-
-      this._validateIncludedElement.call(options.model, include, tableNames, options);
-
-      if (include.duplicating === undefined) {
-        include.duplicating = include.association.isMultiAssociation;
-      }
-
-      include.hasDuplicating = include.hasDuplicating || include.duplicating;
-      include.hasRequired = include.hasRequired || include.required;
-
-      options.hasDuplicating = options.hasDuplicating || include.hasDuplicating;
-      options.hasRequired = options.hasRequired || include.required;
-
-      options.hasWhere = options.hasWhere || include.hasWhere || Boolean(include.where);
-
-      return include;
-    });
-
-    for (const include of options.include) {
-      include.hasParentWhere = options.hasParentWhere || Boolean(options.where);
-      include.hasParentRequired = options.hasParentRequired || Boolean(options.required);
-
-      if (include.subQuery !== false && options.hasDuplicating && options.topLimit) {
-        if (include.duplicating) {
-          include.subQuery = include.subQuery || false;
-          include.subQueryFilter = include.hasRequired;
-        } else {
-          include.subQuery = include.hasRequired;
-          include.subQueryFilter = false;
-        }
-      } else {
-        include.subQuery = include.subQuery || false;
-        if (include.duplicating) {
-          include.subQueryFilter = include.subQuery;
-        } else {
-          include.subQueryFilter = false;
-          include.subQuery = include.subQuery || include.hasParentRequired && include.hasRequired && !include.separate;
-        }
-      }
-
-      options.includeMap[include.as] = include;
-      options.includeNames.push(include.as);
-
-      // Set top level options
-      if (options.topModel === options.model && options.subQuery === undefined && options.topLimit) {
-        if (include.subQuery) {
-          options.subQuery = include.subQuery;
-        } else if (include.hasDuplicating) {
-          options.subQuery = true;
-        }
-      }
-
-      /* Legacy */
-      options.hasIncludeWhere = options.hasIncludeWhere || include.hasIncludeWhere || Boolean(include.where);
-      options.hasIncludeRequired = options.hasIncludeRequired || include.hasIncludeRequired || Boolean(include.required);
-
-      if (include.association.isMultiAssociation || include.hasMultiAssociation) {
-        options.hasMultiAssociation = true;
-      }
-
-      if (include.association.isSingleAssociation || include.hasSingleAssociation) {
-        options.hasSingleAssociation = true;
-      }
-    }
-
-    if (options.topModel === options.model && options.subQuery === undefined) {
-      options.subQuery = false;
-    }
-
-    return options;
+    addAllIncludes(this, includes);
   }
 
   static _validateIncludedElement(include, tableNames, options) {
@@ -661,13 +591,13 @@ export class Model {
     }
 
     // check if the current Model is actually associated with the passed Model - or it's a pseudo include
-    const association = include.association || this._getIncludedAssociation(include.model, include.as);
+    const association = include.association || this.getAssociationWithModel(include.model, include.as);
 
     include.association = association;
-    include.as = association.as;
+    include.as ||= association.as;
 
     // If through, we create a pseudo child include, to ease our parsing later on
-    if (include.association.through && Object(include.association.through.model) === include.association.through.model) {
+    if (association instanceof BelongsToMany) {
       if (!include.include) {
         include.include = [];
       }
@@ -676,6 +606,7 @@ export class Model {
 
       include.through = _.defaults(include.through || {}, {
         model: through.model,
+        // Through Models are a special case: we always want to load them as the name of the model, not the name of the association
         as: through.model.name,
         association: {
           isSingleAssociation: true,
@@ -749,45 +680,13 @@ export class Model {
 
     // Validate child includes
     if (Object.prototype.hasOwnProperty.call(include, 'include')) {
-      this._validateIncludedElements.call(include.model, include, tableNames);
+      _validateIncludedElements(include, tableNames);
     }
 
     return include;
   }
 
-  static _getIncludedAssociation(targetModel, targetAlias) {
-    const associations = this.getAssociations(targetModel);
-    let association = null;
-    if (associations.length === 0) {
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is not associated to ${this.name}!`);
-    }
-
-    if (associations.length === 1) {
-      association = this.getAssociationForAlias(targetModel, targetAlias);
-      if (association) {
-        return association;
-      }
-
-      if (targetAlias) {
-        const existingAliases = this.getAssociations(targetModel).map(association => association.as);
-        throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} using an alias. `
-          + `You've included an alias (${targetAlias}), but it does not match the alias(es) defined in your association (${existingAliases.join(', ')}).`);
-      }
-
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} using an alias. `
-        + 'You must use the \'as\' keyword to specify the alias within your include statement.');
-    }
-
-    association = this.getAssociationForAlias(targetModel, targetAlias);
-    if (!association) {
-      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is associated to ${this.name} multiple times. `
-        + 'To identify the correct association, you must use the \'as\' keyword to specify the alias of the association you want to include.');
-    }
-
-    return association;
-  }
-
-  static _expandIncludeAll(options) {
+  static _expandIncludeAll(options, associationOwner) {
     const includes = options.include;
     if (!includes) {
       return;
@@ -800,12 +699,12 @@ export class Model {
         includes.splice(index, 1);
         index--;
 
-        this._expandIncludeAllElement(includes, include);
+        associationOwner._expandIncludeAllElement(includes, include);
       }
     }
 
     for (const include of includes) {
-      this._expandIncludeAll.call(include.model, include);
+      this._expandIncludeAll(include, include.model);
     }
   }
 
@@ -827,26 +726,17 @@ export class Model {
     return index;
   }
 
-  static _uniqIncludes(options) {
-    if (!options.include) {
-      return;
-    }
-
-    options.include = _(options.include)
-      .groupBy(include => `${include.model && include.model.name}-${include.as}`)
-      .map(includes => this._assignOptions(...includes))
-      .value();
-  }
-
   static _baseMerge(...args) {
     _.assignWith(...args);
-    this._conformIncludes(args[0], this);
-    this._uniqIncludes(args[0]);
 
     return args[0];
   }
 
   static _mergeFunction(objValue, srcValue, key) {
+    if (key === 'include') {
+      return combineIncludes(objValue, srcValue);
+    }
+
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
     }
@@ -1300,13 +1190,30 @@ export class Model {
   }
 
   /**
-   * Remove attribute from model definition
+   * Remove attribute from model definition.
+   * Only use if you know what you're doing.
    *
    * @param {string} attribute name of attribute to remove
    */
   static removeAttribute(attribute) {
     delete this.rawAttributes[attribute];
     this.refreshAttributes();
+  }
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   *
+   * @param {object} newAttributes
+   */
+  static mergeAttributesDefault(newAttributes) {
+    Utils.mergeDefaults(this.rawAttributes, newAttributes);
+
+    this.refreshAttributes();
+
+    return this.rawAttributes;
   }
 
   /**
@@ -1555,6 +1462,10 @@ export class Model {
    *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
    *   arguments to that method. Pass null to remove all scopes, including the default.
    *
+   * @example <caption>To invoke scope functions you can do</caption>
+   * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
+   * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
+   *
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
    *   clear the previous scope.
    */
@@ -1741,22 +1652,23 @@ export class Model {
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
 
-    _.defaults(options, { hooks: true });
+    _.defaults(options, { hooks: true, model: this });
 
     // set rejectOnEmpty option, defaults to model options
     options.rejectOnEmpty = Object.prototype.hasOwnProperty.call(options, 'rejectOnEmpty')
       ? options.rejectOnEmpty
       : this.options.rejectOnEmpty;
 
+    this._conformIncludes(options, this);
     this._injectScope(options);
 
     if (options.hooks) {
       await this.runHooks('beforeFind', options);
+      this._conformIncludes(options, this);
     }
 
-    this._conformIncludes(options, this);
     this._expandAttributes(options);
-    this._expandIncludeAll(options);
+    this._expandIncludeAll(options, options.model);
 
     if (options.hooks) {
       await this.runHooks('beforeFindAfterExpandIncludeAll', options);
@@ -1767,7 +1679,7 @@ export class Model {
     if (options.include) {
       options.hasJoin = true;
 
-      this._validateIncludedElements(options, tableNames);
+      _validateIncludedElements(options, tableNames);
 
       // If we're not raw, we have to make sure we include the primary key for de-duplication
       if (
@@ -1907,7 +1819,7 @@ export class Model {
       for (const result of results) {
         result.set(
           include.association.as,
-          map[result.get(include.association.sourceKey)],
+          map.get(result.get(include.association.sourceKey)),
           { raw: true },
         );
       }
@@ -1924,8 +1836,8 @@ export class Model {
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
-   * @param  {number|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                    [options] find options
+   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
+   * @param  {object}                           [options] find options
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
@@ -1936,7 +1848,7 @@ export class Model {
 
     options = Utils.cloneDeep(options) || {};
 
-    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
+    if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
         [this.primaryKeyAttribute]: param,
       };
@@ -1978,6 +1890,7 @@ export class Model {
 
     // Bypass a possible overloaded findAll.
     return await Model.findAll.call(this, (_.defaults(options, {
+      model: this,
       plain: true,
     })));
   }
@@ -1996,6 +1909,7 @@ export class Model {
    */
   static async aggregate(attribute, aggregateFunction, options) {
     options = Utils.cloneDeep(options);
+    options.model = this;
 
     // We need to preserve attributes here as the `injectScope` call would inject non aggregate columns.
     const prevAttributes = options.attributes;
@@ -2005,7 +1919,7 @@ export class Model {
 
     if (options.include) {
       this._expandIncludeAll(options);
-      this._validateIncludedElements(options);
+      _validateIncludedElements(options);
     }
 
     const attrOptions = this.rawAttributes[attribute];
@@ -2227,7 +2141,7 @@ export class Model {
       this._conformIncludes(options, this);
       if (options.include) {
         this._expandIncludeAll(options);
-        this._validateIncludedElements(options);
+        _validateIncludedElements(options);
       }
     }
 
@@ -2592,7 +2506,7 @@ export class Model {
       this._conformIncludes(options, this);
       if (options.include) {
         this._expandIncludeAll(options);
-        this._validateIncludedElements(options);
+        _validateIncludedElements(options);
       }
     }
 
@@ -3300,6 +3214,7 @@ export class Model {
   // Inject _scope into options.
   static _injectScope(options) {
     const scope = Utils.cloneDeep(this._scope);
+    this._normalizeIncludes(scope, this);
     this._defaultsOptions(options, scope);
   }
 
@@ -3309,6 +3224,47 @@ export class Model {
 
   static hasAlias(alias) {
     return Object.prototype.hasOwnProperty.call(this.associations, alias);
+  }
+
+  static getAssociations(target) {
+    return Object.values(this.associations).filter(association => association.target.name === target.name);
+  }
+
+  static getAssociationWithModel(targetModel, targetAlias) {
+    if (targetAlias) {
+      return this.getAssociation(targetAlias);
+    }
+
+    if (!targetModel) {
+      throwInvalidInclude({ model: targetModel, as: targetAlias });
+    }
+
+    const matchingAssociations = this._getAssociationsByModel(targetModel);
+    if (matchingAssociations.length === 0) {
+      throw new sequelizeErrors.EagerLoadingError(`Invalid Include received: no associations exist between "${this.name}" and "${targetModel.name}"`);
+    }
+
+    if (matchingAssociations.length > 1) {
+      throw new sequelizeErrors.EagerLoadingError(`
+Ambiguous Include received:
+You're trying to include the model "${targetModel.name}", but is associated to "${this.name}" multiple times.
+
+Instead of specifying a Model, either:
+1. pass one of the Association object (available in "${this.name}.associations") in the "association" option, e.g.:
+   include: {
+     association: ${this.name}.associations.${matchingAssociations[0].as},
+   },
+
+2. pass the name of one of the associations in the "association" option, e.g.:
+   include: {
+     association: '${matchingAssociations[0].as}',
+   },
+
+"${this.name}" is associated to "${targetModel.name}" through the following associations: ${matchingAssociations.map(association => `"${association.as}"`).join(', ')}
+`.trim());
+    }
+
+    return matchingAssociations[0];
   }
 
   /**
@@ -4502,7 +4458,9 @@ export class Model {
    * @param {object} options Options for the association
    * @returns {HasMany} The newly defined association (also available in {@link Model.associations}).
    */
-  static hasMany(target, options) {}
+  static hasMany(target, options) {
+    return HasMany.associate(AssociationSecret, this, target, options);
+  }
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -4526,7 +4484,9 @@ export class Model {
    * @param {object} options belongsToMany association options
    * @returns {BelongsToMany} The newly defined association (also available in {@link Model.associations}).
    */
-  static belongsToMany(target, options) {}
+  static belongsToMany(target, options) {
+    return BelongsToMany.associate(AssociationSecret, this, target, options);
+  }
 
   /**
    * Creates a 1:1 association between this model (the source) and the provided target.
@@ -4543,7 +4503,9 @@ export class Model {
    * @param {object} [options] hasOne association options
    * @returns {HasOne} The newly defined association (also available in {@link Model.associations}).
    */
-  static hasOne(target, options) {}
+  static hasOne(target, options) {
+    return HasOne.associate(AssociationSecret, this, target, options);
+  }
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -4560,7 +4522,9 @@ export class Model {
    * @param {object} [options] belongsTo association options
    * @returns {BelongsTo} The newly defined association (also available in {@link Model.associations}).
    */
-  static belongsTo(target, options) {}
+  static belongsTo(target, options) {
+    return BelongsTo.associate(AssociationSecret, this, target, options);
+  }
 }
 
 /**
@@ -4615,5 +4579,4 @@ function combineWheresWithAnd(whereA, whereB) {
   };
 }
 
-Object.assign(Model, associationsMixin);
 Hooks.applyTo(Model, true);

@@ -4,7 +4,7 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] Smoke test', () => {
@@ -27,7 +27,7 @@ if (dialect === 'snowflake') {
 
         await User.sync({ force: true });
         await User.create({ id: 1, username: 'jozef', lastActivity: new Date(Date.UTC(2021, 5, 21)) });
-        await User.create({ id: 2, username: 'jeff', lastActivity: moment(Date.UTC(2021, 5, 22)).format('YYYY-MM-DD HH:mm:ss Z') });
+        await User.create({ id: 2, username: 'jeff', lastActivity: dayjs(Date.UTC(2021, 5, 22)).format('YYYY-MM-DD HH:mm:ss Z') });
       });
 
       after(async () => {

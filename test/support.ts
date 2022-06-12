@@ -1,3 +1,4 @@
+import assert from 'assert';
 import fs from 'fs';
 import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
@@ -24,9 +25,45 @@ chai.use(sinonChai);
 // Using util.inspect to correctly assert objects with symbols
 // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
 chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai function
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
   expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
 });
+
+/**
+ * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
+ * that is also checks whether the message is present in the error cause.
+ */
+chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+function withInlineCause(cb: (() => any)): () => void {
+  return () => {
+    try {
+      return cb();
+    } catch (error) {
+      assert(error instanceof Error);
+
+      error.message = inlineErrorCause(error);
+
+      throw error;
+    }
+  };
+}
+
+function inlineErrorCause(error: Error) {
+  let message = error.message;
+
+  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
+  const cause = error.cause;
+  if (cause) {
+    message += `\nCaused by: ${inlineErrorCause(cause)}`;
+  }
+
+  return message;
+}
 
 chai.config.includeStack = true;
 chai.should();
@@ -59,10 +96,13 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-afterEach(() => {
-  onNextUnhandledRejection = null;
-  unhandledRejections = null;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof afterEach !== 'undefined') {
+  afterEach(() => {
+    onNextUnhandledRejection = null;
+    unhandledRejections = null;
+  });
+}
 
 /**
  * Returns a Promise that will reject with the next unhandled rejection that occurs
@@ -115,7 +155,7 @@ export async function prepareTransactionTest(sequelize: Sequelize) {
   return sequelize;
 }
 
-export function createSequelizeInstance(options: Options = {}) {
+export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
   const config = Config[options.dialect];
@@ -149,7 +189,7 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options) {
+export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
   options = options || {};
   options.dialect = options.dialect || getTestDialect();
 
@@ -266,7 +306,7 @@ export function expectsql(
         // except for ARRAY[...]
         expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         if (dialect.name === 'ibmi') {
-          expectation = expectation.replace(/;$/, '');
+          expectation = expectation.trim().replace(/;$/, '');
         }
       }
     } else {
@@ -274,10 +314,14 @@ export function expectsql(
     }
   }
 
-  if (query instanceof Error) {
-    expect(query.message).to.equal(expectation instanceof Error ? expectation.message : undefined);
+  if (expectation instanceof Error) {
+    assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
+
+    expect(query.message).to.equal(expectation.message);
   } else {
-    expect(isObject(query) ? query.query : query).to.equal(expectation);
+    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+
+    expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
   if ('bind' in assertions) {
@@ -304,25 +348,40 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
   return sql.replace(/\s+/g, ' ')
-  // remove space before comma
+    // remove space before comma
     .replace(/ ,/g, ',')
-  // remove whitespace at start & end
+    // remove space before )
+    .replace(/ \)/g, ')')
+    // replace space after (
+    .replace(/\( /g, '(')
+    // remove whitespace at start & end
     .trim();
 }
 
 export const sequelize = createSequelizeInstance();
 
-before(function onBefore() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+export function resetSequelizeInstance(): void {
+  for (const model of sequelize.modelManager.all) {
+    sequelize.modelManager.removeModel(model);
+  }
+}
 
-beforeEach(function onBeforeEach() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof before !== 'undefined') {
+  before(function onBefore() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
+
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function onBeforeEach() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
 
 type Tester<Params extends any[]> = {
   (...params: Params): void,

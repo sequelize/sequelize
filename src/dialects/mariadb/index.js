@@ -1,7 +1,9 @@
 'use strict';
 
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
+
 const _ = require('lodash');
-const { AbstractDialect } = require('../abstract');
 const { MariaDbConnectionManager } = require('./connection-manager');
 const { MariaDbQuery } = require('./query');
 const { MariaDbQueryGenerator } = require('./query-generator');
@@ -54,6 +56,10 @@ export class MariaDbDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+  }
+
+  createBindCollector() {
+    return createUnspecifiedOrderedBindCollector();
   }
 }
 
