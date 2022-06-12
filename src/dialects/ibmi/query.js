@@ -13,23 +13,6 @@ export class IBMiQuery extends AbstractQuery {
     return 'id';
   }
 
-  static formatBindParameters(sql, values, dialect) {
-    const bindParams = [];
-
-    const replacementFunc = (match, key, values_) => {
-
-      if (values_[key] !== undefined) {
-        bindParams.push(values_[key]);
-
-        return '?';
-      }
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParams];
-  }
-
   async run(sql, parameters) {
     const stacktrace = new Error().stack;
     this.sql = sql.replace(/;$/, '');

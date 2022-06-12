@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const sinon = require('sinon');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
@@ -224,15 +224,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       expect(user2).to.be.ok;
-      expect(moment.utc(user2.deletedAt).startOf('second').toISOString())
-        .to.equal(moment.utc(deletedAt).startOf('second').toISOString());
+      expect(dayjs.utc(user2.deletedAt).startOf('second').toISOString())
+        .to.equal(dayjs.utc(deletedAt).startOf('second').toISOString());
       expect(user2.username).to.equal('foo');
       const user1 = user2;
       // update model and delete again
       user1.username = 'bar';
       const user0 = await user1.destroy();
-      expect(moment.utc(user0.deletedAt).startOf('second').toISOString())
-        .to.equal(moment.utc(deletedAt).startOf('second').toISOString(),
+      expect(dayjs.utc(user0.deletedAt).startOf('second').toISOString())
+        .to.equal(dayjs.utc(deletedAt).startOf('second').toISOString(),
           'should not updated deletedAt when destroying multiple times');
 
       const user = await ParanoidUser.findOne({
@@ -243,8 +243,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       expect(user).to.be.ok;
-      expect(moment.utc(user.deletedAt).startOf('second').toISOString())
-        .to.equal(moment.utc(deletedAt).startOf('second').toISOString());
+      expect(dayjs.utc(user.deletedAt).startOf('second').toISOString())
+        .to.equal(dayjs.utc(deletedAt).startOf('second').toISOString());
       expect(user.username).to.equal('bar');
     });
 

@@ -29,5 +29,8 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 	  sleep 20
 	  let "count=count+1"
 	done
-  echo "Local DB2-11.5 instance is ready for Sequelize tests."
 fi
+
+DIALECT=db2 ts-node ../../check-connection.ts
+
+echo "Local DB2-11.5 instance is ready for Sequelize tests."

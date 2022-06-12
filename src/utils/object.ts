@@ -1,10 +1,12 @@
 import cloneDeepWith from 'lodash/cloneDeepWith';
-import isEqual from 'lodash/eq';
 import forOwn from 'lodash/forOwn';
 import getValue from 'lodash/get';
+import isEqual from 'lodash/isEqual';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
+import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
+import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
@@ -123,9 +125,10 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @returns a flattened object
  * @private
  */
-export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
+export function flattenObjectDeep<T>(value: T): T extends object ? Flatten<T> : T {
   if (!isPlainObject(value)) {
-    return value as Flatten<T>;
+    // TypeScript doesn't know T is an object due to isPlainObject's typings. Cast to any.
+    return value as any;
   }
 
   const flattenedObj: { [key: string]: any } = Object.create(null);
@@ -143,7 +146,7 @@ export function flattenObjectDeep<T extends object>(value: T): Flatten<T> {
     return flattenedObj;
   }
 
-  return flattenObject(value) as Flatten<T>;
+  return flattenObject(value) as any;
 }
 
 // taken from
@@ -211,4 +214,10 @@ export function camelizeObjectKeys(obj: { [key: string]: any }) {
   }
 
   return newObj;
+}
+
+type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
+
+export function removeUndefined<T>(val: T): NoUndefinedField<T> {
+  return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }

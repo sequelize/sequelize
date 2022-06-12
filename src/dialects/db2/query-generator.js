@@ -1,5 +1,7 @@
 'use strict';
 
+import { removeTrailingSemicolon } from '../../utils';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
@@ -35,12 +37,15 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, ? , ?)`;
-    const sql = { query };
-    sql.bind = [{ ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-      { ParamType: 'INOUT', Data: 'ERRORTABLE' }];
+    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_1, $sequelize_2)`;
 
-    return sql;
+    return {
+      query,
+      bind: {
+        sequelize_1: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
+        sequelize_2: { ParamType: 'INOUT', Data: 'ERRORTABLE' },
+      },
+    };
   }
 
   showSchemasQuery() {
@@ -73,7 +78,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
               table: this.quoteIdentifier(tableName),
-              comment: this.escape(commentText),
+              comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
             // remove comment related substring from dataType
@@ -289,7 +294,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     attributes = attributes || {};
     let query = 'INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>;';
     if (options.returning) {
-      query = 'SELECT * FROM FINAL TABLE( INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
+      query = 'SELECT * FROM FINAL TABLE (INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
     }
 
     const emptyQuery = 'INSERT INTO <%= table %>';
@@ -332,7 +337,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     if (allAttributes.length > 0) {
       _.forEach(attrValueHashes, attrValueHash => {
         tuples.push(`(${
-          allAttributes.map(key => this.escape(attrValueHash[key]), undefined, { context: 'INSERT' }).join(',')})`);
+          allAttributes.map(key => this.escape(attrValueHash[key], undefined, { context: 'INSERT', replacements: options.replacements })).join(',')})`);
       });
       allQueries.push(query);
     }
@@ -354,7 +359,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
     if (!options.limit) {
-      sql.query = `SELECT * FROM FINAL TABLE (${sql.query});`;
+      sql.query = `SELECT * FROM FINAL TABLE (${removeTrailingSemicolon(sql.query)});`;
 
       return sql;
     }
@@ -363,7 +368,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     const modelAttributeMap = {};
     const values = [];
-    const bind = [];
+    const bind = {};
     const bindParam = options.bindParam || this.bindParam(bind);
 
     if (attributes) {
@@ -379,22 +384,22 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       const value = attrValueHash[key];
 
       if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' })}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
       }
     }
 
     let query;
     const whereOptions = _.defaults({ bindParam }, options);
 
-    query = `UPDATE (SELECT * FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} FETCH NEXT ${this.escape(options.limit)} ROWS ONLY) SET ${values.join(',')}`;
+    query = `UPDATE (SELECT * FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY) SET ${values.join(',')}`;
     query = `SELECT * FROM FINAL TABLE (${query});`;
 
     return { query, bind };
   }
 
-  upsertQuery(tableName, insertValues, updateValues, where, model) {
+  upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
     const primaryKeysAttrs = [];
@@ -432,7 +437,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
     const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key])).join(', ');
+    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key], undefined, { replacements: options.replacements })).join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -442,8 +447,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       /*
        * Exclude NULL Composite PK/UK. Partial Composite clauses should also be excluded as it doesn't guarantee a single row
        */
-      for (const key in clause) {
-        if (!clause[key]) {
+      for (const key of Object.keys(clause)) {
+        if (clause[key] == null) {
           valid = false;
           break;
         }
@@ -490,7 +495,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       return false;
     })
       .map(key => {
-        const value = this.escape(updateValues[key]);
+        const value = this.escape(updateValues[key], undefined, { replacements: options.replacements });
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${value}`;
@@ -511,31 +516,23 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
-    const query = 'DELETE FROM <%= table %><%= where %><%= limit %>';
 
-    where = this.getWhereConditions(where, null, model, options);
+    let whereStr = this.getWhereConditions(where, null, model, options);
+    if (whereStr) {
+      whereStr = ` WHERE ${whereStr}`;
+    }
 
-    let limit = '';
+    let query = `DELETE FROM ${table} ${whereStr}`;
 
     if (options.offset > 0) {
-      limit = ` OFFSET ${this.escape(options.offset)} ROWS`;
+      query += ` OFFSET ${this.escape(options.offset, undefined, { replacements: options.replacements })} ROWS`;
     }
 
     if (options.limit) {
-      limit += ` FETCH NEXT ${this.escape(options.limit)} ROWS ONLY`;
+      query += ` FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY`;
     }
 
-    const replacements = {
-      limit,
-      table,
-      where,
-    };
-
-    if (replacements.where) {
-      replacements.where = ` WHERE ${replacements.where}`;
-    }
-
-    return _.template(query, this._templateSettings)(replacements);
+    return query.trim();
   }
 
   showIndexesQuery(tableName) {
@@ -602,7 +599,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       // enums are a special case
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
-        return this.escape(value);
+        return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
       template = attribute.type.toString();
@@ -628,7 +625,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
     if (attribute.unique === true) {
@@ -867,12 +864,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     const offset = options.offset || 0;
     let fragment = '';
 
-    if (offset > 0) {
-      fragment += ` OFFSET ${this.escape(offset)} ROWS`;
+    if (offset) {
+      fragment += ` OFFSET ${this.escape(offset, undefined, { replacements: options.replacements })} ROWS`;
     }
 
     if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit)} ROWS ONLY`;
+      fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY`;
     }
 
     return fragment;

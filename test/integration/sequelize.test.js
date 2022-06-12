@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               'password authentication failed for user "bar"',
             ].some(fragment => error.message.includes(fragment)));
           } else if (dialect === 'mssql') {
-            expect(error.message).to.equal('Login failed for user \'bar\'.');
+            expect(error.message).to.include('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
           } else if (dialect === 'ibmi') {
@@ -515,34 +515,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         await expect(this.sequelize.sync()).to.be.rejected;
-      });
-
-      it('handles this dependant foreign key constraints', async function () {
-        const block = this.sequelize.define('block', {
-          id: { type: DataTypes.INTEGER, primaryKey: true },
-          name: DataTypes.STRING,
-        }, {
-          tableName: 'block',
-          timestamps: false,
-          paranoid: false,
-        });
-
-        block.hasMany(block, {
-          as: 'childBlocks',
-          foreignKey: 'parent',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-        block.belongsTo(block, {
-          as: 'parentBlocks',
-          foreignKey: 'child',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-
-        await this.sequelize.sync();
       });
     }
 

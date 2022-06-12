@@ -13,22 +13,6 @@ const ER_NO_REFERENCED_ROW = 1452;
 const debug = logger.debugContext('sql:snowflake');
 
 export class SnowflakeQuery extends AbstractQuery {
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = [];
-    const replacementFunc = (_match, key, values_) => {
-      if (values_[key] !== undefined) {
-        bindParam.push(values_[key]);
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam.length > 0 ? bindParam : undefined];
-  }
-
   async run(sql, parameters) {
     this.sql = sql;
     const { connection, options } = this;
