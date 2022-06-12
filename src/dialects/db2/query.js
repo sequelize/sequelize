@@ -191,7 +191,7 @@ export class Db2Query extends AbstractQuery {
 
   filterSQLError(err, sql, connection) {
     // This error is safe to ignore:
-    //      [IBM][CLI Driver][DB2/LINUXX8664] SQL0605W  The index was not created because an index "x" with a matching definition already exists.  SQLSTATE=01550
+    // [IBM][CLI Driver][DB2/LINUXX8664] SQL0605W  The index was not created because an index "x" with a matching definition already exists.  SQLSTATE=01550
     if (err.message.search('SQL0605W') !== -1) {
       return null;
     }
