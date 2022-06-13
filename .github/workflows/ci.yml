@@ -47,6 +47,34 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
+  test-oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 16]
+    name: Oracle DB (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: oracle
+      SEQ_ORACLE_USER: sequelizetest
+      SEQ_ORACLE_PW: sequelizepassword
+      SEQ_ORACLE_DB: XEPDB1
+      SEQ_ORACLE_HOST: localhost
+      SEQ_ORACLE_PORT: 1521
+      UV_THREADPOOL_SIZE: 128
+      LD_LIBRARY_PATH: /home/runner/oracle/instantclient/
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - name: Install Local Oracle DB
+        run: yarn start-oracle
+      - name: Unit Tests
+        run: yarn test-unit
+      - name: Integration Tests
+        run: yarn test-integration-oracle
   test-db2:
     strategy:
       fail-fast: false
@@ -253,34 +281,6 @@ jobs:
         run: yarn test-unit
       # - name: Integration Tests
       #   run: yarn test-integration
-  test-oracle:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [10, 16]
-    name: Oracle DB (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    env:
-      DIALECT: oracle
-      SEQ_ORACLE_USER: sequelizetest
-      SEQ_ORACLE_PW: sequelizepassword
-      SEQ_ORACLE_DB: XEPDB1
-      SEQ_ORACLE_HOST: localhost
-      SEQ_ORACLE_PORT: 1521
-      UV_THREADPOOL_SIZE: 128
-      LD_LIBRARY_PATH: ~/oracle/instantclient/
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - name: Install Local Oracle DB
-        run: yarn start-oracle
-      - name: Unit Tests
-        run: yarn test-unit
-      - name: Integration Tests
-        run: yarn test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
