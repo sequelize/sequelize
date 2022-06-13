@@ -6,7 +6,7 @@ const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support'
 
 const dialect = getTestDialect();
 
-describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
+describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,
@@ -423,6 +423,85 @@ describe(getTestDialectTeaser('Model.sync & Sequelize.sync'), () => {
     expect(getIndexFields(out2[0])).to.deep.eq(['email']);
     expect(out2[0].unique).to.eq(true, 'index should not be unique');
   });
+
+  const SCHEMA_ONE = 'schema_one';
+  const SCHEMA_TWO = 'schema_two';
+
+  it('can create two identically named indexes in different schemas', async function () {
+    await Promise.all([
+      sequelize.createSchema(SCHEMA_ONE),
+      sequelize.createSchema(SCHEMA_TWO),
+    ]);
+
+    const User = this.sequelize.define('User1', {
+      name: DataTypes.STRING,
+    }, {
+      schema: SCHEMA_ONE,
+      indexes: [
+        {
+          name: 'test_slug_idx',
+          fields: ['name'],
+        },
+      ],
+    });
+
+    const Task = this.sequelize.define('Task2', {
+      name: DataTypes.STRING,
+    }, {
+      schema: SCHEMA_TWO,
+      indexes: [
+        {
+          name: 'test_slug_idx',
+          fields: ['name'],
+        },
+      ],
+    });
+
+    await User.sync({ force: true });
+    await Task.sync({ force: true });
+
+    const [user, task] = await Promise.all([
+      this.sequelize.queryInterface.describeTable(User.tableName, SCHEMA_ONE),
+      this.sequelize.queryInterface.describeTable(Task.tableName, SCHEMA_TWO),
+    ]);
+
+    expect(user).to.be.ok;
+    expect(task).to.be.ok;
+  });
+
+  // TODO: this should work with MSSQL / MariaDB too
+  // Need to fix addSchema return type
+  if (dialect.startsWith('postgres')) {
+    it('defaults to schema provided to sync() for references #11276', async function () {
+      await Promise.all([
+        sequelize.createSchema(SCHEMA_ONE),
+        sequelize.createSchema(SCHEMA_TWO),
+      ]);
+
+      const User = this.sequelize.define('UserXYZ', {
+        uid: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          allowNull: false,
+        },
+      });
+      const Task = this.sequelize.define('TaskXYZ', {});
+
+      Task.belongsTo(User);
+
+      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
+      await User.sync({ force: true, schema: SCHEMA_ONE });
+      await Task.sync({ force: true, schema: SCHEMA_ONE });
+      const user0 = await User.withSchema(SCHEMA_ONE).create({});
+      const task = await Task.withSchema(SCHEMA_ONE).create({});
+      await task.setUserXYZ(user0);
+
+      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
+      const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
+      expect(user).to.be.ok;
+    });
+  }
 });
 
 async function getNonPrimaryIndexes(model) {
