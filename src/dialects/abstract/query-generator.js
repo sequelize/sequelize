@@ -628,9 +628,9 @@ export class AbstractQueryGenerator {
       ind = ['CREATE'];
     }
 
-    // DB2 & SQLite incorrectly scopes the index if we don't specify the schema name,
+    // DB2 incorrectly scopes the index if we don't specify the schema name,
     // which will cause it to error if another schema contains a table that uses an index with an identical name
-    const escapedIndexName = tableName.schema && (this.dialect === 'db2' || this.dialect === 'sqlite')
+    const escapedIndexName = tableName.schema && this.dialect === 'db2'
       // 'quoteTable' isn't the best name: it quotes any identifier.
       // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
       ? this.quoteTable({

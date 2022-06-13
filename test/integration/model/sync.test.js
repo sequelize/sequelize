@@ -427,47 +427,52 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   const SCHEMA_ONE = 'schema_one';
   const SCHEMA_TWO = 'schema_two';
 
-  it('can create two identically named indexes in different schemas', async function () {
-    await Promise.all([
-      sequelize.createSchema(SCHEMA_ONE),
-      sequelize.createSchema(SCHEMA_TWO),
-    ]);
+  if (sequelize.dialect.supports.schemas) {
+    it('can create two identically named indexes in different schemas', async () => {
+      await Promise.all([
+        sequelize.createSchema(SCHEMA_ONE),
+        sequelize.createSchema(SCHEMA_TWO),
+      ]);
 
-    const User = this.sequelize.define('User1', {
-      name: DataTypes.STRING,
-    }, {
-      schema: SCHEMA_ONE,
-      indexes: [
-        {
-          name: 'test_slug_idx',
-          fields: ['name'],
-        },
-      ],
+      const User = sequelize.define('User1', {
+        name: DataTypes.STRING,
+      }, {
+        schema: SCHEMA_ONE,
+        indexes: [
+          {
+            name: 'test_slug_idx',
+            fields: ['name'],
+          },
+        ],
+      });
+
+      const Task = sequelize.define('Task2', {
+        name: DataTypes.STRING,
+      }, {
+        schema: SCHEMA_TWO,
+        indexes: [
+          {
+            name: 'test_slug_idx',
+            fields: ['name'],
+          },
+        ],
+      });
+
+      await User.sync({ force: true });
+      await Task.sync({ force: true });
+
+      const [userIndexes, taskIndexes] = await Promise.all([
+        getNonPrimaryIndexes(User),
+        getNonPrimaryIndexes(Task),
+      ]);
+
+      expect(userIndexes).to.have.length(1);
+      expect(taskIndexes).to.have.length(1);
+
+      expect(userIndexes[0].name).to.eq('test_slug_idx');
+      expect(taskIndexes[0].name).to.eq('test_slug_idx');
     });
-
-    const Task = this.sequelize.define('Task2', {
-      name: DataTypes.STRING,
-    }, {
-      schema: SCHEMA_TWO,
-      indexes: [
-        {
-          name: 'test_slug_idx',
-          fields: ['name'],
-        },
-      ],
-    });
-
-    await User.sync({ force: true });
-    await Task.sync({ force: true });
-
-    const [user, task] = await Promise.all([
-      this.sequelize.queryInterface.describeTable(User.tableName, SCHEMA_ONE),
-      this.sequelize.queryInterface.describeTable(Task.tableName, SCHEMA_TWO),
-    ]);
-
-    expect(user).to.be.ok;
-    expect(task).to.be.ok;
-  });
+  }
 
   // TODO: this should work with MSSQL / MariaDB too
   // Need to fix addSchema return type
