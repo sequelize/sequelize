@@ -37,13 +37,13 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_1, $sequelize_2)`;
+    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
 
     return {
       query,
       bind: {
-        sequelize_1: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-        sequelize_2: { ParamType: 'INOUT', Data: 'ERRORTABLE' },
+        sequelize_errorSchema: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
+        sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE` },
       },
     };
   }

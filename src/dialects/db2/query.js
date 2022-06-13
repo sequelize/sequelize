@@ -95,6 +95,8 @@ export class Db2Query extends AbstractQuery {
 
         const SQL = this.sql.toUpperCase();
         let newSql = this.sql;
+
+        // TODO: move this to Db2QueryGenerator
         if ((this.isSelectQuery() || _.startsWith(SQL, 'SELECT '))
             && !SQL.includes(' FROM ', 8)) {
           if (this.sql.charAt(this.sql.length - 1) === ';') {
@@ -111,6 +113,17 @@ export class Db2Query extends AbstractQuery {
 
           stmt.execute(params, (err, result, outparams) => {
             debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
+
+            // map the INOUT parameters to the name provided by the dev
+            // this is an internal API, not yet ready for dev consumption, hence the _unsafe_ prefix.
+            if (outparams && this.options.bindParameterOrder && this.options._unsafe_db2Outparams) {
+              for (let i = 0; i < this.options.bindParameterOrder.length; i++) {
+                const paramName = this.options.bindParameterOrder[i];
+                const paramValue = outparams[i];
+
+                this.options._unsafe_db2Outparams.set(paramName, paramValue);
+              }
+            }
 
             if (benchmark) {
               this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);

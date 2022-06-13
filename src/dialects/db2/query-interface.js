@@ -1,5 +1,6 @@
 'use strict';
 
+import { AggregateError, DatabaseError } from '../../errors';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
@@ -85,10 +86,51 @@ export class Db2QueryInterface extends QueryInterface {
   }
 
   async dropSchema(schema, options) {
-    // error from dropSchema will be stored in this table.
-    await this.dropTable({ tableName: 'ERRORTABLE', schema: 'ERRORSCHEMA' });
+    const outParams = new Map();
 
-    return super.dropSchema(schema, options);
+    // DROP SCHEMA works in a weird way in DB2:
+    // Its query uses ADMIN_DROP_SCHEMA, which stores the error message in a table
+    // specified by two IN-OUT parameters.
+    // If the returned values for these parameters is not null, then an error occurred.
+    const response = await super.dropSchema(schema, {
+      ...options,
+      // db2 supports out parameters. We don't have a proper API for it yet
+      // so this temporary API will have to do.
+      _unsafe_db2Outparams: outParams,
+    });
+
+    const errorTable = outParams.get('sequelize_errorTable');
+    if (errorTable != null) {
+      const errorSchema = outParams.get('sequelize_errorSchema');
+
+      const errorData = await this.sequelize.queryRaw(`SELECT * FROM "${errorSchema}"."${errorTable}"`, {
+        type: QueryTypes.SELECT,
+      });
+
+      // replicate the data ibm_db adds on an error object
+      const error = new Error(errorData[0].DIAGTEXT);
+      error.sqlcode = errorData[0].SQLCODE;
+      error.sql = errorData[0].STATEMENT;
+      error.state = errorData[0].sqlstate;
+
+      const wrappedError = new DatabaseError(error);
+
+      try {
+        await this.dropTable({
+          tableName: errorTable,
+          schema: errorSchema,
+        });
+      } catch (dropError) {
+        throw new AggregateError([
+          wrappedError,
+          new Error(`An error occurred while cleaning up table ${errorSchema}.${errorTable}`, { cause: dropError }),
+        ]);
+      }
+
+      throw wrappedError;
+    }
+
+    return response;
   }
 
   async createTable(tableName, attributes, options, model) {
