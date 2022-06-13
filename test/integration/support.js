@@ -4,6 +4,7 @@
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
 const { setTimeout, clearTimeout } = global;
 
+const { QueryTypes } = require('@sequelize/core');
 const pTimeout = require('p-timeout');
 const Support = require('../support');
 const { getTestDialect } = require('../support');
@@ -14,18 +15,26 @@ let runningQueries = new Set();
 
 before(async function () {
   if (getTestDialect() === 'db2') {
-    // needed by dropSchema function
-    await this.sequelize.query(`
+    const res = await this.sequelize.query(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
+      type: QueryTypes.SELECT,
+    });
+
+    const tableExists = res[0].TBSPACE === 'SYSTOOLSPACE';
+
+    if (!tableExists) {
+      // needed by dropSchema function
+      await this.sequelize.query(`
       CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
       MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
       EXTENTSIZE 4;
     `);
 
-    await this.sequelize.query(`
+      await this.sequelize.query(`
       CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
       MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
       EXTENTSIZE 4
     `);
+    }
   }
 
   this.sequelize.addHook('beforeQuery', (options, query) => {
