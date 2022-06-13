@@ -96,9 +96,17 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
+      _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
-          attributesClause += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+          if (typeof indexName !== 'string') {
+            indexName = Utils.generateIndexName(tableName, columns);
+          }
+
+          attributesClause += `, CONSTRAINT ${
+            this.quoteIdentifier(indexName)
+          } UNIQUE (${
+            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+          })`;
         }
       });
     }
@@ -429,7 +437,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [

@@ -45,7 +45,7 @@ export class Db2QueryInterface extends QueryInterface {
       return value.fields;
     });
 
-    for (const value of model._indexes) {
+    for (const value of model.getIndexes()) {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
         indexFields = value.fields.map(field => {
@@ -105,35 +105,6 @@ export class Db2QueryInterface extends QueryInterface {
       attributes,
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
-    if (options.indexes) {
-      for (const fields of options.indexes) {
-        const fieldArr = fields.fields;
-        if (fieldArr.length === 1) {
-          for (const field of fieldArr) {
-            for (const property in attributes) {
-              if (field === attributes[property].field) {
-                attributes[property].unique = true;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (options.alter && options.indexes) {
-      for (const fields of options.indexes) {
-        const fieldArr = fields.fields;
-        if (fieldArr.length === 1) {
-          for (const field of fieldArr) {
-            for (const property in attributes) {
-              if (field === attributes[property].field && attributes[property].unique) {
-                attributes[property].unique = false;
-              }
-            }
-          }
-        }
-      }
-    }
 
     if (
       !tableName.schema

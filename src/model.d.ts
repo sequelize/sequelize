@@ -2161,6 +2161,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
 
+  public static getIndexes(): readonly IndexOptions[];
+
   /**
    * Reference to the sequelize instance the model was initialized with.
    *
