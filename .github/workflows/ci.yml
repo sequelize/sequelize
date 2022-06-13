@@ -279,10 +279,8 @@ jobs:
         run: yarn start-oracle
       - name: Unit Tests
         run: yarn test-unit
-        continue-on-error: true
       - name: Integration Tests
         run: yarn test-integration
-        continue-on-error: true
   release:
     name: Release
     runs-on: ubuntu-latest

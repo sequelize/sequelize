@@ -130,6 +130,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               err.message.includes('Login failed for user') ||
               err.message.includes('A communication error has been detected') ||
               err.message.includes('ORA-12545') ||
+              err.message.includes('ORA-12541') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
