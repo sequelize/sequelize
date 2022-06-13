@@ -153,7 +153,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
+            indexName = Utils.generateIndexName(tableName, columns);
           }
 
           attributesClauseParts.push(`CONSTRAINT ${
@@ -441,7 +441,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     }
 
     // Add unique indexes defined by indexes option to uniqueAttrs
-    for (const index of model._indexes) {
+    for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
@@ -623,7 +623,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
-    if (attribute.unique === true) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

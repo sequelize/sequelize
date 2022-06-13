@@ -268,76 +268,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await UserTable.count()).to.equal(1);
     });
 
-    it('allows multiple column unique keys to be defined', async function () {
-      const User = this.sequelize.define('UserWithUniqueUsername', {
-        username: { type: DataTypes.STRING, unique: 'user_and_email' },
-        email: { type: DataTypes.STRING, unique: 'user_and_email' },
-        aCol: { type: DataTypes.STRING, unique: 'a_and_b' },
-        bCol: { type: DataTypes.STRING, unique: 'a_and_b' },
-      });
-
-      await User.sync({
-        force: true, logging: _.after(2, _.once(sql => {
-          if (dialect === 'mssql') {
-            expect(sql).to.match(/CONSTRAINT\s*(["[`]?user_and_email["\]`]?)?\s*UNIQUE\s*\(["[`]?username["\]`]?, ["[`]?email["\]`]?\)/);
-            expect(sql).to.match(/CONSTRAINT\s*(["[`]?a_and_b["\]`]?)?\s*UNIQUE\s*\(["[`]?aCol["\]`]?, ["[`]?bCol["\]`]?\)/);
-          } else {
-            expect(sql).to.match(/UNIQUE\s*(["`]?user_and_email["`]?)?\s*\(["`]?username["`]?, ["`]?email["`]?\)/);
-            expect(sql).to.match(/UNIQUE\s*(["`]?a_and_b["`]?)?\s*\(["`]?aCol["`]?, ["`]?bCol["`]?\)/);
-          }
-        })),
-      });
-    });
-
     it('allows unique on column with field aliases', async function () {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
       });
+
       await User.sync({ force: true });
-      const indexes = await this.sequelize.queryInterface.showIndex(User.tableName);
-      let idxUnique;
+      const indexes = (await this.sequelize.queryInterface.showIndex(User.getTableName()))
+        .filter(index => !index.primary);
+
+      expect(indexes).to.have.length(1);
+      const index = indexes[0];
+      expect(index.primary).to.equal(false);
+      expect(index.unique).to.equal(true);
+      expect(index.name).to.equal('user_name_unique');
+
       switch (dialect) {
-        case 'sqlite': {
-          expect(indexes).to.have.length(1);
-          idxUnique = indexes[0];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
-
-          break;
-        }
-
+        case 'mariadb':
         case 'mysql': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
-          expect(idxUnique.type).to.equal('BTREE');
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
+          expect(index.type).to.equal('BTREE');
 
           break;
         }
 
         case 'postgres': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, order: undefined, length: undefined }]);
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, order: undefined, length: undefined }]);
 
           break;
         }
 
+        case 'db2':
         case 'mssql': {
-          expect(indexes).to.have.length(2);
-          idxUnique = indexes[1];
-          expect(idxUnique.primary).to.equal(false);
-          expect(idxUnique.unique).to.equal(true);
-          expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
           break;
         }
-      // No default
+
+        case 'sqlite':
+        default: {
+          expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
+
+          break;
+        }
       }
     });
 
@@ -2856,44 +2829,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
   }
-
-  describe('Unique', () => {
-    it('should set unique when unique is true', async function () {
-      const uniqueTrue = this.sequelize.define('uniqueTrue', {
-        str: { type: DataTypes.STRING, unique: true },
-      });
-
-      await uniqueTrue.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).to.match(/UNIQUE/);
-        })),
-      });
-    });
-
-    it('should not set unique when unique is false', async function () {
-      const uniqueFalse = this.sequelize.define('uniqueFalse', {
-        str: { type: DataTypes.STRING, unique: false },
-      });
-
-      await uniqueFalse.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).not.to.match(/UNIQUE/);
-        })),
-      });
-    });
-
-    it('should not set unique when unique is unset', async function () {
-      const uniqueUnset = this.sequelize.define('uniqueUnset', {
-        str: { type: DataTypes.STRING },
-      });
-
-      await uniqueUnset.sync({
-        force: true, logging: _.after(2, _.once(s => {
-          expect(s).not.to.match(/UNIQUE/);
-        })),
-      });
-    });
-  });
 
   it('should be possible to use a key named UUID as foreign key', async function () {
     this.sequelize.define('project', {

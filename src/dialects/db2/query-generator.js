@@ -423,7 +423,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     // Add unique indexes defined by indexes option to uniqueAttrs
-    for (const index of model._indexes) {
+    for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
@@ -607,8 +607,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     if (options && options.context === 'changeColumn' && attribute.type) {
       template = `DATA TYPE ${template}`;
-    } else if (attribute.allowNull === false || attribute.primaryKey === true
-             || attribute.unique) {
+    } else if (attribute.allowNull === false || attribute.primaryKey === true) {
       template += ' NOT NULL';
       changeNull = 0;
     }
@@ -628,7 +627,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
-    if (attribute.unique === true) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

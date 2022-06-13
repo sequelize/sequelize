@@ -60,13 +60,26 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     let attrStr = attrArray.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
-        if (columns.customIndex) {
-          attrStr += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
-        }
-      });
-    }
+    // sqlite has a bug where using CONSTRAINT constraint_name UNIQUE during CREATE TABLE
+    //  does not respect the provided constraint name
+    //  and uses sqlite_autoindex_ as the name of the constraint instead.
+    //  CREATE UNIQUE INDEX does not have this issue, so we're using that instead
+    //
+    // if (options.uniqueKeys) {
+    //   _.each(options.uniqueKeys, (columns, indexName) => {
+    //     if (columns.customIndex) {
+    //       if (typeof indexName !== 'string') {
+    //         indexName = Utils.generateIndexName(tableName, columns);
+    //       }
+    //
+    //       attrStr += `, CONSTRAINT ${
+    //         this.quoteIdentifier(indexName)
+    //       } UNIQUE (${
+    //         columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+    //       })`;
+    //     }
+    //   });
+    // }
 
     if (pkString.length > 0) {
       attrStr += `, PRIMARY KEY (${pkString})`;

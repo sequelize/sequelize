@@ -76,7 +76,7 @@ if (dialect === 'db2') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', unique: true } }],
-          expectation: { id: 'INTEGER NOT NULL UNIQUE' },
+          expectation: { id: 'INTEGER UNIQUE' },
         },
         {
           arguments: [{ id: { type: 'INTEGER', after: 'Bar' } }],
