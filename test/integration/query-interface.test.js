@@ -619,14 +619,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: false,
         });
 
-        // in db2, after the above "change column" query, the "users" table is in "reorg pending state"
-        // and the subsequent "add constraint" will fail.
-        // 'REORG TABLE' forces the reorg to happen now.
-        // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
-        if (dialect === 'db2') {
-          await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE "users"')`);
-        }
-
         await this.queryInterface.addConstraint('users', {
           fields: ['username'],
           type: 'PRIMARY KEY',
@@ -652,14 +644,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.STRING,
           allowNull: false,
         });
-
-        // in db2, after the above "change column" query, the "users" table is in "reorg pending state"
-        // and the subsequent "add constraint" will fail.
-        // 'REORG TABLE' forces the reorg to happen now.
-        // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
-        if (dialect === 'db2') {
-          await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE "users"')`);
-        }
 
         await this.queryInterface.addConstraint('users', {
           type: 'PRIMARY KEY',

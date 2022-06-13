@@ -171,4 +171,33 @@ export class Db2QueryInterface extends QueryInterface {
     return await this.sequelize.queryRaw(sql, options);
   }
 
+  async addConstraint(tableName, options) {
+    try {
+      return await super.addConstraint(tableName, options);
+    } catch (error) {
+      if (!error.cause) {
+        throw error;
+      }
+
+      // Operation not allowed for reason code "7" on table "DB2INST1.users".  SQLSTATE=57007
+      if (error.cause.sqlcode !== -668 || error.cause.state !== '57007') {
+        throw error;
+      }
+
+      // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
+      await this.executeTableReorg();
+      await super.addConstraint(tableName, options);
+    }
+  }
+
+  /**
+   * DB2 can put tables in the "reorg pending" state after a structure change (e.g. ALTER)
+   * Other changes cannot be done to these tables until the reorg has been completed.
+   *
+   * This method forces a reorg to happen now.
+   */
+  async executeTableReorg() {
+    // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
+    return await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE "users"')`);
+  }
 }
