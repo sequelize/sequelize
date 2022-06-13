@@ -69,7 +69,7 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     // Lets combine unique keys and indexes into one
     let indexes = Object.values(model.uniqueKeys).map(item => item.fields);
-    indexes = indexes.concat(Object.values(model._indexes).filter(item => item.unique).map(item => item.fields));
+    indexes = indexes.concat(Object.values(model.getIndexes()).filter(item => item.unique).map(item => item.fields));
 
     const attributes = Object.keys(insertValues);
     for (const index of indexes) {
