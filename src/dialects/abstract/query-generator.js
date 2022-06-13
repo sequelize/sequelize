@@ -52,7 +52,7 @@ export class AbstractQueryGenerator {
     tableName = tableName || {};
 
     return {
-      schema: tableName.schema || options.schema || 'public',
+      schema: tableName.schema || options.schema || this.options.schema || 'public',
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.',
     };

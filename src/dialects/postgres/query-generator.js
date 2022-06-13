@@ -137,9 +137,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
-    if (!schema) {
-      schema = 'public';
-    }
+    schema = schema || this.options.schema || 'public';
 
     return 'SELECT '
       + 'pk.constraint_type as "Constraint",'
