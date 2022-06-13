@@ -43,6 +43,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
           email: {
             type: DataTypes.STRING,
+            allowNull: false,
             unique: true,
           },
         });
@@ -111,6 +112,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           email: {
             type: DataTypes.STRING,
             unique: true,
+            allowNull: false,
           },
         });
       });

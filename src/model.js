@@ -772,6 +772,52 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
+   * Indexes created from options.indexes when calling Model.init
+   */
+  static _manualIndexes;
+
+  /**
+   * Indexes created from {@link ModelAttributeColumnOptions.unique}
+   */
+  static _attributeIndexes;
+
+  static getIndexes() {
+    return [
+      ...(this._manualIndexes ?? []),
+      ...(this._attributeIndexes ?? []),
+      ...(this.uniqueKeys ? Object.values(this.uniqueKeys) : []),
+    ];
+  }
+
+  static get _indexes() {
+    throw new Error('Model._indexes has been replaced with Model.getIndexes()');
+  }
+
+  static _nameIndex(newIndex) {
+    if (Object.prototype.hasOwnProperty.call(newIndex, 'name')) {
+      return newIndex;
+    }
+
+    const newName = Utils.generateIndexName(this.getTableName(), newIndex);
+
+    // TODO: check for collisions on *all* models, not just this one, as index names are global.
+    for (const index of this.getIndexes()) {
+      if (index.name === newName) {
+        throw new Error(`Sequelize tried to give the name "${newName}" to index:
+${NodeUtil.inspect(newIndex)}
+on model "${this.name}", but that name is already taken by index:
+${NodeUtil.inspect(index)}
+
+Specify a different name for either index to resolve this issue.`);
+      }
+    }
+
+    newIndex.name = newName;
+
+    return newIndex;
+  }
+
+  /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
    * The table columns are defined by the hash that is given as the first argument.
@@ -930,13 +976,12 @@ ${associationOwner._getAssociationDebugList()}`);
       return attribute;
     });
 
-    const tableName = this.getTableName();
-    this._indexes = this.options.indexes
-      .map(index => Utils.nameIndex(this._conformIndex(index), tableName));
+    this._manualIndexes = this.options.indexes
+      .map(index => this._nameIndex(this._conformIndex(index)));
 
-    this.primaryKeys = {};
+    this.primaryKeys = Object.create(null);
     this._readOnlyAttributes = new Set();
-    this._timestampAttributes = {};
+    this._timestampAttributes = Object.create(null);
 
     // setup names of timestamp attributes
     if (this.options.timestamps) {
@@ -1062,6 +1107,8 @@ ${associationOwner._getAssociationDebugList()}`);
     this.primaryKeys = Object.create(null);
     this.uniqueKeys = Object.create(null);
 
+    this._attributeIndexes = [];
+
     _.each(this.rawAttributes, (definition, name) => {
       definition.type = this.sequelize.normalizeDataType(definition.type);
 
@@ -1102,27 +1149,36 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
-        let idxName;
-        if (
-          typeof definition.unique === 'object'
-          && Object.prototype.hasOwnProperty.call(definition.unique, 'name')
-        ) {
-          idxName = definition.unique.name;
-        } else if (typeof definition.unique === 'string') {
-          idxName = definition.unique;
-        } else {
-          idxName = `${this.tableName}_${name}_unique`;
+        if (typeof definition.unique === 'string') {
+          definition.unique = {
+            name: definition.unique,
+          };
+        } else if (definition.unique === true) {
+          definition.unique = {};
         }
 
-        const idx = this.uniqueKeys[idxName] || { fields: [] };
+        const index = definition.unique.name && this.uniqueKeys[definition.unique.name]
+          ? this.uniqueKeys[definition.unique.name]
+          : { fields: [] };
 
-        idx.fields.push(definition.field);
-        idx.msg = idx.msg || definition.unique.msg || null;
-        idx.name = idxName || false;
-        idx.column = name;
-        idx.customIndex = definition.unique !== true;
+        index.fields.push(definition.field);
+        index.msg = index.msg || definition.unique.msg || null;
 
-        this.uniqueKeys[idxName] = idx;
+        // TODO: remove this 'column'? It does not work with composite indexes, and is only used by db2 which should use fields instead.
+        index.column = name;
+
+        index.customIndex = definition.unique !== true;
+        index.unique = true;
+
+        if (definition.unique.name) {
+          index.name = definition.unique.name;
+        } else {
+          this._nameIndex(index);
+        }
+
+        definition.unique.name ??= index.name;
+
+        this.uniqueKeys[index.name] = index;
       }
 
       if (Object.prototype.hasOwnProperty.call(definition, 'validate')) {
@@ -1130,13 +1186,12 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (definition.index === true && definition.type instanceof DataTypes.JSONB) {
-        this._indexes.push(
-          Utils.nameIndex(
+        this._attributeIndexes.push(
+          this._nameIndex(
             this._conformIndex({
               fields: [definition.field || name],
               using: 'gin',
             }),
-            this.getTableName(),
           ),
         );
 
@@ -1308,7 +1363,8 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let indexes = await this.queryInterface.showIndex(tableName, options);
-    indexes = this._indexes.filter(item1 => !indexes.some(item2 => item1.name === item2.name)).sort((index1, index2) => {
+
+    indexes = this.getIndexes().filter(item1 => !indexes.some(item2 => item1.name === item2.name)).sort((index1, index2) => {
       if (this.sequelize.options.dialect === 'postgres') {
       // move concurrent indexes to the bottom to avoid weird deadlocks
         if (index1.concurrently === true) {
@@ -1324,7 +1380,7 @@ ${associationOwner._getAssociationDebugList()}`);
     });
 
     for (const index of indexes) {
-      await this.queryInterface.addIndex(tableName, { ...options, ...index });
+      await this.queryInterface.addIndex(tableName, index, options);
     }
 
     if (options.hooks) {
@@ -2662,16 +2718,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
           const upsertKeys = [];
 
-          for (const i of model._indexes) {
+          for (const i of model.getIndexes()) {
             if (i.unique && !i.where) { // Don't infer partial indexes
               upsertKeys.push(...i.fields);
             }
-          }
-
-          const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
-
-          if (firstUniqueKey && firstUniqueKey.fields) {
-            upsertKeys.push(...firstUniqueKey.fields);
           }
 
           options.upsertKeys = upsertKeys.length > 0

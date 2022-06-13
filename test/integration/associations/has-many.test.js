@@ -1407,7 +1407,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey', () => {
     beforeEach(function () {
       const User = this.sequelize.define('UserXYZ',
-        { username: DataTypes.STRING, email: DataTypes.STRING },
+        { username: DataTypes.STRING, email: { type: DataTypes.STRING, allowNull: false } },
         { indexes: [{ fields: ['email'], unique: true }] });
       const Task = this.sequelize.define('TaskXYZ',
         { title: DataTypes.STRING, userEmail: { type: DataTypes.STRING, field: 'user_email_xyz' } });
@@ -1544,7 +1544,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey with where clause in include', () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User',
-        { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail' } },
+        { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail', allowNull: false } },
         { indexes: [{ fields: ['mail'], unique: true }] });
       this.Task = this.sequelize.define('Task',
         { title: DataTypes.STRING, userEmail: DataTypes.STRING, taskStatus: DataTypes.STRING });

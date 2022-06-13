@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('POJO field', () => {
-      expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
+      expectsql(sql.addIndexQuery('table', [{ name: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
         db2: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',

@@ -24,6 +24,9 @@ export class MssqlDialect extends AbstractDialect {
       defaultValue: false,
       update: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     constraints: {
       restrict: false,
       default: true,
