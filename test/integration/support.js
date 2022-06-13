@@ -19,7 +19,7 @@ before(async function () {
       type: QueryTypes.SELECT,
     });
 
-    const tableExists = res[0].TBSPACE === 'SYSTOOLSPACE';
+    const tableExists = res[0]?.TBSPACE === 'SYSTOOLSPACE';
 
     if (!tableExists) {
       // needed by dropSchema function
