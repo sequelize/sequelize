@@ -2,10 +2,15 @@
 
 const Support   = require('../support');
 const { DataTypes } = require('@sequelize/core');
+const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
+
+const custom = _.cloneDeep(current);
+custom.options.schema = 'custom';
+const customSql = custom.dialect.queryGenerator;
 
 if (['mysql', 'mariadb'].includes(current.dialect.name)) {
   describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -66,3 +71,27 @@ if (['mysql', 'mariadb'].includes(current.dialect.name)) {
     });
   });
 }
+
+describe(`Custom Schema ${Support.getTestDialectTeaser('SQL')}`, () => {
+  describe('addColumnCustomSchema', () => {
+
+    const Model = current.define('users', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+    }, { timestamps: false });
+
+    it('properly generate alter queries', () => {
+      return expectsql(customSql.addColumnQuery(Model.getTableName(), 'level_id', custom.normalizeAttribute({
+        type: DataTypes.FLOAT,
+        allowNull: false,
+      })), {
+        mariadb: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
+        mysql: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
+        postgres: 'ALTER TABLE "custom"."users" ADD COLUMN "level_id" FLOAT NOT NULL;',
+      });
+    });
+  });
+});
