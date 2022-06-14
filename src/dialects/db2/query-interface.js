@@ -111,7 +111,7 @@ export class Db2QueryInterface extends QueryInterface {
       const error = new Error(errorData[0].DIAGTEXT);
       error.sqlcode = errorData[0].SQLCODE;
       error.sql = errorData[0].STATEMENT;
-      error.state = errorData[0].sqlstate;
+      error.state = errorData[0].SQLSTATE;
 
       const wrappedError = new DatabaseError(error);
 
@@ -125,6 +125,13 @@ export class Db2QueryInterface extends QueryInterface {
           wrappedError,
           new Error(`An error occurred while cleaning up table ${errorSchema}.${errorTable}`, { cause: dropError }),
         ]);
+      }
+
+      // -204 is "name is undefined" (schema does not exist)
+      // 'queryInterface.dropSchema' is supposed to be DROP SCHEMA IF EXISTS
+      // so we can ignore this error
+      if (error.sqlcode === -204 && error.state === '42704') {
+        return response;
       }
 
       throw wrappedError;
