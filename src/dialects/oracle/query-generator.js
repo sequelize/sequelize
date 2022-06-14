@@ -137,9 +137,9 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       table: this.quoteTable(tableName)
     };
 
-    const chkRegex = /CHECK \(([a-zA-Z_.0-9]*) (.*)\)/g; //Check regex
+    const chkRegex = /CHECK \(([a-zA-Z_.0-9]*) (.*)\)/g; // Check regex
 
-    //Starting by dealing with all attributes
+    // Starting by dealing with all attributes
     for (let attr in attributes) {
       if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
         const dataType = attributes[attr];
@@ -149,7 +149,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
         // ORACLE doesn't support inline REFERENCES declarations: move to the end
         if (_.includes(dataType, 'PRIMARY KEY')) {
-          //Primary key
+          // Primary key
           primaryKeys.push(attr);
           if (_.includes(dataType, 'REFERENCES')) {
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
@@ -161,14 +161,14 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
             attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
           }
         } else if (_.includes(dataType, 'REFERENCES')) {
-          //Foreign key
+          // Foreign key
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${attr} ${match[1]}`);
 
           // match[2] already has foreignKeys in correct format so we don't need to replace
           foreignKeys[attr] = match[2];
         } else if (_.includes(dataType, 'CHECK')) {
-          //Check constraints go to the end
+          // Check constraints go to the end
           match = dataType.match(/^(.+) (CHECK.*)$/);
           attrStr.push(`${attr} ${match[1]}`);
           match[2] = match[2].replace('ATTRIBUTENAME', attr);
@@ -217,10 +217,10 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       
     }
 
-    //Dealing with FKs
+    // Dealing with FKs
     for (const fkey in foreignKeys) {
       if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
-        //Oracle default response for FK, doesn't support if defined
+        // Oracle default response for FK, doesn't support if defined
         if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
           foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
         }
@@ -232,12 +232,12 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       values.attributes += `, ${checkStr.join(', ')}`;
     }
 
-    //Specific case for unique indexes with Oracle, we have to set the constraint on the column, if not, no FK will be possible (ORA-02270: no matching unique or primary key for this column-list)
+    // Specific case for unique indexes with Oracle, we have to set the constraint on the column, if not, no FK will be possible (ORA-02270: no matching unique or primary key for this column-list)
     if (options && options.indexes && options.indexes.length > 0) {
       const idxToDelete = [];
       options.indexes.forEach((index, idx) => {
         if ('unique' in index && (index.unique === true || index.unique.length > 0 && index.unique !== false)) {
-          //If unique index, transform to unique constraint on column
+          // If unique index, transform to unique constraint on column
           const fields = index.fields.map(field => {
             if (typeof field === 'string') {
               return field;
@@ -246,7 +246,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
             
           });
 
-          //Now we have to be sure that the constraint isn't already declared in uniqueKeys
+          // Now we have to be sure that the constraint isn't already declared in uniqueKeys
           let canContinue = true;
           if (options.uniqueKeys) {
             const keys = Object.keys(options.uniqueKeys);
@@ -255,14 +255,14 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
               const currUnique = options.uniqueKeys[keys[fieldIdx]];
 
               if (currUnique.fields.length === fields.length) {
-                //lengths are the same, possible same constraint
+                // lengths are the same, possible same constraint
                 for (let i = 0; i < currUnique.fields.length; i++) {
                   const field = currUnique.fields[i];
 
                   if (_.includes(fields, field)) {
                     canContinue = false;
                   } else {
-                    //We have at least one different column, even if we found the same columns previously, we let the constraint be created
+                    // We have at least one different column, even if we found the same columns previously, we let the constraint be created
                     canContinue = true;
                     break;
                   }
@@ -287,7 +287,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
               options.uniqueKeys[indexName] = constraintToAdd;
               idxToDelete.push(idx);
             } else {
-              //The constraint already exists, we remove it from the list
+              // The constraint already exists, we remove it from the list
               idxToDelete.push(idx);
             }
           }
@@ -302,7 +302,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       _.each(options.uniqueKeys, (columns, indexName) => {
         let canBeUniq = false;
 
-        //Check if we can create the unique key
+        // Check if we can create the unique key
         primaryKeys.forEach(primaryKey => {
           // We can create an unique constraint if it's not on the primary key AND if it doesn't have unique in its definition
           // We replace quotes in primary key with ''
@@ -328,15 +328,15 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
             // If canBeUniq is false we need not replace the UNIQUE for the attribute
             // So we replace UNIQUE with '' only if there exists a primary key
             if (attributes[currField].toUpperCase().indexOf('UNIQUE') > -1 && canBeUniq) {
-              //We generate the attribute without UNIQUE
+              // We generate the attribute without UNIQUE
               const attrToReplace = attributes[currField].replace('UNIQUE', '');
-              //We replace in the final string
+              // We replace in the final string
               values.attributes = values.attributes.replace(attributes[currField], attrToReplace);
             }
           }
         });
 
-        //Oracle cannot have an unique AND a primary key on the same fields, prior to the primary key
+        // Oracle cannot have an unique AND a primary key on the same fields, prior to the primary key
         if (canBeUniq) {
           if (!_.isString(indexName)) {
             indexName = this._generateUniqueConstraintName(values.table, columns.fields);
@@ -361,7 +361,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       });
     }
 
-    //we replace single quotes by two quotes in order for the execute statement to work
+    // we replace single quotes by two quotes in order for the execute statement to work
     const query = Utils.joinSQLFragments([
       'CREATE TABLE',
       values.table,
@@ -400,7 +400,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   describeTableQuery(tableName, schema) {
     const currTableName = this.getCatalogName(tableName.tableName || tableName);
     schema = this.getCatalogName(schema);
-    //name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
+    // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
       'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ',
       "CASE WHEN ucc.CONSTRAINT_NAME  LIKE'%PK%' THEN 'PRIMARY' ELSE '' END AS \"PRIMARY\" ",
@@ -587,7 +587,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'EXCEPTION',
       'WHEN OTHERS THEN',
       ' IF SQLCODE = -1442 OR SQLCODE = -1451 THEN',
-      //We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
+      // We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
       `   EXECUTE IMMEDIATE '${secondQuery}';`,
       ' ELSE',
       '   RAISE;',
@@ -916,9 +916,9 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    //TODO: Address on update cascade issue whether to throw error or ignore.
-    //Add this to documentation when merging to sequelize-main
-    //ON UPDATE CASCADE IS NOT SUPPORTED BY ORACLE.
+    // TODO: Address on update cascade issue whether to throw error or ignore.
+    // Add this to documentation when merging to sequelize-main
+    // ON UPDATE CASCADE IS NOT SUPPORTED BY ORACLE.
     attribute.onUpdate = '';
 
     // handle self referential constraints
@@ -987,7 +987,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (!attribute.autoIncrement) {
-      //If autoincrement, not null is setted automatically
+      // If autoincrement, not null is setted automatically
       if (attribute.allowNull === false) {
         template += ' NOT NULL';
       } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
@@ -1072,7 +1072,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   getForeignKeysQuery(table) {
-    //We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
+    // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
     const sql = [
       'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.owner "owner",  a.column_name "columnName",', 
@@ -1103,7 +1103,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       table = this.quoteIdentifier(param);
     }
 
-    //Oracle don't support as for table aliases
+    // Oracle don't support as for table aliases
     if (as) {
       if (as.indexOf('.') > -1 || as.indexOf('_') === 0) {
         table += ` ${this.quoteIdentifier(as, true)}`;
@@ -1191,7 +1191,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
   setAutocommitQuery(value) {
     if (value) {
-      //Do nothing, just for eslint
+      // Do nothing, just for eslint
     }
     return '';
   }

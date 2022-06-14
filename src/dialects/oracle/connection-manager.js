@@ -51,7 +51,7 @@ class ConnectionManager extends AbstractConnectionManager {
    * @private
    */
   checkConfigObject(config) {
-    //A connectString should be defined
+    // A connectString should be defined
     if (config.database.length === 0) {
       let errorToThrow =
         'The database cannot be blank, you must specify the database name (which correspond to the service name';
@@ -63,8 +63,8 @@ class ConnectionManager extends AbstractConnectionManager {
       throw new Error('You have to specify the host');
     }
 
-    //The connectString has a special format, we check it
-    //ConnectString format is : host:[port]/service_name
+    // The connectString has a special format, we check it
+    // ConnectString format is : host:[port]/service_name
     if (config.database.indexOf('/') === -1) {
       let connectString = config.host;
 
@@ -110,13 +110,13 @@ class ConnectionManager extends AbstractConnectionManager {
     };
 
     try {
-      //Check the config object
+      // Check the config object
       this.checkConfigObject(connectionConfig);
 
-      //We assume that the database has been correctly formed
+      // We assume that the database has been correctly formed
       connectionConfig.connectString = connectionConfig.database;
 
-      //We check if there are dialect options
+      // We check if there are dialect options
       if (config.dialectOptions) {
         // const dialectOptions = config.dialectOptions;
 
@@ -145,21 +145,21 @@ class ConnectionManager extends AbstractConnectionManager {
 
       return connection;
     } catch (err) {
-      //We split to get the error number; it comes as ORA-XXXXX:
+      // We split to get the error number; it comes as ORA-XXXXX:
       let errorCode = err.message.split(':');
       errorCode = errorCode[0];
 
       switch (errorCode) {
-        case 'ORA-28000': //Account locked
-        case 'ORA-12541': //ORA-12541: TNS:No listener
+        case 'ORA-28000': // Account locked
+        case 'ORA-12541': // ORA-12541: TNS:No listener
           throw new SequelizeErrors.ConnectionRefusedError(err);
-        case 'ORA-01017': //ORA-01017 : invalid username/password; logon denied
+        case 'ORA-01017': // ORA-01017 : invalid username/password; logon denied
           throw new SequelizeErrors.AccessDeniedError(err);
         case 'ORA-12154':
           throw new SequelizeErrors.HostNotReachableError(err); //ORA-12154: TNS:could not resolve the connect identifier specified
         case 'ORA-12514': // ORA-12514: TNS:listener does not currently know of service requested in connect descriptor
           throw new SequelizeErrors.HostNotFoundError(err);
-        // case 'ORA-12541': //ORA-12541: TNS:No listener
+        // case 'ORA-12541': // ORA-12541: TNS:No listener
         //   throw new SequelizeErrors.AccessDeniedError(err);
         default:
           throw new SequelizeErrors.ConnectionError(err);

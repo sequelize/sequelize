@@ -3,7 +3,6 @@
 'use strict';
 const { QueryInterface } = require('../abstract/query-interface');
 const QueryTypes = require('../../query-types');
-//const Utils = require('../../utils');
 
 const _ = require('lodash');
 /**
