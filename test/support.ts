@@ -224,7 +224,16 @@ export async function dropTestSchemas(sequelize: Sequelize) {
     // @ts-expect-error
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
-      schemasPromise.push(sequelize.dropSchema(schemaName));
+      const promise = sequelize.dropSchema(schemaName);
+
+      if (getTestDialect() === 'db2') {
+        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+        // eslint-disable-next-line no-await-in-loop
+        await promise;
+      } else {
+        schemasPromise.push(promise);
+      }
     }
   }
 
