@@ -91,6 +91,10 @@ describe(`Custom Schema ${Support.getTestDialectTeaser('SQL')}`, () => {
         mariadb: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
         mysql: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
         postgres: 'ALTER TABLE "custom"."users" ADD COLUMN "level_id" FLOAT NOT NULL;',
+        sqlite: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;',
+        mssql: 'ALTER TABLE [users] ADD [level_id] FLOAT NOT NULL;',
+        db2: 'ALTER TABLE "users" ADD "level_id" FLOAT NOT NULL;',
+        snowflake: 'ALTER TABLE "users" ADD "level_id" FLOAT NOT NULL;',
       });
     });
   });
