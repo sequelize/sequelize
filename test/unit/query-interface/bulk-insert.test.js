@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sinon = require('sinon');
 const { expectsql, sequelize } = require('../../support');
+const dialect = require('../support').getTestDialect();
 const { stubQueryRun } = require('./stub-query-run');
 
 describe('QueryInterface#bulkInsert', () => {
@@ -13,7 +14,7 @@ describe('QueryInterface#bulkInsert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  it('does not parse replacements outside of raw sql', async () => {
+  (dialect !== 'oracle' ? it : it.skip)('does not parse replacements outside of raw sql', async () => {
     const getSql = stubQueryRun();
 
     await sequelize.getQueryInterface().bulkInsert(User.tableName, [{

@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'oracle'].includes(dialect)) {
     return `"${str}"`;
   }
   if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
@@ -123,13 +123,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (err) {
-            console.log(err);
             expect(
               err.message.includes('connect ECONNREFUSED') ||
               err.message.includes('invalid port number') ||
               err.message.match(/should be >=? 0 and < 65536/) ||
               err.message.includes('Login failed for user') ||
               err.message.includes('A communication error has been detected') ||
+              err.message.includes('ORA-12545') ||
+              err.message.includes('ORA-12541') ||
               err.message.includes('must be > 0 and < 65536')
             ).to.be.ok;
           }
@@ -362,7 +363,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'oracle'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.include('photos');
@@ -452,6 +453,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(err.message).to.include('A communication error has been detected');
+          } else if (dialect === 'oracle') {
+            expect(err.message).to.include('NJS-007');
           } else {
             expect(err.message.toString()).to.match(/.*Access denied.*/);
           }

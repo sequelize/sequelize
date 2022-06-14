@@ -48,6 +48,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -82,6 +84,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.currency.type).to.equal('DOUBLE PRECISION');
       } else if (dialect === 'db2') {
         expect(table.currency.type).to.equal('DOUBLE');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -223,7 +227,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
           expect(describedTable.level_id.allowNull).to.be.equal(true);
         });
-        if (dialect !== 'db2') {
+        if (dialect !== 'db2' && dialect !== 'oracle') {
           it('should change the comment of column', async function() {
             const describedTable = await this.queryInterface.describeTable({
               tableName: 'users'

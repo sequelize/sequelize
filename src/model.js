@@ -2644,7 +2644,7 @@ class Model {
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'oracle'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
       if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {

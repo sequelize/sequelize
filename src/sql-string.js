@@ -28,7 +28,7 @@ function escape(val, timeZone, dialect, format) {
     // SQLite doesn't have true/false support. MySQL aliases true/false to 1/0
     // for us. Postgres actually has a boolean type with true/false literals,
     // but sequelize doesn't use it yet.
-      if (['sqlite', 'mssql'].includes(dialect)) {
+      if (['sqlite', 'mssql', 'oracle'].includes(dialect)) {
         return +!!val;
       }
       return (!!val).toString();
@@ -73,6 +73,13 @@ function escape(val, timeZone, dialect, format) {
     if (dialect === 'postgres') {
       // null character is not allowed in Postgres
       val = val.replace(/\0/g, '\\0');
+    }
+  } else if (dialect === 'oracle' && (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1 || typeof val === 'string')) {
+    if (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1) {
+      return val;
+    } 
+    if (typeof val === 'string') {
+      val = val.replace(/'/g, "''");
     }
   } else {
 

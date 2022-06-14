@@ -275,6 +275,10 @@ const Support = {
       .replace(/\( /g, '(')
       // remove whitespace at start & end
       .trim();
+  },
+
+  addDualInSelect() { 
+    return this.getTestDialect() === 'oracle' ? ' FROM DUAL' : '';
   }
 };
 

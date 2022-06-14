@@ -89,6 +89,16 @@ class QueryGenerator {
   }
 
   /**
+   * Helper method for getting the returning into bind information 
+   * that is needed by some dialects (currently Oracle)
+   * 
+   * @private
+   */
+  getInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an insert into command
    *
    * @param {string} table
@@ -103,12 +113,14 @@ class QueryGenerator {
     _.defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = [];
+    const bind = options.bind || [];
     const fields = [];
     const returningModelAttributes = [];
+    const returnTypes = [];
     const values = [];
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const returnAttributes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -132,10 +144,14 @@ class QueryGenerator {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if ((this._dialect.supports.returnValues || this._dialect.supports.returnIntoValues) && options.returning) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this._dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -244,7 +260,12 @@ class QueryGenerator {
       emptyQuery += returningFragment;
     }
 
-    query = `${replacements.attributes.length ? valueQuery : emptyQuery};`;
+    if (this._dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery 
+      this.getInsertQueryReturnIntoBinds(returnAttributes, bind.length, returningModelAttributes, returnTypes, options);
+    }
+
+    query = `${replacements.attributes.length ? valueQuery : emptyQuery}${returnAttributes.join(',')};`;
     if (this._dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE(${ replacements.attributes.length ? valueQuery : emptyQuery });`;
     }
@@ -383,8 +404,18 @@ class QueryGenerator {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit) {
-      if (this.dialect !== 'mssql' && this.dialect !== 'db2') {
+      if (this.dialect !== 'mssql' && this.dialect !== 'db2' && this.dialect !== 'oracle') {
         suffix = ` LIMIT ${this.escape(options.limit)} `;
+      } else if (this.dialect === 'oracle') {
+        //This cannot be setted in where because rownum will be quoted
+        if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
+          //If we have a where clause, we add AND
+          suffix += ' AND ';
+        } else {
+          //No where clause, we add where
+          suffix += ' WHERE ';
+        }
+        suffix += `rownum <= ${this.escape(options.limit)} `;
       }
     }
 
@@ -1188,6 +1219,7 @@ class QueryGenerator {
     let mainJoinQueries = [];
     let subJoinQueries = [];
     let query;
+    const hasAs = this._dialect.name === 'oracle' ? '' : 'AS ';
 
     // Aliases can be passed through subqueries and we don't want to reset them
     if (this.options.minifyAliases && !options.aliasesMapping) {
@@ -1312,7 +1344,12 @@ class QueryGenerator {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          delete options.order;
+          
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
+          // So the top level ORDER BY is required
+          if (this._dialect.name !== 'oracle') {
+            delete options.order;
+          }
           where[Op.placeholder] = true;
         }
 
@@ -1332,7 +1369,7 @@ class QueryGenerator {
             model
           },
           model
-        ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${hasAs}sub`; // Every derived table must have its own alias
         const placeHolder = this.whereItemQuery(Op.placeholder, true, { model });
         const splicePos = baseQuery.indexOf(placeHolder);
 
@@ -1426,7 +1463,7 @@ class QueryGenerator {
 
     if (subQuery) {
       this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.as });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${hasAs}${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -1566,6 +1603,8 @@ class QueryGenerator {
           prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
+        } else if (/json_value\(/.test(attr)) {
+          prefix = attr.replace(/json_value\(/i, `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`); 
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }
@@ -1822,6 +1861,8 @@ class QueryGenerator {
 
     if (this._dialect.supports.returnValues.returning) {
       returningFragment = ` RETURNING ${returnFields.join(',')}`;
+    } else if (this._dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(',')} INTO `;
     } else if (this._dialect.supports.returnValues.output) {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(',')}`;
 
@@ -1835,7 +1876,7 @@ class QueryGenerator {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {

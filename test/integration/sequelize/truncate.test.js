@@ -7,7 +7,7 @@ const { sequelize } = require('../support');
 describe('Sequelize#truncate', () => {
   // These dialects do not support the CASCADE option on TRUNCATE, so it's impossible to clear
   //  tables that reference each-other.
-  if (!['mysql', 'mariadb', 'mssql', 'db2'].includes(sequelize.dialect.name)) {
+  if (!['mysql', 'mariadb', 'mssql', 'db2', 'oracle'].includes(sequelize.dialect.name)) {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const A = sequelize.define('A', {
         BId: { type: DataTypes.INTEGER }

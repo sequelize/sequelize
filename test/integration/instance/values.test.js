@@ -122,6 +122,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         let now = dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now')) : this.sequelize.fn('NOW');
         if (dialect === 'mssql') {
           now = this.sequelize.fn('', this.sequelize.fn('getdate'));
+        } else if (dialect === 'oracle') {
+          now = this.sequelize.fn('', this.sequelize.literal('SYSDATE'));
         }
         user.set({
           d: now,

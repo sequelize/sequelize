@@ -46,6 +46,9 @@ describe('Transaction', () => {
       ],
       mssql: [
         'BEGIN TRANSACTION;'
+      ],
+      oracle: [
+        'BEGIN TRANSACTION'
       ]
     };
 
@@ -73,6 +76,10 @@ describe('Transaction', () => {
       ],
       mssql: [
         'BEGIN TRANSACTION;'
+      ],
+      oracle: [
+        'BEGIN TRANSACTION',
+        'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;'
       ]
     };
 
