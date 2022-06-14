@@ -63,6 +63,8 @@ async function test() {
 
   await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
+  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, { truncate: true });
+
   const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
 
   const bulkInsertResWithAttrs: Promise<number | object> = queryInterface.bulkInsert('foo', [{}], {}, { bar: { type: DataTypes.JSON } });

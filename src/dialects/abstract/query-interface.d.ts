@@ -214,6 +214,15 @@ export interface IndexesOptions {
 
 export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
 
+/**
+ * Interface for bulk delete options
+ */
+export interface QueryInterfaceBulkDeleteOptions {
+  truncate?: boolean
+  cascade?: boolean
+  restartIdentity?: boolean
+}
+
 export interface BaseConstraintOptions {
   name?: string;
   fields: string[];
@@ -550,7 +559,7 @@ export class QueryInterface {
   public bulkDelete(
     tableName: TableName,
     identifier: WhereOptions<any>,
-    options?: QueryOptions,
+    options?: QueryInterfaceBulkDeleteOptions,
     model?: ModelType
   ): Promise<object>;
 
