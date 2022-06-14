@@ -23,19 +23,19 @@ docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
 if [ ! -d  ~/oracle ] && [ $(uname) == 'Linux' ]
 then 
     mkdir ~/oracle && 
-    wget https://download.oracle.com/otn_software/linux/instantclient/215000/instantclient-basic-linux.x64-21.5.0.0.0dbru.zip --no-check-certificate && 
-    unzip instantclient-basic-linux.x64-21.5.0.0.0dbru.zip -d ~/oracle/ &&
-    rm instantclient-basic-linux.x64-21.5.0.0.0dbru.zip &&
-    mv ~/oracle/instantclient_21_5 ~/oracle/instantclient
+    wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linuxx64.zip --no-check-certificate && 
+    unzip instantclient-basic-linux.x64.zip -d ~/oracle/ &&
+    rm instantclient-basic-linux.x64.zip &&
+    mv ~/oracle/instantclient_21_6 ~/oracle/instantclient
 
     echo "Local Oracle instant client has been setup!"
 elif [ ! -d  ~/Downloads/instantclient_19_8 ] && [ $(uname) == 'Darwin' ]
 then
-    curl -O https://download.oracle.com/otn_software/mac/instantclient/198000/instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg && 
-    hdiutil mount instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+    curl -O https://download.oracle.com/otn_software/mac/instantclient/instantclient-basic-macos.dmg && 
+    hdiutil mount instantclient-basic-macos.dmg &&
     /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru/install_ic.sh &&
     hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru &&
-    rm instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+    rm instantclient-basic-macos.dmg &&
     ln -s ~/Downloads/instantclient_19_8/libclntsh.dylib ../../../node_modules/oracledb/build/Release/
 
     echo "Local Oracle instant client has been setup!"
