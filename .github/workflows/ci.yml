@@ -62,7 +62,6 @@ jobs:
       SEQ_ORACLE_HOST: localhost
       SEQ_ORACLE_PORT: 1521
       UV_THREADPOOL_SIZE: 128
-      LD_LIBRARY_PATH: /home/runner/oracle/instantclient/
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
