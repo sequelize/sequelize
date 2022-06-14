@@ -24,8 +24,8 @@ if [ ! -d  ~/oracle ] && [ $(uname) == 'Linux' ]
 then 
     mkdir ~/oracle && 
     wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linuxx64.zip --no-check-certificate && 
-    unzip instantclient-basic-linux.x64.zip -d ~/oracle/ &&
-    rm instantclient-basic-linux.x64.zip &&
+    unzip instantclient-basic-linuxx64.zip -d ~/oracle/ &&
+    rm instantclient-basic-linuxx64.zip &&
     mv ~/oracle/instantclient_21_6 ~/oracle/instantclient
 
     echo "Local Oracle instant client has been setup!"
