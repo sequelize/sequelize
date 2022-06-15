@@ -35,22 +35,15 @@ export class ModelManager {
   }
 
   /**
-   * Iterate over Models in an order suitable for e.g. creating tables.
-   * Will take foreign key constraints into account so that dependencies are visited before dependents.
+   * Returns an array that lists every model, sorted in order
+   * of foreign key references: The first model is a model that is depended upon,
+   * the last model is a model that is not depended upon.
    *
-   * @param {Function} iterator method to execute on each model
-   * @param {object} [options] iterator options
-   * @private
+   * If there is a cyclic dependency, this returns null.
    */
-  forEachModel(iterator, options) {
-    const models = {};
+  getModelsTopoSortedByForeignKey() {
+    const models = new Map();
     const sorter = new Toposort();
-    let sorted;
-    let dep;
-
-    options = _.defaults(options || {}, {
-      reverse: true,
-    });
 
     for (const model of this.models) {
       let deps = [];
@@ -60,14 +53,14 @@ export class ModelManager {
         tableName = `${tableName.schema}.${tableName.tableName}`;
       }
 
-      models[tableName] = model;
+      models.set(tableName, model);
 
       for (const attrName in model.rawAttributes) {
         if (Object.prototype.hasOwnProperty.call(model.rawAttributes, attrName)) {
           const attribute = model.rawAttributes[attrName];
 
           if (attribute.references) {
-            dep = attribute.references.model;
+            let dep = attribute.references.model;
 
             if (_.isObject(dep)) {
               dep = `${dep.schema}.${dep.tableName}`;
@@ -83,13 +76,50 @@ export class ModelManager {
       sorter.add(tableName, deps);
     }
 
-    sorted = sorter.sort();
-    if (options.reverse) {
-      sorted = sorted.reverse();
+    let sorted;
+    try {
+      sorted = sorter.sort();
+    } catch (error) {
+      if (!error.message.startsWith('Cyclic dependency found.')) {
+        throw error;
+      }
+
+      return null;
     }
 
-    for (const name of sorted) {
-      iterator(models[name], name);
+    return sorted
+      .map(modelName => {
+        return models.get(modelName);
+      })
+      .filter(Boolean);
+  }
+
+  /**
+   * Iterate over Models in an order suitable for e.g. creating tables.
+   * Will take foreign key constraints into account so that dependencies are visited before dependents.
+   *
+   * @param {Function} iterator method to execute on each model
+   * @param {object} options
+   * @private
+   *
+   * @deprecated
+   */
+  forEachModel(iterator, options) {
+    const sortedModels = this.getModelsTopoSortedByForeignKey();
+    if (sortedModels == null) {
+      throw new Error('Cyclic dependency found.');
+    }
+
+    options = _.defaults(options || {}, {
+      reverse: true,
+    });
+
+    if (options.reverse) {
+      sortedModels.reverse();
+    }
+
+    for (const model of sortedModels) {
+      iterator(model);
     }
   }
 }

@@ -19,6 +19,7 @@ const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { IndexHints } = require('../../index-hints');
+const { _validateIncludedElements } = require('../../model-internals');
 
 /**
  * Abstract Query Generator
@@ -612,18 +613,14 @@ export class AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
+    const escapedTableName = typeof tableName === 'string' ? this.quoteIdentifiers(tableName) : this.quoteTable(tableName);
 
     const concurrently = this._dialect.supports.index.concurrently && options.concurrently ? 'CONCURRENTLY' : undefined;
     let ind;
     if (this._dialect.supports.indexViaAlter) {
       ind = [
         'ALTER TABLE',
-        tableName,
+        escapedTableName,
         concurrently,
         'ADD',
       ];
@@ -631,13 +628,24 @@ export class AbstractQueryGenerator {
       ind = ['CREATE'];
     }
 
+    // DB2 incorrectly scopes the index if we don't specify the schema name,
+    // which will cause it to error if another schema contains a table that uses an index with an identical name
+    const escapedIndexName = tableName.schema && this.dialect === 'db2'
+      // 'quoteTable' isn't the best name: it quotes any identifier.
+      // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+      ? this.quoteTable({
+        schema: tableName.schema,
+        tableName: options.name,
+      })
+      : this.quoteIdentifiers(options.name);
+
     ind = ind.concat(
       options.unique ? 'UNIQUE' : '',
       options.type, 'INDEX',
       !this._dialect.supports.indexViaAlter ? concurrently : undefined,
-      this.quoteIdentifiers(options.name),
+      escapedIndexName,
       this._dialect.supports.index.using === 1 && options.using ? `USING ${options.using}` : '',
-      !this._dialect.supports.indexViaAlter ? `ON ${tableName}` : undefined,
+      !this._dialect.supports.indexViaAlter ? `ON ${escapedTableName}` : undefined,
       this._dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
       `(${fieldsSql.join(', ')})`,
       this._dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
@@ -842,24 +850,19 @@ export class AbstractQueryGenerator {
 
           if (model) {
             // set the as to either the through name or the model name
-            if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through && previousAssociation.through.model === model) {
-              // get from previous association
-              item = new Association(previousModel, model, {
-                as: model.name,
-              });
+            if (!as && previousAssociation && previousAssociation instanceof Association && previousAssociation.through?.model === model) {
+              // we get here for cases like
+              // [manyToManyAssociation, throughModel]
+              // "throughModel" must be replaced by the association from the many to many to the through model
+              item = previousAssociation.fromSourceToThroughOne;
             } else {
               // get association from previous model
-              item = previousModel.getAssociationForAlias(model, as);
-
-              // attempt to use the model name if the item is still null
-              if (!item) {
-                item = previousModel.getAssociationForAlias(model, model.name);
-              }
+              item = previousModel.getAssociationWithModel(model, as);
             }
 
             // make sure we have an association
             if (!(item instanceof Association)) {
-              throw new TypeError(util.format('Unable to find a valid association for model, \'%s\'', model.name));
+              throw new TypeError(`Unable to find a valid association between models "${previousModel.name}" and "${model.name}"`);
             }
           }
         }
@@ -916,7 +919,16 @@ export class AbstractQueryGenerator {
         if (typeof item === 'string' || item._modelAttribute || item instanceof Utils.SequelizeMethod) {
           break;
         } else if (item instanceof Association) {
-          tableNames[i] = item.as;
+          const previousAssociation = collection[i - 1];
+
+          // BelongsToMany.throughModel are a special case. We want
+          //  through model to be loaded under the model's name instead of the association name,
+          //  because we want them to be available under the model's name in the entity's data.
+          if (previousAssociation instanceof BelongsToMany && item === previousAssociation.fromSourceToThroughOne) {
+            tableNames[i] = previousAssociation.throughModel.name;
+          } else {
+            tableNames[i] = item.as;
+          }
         }
       }
 
@@ -1276,20 +1288,22 @@ export class AbstractQueryGenerator {
         if (typeof options.groupedLimit.on === 'string') {
           whereKey = options.groupedLimit.on;
         } else if (options.groupedLimit.on instanceof HasMany) {
-          whereKey = options.groupedLimit.on.foreignKeyField;
+          whereKey = options.groupedLimit.on.identifierField;
         }
 
         if (options.groupedLimit.on instanceof BelongsToMany) {
           // BTM includes needs to join the through table on to check ID
-          groupedTableName = options.groupedLimit.on.manyFromSource.as;
-          const groupedLimitOptions = Model._validateIncludedElements({
+          groupedTableName = options.groupedLimit.on.throughModel.name;
+
+          const groupedLimitOptions = _validateIncludedElements({
             include: [{
-              association: options.groupedLimit.on.manyFromSource,
+              as: options.groupedLimit.on.throughModel.name,
+              association: options.groupedLimit.on.fromSourceToThrough,
               duplicating: false, // The UNION'ed query may contain duplicates, but each sub-query cannot
               required: true,
               where: {
                 [Op.placeholder]: true,
-                ...options.groupedLimit.through && options.groupedLimit.through.where,
+                ...options.groupedLimit.through?.where,
               },
             }],
             model,
@@ -2025,10 +2039,10 @@ export class AbstractQueryGenerator {
     if (topInclude.through && Object(topInclude.through.model) === topInclude.through.model) {
       query = this.selectQuery(topInclude.through.model.getTableName(), {
         attributes: [topInclude.through.model.primaryKeyField],
-        include: Model._validateIncludedElements({
+        include: _validateIncludedElements({
           model: topInclude.through.model,
           include: [{
-            association: topAssociation.toTarget,
+            association: topAssociation.fromThroughToTarget,
             required: true,
             where: topInclude.where,
             include: topInclude.include,
@@ -2059,7 +2073,7 @@ export class AbstractQueryGenerator {
 
       query = this.selectQuery(topInclude.model.getTableName(), {
         attributes: [targetField],
-        include: Model._validateIncludedElements(topInclude).include,
+        include: _validateIncludedElements(topInclude).include,
         model: topInclude.model,
         where: {
           [Op.and]: [

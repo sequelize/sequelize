@@ -22,8 +22,7 @@ if (dialect.startsWith('postgres')) {
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
       User.belongsTo(Task, { as: taskAlias, foreignKey: 'task_id' });
-      User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', through: 'UserTeam' });
-      Team.belongsToMany(User, { foreignKey: 'userId', through: 'UserTeam' });
+      User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', otherKey: 'userId', through: 'UserTeam' });
 
       await sequelize.sync({ force: true });
       const team = await Team.create({ name: 'rocket' });

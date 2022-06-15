@@ -6,6 +6,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support   = require('../support');
 const { DataTypes, Model } = require('@sequelize/core');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -184,6 +185,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     // Relations
     User.belongsToMany(Project, {
       as: 'ProjectUserProjects',
+      inverse: {
+        as: 'ProjectUserUsers',
+      },
       through: ProjectUser,
       foreignKey: 'user_id',
       otherKey: 'project_id',
@@ -191,6 +195,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     Project.belongsToMany(User, {
       as: 'ProjectUserUsers',
+      inverse: {
+        as: 'ProjectUserProjects',
+      },
       through: ProjectUser,
       foreignKey: 'project_id',
       otherKey: 'user_id',
@@ -198,16 +205,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     Project.hasMany(Task, {
       as: 'Tasks',
-      foreignKey: 'project_id',
-    });
-
-    ProjectUser.belongsTo(User, {
-      as: 'User',
-      foreignKey: 'user_id',
-    });
-
-    ProjectUser.belongsTo(User, {
-      as: 'Project',
       foreignKey: 'project_id',
     });
 
@@ -233,7 +230,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         'name',
         'createdAt',
       ],
-      include: Model._validateIncludedElements({
+      include: _validateIncludedElements({
         include: [
           {
             association: Subtask.associations.Task,
@@ -368,7 +365,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           order: [
             [Project, 'createdAt', 'ASC'],
           ],
-        })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
+        })).to.eventually.be.rejectedWith(Error, 'Invalid Include received: no associations exist between "Subtask" and "Project"');
       });
 
       it('Error on invalid structure', () => {

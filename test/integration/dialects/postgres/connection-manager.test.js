@@ -59,8 +59,8 @@ if (dialect.startsWith('postgres')) {
       const sequelize = Support.createSequelizeInstance({
         dialectOptions: { query_timeout: 100 },
       });
-      const error = await sequelize.query('select pg_sleep(2)').catch(error_ => error_);
-      expect(error.message).to.equal('Query read timeout');
+
+      await expect(sequelize.query('select pg_sleep(2)')).to.be.rejectedWith('Query read timeout');
     });
 
     it('should allow overriding session variables through the `options` param', async () => {

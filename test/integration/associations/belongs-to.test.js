@@ -51,9 +51,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         })]);
 
         const result = await Task.User.get(tasks);
-        expect(result[tasks[0].id].id).to.equal(tasks[0].user.id);
-        expect(result[tasks[1].id].id).to.equal(tasks[1].user.id);
-        expect(result[tasks[2].id]).to.be.undefined;
+        expect(result.get(tasks[0].id).id).to.equal(tasks[0].user.id);
+        expect(result.get(tasks[1].id).id).to.equal(tasks[1].user.id);
+        expect(result.get(tasks[2].id)).to.be.undefined;
       });
     });
   });
@@ -441,7 +441,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
       Mail.belongsToMany(User, {
         as: 'recipients',
-        through: 'MailRecipients',
+        through: {
+          model: 'MailRecipients',
+          timestamps: false,
+        },
         otherKey: {
           name: 'recipientId',
           allowNull: false,
@@ -450,7 +453,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           name: 'mailId',
           allowNull: false,
         },
-        timestamps: false,
       });
       Mail.hasMany(Entry, {
         as: 'entries',
@@ -536,26 +538,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(task.UserId).to.equal(null);
     });
 
-    it('sets to NO ACTION if allowNull: false', async function () {
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      Task.belongsTo(User, { foreignKey: { allowNull: false } }); // defaults to NO ACTION
-
-      await this.sequelize.sync({ force: true });
-
-      const user = await User.create({ username: 'foo' });
-      await Task.create({ title: 'task', UserId: user.id });
-      await expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
-      const tasks = await Task.findAll();
-      expect(tasks).to.have.length(1);
-    });
-
     it('should be possible to disable them', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      Task.belongsTo(User, { constraints: false });
+      Task.belongsTo(User, { foreignKeyConstraints: false });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ username: 'foo' });
@@ -570,7 +557,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      Task.belongsTo(User, { onDelete: 'cascade' });
+      Task.belongsTo(User, { foreignKey: { onDelete: 'cascade' } });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ username: 'foo' });
@@ -586,7 +573,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onDelete: 'restrict' });
+        Task.belongsTo(User, { foreignKey: { onDelete: 'restrict' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -601,7 +588,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onUpdate: 'restrict' });
+        Task.belongsTo(User, { foreignKey: { onUpdate: 'restrict' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -631,7 +618,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, { onUpdate: 'cascade' });
+        Task.belongsTo(User, { foreignKey: { onUpdate: 'cascade' } });
 
         await this.sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -798,7 +785,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       for (const dataType of dataTypes) {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
-        Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
+        Tasks[dataType].belongsTo(User, { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
       }
 
       await this.sequelize.sync({ force: true });
@@ -863,24 +850,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
       });
     });
-
-    it('should throw an error if foreignKey and as result in a name clash', function () {
-      const Person = this.sequelize.define('person', {});
-      const Car = this.sequelize.define('car', {});
-
-      expect(Car.belongsTo.bind(Car, Person, { foreignKey: 'person' })).to
-        .throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
-    });
-
-    it('should throw an error if an association clashes with the name of an already define attribute', function () {
-      const Person = this.sequelize.define('person', {});
-      const Car = this.sequelize.define('car', {
-        person: DataTypes.INTEGER,
-      });
-
-      expect(Car.belongsTo.bind(Car, Person, { as: 'person' })).to
-        .throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
-    });
   });
 
   describe('Eager loading', () => {
@@ -918,7 +887,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         where: { name: 'Foo Bar' },
         include: [{
           model: this.Hat,
-          as: { singular: 'personwearinghat' },
+          as: 'personwearinghat',
         }],
       });
 

@@ -30,13 +30,9 @@ if (dialect === 'mariadb') {
         this.UserTasks = this.sequelize.define('tasksusers',
           { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
 
-        this.User.belongsToMany(this.Task,
-          { onDelete: 'RESTRICT', through: 'tasksusers' });
-        this.Task.belongsToMany(this.User,
-          { onDelete: 'RESTRICT', through: 'tasksusers' });
+        this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
 
-        this.Task.belongsTo(this.User,
-          { foreignKey: 'primaryUserId', as: 'primaryUsers' });
+        this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });
 
       it('in context of DELETE restriction', async function () {

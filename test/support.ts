@@ -25,9 +25,45 @@ chai.use(sinonChai);
 // Using util.inspect to correctly assert objects with symbols
 // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
 chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai function
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
   expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
 });
+
+/**
+ * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
+ * that is also checks whether the message is present in the error cause.
+ */
+chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+function withInlineCause(cb: (() => any)): () => void {
+  return () => {
+    try {
+      return cb();
+    } catch (error) {
+      assert(error instanceof Error);
+
+      error.message = inlineErrorCause(error);
+
+      throw error;
+    }
+  };
+}
+
+function inlineErrorCause(error: Error) {
+  let message = error.message;
+
+  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
+  const cause = error.cause;
+  if (cause) {
+    message += `\nCaused by: ${inlineErrorCause(cause)}`;
+  }
+
+  return message;
+}
 
 chai.config.includeStack = true;
 chai.should();
@@ -60,10 +96,13 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-afterEach(() => {
-  onNextUnhandledRejection = null;
-  unhandledRejections = null;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof afterEach !== 'undefined') {
+  afterEach(() => {
+    onNextUnhandledRejection = null;
+    unhandledRejections = null;
+  });
+}
 
 /**
  * Returns a Promise that will reject with the next unhandled rejection that occurs
@@ -116,7 +155,7 @@ export async function prepareTransactionTest(sequelize: Sequelize) {
   return sequelize;
 }
 
-export function createSequelizeInstance(options: Options = {}) {
+export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
   const config = Config[options.dialect];
@@ -150,7 +189,7 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options) {
+export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
   options = options || {};
   options.dialect = options.dialect || getTestDialect();
 
@@ -185,11 +224,20 @@ export async function dropTestSchemas(sequelize: Sequelize) {
     // @ts-expect-error
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
-      schemasPromise.push(sequelize.dropSchema(schemaName));
+      const promise = sequelize.dropSchema(schemaName);
+
+      if (getTestDialect() === 'db2') {
+        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+        // eslint-disable-next-line no-await-in-loop
+        await promise;
+      } else {
+        schemasPromise.push(promise);
+      }
     }
   }
 
-  await Promise.all(schemasPromise.map(async p => p.catch((error: unknown) => error)));
+  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
@@ -321,17 +369,28 @@ export function minifySql(sql: string): string {
 
 export const sequelize = createSequelizeInstance();
 
-before(function onBefore() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+export function resetSequelizeInstance(): void {
+  for (const model of sequelize.modelManager.all) {
+    sequelize.modelManager.removeModel(model);
+  }
+}
 
-beforeEach(function onBeforeEach() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof before !== 'undefined') {
+  before(function onBefore() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
+
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function onBeforeEach() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
 
 type Tester<Params extends any[]> = {
   (...params: Params): void,
