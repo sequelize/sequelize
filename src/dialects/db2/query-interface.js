@@ -94,8 +94,8 @@ export class Db2QueryInterface extends QueryInterface {
     // If the returned values for these parameters is not null, then an error occurred.
     const response = await super.dropSchema(schema, {
       ...options,
-      // db2 supports out parameters. We don't have a proper API for it yet
-      // so this temporary API will have to do.
+      // TODO: db2 supports out parameters. We don't have a proper API for it yet
+      //   for now, this temporary API will have to do.
       _unsafe_db2Outparams: outParams,
     });
 
@@ -192,7 +192,7 @@ export class Db2QueryInterface extends QueryInterface {
       }
 
       // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
-      await this.executeTableReorg();
+      await this.executeTableReorg(tableName);
       await super.addConstraint(tableName, options);
     }
   }
@@ -202,9 +202,11 @@ export class Db2QueryInterface extends QueryInterface {
    * Other changes cannot be done to these tables until the reorg has been completed.
    *
    * This method forces a reorg to happen now.
+   *
+   * @param {TableName} tableName - The name of the table to reorg
    */
-  async executeTableReorg() {
+  async executeTableReorg(tableName) {
     // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
-    return await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE "users"')`);
+    return await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`);
   }
 }
