@@ -1,5 +1,5 @@
 <p style="text-align: center;">
-  <img src="logo-small.png" width="100" alt="" />
+  <img src="logo.svg" width="100" alt="Sequelize logo" />
   <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
 </p>
 
