@@ -119,54 +119,54 @@ if (dialect === 'db2') {
       createTableQuery: [
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { data: 'BLOB' }],
-          expectation: 'CREATE TABLE "myTable" ("data" BLOB);',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB);',
         },
         {
           arguments: ['myTable', { data: 'BLOB(16M)' }],
-          expectation: 'CREATE TABLE "myTable" ("data" BLOB(16M));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB(16M));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
-          expectation: 'CREATE TABLE "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
         },
       ],
 
       dropTableQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'DROP TABLE "myTable";',
+          expectation: 'DROP TABLE IF EXISTS "myTable";',
         },
       ],
 

@@ -2145,7 +2145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const expectedLengths = {
         mssql: 2,
         postgres: 2,
-        db2: 10,
+        db2: 2,
         mariadb: 3,
         mysql: 1,
         sqlite: 1,
