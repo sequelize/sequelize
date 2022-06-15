@@ -635,6 +635,39 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include(expectedConstraintName);
       });
+
+      // TODO: addConstraint does not support schemas yet.
+      it.skip('can add a constraint to a table in a non-default schema', async function () {
+        const tableName = {
+          tableName: 'users',
+          schema: 'archive',
+        };
+
+        await this.queryInterface.createTable(tableName, {
+          id: {
+            type: DataTypes.INTEGER,
+          },
+        });
+
+        // changeColumn before addConstraint puts the DB2 table in "reorg pending state"
+        // addConstraint will be forced to execute a REORG TABLE command, which checks that it is done properly when using schemas.
+        await this.queryInterface.changeColumn(tableName, 'id', {
+          type: DataTypes.BIGINT,
+        });
+
+        await this.queryInterface.addConstraint(tableName, {
+          type: 'PRIMARY KEY',
+          fields: ['id'],
+        });
+
+        const constraints = await this.queryInterface.showConstraint(tableName);
+
+        expect(constraints).to.deep.eq([{
+          constraintName: 'users_username_pk',
+          schemaName: tableName.schema,
+          tableName: tableName.tableName,
+        }]);
+      });
     });
 
     describe('foreign key', () => {
