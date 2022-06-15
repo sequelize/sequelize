@@ -1290,19 +1290,29 @@ Specify a different name for either index to resolve this issue.`);
       await this.runHooks('beforeSync', options);
     }
 
-    if (options.force) {
-      await this.drop(options);
-    }
-
     const tableName = this.getTableName(options);
 
-    await this.queryInterface.createTable(tableName, attributes, options, this);
+    let tableExists;
+    if (options.force) {
+      await this.drop(options);
+      tableExists = false;
+    } else {
+      tableExists = await this.queryInterface.tableExists(tableName, options);
+    }
 
-    if (options.alter) {
+    if (!tableExists) {
+      await this.queryInterface.createTable(tableName, attributes, options, this);
+    } else {
+      // enums are always updated, even if alter is not set. createTable calls it too.
+      await this.queryInterface.ensureEnums(tableName, attributes, options, this);
+    }
+
+    if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
         this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
       ]);
+
       const columns = tableInfos[0];
       // Use for alter foreign keys
       const foreignKeyReferences = tableInfos[1];
@@ -1362,24 +1372,25 @@ Specify a different name for either index to resolve this issue.`);
       }
     }
 
-    let indexes = await this.queryInterface.showIndex(tableName, options);
+    const existingIndexes = await this.queryInterface.showIndex(tableName, options);
+    const missingIndexes = this.getIndexes()
+      .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
+      .sort((index1, index2) => {
+        if (this.sequelize.options.dialect === 'postgres') {
+          // move concurrent indexes to the bottom to avoid weird deadlocks
+          if (index1.concurrently === true) {
+            return 1;
+          }
 
-    indexes = this.getIndexes().filter(item1 => !indexes.some(item2 => item1.name === item2.name)).sort((index1, index2) => {
-      if (this.sequelize.options.dialect === 'postgres') {
-      // move concurrent indexes to the bottom to avoid weird deadlocks
-        if (index1.concurrently === true) {
-          return 1;
+          if (index2.concurrently === true) {
+            return -1;
+          }
         }
 
-        if (index2.concurrently === true) {
-          return -1;
-        }
-      }
+        return 0;
+      });
 
-      return 0;
-    });
-
-    for (const index of indexes) {
+    for (const index of missingIndexes) {
       await this.queryInterface.addIndex(tableName, index, options);
     }
 

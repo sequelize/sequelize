@@ -1,7 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, Deferrable } = require('@sequelize/core');
 const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
 
 const dialect = getTestDialect();
@@ -505,6 +505,86 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
       const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
       expect(user).to.be.ok;
+    });
+  }
+
+  it('supports creating tables with cyclic associations', async () => {
+    const A = sequelize.define('A', {}, { timestamps: false });
+    const B = sequelize.define('B', {}, { timestamps: false });
+
+    // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
+    const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' } : null;
+
+    // These models both have a foreign key that references the other model.
+    // Sequelize should be able to create them.
+    A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+    B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+
+    await sequelize.sync();
+
+    const [aFks, bFks] = await Promise.all([
+      sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName()),
+      sequelize.queryInterface.getForeignKeyReferencesForTable(B.getTableName()),
+    ]);
+
+    expect(aFks.length).to.eq(1);
+    expect(aFks[0].referencedTableName).to.eq('Bs');
+    expect(aFks[0].referencedColumnName).to.eq('id');
+    expect(aFks[0].columnName).to.eq('BId');
+
+    expect(bFks.length).to.eq(1);
+    expect(bFks[0].referencedTableName).to.eq('As');
+    expect(bFks[0].referencedColumnName).to.eq('id');
+    expect(bFks[0].columnName).to.eq('AId');
+  });
+
+  it('supports creating two identically named tables in different schemas', async () => {
+    await sequelize.queryInterface.createSchema('custom_schema');
+
+    const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
+    const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
+
+    await sequelize.sync({ force: true });
+
+    await Model1.create({ id: 1 });
+    await Model2.create({ id: 2 });
+  });
+
+  // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
+  //  so sync({ alter: true }) cannot know whether the column must be updated.
+  //  so for now, deferrableConstraints is disabled for sqlite (as it's only used in tests)
+  if (sequelize.dialect.supports.deferrableConstraints) {
+    it('updates the deferrable property of a foreign key', async () => {
+      const A = sequelize.define('A', {
+        BId: {
+          type: DataTypes.INTEGER,
+          references: {
+            deferrable: Deferrable.INITIALLY_IMMEDIATE(),
+          },
+        },
+      });
+      const B = sequelize.define('B');
+
+      A.belongsTo(B);
+
+      await sequelize.sync();
+
+      {
+        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+        expect(aFks.length).to.eq(1);
+        expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
+      }
+
+      A.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+      await sequelize.sync({ alter: true });
+
+      {
+        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+
+        expect(aFks.length).to.eq(1);
+        expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
+      }
     });
   }
 });

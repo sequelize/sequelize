@@ -1,6 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -797,22 +798,20 @@ Use Sequelize#query if you wish to use replacements.`);
       await this.drop(options);
     }
 
-    const models = [];
-
-    // Topologically sort by foreign key constraints to give us an appropriate
-    // creation order
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      } else {
-        // DB should throw an SQL error if referencing non-existent table
-      }
-    });
-
     // no models defined, just authenticate
-    if (models.length === 0) {
+    if (this.modelManager.models.length === 0) {
       await this.authenticate(options);
     } else {
+      const models = this.modelManager.getModelsTopoSortedByForeignKey();
+      if (models == null) {
+        return this._syncModelsWithCyclicReferences(options);
+      }
+
+      // reverse to start with the one model that does not depend on anything
+      models.reverse();
+
+      // Topologically sort by foreign key constraints to give us an appropriate
+      // creation order
       for (const model of models) {
         await model.sync(options);
       }
@@ -823,6 +822,35 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     return this;
+  }
+
+  /**
+   * Used instead of sync() when two models reference each-other, so their foreign keys cannot be created immediately.
+   *
+   * @param {object} options - sync options
+   * @private
+   */
+  async _syncModelsWithCyclicReferences(options) {
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.sync(options);
+        }
+      });
+
+      return;
+    }
+
+    // create all tables, but don't create foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, withoutForeignKeyConstraints: true });
+    }
+
+    // add foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, force: false, alter: true });
+    }
   }
 
   /**
@@ -837,13 +865,23 @@ Use Sequelize#query if you wish to use replacements.`);
    * {@link Model.truncate} for more information
    */
   async truncate(options) {
-    const models = [];
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const models = sortedModels || this.modelManager.models;
+    const hasCyclicDependencies = sortedModels == null;
 
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      }
-    }, { reverse: false });
+    // we have cyclic dependencies, cascade must be enabled.
+    if (hasCyclicDependencies && (!options || !options.cascade)) {
+      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" option to be able to delete rows from models that have cyclic references.');
+    }
+
+    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
+    if (hasCyclicDependencies && this.dialect.name === 'sqlite') {
+      // Workaround: SQLite does not support options.cascade, but we can disable its foreign key constraints while we
+      // truncate all tables.
+      return withSqliteForeignKeysOff(this, options, async () => {
+        await Promise.all(models.map(model => model.truncate(options)));
+      });
+    }
 
     if (options && options.cascade) {
       for (const model of models) {
@@ -867,15 +905,44 @@ Use Sequelize#query if you wish to use replacements.`);
    * @returns {Promise}
    */
   async drop(options) {
-    const models = [];
-
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
+    // if 'cascade' is specified, we don't have to worry about cyclic dependencies.
+    if (options && options.cascade) {
+      for (const model of this.modelManager.models) {
+        await model.drop(options);
       }
-    }, { reverse: false });
+    }
 
-    for (const model of models) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+
+    // no cyclic dependency between models, we can delete them in an order that will not cause an error.
+    if (sortedModels) {
+      for (const model of sortedModels) {
+        await model.drop(options);
+      }
+    }
+
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.drop(options);
+        }
+      });
+
+      return;
+    }
+
+    // has cyclic dependency: we first remove each foreign key, then delete each model.
+    for (const model of this.modelManager.models) {
+      const tableName = model.getTableName();
+      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+
+      await Promise.all(foreignKeys.map(foreignKey => {
+        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+      }));
+    }
+
+    for (const model of this.modelManager.models) {
       await model.drop(options);
     }
   }
