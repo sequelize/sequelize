@@ -33,17 +33,23 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
+  _errorTableCount = 0;
+
   dropSchema(schema) {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_1, $sequelize_2)`;
+    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
+
+    if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
+      this._errorTableCount = 0;
+    }
 
     return {
       query,
       bind: {
-        sequelize_1: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-        sequelize_2: { ParamType: 'INOUT', Data: 'ERRORTABLE' },
+        sequelize_errorSchema: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
+        sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE${this._errorTableCount++}` },
       },
     };
   }
@@ -58,7 +64,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   createTableQuery(tableName, attributes, options) {
-    const query = 'CREATE TABLE <%= table %> (<%= attributes %>)';
+    const query = 'CREATE TABLE IF NOT EXISTS <%= table %> (<%= attributes %>)';
     const primaryKeys = [];
     const foreignKeys = {};
     const attrStr = [];
@@ -185,13 +191,14 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
   }
 
-  dropTableQuery(tableName) {
-    const query = 'DROP TABLE <%= table %>';
-    const values = {
-      table: this.quoteTable(tableName),
-    };
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    // The default schema is the authorization ID of the owner of the plan or package.
+    // https://www.ibm.com/docs/en/db2-for-zos/12?topic=concepts-db2-schemas-schema-qualifiers
+    const schemaName = table.schema || this.sequelize.config.username.toUpperCase();
 
-    return `${_.template(query, this._templateSettings)(values).trim()};`;
+    // https://www.ibm.com/docs/en/db2-for-zos/11?topic=tables-systables
+    return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
   }
 
   addColumnQuery(table, key, dataType) {
@@ -432,7 +439,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     // Add unique indexes defined by indexes option to uniqueAttrs
-    for (const index of model._indexes) {
+    for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
@@ -616,8 +623,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     if (options && options.context === 'changeColumn' && attribute.type) {
       template = `DATA TYPE ${template}`;
-    } else if (attribute.allowNull === false || attribute.primaryKey === true
-             || attribute.unique) {
+    } else if (attribute.allowNull === false || attribute.primaryKey === true) {
       template += ' NOT NULL';
       changeNull = 0;
     }
@@ -637,7 +643,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
-    if (attribute.unique === true) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 
@@ -645,7 +651,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = `${options.tableName}_${attrName}_fidx`;

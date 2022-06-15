@@ -33,6 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table',
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
+          db2: 'CREATE INDEX "schema"."schema_table_column1_column2" ON "schema"."table" ("column1", "column2")',
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
@@ -81,7 +82,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('POJO field', () => {
-      expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
+      expectsql(sql.addIndexQuery('table', [{ name: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
         db2: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',

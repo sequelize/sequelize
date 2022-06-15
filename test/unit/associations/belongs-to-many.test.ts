@@ -968,8 +968,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Through === MyGroups.through.model);
 
       expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
-      expect(Through.rawAttributes.id_user_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
-      expect(Through.rawAttributes.id_group_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
+      expect(Through.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' });
+      expect(Through.rawAttributes.id_group_very_long_field.unique).to.deep.equal({ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' });
     });
 
     it('generates unique identifier with custom name', () => {
@@ -1010,8 +1010,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
-      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
-      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.equal('custom_user_group_unique');
+      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
+      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
     });
   });
 
