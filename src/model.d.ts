@@ -35,6 +35,7 @@ import {
 } from './utils';
 import { LOCK, Op, Optional, Transaction } from './index';
 import { SetRequired } from './utils/set-required';
+import { Class } from 'type-fest';
 
 export interface Logging {
   /**
@@ -1661,7 +1662,7 @@ export interface ModelAttributeColumnReferencesOptions {
    *
    * PostgreSQL only
    */
-  deferrable?: Deferrable;
+  deferrable?: Deferrable | Class<Deferrable>;
 }
 
 // TODO: when merging model.d.ts with model.js, make this an enum.
@@ -2159,6 +2160,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static getAttributes<M extends Model>(this: ModelStatic<M>): {
     readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
+
+  public static getIndexes(): readonly IndexOptions[];
 
   /**
    * Reference to the sequelize instance the model was initialized with.

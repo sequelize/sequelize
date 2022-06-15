@@ -96,10 +96,13 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-afterEach(() => {
-  onNextUnhandledRejection = null;
-  unhandledRejections = null;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof afterEach !== 'undefined') {
+  afterEach(() => {
+    onNextUnhandledRejection = null;
+    unhandledRejections = null;
+  });
+}
 
 /**
  * Returns a Promise that will reject with the next unhandled rejection that occurs
@@ -152,7 +155,7 @@ export async function prepareTransactionTest(sequelize: Sequelize) {
   return sequelize;
 }
 
-export function createSequelizeInstance(options: Options = {}) {
+export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
   const config = Config[options.dialect];
@@ -186,7 +189,7 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options) {
+export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
   options = options || {};
   options.dialect = options.dialect || getTestDialect();
 
@@ -221,11 +224,20 @@ export async function dropTestSchemas(sequelize: Sequelize) {
     // @ts-expect-error
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
-      schemasPromise.push(sequelize.dropSchema(schemaName));
+      const promise = sequelize.dropSchema(schemaName);
+
+      if (getTestDialect() === 'db2') {
+        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+        // eslint-disable-next-line no-await-in-loop
+        await promise;
+      } else {
+        schemasPromise.push(promise);
+      }
     }
   }
 
-  await Promise.all(schemasPromise.map(async p => p.catch((error: unknown) => error)));
+  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
@@ -363,17 +375,22 @@ export function resetSequelizeInstance(): void {
   }
 }
 
-before(function onBefore() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof before !== 'undefined') {
+  before(function onBefore() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
 
-beforeEach(function onBeforeEach() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function onBeforeEach() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
 
 type Tester<Params extends any[]> = {
   (...params: Params): void,

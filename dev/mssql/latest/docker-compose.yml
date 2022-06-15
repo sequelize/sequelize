@@ -1,7 +1,7 @@
 services:
-  mssql-2019:
-    container_name: sequelize-mssql-2019
-    image: mcr.microsoft.com/mssql/server:2019-latest
+  mssql-latest:
+    container_name: sequelize-mssql-latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: Y
       SA_PASSWORD: Password12!
@@ -15,4 +15,4 @@ services:
 
 networks:
   default:
-    name: sequelize-mssql-2019-network
+    name: sequelize-mssql-latest-network
