@@ -1,20 +1,17 @@
 import { expectTypeOf } from 'expect-type'
-import { Attributes } from '@sequelize/core';
+import { Attributes, FindByPkOptions } from '@sequelize/core';
 import { User } from './models/User';
 
 (async () => {
   expectTypeOf(await User.findByPk(Buffer.from('asdf'))).toEqualTypeOf<User | null>();
+
+  // rejectOnEmpty
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     rejectOnEmpty: undefined
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: false
-  })).toEqualTypeOf<User | null>();
-
-  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    raw: false,
     rejectOnEmpty: false
   })).toEqualTypeOf<User | null>();
 
@@ -26,19 +23,43 @@ import { User } from './models/User';
     rejectOnEmpty: new Error('')
   })).toEqualTypeOf<User>();
 
-  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    raw: false,
-    rejectOnEmpty: new Error('')
-  })).toEqualTypeOf<User>();
+  // raw
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: true,
   })).toEqualTypeOf<Attributes<User> | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: false,
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: undefined,
+  })).toEqualTypeOf<User | null>();
+
+  // combination
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: false,
+    rejectOnEmpty: false
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: false,
+    rejectOnEmpty: true
+  })).toEqualTypeOf<User>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: true,
+    rejectOnEmpty: false,
+  })).toEqualTypeOf<Attributes<User> | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: true,
     rejectOnEmpty: true,
   })).toEqualTypeOf<Attributes<User>>();
+
+  // custom parameter
 
   interface CustomUser {
     foo: 'bar';
@@ -59,4 +80,11 @@ import { User } from './models/User';
     rejectOnEmpty: true,
     raw: true,
   })).toEqualTypeOf<CustomUser>();
+
+  async function passDown(params: FindByPkOptions<User>) {
+    // Unknown ahead of time
+    // We can't what 'rejectOnEmpty' and 'raw' are set to, so we default to these types:
+    expectTypeOf(await User.findByPk(Buffer.from('asdf'), params))
+      .toEqualTypeOf<User | null>();
+  }
 })();

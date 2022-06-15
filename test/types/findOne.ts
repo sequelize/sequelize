@@ -1,5 +1,5 @@
-import { expectTypeOf } from 'expect-type'
-import { Attributes, col } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
+import { Attributes, FindOptions } from '@sequelize/core';
 import { User } from './models/User';
 
 // These attributes exist
@@ -26,44 +26,88 @@ User.findOne({ where: { '$include1.includeAttr$': 'blah2' } });
 User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
 
 (async () => {
+  expectTypeOf(await User.findOne()).toEqualTypeOf<User | null>();
 
-    expectTypeOf(
-        await User.findOne({
-            where: { firstName: 'John' },
-            raw: false,
-            rejectOnEmpty: true,
-        })
-    ).toEqualTypeOf<User>();
+  // rejectOnEmpty
 
-    const rawUser = await User.findOne({
-        where: { firstName: 'John' },
-        raw: true,
-        rejectOnEmpty: true,
-    });
-    expectTypeOf(rawUser).toEqualTypeOf<Attributes<User>>()
+  expectTypeOf(await User.findOne({
+    rejectOnEmpty: undefined
+  })).toEqualTypeOf<User | null>();
 
-    interface CustomUser {
-        foo: 'bar';
-    }
-    const customUser = await User.findOne<User, CustomUser>({
-        attributes: [
-            ['bar', 'foo'],
-            'ignored',
-            [col('table.id'), 'xyz'],
-        ],
-        raw: true,
-    });
-    expectTypeOf(customUser).toEqualTypeOf<CustomUser | null>();
+  expectTypeOf(await User.findOne({
+    rejectOnEmpty: false
+  })).toEqualTypeOf<User | null>();
 
-    expectTypeOf(
-        await User.findOne<User, CustomUser>({
-            attributes: [
-                ['bar', 'foo'],
-                'ignored',
-                [col('table.id'), 'xyz'],
-            ],
-            raw: true,
-            rejectOnEmpty: true,
-        })
-    ).toEqualTypeOf<CustomUser>();
+  expectTypeOf(await User.findOne({
+    rejectOnEmpty: true
+  })).toEqualTypeOf<User>();
+
+  expectTypeOf(await User.findOne({
+    rejectOnEmpty: new Error('')
+  })).toEqualTypeOf<User>();
+
+  // raw
+
+  expectTypeOf(await User.findOne({
+    raw: true,
+  })).toEqualTypeOf<Attributes<User> | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: false,
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: undefined,
+  })).toEqualTypeOf<User | null>();
+
+  // combination
+
+  expectTypeOf(await User.findOne({
+    raw: false,
+    rejectOnEmpty: false
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: false,
+    rejectOnEmpty: true
+  })).toEqualTypeOf<User>();
+
+  expectTypeOf(await User.findOne({
+    raw: true,
+    rejectOnEmpty: false,
+  })).toEqualTypeOf<Attributes<User> | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: true,
+    rejectOnEmpty: true,
+  })).toEqualTypeOf<Attributes<User>>();
+
+  // custom parameter
+
+  interface CustomUser {
+    foo: 'bar';
+  }
+
+  expectTypeOf(await User.findOne<User, CustomUser>({
+    raw: true,
+  })).toEqualTypeOf<CustomUser | null>();
+
+  expectTypeOf(await User.findOne<User, CustomUser>({
+    attributes: [['bar', 'foo']],
+    rejectOnEmpty: false,
+    raw: true,
+  })).toEqualTypeOf<CustomUser | null>();
+
+  expectTypeOf(await User.findOne<User, CustomUser>({
+    attributes: [['bar', 'foo']],
+    rejectOnEmpty: true,
+    raw: true,
+  })).toEqualTypeOf<CustomUser>();
+
+  async function passDown(params: FindOptions<User>) {
+    // Unknown ahead of time
+    // We can't what 'rejectOnEmpty' and 'raw' are set to, so we default to these types:
+    expectTypeOf(await User.findOne(params))
+      .toEqualTypeOf<User | null>();
+  }
 })();
