@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import pTimeout from 'p-timeout';
 import * as Support from '../support';
@@ -8,13 +9,35 @@ import * as Support from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
-
 const { setTimeout, clearTimeout } = global;
 const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? '', 10) || 10_000;
 
 let runningQueries = new Set<AbstractQuery>();
 
-before(() => {
+before(async () => {
+  if (Support.getTestDialect() === 'db2') {
+    const res = await Support.sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
+      type: QueryTypes.SELECT,
+    });
+
+    const tableExists = res[0]?.TBSPACE === 'SYSTOOLSPACE';
+
+    if (!tableExists) {
+      // needed by dropSchema function
+      await Support.sequelize.query(`
+      CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
+      MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+      EXTENTSIZE 4;
+    `);
+
+      await Support.sequelize.query(`
+      CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
+      MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+      EXTENTSIZE 4
+    `);
+    }
+  }
+
   Support.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
@@ -36,8 +59,7 @@ afterEach(async function checkRunningQueries() {
     runningQueriesProblem = `Expected 0 queries running after this test, but there are still ${
       runningQueries.size
     } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
-      // prettier-ignore
-      [...runningQueries].map(query => `       ${query.uuid}: ${query.sql}`).join('\n')
+      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
     }`;
   }
 

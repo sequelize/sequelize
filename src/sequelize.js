@@ -527,9 +527,10 @@ Only bind parameters can be provided, in the dialect-specific syntax.
 Use Sequelize#query if you wish to use replacements.`);
     }
 
-    options = { ...this.options.query, ...options };
+    options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
+    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -550,6 +551,8 @@ Use Sequelize#query if you wish to use replacements.`);
 
       sql = mappedResult.sql;
 
+      // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
+      options.bindParameterOrder = mappedResult.bindOrder;
       if (mappedResult.bindOrder == null) {
         bindParameters = options.bind;
       } else {

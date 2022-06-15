@@ -1942,17 +1942,11 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     options = Utils.cloneDeep(options);
-
+    // findOne only ever needs one result
+    // conditional temporarily fixes 14618
+    // https://github.com/sequelize/sequelize/issues/14618
     if (options.limit === undefined) {
-      const uniqueSingleColumns = _.chain(this.uniqueKeys).values().filter(c => c.fields.length === 1)
-        .map('column')
-        .value();
-
-      // Don't add limit if querying directly on the pk or a unique column
-      if (!options.where || !_.some(options.where, (value, key) => (key === this.primaryKeyAttribute || uniqueSingleColumns.includes(key))
-          && (Utils.isPrimitive(value) || Buffer.isBuffer(value)))) {
-        options.limit = 1;
-      }
+      options.limit = 1;
     }
 
     // Bypass a possible overloaded findAll.
