@@ -936,6 +936,9 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
+export interface FindByPkOptions<M extends Model> extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+
+export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
 /**
  * Options for Model.count method
  */
@@ -2423,9 +2426,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns A promise that will resolve with the array containing the results of the SELECT query.
    */
+  public static findAll<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options?: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
+  ): Promise<R[]>;
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<Attributes<M>>
+    options?: FindOptions<Attributes<M>>,
   ): Promise<M[]>;
 
   /**
@@ -2436,15 +2443,25 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  public static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  public static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: NonNullFindByPkOptions<M> & { raw: true }
+  ): Promise<R>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<Attributes<M>>, 'where'>
+    options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<Attributes<M>>, 'where'>
+    options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
   /**
@@ -2453,6 +2470,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the first instance corresponding matching the query.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  public static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: FindOptions<Attributes<M>> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  public static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: NonNullFindOptions<Attributes<M>> & { raw: true }
+  ): Promise<R>;
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
     options: NonNullFindOptions<Attributes<M>>
