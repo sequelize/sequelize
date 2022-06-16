@@ -1,7 +1,7 @@
 import type { SyncOptions } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
-import { User } from './models/User';
+import { User } from './models/user';
 
 export const sequelize = new Sequelize('uri');
 

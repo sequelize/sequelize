@@ -1,4 +1,4 @@
-import { Group, User } from './models/User';
+import { Group, User } from './models/user';
 
 async function test(): Promise<void> {
   let user = await User.findOne({ include: [Group] });

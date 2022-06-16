@@ -1,5 +1,5 @@
 import { Model, fn, col, literal } from '@sequelize/core';
-import { User } from './models/User';
+import { User } from './models/user';
 
 class TestModel extends Model {}
 

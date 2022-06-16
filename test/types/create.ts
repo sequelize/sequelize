@@ -1,5 +1,5 @@
 import { expectTypeOf } from 'expect-type';
-import { User } from './models/User';
+import { User } from './models/user';
 
 (async () => {
   const user = await User.create({
