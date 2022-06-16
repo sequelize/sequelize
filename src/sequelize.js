@@ -2,6 +2,7 @@
 
 import isPlainObject from 'lodash/isPlainObject';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -219,7 +220,13 @@ export class Sequelize {
       native: false,
       replication: false,
       ssl: undefined,
-      pool: {},
+      pool: _.defaults(options.pool || {}, {
+        max: 5,
+        min: 0,
+        idle: 10_000,
+        acquire: 60_000,
+        evict: 1000,
+      }),
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -261,38 +268,61 @@ export class Sequelize {
 
     this._setupHooks(options.hooks);
 
-    this.config = {
+    // ==========================================
+    //  REPLICATION CONFIG NORMALIZATION
+    // ==========================================
+
+    const connectionConfig = {
       database: config.database || this.options.database,
       username: config.username || this.options.username,
       password: config.password || this.options.password || null,
       host: config.host || this.options.host,
       port: config.port || this.options.port,
-      pool: this.options.pool,
       protocol: this.options.protocol,
-      native: this.options.native,
       ssl: this.options.ssl,
+      dialectOptions: this.options.dialectOptions,
+    };
+
+    if (!this.options.replication) {
+      this.options.replication = Object.create(null);
+    }
+
+    // Convert replication connection strings to objects
+    if (isString(this.options.replication.write)) {
+      this.options.replication.write = parseConnectionString(this.options.replication.write);
+    }
+
+    // Map main connection config
+    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+
+    if (!this.options.replication.read) {
+      this.options.replication.read = [];
+    } else if (!Array.isArray(this.options.replication.read)) {
+      this.options.replication.read = [this.options.replication.read];
+    }
+
+    this.options.replication.read = this.options.replication.read.map(readEntry => {
+      if (isString(readEntry)) {
+        readEntry = parseConnectionString(readEntry);
+      }
+
+      // Apply defaults to each read config
+      return _.defaults(readEntry, connectionConfig);
+    });
+
+    // ==========================================
+    //  CONFIG
+    // ==========================================
+
+    this.config = {
+      ...connectionConfig,
+      pool: this.options.pool,
+      native: this.options.native,
       replication: this.options.replication,
       dialectModule: this.options.dialectModule,
       dialectModulePath: this.options.dialectModulePath,
       keepDefaultTimezone: this.options.keepDefaultTimezone,
-      dialectOptions: this.options.dialectOptions,
     };
-
-    // Convert replication connection strings to objects
-    if (this.options.replication) {
-      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
-        this.options.replication.write = parseConnectionString(this.options.replication.write);
-      }
-
-      if (this.options.replication.read) {
-        for (let i = 0; i < this.options.replication.read.length; i++) {
-          const server = this.options.replication.read[i];
-          if (typeof server === 'string') {
-            this.options.replication.read[i] = parseConnectionString(server);
-          }
-        }
-      }
-    }
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the

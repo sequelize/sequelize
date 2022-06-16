@@ -182,6 +182,8 @@ export class Hooks<
    */
   public hasHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
   public hasHooks<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
+
+  runHooks(name: string, ...params: unknown[]): Promise<void>;
 }
 
 export type HooksCtor<H extends Hooks> = typeof Hooks & { new(): H };

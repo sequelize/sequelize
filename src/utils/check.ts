@@ -13,6 +13,14 @@ export function isPrimitive(val: any): val is string | number | boolean {
   return ['string', 'number', 'boolean'].includes(type);
 }
 
+export function isNodeError(val: any): val is NodeJS.ErrnoException {
+  return val instanceof Error && 'code' in val;
+}
+
+export function isString(val: any): val is string {
+  return typeof val === 'string';
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *

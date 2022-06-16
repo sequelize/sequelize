@@ -1,7 +1,7 @@
 'use strict';
 
 const semver = require('semver');
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').mariadb;
@@ -19,7 +19,7 @@ const parserStore = require('../parserStore')('mariadb');
  *
  * @private
  */
-export class MariaDbConnectionManager extends ConnectionManager {
+export class MariaDbConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);

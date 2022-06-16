@@ -1,20 +1,23 @@
-const chai = require('chai');
-const Support = require('../../support');
-const sinon = require('sinon');
-const { ConnectionManager } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js');
-const { Pool } = require('sequelize-pool');
-const { Config } = require('../../../config/config');
+import type { Connection } from '@sequelize/core';
+import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
+import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
+import chai from 'chai';
+import { Pool } from 'sequelize-pool';
+import type { SinonSandbox } from 'sinon';
+import sinon from 'sinon';
+import { Config } from '../../../config/config';
+import { getTestDialect, getTestDialectTeaser, createSequelizeInstance } from '../../support';
 
 const expect = chai.expect;
-const baseConf = Config[Support.getTestDialect()];
+const baseConf = Config[getTestDialect()];
 const poolEntry = {
   host: baseConf.host,
   port: baseConf.port,
   pool: {},
 };
 
-describe(Support.getTestDialectTeaser('Connection Manager'), () => {
-  let sandbox;
+describe(getTestDialectTeaser('Connection Manager'), () => {
+  let sandbox: SinonSandbox;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -24,42 +27,33 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     sandbox.restore();
   });
 
-  it('should initialize a single pool without replication', () => {
+  it('does not initialize a readOnly pool without replication', () => {
     const options = {
       replication: null,
     };
-    const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
 
-    connectionManager.initPools();
-    expect(connectionManager.pool).to.be.instanceOf(Pool);
-    expect(connectionManager.pool.read).to.be.undefined;
-    expect(connectionManager.pool.write).to.be.undefined;
+    const sequelize = createSequelizeInstance(options);
+    expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
+    expect(sequelize.connectionManager.pool.read).to.be.null;
+    expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
-  it('should initialize a multiple pools with replication', () => {
+  it('initializes a readOnly pool with replication', () => {
     const options = {
       replication: {
         write: { ...poolEntry },
         read: [{ ...poolEntry }, { ...poolEntry }],
       },
     };
-    const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
 
-    connectionManager.initPools();
-    expect(connectionManager.pool.read).to.be.instanceOf(Pool);
-    expect(connectionManager.pool.write).to.be.instanceOf(Pool);
+    const sequelize = createSequelizeInstance(options);
+    expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
+    expect(sequelize.connectionManager.pool.read).to.be.instanceOf(Pool);
+    expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
   it('should round robin calls to the read pool', async () => {
-    if (Support.getTestDialect() === 'sqlite') {
+    if (getTestDialect() === 'sqlite') {
       return;
     }
 
@@ -74,27 +68,20 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
         read: [slave1, slave2],
       },
     };
-    const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
 
-    const res = {
+    const sequelize = createSequelizeInstance(options);
+    const connectionManager = sequelize.connectionManager;
+
+    const res: Connection = {
       queryType: 'read',
+      uuid: '',
     };
 
-    const connectStub = sandbox
-      .stub(connectionManager, '_connect')
-      .resolves(res);
-    sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    sandbox
-      .stub(sequelize, 'databaseVersion')
-      .resolves(sequelize.dialect.defaultVersion);
-    connectionManager.initPools();
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves();
+    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
 
-    const queryOptions = {
-      priority: 0,
+    const queryOptions: GetConnectionOptions = {
       type: 'read',
       useMaster: false,
     };
@@ -118,24 +105,20 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
   it('should trigger deprecation for non supported engine version', async () => {
     const stub = sandbox.stub(process, 'emitWarning');
-    const sequelize = Support.createSequelizeInstance();
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
+    const sequelize = createSequelizeInstance();
+    const connectionManager = sequelize.connectionManager;
 
     sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
-    const res = {
+    const res: Connection = {
       queryType: 'read',
+      uuid: '',
     };
 
     sandbox.stub(connectionManager, '_connect').resolves(res);
-    sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    connectionManager.initPools();
+    sandbox.stub(connectionManager, '_disconnect').resolves();
 
-    const queryOptions = {
-      priority: 0,
+    const queryOptions: GetConnectionOptions = {
       type: 'read',
       useMaster: true,
     };
@@ -160,27 +143,23 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
         read: [{ ...poolEntry }],
       },
     };
-    const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
+    const sequelize = createSequelizeInstance(options);
+    const connectionManager = sequelize.connectionManager;
 
-    const res = {
+    const res: Connection = {
       queryType: 'read',
+      uuid: '',
     };
 
     const connectStub = sandbox
       .stub(connectionManager, '_connect')
       .resolves(res);
-    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves();
     sandbox
       .stub(sequelize, 'databaseVersion')
       .resolves(sequelize.dialect.defaultVersion);
-    connectionManager.initPools();
 
-    const queryOptions = {
-      priority: 0,
+    const queryOptions: GetConnectionOptions = {
       type: 'read',
       useMaster: true,
     };
@@ -195,13 +174,8 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: null,
     };
-    const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(
-      sequelize.dialect,
-      sequelize,
-    );
-
-    connectionManager.initPools();
+    const sequelize = createSequelizeInstance(options);
+    const connectionManager = sequelize.connectionManager;
 
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
     const poolClearSpy = sandbox.spy(connectionManager.pool, 'destroyAllNow');

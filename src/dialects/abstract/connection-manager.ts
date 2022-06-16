@@ -1,0 +1,297 @@
+import cloneDeep from 'lodash/cloneDeep';
+import each from 'lodash/each';
+import semver from 'semver';
+import { TimeoutError } from 'sequelize-pool';
+import { ConnectionAcquireTimeoutError } from '../../errors';
+import type { Dialect, Sequelize, ConnectionOptions } from '../../sequelize.js';
+import * as deprecations from '../../utils/deprecations';
+import { isNodeError } from '../../utils/index.js';
+import { logger } from '../../utils/logger';
+import { ReplicationPool } from './replication-pool.js';
+import type { RWResource } from './replication-pool.js';
+import type { AbstractDialect } from './index.js';
+
+const debug = logger.debugContext('connection-manager');
+
+export interface GetConnectionOptions {
+  /**
+   * Set which replica to use. Available options are `read` and `write`
+   */
+  type: 'read' | 'write';
+
+  /**
+   * Force master or write replica to get connection from
+   */
+  useMaster?: boolean;
+
+  /**
+   * ID of the connection.
+   */
+  uuid?: string | 'default';
+}
+
+export interface Connection extends RWResource {
+  uuid: string | undefined;
+}
+
+/**
+ * Abstract Connection Manager
+ *
+ * Connection manager which handles pooling & replication.
+ * Uses sequelize-pool for pooling
+ *
+ * @param connection
+ * @private
+ */
+export class AbstractConnectionManager<TConnection extends Connection = Connection> {
+  private readonly sequelize: Sequelize;
+  private readonly config: Sequelize['config'];
+  private readonly dialect: AbstractDialect;
+  private readonly dialectName: Dialect;
+  readonly pool: ReplicationPool<TConnection>;
+
+  #versionPromise: Promise<void> | null = null;
+
+  #defaultConnectionValidator = (connection: TConnection) => {
+    return this.validate(connection);
+  };
+
+  constructor(dialect: AbstractDialect, sequelize: Sequelize) {
+    const config: Sequelize['config'] = cloneDeep(sequelize.config);
+
+    this.sequelize = sequelize;
+    this.config = config;
+    this.dialect = dialect;
+    this.dialectName = this.sequelize.options.dialect;
+
+    // @ts-expect-error
+    if (config.pool === false) {
+      throw new Error('Support for pool:false was removed in v4.0');
+    }
+
+    // ===========================================================
+    // Init Pool
+    // ===========================================================
+
+    this.pool = new ReplicationPool<TConnection>({
+      ...config,
+      connect: async (options: ConnectionOptions): Promise<TConnection> => {
+        return this._connect(options);
+      },
+      disconnect: async (connection: TConnection): Promise<void> => {
+        return this._disconnect(connection);
+      },
+      validate: (connection: TConnection): boolean => {
+        if (config.pool.validate) {
+          return config.pool.validate(connection);
+        }
+
+        return this.validate(connection);
+      },
+      readConfig: config.replication.read,
+      writeConfig: config.replication.write,
+    });
+
+    if (config.replication.read.length > 0) {
+      debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, no replication`);
+    } else {
+      debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`);
+    }
+  }
+
+  // TODO: Update once we have DataTypes migrated to TS
+  refreshTypeParser(dataTypes: Record<string, any>) {
+    each(dataTypes, dataType => {
+      if (Object.prototype.hasOwnProperty.call(dataType, 'parse')) {
+        if (dataType.types[this.dialectName]) {
+          this._refreshTypeParser(dataType);
+        } else {
+          throw new Error(`Parse function not supported for type ${dataType.key} in dialect ${this.dialectName}`);
+        }
+      }
+    });
+  }
+
+  _refreshTypeParser(_dataType: unknown): void {
+    throw new Error(`_refreshTypeParser not implemented in ${this.constructor.name}`);
+  }
+
+  /**
+   * Determine if a connection is still valid or not
+   *
+   * @param _connection
+   */
+  validate(_connection: TConnection): boolean {
+    return true;
+  }
+
+  async connect(_config: ConnectionOptions): Promise<TConnection> {
+    throw new Error(`connect not implemented in ${this.constructor.name}`);
+  }
+
+  async disconnect(_connection: TConnection): Promise<void> {
+    throw new Error(`disconnect not implemented in ${this.constructor.name}`);
+  }
+
+  /**
+   * Try to load dialect module from various configured options.
+   * Priority goes like dialectModulePath > dialectModule > require(default)
+   *
+   * @param moduleName Name of dialect module to lookup
+   *
+   * @private
+   */
+  _loadDialectModule(moduleName: string): unknown {
+    try {
+      if (this.sequelize.config.dialectModulePath) {
+        return require(this.sequelize.config.dialectModulePath);
+      }
+
+      if (this.sequelize.config.dialectModule) {
+        return this.sequelize.config.dialectModule;
+      }
+
+      return require(moduleName);
+    } catch (error) {
+      if (isNodeError(error) && error.code === 'MODULE_NOT_FOUND') {
+        if (this.sequelize.config.dialectModulePath) {
+          throw new Error(`Unable to find dialect at ${this.sequelize.config.dialectModulePath}`);
+        }
+
+        throw new Error(`Please install ${moduleName} package manually`);
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Handler which executes on process exit or connection manager shutdown
+   */
+  async #onProcessExit() {
+    if (!this.pool) {
+      return;
+    }
+
+    await this.pool.drain();
+    debug('connection drain due to process exit');
+
+    await this.pool.destroyAllNow();
+  }
+
+  /**
+   * Drain the pool and close it permanently
+   */
+  async close() {
+    // Mark close of pool
+    this.getConnection = async function getConnection() {
+      throw new Error('ConnectionManager.getConnection was called after the connection manager was closed!');
+    };
+
+    return this.#onProcessExit();
+  }
+
+  /**
+   * Get connection from pool. It sets database version if it's not already set.
+   * Call pool.acquire to get a connection.
+   *
+   * @param options
+   */
+  async getConnection(options?: GetConnectionOptions) {
+    await this.initDatabaseVersion();
+
+    try {
+      const result = await this.pool.acquire(options?.type, options?.useMaster);
+
+      debug('connection acquired');
+
+      return result;
+    } catch (error) {
+      if (error instanceof TimeoutError) {
+        throw new ConnectionAcquireTimeoutError(error);
+      }
+
+      throw error;
+    }
+  }
+
+  async initDatabaseVersion() {
+    if (this.sequelize.options.databaseVersion !== 0) {
+      return;
+    }
+
+    if (this.#versionPromise) {
+      await this.#versionPromise;
+
+      return;
+    }
+
+    // TODO: move to sequelize.queryRaw instead?
+    this.#versionPromise = (async () => {
+      try {
+        const connection = await this._connect(this.config.replication.write || this.config);
+
+        // connection might have set databaseVersion value at initialization,
+        // avoiding a useless round trip
+        const options = {
+          logging: () => {},
+        };
+
+        const version = await this.sequelize.databaseVersion(options);
+        const parsedVersion = semver.coerce(version)?.version || version;
+        this.sequelize.options.databaseVersion = semver.valid(parsedVersion)
+          ? parsedVersion
+          : this.dialect.defaultVersion;
+
+        if (semver.lt(this.sequelize.options.databaseVersion, this.dialect.defaultVersion)) {
+          deprecations.unsupportedEngine();
+          debug(`Unsupported database engine version ${this.sequelize.options.databaseVersion}`);
+        }
+
+        return await this._disconnect(connection);
+      } finally {
+        this.#versionPromise = null;
+      }
+    })();
+
+    await this.#versionPromise;
+  }
+
+  /**
+   * Release a pooled connection so it can be utilized by other connection requests
+   *
+   * @param connection
+   */
+  async releaseConnection(connection: TConnection) {
+    this.pool.release(connection);
+    debug('connection released');
+  }
+
+  /**
+   * Call dialect library to get connection
+   *
+   * @param config Connection config
+   *
+   * @private
+   * @internal
+   */
+  async _connect(config: ConnectionOptions): Promise<TConnection> {
+    await this.sequelize.runHooks('beforeConnect', config);
+    const connection = await this.connect(config);
+    await this.sequelize.runHooks('afterConnect', connection, config);
+
+    return connection;
+  }
+
+  /**
+   * Call dialect library to disconnect a connection
+   *
+   * @param connection
+   * @private
+   */
+  async _disconnect(connection: TConnection) {
+    await this.sequelize.runHooks('beforeDisconnect', connection);
+    await this.disconnect(connection);
+    await this.sequelize.runHooks('afterDisconnect', connection);
+  }
+}

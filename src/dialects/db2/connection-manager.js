@@ -1,6 +1,6 @@
 'use strict';
 
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').db2;
@@ -17,7 +17,7 @@ const parserStore = require('../parserStore')('db2');
  *
  * @private
  */
-export class Db2ConnectionManager extends ConnectionManager {
+export class Db2ConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
@@ -111,16 +111,5 @@ export class Db2ConnectionManager extends ConnectionManager {
 
   validate(connection) {
     return connection && connection.connected;
-  }
-
-  /**
-   * Call dialect library to disconnect a connection
-   *
-   * @param {Connection} connection
-   * @private
-   * @returns {Promise}
-   */
-  _disconnect(connection) {
-    return this.dialect.connectionManager.disconnect(connection);
   }
 }
