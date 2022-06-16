@@ -1,15 +1,15 @@
-import { Model, ModelStatic } from './model';
-import { Sequelize } from './sequelize';
+import type { Model, ModelStatic } from './model';
+import type { Sequelize } from './sequelize';
 
 export class ModelManager {
-  public sequelize: Sequelize;
-  public models: Array<ModelStatic>;
-  public all: Array<ModelStatic>;
+  sequelize: Sequelize;
+  models: ModelStatic[];
+  all: ModelStatic[];
 
   constructor(sequelize: Sequelize);
-  public addModel<T extends ModelStatic>(model: T): T;
-  public removeModel(model: ModelStatic): void;
-  public getModel(against: unknown, options?: { attribute?: string }): typeof Model;
+  addModel<T extends ModelStatic>(model: T): T;
+  removeModel(model: ModelStatic): void;
+  getModel(against: unknown, options?: { attribute?: string }): typeof Model;
 
   /**
    * Returns an array that lists every model, sorted in order
@@ -18,5 +18,5 @@ export class ModelManager {
    *
    * If there is a cyclic dependency, this returns null.
    */
-  public getModelsTopoSortedByForeignKey(): ModelStatic[] | null;
+  getModelsTopoSortedByForeignKey(): ModelStatic[] | null;
 }
