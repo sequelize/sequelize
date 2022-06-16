@@ -15,6 +15,7 @@ import type {
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
+import { removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
@@ -104,14 +105,14 @@ export class HasMany<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = BelongsTo.associate(secret, target, source, {
+    this.inverse = BelongsTo.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
       targetKey: options.sourceKey,
       foreignKeyConstraints: options.foreignKeyConstraints,
       hooks: options.hooks,
-    }, this);
+    }), this);
 
     // Get singular and plural names
     // try to uppercase the first letter, unless the model forbids it

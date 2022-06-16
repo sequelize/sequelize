@@ -79,6 +79,12 @@ export type DialectSupports = {
   },
   groupedLimit: boolean,
   indexViaAlter: boolean,
+  alterColumn: {
+    /**
+     * Can "ALTER TABLE x ALTER COLUMN y" add UNIQUE to the column in this dialect?
+     */
+    unique: boolean,
+  },
   JSON: boolean,
   JSONB: boolean,
   ARRAY: boolean,
@@ -93,10 +99,14 @@ export type DialectSupports = {
   IREGEXP: boolean,
   HSTORE: boolean,
   TSVECTOR: boolean,
-  deferrableConstraints: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
+  /**
+   * This dialect supports marking a column's constraints as deferrable.
+   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+   */
+  deferrableConstraints: false,
 };
 
 export abstract class AbstractDialect {
@@ -168,6 +178,9 @@ export abstract class AbstractDialect {
     },
     groupedLimit: true,
     indexViaAlter: false,
+    alterColumn: {
+      unique: true,
+    },
     JSON: false,
     JSONB: false,
     NUMERIC: false,

@@ -3,7 +3,7 @@ import type { Model, ModelStatic, Hookable, AttributeNames, ModelAttributeColumn
 import type { AllowArray } from '../utils';
 import * as Utils from '../utils';
 import type { NormalizeBaseAssociationOptions } from './helpers';
-import { AssociationConstructorSecret } from './helpers';
+import { AssociationSecret } from './helpers';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -148,7 +148,7 @@ export abstract class Association<
     options: Opts,
     parent?: Association<any>,
   ) {
-    if (secret !== AssociationConstructorSecret) {
+    if (secret !== AssociationSecret) {
       throw new Error(`Class ${this.constructor.name} cannot be instantiated directly due to it mutating the source model. Use one of the static methods on Model instead.`);
     }
 

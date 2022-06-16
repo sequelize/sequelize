@@ -1,5 +1,5 @@
 import type { ModelStatic } from '@sequelize/core';
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
@@ -84,6 +84,25 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     Task.belongsTo(User, { foreignKey: { allowNull: false } });
 
     expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+  });
+
+  it(`does not overwrite the 'deferrable' option set in Model.init`, () => {
+    const A = sequelize.define('A', {
+      BId: {
+        type: DataTypes.INTEGER,
+        // TODO: 'references' requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
+        // @ts-expect-error
+        references: {
+          deferrable: Deferrable.INITIALLY_IMMEDIATE,
+        },
+      },
+    });
+
+    const B = sequelize.define('B');
+
+    A.belongsTo(B);
+
+    expect(A.rawAttributes.BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
   });
 
   describe('association hooks', () => {

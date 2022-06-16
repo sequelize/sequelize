@@ -20,9 +20,9 @@ export interface UniqueConstraintErrorOptions extends SequelizeErrorOptions {
 /**
  * Thrown when a unique constraint is violated in the database
  */
-class UniqueConstraintError extends ValidationError implements CommonErrorProperties {
+class UniqueConstraintError extends ValidationError {
   /** The database specific error which triggered this one */
-  declare cause: UniqueConstraintErrorParent | undefined;
+  declare cause?: UniqueConstraintErrorParent;
 
   readonly fields: Record<string, unknown>;
   readonly sql: string;

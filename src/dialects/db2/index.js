@@ -18,6 +18,9 @@ export class Db2Dialect extends AbstractDialect {
     autoIncrement: {
       defaultValue: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     index: {
       collate: false,
       using: false,

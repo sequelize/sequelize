@@ -167,10 +167,17 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     if (database) {
       query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
     } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')';
+      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\', \'mysql\', \'information_schema\', \'performance_schema\', \'sys\')';
     }
 
     return `${query};`;
+  }
+
+  tableExistsQuery(table) {
+    // remove first & last `, then escape as SQL string
+    const tableName = this.escape(this.quoteTable(table).slice(1, -1));
+
+    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
   }
 
   addColumnQuery(table, key, dataType) {
@@ -402,7 +409,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);

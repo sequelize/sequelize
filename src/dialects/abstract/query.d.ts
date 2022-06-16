@@ -54,6 +54,12 @@ type replacementFuncType = ((match: string, key: string, values: unknown[], time
 */
 export class AbstractQuery {
   /**
+   * The SQL being executed by this Query.
+   * @type {string}
+   */
+  sql: string;
+
+  /**
    * Returns a unique identifier assigned to a query internally by Sequelize.
    */
   public uuid: unknown;
