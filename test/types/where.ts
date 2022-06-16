@@ -151,8 +151,8 @@ MyModel.findAll({
   },
 });
 
+// @ts-expect-error - no attribute
 MyModel.findAll({
-  // @ts-expect-error - no attribute
   where: [1, 2],
 });
 

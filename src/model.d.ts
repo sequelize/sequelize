@@ -180,7 +180,7 @@ type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
   | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
   | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
   | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
->;
+  >;
 
 /**
  * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
@@ -287,15 +287,15 @@ type StaticValues<Type> =
  */
 // TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
-   /**
-    * @example `[Op.eq]: 6,` becomes `= 6`
-    * @example `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
-    * @example `[Op.eq]: null` becomes `IS NULL`
-    * @example `[Op.eq]: true` becomes `= true`
-    * @example `[Op.eq]: literal('raw sql')` becomes `= raw sql`
-    * @example `[Op.eq]: col('column')` becomes `= "column"`
-    * @example `[Op.eq]: fn('NOW')` becomes `= NOW()`
-    */
+  /**
+   * @example `[Op.eq]: 6,` becomes `= 6`
+   * @example `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
+   * @example `[Op.eq]: null` becomes `IS NULL`
+   * @example `[Op.eq]: true` becomes `= true`
+   * @example `[Op.eq]: literal('raw sql')` becomes `= raw sql`
+   * @example `[Op.eq]: col('column')` becomes `= "column"`
+   * @example `[Op.eq]: fn('NOW')` becomes `= NOW()`
+   */
   [Op.eq]?: AllowAnyAll<OperatorValues<AttributeType>>;
 
   /**
@@ -935,6 +935,9 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
+export interface FindByPkOptions<M extends Model> extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+
+export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
 /**
  * Options for Model.count method
  */
@@ -1095,7 +1098,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
-   conflictFields?: Array<keyof TAttributes>;
+  conflictFields?: Array<keyof TAttributes>;
 }
 
 /**
@@ -2435,9 +2438,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns A promise that will resolve with the array containing the results of the SELECT query.
    */
+  static findAll<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options?: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
+  ): Promise<R[]>;
   static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<Attributes<M>>
+    options?: FindOptions<Attributes<M>>,
   ): Promise<M[]>;
 
   /**
@@ -2448,15 +2455,25 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: NonNullFindByPkOptions<M> & { raw: true }
+  ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<Attributes<M>>, 'where'>
+    options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<Attributes<M>>, 'where'>
+    options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
   /**
@@ -2465,6 +2482,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the first instance corresponding matching the query.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: FindOptions<Attributes<M>> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: NonNullFindOptions<Attributes<M>> & { raw: true }
+  ): Promise<R>;
   static findOne<M extends Model>(
     this: ModelStatic<M>,
     options: NonNullFindOptions<Attributes<M>>
@@ -3732,7 +3757,7 @@ export type CreationOptional<T> =
 export type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never },
-  > = {
+> = {
   [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]:
     IsBranded<M[Key], typeof CreationAttributeBrand> extends true
       ? (M[Key] | undefined)
