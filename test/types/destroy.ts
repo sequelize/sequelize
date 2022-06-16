@@ -4,11 +4,11 @@ import { User } from './models/User';
   const user = await User.create();
 
   await user.destroy({
-    hooks: true
+    hooks: true,
   });
 
   await User.destroy({
     hooks: false,
-    where: { firstName: 'John' }
+    where: { firstName: 'John' },
   });
 })();

@@ -359,7 +359,6 @@ interface DateOnlyDataTypeConstructor extends AbstractDataTypeConstructor {
 export interface DateOnlyDataType extends AbstractDataType {
 }
 
-
 /**
  * A key / value column. Only available in postgres.
  */

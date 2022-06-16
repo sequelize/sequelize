@@ -1,22 +1,22 @@
-import { User } from './models/User';
 import { expectTypeOf } from 'expect-type';
+import { User } from './models/User';
 
 (async () => {
   expectTypeOf(await User.findByPk(Buffer.from('asdf'))).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: undefined
+    rejectOnEmpty: undefined,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: false
+    rejectOnEmpty: false,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: true
+    rejectOnEmpty: true,
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: new Error('')
+    rejectOnEmpty: new Error('An error!'),
   })).toEqualTypeOf<User>();
 })();

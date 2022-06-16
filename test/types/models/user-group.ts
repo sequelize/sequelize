@@ -1,8 +1,7 @@
-import {
+import type {
   InferAttributes,
   InferCreationAttributes,
   CreationOptional,
-  DataTypes,
   HasMany,
   HasManyAddAssociationMixin,
   HasManyAddAssociationsMixin,
@@ -13,13 +12,16 @@ import {
   HasManyRemoveAssociationMixin,
   HasManyRemoveAssociationsMixin,
   HasManySetAssociationsMixin,
-  Model,
   NonAttribute,
+} from '@sequelize/core';
+import {
+  DataTypes,
+  Model,
 } from '@sequelize/core';
 import { sequelize } from '../connection';
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
-import { User } from './User';
+import { User } from './user';
 
 // This class doesn't extend the generic Model<TAttributes>, but should still
 // function just fine, with a bit less safe type-checking
@@ -27,8 +29,8 @@ export class UserGroup extends Model<
   InferAttributes<UserGroup>,
   InferCreationAttributes<UserGroup>
 > {
-  public static associations: {
-    users: HasMany<UserGroup, User>
+  static associations: {
+    users: HasMany<UserGroup, User>,
   };
 
   declare id: CreationOptional<number>;
@@ -55,8 +57,8 @@ UserGroup.init({
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
-    autoIncrement: true
-  }
+    autoIncrement: true,
+  },
 }, { sequelize });
 
 export const Users = UserGroup.hasMany(User, { as: 'users', foreignKey: 'groupId' });
