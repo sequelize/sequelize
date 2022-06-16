@@ -33,6 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table',
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
+          db2: 'CREATE INDEX "schema"."schema_table_column1_column2" ON "schema"."table" ("column1", "column2")',
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
