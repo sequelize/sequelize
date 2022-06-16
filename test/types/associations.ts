@@ -1,4 +1,5 @@
-import { ForeignKey, InferAttributes, Model } from '@sequelize/core';
+import type { ForeignKey, InferAttributes } from '@sequelize/core';
+import { Model } from '@sequelize/core';
 
 class Car extends Model<InferAttributes<Car>> {
   declare person: ForeignKey<number>;
@@ -21,12 +22,12 @@ class PersonCountry extends Model<InferAttributes<PersonCountry>> {
 
 Car.belongsTo(Person);
 Car.belongsTo(Person, { foreignKey: 'person' });
-Car.belongsTo(Person, { foreignKey: { name: 'person'} });
+Car.belongsTo(Person, { foreignKey: { name: 'person' } });
 
 // @ts-expect-error -- this foreign key does not exist on Car
 Car.belongsTo(Person, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
-Car.belongsTo(Person, { foreignKey: { name: 'doesnotexist'} });
+Car.belongsTo(Person, { foreignKey: { name: 'doesnotexist' } });
 
 Car.belongsTo(Person, { targetKey: 'id' });
 // @ts-expect-error
@@ -36,12 +37,12 @@ Car.belongsTo(Person, { targetKey: 'doesnotexist' });
 
 Person.hasOne(Car);
 Person.hasOne(Car, { foreignKey: 'person' });
-Person.hasOne(Car, { foreignKey: { name: 'person'} });
+Person.hasOne(Car, { foreignKey: { name: 'person' } });
 
 // @ts-expect-error -- this foreign key does not exist on Car
 Person.hasOne(Car, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
-Person.hasOne(Car, { foreignKey: { name: 'doesnotexist'} });
+Person.hasOne(Car, { foreignKey: { name: 'doesnotexist' } });
 
 Person.hasOne(Car, { sourceKey: 'id' });
 // @ts-expect-error
@@ -51,12 +52,12 @@ Person.hasOne(Car, { sourceKey: 'doesnotexist' });
 
 Person.hasMany(Car);
 Person.hasMany(Car, { foreignKey: 'person' });
-Person.hasMany(Car, { foreignKey: { name: 'person'} });
+Person.hasMany(Car, { foreignKey: { name: 'person' } });
 
 // @ts-expect-error -- this foreign key does not exist on Car
 Person.hasMany(Car, { foreignKey: 'doesnotexist' });
 // @ts-expect-error -- this foreign key does not exist on Car
-Person.hasMany(Car, { foreignKey: { name: 'doesnotexist'} });
+Person.hasMany(Car, { foreignKey: { name: 'doesnotexist' } });
 
 Person.hasMany(Car, { sourceKey: 'id' });
 // @ts-expect-error
