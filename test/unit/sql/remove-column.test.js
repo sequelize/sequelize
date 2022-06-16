@@ -1,21 +1,21 @@
 'use strict';
 
 const Support   = require('../support');
-const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
 
-const custom = _.cloneDeep(current);
-custom.options.schema = 'custom';
-const customSql = custom.dialect.queryGenerator;
+const customSequelize = Support.createSequelizeInstance({
+  schema: 'custom',
+});
+const customSql = customSequelize.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-if (current.dialect.name !== 'sqlite') {
-  describe(Support.getTestDialectTeaser('SQL'), () => {
-    describe('removeColumn', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('removeColumn', () => {
+    if (current.dialect.name !== 'sqlite') {
       it('schema', () => {
         expectsql(sql.removeColumnQuery({
           schema: 'archive',
@@ -30,13 +30,9 @@ if (current.dialect.name !== 'sqlite') {
           snowflake: 'ALTER TABLE "archive"."user" DROP "email";',
         });
       });
-    });
-  });
-}
+    }
 
-describe(`Custom Schema ${Support.getTestDialectTeaser('SQL')}`, () => {
-  describe('removeColumnCustomSchema', () => {
-    it('schema', () => {
+    it('defaults the schema to the one set in the Sequelize options', () => {
       expectsql(customSql.removeColumnQuery({
         tableName: 'user',
       }, 'email'), {
