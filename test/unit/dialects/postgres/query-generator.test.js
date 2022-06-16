@@ -7,6 +7,11 @@ const { Op, DataTypes } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
 const Support = require('../../support');
 
+const customSequelize = Support.createSequelizeInstance({
+  schema: 'custom',
+});
+const customSql = customSequelize.dialect.queryGenerator;
+
 const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
 
@@ -1332,40 +1337,27 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
-    describe('Custom Schema Functions', () => {
+    describe('With custom schema in Sequelize options', () => {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
-          sequelize: this.sequelize,
-          _dialect: this.sequelize.dialect,
+          sequelize: customSequelize,
+          _dialect: customSequelize.dialect,
         });
-        // Add custom schema to sequelize object
-        this.queryGenerator.sequelize.options.schema = 'custom';
-      });
-      afterEach(function () {
-        // Remove custom schema in order to not interfere with other tests
-        this.queryGenerator.sequelize.options.schema = null;
       });
 
       const customSchemaSuites = {
         showTablesQuery: [
           {
-            title: 'showTablesQuery should use correct custom schema',
+            title: 'showTablesQuery defaults to the schema set in Sequelize options',
             arguments: [],
-            expectation: 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'custom\' AND table_type LIKE \'%TABLE\' AND table_name != \'spatial_ref_sys\';',
+            expectation: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'custom' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
           },
         ],
         describeTableQuery: [
           {
-            title: 'describeTableQuery should use correct custom schema',
+            title: 'describeTableQuery defaults to the schema set in Sequelize options',
             arguments: ['myTable', null],
             expectation: `SELECT pk.constraint_type as "Constraint",c.column_name as "Field", c.column_default as "Default",c.is_nullable as "Null", (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" FROM information_schema.columns c LEFT JOIN (SELECT tc.table_schema, tc.table_name, cu.column_name, tc.constraint_type FROM information_schema.TABLE_CONSTRAINTS tc JOIN information_schema.KEY_COLUMN_USAGE  cu ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name and tc.constraint_name=cu.constraint_name and tc.constraint_type='PRIMARY KEY') pk ON pk.table_schema=c.table_schema AND pk.table_name=c.table_name AND pk.column_name=c.column_name WHERE c.table_name = 'myTable' AND c.table_schema = 'custom'`,
-          },
-        ],
-        addColumnQuery: [
-          {
-            title: 'addColumnQuery should use correct custom schema',
-            arguments: ['myTable', 'myColumn', { type: DataTypes.STRING(191), allowNull: true }],
-            expectation: 'ALTER TABLE "custom"."myTable" ADD COLUMN "myColumn" VARCHAR(191);',
           },
         ],
       };
