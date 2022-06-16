@@ -73,6 +73,11 @@ User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findOne({
+    raw: false,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findOne({
     raw: true,
     rejectOnEmpty: false,
   })).toEqualTypeOf<Attributes<User> | null>();
@@ -81,6 +86,26 @@ User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
     raw: true,
     rejectOnEmpty: true,
   })).toEqualTypeOf<Attributes<User>>();
+
+  expectTypeOf(await User.findOne({
+    raw: true,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<Attributes<User> | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: undefined,
+    rejectOnEmpty: false
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findOne({
+    raw: undefined,
+    rejectOnEmpty: true
+  })).toEqualTypeOf<User>();
+
+  expectTypeOf(await User.findOne({
+    raw: undefined,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<User | null>();
 
   // custom parameter
 

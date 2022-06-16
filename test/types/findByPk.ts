@@ -50,6 +50,11 @@ import { User } from './models/User';
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: false,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: true,
     rejectOnEmpty: false,
   })).toEqualTypeOf<Attributes<User> | null>();
@@ -58,6 +63,26 @@ import { User } from './models/User';
     raw: true,
     rejectOnEmpty: true,
   })).toEqualTypeOf<Attributes<User>>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: true,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<Attributes<User> | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: undefined,
+    rejectOnEmpty: false
+  })).toEqualTypeOf<User | null>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: undefined,
+    rejectOnEmpty: true
+  })).toEqualTypeOf<User>();
+
+  expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
+    raw: undefined,
+    rejectOnEmpty: undefined,
+  })).toEqualTypeOf<User | null>();
 
   // custom parameter
 

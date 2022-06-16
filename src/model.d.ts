@@ -2487,7 +2487,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     options?: FindOptions<Attributes<M>>
   ): Promise<M | null>;
 
-
   /**
    * Run an aggregation method on the specified field.
    *
