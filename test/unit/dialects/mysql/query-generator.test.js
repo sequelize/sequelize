@@ -702,7 +702,12 @@ if (dialect === 'mysql') {
           expectation: 'SHOW INDEX FROM `User`',
         }, {
           arguments: ['User', { database: 'sequelize' }],
-          expectation: 'SHOW INDEX FROM `User` FROM `sequelize`',
+          // Doing this:
+          //  SHOW INDEX FROM `User` FROM `sequelize`
+          // would be incorrect because the second from specifies the SCHEMA.
+          // The database name from the credentials is not equivalent to specifying the SCHEMA.
+          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
+          expectation: 'SHOW INDEX FROM `User`',
         },
       ],
 
