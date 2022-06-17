@@ -187,12 +187,12 @@ export class Sequelize {
       options = database;
     } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
-      options = username || {};
+      options = username ? { ...username } : Object.create(null);
 
       _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
-      options = options || {};
+      options = options ? { ...options } : Object.create(null);
 
       _.defaults(options, {
         database,

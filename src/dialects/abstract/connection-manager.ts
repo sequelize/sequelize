@@ -158,7 +158,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
   /**
    * Handler which executes on process exit or connection manager shutdown
    */
-  async #onProcessExit() {
+  async _onProcessExit() {
     if (!this.pool) {
       return;
     }
@@ -178,7 +178,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
       throw new Error('ConnectionManager.getConnection was called after the connection manager was closed!');
     };
 
-    return this.#onProcessExit();
+    return this._onProcessExit();
   }
 
   /**
@@ -188,7 +188,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @param options
    */
   async getConnection(options?: GetConnectionOptions) {
-    await this.initDatabaseVersion();
+    await this.#initDatabaseVersion();
 
     try {
       const result = await this.pool.acquire(options?.type, options?.useMaster);
@@ -205,7 +205,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     }
   }
 
-  async initDatabaseVersion() {
+  async #initDatabaseVersion() {
     if (this.sequelize.options.databaseVersion !== 0) {
       return;
     }

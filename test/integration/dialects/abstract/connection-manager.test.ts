@@ -16,6 +16,8 @@ const poolEntry = {
   pool: {},
 };
 
+const dialect = getTestDialect();
+
 describe(getTestDialectTeaser('Connection Manager'), () => {
   let sandbox: SinonSandbox;
 
@@ -100,66 +102,72 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     chai.expect(calls[3].args[0].host).to.eql('slave1');
   });
 
-  it('should trigger deprecation for non supported engine version', async () => {
-    const stub = sandbox.stub(process, 'emitWarning');
-    const sequelize = createSequelizeInstance();
-    const connectionManager = sequelize.connectionManager;
+  // sqlite does not have different database versions since it's bundled
+  if (dialect !== 'sqlite') {
+    it('should trigger deprecation for non supported engine version', async () => {
+      const stub = sandbox.stub(process, 'emitWarning');
+      const sequelize = createSequelizeInstance();
+      const connectionManager = sequelize.connectionManager;
 
-    sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
+      sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
-    const res: Connection = {};
+      const res: Connection = {};
 
-    sandbox.stub(connectionManager, '_connect').resolves(res);
-    sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox.stub(connectionManager, '_connect').resolves(res);
+      sandbox.stub(connectionManager, '_disconnect').resolves();
 
-    const queryOptions: GetConnectionOptions = {
-      type: 'read',
-      useMaster: true,
-    };
+      const queryOptions: GetConnectionOptions = {
+        type: 'read',
+        useMaster: true,
+      };
 
-    await connectionManager.getConnection(queryOptions);
-    chai.expect(stub).to.have.been.calledOnce;
-    chai
-      .expect(stub.getCalls()[0].args[0])
-      .to.contain(
-        'This database engine version is not supported, please update your database server.',
-      );
-    stub.restore();
-  });
+      await connectionManager.getConnection(queryOptions);
+      chai.expect(stub).to.have.been.calledOnce;
+      chai
+        .expect(stub.getCalls()[0].args[0])
+        .to.contain(
+          'This database engine version is not supported, please update your database server.',
+        );
+      stub.restore();
+    });
+  }
 
-  it('should allow forced reads from the write pool', async () => {
-    const main = { ...poolEntry };
-    main.host = 'the-boss';
+  if (dialect !== 'sqlite') {
+    // sqlite overrides getConnection() and never uses _connect
+    it('should allow forced reads from the write pool', async () => {
+      const main = { ...poolEntry };
+      main.host = 'the-boss';
 
-    const options = {
-      replication: {
-        write: main,
-        read: [{ ...poolEntry }],
-      },
-    };
-    const sequelize = createSequelizeInstance(options);
-    const connectionManager = sequelize.connectionManager;
+      const options = {
+        replication: {
+          write: main,
+          read: [{ ...poolEntry }],
+        },
+      };
+      const sequelize = createSequelizeInstance(options);
+      const connectionManager = sequelize.connectionManager;
 
-    const res: Connection = {};
+      const res: Connection = {};
 
-    const connectStub = sandbox
-      .stub(connectionManager, '_connect')
-      .resolves(res);
-    sandbox.stub(connectionManager, '_disconnect').resolves();
-    sandbox
-      .stub(sequelize, 'databaseVersion')
-      .resolves(sequelize.dialect.defaultVersion);
+      const connectStub = sandbox
+        .stub(connectionManager, '_connect')
+        .resolves(res);
+      sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox
+        .stub(sequelize, 'databaseVersion')
+        .resolves(sequelize.dialect.defaultVersion);
 
-    const queryOptions: GetConnectionOptions = {
-      type: 'read',
-      useMaster: true,
-    };
+      const queryOptions: GetConnectionOptions = {
+        type: 'read',
+        useMaster: true,
+      };
 
-    await connectionManager.getConnection(queryOptions);
-    chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
-    const calls = connectStub.getCalls();
-    chai.expect(calls[1].args[0].host).to.eql('the-boss');
-  });
+      await connectionManager.getConnection(queryOptions);
+      chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
+      const calls = connectStub.getCalls();
+      chai.expect(calls[1].args[0].host).to.eql('the-boss');
+    });
+  }
 
   it('should clear the pool after draining it', async () => {
     const options = {
