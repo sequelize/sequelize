@@ -72,13 +72,13 @@ describe('Sequelize', () => {
       expect(config.host).to.equal('example.com');
       expect(config.username).to.equal('user');
       expect(config.password).to.equal('pass');
-      expect(config.port).to.equal('9821');
+      expect(config.port).to.equal(9821);
       expect(config.replication.write).to.deep.eq({
         database: 'dbname',
         username: 'user',
         password: 'pass',
         host: 'example.com',
-        port: '9821',
+        port: 9821,
         protocol: 'tcp',
         ssl: undefined,
         dialectOptions: {},
@@ -187,21 +187,21 @@ describe('Sequelize', () => {
       expect(options.host).to.equal('localhost2');
       expect(options.username).to.equal('username2');
       expect(options.password).to.equal('password2');
-      expect(options.port).to.equal('2000');
+      expect(options.port).to.equal(2000);
       expect(options.database).to.equal('dbname2');
 
       const config = sequelize.options;
       expect(config.host).to.equal('localhost2');
       expect(config.username).to.equal('username2');
       expect(config.password).to.equal('password2');
-      expect(config.port).to.equal('2000');
+      expect(config.port).to.equal(2000);
       expect(config.database).to.equal('dbname2');
 
       expect(options.replication.write).to.deep.eq({
         host: 'localhost2',
         username: 'username2',
         password: 'password2',
-        port: '2000',
+        port: 2000,
         database: 'dbname2',
         dialectOptions: {},
         protocol: 'tcp',
@@ -234,7 +234,7 @@ describe('Sequelize', () => {
         password: 'password2',
         database: 'database2',
         host: 'localhost',
-        port: undefined,
+        port: 3306,
         dialectOptions: {},
         protocol: 'tcp',
         ssl: undefined,
