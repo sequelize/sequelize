@@ -410,6 +410,10 @@ export interface Options extends Logging {
   schema?: string;
 }
 
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions' | 'dialect'> {
+  readonly replication: NormalizedReplicationOptions;
+}
+
 export interface DialectOptions {
   [key: string]: any;
   account?: string;
@@ -970,7 +974,7 @@ export class Sequelize extends Hooks {
    */
   readonly config: Config;
 
-  readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions' | 'dialect'>;
+  readonly options: NormalizedOptions;
 
   readonly dialect: AbstractDialect;
 

@@ -182,26 +182,26 @@ export class Sequelize {
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
-    let config;
-
-    if (arguments.length === 1 && typeof database === 'object') {
+    if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-      config = _.pick(options, 'host', 'port', 'database', 'username', 'password');
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && typeof username === 'object') {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
-
-      config = {};
       options = username || {};
 
       _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options || {};
-      config = { database, username, password };
+
+      _.defaults(options, {
+        database,
+        username,
+        password,
+      });
     }
 
-    Sequelize.runHooks('beforeInit', config, options);
+    Sequelize.runHooks('beforeInit', options, options);
 
     // @ts-expect-error
     if (options.pool === false) {
@@ -278,11 +278,11 @@ export class Sequelize {
     // ==========================================
 
     const connectionConfig = {
-      database: config.database || this.options.database,
-      username: config.username || this.options.username,
-      password: config.password || this.options.password || null,
-      host: config.host || this.options.host,
-      port: config.port || this.options.port,
+      database: this.options.database,
+      username: this.options.username,
+      password: this.options.password || null,
+      host: this.options.host,
+      port: this.options.port,
       protocol: this.options.protocol,
       ssl: this.options.ssl,
       dialectOptions: this.options.dialectOptions,

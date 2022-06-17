@@ -41,6 +41,13 @@ describe('Sequelize', () => {
           bigNumberStrings: true,
         },
       });
+
+      const options = sequelize.options;
+      expect(options.database).to.equal('dbname');
+      expect(options.username).to.equal('root');
+      expect(options.password).to.equal('pass');
+      expect(options.port).to.equal(999);
+
       const config = sequelize.config;
 
       expect(config.database).to.equal('dbname');
@@ -66,41 +73,17 @@ describe('Sequelize', () => {
       expect(config.username).to.equal('user');
       expect(config.password).to.equal('pass');
       expect(config.port).to.equal('9821');
-    });
-
-    describe('SQLite path inititalization', () => {
-      if (dialect === 'sqlite') {
-        it('should accept relative paths for sqlite', () => {
-          const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal(path.resolve('subfolder', 'dbname.db'));
-        });
-
-        it('should accept absolute paths for sqlite', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal(path.resolve('/home/abs/dbname.db'));
-        });
-
-        it('should prefer storage in options object', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal(path.resolve('/completely/different/path.db'));
-        });
-
-        it('should be able to use :memory:', () => {
-          const sequelize = new Sequelize('sqlite://:memory:');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-
-          // empty host is treated as :memory:
-          expect(options.host).to.equal('');
-          expect(options.storage).to.equal(undefined);
-        });
-      }
+      expect(config.replication.write).to.deep.eq({
+        database: 'dbname',
+        username: 'user',
+        password: 'pass',
+        host: 'example.com',
+        port: '9821',
+        protocol: 'tcp',
+        ssl: undefined,
+        dialectOptions: {},
+      });
+      expect(config.replication.read).to.deep.eq([]);
     });
 
     it('should work with no authentication options', () => {
@@ -183,11 +166,116 @@ describe('Sequelize', () => {
       expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
     });
 
-    it('should use query string host if specified', () => {
+    it('priorises the ?host option over the URI hostname', () => {
       const sequelize = new Sequelize('mysql://localhost:9821/dbname?host=example.com');
 
       const options = sequelize.options;
       expect(options.host).to.equal('example.com');
+      expect(options.replication.write.host).to.equal('example.com');
+    });
+
+    it('priorises the option bag over the URI', () => {
+      const sequelize = new Sequelize('mysql://localhost:9821/dbname', {
+        host: 'localhost2',
+        username: 'username2',
+        password: 'password2',
+        port: '2000',
+        database: 'dbname2',
+      });
+
+      const options = sequelize.options;
+      expect(options.host).to.equal('localhost2');
+      expect(options.username).to.equal('username2');
+      expect(options.password).to.equal('password2');
+      expect(options.port).to.equal('2000');
+      expect(options.database).to.equal('dbname2');
+
+      const config = sequelize.options;
+      expect(config.host).to.equal('localhost2');
+      expect(config.username).to.equal('username2');
+      expect(config.password).to.equal('password2');
+      expect(config.port).to.equal('2000');
+      expect(config.database).to.equal('dbname2');
+
+      expect(options.replication.write).to.deep.eq({
+        host: 'localhost2',
+        username: 'username2',
+        password: 'password2',
+        port: '2000',
+        database: 'dbname2',
+        dialectOptions: {},
+        protocol: 'tcp',
+        ssl: undefined,
+      });
+      expect(config.replication.read).to.deep.eq([]);
+    });
+
+    it('priorises the option bad over the individual parameters', () => {
+      const sequelize = new Sequelize('database1', 'username1', 'password1', {
+        dialect: 'mysql',
+        database: 'database2',
+        username: 'username2',
+        password: 'password2',
+      });
+
+      const options = sequelize.options;
+      expect(options.database).to.equal('database2');
+      expect(options.username).to.equal('username2');
+      expect(options.password).to.equal('password2');
+
+      const config = sequelize.config;
+      expect(config.database).to.equal('database2');
+      expect(config.username).to.equal('username2');
+      expect(config.password).to.equal('password2');
+
+      expect(options.replication.write).to.deep.eq({
+        username: 'username2',
+        password: 'password2',
+        database: 'database2',
+        host: 'localhost',
+        port: undefined,
+        dialectOptions: {},
+        protocol: 'tcp',
+        ssl: undefined,
+      });
+      expect(config.replication.read).to.deep.eq([]);
+    });
+
+    describe('SQLite path inititalization', () => {
+      if (dialect !== 'sqlite') {
+        return;
+      }
+
+      it('should accept relative paths for sqlite', () => {
+        const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
+        const options = sequelize.options;
+        expect(options.dialect).to.equal('sqlite');
+        expect(options.storage).to.equal(path.resolve('subfolder', 'dbname.db'));
+      });
+
+      it('should accept absolute paths for sqlite', () => {
+        const sequelize = new Sequelize('sqlite:/home/abs/dbname.db');
+        const options = sequelize.options;
+        expect(options.dialect).to.equal('sqlite');
+        expect(options.storage).to.equal(path.resolve('/home/abs/dbname.db'));
+      });
+
+      it('should prefer storage in options object', () => {
+        const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
+        const options = sequelize.options;
+        expect(options.dialect).to.equal('sqlite');
+        expect(options.storage).to.equal(path.resolve('/completely/different/path.db'));
+      });
+
+      it('should be able to use :memory:', () => {
+        const sequelize = new Sequelize('sqlite://:memory:');
+        const options = sequelize.options;
+        expect(options.dialect).to.equal('sqlite');
+
+        // empty host is treated as :memory:
+        expect(options.host).to.equal('');
+        expect(options.storage).to.equal(undefined);
+      });
     });
   });
 });
