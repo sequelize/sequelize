@@ -203,6 +203,11 @@ export class Sequelize {
 
     Sequelize.runHooks('beforeInit', config, options);
 
+    // @ts-expect-error
+    if (options.pool === false) {
+      throw new Error('Support for pool:false was removed in v4.0');
+    }
+
     this.options = {
       dialect: null,
       dialectModule: null,
@@ -220,13 +225,6 @@ export class Sequelize {
       native: false,
       replication: false,
       ssl: undefined,
-      pool: _.defaults(options.pool || {}, {
-        max: 5,
-        min: 0,
-        idle: 10_000,
-        acquire: 60_000,
-        evict: 1000,
-      }),
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -243,6 +241,13 @@ export class Sequelize {
       minifyAliases: false,
       logQueryParameters: false,
       ...options,
+      pool: _.defaults(options.pool || {}, {
+        max: 5,
+        min: 0,
+        idle: 10_000,
+        acquire: 60_000,
+        evict: 1000,
+      }),
     };
 
     if (!this.options.dialect) {

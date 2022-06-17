@@ -31,12 +31,12 @@ export class ReplicationPool<Resource extends RWResource> {
   constructor(config: ReplicationPoolConfig<Resource>) {
     const { connect, disconnect, validate, readConfig, writeConfig } = config;
 
-    let reads = 0;
-
     if (!readConfig || readConfig.length === 0) {
       // no replication, the write pool will always be used instead
       this.read = null;
     } else {
+      let reads = 0;
+
       this.read = new Pool({
         name: 'sequelize:read',
         create: async () => {

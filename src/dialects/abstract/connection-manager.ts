@@ -64,11 +64,6 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     this.dialect = dialect;
     this.dialectName = this.sequelize.options.dialect;
 
-    // @ts-expect-error
-    if (config.pool === false) {
-      throw new Error('Support for pool:false was removed in v4.0');
-    }
-
     // ===========================================================
     // Init Pool
     // ===========================================================
