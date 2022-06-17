@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
-import { getTestDialect } from '../support';
+import { getConnectionOptionsWithoutPool, getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 describe('Sequelize', () => {
@@ -172,6 +172,47 @@ describe('Sequelize', () => {
       const options = sequelize.options;
       expect(options.host).to.equal('example.com');
       expect(options.replication.write.host).to.equal('example.com');
+    });
+
+    it('supports connection strings in replication options', async () => {
+      const db = getConnectionOptionsWithoutPool();
+      const connectionString = new URL('protocol://username:password@host/database');
+      connectionString.protocol = dialect;
+      connectionString.host = db.host!;
+      connectionString.port = String(db.port);
+      connectionString.username = db.username!;
+      connectionString.password = db.password!;
+      connectionString.pathname = `/${db.database}`;
+      const sequelize = getSequelizeInstance('', '', '', {
+        replication: {
+          write: connectionString.toString(),
+          read: [connectionString.toString()],
+        },
+      });
+
+      expect(sequelize.options.replication.write).to.deep.eq({
+        dialect,
+        host: db.host,
+        database: db.database,
+        port: Number(db.port),
+        username: db.username,
+        password: db.password,
+        dialectOptions: {},
+        protocol: 'tcp',
+        ssl: undefined,
+      });
+
+      expect(sequelize.options.replication.read).to.deep.eq([{
+        dialect,
+        host: db.host,
+        database: db.database,
+        port: Number(db.port),
+        username: db.username,
+        password: db.password,
+        dialectOptions: {},
+        protocol: 'tcp',
+        ssl: undefined,
+      }]);
     });
 
     it('priorises the option bag over the URI', () => {

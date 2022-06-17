@@ -337,6 +337,7 @@ export class Sequelize {
 
     // Map main connection config
     this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write.port = Number(this.options.replication.write.port);
 
     if (!this.options.replication.read) {
       this.options.replication.read = [];
@@ -348,6 +349,8 @@ export class Sequelize {
       if (isString(readEntry)) {
         readEntry = parseConnectionString(readEntry);
       }
+
+      readEntry.port = Number(readEntry.port);
 
       // Apply defaults to each read config
       return _.defaults(readEntry, connectionConfig);
