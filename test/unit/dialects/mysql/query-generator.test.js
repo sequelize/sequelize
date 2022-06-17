@@ -9,6 +9,7 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { MySqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query-generator.js');
+const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
@@ -700,7 +701,21 @@ if (dialect === 'mysql') {
         {
           arguments: ['User'],
           expectation: 'SHOW INDEX FROM `User`',
-        }, {
+        },
+        {
+          arguments: [{ tableName: 'User', schema: 'schema' }],
+          // FIXME: this is not the right way to handle schemas in MySQL, it should be `schema`.`User` like MariaDB
+          expectation: 'SHOW INDEX FROM `schema.User`',
+        },
+        // FIXME: enable this test once fixed
+        // {
+        //   sequelizeOptions: {
+        //     schema: 'schema',
+        //   },
+        //   arguments: ['User'],
+        //   expectation: 'SHOW INDEX FROM `schema.User`',
+        // },
+        {
           arguments: ['User', { database: 'sequelize' }],
           // Doing this:
           //  SHOW INDEX FROM `User` FROM `sequelize`
@@ -778,31 +793,33 @@ if (dialect === 'mysql') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `MySQL correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function () {
+            const sequelize = test.sequelizeOptions ? createSequelizeInstance({
+              ...test.sequelizeOptions,
+            }) : this.sequelize;
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](sequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](sequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = new QueryGenerator({
+              sequelize,
+              _dialect: sequelize.dialect,
+            });
 
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+            queryGenerator.options = { ...queryGenerator.options, ...test.context && test.context.options };
+
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }
