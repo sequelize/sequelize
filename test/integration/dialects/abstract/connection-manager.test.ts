@@ -72,10 +72,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const sequelize = createSequelizeInstance(options);
     const connectionManager = sequelize.connectionManager;
 
-    const res: Connection = {
-      queryType: 'read',
-      uuid: '',
-    };
+    const res: Connection = {};
 
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves();
@@ -110,10 +107,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
 
     sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
-    const res: Connection = {
-      queryType: 'read',
-      uuid: '',
-    };
+    const res: Connection = {};
 
     sandbox.stub(connectionManager, '_connect').resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves();
@@ -146,10 +140,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const sequelize = createSequelizeInstance(options);
     const connectionManager = sequelize.connectionManager;
 
-    const res: Connection = {
-      queryType: 'read',
-      uuid: '',
-    };
+    const res: Connection = {};
 
     const connectStub = sandbox
       .stub(connectionManager, '_connect')

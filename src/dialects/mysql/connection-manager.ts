@@ -13,9 +13,8 @@ import { isError, isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { AbstractDialect } from '../abstract/index.js';
 // eslint-disable-next-line import/order
-import type { ConnectionType } from '../abstract/replication-pool.js';
+import type { AbstractDialect } from '../abstract/index.js';
 
 const DataTypes = require('../../data-types').mysql;
 const parserStore = require('../parserStore')('mysql');
@@ -70,11 +69,10 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
    * Also set proper timezone once connection is connected.
    *
    * @param config
-   * @param connectionType
    * @returns
    * @private
    */
-  async connect(config: ConnectionOptions, connectionType: ConnectionType): Promise<MySqlConnection> {
+  async connect(config: ConnectionOptions): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
     const connectionConfig: MySqlConnectionOptions = {
@@ -92,7 +90,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     };
 
     try {
-      const connection: MySqlConnection = await createConnection(this.lib, connectionConfig, connectionType);
+      const connection: MySqlConnection = await createConnection(this.lib, connectionConfig);
 
       debug('connection acquired');
 
@@ -172,11 +170,9 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
 async function createConnection(
   lib: Lib,
   config: MySqlConnectionOptions,
-  connectionType: ConnectionType,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
     const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;
-    connection.queryType = connectionType;
 
     const errorHandler = (e: unknown) => {
       // clean up connect & error event if there is error

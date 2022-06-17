@@ -6,21 +6,19 @@ const debug = logger.debugContext('pool');
 
 export type ConnectionType = 'read' | 'write';
 
-export interface RWResource {
-  queryType: ConnectionType;
-}
-
-type ReplicationPoolConfig<Resource extends RWResource> = {
+type ReplicationPoolConfig<Resource> = {
   readConfig: ConnectionOptions[] | null,
   writeConfig: ConnectionOptions,
   pool: Omit<NormalizedPoolOptions, 'validate'>,
 
-  connect(options: ConnectionOptions, connectionType: ConnectionType): Promise<Resource>,
+  connect(options: ConnectionOptions): Promise<Resource>,
   disconnect(connection: Resource): Promise<void>,
   validate(connection: Resource): boolean,
 };
 
-export class ReplicationPool<Resource extends RWResource> {
+const OwningPool = Symbol('owning-pool');
+
+export class ReplicationPool<Resource extends object> {
   /**
    * Replication read pool. Will only be used if the 'read' replication option has been provided,
    * otherwise the {@link write} will be used instead.
@@ -42,7 +40,9 @@ export class ReplicationPool<Resource extends RWResource> {
         create: async () => {
           // round robin config
           const nextRead = reads++ % readConfig.length;
-          const connection = await connect(readConfig[nextRead], 'read');
+          const connection = await connect(readConfig[nextRead]);
+
+          Reflect.set(connection, OwningPool, 'read');
 
           return connection;
         },
@@ -60,7 +60,9 @@ export class ReplicationPool<Resource extends RWResource> {
     this.write = new Pool({
       name: 'sequelize:write',
       create: async () => {
-        const connection = await connect(writeConfig, 'write');
+        const connection = await connect(writeConfig);
+
+        Reflect.set(connection, OwningPool, 'write');
 
         return connection;
       },
@@ -88,11 +90,15 @@ export class ReplicationPool<Resource extends RWResource> {
   }
 
   release(client: Resource): void {
-    this.getPool(client.queryType).release(client);
+    const connectionType = Reflect.get(client, OwningPool);
+
+    this.getPool(connectionType).release(client);
   }
 
   async destroy(client: Resource): Promise<void> {
-    await this.getPool(client.queryType).destroy(client);
+    const connectionType = Reflect.get(client, OwningPool);
+
+    await this.getPool(connectionType).destroy(client);
     debug('connection destroy');
   }
 

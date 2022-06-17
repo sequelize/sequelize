@@ -13,10 +13,7 @@ describe('connection manager', () => {
     let connectStub: SinonStub;
 
     beforeEach(() => {
-      connection = {
-        uuid: '',
-        queryType: 'write',
-      };
+      connection = {};
       sequelize = createSequelizeInstance();
       connectStub = sinon.stub(sequelize.connectionManager, 'connect').resolves(connection);
     });
@@ -62,10 +59,7 @@ describe('connection manager', () => {
     let disconnectStub: SinonStub;
 
     beforeEach(() => {
-      connection = {
-        uuid: '',
-        queryType: 'write',
-      };
+      connection = {};
       sequelize = createSequelizeInstance();
 
       disconnectStub = sinon.stub(sequelize.connectionManager, 'disconnect');

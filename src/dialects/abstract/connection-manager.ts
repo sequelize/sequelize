@@ -8,7 +8,6 @@ import * as deprecations from '../../utils/deprecations';
 import { isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import { ReplicationPool } from './replication-pool.js';
-import type { RWResource, ConnectionType } from './replication-pool.js';
 import type { AbstractDialect } from './index.js';
 
 const debug = logger.debugContext('connection-manager');
@@ -30,7 +29,7 @@ export interface GetConnectionOptions {
   uuid?: string | 'default';
 }
 
-export interface Connection extends RWResource {
+export interface Connection {
   uuid?: string | undefined;
 }
 
@@ -66,8 +65,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
     this.pool = new ReplicationPool<TConnection>({
       ...config,
-      connect: async (options: ConnectionOptions, connectionType: ConnectionType): Promise<TConnection> => {
-        return this._connect(options, connectionType);
+      connect: async (options: ConnectionOptions): Promise<TConnection> => {
+        return this._connect(options);
       },
       disconnect: async (connection: TConnection): Promise<void> => {
         return this._disconnect(connection);
@@ -116,7 +115,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     return true;
   }
 
-  async connect(_config: ConnectionOptions, _connectionType: ConnectionType): Promise<TConnection> {
+  async connect(_config: ConnectionOptions): Promise<TConnection> {
     throw new Error(`connect not implemented in ${this.constructor.name}`);
   }
 
@@ -220,7 +219,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     // TODO: move to sequelize.queryRaw instead?
     this.#versionPromise = (async () => {
       try {
-        const connection = await this._connect(this.config.replication.write || this.config, 'read');
+        const connection = await this._connect(this.config.replication.write || this.config);
 
         // connection might have set databaseVersion value at initialization,
         // avoiding a useless round trip
@@ -266,13 +265,12 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    *
    * @param config Connection config
    *
-   * @param connectionType
    * @private
    * @internal
    */
-  async _connect(config: ConnectionOptions, connectionType: ConnectionType): Promise<TConnection> {
+  async _connect(config: ConnectionOptions): Promise<TConnection> {
     await this.sequelize.runHooks('beforeConnect', config);
-    const connection = await this.connect(config, connectionType);
+    const connection = await this.connect(config);
     await this.sequelize.runHooks('afterConnect', connection, config);
 
     return connection;
