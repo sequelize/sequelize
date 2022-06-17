@@ -3,12 +3,12 @@ import each from 'lodash/each';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
-import type { Dialect, Sequelize, ConnectionOptions } from '../../sequelize.js';
+import type { Dialect, Sequelize, ConnectionOptions, QueryRawOptions } from '../../sequelize.js';
 import * as deprecations from '../../utils/deprecations';
 import { isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import { ReplicationPool } from './replication-pool.js';
-import type { RWResource } from './replication-pool.js';
+import type { RWResource, ConnectionType } from './replication-pool.js';
 import type { AbstractDialect } from './index.js';
 
 const debug = logger.debugContext('connection-manager');
@@ -31,7 +31,7 @@ export interface GetConnectionOptions {
 }
 
 export interface Connection extends RWResource {
-  uuid: string | undefined;
+  uuid?: string | undefined;
 }
 
 /**
@@ -44,17 +44,13 @@ export interface Connection extends RWResource {
  * @private
  */
 export class AbstractConnectionManager<TConnection extends Connection = Connection> {
-  private readonly sequelize: Sequelize;
-  private readonly config: Sequelize['config'];
-  private readonly dialect: AbstractDialect;
-  private readonly dialectName: Dialect;
+  protected readonly sequelize: Sequelize;
+  protected readonly config: Sequelize['config'];
+  protected readonly dialect: AbstractDialect;
+  protected readonly dialectName: Dialect;
   readonly pool: ReplicationPool<TConnection>;
 
   #versionPromise: Promise<void> | null = null;
-
-  #defaultConnectionValidator = (connection: TConnection) => {
-    return this.validate(connection);
-  };
 
   constructor(dialect: AbstractDialect, sequelize: Sequelize) {
     const config: Sequelize['config'] = cloneDeep(sequelize.config);
@@ -70,8 +66,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
     this.pool = new ReplicationPool<TConnection>({
       ...config,
-      connect: async (options: ConnectionOptions): Promise<TConnection> => {
-        return this._connect(options);
+      connect: async (options: ConnectionOptions, connectionType: ConnectionType): Promise<TConnection> => {
+        return this._connect(options, connectionType);
       },
       disconnect: async (connection: TConnection): Promise<void> => {
         return this._disconnect(connection);
@@ -120,7 +116,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     return true;
   }
 
-  async connect(_config: ConnectionOptions): Promise<TConnection> {
+  async connect(_config: ConnectionOptions, _connectionType: ConnectionType): Promise<TConnection> {
     throw new Error(`connect not implemented in ${this.constructor.name}`);
   }
 
@@ -224,12 +220,15 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     // TODO: move to sequelize.queryRaw instead?
     this.#versionPromise = (async () => {
       try {
-        const connection = await this._connect(this.config.replication.write || this.config);
+        const connection = await this._connect(this.config.replication.write || this.config, 'read');
 
         // connection might have set databaseVersion value at initialization,
         // avoiding a useless round trip
-        const options = {
+        const options: QueryRawOptions = {
           logging: () => {},
+          // Cheat .query to use our private connection -- hack
+          // @ts-expect-error
+          transaction: { connection },
         };
 
         const version = await this.sequelize.databaseVersion(options);
@@ -267,12 +266,13 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    *
    * @param config Connection config
    *
+   * @param connectionType
    * @private
    * @internal
    */
-  async _connect(config: ConnectionOptions): Promise<TConnection> {
+  async _connect(config: ConnectionOptions, connectionType: ConnectionType): Promise<TConnection> {
     await this.sequelize.runHooks('beforeConnect', config);
-    const connection = await this.connect(config);
+    const connection = await this.connect(config, connectionType);
     await this.sequelize.runHooks('afterConnect', connection, config);
 
     return connection;

@@ -17,6 +17,10 @@ export function isNodeError(val: any): val is NodeJS.ErrnoException {
   return val instanceof Error && 'code' in val;
 }
 
+export function isError(val: any): val is Error {
+  return val instanceof Error;
+}
+
 export function isString(val: any): val is string {
   return typeof val === 'string';
 }

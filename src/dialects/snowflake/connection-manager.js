@@ -17,7 +17,6 @@ const parserStore = require('../parserStore')('snowflake');
  */
 export class SnowflakeConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('snowflake-sdk');
     this.refreshTypeParser(DataTypes);

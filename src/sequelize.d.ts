@@ -160,7 +160,7 @@ export interface Config {
   readonly database: string;
   readonly dialectModule?: object;
   readonly host?: string;
-  readonly port?: string;
+  readonly port: number;
   readonly username: string;
   readonly password: string | null;
   readonly pool: NormalizedPoolOptions;

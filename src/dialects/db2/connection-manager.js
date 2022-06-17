@@ -19,7 +19,6 @@ const parserStore = require('../parserStore')('db2');
  */
 export class Db2ConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('ibm_db');
     this.refreshTypeParser(DataTypes);

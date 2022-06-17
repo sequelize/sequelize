@@ -21,7 +21,6 @@ const parserStore = require('../parserStore')('mariadb');
  */
 export class MariaDbConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('mariadb');
     this.refreshTypeParser(DataTypes);

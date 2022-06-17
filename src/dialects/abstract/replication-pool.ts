@@ -4,10 +4,10 @@ import { logger } from '../../utils/logger.js';
 
 const debug = logger.debugContext('pool');
 
-export type PoolType = 'read' | 'write';
+export type ConnectionType = 'read' | 'write';
 
 export interface RWResource {
-  queryType: PoolType;
+  queryType: ConnectionType;
 }
 
 type ReplicationPoolConfig<Resource extends RWResource> = {
@@ -15,7 +15,7 @@ type ReplicationPoolConfig<Resource extends RWResource> = {
   writeConfig: ConnectionOptions,
   pool: Omit<NormalizedPoolOptions, 'validate'>,
 
-  connect(options: ConnectionOptions): Promise<Resource>,
+  connect(options: ConnectionOptions, connectionType: ConnectionType): Promise<Resource>,
   disconnect(connection: Resource): Promise<void>,
   validate(connection: Resource): boolean,
 };
@@ -42,8 +42,7 @@ export class ReplicationPool<Resource extends RWResource> {
         create: async () => {
           // round robin config
           const nextRead = reads++ % readConfig.length;
-          const connection = await connect(readConfig[nextRead]);
-          connection.queryType = 'read';
+          const connection = await connect(readConfig[nextRead], 'read');
 
           return connection;
         },
@@ -61,8 +60,7 @@ export class ReplicationPool<Resource extends RWResource> {
     this.write = new Pool({
       name: 'sequelize:write',
       create: async () => {
-        const connection = await connect(writeConfig);
-        connection.queryType = 'write';
+        const connection = await connect(writeConfig, 'write');
 
         return connection;
       },
@@ -77,7 +75,7 @@ export class ReplicationPool<Resource extends RWResource> {
     });
   }
 
-  async acquire(queryType: PoolType = 'write', useMaster = false) {
+  async acquire(queryType: ConnectionType = 'write', useMaster = false) {
     if (queryType !== 'read' && queryType !== 'write') {
       throw new Error(`Expected queryType to be either read or write. Received ${queryType}`);
     }
@@ -114,7 +112,7 @@ export class ReplicationPool<Resource extends RWResource> {
     ]);
   }
 
-  getPool(poolType: PoolType): Pool<Resource> {
+  getPool(poolType: ConnectionType): Pool<Resource> {
     if (poolType === 'read' && this.read != null) {
       return this.read;
     }

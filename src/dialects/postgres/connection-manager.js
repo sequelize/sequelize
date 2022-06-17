@@ -14,7 +14,6 @@ const { promisify } = require('util');
 
 export class PostgresConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg');

@@ -215,6 +215,10 @@ export abstract class AbstractDialect {
   }
 
   abstract createBindCollector(): BindCollector;
+
+  static getDefaultPort(): number {
+    throw new Error(`getDefaultPort not implemented in ${this.name}`);
+  }
 }
 
 export type BindCollector = {

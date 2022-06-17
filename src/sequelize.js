@@ -277,6 +277,44 @@ export class Sequelize {
     //  REPLICATION CONFIG NORMALIZATION
     // ==========================================
 
+    let Dialect;
+    // Requiring the dialect in a switch-case to keep the
+    // require calls static. (Browserify fix)
+    switch (this.getDialect()) {
+      case 'mariadb':
+        Dialect = require('./dialects/mariadb').MariaDbDialect;
+        break;
+      case 'mssql':
+        Dialect = require('./dialects/mssql').MssqlDialect;
+        break;
+      case 'mysql':
+        Dialect = require('./dialects/mysql').MysqlDialect;
+        break;
+      case 'postgres':
+        Dialect = require('./dialects/postgres').PostgresDialect;
+        break;
+      case 'sqlite':
+        Dialect = require('./dialects/sqlite').SqliteDialect;
+        break;
+      case 'ibmi':
+        Dialect = require('./dialects/ibmi').IBMiDialect;
+        break;
+      case 'db2':
+        Dialect = require('./dialects/db2').Db2Dialect;
+        break;
+      case 'snowflake':
+        Dialect = require('./dialects/snowflake').SnowflakeDialect;
+        break;
+      default:
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
+    }
+
+    if (!this.options.port) {
+      this.options.port = Dialect.getDefaultPort();
+    } else {
+      this.options.port = Number(this.options.port);
+    }
+
     const connectionConfig = {
       database: this.options.database,
       username: this.options.username,
@@ -328,38 +366,6 @@ export class Sequelize {
       dialectModulePath: this.options.dialectModulePath,
       keepDefaultTimezone: this.options.keepDefaultTimezone,
     };
-
-    let Dialect;
-    // Requiring the dialect in a switch-case to keep the
-    // require calls static. (Browserify fix)
-    switch (this.getDialect()) {
-      case 'mariadb':
-        Dialect = require('./dialects/mariadb').MariaDbDialect;
-        break;
-      case 'mssql':
-        Dialect = require('./dialects/mssql').MssqlDialect;
-        break;
-      case 'mysql':
-        Dialect = require('./dialects/mysql').MysqlDialect;
-        break;
-      case 'postgres':
-        Dialect = require('./dialects/postgres').PostgresDialect;
-        break;
-      case 'sqlite':
-        Dialect = require('./dialects/sqlite').SqliteDialect;
-        break;
-      case 'ibmi':
-        Dialect = require('./dialects/ibmi').IBMiDialect;
-        break;
-      case 'db2':
-        Dialect = require('./dialects/db2').Db2Dialect;
-        break;
-      case 'snowflake':
-        Dialect = require('./dialects/snowflake').SnowflakeDialect;
-        break;
-      default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
-    }
 
     this.dialect = new Dialect(this);
     this.dialect.queryGenerator.typeValidation = options.typeValidation;
