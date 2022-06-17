@@ -106,8 +106,10 @@ describe(getTestDialectTeaser('Pooling'), () => {
         if (dialect === 'db2') {
           await sequelize.connectionManager.pool.destroy(connection);
         } else {
+          const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
+          error.code = 'ECONNRESET';
           // @ts-expect-error - emit not declared yet
-          connection.emit('error', { code: 'ECONNRESET' });
+          connection.emit('error', error);
         }
       }
 
@@ -119,6 +121,8 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
       const firstConnection = await cm.getConnection();
       await simulateUnexpectedError(firstConnection);
+      expect(cm.pool.using).to.eq(0, 'first connection should have errored and not be in use anymore');
+
       const secondConnection = await cm.getConnection();
 
       assertNewConnection(secondConnection, firstConnection);
