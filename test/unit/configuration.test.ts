@@ -228,6 +228,7 @@ describe('Sequelize', () => {
       expect(config.username).to.equal('username2');
       expect(config.password).to.equal('password2');
 
+      expect(options.replication.write).to.deep.eq(config.replication.write);
       expect(options.replication.write).to.deep.eq({
         username: 'username2',
         password: 'password2',
