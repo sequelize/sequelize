@@ -1066,7 +1066,7 @@ Use Sequelize#query if you wish to use replacements.`);
    * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
    *
    * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
+   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
    *     const user = await User.findOne(..., {transaction});
    *     await user.update(..., {transaction});
    *   });
