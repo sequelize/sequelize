@@ -61,6 +61,10 @@ export class MariaDbDialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 MariaDbDialect.prototype.defaultVersion = '10.1.44'; // minimum supported version

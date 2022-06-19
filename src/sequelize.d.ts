@@ -1,5 +1,5 @@
 import type { AbstractDialect } from './dialects/abstract';
-import type { ConnectionManager } from './dialects/abstract/connection-manager';
+import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { HookReturn, SequelizeHooks } from './hooks';
 import { Hooks } from './hooks';
@@ -118,12 +118,17 @@ export interface PoolOptions {
   validate?(client?: unknown): boolean;
 }
 
+export type NormalizedPoolOptions = Readonly<Required<PoolOptions>>;
+
 export interface ConnectionOptions {
   host?: string;
   port?: string | number;
   username?: string;
   password?: string;
   database?: string;
+  protocol?: string;
+  ssl?: boolean;
+  dialectOptions?: DialectOptions;
 }
 
 /**
@@ -133,6 +138,12 @@ export interface ReplicationOptions {
   read: Array<ConnectionOptions | string>;
 
   write: ConnectionOptions | string;
+}
+
+export interface NormalizedReplicationOptions {
+  read: ConnectionOptions[];
+
+  write: ConnectionOptions;
 }
 
 /**
@@ -149,19 +160,14 @@ export interface Config {
   readonly database: string;
   readonly dialectModule?: object;
   readonly host?: string;
-  readonly port?: string;
+  readonly port: number;
   readonly username: string;
   readonly password: string | null;
-  readonly pool?: {
-    readonly acquire: number,
-    readonly idle: number,
-    readonly max: number,
-    readonly min: number,
-  };
+  readonly pool: NormalizedPoolOptions;
   readonly protocol: 'tcp';
   readonly native: boolean;
   readonly ssl: boolean;
-  readonly replication: ReplicationOptions | false;
+  readonly replication: NormalizedReplicationOptions;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions: Readonly<DialectOptions>;
@@ -251,6 +257,12 @@ export interface Options extends Logging {
   protocol?: string;
 
   /**
+   * The version of the Database Sequelize will connect to.
+   * If unspecified, or set to 0, Sequelize will retrieve it during its first connection to the Database.
+   */
+  databaseVersion?: string | number;
+
+  /**
    * Default options for model definitions. See Model.init.
    */
   define?: ModelOptions;
@@ -304,7 +316,7 @@ export interface Options extends Logging {
    *
    * @default false
    */
-  replication?: ReplicationOptions | false;
+  replication?: ReplicationOptions | false | null | undefined;
 
   /**
    * Connection pool options
@@ -396,6 +408,10 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+}
+
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions' | 'dialect'> {
+  readonly replication: NormalizedReplicationOptions;
 }
 
 export interface DialectOptions {
@@ -798,6 +814,8 @@ export class Sequelize extends Hooks {
    */
   static beforeConnect(name: string, fn: (options: DeepWriteable<Config>) => void): void;
   static beforeConnect(fn: (options: DeepWriteable<Config>) => void): void;
+  beforeConnect(name: string, fn: (options: DeepWriteable<Config>) => void): void;
+  beforeConnect(fn: (options: DeepWriteable<Config>) => void): void;
 
   /**
    * A hook that is run after a connection is established
@@ -807,6 +825,8 @@ export class Sequelize extends Hooks {
    */
   static afterConnect(name: string, fn: (connection: unknown, options: Config) => void): void;
   static afterConnect(fn: (connection: unknown, options: Config) => void): void;
+  afterConnect(name: string, fn: (connection: unknown, options: Config) => void): void;
+  afterConnect(fn: (connection: unknown, options: Config) => void): void;
 
   /**
    * A hook that is run before a connection is released
@@ -816,6 +836,8 @@ export class Sequelize extends Hooks {
    */
   static beforeDisconnect(name: string, fn: (connection: unknown) => void): void;
   static beforeDisconnect(fn: (connection: unknown) => void): void;
+  beforeDisconnect(name: string, fn: (connection: unknown) => void): void;
+  beforeDisconnect(fn: (connection: unknown) => void): void;
 
   /**
    * A hook that is run after a connection is released
@@ -825,6 +847,8 @@ export class Sequelize extends Hooks {
    */
   static afterDisconnect(name: string, fn: (connection: unknown) => void): void;
   static afterDisconnect(fn: (connection: unknown) => void): void;
+  afterDisconnect(name: string, fn: (connection: unknown) => void): void;
+  afterDisconnect(fn: (connection: unknown) => void): void;
 
   /**
    * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
@@ -950,13 +974,13 @@ export class Sequelize extends Hooks {
    */
   readonly config: Config;
 
-  readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions'>;
+  readonly options: NormalizedOptions;
 
   readonly dialect: AbstractDialect;
 
   readonly modelManager: ModelManager;
 
-  readonly connectionManager: ConnectionManager;
+  readonly connectionManager: AbstractConnectionManager;
 
   /**
    * For internal use only.
@@ -1537,8 +1561,8 @@ export class Sequelize extends Hooks {
    * @param options Transaction Options
    * @param autoCallback Callback for the transaction
    */
-  transaction<T>(options: TransactionOptions, autoCallback: (t: Transaction) => PromiseLike<T>): Promise<T>;
-  transaction<T>(autoCallback: (t: Transaction) => PromiseLike<T>): Promise<T>;
+  transaction<T>(options: TransactionOptions, autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
+  transaction<T>(autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
   transaction(options?: TransactionOptions): Promise<Transaction>;
 
   /**
@@ -1553,7 +1577,7 @@ export class Sequelize extends Hooks {
   /**
    * Returns the database version
    */
-  databaseVersion(): Promise<string>;
+  databaseVersion(options?: QueryRawOptions): Promise<string>;
 
   /**
    * Returns the installed version of Sequelize

@@ -61,7 +61,12 @@ if (dialect === 'mariadb') {
       });
 
       it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
-        const sequelize = new Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
+        const sequelize = Support.createSequelizeInstance({
+          database: 'db',
+          username: 'was',
+          password: 'ddsd',
+        });
+
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
     });
