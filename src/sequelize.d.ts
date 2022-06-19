@@ -1282,9 +1282,14 @@ export class Sequelize extends Hooks {
   getDatabaseName(): string;
 
   /**
-   * Returns an instance of QueryInterface.
+   * Returns the dialect-dependant QueryInterface instance.
    */
   getQueryInterface(): QueryInterface;
+
+  /**
+   * The QueryInterface instance, dialect dependant.
+   */
+  queryInterface: QueryInterface;
 
   /**
    * Define a new model, representing a table in the DB.
