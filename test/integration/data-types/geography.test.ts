@@ -158,7 +158,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOGRAPHY(LINESTRING)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeography('Point') };
+      return { User: await createUserModelWithGeography('LineString') };
     });
 
     it('should create a geography object', async () => {
