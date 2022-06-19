@@ -323,10 +323,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return query;
   }
 
-  showIndexesQuery(tableName, options) {
+  showIndexesQuery(tableName) {
     return Utils.joinSQLFragments([
       `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-      options && options.database && `FROM \`${options.database}\``,
     ]);
   }
 

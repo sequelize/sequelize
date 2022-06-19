@@ -1,9 +1,13 @@
-import {
-  Association, DataTypes, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
+import type {
+  Association, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
-  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, Model, ModelDefined, Optional,
-  Sequelize, InferAttributes, InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
+  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, ModelDefined, Optional, InferAttributes,
+  InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
+} from '@sequelize/core';
+import {
+  DataTypes, Model,
+  Sequelize,
 } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
@@ -46,7 +50,7 @@ class User extends Model<InferAttributes<User, { omit: 'projects' }>, InferCreat
   }
 
   declare static associations: {
-    projects: Association<User, Project>;
+    projects: Association<User, Project>,
   };
 }
 
@@ -91,19 +95,19 @@ Project.init(
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
       type: new DataTypes.STRING(128),
-      allowNull: false
+      allowNull: false,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
-    tableName: 'projects'
-  }
+    tableName: 'projects',
+  },
 );
 
 User.init(
@@ -111,38 +115,38 @@ User.init(
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     name: {
       type: new DataTypes.STRING(128),
-      allowNull: false
+      allowNull: false,
     },
     preferredName: {
       type: new DataTypes.STRING(128),
-      allowNull: true
+      allowNull: true,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     tableName: 'users',
-    sequelize // passing the `sequelize` instance is required
-  }
+    sequelize, // passing the `sequelize` instance is required
+  },
 );
 
 Address.init(
   {
     address: {
       type: new DataTypes.STRING(128),
-      allowNull: false
+      allowNull: false,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     tableName: 'address',
-    sequelize // passing the `sequelize` instance is required
-  }
+    sequelize, // passing the `sequelize` instance is required
+  },
 );
 
 // You can also define modules in a functional way
@@ -165,27 +169,27 @@ const Note: ModelDefined<
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     title: {
       type: new DataTypes.STRING(64),
-      defaultValue: 'Unnamed Note'
+      defaultValue: 'Unnamed Note',
     },
     content: {
       type: new DataTypes.STRING(4096),
-      allowNull: false
-    }
+      allowNull: false,
+    },
   },
   {
-    tableName: 'notes'
-  }
+    tableName: 'notes',
+  },
 );
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
   sourceKey: 'id',
   foreignKey: 'ownerId',
-  as: 'projects' // this determines the name in `associations`!
+  as: 'projects', // this determines the name in `associations`!
 });
 
 Address.belongsTo(User, { targetKey: 'id' });
@@ -199,12 +203,12 @@ async function doStuffWithUser() {
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
   const project = await newUser.createProject({
-    name: 'first!'
+    name: 'first!',
   });
 
   const ourUser = await User.findByPk(1, {
     include: [User.associations.projects],
-    rejectOnEmpty: true // Specifying true here removes `null` from the return type!
+    rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
   });
 
   // Note the `!` null assertion since TS can't know if we included

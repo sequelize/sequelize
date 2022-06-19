@@ -1,4 +1,5 @@
-import { Model, Optional, DataTypes } from '@sequelize/core';
+import type { Model, Optional } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
 import { sequelize } from '../connection';
 
 export interface UserPostAttributes {
@@ -46,4 +47,4 @@ export const UserPost = sequelize.define<UserPostInstance>(
   },
 );
 
-UserPost.findOne({ where: { id: 1 }});
+UserPost.findOne({ where: { id: 1 } });
