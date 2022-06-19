@@ -1,4 +1,4 @@
-import origValidator from 'validator';
+import type origValidator from 'validator';
 
 type OrigValidator = typeof origValidator;
 

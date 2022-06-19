@@ -460,9 +460,10 @@ if (dialect.startsWith('postgres')) {
           expect(user.length).to.equal(1);
         });
 
-        it('should be able to insert a new record even with an array of enums in a schema', async function () {
+        it('should be able to insert a new record with an array of enums in a schema', async function () {
           const schema = 'special_schema';
-          this.sequelize.createSchema(schema);
+          await this.sequelize.createSchema(schema);
+
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
             type: DataTypes.ENUM('A', 'B', 'C'),

@@ -195,10 +195,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       it('correctly validates using create method ', async function () {
         const project = await this.Project.create({});
         const task = await this.Task.create({ something: 1 });
-        const task0 = await project.setTask(task);
-        expect(task0.ProjectId).to.not.be.null;
-        const project0 = await task0.setProject(project);
-        expect(project0.ProjectId).to.not.be.null;
+        await project.setTask(task);
+        await task.reload();
+
+        expect(task.ProjectId).to.not.be.null;
+        await task.setProject(project);
+        await task.reload();
+        expect(task.ProjectId).to.not.be.null;
       });
     });
 

@@ -1,15 +1,17 @@
-import { expectTypeOf } from 'expect-type';
+import type {
+  WhereOptions,
+  Attributes,
+  InferAttributes,
+} from '@sequelize/core';
 import {
   Model,
   Op,
   Sequelize,
-  WhereOptions,
   and,
   or,
-  Attributes,
-  InferAttributes,
   Transaction,
 } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
 
@@ -21,14 +23,14 @@ class MyModel extends Model<InferAttributes<MyModel>> {
 }
 
 // Optional values
-expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions>();
+expectTypeOf<{ needed: number, optional?: number }>().toMatchTypeOf<WhereOptions>();
 
 {
   // @ts-expect-error -- cannot use column references in Op.any
-  const a: WhereOptions<MyModel> = { hi: { [Op.eq]: { [Op.any]: [Sequelize.col('SOME_COL')], } } }
+  const a: WhereOptions<MyModel> = { hi: { [Op.eq]: { [Op.any]: [Sequelize.col('SOME_COL')] } } };
 
   // @ts-expect-error -- cannot use column references in Op.any
-  const b: WhereOptions<MyModel> = { hi: { [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL')], } } }
+  const b: WhereOptions<MyModel> = { hi: { [Op.eq]: { [Op.all]: [Sequelize.col('SOME_COL')] } } };
 }
 
 // Relations / Associations
@@ -149,8 +151,8 @@ MyModel.findAll({
   },
 });
 
+// @ts-expect-error - no attribute
 MyModel.findAll({
-  // @ts-expect-error - no attribute
   where: [1, 2],
 });
 

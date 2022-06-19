@@ -10,21 +10,6 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
-  describe('Model.associations', () => {
-    it('should store all associations when associating to the same table multiple times', function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-
-      Group.hasOne(User);
-      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
-      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
-
-      expect(
-        Object.keys(Group.associations),
-      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
-    });
-  });
-
   describe('get', () => {
     describe('multiple', () => {
       it('should fetch associations for multiple instances', async function () {
@@ -35,24 +20,28 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const players = await Promise.all([Player.create({
-          id: 1,
-          user: {},
-        }, {
-          include: [Player.User],
-        }), Player.create({
-          id: 2,
-          user: {},
-        }, {
-          include: [Player.User],
-        }), Player.create({
-          id: 3,
-        })]);
+        const players = await Promise.all([
+          Player.create({
+            id: 1,
+            user: {},
+          }, {
+            include: [Player.User],
+          }),
+          Player.create({
+            id: 2,
+            user: {},
+          }, {
+            include: [Player.User],
+          }),
+          Player.create({
+            id: 3,
+          }),
+        ]);
 
         const result = await Player.User.get(players);
-        expect(result[players[0].id].id).to.equal(players[0].user.id);
-        expect(result[players[1].id].id).to.equal(players[1].user.id);
-        expect(result[players[2].id]).to.equal(null);
+        expect(result.get(players[0].id).id).to.equal(players[0].user.id);
+        expect(result.get(players[1].id).id).to.equal(players[1].user.id);
+        expect(result.get(players[2].id)).to.equal(undefined);
       });
     });
   });
@@ -396,26 +385,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(task.UserId).to.equal(null);
     });
 
-    it('sets to CASCADE if allowNull: false', async function () {
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      User.hasOne(Task, { foreignKey: { allowNull: false } }); // defaults to CASCADE
-
-      await this.sequelize.sync({ force: true });
-
-      const user = await User.create({ username: 'foo' });
-      await Task.create({ title: 'task', UserId: user.id });
-      await user.destroy();
-      const tasks = await Task.findAll();
-      expect(tasks).to.be.empty;
-    });
-
     it('should be possible to disable them', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { constraints: false });
+      User.hasOne(Task, { foreignKeyConstraints: false });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -431,7 +405,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { onDelete: 'cascade' });
+      User.hasOne(Task, { foreignKey: { onDelete: 'cascade' } });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -447,7 +421,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-      User.hasOne(Task, { onDelete: 'cascade', hooks: true });
+      User.hasOne(Task, { foreignKey: { onDelete: 'cascade' }, hooks: true });
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
@@ -462,7 +436,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onUpdate: 'cascade' });
+        User.hasOne(Task, { foreignKey: { onUpdate: 'cascade' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -488,7 +462,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onDelete: 'restrict' });
+        User.hasOne(Task, { foreignKey: { onDelete: 'restrict' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -504,7 +478,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasOne(Task, { onUpdate: 'restrict' });
+        User.hasOne(Task, { foreignKey: { onUpdate: 'restrict' } });
 
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -637,7 +611,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
-        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
+        User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         try {
           await Tasks[dataType].sync({ force: true, logging: true });
@@ -649,94 +623,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       }));
     });
-
-    describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works with a column that hasnt been defined before', function () {
-        const User = this.sequelize.define('user', {});
-        let Profile = this.sequelize.define('project', {});
-
-        User.hasOne(Profile, {
-          foreignKey: {
-            allowNull: false,
-            name: 'uid',
-          },
-        });
-
-        expect(Profile.rawAttributes.uid).to.be.ok;
-        expect(Profile.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.uid.references.key).to.equal('id');
-        expect(Profile.rawAttributes.uid.allowNull).to.be.false;
-
-        // Let's clear it
-        Profile = this.sequelize.define('project', {});
-        User.hasOne(Profile, {
-          foreignKey: {
-            allowNull: false,
-            name: 'uid',
-          },
-        });
-
-        expect(Profile.rawAttributes.uid).to.be.ok;
-        expect(Profile.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.uid.references.key).to.equal('id');
-        expect(Profile.rawAttributes.uid.allowNull).to.be.false;
-      });
-
-      it('works when taking a column directly from the object', function () {
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-        const Profile = this.sequelize.define('project', {
-          user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-          },
-        });
-
-        User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
-
-        expect(Profile.rawAttributes.user_id).to.be.ok;
-        expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
-      });
-
-      it('works when merging with an existing definition', function () {
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-        const Project = this.sequelize.define('project', {
-          userUid: {
-            type: DataTypes.INTEGER,
-            defaultValue: 42,
-          },
-        });
-
-        User.hasOne(Project, { foreignKey: { allowNull: false } });
-
-        expect(Project.rawAttributes.userUid).to.be.ok;
-        expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-        expect(Project.rawAttributes.userUid.references.model).to.equal(User.getTableName());
-        expect(Project.rawAttributes.userUid.references.key).to.equal('uid');
-        expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
-      });
-    });
-
-    it('should throw an error if an association clashes with the name of an already define attribute', function () {
-      const User = this.sequelize.define('user', {
-        attribute: DataTypes.STRING,
-      });
-      const Attribute = this.sequelize.define('attribute', {});
-
-      expect(User.hasOne.bind(User, Attribute)).to
-        .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change either foreignKey or as in your association definition');
-    });
   });
 
   describe('Counter part', () => {
@@ -746,10 +632,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const InternetOrders = this.sequelize.define('InternetOrders', {}, { timestamps: false });
 
         InternetOrders.belongsTo(Orders, {
-          foreignKeyConstraint: true,
-        });
-        Orders.hasOne(InternetOrders, {
-          foreignKeyConstraint: true,
+          foreignKeyConstraints: true,
+          inverse: {
+            type: 'hasOne',
+          },
         });
 
         expect(Object.keys(InternetOrders.rawAttributes).length).to.equal(2);
@@ -789,17 +675,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       expect(individual0.name).to.equal('Foo Bar');
       expect(individual0.personwearinghat.name).to.equal('Baz');
-
-      const individual = await this.Individual.findOne({
-        where: { name: 'Foo Bar' },
-        include: [{
-          model: this.Hat,
-          as: { singular: 'personwearinghat' },
-        }],
-      });
-
-      expect(individual.name).to.equal('Foo Bar');
-      expect(individual.personwearinghat.name).to.equal('Baz');
     });
 
     it('should load all', async function () {

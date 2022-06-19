@@ -1,5 +1,8 @@
-import { IndexHints } from './index-hints';
-import {
+import type { Class } from 'type-fest';
+import type {
+  AfterAssociateEventData,
+  AssociationOptions,
+  BeforeAssociateEventData,
   Association,
   BelongsTo,
   BelongsToMany,
@@ -10,13 +13,15 @@ import {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import { Deferrable } from './deferrable';
-import { HookReturn, Hooks, ModelHooks } from './hooks';
-import { ValidationOptions } from './instance-validator';
-import { IndexOptions, TableName } from './dialects/abstract/query-interface';
-import { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import {
+import type { Deferrable } from './deferrable';
+import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type { IndexOptions, TableName } from './dialects/abstract/query-interface';
+import type { HookReturn, ModelHooks } from './hooks';
+import { Hooks } from './hooks';
+import type { IndexHints } from './index-hints';
+import type { ValidationOptions } from './instance-validator';
+import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
+import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
@@ -27,10 +32,11 @@ import {
   Literal,
   MakeNullishOptional,
   Nullish,
+  OmitConstructors,
   Where,
 } from './utils';
-import { LOCK, Op, Optional, Transaction } from './index';
-import { SetRequired } from './utils/set-required';
+import type { SetRequired } from './utils/set-required';
+import type { LOCK, Op, Optional, Transaction } from './index';
 
 export interface Logging {
   /**
@@ -134,7 +140,7 @@ export interface DropOptions extends Logging {
 /**
  * Schema Options provided for applying a schema to a model
  */
-export interface SchemaOptions extends Logging {
+export interface SchemaOptions {
   schema: string;
 
   /**
@@ -174,7 +180,7 @@ type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
   | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
   | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
   | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
->;
+  >;
 
 /**
  * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
@@ -195,8 +201,8 @@ type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
-  | { [Op.all]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
-  | { [Op.any]: Exclude<T, InvalidInSqlArray>[] | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
+  | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
+  | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
 
 /**
  * The type accepted by every `where` option
@@ -215,7 +221,7 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
-  higher: T | InputRangePart<T> | number | null
+  higher: T | InputRangePart<T> | number | null,
 ] | EmptyRange;
 
 /**
@@ -234,18 +240,21 @@ export type InputRangePart<T> = { value: T | number | null, inclusive?: boolean 
 
 /**
  * Internal type - prone to changes. Do not export.
+ *
  * @private
  */
 export type ColumnReference = Col | { [Op.col]: string };
 
 /**
  * Internal type - prone to changes. Do not export.
+ *
  * @private
  */
 type WhereSerializableValue = boolean | string | number | Buffer | Date;
 
 /**
  * Internal type - prone to changes. Do not export.
+ *
  * @private
  */
 type OperatorValues<AcceptableValues> =
@@ -263,7 +272,7 @@ type DynamicValues<AcceptableValues> =
   | Fn
   | Cast
   // where() can only be used on boolean attributes
-  | (AcceptableValues extends boolean ? Where : never)
+  | (AcceptableValues extends boolean ? Where : never);
 
 /**
  * Represents acceptable Static values.
@@ -272,7 +281,7 @@ type DynamicValues<AcceptableValues> =
  */
 type StaticValues<Type> =
   Type extends Range<infer RangeType> ? [lower: RangeType | RangePart<RangeType>, higher: RangeType | RangePart<RangeType>]
-  : Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]>}
+  : Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]> }
   : Type extends null ? Type | WhereSerializableValue | null
   : Type | WhereSerializableValue;
 
@@ -285,55 +294,55 @@ type StaticValues<Type> =
  */
 // TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
-   /**
-    * @example: `[Op.eq]: 6,` becomes `= 6`
-    * @example: `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
-    * @example: `[Op.eq]: null` becomes `IS NULL`
-    * @example: `[Op.eq]: true` becomes `= true`
-    * @example: `[Op.eq]: literal('raw sql')` becomes `= raw sql`
-    * @example: `[Op.eq]: col('column')` becomes `= "column"`
-    * @example: `[Op.eq]: fn('NOW')` becomes `= NOW()`
-    */
+  /**
+   * @example `[Op.eq]: 6,` becomes `= 6`
+   * @example `[Op.eq]: [6, 7]` becomes `= ARRAY[6, 7]`
+   * @example `[Op.eq]: null` becomes `IS NULL`
+   * @example `[Op.eq]: true` becomes `= true`
+   * @example `[Op.eq]: literal('raw sql')` becomes `= raw sql`
+   * @example `[Op.eq]: col('column')` becomes `= "column"`
+   * @example `[Op.eq]: fn('NOW')` becomes `= NOW()`
+   */
   [Op.eq]?: AllowAnyAll<OperatorValues<AttributeType>>;
 
   /**
-   * @example: `[Op.ne]: 20,` becomes `!= 20`
-   * @example: `[Op.ne]: [20, 21]` becomes `!= ARRAY[20, 21]`
-   * @example: `[Op.ne]: null` becomes `IS NOT NULL`
-   * @example: `[Op.ne]: true` becomes `!= true`
-   * @example: `[Op.ne]: literal('raw sql')` becomes `!= raw sql`
-   * @example: `[Op.ne]: col('column')` becomes `!= "column"`
-   * @example: `[Op.ne]: fn('NOW')` becomes `!= NOW()`
+   * @example `[Op.ne]: 20,` becomes `!= 20`
+   * @example `[Op.ne]: [20, 21]` becomes `!= ARRAY[20, 21]`
+   * @example `[Op.ne]: null` becomes `IS NOT NULL`
+   * @example `[Op.ne]: true` becomes `!= true`
+   * @example `[Op.ne]: literal('raw sql')` becomes `!= raw sql`
+   * @example `[Op.ne]: col('column')` becomes `!= "column"`
+   * @example `[Op.ne]: fn('NOW')` becomes `!= NOW()`
    */
   [Op.ne]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq
 
   /**
-   * @example: `[Op.is]: null` becomes `IS NULL`
-   * @example: `[Op.is]: true` becomes `IS TRUE`
-   * @example: `[Op.is]: literal('value')` becomes `IS value`
+   * @example `[Op.is]: null` becomes `IS NULL`
+   * @example `[Op.is]: true` becomes `IS TRUE`
+   * @example `[Op.is]: literal('value')` becomes `IS value`
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
   /**
-   * @example: `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example: `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
+   * @example `[Op.not]: true` becomes `IS NOT TRUE`
+   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
    */
   [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
 
-  /** @example: `[Op.gte]: 6` becomes `>= 6` */
+  /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
 
-  /** @example: `[Op.lte]: 10` becomes `<= 10` */
+  /** @example `[Op.lte]: 10` becomes `<= 10` */
   [Op.lte]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
 
-  /** @example: `[Op.lt]: 10` becomes `< 10` */
+  /** @example `[Op.lt]: 10` becomes `< 10` */
   [Op.lt]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
 
-  /** @example: `[Op.gt]: 6` becomes `> 6` */
+  /** @example `[Op.gt]: 6` becomes `> 6` */
   [Op.gt]?: WhereOperators<AttributeType>[typeof Op.gte]; // accepts the same types as Op.gte
 
   /**
-   * @example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10`
+   * @example `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10`
    */
   [Op.between]?:
     | [
@@ -342,47 +351,47 @@ export interface WhereOperators<AttributeType = any> {
     ]
     | Literal;
 
-  /** @example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
+  /** @example `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: WhereOperators<AttributeType>[typeof Op.between];
 
-  /** @example: `[Op.in]: [1, 2],` becomes `IN (1, 2)` */
+  /** @example `[Op.in]: [1, 2],` becomes `IN (1, 2)` */
   [Op.in]?: ReadonlyArray<OperatorValues<NonNullable<AttributeType>>> | Literal;
 
-  /** @example: `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)` */
+  /** @example `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)` */
   [Op.notIn]?: WhereOperators<AttributeType>[typeof Op.in];
 
   /**
-   * @example: `[Op.like]: '%hat',` becomes `LIKE '%hat'`
-   * @example: `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY (ARRAY['cat', 'hat'])`
+   * @example `[Op.like]: '%hat',` becomes `LIKE '%hat'`
+   * @example `[Op.like]: { [Op.any]: ['cat', 'hat'] }` becomes `LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.like]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
   /**
-   * @example: `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
-   * @example: `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY (ARRAY['cat', 'hat'])`
+   * @example `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
+   * @example `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
    * case insensitive PG only
    *
-   * @example: `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
-   * @example: `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY (ARRAY['cat', 'hat'])`
+   * @example `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
+   * @example `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.iLike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
    * PG only
    *
-   * @example: `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
-   * @example: `[Op.notILike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT ILIKE ANY (ARRAY['cat', 'hat'])`
+   * @example `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
+   * @example `[Op.notILike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT ILIKE ANY (ARRAY['cat', 'hat'])`
    */
   [Op.notILike]?: WhereOperators<AttributeType>[typeof Op.like];
 
   /**
    * PG array & range 'overlaps' operator
    *
-   * @example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
+   * @example `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
   // https://www.postgresql.org/docs/14/functions-range.html range && range
   // https://www.postgresql.org/docs/14/functions-array.html array && array
@@ -400,7 +409,7 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * PG array & range 'contains' operator
    *
-   * @example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
+   * @example `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
   // https://www.postgresql.org/docs/14/functions-json.html jsonb @> jsonb
   // https://www.postgresql.org/docs/14/functions-range.html range @> range ; range @> element
@@ -414,7 +423,7 @@ export interface WhereOperators<AttributeType = any> {
   /**
    * PG array & range 'contained by' operator
    *
-   * @example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
+   * @example `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
   [Op.contained]?:
     AttributeType extends any[]
@@ -453,7 +462,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Matches regular expression, case sensitive
    *
-   * @example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
+   * @example `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
   [Op.regexp]?: AllowAnyAll<OperatorValues<Extract<AttributeType, string>>>;
 
@@ -462,7 +471,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Does not match regular expression, case sensitive
    *
-   * @example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
+   * @example `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
   [Op.notRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
@@ -471,7 +480,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Matches regular expression, case insensitive
    *
-   * @example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
+   * @example `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
   [Op.iRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
@@ -480,11 +489,11 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Does not match regular expression, case insensitive
    *
-   * @example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
+   * @example `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
-  /** @example: `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  /** @example `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
   [Op.match]?: AllowAnyAll<DynamicValues<AttributeType>>;
 
   /**
@@ -492,7 +501,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Whether the range is strictly left of the other range.
    *
-   * @example:
+   * @example
    * ```typescript
    * { rangeAttribute: { [Op.strictLeft]: [1, 2] } }
    * // results in
@@ -510,7 +519,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Whether the range is strictly right of the other range.
    *
-   * @example:
+   * @example
    * ```typescript
    * { rangeAttribute: { [Op.strictRight]: [1, 2] } }
    * // results in
@@ -526,7 +535,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Whether the range extends to the left of the other range.
    *
-   * @example:
+   * @example
    * ```typescript
    * { rangeAttribute: { [Op.noExtendLeft]: [1, 2] } }
    * // results in
@@ -542,7 +551,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Whether the range extends to the right of the other range.
    *
-   * @example:
+   * @example
    * ```typescript
    * { rangeAttribute: { [Op.noExtendRight]: [1, 2] } }
    * // results in
@@ -558,7 +567,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * Whether the two ranges are adjacent.
    *
-   * @example:
+   * @example
    * ```typescript
    * { rangeAttribute: { [Op.adjacent]: [1, 2] } }
    * // results in
@@ -575,7 +584,7 @@ export interface WhereOperators<AttributeType = any> {
  */
 export interface WhereGeometryOptions {
   type: string;
-  coordinates: readonly (number[] | number)[];
+  coordinates: ReadonlyArray<number[] | number>;
 }
 
 /**
@@ -602,12 +611,8 @@ export type WhereAttributeHash<TAttributes = any> = {
   : never]?: WhereAttributeHashValue<any>;
 } & {
   // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  // TODO [2022-05-26]: Remove this ts-ignore once we drop support for TS < 4.4
-  // TypeScript < 4.4 does not support using a Template Literal Type as a key.
-  //  note: this *must* be a ts-ignore, as it works in ts >= 4.4
-  // @ts-ignore
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>;
-}
+  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
+};
 
 /**
  * Types that can be compared to an attribute in a WHERE context.
@@ -626,7 +631,7 @@ export type WhereAttributeHashValue<AttributeType> =
       )
     >
   // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any> // for JSON columns
+  | WhereAttributeHash<any>; // for JSON columns
 
 /**
  * Through options for Include Options
@@ -672,6 +677,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   /**
    * The model you want to eagerly load.
    *
+   * This option only works if this model is only associated once to the parent model of this query.
    * We recommend specifying {@link IncludeOptions.association} instead.
    */
   model?: ModelStatic;
@@ -682,6 +688,9 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * This must be specified if the association has an alias (i.e. "as" was used when defining the association).
    * For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany` / `belongsToMany`,
    * it should be the plural.
+   *
+   * @deprecated using "as" is the same as using {@link IncludeOptions.association}
+   *  because "as" is always the name of the association.
    */
   as?: string;
 
@@ -765,8 +774,8 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   subQuery?: boolean;
 }
 
-type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>; as: string } | string
-type OrderItemColumn = string | Col | Fn | Literal
+type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>, as: string } | string;
+type OrderItemColumn = string | Col | Fn | Literal;
 export type OrderItem =
   | string
   | Fn
@@ -780,7 +789,7 @@ export type OrderItem =
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
+  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -792,12 +801,12 @@ export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
   | {
-    exclude: string[];
-    include?: (string | ProjectionAlias)[];
+    exclude: string[],
+    include?: Array<string | ProjectionAlias>,
   }
   | {
-    exclude?: string[];
-    include: (string | ProjectionAlias)[];
+    exclude?: string[],
+    include: Array<string | ProjectionAlias>,
   };
 
 export interface IndexHint {
@@ -818,8 +827,7 @@ export interface IndexHintable {
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable
-{
+  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -895,7 +903,7 @@ export interface FindOptions<TAttributes = any>
    */
   lock?:
     | LOCK
-    | { level: LOCK; of: ModelStatic<Model> }
+    | { level: LOCK, of: ModelStatic<Model> }
     | boolean;
 
   /**
@@ -934,12 +942,14 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
+export interface FindByPkOptions<M extends Model> extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+
+export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
 /**
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable
-{
+  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
@@ -967,13 +977,13 @@ export interface CountOptions<TAttributes = any>
 /**
  * Options for Model.count when GROUP BY is used
  */
-export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>
+export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>;
 
 export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
 
 export interface GroupedCountResultItem {
-  [key: string]: unknown // projected attributes
-  count: number // the count for each group
+  [key: string]: unknown; // projected attributes
+  count: number; // the count for each group
 }
 
 /**
@@ -1010,11 +1020,12 @@ export interface Silent {
 /**
  * Options for Model.create method
  */
-export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
+export interface CreateOptions<TAttributes = any>
+  extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
   /**
    * If set, only columns matching those in fields will be saved
    */
-  fields?: (keyof TAttributes)[];
+  fields?: Array<keyof TAttributes>;
 
   /**
    * dialect specific ON CONFLICT DO NOTHING / INSERT IGNORE
@@ -1024,7 +1035,7 @@ export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging,
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 
   /**
    * If false, validations won't be run.
@@ -1042,15 +1053,14 @@ export interface Hookable {
    *
    * @default true
    */
-  hooks?: boolean
+  hooks?: boolean;
 }
 
 /**
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>, CreateOptions<TAttributes>
-{
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes> {
   /**
    * Default values to use if building a new instance
    */
@@ -1061,8 +1071,7 @@ export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TA
  * Options for Model.findOrBuild method
  */
 export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>, BuildOptions
-{
+  extends FindOptions<TAttributes>, BuildOptions {
   /**
    * Default values to use if building a new instance
    */
@@ -1079,12 +1088,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * If none of the specified fields are present on the provided `values` object,
    * an insert will still be attempted, but duplicate key conflicts will be ignored.
    */
-  fields?: (keyof TAttributes)[];
+  fields?: Array<keyof TAttributes>;
 
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 
   /**
    * Run validations before the row is inserted
@@ -1096,7 +1105,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
-   conflictFields?: (keyof TAttributes)[];
+  conflictFields?: Array<keyof TAttributes>;
 }
 
 /**
@@ -1106,7 +1115,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Fields to insert (defaults to all fields)
    */
-  fields?: (keyof TAttributes)[];
+  fields?: Array<keyof TAttributes>;
 
   /**
    * Should each row be subject to validation before it is inserted.
@@ -1135,7 +1144,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
    * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
    */
-  updateOnDuplicate?: (keyof TAttributes)[];
+  updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
    * Include options. See `find` for details
@@ -1145,7 +1154,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
@@ -1231,7 +1240,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fields to update (defaults to all fields)
    */
-  fields?: (keyof TAttributes)[];
+  fields?: Array<keyof TAttributes>;
 
   /**
    * Should each row be subject to validation before it is inserted. The whole insert will fail if one row
@@ -1261,7 +1270,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    *
    * @default false
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 
   /**
    * How many rows to update
@@ -1290,8 +1299,7 @@ export type UpdateValues<M extends Model> = {
  * Options used for Model.aggregate
  */
 export interface AggregateOptions<T extends DataType | unknown, TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Paranoid
-{
+  extends QueryOptions, Filterable<TAttributes>, Paranoid {
   /**
    * The type of the result. If attribute being aggregated is a defined in the Model,
    * the default will be the type of that attribute, otherwise defaults to a plain JavaScript `number`.
@@ -1315,7 +1323,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
@@ -1374,7 +1382,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
    */
-  fields?: (keyof TAttributes)[];
+  fields?: Array<keyof TAttributes>;
 
   /**
    * If false, validations won't be run.
@@ -1390,10 +1398,12 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    */
   omitNull?: boolean;
 
+  association?: boolean;
+
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
@@ -1410,12 +1420,20 @@ export interface ModelValidateOptions {
    * - `{ is: ['^[a-z]+$','i'] }` will only allow letters
    * - `{ is: /^[a-z]+$/i }` also only allows letters
    */
-  is?: string | readonly (string | RegExp)[] | RegExp | { msg: string; args: string | readonly (string | RegExp)[] | RegExp };
+  is?:
+    | string
+    | ReadonlyArray<string | RegExp>
+    | RegExp
+    | { msg: string, args: string | ReadonlyArray<string | RegExp> | RegExp };
 
   /**
    * - `{ not: ['[a-z]','i'] }` will not allow letters
    */
-  not?: string | readonly (string | RegExp)[] | RegExp | { msg: string; args: string | readonly (string | RegExp)[] | RegExp };
+  not?:
+    | string
+    | ReadonlyArray<string | RegExp>
+    | RegExp
+    | { msg: string, args: string | ReadonlyArray<string | RegExp> | RegExp };
 
   /**
    * checks for email format (foo@bar.com)
@@ -1510,62 +1528,62 @@ export interface ModelValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string, args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string, args: ReadonlyArray<readonly any[]> };
 
   /**
    * don't allow specific substrings
    */
-  notContains?: readonly string[] | string | { msg: string; args: readonly string[] | string };
+  notContains?: readonly string[] | string | { msg: string, args: readonly string[] | string };
 
   /**
    * only allow values with length between 2 and 10
    */
-  len?: readonly [number, number] | { msg: string; args: readonly [number, number] };
+  len?: readonly [number, number] | { msg: string, args: readonly [number, number] };
 
   /**
    * only allow uuids
    */
-  isUUID?: number | { msg: string; args: number };
+  isUUID?: number | { msg: string, args: number };
 
   /**
    * only allow date strings
    */
-  isDate?: boolean | { msg: string; args: boolean };
+  isDate?: boolean | { msg: string, args: boolean };
 
   /**
    * only allow date strings after a specific date
    */
-  isAfter?: string | { msg: string; args: string };
+  isAfter?: string | { msg: string, args: string };
 
   /**
    * only allow date strings before a specific date
    */
-  isBefore?: string | { msg: string; args: string };
+  isBefore?: string | { msg: string, args: string };
 
   /**
    * only allow values
    */
-  max?: number | { msg: string; args: readonly [number] };
+  max?: number | { msg: string, args: readonly [number] };
 
   /**
    * only allow values >= 23
    */
-  min?: number | { msg: string; args: readonly [number] };
+  min?: number | { msg: string, args: readonly [number] };
 
   /**
    * only allow arrays
    */
-  isArray?: boolean | { msg: string; args: boolean };
+  isArray?: boolean | { msg: string, args: boolean };
 
   /**
    * check for valid credit card numbers
    */
-  isCreditCard?: boolean | { msg: string; args: boolean };
+  isCreditCard?: boolean | { msg: string, args: boolean };
 
   // TODO: Enforce 'rest' indexes to have type `(value: unknown) => boolean`
   // Blocked by: https://github.com/microsoft/TypeScript/issues/7765
@@ -1658,7 +1676,7 @@ export interface ModelAttributeColumnReferencesOptions {
    *
    * PostgreSQL only
    */
-  deferrable?: Deferrable;
+  deferrable?: Deferrable | Class<Deferrable>;
 }
 
 // TODO: when merging model.d.ts with model.js, make this an enum.
@@ -1680,7 +1698,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: boolean | string | { name: string; msg: string };
+  unique?: boolean | string | { name: string, msg: string };
 
   /**
    * If true, this attribute will be marked as primary key
@@ -1759,9 +1777,17 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * Use {@link Model.setDataValue} to access the underlying values.
    */
   set?(this: M, val: unknown): void;
+
+  /**
+   * This attribute was added by sequelize. Do not use!
+   *
+   * @private
+   * @internal
+   */
+  _autoGenerated?: boolean;
 }
 
-export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions, 'type'> {
+export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type'> {
   /**
    * The name of the attribute (JS side).
    */
@@ -1771,6 +1797,7 @@ export interface BuiltModelAttributeColumOptions<M extends Model = Model> extend
    * Like {@link ModelAttributeColumnOptions.type}, but normalized.
    */
   type: string | AbstractDataType<any>;
+  references?: ModelAttributeColumnReferencesOptions;
 }
 
 /**
@@ -1781,7 +1808,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
    * The description of a database column
    */
   [name in keyof TAttributes]: DataType | ModelAttributeColumnOptions<M>;
-}
+};
 
 /**
  * Possible types for primary keys
@@ -1791,7 +1818,7 @@ export type Identifier = number | bigint | string | Buffer;
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize#define} and {@link Model.init}
+ * Used by {@link Sequelize.define} and {@link Model.init}
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
@@ -1924,10 +1951,12 @@ export interface ModelOptions<M extends Model = Model> {
    */
   tableName?: string;
 
+  // TODO: merge these two together into one using SchemaOptions, or replace with tableName: TableNameWithSchema
   /**
    * The database schema in which this table will be located.
    */
   schema?: string;
+  schemaDelimiter?: string;
 
   /**
    * The name of the database storage engine to use (e.g. MyISAM, InnoDB).
@@ -2011,7 +2040,7 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<InitOptions, 'name'> & {
+export type BuiltModelOptions<M extends Model = Model> = Omit<InitOptions<M>, 'name'> & {
   name: BuiltModelName,
 };
 
@@ -2026,8 +2055,7 @@ export interface AddScopeOptions {
 }
 
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes>
-{
+  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes> {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -2058,14 +2086,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
   /** The name of the database table */
-  public static readonly tableName: string;
+  static readonly tableName: string;
 
   /**
    * The name of the primary key attribute (on the JS side).
    *
    * @deprecated This property doesn't work for composed primary keys. Use {@link Model.primaryKeyAttributes} instead.
    */
-  public static readonly primaryKeyAttribute: string;
+  static readonly primaryKeyAttribute: string;
 
   /**
    * The column name of the primary key.
@@ -2073,19 +2101,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @deprecated don't use this. It doesn't work with composite PKs. It may be removed in the future to reduce duplication.
    *  Use the. Use {@link Model.primaryKeys} instead.
    */
-  public static readonly primaryKeyField: string;
+  static readonly primaryKeyField: string;
 
   /**
    * The name of the primary key attributes (on the JS side).
    */
-  public static readonly primaryKeyAttributes: readonly string[];
+  static readonly primaryKeyAttributes: readonly string[];
 
   /**
    * Like {@link Model.rawAttributes}, but only includes attributes that are part of the Primary Key.
    */
-  public static readonly primaryKeys: { [attribute: string]: BuiltModelAttributeColumOptions };
+  static readonly primaryKeys: { [attribute: string]: BuiltModelAttributeColumOptions };
 
-  public static readonly uniqueKeys: {
+  static readonly uniqueKeys: {
     [indexName: string]: {
       fields: string[],
       msg: string | null,
@@ -2095,22 +2123,23 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
       name: string,
       column: string,
       customIndex: boolean,
-    }
+    },
   };
 
   /**
    * @internal
    */
-  public static readonly fieldRawAttributesMap: {
+  static readonly fieldRawAttributesMap: {
     [columnName: string]: BuiltModelAttributeColumOptions,
   };
 
   /**
    * A mapping of column name to attribute name
+   *
    * @internal
    */
-  public static readonly fieldAttributeMap: {
-    [columnName: string]: string
+  static readonly fieldAttributeMap: {
+    [columnName: string]: string,
   };
 
   /**
@@ -2119,21 +2148,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @internal
    */
-  public static tableAttributes: {
+  static tableAttributes: {
     [attributeName: string]: BuiltModelAttributeColumOptions,
   };
 
   /**
    * An object hash from alias to association object
    */
-  public static readonly associations: {
-    [key: string]: Association;
+  static readonly associations: {
+    [key: string]: Association,
   };
 
   /**
    * The options that the model was initialized with
    */
-  public static readonly options: BuiltModelOptions;
+  static readonly options: BuiltModelOptions;
 
   // TODO [>7]: Remove `rawAttributes` in v8
   /**
@@ -2141,21 +2170,23 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @deprecated use {@link Model.getAttributes} for better typings.
    */
-  public static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumOptions };
+  static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumOptions };
 
   /**
    * Returns the attributes of the model
    */
-  public static getAttributes<M extends Model>(this: ModelStatic<M>): {
+  static getAttributes<M extends Model>(this: ModelStatic<M>): {
     readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
   };
+
+  static getIndexes(): readonly IndexOptions[];
 
   /**
    * Reference to the sequelize instance the model was initialized with.
    *
    * Can be undefined if the Model has not been initialized yet.
    */
-  public static readonly sequelize?: Sequelize;
+  static readonly sequelize?: Sequelize;
 
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.
@@ -2199,7 +2230,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    * @returns the initialized model
    */
-  public static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
+  static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
     this: MS,
     attributes: ModelAttributes<
       M,
@@ -2218,19 +2249,37 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Checks whether an association with this name has already been registered.
    *
    * @param {string} alias
-   * @return {boolean}
+   * @returns {boolean}
    */
+  // TODO: deprecate & rename to 'hasAssociation' to mirror getAssociation.
   static hasAlias(alias: string): boolean;
+
+  /**
+   * Returns the association that matches the name parameter.
+   * Throws if no such association has been defined.
+   *
+   * @param name
+   */
+  static getAssociation(name: string): Association;
 
   /**
    * Returns all associations that have 'target' as their target.
    */
-  static getAssociations<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>): Association<S, T>[];
+  static getAssociations<S extends Model, T extends Model>(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>
+  ): Array<Association<S, T>>;
 
   /**
    * Returns the association for which the target matches the 'target' parameter, and the alias ("as") matches the 'alias' parameter
+   *
+   * Throws if no such association were found.
    */
-  static getAssociationForAlias<S extends Model, T extends Model>(this: ModelStatic<S>, target: ModelStatic<T>, alias: string): Association<S, T> | null;
+  static getAssociationWithModel<S extends Model, T extends Model>(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    alias: string
+  ): Association<S, T>;
 
   /**
    * Remove attribute from model definition.
@@ -2238,21 +2287,34 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param attribute
    */
-  public static removeAttribute(attribute: string): void;
+  static removeAttribute(attribute: string): void;
+
+  /**
+   * Merges new attributes with the existing ones.
+   * Only use if you know what you're doing.
+   *
+   * Warning: Attributes are not replaced, they are merged.
+   * The existing configuration for an attribute takes priority over the new configuration.
+   *
+   * @param newAttributes
+   */
+  static mergeAttributesDefault(
+    newAttributes: { [key: string]: ModelAttributeColumnOptions }
+  ): BuiltModelAttributeColumOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.
    *
    * Works like {@link Sequelize#sync}, but only this model is synchronised.
    */
-  public static sync<M extends Model>(options?: SyncOptions): Promise<M>;
+  static sync<M extends Model>(options?: SyncOptions): Promise<M>;
 
   /**
    * Drop the table represented by this Model
    *
    * @param options
    */
-  public static drop(options?: DropOptions): Promise<void>;
+  static drop(options?: DropOptions): Promise<void>;
 
   /**
    * Returns a copy of this model with the corresponding table located in the specified schema.
@@ -2268,7 +2330,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param schema The name of the schema. Passing a string is equivalent to setting {@link SchemaOptions.schema}.
    */
-  public static withSchema<M extends Model>(
+  static withSchema<M extends Model>(
     this: ModelStatic<M>,
     schema: string | SchemaOptions,
   ): ModelStatic<M>;
@@ -2277,7 +2339,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @deprecated this method has been renamed to {@link Model.withSchema} to emphasise the fact that this method
    *  does not mutate the model and instead returns a new one.
    */
-  public static schema<M extends Model>(
+  static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: string,
     options?: { schemaDelimiter?: string } | string
@@ -2288,10 +2350,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The method will return The name as a string if the model has no schema,
    * or an object with `tableName`, `schema` and `delimiter` properties.
    */
-  public static getTableName(): string | {
-    tableName: string;
-    schema: string;
-    delimiter: string;
+  static getTableName(): string | {
+    tableName: string,
+    schema: string,
+    delimiter: string,
   };
 
   /**
@@ -2307,7 +2369,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns A copy of this model, with the scopes applied.
    */
-  public static withScope<M extends Model>(
+  static withScope<M extends Model>(
     this: ModelStatic<M>,
     scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
   ): ModelStatic<M>;
@@ -2316,17 +2378,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @deprecated this method has been renamed to {@link Model.withScope} to emphasise the fact that
    *  this method does not mutate the model, but returns a new model.
    */
-  public static scope<M extends Model>(
+  static scope<M extends Model>(
     this: ModelStatic<M>,
     scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
   ): ModelStatic<M>;
-
 
   /**
    * @deprecated this method has been renamed to {@link Model.withoutScope} to emphasise the fact that
    *   this method does not mutate the model, and is not the same as {@link Model.withInitialScope}.
    */
-  public static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+  static unscoped<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Returns a model without scope. The default scope is also omitted.
@@ -2335,18 +2396,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
    */
-  public static withoutScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+  static withoutScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Returns the base model, with its initial scope.
    */
-  public static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+  static withInitialScope<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},
    * before any scope or schema was applied.
    */
-  public static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
+  static getInitialModel<M extends Model>(this: ModelStatic<M>): ModelStatic<M>;
 
   /**
    * Add a new scope to the model
@@ -2359,7 +2420,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
-  public static addScope<M extends Model>(
+  static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     scope:
@@ -2388,9 +2449,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns A promise that will resolve with the array containing the results of the SELECT query.
    */
-  public static findAll<M extends Model>(
+  static findAll<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    options?: FindOptions<Attributes<M>>
+    options?: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
+  ): Promise<R[]>;
+  static findAll<M extends Model>(
+    this: ModelStatic<M>,
+    options?: FindOptions<Attributes<M>>,
   ): Promise<M[]>;
 
   /**
@@ -2401,15 +2466,25 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
-  public static findByPk<M extends Model>(
+  static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<Attributes<M>>, 'where'>
+    options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: NonNullFindByPkOptions<M> & { raw: true }
+  ): Promise<R>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: NonNullFindByPkOptions<M>
   ): Promise<M>;
-  public static findByPk<M extends Model>(
+  static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<Attributes<M>>, 'where'>
+    options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
   /**
@@ -2418,11 +2493,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns the first instance corresponding matching the query.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
-  public static findOne<M extends Model>(
+  static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: FindOptions<Attributes<M>> & { raw: true, rejectOnEmpty?: false }
+  ): Promise<R | null>;
+  static findOne<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: NonNullFindOptions<Attributes<M>> & { raw: true }
+  ): Promise<R>;
+  static findOne<M extends Model>(
     this: ModelStatic<M>,
     options: NonNullFindOptions<Attributes<M>>
   ): Promise<M>;
-  public static findOne<M extends Model>(
+  static findOne<M extends Model>(
     this: ModelStatic<M>,
     options?: FindOptions<Attributes<M>>
   ): Promise<M | null>;
@@ -2436,7 +2519,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param attribute The attribute to aggregate over. Can be a field name or `'*'`
    * @param aggregateFunction The function to use for aggregation, e.g. sum, max etc.
    */
-  public static aggregate<T, M extends Model>(
+  static aggregate<T, M extends Model>(
     this: ModelStatic<M>,
     attribute: keyof Attributes<M> | '*',
     aggregateFunction: string,
@@ -2448,7 +2531,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns Returns count for each group and the projected attributes.
    */
-  public static count<M extends Model>(
+  static count<M extends Model>(
     this: ModelStatic<M>,
     options: CountWithOptions<Attributes<M>>
   ): Promise<GroupedCountResultItem[]>;
@@ -2460,7 +2543,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns Returns count for each group and the projected attributes.
    */
-  public static count<M extends Model>(
+  static count<M extends Model>(
     this: ModelStatic<M>,
     options?: Omit<CountOptions<Attributes<M>>, 'group'>
   ): Promise<number>;
@@ -2505,19 +2588,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * });
    * ```
    */
-  public static findAndCountAll<M extends Model>(
+  static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>
-  ): Promise<{ rows: M[]; count: number }>;
-  public static findAndCountAll<M extends Model>(
+  ): Promise<{ rows: M[], count: number }>;
+  static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
     options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>
-  ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
+  ): Promise<{ rows: M[], count: GroupedCountResultItem[] }>;
 
   /**
    * Finds the maximum value of field
    */
-  public static max<T extends DataType | unknown, M extends Model>(
+  static max<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>
@@ -2526,7 +2609,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Finds the minimum value of field
    */
-  public static min<T extends DataType | unknown, M extends Model>(
+  static min<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>
@@ -2535,7 +2618,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Retrieves the sum of field
    */
-  public static sum<T extends DataType | unknown, M extends Model>(
+  static sum<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>
@@ -2548,7 +2631,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param record An object of key value pairs.
    * @returns The created instance.
    */
-  public static build<M extends Model>(
+  static build<M extends Model>(
     this: ModelStatic<M>,
     record?: CreationAttributes<M>,
     options?: BuildOptions
@@ -2560,7 +2643,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param records An array of objects with key value pairs.
    */
-  public static bulkBuild<M extends Model>(
+  static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
     records: ReadonlyArray<CreationAttributes<M>>,
     options?: BuildOptions
@@ -2572,13 +2655,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param record Hash of data values to create new record with
    */
-  public static create<
+  static create<
     M extends Model,
-    O extends CreateOptions<Attributes<M>> = CreateOptions<Attributes<M>>
+    O extends CreateOptions<Attributes<M>> = CreateOptions<Attributes<M>>,
   >(
     this: ModelStatic<M>,
     record?: CreationAttributes<M>,
     options?: O
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive
   ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
   /**
@@ -2587,7 +2671,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * See also {@link Model.findOrCreate} for a version that immediately saves the new entity.
    */
-  public static findOrBuild<M extends Model>(
+  static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrBuildOptions<
       Attributes<M>,
@@ -2609,7 +2693,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * If a transaction is passed, a savepoint will be created instead,
    * and any unique constraint violation will be handled internally.
    */
-  public static findOrCreate<M extends Model>(
+  static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
   ): Promise<[entity: M, created: boolean]>;
@@ -2621,7 +2705,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * The successful result of the promise will be the tuple [instance, initialized].
    */
-  public static findCreateFind<M extends Model>(
+  static findCreateFind<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
   ): Promise<[entity: M, created: boolean]>;
@@ -2648,7 +2732,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *   the second being `true` if it was just created or `false` if it already existed (except on Postgres and SQLite, which
    *   can't detect this and will always return `null` instead of a boolean).
    */
-  public static upsert<M extends Model>(
+  static upsert<M extends Model>(
     this: ModelStatic<M>,
     values: CreationAttributes<M>,
     options?: UpsertOptions<Attributes<M>>
@@ -2669,7 +2753,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param records List of objects (key/value pairs) to create instances from
    */
-  public static bulkCreate<M extends Model>(
+  static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
     records: ReadonlyArray<CreationAttributes<M>>,
     options?: BulkCreateOptions<Attributes<M>>
@@ -2681,7 +2765,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * __Danger__: This will completely empty your table!
    */
-  public static truncate<M extends Model>(
+  static truncate<M extends Model>(
     this: ModelStatic<M>,
     options?: TruncateOptions<Attributes<M>>
   ): Promise<void>;
@@ -2689,9 +2773,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @return The number of destroyed rows
+   * @returns The number of destroyed rows
    */
-  public static destroy<M extends Model>(
+  static destroy<M extends Model>(
     this: ModelStatic<M>,
     options?: DestroyOptions<Attributes<M>>
   ): Promise<number>;
@@ -2702,7 +2786,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
    */
-  public static restore<M extends Model>(
+  static restore<M extends Model>(
     this: ModelStatic<M>,
     options?: RestoreOptions<Attributes<M>>
   ): Promise<void>;
@@ -2714,13 +2798,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * - The first element is always the number of affected rows,
    * - the second element is the list of affected entities (only supported in postgres and mssql with {@link UpdateOptions.returning} true.)
    */
-  public static update<M extends Model>(
+  static update<M extends Model>(
     this: ModelStatic<M>,
     values: UpdateValues<M>,
     options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
-  public static update<M extends Model>(
+  static update<M extends Model>(
     this: ModelStatic<M>,
     values: UpdateValues<M>,
     options: UpdateOptions<Attributes<M>>
@@ -2731,7 +2815,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns a promise that resolves with a mapping of attributes and their types.
    */
-  public static describe(schema?: string, options?: Omit<QueryOptions, 'type'>): Promise<object>;
+  static describe(schema?: string, options?: Omit<QueryOptions, 'type'>): Promise<object>;
 
   /**
    * Increments the value of one or more attributes.
@@ -2760,12 +2844,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @returns an array of affected rows and affected count with `options.returning` true, whenever supported by dialect
    */
-  public static increment<M extends Model>(
+  static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<[affectedRows: M[]]>;
-  public static increment<M extends Model>(
+  static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
@@ -2784,12 +2868,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @since 4.36.0
    */
-  public static decrement<M extends Model>(
+  static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
   ): Promise<M>;
-  public static decrement<M extends Model>(
+  static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
@@ -2801,12 +2885,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static beforeValidate<M extends Model>(
+  static beforeValidate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
-  public static beforeValidate<M extends Model>(
+  static beforeValidate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
@@ -2817,12 +2901,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static afterValidate<M extends Model>(
+  static afterValidate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
-  public static afterValidate<M extends Model>(
+  static afterValidate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
@@ -2833,12 +2917,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with attributes, options
    */
-  public static beforeCreate<M extends Model>(
+  static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeCreate<M extends Model>(
+  static beforeCreate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2849,12 +2933,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with attributes, options
    */
-  public static afterCreate<M extends Model>(
+  static afterCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterCreate<M extends Model>(
+  static afterCreate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2865,12 +2949,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static beforeDestroy<M extends Model>(
+  static beforeDestroy<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
-  public static beforeDestroy<M extends Model>(
+  static beforeDestroy<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
@@ -2881,12 +2965,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static afterDestroy<M extends Model>(
+  static afterDestroy<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
-  public static afterDestroy<M extends Model>(
+  static afterDestroy<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
@@ -2897,12 +2981,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static beforeUpdate<M extends Model>(
+  static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeUpdate<M extends Model>(
+  static beforeUpdate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2913,12 +2997,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static afterUpdate<M extends Model>(
+  static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterUpdate<M extends Model>(
+  static afterUpdate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2929,12 +3013,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static beforeSave<M extends Model>(
+  static beforeSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeSave<M extends Model>(
+  static beforeSave<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2945,12 +3029,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instance, options
    */
-  public static afterSave<M extends Model>(
+  static afterSave<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterSave<M extends Model>(
+  static afterSave<M extends Model>(
     this: ModelStatic<M>,
     fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2961,12 +3045,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instances, options
    */
-  public static beforeBulkCreate<M extends Model>(
+  static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeBulkCreate<M extends Model>(
+  static beforeBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2977,12 +3061,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn A callback function that is called with instances, options
    */
-  public static afterBulkCreate<M extends Model>(
+  static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterBulkCreate<M extends Model>(
+  static afterBulkCreate<M extends Model>(
     this: ModelStatic<M>,
     fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -2993,10 +3077,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeBulkDestroy<M extends Model>(
+  static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn): void;
-  public static beforeBulkDestroy<M extends Model>(
+  static beforeBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3007,11 +3091,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static afterBulkDestroy<M extends Model>(
+  static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterBulkDestroy<M extends Model>(
+  static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3022,11 +3106,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeBulkUpdate<M extends Model>(
+  static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeBulkUpdate<M extends Model>(
+  static beforeBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3037,11 +3121,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static afterBulkUpdate<M extends Model>(
+  static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterBulkUpdate<M extends Model>(
+  static afterBulkUpdate<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3052,11 +3136,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeFind<M extends Model>(
+  static beforeFind<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeFind<M extends Model>(
+  static beforeFind<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3067,11 +3151,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeCount<M extends Model>(
+  static beforeCount<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: CountOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeCount<M extends Model>(
+  static beforeCount<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: CountOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3082,11 +3166,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeFindAfterExpandIncludeAll<M extends Model>(
+  static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeFindAfterExpandIncludeAll<M extends Model>(
+  static beforeFindAfterExpandIncludeAll<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3097,11 +3181,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static beforeFindAfterOptions<M extends Model>(
+  static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
     name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static beforeFindAfterOptions<M extends Model>(
+  static beforeFindAfterOptions<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: FindOptions<Attributes<M>>) => void
   ): HookReturn;
@@ -3112,12 +3196,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param name
    * @param fn   A callback function that is called with instance(s), options
    */
-  public static afterFind<M extends Model>(
+  static afterFind<M extends Model>(
     this: ModelStatic<M>,
     name: string,
     fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
-  public static afterFind<M extends Model>(
+  static afterFind<M extends Model>(
     this: ModelStatic<M>,
     fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
   ): void;
@@ -3127,32 +3211,41 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  public static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
+  static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
+  static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after sequelize.sync call
    *
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  public static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
+  static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
+  static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run before Model.sync call
    *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  public static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
+  static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
+  static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
    * A hook that is run after Model.sync call
    *
    * @param fn   A callback function that is called with options passed to Model.sync
    */
-  public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
+  static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
+  static afterSync(fn: (options: SyncOptions) => HookReturn): void;
+
+  static beforeAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  static beforeAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
+  static afterAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+  static afterAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
+
+  static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
+  static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
 
   /**
    * Creates a 1:1 association between this model (the source) and the provided target.
@@ -3169,9 +3262,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options hasOne association options
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static hasOne<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasOneOptions
-  ): HasOne<M, T>;
+  static hasOne<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOne<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -3188,9 +3284,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options Options for the association
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static belongsTo<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: BelongsToOptions
-  ): BelongsTo<M, T>;
+  static belongsTo<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SKey, TKey>): BelongsTo<S, T, SKey, TKey>;
 
   /**
    * Defines a 1:n association between two models.
@@ -3207,9 +3306,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options Options for the association
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static hasMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options?: HasManyOptions
-  ): HasMany<M, T>;
+  static hasMany<
+    S extends Model,
+    T extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SKey, TKey>): HasMany<S, T, SKey, TKey>;
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -3233,29 +3335,35 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options belongsToMany association options
    * @returns The newly defined association (also available in {@link Model.associations}).
    */
-  public static belongsToMany<M extends Model, T extends Model>(
-    this: ModelStatic<M>, target: ModelStatic<T>, options: BelongsToManyOptions
-  ): BelongsToMany<M, T>;
+  static belongsToMany<
+    S extends Model,
+    T extends Model,
+    ThroughModel extends Model,
+    SKey extends AttributeNames<S>,
+    TKey extends AttributeNames<T>,
+  >(
+    this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
+  ): BelongsToMany<S, T, ThroughModel, SKey, TKey>;
 
   /**
    * @private
    */
-  public static _injectDependentVirtualAttributes(attributes: string[]): string[];
+  static _injectDependentVirtualAttributes(attributes: string[]): string[];
 
   /**
    * @private
    */
-  public static _virtualAttributes: Set<string>;
+  static _virtualAttributes: Set<string>;
 
   /**
    * Returns true if this instance has not yet been persisted to the database
    */
-  public isNewRecord: boolean;
+  isNewRecord: boolean;
 
   /**
    * A reference to the sequelize instance.
    */
-  public sequelize: Sequelize;
+  sequelize: Sequelize;
 
   /**
    * Builds a new model instance.
@@ -3270,7 +3378,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param checkVersion include version attribute in where hash
    */
-  public where(checkVersion?: boolean): WhereOptions;
+  where(checkVersion?: boolean): WhereOptions;
 
   /**
    * Returns the underlying data value
@@ -3280,7 +3388,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param key The name of the attribute to return.
    */
-  public getDataValue<K extends keyof TModelAttributes>(key: K): TModelAttributes[K];
+  getDataValue<K extends keyof TModelAttributes>(key: K): TModelAttributes[K];
 
   /**
    * Updates the underlying data value.
@@ -3290,7 +3398,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param key The name of the attribute to update.
    * @param value The new value for that attribute.
    */
-  public setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
+  setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
 
   /**
    * If no key is given, returns all values of the instance, also invoking virtual getters.
@@ -3301,9 +3409,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options.plain If set to true, included instances will be returned as plain objects
    * @param options.raw  If set to true, field and virtual setters will be ignored
    */
-  public get(options?: { plain?: boolean; clone?: boolean, raw?: boolean }): TModelAttributes;
-  public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean, raw?: boolean }): this[K];
-  public get(key: string, options?: { plain?: boolean; clone?: boolean, raw?: boolean }): unknown;
+  get(options?: { plain?: boolean, clone?: boolean, raw?: boolean }): TModelAttributes;
+  get<K extends keyof this>(key: K, options?: { plain?: boolean, clone?: boolean, raw?: boolean }): this[K];
+  get(key: string, options?: { plain?: boolean, clone?: boolean, raw?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
@@ -3329,14 +3437,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options.raw If set to true, field and virtual setters will be ignored
    * @param options.reset Clear all previously set data values
    */
-  public set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
-  public set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
+  set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
+  set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
   /**
    * Alias for {@link Model.set}.
    */
-  public setAttributes<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
-  public setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): this;
+  setAttributes<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
+  setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
   /**
    * If changed is called with a string it will return a boolean indicating whether the value of that key in
@@ -3348,15 +3456,15 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
-  public changed<K extends keyof this>(key: K): boolean;
-  public changed<K extends keyof this>(key: K, dirty: boolean): void;
-  public changed(): false | string[];
+  changed<K extends keyof this>(key: K): boolean;
+  changed<K extends keyof this>(key: K, dirty: boolean): void;
+  changed(): false | string[];
 
   /**
    * Returns the previous value for key from `_previousDataValues`.
    */
-  public previous(): Partial<TModelAttributes>;
-  public previous<K extends keyof TModelAttributes>(key: K): TModelAttributes[K] | undefined;
+  previous(): Partial<TModelAttributes>;
+  previous<K extends keyof TModelAttributes>(key: K): TModelAttributes[K] | undefined;
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
@@ -3371,7 +3479,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * In other words, if some other model instance (child) was eager loaded with this instance (parent),
    * and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    */
-  public save(options?: SaveOptions<TModelAttributes>): Promise<this>;
+  save(options?: SaveOptions<TModelAttributes>): Promise<this>;
 
   /**
    * Refreshes the current instance in-place, i.e. update the object with current data from the DB and return
@@ -3379,7 +3487,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  public reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
 
   /**
    * Validate the attribute of this instance according to validation rules set in the model definition.
@@ -3387,16 +3495,20 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Emits null if and only if validation successful; otherwise an Error instance containing
    * { field name : [error msgs] } entries.
    */
-  public validate(options?: ValidationOptions): Promise<void>;
+  validate(options?: ValidationOptions): Promise<void>;
 
   /**
    * This is the same as calling {@link Model#set} followed by calling {@link Model#save},
    * but it only saves attributes values passed to it, making it safer.
    */
-  public update<K extends keyof TModelAttributes>(attributeName: K, value: TModelAttributes[K] | Col | Fn | Literal, options?: InstanceUpdateOptions<TModelAttributes>): Promise<this>;
-  public update(
+  update<K extends keyof TModelAttributes>(
+    attributeName: K,
+    value: TModelAttributes[K] | Col | Fn | Literal,
+    options?: InstanceUpdateOptions<TModelAttributes>
+  ): Promise<this>;
+  update(
     attributes: {
-        [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
+      [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
     },
     options?: InstanceUpdateOptions<TModelAttributes>
   ): Promise<this>;
@@ -3405,7 +3517,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Destroys the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroy(options?: InstanceDestroyOptions): Promise<void>;
+  destroy(options?: InstanceDestroyOptions): Promise<void>;
 
   /**
    * Restores the row corresponding to this instance.
@@ -3413,7 +3525,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
    */
-  public restore(options?: InstanceRestoreOptions): Promise<void>;
+  restore(options?: InstanceRestoreOptions): Promise<void>;
 
   /**
    * Increment the value of one or more columns. This is done in the database, which means it does not use
@@ -3435,7 +3547,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If an array is provided, the same is true for each column.
    *               If and object is provided, each column is incremented by the value given.
    */
-  public increment<K extends keyof TModelAttributes>(
+  increment<K extends keyof TModelAttributes>(
     fields: K | readonly K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
@@ -3460,7 +3572,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If an array is provided, the same is true for each column.
    *               If and object is provided, each column is decremented by the value given
    */
-  public decrement<K extends keyof TModelAttributes>(
+  decrement<K extends keyof TModelAttributes>(
     fields: K | readonly K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
@@ -3468,19 +3580,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Check whether all values of this and `other` Instance are the same
    */
-  public equals(other: this): boolean;
+  equals(other: this): boolean;
 
   /**
    * Check if this is equal to one of `others` by calling equals
    */
-  public equalsOneOf(others: readonly this[]): boolean;
+  equalsOneOf(others: readonly this[]): boolean;
 
   /**
    * Convert the instance to a JSON representation. Proxies to calling `get` with no keys. This means get all
    * values gotten from the DB, and apply all custom getters.
    */
-  public toJSON<T extends TModelAttributes>(): T;
-  public toJSON(): object;
+  toJSON<T extends TModelAttributes>(): T;
+  toJSON(): object;
 
   /**
    * Returns true if this instance is "soft deleted".
@@ -3488,16 +3600,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
    */
-  public isSoftDeleted(): boolean;
+  isSoftDeleted(): boolean;
 }
-
-type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
-type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
 
 export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model = Model> = NonConstructor<typeof Model> & { new(): M };
+export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new(): M };
 
 /**
  * Type will be true is T is branded with Brand, false otherwise
@@ -3559,7 +3668,7 @@ export type ForeignKey<T> =
  *
  * - omit: properties to not treat as Attributes.
  */
-type InferAttributesOptions<Excluded, > = { omit?: Excluded };
+type InferAttributesOptions<Excluded > = { omit?: Excluded };
 
 /**
  * Utility type to extract Attributes of a given Model class.
@@ -3614,7 +3723,7 @@ type InferAttributesOptions<Excluded, > = { omit?: Excluded };
  */
 export type InferAttributes<
   M extends Model,
-  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
+  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never },
   > = {
   [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key]
 };
@@ -3658,11 +3767,12 @@ export type CreationOptional<T> =
  */
 export type InferCreationAttributes<
   M extends Model,
-  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never }
-  > = {
-  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: IsBranded<M[Key], typeof CreationAttributeBrand> extends true
-    ? (M[Key] | undefined)
-    : M[Key]
+  Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never },
+> = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]:
+    IsBranded<M[Key], typeof CreationAttributeBrand> extends true
+      ? (M[Key] | undefined)
+      : M[Key]
 };
 
 /**
@@ -3684,7 +3794,7 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
   : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
   // check 'omit' option is provided & exclude those listed in it
   : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-  : Key
+  : Key;
 
 // in v7, we should be able to drop InferCreationAttributes and InferAttributes,
 //  resolving this confusion.
@@ -3714,3 +3824,5 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  * ```
  */
 export type Attributes<M extends Model | Hooks> = M['_attributes'];
+
+export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;

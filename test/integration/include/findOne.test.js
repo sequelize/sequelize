@@ -362,8 +362,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         private: { type: DataTypes.BOOLEAN, defaultValue: false },
       }, { underscored: true });
 
-      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
-      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
+      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', foreignKeyConstraints: false });
+      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', foreignKeyConstraints: false });
 
       await this.sequelize.sync({ force: true });
 

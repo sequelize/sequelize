@@ -1,7 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import { AbstractDialect } from './index.js';
-import {
+import type {
   BuiltModelAttributeColumOptions,
   FindOptions,
   Model,
@@ -10,9 +9,10 @@ import {
   SearchPathable,
   WhereOptions,
 } from '../../model.js';
-import { TableName } from './query-interface.js';
-import { Literal, SequelizeMethod } from '../../utils/index.js';
-import { QueryTypes } from '../../query-types.js';
+import type { QueryTypes } from '../../query-types.js';
+import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { TableName } from './query-interface.js';
+import type { AbstractDialect } from './index.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
@@ -23,7 +23,7 @@ type EscapeOptions = ParameterOptions & {
   /**
    * Set to true if the value to escape is in a list (e.g. used inside of Op.any or Op.all).
    */
-  isList?: boolean
+  isList?: boolean,
 };
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
@@ -37,7 +37,7 @@ type InsertOptions = ParameterOptions & SearchPathable & {
   updateOnDuplicate?: string[],
   ignoreDuplicates?: boolean,
   upsertKeys?: string[],
-  returning?: boolean | Array<string>,
+  returning?: boolean | string[],
 };
 
 type BulkInsertOptions = ParameterOptions & {
@@ -46,7 +46,7 @@ type BulkInsertOptions = ParameterOptions & {
   updateOnDuplicate?: string[],
   ignoreDuplicates?: boolean,
   upsertKeys?: string[],
-  returning?: boolean | Array<string>,
+  returning?: boolean | string[],
 };
 
 type UpdateOptions = ParameterOptions & {
@@ -54,11 +54,11 @@ type UpdateOptions = ParameterOptions & {
 };
 
 type DeleteOptions = ParameterOptions & {
-  limit?: number | Literal | null | undefined;
+  limit?: number | Literal | null | undefined,
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {
-  returning?: boolean | Array<string>,
+  returning?: boolean | string[],
 };
 
 export type WhereItemsQueryOptions = ParameterOptions & {
@@ -85,7 +85,13 @@ export class AbstractQueryGenerator {
   escape(value: unknown, field?: BuiltModelAttributeColumOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
-  handleSequelizeMethod(smth: SequelizeMethod, tableName?: TableName, factory?: ModelStatic, options?: HandleSequelizeMethodOptions, prepend?: boolean): string;
+  handleSequelizeMethod(
+    smth: SequelizeMethod,
+    tableName?: TableName,
+    factory?: ModelStatic,
+    options?: HandleSequelizeMethodOptions,
+    prepend?: boolean,
+  ): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
@@ -93,10 +99,10 @@ export class AbstractQueryGenerator {
     valueHash: object,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
     options?: InsertOptions
-  ): { query: string, bind?: Array<unknown> };
+  ): { query: string, bind?: unknown[] };
   bulkInsertQuery(
     tableName: TableName,
-    newEntries: Array<object>,
+    newEntries: object[],
     options?: BulkInsertOptions,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions }
   ): string;
@@ -107,7 +113,7 @@ export class AbstractQueryGenerator {
     where: WhereOptions,
     options?: UpdateOptions,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
-  ): { query: string, bind?: Array<unknown> };
+  ): { query: string, bind?: unknown[] };
 
   deleteQuery(
     tableName: TableName,
@@ -125,7 +131,7 @@ export class AbstractQueryGenerator {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  dropSchema(tableName: TableName): string | { query: string, bind?: Array<unknown> };
+  dropSchema(tableName: TableName): string | { query: string, bind?: unknown[] };
 
   /**
    * Creates a function that can be used to collect bind parameters.

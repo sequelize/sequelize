@@ -1,9 +1,7 @@
-import { Connection } from './connection-manager';
-import { QueryTypes } from '../../query-types';
-import { Model, ModelStatic, IncludeOptions } from '../../model';
-import { Sequelize } from '../../sequelize';
-
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
+import type { Model, ModelStatic, IncludeOptions } from '../../model';
+import type { QueryTypes } from '../../query-types';
+import type { Sequelize } from '../../sequelize';
+import type { Connection } from './connection-manager';
 
 export interface AbstractQueryGroupJoinDataOptions {
   checkExisting: boolean;
@@ -45,8 +43,6 @@ export interface AbstractQueryFormatBindOptions {
   skipValueReplace: boolean;
 }
 
-type replacementFuncType = ((match: string, key: string, values: unknown[], timeZone?: string, dialect?: string, options?: AbstractQueryFormatBindOptions) => undefined | string);
-
 /**
 * An abstract class that Sequelize uses to add query support for a dialect.
 *
@@ -55,6 +51,7 @@ type replacementFuncType = ((match: string, key: string, values: unknown[], time
 export class AbstractQuery {
   /**
    * The SQL being executed by this Query.
+   *
    * @type {string}
    */
   sql: string;
@@ -62,7 +59,7 @@ export class AbstractQuery {
   /**
    * Returns a unique identifier assigned to a query internally by Sequelize.
    */
-  public uuid: unknown;
+  uuid: unknown;
 
   /**
    * A Sequelize connection instance.
@@ -70,7 +67,7 @@ export class AbstractQuery {
    * @type {Connection}
    * @memberof AbstractQuery
    */
-  public connection: Connection;
+  connection: Connection;
 
   /**
    * If provided, returns the model instance.
@@ -78,7 +75,7 @@ export class AbstractQuery {
    * @type {Model}
    * @memberof AbstractQuery
    */
-  public instance: Model;
+  instance: Model;
 
   /**
    * Model type definition.
@@ -86,19 +83,19 @@ export class AbstractQuery {
    * @type {ModelStatic}
    * @memberof AbstractQuery
    */
-  public model: ModelStatic;
+  model: ModelStatic;
 
   /**
    * Returns the current sequelize instance.
    */
-  public sequelize: Sequelize;
+  sequelize: Sequelize;
 
   /**
    *
    * @type {AbstractQueryOptions}
    * @memberof AbstractQuery
    */
-  public options: AbstractQueryOptions;
+  options: AbstractQueryOptions;
 
   constructor(connection: Connection, sequelize: Sequelize, options?: AbstractQueryOptions);
 
@@ -111,7 +108,7 @@ export class AbstractQuery {
    *
    * @private
    */
-  private run(): Error
+  private run(): Error;
 
   /**
    * Check the logging option of the instance and print deprecation warnings.
@@ -143,28 +140,28 @@ export class AbstractQuery {
    *
    * @returns {boolean}
    */
-  public isRawQuery(): boolean;
+  isRawQuery(): boolean;
 
   /**
    * Checks if the query type is VERSION
    *
    * @returns {boolean}
    */
-  public isVersionQuery(): boolean;
+  isVersionQuery(): boolean;
 
   /**
    * Checks if the query type is UPSERT
    *
    * @returns {boolean}
    */
-  public isUpsertQuery(): boolean;
+  isUpsertQuery(): boolean;
 
   /**
    * Checks if the query type is INSERT
    *
    * @returns {boolean}
    */
-  public isInsertQuery(results?: unknown[], metaData?: unknown): boolean;
+  isInsertQuery(results?: unknown[], metaData?: unknown): boolean;
 
   /**
    * Sets auto increment field values (if applicable).
@@ -173,100 +170,95 @@ export class AbstractQuery {
    * @param metaData {object}
    * @returns {boolean}
    */
-  public handleInsertQuery(results?: unknown[], metaData?: unknown): void;
+  handleInsertQuery(results?: unknown[], metaData?: unknown): void;
 
   /**
    * Checks if the query type is SHOWTABLES
    *
    * @returns {boolean}
    */
-  public isShowTablesQuery(): boolean;
+  isShowTablesQuery(): boolean;
 
   /**
    * Flattens and plucks values from results.
-   *
-   * @params {Array}
-   * @returns {Array}
    */
-  public handleShowTablesQuery(results: unknown[]): unknown[];
+  handleShowTablesQuery(results: unknown[]): unknown[];
 
   /**
    * Checks if the query type is SHOWINDEXES
    *
    * @returns {boolean}
    */
-  public isShowIndexesQuery(): boolean;
+  isShowIndexesQuery(): boolean;
 
   /**
    * Checks if the query type is SHOWCONSTRAINTS
    *
    * @returns {boolean}
    */
-  public isShowConstraintsQuery(): boolean;
+  isShowConstraintsQuery(): boolean;
 
   /**
    * Checks if the query type is DESCRIBE
    *
    * @returns {boolean}
    */
-  public isDescribeQuery(): boolean;
+  isDescribeQuery(): boolean;
 
   /**
    * Checks if the query type is SELECT
    *
    * @returns {boolean}
    */
-  public isSelectQuery(): boolean;
+  isSelectQuery(): boolean;
 
   /**
    * Checks if the query type is BULKUPDATE
    *
    * @returns {boolean}
    */
-  public isBulkUpdateQuery(): boolean;
+  isBulkUpdateQuery(): boolean;
 
   /**
    * Checks if the query type is BULKDELETE
    *
    * @returns {boolean}
    */
-  public isBulkDeleteQuery(): boolean;
+  isBulkDeleteQuery(): boolean;
 
   /**
    * Checks if the query type is FOREIGNKEYS
    *
    * @returns {boolean}
    */
-  public isForeignKeysQuery(): boolean;
+  isForeignKeysQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE
    *
    * @returns {boolean}
    */
-  public isUpdateQuery(): boolean;
+  isUpdateQuery(): boolean;
 
   /**
    * Maps raw fields to attribute names (if applicable).
    *
-   * @params {Model[]} results from a select query.
-   * @returns {Model} the first model instance within the select.
+   * @param results from a select query.
+   * @returns the first model instance within the select.
    */
-  public handleSelectQuery(results: Model[]): Model;
+  handleSelectQuery(results: Model[]): Model;
 
   /**
    * Checks if the query starts with 'show' or 'describe'
-   *
-   * @returns {boolean}
    */
-  public isShowOrDescribeQuery(): boolean;
+  isShowOrDescribeQuery(): boolean;
 
   /**
    * Checks if the query starts with 'call'
    *
    * @returns {boolean}
    */
-  public isCallQuery(): boolean;
+  isCallQuery(): boolean;
 
   /**
    * @param {string} sql
@@ -318,5 +310,9 @@ export class AbstractQuery {
    * @param {object} options
    * @private
    */
-  static _groupJoinData(rows: unknown[], includeOptions: IncludeOptions, options: AbstractQueryGroupJoinDataOptions): unknown[];
+  static _groupJoinData(
+    rows: unknown[],
+    includeOptions: IncludeOptions,
+    options: AbstractQueryGroupJoinDataOptions,
+  ): unknown[];
 }

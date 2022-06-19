@@ -41,7 +41,7 @@ export interface StringifyOptions {
   dialect: AbstractDialect;
   escape(value: unknown): string;
   operation?: string;
-  timezone?: string;
+  timezone?: string | undefined;
   field?: BuiltModelAttributeColumOptions;
 }
 
@@ -353,7 +353,7 @@ const validTextLengths = ['tiny', 'medium', 'long'];
 export type TextLength = 'tiny' | 'medium' | 'long';
 
 export interface TextOptions {
-  length?: TextLength;
+  length?: TextLength | undefined;
 }
 
 /**
@@ -430,22 +430,22 @@ export interface NumberOptions {
   /**
    * length of type, like `INT(4)`
    */
-  length?: number;
+  length?: number | undefined;
 
   /**
    * number of decimal points, used with length `FLOAT(5, 4)`
    */
-  decimals?: number;
+  decimals?: number | undefined;
 
   /**
    * Is zero filled?
    */
-  zerofill?: boolean;
+  zerofill?: boolean | undefined;
 
   /**
    * Is unsigned?
    */
-  unsigned?: boolean;
+  unsigned?: boolean | undefined;
 }
 
 type AcceptedNumber =
@@ -702,8 +702,8 @@ export class DOUBLE extends FLOAT {
 }
 
 export interface DecimalOptions extends NumberOptions {
-  scale?: number;
-  precision?: number;
+  scale?: number | undefined;
+  precision?: number | undefined;
 }
 
 /**
@@ -850,7 +850,7 @@ export interface DateOptions {
   /**
    * The precision of the date.
    */
-  length?: string | number;
+  length?: string | number | undefined;
 }
 
 type RawDate = Date | string | number;
@@ -926,7 +926,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return false;
   }
 
-  private _applyTimezone(date: AcceptedDate, options: { timezone?: string }) {
+  private _applyTimezone(date: AcceptedDate, options: { timezone?: string | undefined }) {
     if (options.timezone) {
       if (isValidTimeZone(options.timezone)) {
         return dayjs(date).tz(options.timezone);
@@ -1051,7 +1051,7 @@ export type BlobLength = 'tiny' | 'medium' | 'long';
 
 export interface BlobOptions {
   // TODO: must also allow BLOB(255), BLOB(16M) in db2/ibmi
-  length?: BlobLength;
+  length?: BlobLength | undefined;
 }
 
 /**
@@ -1268,8 +1268,8 @@ export class UUIDV4 extends AbstractDataType<string> {
 export class VIRTUAL<T> extends AbstractDataType<T> {
   static readonly [kDataTypeIdentifier]: string = 'VIRTUAL';
 
-  returnType?: AbstractDataType<T>;
-  fields?: string[];
+  returnType: AbstractDataType<T> | undefined;
+  fields: string[] | undefined;
 
   /**
    * @param [ReturnType] return type for virtual type
@@ -1481,8 +1481,8 @@ export type GeoJson =
   | { type: 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection' };
 
 export interface GeometryOptions {
-  type?: GeometryType;
-  srid?: number;
+  type?: GeometryType | undefined;
+  srid?: number | undefined;
 }
 
 /**

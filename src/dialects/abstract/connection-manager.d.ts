@@ -15,7 +15,7 @@ export interface GetConnectionOptions {
 }
 
 export type Connection = {
-  uuid: string | undefined
+  uuid: string | undefined,
 };
 
 export class ConnectionManager {

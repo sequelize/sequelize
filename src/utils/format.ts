@@ -1,6 +1,14 @@
+import assert from 'assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
+import type {
+  Model,
+  ModelStatic,
+  WhereOptions,
+  ModelAttributeColumnOptions,
+  Attributes,
+  BuiltModelAttributeColumOptions,
+} from '..';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
@@ -236,4 +244,12 @@ export function removeNullishValuesFromHash(
   result = _hash;
 
   return result;
+}
+
+export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+  assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
+
+  // field is the column name alias
+  // if no alias is set, fieldName (the JS name) will be used instead.
+  return attribute.field || attribute.fieldName;
 }

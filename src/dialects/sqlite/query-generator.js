@@ -60,13 +60,26 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     let attrStr = attrArray.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
-        if (columns.customIndex) {
-          attrStr += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
-        }
-      });
-    }
+    // sqlite has a bug where using CONSTRAINT constraint_name UNIQUE during CREATE TABLE
+    //  does not respect the provided constraint name
+    //  and uses sqlite_autoindex_ as the name of the constraint instead.
+    //  CREATE UNIQUE INDEX does not have this issue, so we're using that instead
+    //
+    // if (options.uniqueKeys) {
+    //   _.each(options.uniqueKeys, (columns, indexName) => {
+    //     if (columns.customIndex) {
+    //       if (typeof indexName !== 'string') {
+    //         indexName = Utils.generateIndexName(tableName, columns);
+    //       }
+    //
+    //       attrStr += `, CONSTRAINT ${
+    //         this.quoteIdentifier(indexName)
+    //       } UNIQUE (${
+    //         columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+    //       })`;
+    //     }
+    //   });
+    // }
 
     if (pkString.length > 0) {
       attrStr += `, PRIMARY KEY (${pkString})`;
@@ -276,7 +289,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       if (_.isObject(dataType)) {
         let sql = dataType.type.toString();
 
-        if (Object.prototype.hasOwnProperty.call(dataType, 'allowNull') && !dataType.allowNull) {
+        if (dataType.allowNull === false) {
           sql += ' NOT NULL';
         }
 
@@ -480,12 +493,16 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {string} tableName  The name of the table.
+   * @param  {TableName} tableName  The name of the table.
    * @returns {string}            The generated sql query.
    * @private
    */
   getForeignKeysQuery(tableName) {
     return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+  }
+
+  tableExistsQuery(tableName) {
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
   }
 
   /**

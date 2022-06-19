@@ -1,5 +1,7 @@
 'use strict';
 
+import { Deferrable } from '../../deferrable';
+
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
 const { QueryInterface } = require('../abstract/query-interface');
@@ -160,7 +162,16 @@ export class PostgresQueryInterface extends QueryInterface {
     const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
     const result = await this.sequelize.queryRaw(query, queryOptions);
 
-    return result.map(Utils.camelizeObjectKeys);
+    return result.map(fkMeta => {
+      const { initiallyDeferred, isDeferrable, ...remaining } = Utils.camelizeObjectKeys(fkMeta);
+
+      return {
+        ...remaining,
+        deferrable: isDeferrable === 'NO' ? Deferrable.NOT
+          : initiallyDeferred === 'NO' ? Deferrable.INITIALLY_IMMEDIATE
+          : Deferrable.INITIALLY_DEFERRED,
+      };
+    });
   }
 
   /**

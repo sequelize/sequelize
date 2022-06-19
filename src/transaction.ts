@@ -1,4 +1,5 @@
 import assert from 'assert';
+import type { Class } from 'type-fest';
 import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from './index.js';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
@@ -408,7 +409,7 @@ export interface TransactionOptions extends Logging {
   autocommit?: boolean;
   isolationLevel?: ISOLATION_LEVELS;
   type?: TRANSACTION_TYPES;
-  deferrable?: string | Deferrable;
+  deferrable?: string | Deferrable | Class<Deferrable>;
   /**
    * Parent transaction.
    */
