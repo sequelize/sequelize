@@ -1,4 +1,4 @@
-import {
+import type {
   InferAttributes,
   BelongsTo,
   BelongsToCreateAssociationMixin,
@@ -6,13 +6,17 @@ import {
   BelongsToSetAssociationMixin,
   InferCreationAttributes,
   CreationOptional,
-  DataTypes,
   FindOptions,
-  Model,
   ModelStatic,
-  Op
+} from '@sequelize/core';
+import {
+  DataTypes,
+  Model,
+  Op,
 } from '@sequelize/core';
 import { sequelize } from '../connection';
+import { UserGroup } from './user-group';
+import { UserPost } from './user-post';
 
 type NonUserAttributes = 'group';
 
@@ -20,8 +24,8 @@ export class User extends Model<
   InferAttributes<User, { omit: NonUserAttributes }>,
   InferCreationAttributes<User, { omit: NonUserAttributes }>
 > {
-  public static associations: {
-    group: BelongsTo<User, UserGroup>;
+  static associations: {
+    group: BelongsTo<User, UserGroup>,
   };
 
   declare id: CreationOptional<number>;
@@ -44,7 +48,7 @@ User.init(
   {
     id: {
       type: DataTypes.NUMBER,
-      primaryKey: true
+      primaryKey: true,
     },
     firstName: {
       type: DataTypes.STRING,
@@ -61,33 +65,33 @@ User.init(
     getterMethods: {
       a() {
         return 1;
-      }
+      },
     },
     setterMethods: {
       b(val: string) {
         this.username = val;
-      }
+      },
     },
     scopes: {
       custom(a: number) {
         return {
           where: {
-            firstName: a
-          }
+            firstName: a,
+          },
         };
       },
       custom2() {
         return {};
-      }
+      },
     },
     indexes: [{
       fields: ['firstName'],
       using: 'BTREE',
       name: 'firstNameIdx',
-      concurrently: true
+      concurrently: true,
     }],
-    sequelize
-  }
+    sequelize,
+  },
 );
 
 User.afterSync(() => {
@@ -95,45 +99,38 @@ User.afterSync(() => {
     fields: ['lastName'],
     using: 'BTREE',
     name: 'lastNameIdx',
-    concurrently: true
+    concurrently: true,
   });
 });
 
 // Hooks
 User.afterFind((users, options) => {
-  console.log('found');
+  console.debug('found');
 });
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.addHook('beforeFind', 'test', (options: FindOptions<InferAttributes<User>>) => {
-  return undefined;
-});
+User.addHook('beforeFind', 'test', (options: FindOptions<InferAttributes<User>>) => {});
 
 User.addHook('afterDestroy', async (instance, options) => {
   // `options` from `afterDestroy` should be passable to `sequelize.transaction`
-  await instance.sequelize.transaction(options, async () => undefined);
+  await instance.sequelize.transaction(options, async () => {});
 });
 
 // Model#addScope
 User.addScope('withoutLastName', {
   where: {
     lastName: {
-      [Op.is]: null
-    }
-  }
+      [Op.is]: null,
+    },
+  },
 });
 
 User.addScope(
   'withFirstName',
   (firstName: string) => ({
-    where: { firstName }
-  })
+    where: { firstName },
+  }),
 );
-
-// associate
-// it is important to import _after_ the model above is already exported so the circular reference works.
-import { UserGroup } from './UserGroup';
-import { UserPost } from './UserPost';
 
 // associate with a class-based model
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
@@ -142,7 +139,7 @@ User.hasMany(UserPost, { as: 'posts', foreignKey: 'userId' });
 UserPost.belongsTo(User, {
   foreignKey: 'userId',
   targetKey: 'id',
-  as: 'user'
+  as: 'user',
 });
 
 // associations refer to their Model
@@ -155,7 +152,7 @@ User.findOne({ include: [{ model: UserPost }] });
 
 User.scope([
   'custom2',
-  { method: ['custom', 32] }
+  { method: ['custom', 32] },
 ]);
 
 const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });

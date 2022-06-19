@@ -158,11 +158,8 @@ module.exports = {
       'jsdoc/valid-types': 'off',
       'jsdoc/newline-after-description': 'off',
       'jsdoc/check-tag-names': 'off',
-    },
-  }, {
-    // Enable test-specific rules (perf)
-    files: ['test/**/*'],
-    rules: {
+
+      // Enable test-specific rules (perf)
       'mocha/no-exclusive-tests': 'error',
       'mocha/no-skipped-tests': 'warn',
 
@@ -180,9 +177,22 @@ module.exports = {
       project: ['./test/tsconfig.json'],
     },
   }, {
+    files: ['test/types/**/*'],
+    rules: {
+      // This code is never executed, it's typing only, so these rules make no sense:
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      'no-console': 'off',
+    },
+  }, {
     files: ['**/tsconfig.json'],
     rules: {
       'json/*': ['error', { allowComments: true }],
+    },
+  }, {
+    files: ['dev/**/*'],
+    parserOptions: {
+      project: ['./dev/tsconfig.json'],
     },
   }],
   settings: {
@@ -205,14 +215,9 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-  // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
   ignorePatterns: [
     'lib/**/*',
     'types/**/*',
-    'test/types/**/*',
-    'src/**/*.d.ts',
-    'dev/**/*',
-    '!dev/update-authors.js',
     '.typedoc-build',
   ],
   env: {

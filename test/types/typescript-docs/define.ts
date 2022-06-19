@@ -1,16 +1,17 @@
-import { Sequelize, Model, DataTypes, CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import type { Model, CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { Sequelize, DataTypes } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
 
-interface UserModel extends Model<InferAttributes<UserModel>, InferCreationAttributes<UserModel>> {
+interface IUserModel extends Model<InferAttributes<IUserModel>, InferCreationAttributes<IUserModel>> {
   // Some fields are optional when calling UserModel.create() or UserModel.build()
   id: CreationOptional<number>;
   name: string;
 }
 
-const UserModel = sequelize.define<UserModel>('User', {
+const UserModel = sequelize.define<IUserModel>('User', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,

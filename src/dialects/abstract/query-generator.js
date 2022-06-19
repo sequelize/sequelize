@@ -613,18 +613,14 @@ export class AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
+    const escapedTableName = typeof tableName === 'string' ? this.quoteIdentifiers(tableName) : this.quoteTable(tableName);
 
     const concurrently = this._dialect.supports.index.concurrently && options.concurrently ? 'CONCURRENTLY' : undefined;
     let ind;
     if (this._dialect.supports.indexViaAlter) {
       ind = [
         'ALTER TABLE',
-        tableName,
+        escapedTableName,
         concurrently,
         'ADD',
       ];
@@ -632,13 +628,24 @@ export class AbstractQueryGenerator {
       ind = ['CREATE'];
     }
 
+    // DB2 incorrectly scopes the index if we don't specify the schema name,
+    // which will cause it to error if another schema contains a table that uses an index with an identical name
+    const escapedIndexName = tableName.schema && this.dialect === 'db2'
+      // 'quoteTable' isn't the best name: it quotes any identifier.
+      // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+      ? this.quoteTable({
+        schema: tableName.schema,
+        tableName: options.name,
+      })
+      : this.quoteIdentifiers(options.name);
+
     ind = ind.concat(
       options.unique ? 'UNIQUE' : '',
       options.type, 'INDEX',
       !this._dialect.supports.indexViaAlter ? concurrently : undefined,
-      this.quoteIdentifiers(options.name),
+      escapedIndexName,
       this._dialect.supports.index.using === 1 && options.using ? `USING ${options.using}` : '',
-      !this._dialect.supports.indexViaAlter ? `ON ${tableName}` : undefined,
+      !this._dialect.supports.indexViaAlter ? `ON ${escapedTableName}` : undefined,
       this._dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
       `(${fieldsSql.join(', ')})`,
       this._dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
@@ -1920,6 +1927,13 @@ export class AbstractQueryGenerator {
     let targetJoinOn;
     let throughWhere;
     let targetWhere;
+
+    if (this.options.minifyAliases && throughAs.length > 63) {
+      topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
+      if (includeAs.internalAs.length > 63) {
+        topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
+      }
+    }
 
     if (topLevelInfo.options.includeIgnoreAttributes !== false) {
       // Through includes are always hasMany, so we need to add the attributes to the mainAttributes no matter what (Real join will never be executed in subquery)

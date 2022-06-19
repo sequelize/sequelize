@@ -38,6 +38,9 @@ async function doStuffWithUserModel() {
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
   const foundUser = await User.findOne({ where: { name: 'Johnny' } });
-  if (foundUser === null) return;
+  if (foundUser === null) {
+    return;
+  }
+
   console.log(foundUser.name);
 }

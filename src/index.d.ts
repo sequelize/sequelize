@@ -1,4 +1,5 @@
 import DataTypes = require('./data-types');
+
 export { DataTypes };
 
 export * as Utils from './utils';
@@ -19,7 +20,7 @@ export * from './sequelize';
 export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
-export { Validator } from './utils/validator-extras';
+export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
 
 /**

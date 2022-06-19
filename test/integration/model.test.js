@@ -2145,7 +2145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const expectedLengths = {
         mssql: 2,
         postgres: 2,
-        db2: 10,
+        db2: 2,
         mariadb: 3,
         mysql: 1,
         sqlite: 1,
@@ -2425,45 +2425,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Post.belongsTo(this.Author);
 
       // The posts table gets dropped in the before filter.
-      await Post.sync({
-        logging: _.once(sql => {
-          if (dialect === 'postgres') {
-            expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-          } else if (['mysql', 'mariadb'].includes(dialect)) {
-            expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
-          } else {
-            switch (dialect) {
-              case 'db2': {
-                expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
+      await Post.sync();
 
-                break;
-              }
+      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
 
-              case 'ibmi': {
-                expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-
-                break;
-              }
-
-              case 'mssql': {
-                expect(sql).to.match(/FOREIGN KEY \(\[authorId]\) REFERENCES \[authors] \(\[id]\)/);
-
-                break;
-              }
-
-              case 'sqlite': {
-                expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
-
-                break;
-              }
-
-              default: {
-                throw new Error('Undefined dialect!');
-              }
-            }
-          }
-        }),
-      });
+      expect(foreignKeys.length).to.eq(1);
+      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].referencedTableName).to.eq('authors');
+      expect(foreignKeys[0].referencedColumnName).to.eq('id');
     });
 
     it('uses a table name as a string and references the author table', async function () {
@@ -2475,45 +2444,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Post.belongsTo(this.Author);
 
       // The posts table gets dropped in the before filter.
-      await Post.sync({
-        logging: _.once(sql => {
-          if (dialect === 'postgres') {
-            expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-          } else if (['mysql', 'mariadb'].includes(dialect)) {
-            expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
-          } else {
-            switch (dialect) {
-              case 'db2': {
-                expect(sql).to.match(/FOREIGN KEY \("authorId"\) REFERENCES "authors" \("id"\)/);
+      await Post.sync();
 
-                break;
-              }
+      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
 
-              case 'ibmi': {
-                expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-
-                break;
-              }
-
-              case 'sqlite': {
-                expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
-
-                break;
-              }
-
-              case 'mssql': {
-                expect(sql).to.match(/FOREIGN KEY \(\[authorId]\) REFERENCES \[authors] \(\[id]\)/);
-
-                break;
-              }
-
-              default: {
-                throw new Error('Undefined dialect!');
-              }
-            }
-          }
-        }),
-      });
+      expect(foreignKeys.length).to.eq(1);
+      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].referencedTableName).to.eq('authors');
+      expect(foreignKeys[0].referencedColumnName).to.eq('id');
     });
 
     it('emits an error event as the referenced table name is invalid', async function () {

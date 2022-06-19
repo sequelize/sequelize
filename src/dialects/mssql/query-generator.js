@@ -233,6 +233,13 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
   }
 
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    const schemaName = table.schema || 'dbo';
+
+    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
+  }
+
   dropTableQuery(tableName) {
     const quoteTbl = this.quoteTable(tableName);
 
@@ -631,7 +638,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
 
       if (attribute.references.key) {

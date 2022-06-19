@@ -138,6 +138,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
   }
 
+  tableExistsQuery(tableName) {
+    const table = tableName.tableName || tableName;
+    const schema = tableName.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
+  }
+
   describeTableQuery(tableName, schema) {
     schema = schema || this.options.schema || 'public';
 
@@ -537,24 +544,26 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       let referencesKey;
 
-      if (attribute.references.key) {
-        referencesKey = this.quoteIdentifiers(attribute.references.key);
-      } else {
-        referencesKey = this.quoteIdentifier('id');
-      }
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
 
-      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-      if (attribute.onDelete) {
-        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
 
-      if (attribute.onUpdate) {
-        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
 
-      if (attribute.references.deferrable) {
-        sql += ` ${attribute.references.deferrable.toString(this)}`;
+        if (attribute.references.deferrable) {
+          sql += ` ${attribute.references.deferrable.toString(this)}`;
+        }
       }
     }
 
@@ -899,6 +908,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'tc.table_name as table_name,'
       + 'tc.table_schema as table_schema,'
       + 'tc.table_catalog as table_catalog,'
+      + 'tc.initially_deferred as initially_deferred,'
+      + 'tc.is_deferrable as is_deferrable,'
       + 'kcu.column_name as column_name,'
       + 'ccu.table_schema  AS referenced_table_schema,'
       + 'ccu.table_catalog  AS referenced_table_catalog,'
