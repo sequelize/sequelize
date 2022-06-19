@@ -1,6 +1,6 @@
-import { expectTypeOf } from 'expect-type'
-import { Attributes, FindByPkOptions } from '@sequelize/core';
-import { User } from './models/User';
+import type { Attributes, FindByPkOptions } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
+import { User } from './models/user';
 
 (async () => {
   expectTypeOf(await User.findByPk(Buffer.from('asdf'))).toEqualTypeOf<User | null>();
@@ -8,19 +8,19 @@ import { User } from './models/User';
   // rejectOnEmpty
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: undefined
+    rejectOnEmpty: undefined,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: false
+    rejectOnEmpty: false,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: true
+    rejectOnEmpty: true,
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
-    rejectOnEmpty: new Error('')
+    rejectOnEmpty: new Error('error'),
   })).toEqualTypeOf<User>();
 
   // raw
@@ -41,12 +41,12 @@ import { User } from './models/User';
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: false,
-    rejectOnEmpty: false
+    rejectOnEmpty: false,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: false,
-    rejectOnEmpty: true
+    rejectOnEmpty: true,
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
@@ -71,12 +71,12 @@ import { User } from './models/User';
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: undefined,
-    rejectOnEmpty: false
+    rejectOnEmpty: false,
   })).toEqualTypeOf<User | null>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {
     raw: undefined,
-    rejectOnEmpty: true
+    rejectOnEmpty: true,
   })).toEqualTypeOf<User>();
 
   expectTypeOf(await User.findByPk(Buffer.from('asdf'), {

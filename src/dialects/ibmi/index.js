@@ -50,6 +50,10 @@ export class IBMiDialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  static getDefaultPort() {
+    return 25_000;
+  }
 }
 
 IBMiDialect.prototype.defaultVersion = '7.3.0';

@@ -44,6 +44,10 @@ export class Db2Dialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 Db2Dialect.prototype.defaultVersion = '1.0.0'; // Db2 supported version comes here

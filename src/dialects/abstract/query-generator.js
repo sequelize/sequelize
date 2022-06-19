@@ -52,7 +52,7 @@ export class AbstractQueryGenerator {
     tableName = tableName || {};
 
     return {
-      schema: tableName.schema || options.schema || 'public',
+      schema: tableName.schema || options.schema || this.options.schema || 'public',
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.',
     };
@@ -1927,6 +1927,13 @@ export class AbstractQueryGenerator {
     let targetJoinOn;
     let throughWhere;
     let targetWhere;
+
+    if (this.options.minifyAliases && throughAs.length > 63) {
+      topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
+      if (includeAs.internalAs.length > 63) {
+        topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
+      }
+    }
 
     if (topLevelInfo.options.includeIgnoreAttributes !== false) {
       // Through includes are always hasMany, so we need to add the attributes to the mainAttributes no matter what (Real join will never be executed in subquery)

@@ -6,7 +6,7 @@
  * Thank you!
  */
 
-import {
+import type {
   Model,
   Sequelize,
   ModelStatic,
