@@ -67,9 +67,6 @@ if (dialect === 'mariadb') {
           password: 'ddsd',
         });
 
-        console.log(sequelize.config);
-        console.log(sequelize.options);
-
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
     });
