@@ -1,6 +1,7 @@
 'use strict';
 
 import { AbstractDataType } from './dialects/abstract/data-types';
+import { isWhereEmpty } from './utils/query-builder-utils';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 
 const assert = require('assert');
@@ -231,7 +232,7 @@ export class Model {
 
     deletedAtObject[deletedAtAttribute.field || deletedAtCol] = deletedAtDefaultValue;
 
-    if (Utils.isWhereEmpty(options.where)) {
+    if (isWhereEmpty(options.where)) {
       options.where = deletedAtObject;
     } else {
       options.where = { [Op.and]: [deletedAtObject, options.where] };

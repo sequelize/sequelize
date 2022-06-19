@@ -1,6 +1,7 @@
 'use strict';
 
 import { removeTrailingSemicolon } from '../../utils';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -635,7 +636,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && Utils.defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 

@@ -1,5 +1,7 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -384,7 +386,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 

@@ -1,6 +1,7 @@
 'use strict';
 
 import { removeTrailingSemicolon } from '../../utils';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -668,7 +669,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     // BLOB cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {

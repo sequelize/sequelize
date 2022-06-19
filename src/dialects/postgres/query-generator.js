@@ -1,5 +1,6 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { ENUM } from './data-types';
 
 const Utils = require('../../utils');
@@ -507,7 +508,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    if (Utils.defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute)}`;
     }
 
