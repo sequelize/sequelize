@@ -107,7 +107,7 @@ if (dialect.startsWith('postgres')) {
       await reloadDynamicOIDs(sequelize);
       for (const type of dynamicTypesToCheck) {
         expect(getDataTypeDialectMeta(type, 'postgres'),
-          `DataType.${type.key}.types.postgres`).to.not.be.empty;
+          `DataType.${type.getDataTypeId()}.types.postgres`).to.not.be.empty;
 
         for (const name of getDataTypeDialectMeta(type, 'postgres')) {
           const entry = sequelize.connectionManager.nameOidMap[name];

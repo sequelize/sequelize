@@ -11,6 +11,8 @@ import moment from 'moment';
 import type { Moment } from 'moment-timezone';
 import { beforeEach2, sequelize } from '../support';
 
+const dialect = sequelize.dialect;
+
 enum TestEnum {
   A = 'A',
   B = 'B',
@@ -199,42 +201,53 @@ describe('DataTypes.CHAR(<length>)', () => {
   });
 });
 
-// TODO: postgres should throw, it does not support BYTEA is not a good substitute for CHAR BINARY
 describe('DataTypes.CHAR(<length>).BINARY', () => {
-  const vars = beforeEach2(async () => {
-    class User extends Model<InferAttributes<User>> {
-      declare binaryCharAttr: string | Buffer;
-    }
+  if (dialect.supports.dataTypes.CHAR.BINARY) {
+    const vars = beforeEach2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare binaryCharAttr: string | Buffer;
+      }
 
-    User.init({
-      binaryCharAttr: {
-        type: DataTypes.CHAR(5).BINARY,
-        allowNull: false,
-      },
-    }, { sequelize });
+      User.init({
+        binaryCharAttr: {
+          type: DataTypes.CHAR(5).BINARY,
+          allowNull: false,
+        },
+      }, { sequelize });
 
-    await User.sync();
+      await User.sync();
 
-    return { User };
-  });
+      return { User };
+    });
 
-  it('serialize/deserializes buffers with padding if the length is insufficient', async () => {
-    await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
-  });
+    it('serialize/deserializes buffers with padding if the length is insufficient', async () => {
+      await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
+    });
 
-  // TODO: support native ArrayBuffers.
-  // it('accepts ArrayBuffers', async () => {
-  //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]), Buffer.from([32, 49, 50, 51, 52]));
-  // });
+    // TODO: support native ArrayBuffers.
+    // it('accepts ArrayBuffers', async () => {
+    //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]), Buffer.from([32, 49, 50, 51, 52]));
+    // });
 
-  // TODO: support native Blobs.
-  // it('accepts Blobs', async () => {
-  //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Blob(['1234']), Buffer.from([32, 49, 50, 51, 52]));
-  // });
+    // TODO: support native Blobs.
+    // it('accepts Blobs', async () => {
+    //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Blob(['1234']), Buffer.from([32, 49, 50, 51, 52]));
+    // });
 
-  it('accepts strings', async () => {
-    await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', Buffer.from([32, 49, 50, 51, 52]));
-  });
+    it('accepts strings', async () => {
+      await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', Buffer.from([32, 49, 50, 51, 52]));
+    });
+  } else {
+    it('throws if CHAR.BINARY is used', () => {
+      expect(() => {
+        sequelize.define('CrashedModel', {
+          attr: DataTypes.CHAR.BINARY,
+        });
+      }).to.throwWithCause(`An error occurred for attribute attr on model CrashedModel.
+Caused by: ${dialect.name} does not support the CHAR.BINARY DataType.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.`);
+    });
+  }
 });
 
 // TODO: throw if not supported in this dialect

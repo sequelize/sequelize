@@ -30,8 +30,8 @@ type Expectations = {
   [dialectName: string]: string | Error,
 };
 
-const dialectSupportsArray = () => sequelize.dialect.supports.ARRAY;
-const dialectSupportsRange = () => sequelize.dialect.supports.RANGE;
+const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
+const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -1992,17 +1992,17 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.REGEXP) {
+    if (sequelize.dialect.supports.dataTypes.REGEXP) {
       describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
       describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
     }
 
-    if (sequelize.dialect.supports.IREGEXP) {
+    if (sequelize.dialect.supports.dataTypes.IREGEXP) {
       describeRegexpSuite(Op.iRegexp, '~*');
       describeRegexpSuite(Op.notIRegexp, '!~*');
     }
 
-    if (sequelize.dialect.supports.TSVECTOR) {
+    if (sequelize.dialect.supports.dataTypes.TSVECTOR) {
       describe('Op.match', () => {
         testSql({ stringAttr: { [Op.match]: fn('to_tsvector', 'swagger') } }, {
           default: `[stringAttr] @@ to_tsvector('swagger')`,
@@ -2130,7 +2130,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     describeAdjacentRangeSuite(Op.noExtendLeft, '&>');
     describeAdjacentRangeSuite(Op.noExtendRight, '&<');
 
-    if (sequelize.dialect.supports.JSON) {
+    if (sequelize.dialect.supports.dataTypes.JSON) {
       describe('JSON', () => {
         {
           // @ts-expect-error -- attribute 'doesNotExist' does not exist.
@@ -2250,7 +2250,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.JSONB) {
+    if (sequelize.dialect.supports.dataTypes.JSONB) {
       describe('JSONB', () => {
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated

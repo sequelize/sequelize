@@ -87,19 +87,28 @@ export type DialectSupports = {
      */
     unique: boolean,
   },
-  JSON: boolean,
-  JSONB: boolean,
-  ARRAY: boolean,
-  RANGE: boolean,
-  GEOMETRY: boolean,
-  GEOGRAPHY: boolean,
-  REGEXP: boolean,
-  /**
-   * Case-insensitive regexp operator support ('~*' in postgres).
-   */
-  IREGEXP: boolean,
-  HSTORE: boolean,
-  TSVECTOR: boolean,
+  dataTypes: {
+    CHAR: {
+      /**
+       * Whether this dialect provides a valid substitute for CHAR BINARY.
+       * CHAR BINARY *must* be blank padded.
+       */
+      BINARY: boolean,
+    },
+    JSON: boolean,
+    JSONB: boolean,
+    ARRAY: boolean,
+    RANGE: boolean,
+    GEOMETRY: boolean,
+    GEOGRAPHY: boolean,
+    REGEXP: boolean,
+    /**
+     * Case-insensitive regexp operator support ('~*' in postgres).
+     */
+    IREGEXP: boolean,
+    HSTORE: boolean,
+    TSVECTOR: boolean,
+  },
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -182,16 +191,21 @@ export abstract class AbstractDialect {
     alterColumn: {
       unique: true,
     },
-    JSON: false,
-    JSONB: false,
-    ARRAY: false,
-    RANGE: false,
-    GEOMETRY: false,
-    REGEXP: false,
-    IREGEXP: false,
-    GEOGRAPHY: false,
-    HSTORE: false,
-    TSVECTOR: false,
+    dataTypes: {
+      CHAR: {
+        BINARY: false,
+      },
+      JSON: false,
+      JSONB: false,
+      ARRAY: false,
+      RANGE: false,
+      GEOMETRY: false,
+      REGEXP: false,
+      IREGEXP: false,
+      GEOGRAPHY: false,
+      HSTORE: false,
+      TSVECTOR: false,
+    },
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,

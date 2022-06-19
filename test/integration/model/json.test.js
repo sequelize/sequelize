@@ -10,7 +10,7 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  if (current.dialect.supports.JSON) {
+  if (current.dialect.supports.dataTypes.JSON) {
     describe('JSON', () => {
       beforeEach(async function () {
         this.Event = this.sequelize.define('Event', {

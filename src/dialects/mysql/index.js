@@ -40,6 +40,11 @@ export class MysqlDialect extends AbstractDialect {
       GEOMETRY: true,
       JSON: true,
       REGEXP: true,
+      dataTypes: {
+        CHAR: {
+          BINARY: true,
+        },
+      },
     },
   );
 

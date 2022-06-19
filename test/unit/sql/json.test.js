@@ -9,7 +9,7 @@ const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
-if (current.dialect.supports.JSON) {
+if (current.dialect.supports.dataTypes.JSON) {
   describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('JSON', () => {
       describe('escape', () => {
@@ -53,7 +53,7 @@ if (current.dialect.supports.JSON) {
           });
         });
 
-        if (current.dialect.supports.ARRAY) {
+        if (current.dialect.supports.dataTypes.ARRAY) {
           it('array of JSON', () => {
             expectsql(sql.escape([
               { some: 'nested', more: { nested: true }, answer: 42 },
@@ -64,7 +64,7 @@ if (current.dialect.supports.JSON) {
             });
           });
 
-          if (current.dialect.supports.JSONB) {
+          if (current.dialect.supports.dataTypes.JSONB) {
             it('array of JSONB', () => {
               expectsql(
                 sql.escape(

@@ -30,9 +30,13 @@ export class IBMiDialect extends AbstractDialect {
         onUpdate: false,
       },
       groupedLimit: false,
-      JSON: false,
       upserts: false,
       schemas: true,
+      dataTypes: {
+        CHAR: {
+          BINARY: true,
+        },
+      },
     },
   );
 

@@ -27,6 +27,11 @@ export class Db2Dialect extends AbstractDialect {
       where: true,
     },
     tmpTableTrigger: true,
+    dataTypes: {
+      CHAR: {
+        BINARY: true,
+      },
+    },
   });
 
   constructor(sequelize) {

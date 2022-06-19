@@ -341,6 +341,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
 export class CHAR extends STRING {
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.CHAR.BINARY) {
+      throw new Error(`${dialect.name} does not support the CHAR.BINARY DataType.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.`);
+    }
+  }
+
   toSql() {
     return joinSQLFragments([
       `CHAR(${this.options.length})`,

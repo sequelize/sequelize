@@ -11,7 +11,7 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe('model', () => {
-  if (current.dialect.supports.JSON) {
+  if (current.dialect.supports.dataTypes.JSON) {
     describe('json', () => {
       beforeEach(async function () {
         this.User = this.sequelize.define('User', {
@@ -270,7 +270,7 @@ describe('model', () => {
     });
   }
 
-  if (current.dialect.supports.JSONB) {
+  if (current.dialect.supports.dataTypes.JSONB) {
     describe('jsonb', () => {
       beforeEach(async function () {
         this.User = this.sequelize.define('User', {

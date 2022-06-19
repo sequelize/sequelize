@@ -38,6 +38,11 @@ export class MssqlDialect extends AbstractDialect {
       where: true,
     },
     tmpTableTrigger: true,
+    dataTypes: {
+      CHAR: {
+        BINARY: true,
+      },
+    },
   });
 
   constructor(sequelize) {

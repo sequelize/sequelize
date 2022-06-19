@@ -36,11 +36,13 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     indexViaAlter: true,
     indexHints: true,
-    // disable for now, need more work to enable the GEOGRAPHY MAPPING
-    // GEOMETRY: true,
-    // JSON: true,
-    REGEXP: true,
     schemas: true,
+    dataTypes: {
+      CHAR: {
+        BINARY: true,
+      },
+      REGEXP: true,
+    },
   });
 
   constructor(sequelize) {

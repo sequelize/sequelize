@@ -937,7 +937,12 @@ Specify a different name for either index to resolve this issue.`);
     });
 
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
-      attribute = this.sequelize.normalizeAttribute(attribute);
+      try {
+        attribute = this.sequelize.normalizeAttribute(attribute);
+      } catch (error) {
+        throw new Error(`An error occurred for attribute ${name} on model ${this.name}.`, { cause: error });
+      }
+
       if (attribute.type instanceof AbstractDataType) {
         attribute.type.attachUsageContext({
           model: this,

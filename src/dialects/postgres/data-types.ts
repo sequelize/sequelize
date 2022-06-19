@@ -52,6 +52,7 @@ setDataTypeDialectMeta(BaseTypes.TSVECTOR, 'postgres', ['tsvector']);
 setDataTypeDialectMeta(BaseTypes.JSON, 'postgres', ['json']);
 setDataTypeDialectMeta(BaseTypes.JSONB, 'postgres', ['jsonb']);
 setDataTypeDialectMeta(BaseTypes.TIME, 'postgres', ['time']);
+setDataTypeDialectMeta(BaseTypes.CHAR, 'postgres', ['char', 'bpchar']);
 
 export class DATEONLY extends BaseTypes.DATEONLY {
   stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
@@ -146,18 +147,6 @@ export class CITEXT extends BaseTypes.CITEXT {
 }
 
 setDataTypeDialectMeta(BaseTypes.CITEXT, 'postgres', ['citext']);
-
-export class CHAR extends BaseTypes.CHAR {
-  toSql() {
-    if (this.options.binary) {
-      return 'BYTEA';
-    }
-
-    return super.toSql();
-  }
-}
-
-setDataTypeDialectMeta(BaseTypes.CHAR, 'postgres', ['char', 'bpchar']);
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql() {

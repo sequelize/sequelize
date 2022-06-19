@@ -34,7 +34,12 @@ export class SqliteDialect extends AbstractDialect {
       dropConstraint: false,
     },
     groupedLimit: false,
-    JSON: true,
+    dataTypes: {
+      CHAR: {
+        BINARY: true,
+      },
+      JSON: true,
+    },
   });
 
   constructor(sequelize) {

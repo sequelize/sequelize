@@ -27,7 +27,7 @@ async function createUserModelWithGeometry(type?: GeometryType) {
 }
 
 describe(getTestDialectTeaser('Model'), () => {
-  if (!sequelize.dialect.supports.GEOMETRY) {
+  if (!sequelize.dialect.supports.dataTypes.GEOMETRY) {
     return;
   }
 

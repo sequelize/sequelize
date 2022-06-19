@@ -284,7 +284,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (sequelize.dialect.supports.HSTORE) {
+    if (sequelize.dialect.supports.dataTypes.HSTORE) {
       describe('HSTORE', () => {
         describe('validate', () => {
           it('should throw an error if `value` is invalid', () => {
@@ -1556,7 +1556,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (sequelize.dialect.supports.ARRAY) {
+    if (sequelize.dialect.supports.dataTypes.ARRAY) {
       describe('ARRAY', () => {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
           postgres: 'VARCHAR(255)[]',
@@ -1610,13 +1610,13 @@ describe(getTestDialectTeaser('SQL'), () => {
           postgres: 'REAL[]',
         });
 
-        if (sequelize.dialect.supports.JSON) {
+        if (sequelize.dialect.supports.dataTypes.JSON) {
           testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
             postgres: 'JSON[]',
           });
         }
 
-        if (sequelize.dialect.supports.JSONB) {
+        if (sequelize.dialect.supports.dataTypes.JSONB) {
           testsql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {
             postgres: 'JSONB[]',
           });
@@ -1654,7 +1654,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.GEOMETRY) {
+    if (sequelize.dialect.supports.dataTypes.GEOMETRY) {
       describe('GEOMETRY', () => {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
           default: 'GEOMETRY',
