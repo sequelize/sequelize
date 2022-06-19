@@ -336,12 +336,12 @@ export interface Options extends Logging {
   transactionType?: TRANSACTION_TYPES;
 
   /**
-   * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
+   * Disable built in type validators on insert and update, e.g. don't validate that arguments passed to integer
    * fields are integer-like.
    *
    * @default false
    */
-  typeValidation?: boolean;
+  noTypeValidation?: boolean;
 
   /**
    * Sets available operator aliases.
@@ -951,7 +951,7 @@ export class Sequelize extends Hooks {
    */
   readonly config: Config;
 
-  readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'typeValidation' | 'dialectOptions'>;
+  readonly options: PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions'>;
 
   readonly dialect: AbstractDialect;
 

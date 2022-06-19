@@ -175,7 +175,7 @@ export class Sequelize {
    * @param {object}   [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}    [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {number}   [options.retry.max] How many times a failing query is automatically retried.  Set to 0 to disable retrying on SQL_BUSY error.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
@@ -232,7 +232,7 @@ export class Sequelize {
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
       databaseVersion: 0,
-      typeValidation: false,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
@@ -328,7 +328,11 @@ export class Sequelize {
     }
 
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    if ('typeValidation' in options) {
+      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();

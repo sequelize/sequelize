@@ -1,6 +1,7 @@
 'use strict';
 
 import { getTextDataTypeForDialect } from '../../sql-string';
+import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 
@@ -1142,23 +1143,25 @@ export class AbstractQueryGenerator {
     @private
   */
   validate(value, field) {
-    if (this.typeValidation && value != null) {
-      try {
-        field.type.validate(value);
-      } catch (error) {
-        if (error instanceof sequelizeError.ValidationError) {
-          error.errors.push(new sequelizeError.ValidationErrorItem(
-            error.message,
-            'Validation error',
-            field.fieldName,
-            value,
-            null,
-            `${field.type.constructor.name} validator`,
-          ));
-        }
+    if (this.noTypeValidation || isNullish(value)) {
+      return;
+    }
 
-        throw error;
+    try {
+      field.type.validate(value);
+    } catch (error) {
+      if (error instanceof sequelizeError.ValidationError) {
+        error.errors.push(new sequelizeError.ValidationErrorItem(
+          error.message,
+          'Validation error',
+          field.fieldName,
+          value,
+          null,
+          `${field.type.constructor.name} validator`,
+        ));
       }
+
+      throw error;
     }
   }
 

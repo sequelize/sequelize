@@ -13,6 +13,10 @@ export function isPrimitive(val: any): val is string | number | boolean {
   return ['string', 'number', 'boolean'].includes(type);
 }
 
+export function isNullish(val: any): val is null | undefined {
+  return val == null;
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *
