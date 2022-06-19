@@ -92,6 +92,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       // This leads to issues with losing data or losing foreign key references.
       // The tests below address these problems
       it('should remove a column with from table with foreign key constraints without losing data', async function () {
+        await this.queryInterface.createTable('level', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.CHAR,
+            allowNull: false,
+          },
+        });
+
         await this.queryInterface.createTable('actors', {
           id: {
             type: DataTypes.INTEGER,
@@ -111,18 +123,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
-          },
-        });
-
-        await this.queryInterface.createTable('level', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          name: {
-            type: DataTypes.CHAR,
-            allowNull: false,
           },
         });
 
@@ -164,6 +164,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async function () {
+        await this.queryInterface.createTable('level', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.CHAR,
+            allowNull: false,
+          },
+        });
+
         await this.queryInterface.createTable('actors', {
           id: {
             type: DataTypes.INTEGER,
@@ -183,18 +195,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
-          },
-        });
-
-        await this.queryInterface.createTable('level', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          name: {
-            type: DataTypes.CHAR,
-            allowNull: false,
           },
         });
 
