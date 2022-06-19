@@ -5,6 +5,10 @@ export function isNullish(val: any): val is null | undefined {
   return val == null;
 }
 
+export function isString(val: any): val is string {
+  return typeof val === 'string';
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *

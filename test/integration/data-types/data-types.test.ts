@@ -7,9 +7,13 @@ import type {
 import { DataTypes, fn, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import dayjs from 'dayjs';
+import DayjsTimezone from 'dayjs/plugin/timezone';
 import moment from 'moment';
+import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
 import { beforeEach2, sequelize } from '../support';
+
+dayjs.extend(DayjsTimezone);
 
 const dialect = sequelize.dialect;
 
@@ -18,6 +22,8 @@ enum TestEnum {
   B = 'B',
   C = 'C',
 }
+
+// TODO: add UNIT test to ensure validation is run on all model methods (including create, update, where)
 
 describe('DataTypes.STRING(<length>)', () => {
   const vars = beforeEach2(async () => {
@@ -37,8 +43,11 @@ describe('DataTypes.STRING(<length>)', () => {
     return { User };
   });
 
-  it('serialize/deserializes strings', async () => {
+  it('serialize/deserializes strings and numbers', async () => {
     await testSimpleInOut(vars.User, 'stringAttr', '1235', '1235');
+
+    // @ts-expect-error -- we don't allow it in TypeScript, but we can stringify some values automatically for legacy reasons
+    await testSimpleInOut(vars.User, 'stringAttr', 12, '12');
   });
 
   it('throws if the string is too long', async () => {
@@ -651,7 +660,7 @@ describe('DataTypes.DATE', () => {
     await testSimpleInOut(
       vars.User,
       'dateAttr',
-      dayjs('2014-06-01 12:00'),
+      dayjs.tz('2014-06-01 12:00', 'America/New_York'),
       new Date('2014-06-01T16:00:00.000Z'),
     );
   });
@@ -750,7 +759,7 @@ describe('DataTypes.UUID', () => {
   });
 
   it('rejects non-UUID strings', async () => {
-    await expect(vars.User.create({ attr: '4b39e726-d455-11ec-9d64-0242ac12000a' })).to.be.rejected;
+    await expect(vars.User.create({ attr: 'not-a-uuid-at-all' })).to.be.rejected;
   });
 });
 

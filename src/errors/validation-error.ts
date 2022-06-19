@@ -208,7 +208,7 @@ class ValidationError extends BaseError {
 
   constructor(
     message: string,
-    errors: ValidationErrorItem[],
+    errors: ValidationErrorItem[] = [],
     options: SequelizeErrorOptions & ErrorOptions = {},
   ) {
     const { stack, ...passUp } = options;
@@ -216,7 +216,7 @@ class ValidationError extends BaseError {
     super(message, passUp);
 
     this.name = 'SequelizeValidationError';
-    this.errors = errors || [];
+    this.errors = errors;
 
     // Use provided error message if available...
     if (message) {

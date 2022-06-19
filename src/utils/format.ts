@@ -9,10 +9,8 @@ import type {
   Attributes,
   BuiltModelAttributeColumOptions,
 } from '..';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
-
-const DataTypes = require('../data-types');
 
 const operatorsSet = new Set(Object.values(operators));
 

@@ -9,6 +9,7 @@ import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
@@ -509,6 +510,13 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
   }
 
   validate(value: any): asserts value is number {
+    if (typeof value === 'number' && Number.isInteger(value) && !Number.isSafeInteger(value)) {
+      throw new ValidationError(
+        util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+        [],
+      );
+    }
+
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format(
@@ -561,20 +569,13 @@ export class INTEGER extends NUMBER {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
 
   validate(value: unknown) {
-    if (typeof value === 'number') {
-      if (!Number.isInteger(value)) {
-        throw new ValidationError(
-          util.format(`%j is not a valid integer`, value),
-          [],
-        );
-      }
+    super.validate(value);
 
-      if (!Number.isSafeInteger(value)) {
-        throw new ValidationError(
-          util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
-          [],
-        );
-      }
+    if (typeof value === 'number' && !Number.isInteger(value)) {
+      throw new ValidationError(
+        util.format(`%j is not a valid integer`, value),
+        [],
+      );
     }
 
     if (!Validator.isInt(String(value))) {
@@ -753,15 +754,6 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
     }
 
     return 'DECIMAL';
-  }
-
-  validate(value: any): asserts value is AcceptedNumber {
-    if (!Validator.isDecimal(String(value))) {
-      throw new ValidationError(
-        util.format('%j is not a valid decimal', value),
-        [],
-      );
-    }
   }
 }
 
@@ -1001,10 +993,13 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 
   validate(value: any) {
     if (!isPlainObject(value)) {
-      throw new ValidationError(
-        util.format('%j is not a valid hstore, it must be a plain object', value),
-        [],
-      );
+      throw new ValidationError(`${String(value)} is not a valid hstore, it must be a plain object`);
+    }
+
+    for (const key of Object.keys(value)) {
+      if (!isString(value[key])) {
+        throw new ValidationError(`${String(value)} is not a valid hstore, its values must be strings but ${key} is ${globalThis.JSON.stringify(value[key])}`);
+      }
     }
   }
 
@@ -1095,10 +1090,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
 
   validate(value: any) {
     if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
-      throw new ValidationError(
-        util.format('%j is not a valid blob', value),
-        [],
-      );
+      throw new ValidationError(`${value} is not a valid blob`);
     }
   }
 
@@ -1150,15 +1142,13 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
   validate(value: any) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid range', value),
-        [],
+        util.format(`%j is not a valid range`, value),
       );
     }
 
     if (value.length !== 2) {
       throw new ValidationError(
         'A range must be an array with two elements',
-        [],
       );
     }
   }
@@ -1179,7 +1169,6 @@ export class UUID extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isUUID(value)) {
       throw new ValidationError(
         util.format('%j is not a valid uuid', value),
-        [],
       );
     }
   }
@@ -1200,7 +1189,6 @@ export class UUIDV1 extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv1', value),
-        [],
       );
     }
   }
@@ -1221,7 +1209,6 @@ export class UUIDV4 extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isUUID(value, 4)) {
       throw new ValidationError(
         util.format('%j is not a valid uuidv4', value),
-        [],
       );
     }
   }
@@ -1366,7 +1353,6 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     if (!this.options.values.includes(value)) {
       throw new ValidationError(
         util.format('%j is not a valid choice in %j', value, this.options.values),
-        [],
       );
     }
   }
@@ -1419,7 +1405,6 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     if (!Array.isArray(value)) {
       throw new ValidationError(
         util.format('%j is not a valid array', value),
-        [],
       );
     }
 
@@ -1618,7 +1603,6 @@ export class CIDR extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
       throw new ValidationError(
         util.format('%j is not a valid CIDR', value),
-        [],
       );
     }
   }
@@ -1639,7 +1623,6 @@ export class INET extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       throw new ValidationError(
         util.format('%j is not a valid INET', value),
-        [],
       );
     }
   }
@@ -1661,7 +1644,6 @@ export class MACADDR extends AbstractDataType<string> {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new ValidationError(
         util.format('%j is not a valid MACADDR', value),
-        [],
       );
     }
   }
@@ -1683,7 +1665,6 @@ export class TSVECTOR extends AbstractDataType<string> {
     if (typeof value !== 'string') {
       throw new ValidationError(
         util.format('%j is not a valid string', value),
-        [],
       );
     }
   }

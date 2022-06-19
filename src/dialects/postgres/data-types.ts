@@ -107,7 +107,20 @@ setDataTypeDialectMeta(BaseTypes.DATEONLY, 'postgres', ['date']);
 
 export class DECIMAL extends BaseTypes.DECIMAL {
   static parse(value: unknown) {
+    if (value === 'NaN') {
+      return Number.NaN;
+    }
+
     return value;
+  }
+
+  validate(value: any) {
+    // postgres supports NaN
+    if (Number.isNaN(value)) {
+      return;
+    }
+
+    super.validate(value);
   }
 }
 
@@ -398,7 +411,6 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
 setDataTypeDialectMeta(BaseTypes.GEOGRAPHY, 'postgres', ['geography']);
 
 export class HSTORE extends BaseTypes.HSTORE {
-  // TODO: Find types for pg-hstore
   stringify(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
     if (value == null) {
       return value;
