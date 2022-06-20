@@ -1,22 +1,19 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const { Op, DataTypes } = require('@sequelize/core');
-const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
-const Support = require('../../support');
+const chai = require('chai'),
+  expect = chai.expect,
+  Op = require('sequelize/lib/operators'),
+  QueryGenerator = require('sequelize/lib/dialects/postgres/query-generator'),
+  Support = require('../../support'),
+  dialect = Support.getTestDialect(),
+  DataTypes = require('sequelize/lib/data-types'),
+  moment = require('moment'),
+  current = Support.sequelize,
+  _ = require('lodash');
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
 });
-const customSql = customSequelize.dialect.queryGenerator;
-
-const dialect = Support.getTestDialect();
-const dayjs = require('dayjs');
-
-const current = Support.sequelize;
-const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
