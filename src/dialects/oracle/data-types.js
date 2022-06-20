@@ -286,6 +286,7 @@ module.exports = BaseTypes => {
 
       // ORACLE does not support any options for bigint
       if (this._length || this.options.length || this._unsigned || this._zerofill) {
+        warn('Oracle doesn\'t support any option for Bigint. `UNSIGNED` OR `ZEROFILL` OR `LENGTH` (IF PROVIDED) WAS REMOVED.');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -331,10 +332,10 @@ module.exports = BaseTypes => {
 
     // https://docs.oracle.com/cd/E37502_01/server.751/es_eql/src/ceql_literals_nan.html
     _stringify(value) {
-      if (value === 'Infinity') {
+      if (value === Number.POSITIVE_INFINITY) {
         return 'inf';
       } 
-      if (value === '-Infinity') {
+      if (value === Number.NEGATIVE_INFINITY) {
         return '-inf';
       }
       return value;
@@ -360,7 +361,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  class JSONTYPE extends BaseTypes.JSON {
+  class JSON extends BaseTypes.JSON {
     toSql() {
       return 'BLOB';
     }
@@ -385,6 +386,7 @@ module.exports = BaseTypes => {
       BaseTypes.DOUBLE.apply(this, arguments);
 
       if (this._length || this._unsigned || this._zerofill) {
+        warn('Oracle doesn\'t support any option for DOUBLE. `UNSIGNED` OR `ZEROFILL` OR `LENGTH` (IF PROVIDED) WAS REMOVED.');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -414,13 +416,13 @@ module.exports = BaseTypes => {
       return value;
     }
 
-    _stringify(date) {
+    _stringify(date, options) {
       // If date is not null only then we format the date
       if (date) {
         const format = 'YYYY/MM/DD';
-        return `TO_DATE('${date}','${format}')`;
+        return options.escape(`TO_DATE('${date}','${format}')`);
       }
-      return date;
+      return options.escape(date);
     }
 
     _getBindDef(oracledb) {
@@ -463,7 +465,7 @@ module.exports = BaseTypes => {
     ENUM,
     TEXT,
     CHAR,
-    JSON: JSONTYPE,
+    JSON,
     REAL,
     DECIMAL
   };
