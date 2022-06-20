@@ -81,7 +81,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'ALTER TABLE [Users] ADD [level_id] FLOAT NOT NULL;',
         db2: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
         snowflake: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
-        ibmi: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL',
       });
     });
   });

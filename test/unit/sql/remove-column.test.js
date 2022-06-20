@@ -21,7 +21,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           schema: 'archive',
           tableName: 'user',
         }, 'email'), {
-          ibmi: 'ALTER TABLE "archive"."user" DROP COLUMN "email"',
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           db2: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
           mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
@@ -36,7 +35,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(customSql.removeColumnQuery({
         tableName: 'user',
       }, 'email'), {
-        ibmi: 'ALTER TABLE "user" DROP COLUMN "email"',
         mssql: 'ALTER TABLE [user] DROP COLUMN [email];',
         db2: 'ALTER TABLE "user" DROP COLUMN "email";',
         mariadb: 'ALTER TABLE `user` DROP `email`;',
