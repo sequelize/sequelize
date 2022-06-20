@@ -7,7 +7,7 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require('sequelize/lib/data-types'),
-  moment = require('moment'),
+  dayjs = require('dayjs'),
   current = Support.sequelize,
   _ = require('lodash');
 
