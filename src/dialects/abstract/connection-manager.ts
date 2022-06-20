@@ -255,9 +255,19 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    *
    * @param connection
    */
-  async releaseConnection(connection: TConnection) {
+  releaseConnection(connection: TConnection) {
     this.pool.release(connection);
     debug('connection released');
+  }
+
+  /**
+   * Destroys a pooled connection and removes it from the pool.
+   *
+   * @param connection
+   */
+  async destroyConnection(connection: TConnection) {
+    await this.pool.destroy(connection);
+    debug(`connection ${connection.uuid} destroyed`);
   }
 
   /**
