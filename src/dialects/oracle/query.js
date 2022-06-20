@@ -32,11 +32,10 @@ export class OracleQuery extends AbstractQuery {
   }
 
   getExecOptions() {
-    const self = this;
-    const execOpts = { outFormat: self.outFormat, autoCommit: self.autoCommit };
+    const execOpts = { outFormat: this.outFormat, autoCommit: this.autoCommit };
 
     // We set the oracledb
-    const oracledb = self.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.connectionManager.lib;
 
     if (this.isSelectQuery() && this.model) {
       const fInfo = {};
@@ -55,9 +54,8 @@ export class OracleQuery extends AbstractQuery {
     return execOpts;
   }
   _run(connection, sql, parameters) {
-    const self = this;
     // We set the oracledb
-    const oracledb = self.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.connectionManager.lib;
     // We remove the / that escapes quotes
     if (sql.match(/^(SELECT|INSERT|DELETE)/)) {
       this.sql = sql.replace(/; *$/, '');
@@ -82,7 +80,7 @@ export class OracleQuery extends AbstractQuery {
     this.bindParameters = outParameters;
     // construct input binds from parameters for single row insert execute call
     // ex: [3, 4,...]
-    if (parameters !== undefined && typeof parameters === 'object') {
+    if (Array.isArray(parameters) || _.isPlainObject(parameters)) {
       if (this.options.executeMany) {
         // Constructing BindDefs for ExecuteMany call
         // Building the bindDef for in and out binds
@@ -99,53 +97,53 @@ export class OracleQuery extends AbstractQuery {
     }
 
     // TRANSACTION SUPPORT
-    if (_.startsWith(self.sql, 'BEGIN TRANSACTION')) {
-      self.autocommit = false;
+    if (_.startsWith(this.sql, 'BEGIN TRANSACTION')) {
+      this.autocommit = false;
       return Promise.resolve();
     } 
-    if (_.startsWith(self.sql, 'SET AUTOCOMMIT ON')) {
-      self.autocommit = true;
+    if (_.startsWith(this.sql, 'SET AUTOCOMMIT ON')) {
+      this.autocommit = true;
       return Promise.resolve();
     } 
-    if (_.startsWith(self.sql, 'SET AUTOCOMMIT OFF')) {
-      self.autocommit = false;
+    if (_.startsWith(this.sql, 'SET AUTOCOMMIT OFF')) {
+      this.autocommit = false;
       return Promise.resolve();
     } 
-    if (_.startsWith(self.sql, 'DECLARE x NUMBER')) {
+    if (_.startsWith(this.sql, 'DECLARE x NUMBER')) {
       // Calling a stored procedure for bulkInsert with NO attributes, returns nothing
-      if (self.autoCommit === undefined) {
+      if (this.autoCommit === undefined) {
         if (connection.uuid) {
-          self.autoCommit = false;
+          this.autoCommit = false;
         } else {
-          self.autoCommit = true;
+          this.autoCommit = true;
         }
       }
       return connection
-        .execute(self.sql, this.bindParameters, { autoCommit: self.autoCommit })
+        .execute(this.sql, this.bindParameters, { autoCommit: this.autoCommit })
         .then(() => {
           return {};
         })
         .catch(error => {
-          throw self.formatError(error);
+          throw this.formatError(error);
         })
         .finally(() => {
           complete();
         });
     } 
-    if (_.startsWith(self.sql, 'BEGIN')) {
+    if (_.startsWith(this.sql, 'BEGIN')) {
       // Call to stored procedures - BEGIN TRANSACTION has been treated before
-      if (self.autoCommit === undefined) {
+      if (this.autoCommit === undefined) {
         if (connection.uuid) {
-          self.autoCommit = false;
+          this.autoCommit = false;
         } else {
-          self.autoCommit = true;
+          this.autoCommit = true;
         }
       }
 
       return connection
-        .execute(self.sql, self.bindParameters, {
-          outFormat: self.outFormat,
-          autoCommit: self.autoCommit
+        .execute(this.sql, this.bindParameters, {
+          outFormat: this.outFormat,
+          autoCommit: this.autoCommit
         })
         .then(result => {
           if (!Array.isArray(result.outBinds)) {
@@ -154,46 +152,46 @@ export class OracleQuery extends AbstractQuery {
           return result.outBinds;
         })
         .catch(error => {
-          throw self.formatError(error);
+          throw this.formatError(error);
         })
         .finally(() => {
           complete();
         });
     } 
-    if (_.startsWith(self.sql, 'COMMIT TRANSACTION')) {
+    if (_.startsWith(this.sql, 'COMMIT TRANSACTION')) {
       return connection
         .commit()
         .then(() => {
           return {};
         })
         .catch(err => {
-          throw self.formatError(err);
+          throw this.formatError(err);
         })
         .finally(() => {
           complete();
         });
     } 
-    if (_.startsWith(self.sql, 'ROLLBACK TRANSACTION')) {
+    if (_.startsWith(this.sql, 'ROLLBACK TRANSACTION')) {
       return connection
         .rollback()
         .then(() => {
           return {};
         })
         .catch(err => {
-          throw self.formatError(err);
+          throw this.formatError(err);
         })
         .finally(() => {
           complete();
         });
     } 
-    if (_.startsWith(self.sql, 'SET TRANSACTION')) {
+    if (_.startsWith(this.sql, 'SET TRANSACTION')) {
       return connection
-        .execute(self.sql, [], { autoCommit: false })
+        .execute(this.sql, [], { autoCommit: false })
         .then(() => {
           return {};
         })
         .catch(error => {
-          throw self.formatError(error);
+          throw this.formatError(error);
         })
         .finally(() => {
           complete();
@@ -201,30 +199,30 @@ export class OracleQuery extends AbstractQuery {
     } 
     // QUERY SUPPORT
     // As Oracle does everything in transaction, if autoCommit is not defined, we set it to true
-    if (self.autoCommit === undefined) {
+    if (this.autoCommit === undefined) {
       if (connection.uuid) {
-        self.autoCommit = false;
+        this.autoCommit = false;
       } else {
-        self.autoCommit = true;
+        this.autoCommit = true;
       }
     }
 
     // inbind parameters added byname. merge them
-    if ('inputParameters' in self.options && self.options.inputParameters !== null) {
-      Object.assign(self.bindParameters, self.options.inputParameters);
+    if ('inputParameters' in this.options && this.options.inputParameters !== null) {
+      Object.assign(this.bindParameters, this.options.inputParameters);
     }
     const execOpts = this.getExecOptions();
     if (this.options.executeMany && bindDef.length > 0) {
       execOpts.bindDefs = bindDef;
     }
-    const executePromise = this.options.executeMany ? connection.executeMany(self.sql, self.bindParameters, execOpts) : connection.execute(self.sql, self.bindParameters, execOpts);
+    const executePromise = this.options.executeMany ? connection.executeMany(this.sql, this.bindParameters, execOpts) : connection.execute(this.sql, this.bindParameters, execOpts);
     // If we have some mapping with parameters to do - INSERT queries
     return executePromise
       .then(result => {
-        return self.formatResults(result);
+        return this.formatResults(result);
       })
       .catch(error => {
-        throw self.formatError(error);
+        throw this.formatError(error);
       })
       .finally(() => {
         complete();
@@ -233,12 +231,11 @@ export class OracleQuery extends AbstractQuery {
   }
 
   run(sql, parameters) {
-    const self = this;
     if (!sql.match(/END;$/)) {
       sql = sql.replace(/; *$/, '');
     }
 
-    return self._run(this.connection, sql, parameters);
+    return this._run(this.connection, sql, parameters);
   }
 
   /**

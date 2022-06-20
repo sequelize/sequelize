@@ -2,7 +2,6 @@
 
 'use strict';
 
-/* jshint -W110 */
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const AbstractQueryGenerator = require('../abstract/query-generator');
@@ -55,7 +54,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   createSchema(schema) {
-    const quotedSchema = this.quoteTable(schema);
+    const quotedSchema = this.quoteIdentifier(schema);
     const schemaName = this.getCatalogName(schema);
     return [
       'DECLARE',
@@ -68,7 +67,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       ';',
       '  IF V_COUNT = 0 THEN',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`CREATE USER ${ quotedSchema } IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
+      wrapSingleQuote(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
       ';',
       '    EXECUTE IMMEDIATE ',
       wrapSingleQuote(`GRANT "CONNECT" TO ${quotedSchema}`),
@@ -128,7 +127,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   createTableQuery(tableName, attributes, options) {
     const primaryKeys = [],
-      foreignKeys = {},
+      foreignKeys = Object.create(null),
       attrStr = [],
       self = this,
       checkStr = [];
@@ -141,57 +140,48 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
     // Starting by dealing with all attributes
     for (let attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
-        const dataType = attributes[attr];
-        let match;
+      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) continue;
+      const dataType = attributes[attr];
+      attr = this.quoteIdentifier(attr);
 
-        attr = this.quoteIdentifier(attr);
-
-        // ORACLE doesn't support inline REFERENCES declarations: move to the end
-        if (_.includes(dataType, 'PRIMARY KEY')) {
-          // Primary key
-          primaryKeys.push(attr);
-          if (_.includes(dataType, 'REFERENCES')) {
-            match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
-
-            // match[2] already has foreignKeys in correct format so we don't need to replace
-            foreignKeys[attr] = match[2];
-          } else {
-            attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
-          }
-        } else if (_.includes(dataType, 'REFERENCES')) {
-          // Foreign key
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${attr} ${match[1]}`);
+      // ORACLE doesn't support inline REFERENCES declarations: move to the end
+      if (dataType.includes('PRIMARY KEY')) {
+        // Primary key
+        primaryKeys.push(attr);
+        if (dataType.includes('REFERENCES')) {
+          const match = dataType.match(/^(.+) (REFERENCES.*)$/);
+          attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
 
           // match[2] already has foreignKeys in correct format so we don't need to replace
           foreignKeys[attr] = match[2];
-        } else if (_.includes(dataType, 'CHECK')) {
-          // Check constraints go to the end
-          match = dataType.match(/^(.+) (CHECK.*)$/);
-          attrStr.push(`${attr} ${match[1]}`);
-          match[2] = match[2].replace('ATTRIBUTENAME', attr);
-          const checkCond = match[2].replace(chkRegex, (match, column, condition) => {
-            return `CHECK (${this.quoteIdentifier(column)} ${condition})`;
-          });
-
-          checkStr.push(checkCond);
         } else {
-          attrStr.push(`${attr} ${dataType}`);
+          attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
         }
+      } else if (dataType.includes('REFERENCES')) {
+        // Foreign key
+        const match = dataType.match(/^(.+) (REFERENCES.*)$/);
+        attrStr.push(`${attr} ${match[1]}`);
+
+        // match[2] already has foreignKeys in correct format so we don't need to replace
+        foreignKeys[attr] = match[2];
+      } else if (dataType.includes('CHECK')) {
+        // Check constraints go to the end
+        const match = dataType.match(/^(.+) (CHECK.*)$/);
+        attrStr.push(`${attr} ${match[1]}`);
+        match[2] = match[2].replace('ATTRIBUTENAME', attr);
+        const checkCond = match[2].replace(chkRegex, (match, column, condition) => {
+          return `CHECK (${this.quoteIdentifier(column)} ${condition})`;
+        });
+
+        checkStr.push(checkCond);
+      } else {
+        attrStr.push(`${attr} ${dataType}`);
       }
     }
 
     values['attributes'] = attrStr.join(', ');
 
-    const pkString = primaryKeys
-      .map(
-        (pk => {
-          return this.quoteIdentifier(pk);
-        }).bind(this)
-      )
-      .join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (pkString.length > 0) {
       // PrimarykeyName would be of form "PK_table_col"
@@ -219,13 +209,12 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
     // Dealing with FKs
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
-        // Oracle default response for FK, doesn't support if defined
-        if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
-          foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
-        }
-        values.attributes += `,FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
+      if (!Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) continue; 
+      // Oracle default response for FK, doesn't support if defined
+      if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
+        foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
       }
+      values.attributes += `,FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
     }
 
     if (checkStr.length > 0) {
@@ -463,12 +452,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifier(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
+    tableName = this.quoteTable(tableName);
     return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
@@ -638,7 +622,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
    */
   getInsertQueryReturnIntoBinds(returnAttributes, inbindLength, returningModelAttributes, returnTypes, options) {
     const oracledb = this.sequelize.connectionManager.lib;
-    const outBindAttributes = {};
+    const outBindAttributes = Object.create(null);
     const outbind = [];
     const outbindParam = this.bindParam(outbind, inbindLength);
     returningModelAttributes.forEach((element, index) => {
@@ -1122,15 +1106,14 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       tableName = rawTablename;
     }
     return _.map(indexes, index => {
-      if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
-        if (index.unique) {
-          index.name = this._generateUniqueConstraintName(tableName, index.fields);
-        } else {
-          const onlyAttributeNames = index.fields.map(field =>
-            typeof field === 'string' ? field : field.name || field.attribute
-          );
-          index.name = Utils.underscore(`${tableName}_${onlyAttributeNames.join('_')}`);
-        }
+      if (Object.prototype.hasOwnProperty.call(index, 'name')) return;
+      if (index.unique) {
+        index.name = this._generateUniqueConstraintName(tableName, index.fields);
+      } else {
+        const onlyAttributeNames = index.fields.map(field =>
+          typeof field === 'string' ? field : field.name || field.attribute
+        );
+        index.name = Utils.underscore(`${tableName}_${onlyAttributeNames.join('_')}`);
       }
       return index;
     });
@@ -1159,41 +1142,8 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     return sql;
   }
 
-  /**
-  * Request to know if the table has a identity primary key, returns the name of the declaration of the identity if true
-  *
-  * @param {object|string} table
-  */
-  isIdentityPrimaryKey(table) {
-    const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
-    return [
-      'SELECT TABLE_NAME,COLUMN_NAME, COLUMN_NAME,GENERATION_TYPE,IDENTITY_OPTIONS FROM DBA_TAB_IDENTITY_COLS WHERE TABLE_NAME = ',
-      wrapSingleQuote(tableName),
-      'AND OWNER = ',
-      table.schema ? wrapSingleQuote(schemaName) : 'USER '
-    ].join('');
-  }
-
-  /**
-   * Drop identity
-   * Mandatory, Oracle doesn't support dropping a PK column if it's an identity -> results in database corruption
-   *
-   * @param {object|string} tableName
-   * @param {string} columnName
-   */
-  dropIdentityColumn(tableName, columnName) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} MODIFY ${columnName} DROP IDENTITY`;
-  }
-
   dropConstraintQuery(tableName, constraintName) {
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
-  }
-
-  setAutocommitQuery(value) {
-    if (value) {
-      // Do nothing, just for eslint
-    }
-    return '';
   }
 
   setIsolationLevelQuery(value, options) {
@@ -1216,7 +1166,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   startTransactionQuery(transaction) {
     if (transaction.parent) {
-      return `SAVEPOINT "${transaction.name}"`;
+      return `SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
     }
 
     return 'BEGIN TRANSACTION';
@@ -1232,7 +1182,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   rollbackTransactionQuery(transaction) {
     if (transaction.parent) {
-      return `ROLLBACK TO SAVEPOINT "${transaction.name}"`;
+      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
     }
 
     return 'ROLLBACK TRANSACTION';
@@ -1392,16 +1342,16 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     return value ? 1 : 0;
   }
 
-  quoteIdentifier(identifier, force) {
-    const optForceQuote = force || false;
+  quoteIdentifier(identifier, force = false) {
+    const optForceQuote = force;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
     const rawIdentifier = Utils.removeTicks(identifier, '"');
-    const regExp = (/^(([\w][\w\d_]*))$/g);
+    const regExp = /^(([\w][\w\d_]*))$/g;
 
     if (
       optForceQuote !== true &&
       optQuoteIdentifiers === false &&
-      regExp.test(rawIdentifier) === true &&
+      regExp.test(rawIdentifier) &&
       !ORACLE_RESERVED_WORDS.includes(rawIdentifier.toUpperCase())
     ) {
       // In Oracle, if tables, attributes or alias are created double-quoted,
