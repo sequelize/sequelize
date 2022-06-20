@@ -462,10 +462,9 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const attribute = Utils.joinSQLFragments([
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
+        attributeName: key,
         context: 'addColumn'
       })
-        .replace('ATTRIBUTENAME', this.quoteIdentifier(key))
-        .replace(/'/g, "'")
     ]);
 
     return Utils.joinSQLFragments([
@@ -584,6 +583,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       'BEGIN'
     ];
     for (const attributeName in attributes) {
+      if (!Object.prototype.hasOwnProperty.call(attributes, attributeName)) continue;
       const definition = attributes[attributeName];
       if (definition.match(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
@@ -850,7 +850,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     if (options.limit) {
       const whereTmpl = where ? ` AND ${where}` : '';
       queryTmpl =
-        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${options.limit}${ 
+        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${ 
           whereTmpl 
         })`;
     } else {
@@ -917,7 +917,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       // enums are a special case
       template = attribute.type.toSql();
       template +=
-        ` CHECK (ATTRIBUTENAME IN(${ 
+        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${ 
           _.map(attribute.values, value => {
             return this.escape(value);
           }).join(', ') 
@@ -926,13 +926,13 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     } 
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
-      template += ' CHECK (ATTRIBUTENAME IS JSON)';
+      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
       return template;
     } 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
       template +=
-        ' CHECK (ATTRIBUTENAME IN(\'1\', \'0\'))';
+        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
       return template;
     } 
     if (attribute.autoIncrement) {
@@ -1002,7 +1002,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     for (const key in attributes) {
       const attribute = attributes[key];
       const attributeName = attribute.field || key;
-      result[attributeName] = this.attributeToSQL(attribute, options).replace('ATTRIBUTENAME', this.quoteIdentifier(attributeName));
+      result[attributeName] = this.attributeToSQL(attribute, { attributeName, ...options });
     }
 
     return result;

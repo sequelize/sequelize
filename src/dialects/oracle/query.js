@@ -40,12 +40,12 @@ export class OracleQuery extends AbstractQuery {
     if (this.isSelectQuery() && this.model) {
       const fInfo = {};
       const keys = Object.keys(this.model.tableAttributes);
-      keys.forEach( key => {
+      for (const key of keys) {
         const keyValue = this.model.tableAttributes[key];
         if ( keyValue.type.key === 'DECIMAL') {
           fInfo[key] = { type: oracledb.STRING };
         }
-      });
+      }
 
       if ( fInfo ) {
         execOpts.fetchInfo = fInfo;
@@ -622,7 +622,7 @@ export class OracleQuery extends AbstractQuery {
     const returnIndexes = [];
 
     const accKeys = Object.keys(acc);
-    accKeys.forEach(accKey => {
+    for (const accKey of accKeys) {
       const columns = {};
       columns.fields = acc[accKey].fields;
       // We are generating index field name in the format sequelize expects
@@ -631,7 +631,7 @@ export class OracleQuery extends AbstractQuery {
         acc[accKey].name = Utils.nameIndex(columns, acc[accKey].tableName).name;
       }
       returnIndexes.push(acc[accKey]);
-    });
+    }
 
     return returnIndexes;
   }
