@@ -82,8 +82,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       await sequelize2.sync({ force: true });
       const t = await sequelize2.transaction();
-      let query = 'select sleep(2);';
 
+      let query: string;
       switch (getTestDialect()) {
         case 'postgres':
           query = 'select pg_sleep(2);';
@@ -95,6 +95,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           query = 'WAITFOR DELAY \'00:00:02\';';
           break;
         default:
+          query = 'select sleep(2);';
           break;
       }
 
