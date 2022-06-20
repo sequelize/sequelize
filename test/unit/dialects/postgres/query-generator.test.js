@@ -10,7 +10,6 @@ const Support = require('../../support');
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
 });
-const customSql = customSequelize.dialect.queryGenerator;
 
 const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
