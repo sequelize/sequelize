@@ -7,7 +7,7 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require('sequelize/lib/data-types'),
-  dayjs = require('dayjs'),
+  moment = require('moment'),
   current = Support.sequelize,
   _ = require('lodash');
 
@@ -650,12 +650,12 @@ if (dialect.startsWith('postgres')) {
             bind: { sequelize_1: `foo';DROP TABLE myTable;` },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
             query: 'INSERT INTO "myTable" ("name","birthday") VALUES ($sequelize_1,$sequelize_2);',
             bind: {
               sequelize_1: 'foo',
-              sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
+              sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
             },
           },
         }, {
@@ -752,10 +752,10 @@ if (dialect.startsWith('postgres')) {
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
             query: 'INSERT INTO myTable (name,birthday) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
@@ -844,7 +844,7 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', [{ name: 'foo\';DROP TABLE myTable;' }, { name: 'bar' }]],
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'\';DROP TABLE myTable;\'),(\'bar\');',
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO "myTable" ("name","birthday") VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
@@ -888,7 +888,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'INSERT INTO myTable (name) VALUES (\'foo\'\';DROP TABLE myTable;\'),(\'bar\');',
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO myTable (name,birthday) VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
           context: { options: { quoteIdentifiers: false } },
         }, {
@@ -928,16 +928,16 @@ if (dialect.startsWith('postgres')) {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE "myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
@@ -991,10 +991,10 @@ if (dialect.startsWith('postgres')) {
           },
           context: { options: { omitNull: true } },
         }, {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE "mySchema"."myTable" SET "name"=$sequelize_1,"birthday"=$sequelize_2 WHERE "id" = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { name: 'foo\';DROP TABLE mySchema.myTable;' }, { name: 'foo' }],
@@ -1028,17 +1028,17 @@ if (dialect.startsWith('postgres')) {
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
@@ -1091,10 +1091,10 @@ if (dialect.startsWith('postgres')) {
           },
           context: { options: { omitNull: true, quoteIdentifiers: false } },
         }, {
-          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE mySchema.myTable SET name=$sequelize_1,birthday=$sequelize_2 WHERE id = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
+            bind: { sequelize_1: 'foo', sequelize_2: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
           context: { options: { quoteIdentifiers: false } },
         }, {
