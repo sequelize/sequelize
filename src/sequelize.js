@@ -2,6 +2,7 @@
 
 import isPlainObject from 'lodash/isPlainObject';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { AggregateError } from './errors';
 import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
@@ -1102,17 +1103,14 @@ Use Sequelize#query if you wish to use replacements.`);
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment();
+      await transaction.prepareEnvironment(/* cls */ false);
 
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
-      await transaction.prepareEnvironment();
-      if (Sequelize._cls) {
-        Sequelize._cls.set('transaction', this);
-      }
+      await transaction.prepareEnvironment(/* cls */ true);
 
       let result;
       try {
