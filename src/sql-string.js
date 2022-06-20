@@ -75,7 +75,7 @@ function escape(val, timeZone, dialect, format) {
       val = val.replace(/\0/g, '\\0');
     }
   } else if (dialect === 'oracle' && (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1 || typeof val === 'string')) {
-    if (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1) {
+    if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
       return val;
     } 
     if (typeof val === 'string') {

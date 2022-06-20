@@ -355,12 +355,12 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       'CREATE TABLE',
       values.table,
       `(${values.attributes})`
-    ]).replace(/'/g, "''");
+    ]);
 
     return Utils.joinSQLFragments([
       'BEGIN',
       'EXECUTE IMMEDIATE',
-      `'${query}';`,
+      `${this.escape(query)};`,
       'EXCEPTION WHEN OTHERS THEN',
       'IF SQLCODE != -955 THEN',
       'RAISE;',
@@ -496,12 +496,11 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
    * Since sequelize doesn't support multiple column foreign key, added complexity to
    * add the feature isn't needed
    *
-   * @param {Array} sql Array with sql blocks
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {string|object} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
    */
-  _alterForeignKeyConstraint(sql, definition, table, attributeName) {
+  _alterForeignKeyConstraint(definition, table, attributeName) {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
     const attributeNameConstant = wrapSingleQuote(this.getCatalogName(attributeName));
     const schemaNameConstant = table.schema ? wrapSingleQuote(this.getCatalogName(schemaName)) : 'USER';
@@ -533,7 +532,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       `(${this.quoteIdentifier(attributeName)})`,
       definition.replace(/.+?(?=REFERENCES)/, '')
     ]);
-    const fullQuery = [
+    return [
       'BEGIN',
       getConsNameQuery,
       'EXCEPTION',
@@ -543,21 +542,19 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       'IF CONS_NAME IS NOT NULL THEN',
       ` EXECUTE IMMEDIATE 'ALTER TABLE ${this.quoteTable(table)} DROP CONSTRAINT "'||CONS_NAME||'"';`,
       'END IF;',
-      `EXECUTE IMMEDIATE '${secondQuery}';`
+      `EXECUTE IMMEDIATE ${this.escape(secondQuery)};`
     ].join(' ');
-    sql.push(fullQuery);
   }
 
   /**
    * Function to alter table modify
    *
-   * @param {Array} sql Array with sql blocks
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {object|string} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
    */
-  _modifyQuery(sql, definition, table, attributeName) {
-    let query = Utils.joinSQLFragments([
+  _modifyQuery(definition, table, attributeName) {
+    const query = Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'MODIFY',
@@ -565,20 +562,19 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       definition
     ]);
     const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
-    query = [
+    return [
       'BEGIN',
-      `EXECUTE IMMEDIATE '${query}';`,
+      `EXECUTE IMMEDIATE ${this.escape(query)};`,
       'EXCEPTION',
       'WHEN OTHERS THEN',
       ' IF SQLCODE = -1442 OR SQLCODE = -1451 THEN',
       // We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
-      `   EXECUTE IMMEDIATE '${secondQuery}';`,
+      `   EXECUTE IMMEDIATE ${this.escape(secondQuery)};`,
       ' ELSE',
       '   RAISE;',
       ' END IF;',
       'END;'
     ].join(' ');
-    sql.push(query);
   }
 
   changeColumnQuery(table, attributes) {
@@ -588,15 +584,12 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       'BEGIN'
     ];
     for (const attributeName in attributes) {
-      let definition = attributes[attributeName];
+      const definition = attributes[attributeName];
       if (definition.match(/REFERENCES/)) {
-        this._alterForeignKeyConstraint(sql, definition, table, attributeName);
+        sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
       } else {
-        if (definition.indexOf('CHECK') > -1) {
-          definition = definition.replace(/'/g, "''");
-        }
         // Building the modify query
-        this._modifyQuery(sql, definition, table, attributeName);
+        sql.push(this._modifyQuery(definition, table, attributeName));
       }
     }
     sql.push('END;');
