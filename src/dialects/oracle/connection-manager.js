@@ -18,7 +18,7 @@ const { promisify } = require('util');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class OracleConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
@@ -186,7 +186,3 @@ class ConnectionManager extends AbstractConnectionManager {
     return connection && connection.isHealthy();
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

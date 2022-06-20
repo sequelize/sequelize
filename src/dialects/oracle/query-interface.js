@@ -8,7 +8,7 @@ const _ = require('lodash');
 /**
  * The interface that Sequelize uses to talk with Oracle database
  */
-class OracleQueryInterface extends QueryInterface {
+export class OracleQueryInterface extends QueryInterface {
 
   /**
    * Upsert
@@ -84,4 +84,3 @@ class OracleQueryInterface extends QueryInterface {
   }
 }
 
-exports.OracleQueryInterface = OracleQueryInterface;

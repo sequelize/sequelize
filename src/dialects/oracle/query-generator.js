@@ -21,7 +21,7 @@ const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*
 const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
 const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
-class OracleQueryGenerator extends AbstractQueryGenerator {
+export class OracleQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
   }
@@ -1439,5 +1439,3 @@ function wrapSingleQuote(identifier) {
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
-
-module.exports = OracleQueryGenerator;

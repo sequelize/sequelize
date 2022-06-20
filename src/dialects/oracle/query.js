@@ -11,7 +11,7 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:oracle');
 
-class Query extends AbstractQuery {
+export class OracleQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, options);
     this.options = _.extend(
@@ -666,7 +666,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;
