@@ -5121,10 +5121,10 @@ lazystream@^1.0.0:
   dependencies:
     readable-stream "^2.0.5"
 
-lcov-result-merger@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-3.2.0.tgz#93572de28f3023eedc15e04d5d58911dfe6e2256"
-  integrity sha512-gE4b+2bIFoAfxkLi6OVCyawN+zJtzBCZV36rVKdHYl1ithsYxRvCjksOcF+nHHNz998dFHPDqjnht7dXRBRBzQ==
+lcov-result-merger@3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-3.3.0.tgz#66d4b12ced4830855404db82622ac9e450304205"
+  integrity sha512-Krg9p24jGaIT93RBMA8b5qLHDEiAXTavaTiEdMAZaJS93PsBKIcg/89cw/8rgeSfRuQX+I9x7h73SHFjCZ6cHg==
   dependencies:
     through2 "^2.0.3"
     vinyl "^2.1.0"
