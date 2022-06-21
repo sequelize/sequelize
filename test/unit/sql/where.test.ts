@@ -44,6 +44,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare dateRangeAttr: Range<Date>;
 
   declare stringAttr: string;
+  declare stringBinaryAttr: Buffer;
   declare dateAttr: Date;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
@@ -68,6 +69,7 @@ TestModel.init({
   dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
 
   stringAttr: DataTypes.STRING,
+  stringBinaryAttr: DataTypes.STRING.BINARY,
   dateAttr: DataTypes.DATE,
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
@@ -349,26 +351,26 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       describe('Buffer', () => {
-        testSql({ stringAttr: Buffer.from('Sequelize') }, {
-          ibmi: `"stringAttr" = BLOB(X'53657175656c697a65')`,
-          postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
-          sqlite: '`stringAttr` = X\'53657175656c697a65\'',
-          mariadb: '`stringAttr` = X\'53657175656c697a65\'',
-          mysql: '`stringAttr` = X\'53657175656c697a65\'',
-          db2: '"stringAttr" = BLOB(\'Sequelize\')',
-          snowflake: '"stringAttr" = X\'53657175656c697a65\'',
-          mssql: '[stringAttr] = 0x53657175656c697a65',
+        testSql({ stringBinaryAttr: Buffer.from('Sequelize') }, {
+          ibmi: `"stringBinaryAttr" = BLOB(X'53657175656c697a65')`,
+          postgres: '"stringBinaryAttr" = E\'\\\\x53657175656c697a65\'',
+          sqlite: '`stringBinaryAttr` = X\'53657175656c697a65\'',
+          mariadb: '`stringBinaryAttr` = X\'53657175656c697a65\'',
+          mysql: '`stringBinaryAttr` = X\'53657175656c697a65\'',
+          db2: '"stringBinaryAttr" = BLOB(\'Sequelize\')',
+          snowflake: '"stringBinaryAttr" = X\'53657175656c697a65\'',
+          mssql: '[stringBinaryAttr] = 0x53657175656c697a65',
         });
 
-        testSql({ stringAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
-          ibmi: `"stringAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
-          postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
-          sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mariadb: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mysql: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: `"stringAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
-          snowflake: `"stringAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
-          mssql: '[stringAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
+        testSql({ stringBinaryAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
+          ibmi: `"stringBinaryAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          postgres: '"stringBinaryAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
+          sqlite: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mariadb: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mysql: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          db2: `"stringBinaryAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
+          snowflake: `"stringBinaryAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
+          mssql: '[stringBinaryAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
         });
       });
     });
@@ -393,7 +395,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       testSql({ intAttr1: ['not-an-int'] }, {
-        default: new Error('"not-an-int" is not a valid integer'),
+        default: new Error(`not-an-int is not a valid integer`),
       });
 
       testSql.skip({ 'stringAttr::integer': 1 }, {
@@ -1246,7 +1248,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> '1'::int4`,
+          postgres: `"intRangeAttr" @> 1`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query

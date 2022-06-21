@@ -15,7 +15,16 @@ describe(getTestDialectTeaser('SQL'), () => {
   describe('DataTypes', () => {
     const testsql = createTester((it, description: string, dataType: DataTypeClassOrInstance, expectation) => {
       it(description, () => {
-        return expectsql(sequelize.normalizeDataType(dataType).toSql(), expectation);
+        let result: Error | string;
+
+        try {
+          result = sequelize.normalizeDataType(dataType).toSql();
+        } catch (error) {
+          assert(error instanceof Error);
+          result = error;
+        }
+
+        return expectsql(result, expectation);
       });
     });
 
@@ -187,14 +196,16 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: 'CHAR(12) BINARY',
         ibmi: 'CLOB(12)',
         sqlite: 'CHAR BINARY(12)',
-        postgres: 'BYTEA',
+        postgres: new Error('postgres does not support the CHAR.BINARY DataType.\n'
+          + 'See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.'),
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         ibmi: 'CLOB(255)',
         sqlite: 'CHAR BINARY(255)',
-        postgres: 'BYTEA',
+        postgres: new Error('postgres does not support the CHAR.BINARY DataType.\n'
+          + 'See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.'),
       });
     });
 
@@ -261,7 +272,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid date');
+          }).to.throw(ValidationError, `'foobar' is not a valid date`);
         });
 
         it('should not throw if `value` is a date', () => {
@@ -292,7 +303,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
             expect(() => {
               type.validate('foobar');
-            }).to.throw(ValidationError, '"foobar" is not a valid hstore');
+            }).to.throw(ValidationError, `'foobar' is not a valid hstore`);
           });
 
           it('should not throw if `value` is an hstore', () => {
@@ -322,11 +333,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid uuid');
+          }).to.throw(ValidationError, `'foobar' is not a valid uuid`);
 
           expect(() => {
             type.validate(['foobar']);
-          }).to.throw(ValidationError, '["foobar"] is not a valid uuid');
+          }).to.throw(ValidationError, `[ 'foobar' ] is not a valid uuid`);
         });
 
         it('should not throw if `value` is an uuid', () => {
@@ -344,11 +355,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid uuid');
+          }).to.throw(ValidationError, `'foobar' is not a valid uuid`);
 
           expect(() => {
             type.validate(['foobar']);
-          }).to.throw(ValidationError, '["foobar"] is not a valid uuid');
+          }).to.throw(ValidationError, `[ 'foobar' ] is not a valid uuidv1`);
         });
 
         it('should not throw if `value` is an uuid', () => {
@@ -367,11 +378,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate(value);
-          }).to.throw(ValidationError, util.format('%j is not a valid uuidv4', value));
+          }).to.throw(ValidationError, util.format('%O is not a valid uuidv4', value));
 
           expect(() => {
             type.validate(['foobar']);
-          }).to.throw(ValidationError, '["foobar"] is not a valid uuidv4');
+          }).to.throw(ValidationError, `[ 'foobar' ] is not a valid uuidv4`);
         });
 
         it('should not throw if `value` is an uuid', () => {
@@ -471,11 +482,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid integer');
+          }).to.throw(ValidationError, `foobar is not a valid integer`);
 
           expect(() => {
             type.validate('123.45');
-          }).to.throw(ValidationError, '"123.45" is not a valid integer');
+          }).to.throw(ValidationError, `'123.45' is not a valid integer`);
 
           expect(() => {
             type.validate(123.45);
@@ -619,7 +630,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid integer');
+          }).to.throw(ValidationError, `foobar is not a valid tinyint`);
 
           expect(() => {
             type.validate(123.45);
@@ -773,7 +784,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid integer');
+          }).to.throw(ValidationError, `foobar is not a valid smallint`);
 
           expect(() => {
             type.validate(123.45);
@@ -887,7 +898,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid integer');
+          }).to.throw(ValidationError, `foobar is not a valid mediumint`);
 
           expect(() => {
             type.validate(123.45);
@@ -984,7 +995,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid integer');
+          }).to.throw(ValidationError, `foobar is not a valid bigint`);
 
           expect(() => {
             type.validate(123.45);
@@ -1331,7 +1342,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid float');
+          }).to.throw(ValidationError, `'foobar' is not a valid float`);
         });
 
         it('should not throw if `value` is a float', () => {
@@ -1391,15 +1402,15 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid decimal');
+          }).to.throw(ValidationError, 'foobar is not a valid decimal(10)');
 
           expect(() => {
             type.validate('0.1a');
-          }).to.throw(ValidationError, '"0.1a" is not a valid decimal');
+          }).to.throw(ValidationError, '0.1a is not a valid decimal(10)');
 
           expect(() => {
             type.validate(Number.NaN);
-          }).to.throw(ValidationError, 'null is not a valid decimal');
+          }).to.throw(ValidationError, 'NaN is not a valid decimal(10)');
         });
 
         it('should not throw if `value` is a decimal', () => {
@@ -1436,7 +1447,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           sequelize.define('omnomnom', {
             bla: { type: DataTypes.ENUM },
           });
-        }).to.throw(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
+        }).to.throwWithCause(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
       });
 
       describe('validate', () => {
@@ -1445,7 +1456,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid choice in ["foo"]');
+          }).to.throw(ValidationError, `'foobar' is not a valid choice in [ 'foo' ]`);
         });
 
         it('should not throw if `value` is a valid choice', () => {
@@ -1522,7 +1533,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, '"foobar" is not a valid range');
+          }).to.throw(ValidationError, 'A range must either be an array with two elements, or an empty array for the empty range.');
         });
 
         it('should throw an error if `value` is not an array with two elements', () => {
@@ -1530,7 +1541,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate([1]);
-          }).to.throw(ValidationError, 'A range must be an array with two elements');
+          }).to.throw(ValidationError, 'A range must either be an array with two elements, or an empty array for the empty range.');
         });
 
         it('should not throw if `value` is a range', () => {
@@ -1633,7 +1644,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             sequelize.define('omnomnom', {
               bla: { type: DataTypes.ARRAY },
             });
-          }).to.throw(Error, 'ARRAY is missing type definition for its values.');
+          }).to.throwWithCause(Error, 'ARRAY is missing type definition for its values.');
         });
 
         describe('validate', () => {
@@ -1642,7 +1653,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
             expect(() => {
               type.validate('foobar');
-            }).to.throw(ValidationError, '"foobar" is not a valid array');
+            }).to.throw(ValidationError, `'foobar' is not a valid array`);
           });
 
           it('should not throw if `value` is an array', () => {

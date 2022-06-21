@@ -27,7 +27,24 @@ describe('DataTypes.RANGE', () => {
     return { User };
   });
 
-  it('serialize/deserializes arrays', async () => {
+  it('serialize/deserializes empty ranges', async () => {
+    await testSimpleInOut(vars.User, 'intRange', [], []);
+  });
+
+  it('serialize/deserializes unbound ranges', async () => {
+    await testSimpleInOut(vars.User, 'intRange', [null, 1], [{ inclusive: false, value: null }, { inclusive: false, value: 1 }]);
+    await testSimpleInOut(vars.User, 'intRange', [1, null], [{ inclusive: true, value: 1 }, { inclusive: false, value: null }]);
+    await testSimpleInOut(vars.User, 'intRange', [null, null], [{ inclusive: false, value: null }, { inclusive: false, value: null }]);
+  });
+
+  it('serialize/deserializes infinite values in ranges', async () => {
+    // note: this is not the same as an unbound range. This is the 'infinite' value of the datetime DataType.
+    await testSimpleInOut(vars.User, 'datetimeRange', [Number.NEGATIVE_INFINITY, '2022-06-01T00:00:00Z'], [{ inclusive: true, value: Number.NEGATIVE_INFINITY }, { inclusive: false, value: new Date('2022-06-01T00:00:00Z') }]);
+    await testSimpleInOut(vars.User, 'datetimeRange', ['2022-06-01T00:00:00Z', Number.POSITIVE_INFINITY], [{ inclusive: true, value: new Date('2022-06-01T00:00:00Z') }, { inclusive: false, value: Number.POSITIVE_INFINITY }]);
+    await testSimpleInOut(vars.User, 'datetimeRange', [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY], [{ inclusive: true, value: Number.NEGATIVE_INFINITY }, { inclusive: false, value: Number.POSITIVE_INFINITY }]);
+  });
+
+  it('serialize/deserializes simple range tuples', async () => {
     // https://github.com/sequelize/sequelize/issues/5747
     await testSimpleInOut(vars.User, 'intRange', [1, 2], [{ inclusive: true, value: 1 }, { inclusive: false, value: 2 }]);
     await testSimpleInOut(vars.User, 'bigintRange', [1n, 2n], [{ inclusive: true, value: '1' }, { inclusive: false, value: '2' }]);

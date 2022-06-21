@@ -5,21 +5,9 @@ import { sequelize, getTestDialect } from '../../../support';
 
 if (getTestDialect() === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
-    let initialTypeValidation: boolean;
-    before(() => {
-      initialTypeValidation = sequelize.options.typeValidation;
-      sequelize.options.typeValidation = true;
-    });
-
-    after(() => {
-      sequelize.options.typeValidation = initialTypeValidation;
-    });
-
     describe('DATE SQL', () => {
       // create dummy user
       it('should be able to create and update records with Infinity/-Infinity', async () => {
-        sequelize.options.typeValidation = true;
-
         interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
           username: string | null;
           beforeTime: Date | number | null;

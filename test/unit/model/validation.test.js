@@ -271,10 +271,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('datatype validations', () => {
-    const current = Support.createSequelizeInstance({
-      typeValidation: true,
-    });
-
     const User = current.define('user', {
       age: DataTypes.INTEGER,
       name: DataTypes.STRING,

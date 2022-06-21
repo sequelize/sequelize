@@ -161,11 +161,12 @@ if (dialect.startsWith('postgres')) {
         expect(table.document.type).to.equal('HSTORE');
       });
 
+      // TODO: move to unit tests!
       it('should NOT stringify hstore with insert', async function () {
         await this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: false, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'false', push: 'facebook', frequency: '3' },
         }, {
           logging(sql) {
             const unexpected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
@@ -174,6 +175,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to unit test
       it('should not rename hstore fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -190,7 +192,7 @@ if (dialect.startsWith('postgres')) {
         await Equipment.findAll({
           where: {
             utilityBelt: {
-              grapplingHook: true,
+              grapplingHook: 'true',
             },
           },
           logging(sql) {
@@ -199,6 +201,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to unit test
       it('should not rename json fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -683,7 +686,7 @@ if (dialect.startsWith('postgres')) {
         await this.User.bulkCreate([{
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: true, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'true', push: 'facebook', frequency: '3' },
         }]);
 
         const user = await User.findByPk(1);

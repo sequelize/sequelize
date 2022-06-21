@@ -30,13 +30,13 @@ describe('DataTypes', () => {
       });
 
       it('DATE should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(dateType.stringify(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
-        expect(dateType.stringify(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');
+        expect(dateType.toBindableValue(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
+        expect(dateType.toBindableValue(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');
       });
 
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(dateOnlyType.stringify(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
-        expect(dateOnlyType.stringify(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');
+        expect(dateOnlyType.toBindableValue(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
+        expect(dateOnlyType.toBindableValue(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');
       });
     }
   });
