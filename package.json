@@ -77,7 +77,7 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.46",
+    "esbuild": "0.14.47",
     "eslint": "8.18.0",
     "eslint-plugin-jsdoc": "39.3.3",
     "eslint-plugin-mocha": "10.0.5",
