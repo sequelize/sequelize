@@ -995,6 +995,15 @@ class QueryGenerator {
   }
 
   /**
+   * Returns the alias token
+   *
+   * @returns {string}
+   */
+  getAliasToken() {
+    return 'AS';
+  }
+
+  /**
    * Quote table name with optional alias and schema attribution
    *
    * @param {string|object}  param table string or object
@@ -1029,7 +1038,7 @@ class QueryGenerator {
     }
 
     if (alias) {
-      table += ` AS ${this.quoteIdentifier(alias)}`;
+      table += ` ${this.getAliasToken()} ${this.quoteIdentifier(alias)}`;
     }
 
     return table;
@@ -1219,7 +1228,6 @@ class QueryGenerator {
     let mainJoinQueries = [];
     let subJoinQueries = [];
     let query;
-    const hasAs = this._dialect.name === 'oracle' ? '' : 'AS ';
 
     // Aliases can be passed through subqueries and we don't want to reset them
     if (this.options.minifyAliases && !options.aliasesMapping) {
@@ -1369,7 +1377,7 @@ class QueryGenerator {
             model
           },
           model
-        ).replace(/;$/, '')}) ${hasAs}sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.getAliasToken()} sub`; // Every derived table must have its own alias
         const placeHolder = this.whereItemQuery(Op.placeholder, true, { model });
         const splicePos = baseQuery.indexOf(placeHolder);
 
@@ -1463,7 +1471,7 @@ class QueryGenerator {
 
     if (subQuery) {
       this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.as });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${hasAs}${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.getAliasToken()} ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -2167,7 +2175,7 @@ class QueryGenerator {
     let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
-      fragment += ` AS ${mainTableAs}`;
+      fragment += ` ${this.getAliasToken()} ${mainTableAs}`;
     }
 
     if (options.indexHints && this._dialect.supports.indexHints) {
@@ -2820,6 +2828,13 @@ class QueryGenerator {
 
   booleanValue(value) {
     return value;
+  }
+
+  /*
+    Returns the authenticate test query
+  */
+  authTestQuery() {
+    return 'SELECT 1+1 AS result';
   }
 }
 

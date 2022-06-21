@@ -53,7 +53,7 @@ export class OracleQuery extends AbstractQuery {
     }
     return execOpts;
   }
-  _run(connection, sql, parameters) {
+  async _run(connection, sql, parameters) {
     // We set the oracledb
     const oracledb = this.sequelize.connectionManager.lib;
     // We remove the / that escapes quotes
@@ -118,17 +118,15 @@ export class OracleQuery extends AbstractQuery {
           this.autoCommit = true;
         }
       }
-      return connection
-        .execute(this.sql, this.bindParameters, { autoCommit: this.autoCommit })
-        .then(() => {
-          return {};
-        })
-        .catch(error => {
-          throw this.formatError(error);
-        })
-        .finally(() => {
-          complete();
-        });
+
+      try {
+        await connection.execute(this.sql, this.bindParameters, { autoCommit: this.autoCommit });
+        return Object.create(null);
+      } catch (error) {
+        throw this.formatError(error);
+      } finally {
+        complete();
+      }
     } 
     if (_.startsWith(this.sql, 'BEGIN')) {
       // Call to stored procedures - BEGIN TRANSACTION has been treated before
@@ -140,62 +138,50 @@ export class OracleQuery extends AbstractQuery {
         }
       }
 
-      return connection
-        .execute(this.sql, this.bindParameters, {
+      try {
+        const result = await connection.execute(this.sql, this.bindParameters, {
           outFormat: this.outFormat,
           autoCommit: this.autoCommit
-        })
-        .then(result => {
-          if (!Array.isArray(result.outBinds)) {
-            return [result.outBinds];
-          }
-          return result.outBinds;
-        })
-        .catch(error => {
-          throw this.formatError(error);
-        })
-        .finally(() => {
-          complete();
         });
+        if (!Array.isArray(result.outBinds)) {
+          return [result.outBinds];
+        }
+        return result.outBinds;
+      } catch (error) {
+        throw this.formatError(error);
+      } finally {
+        complete();
+      }
     } 
     if (_.startsWith(this.sql, 'COMMIT TRANSACTION')) {
-      return connection
-        .commit()
-        .then(() => {
-          return {};
-        })
-        .catch(err => {
-          throw this.formatError(err);
-        })
-        .finally(() => {
-          complete();
-        });
+      try {
+        await connection.commit();
+        return Object.create(null);
+      } catch (error) {
+        throw this.formatError(error);
+      } finally {
+        complete();
+      }
     } 
     if (_.startsWith(this.sql, 'ROLLBACK TRANSACTION')) {
-      return connection
-        .rollback()
-        .then(() => {
-          return {};
-        })
-        .catch(err => {
-          throw this.formatError(err);
-        })
-        .finally(() => {
-          complete();
-        });
+      try {
+        await connection.rollback();
+        return Object.create(null);
+      } catch (error) {
+        throw this.formatError(error);
+      } finally {
+        complete();
+      }
     } 
     if (_.startsWith(this.sql, 'SET TRANSACTION')) {
-      return connection
-        .execute(this.sql, [], { autoCommit: false })
-        .then(() => {
-          return {};
-        })
-        .catch(error => {
-          throw this.formatError(error);
-        })
-        .finally(() => {
-          complete();
-        });
+      try {
+        await connection.execute(this.sql, [], { autoCommit: false });
+        return Object.create(null);
+      } catch (error) {
+        throw this.formatError(error);
+      } finally {
+        complete();
+      }
     } 
     // QUERY SUPPORT
     // As Oracle does everything in transaction, if autoCommit is not defined, we set it to true
@@ -216,18 +202,14 @@ export class OracleQuery extends AbstractQuery {
       execOpts.bindDefs = bindDef;
     }
     const executePromise = this.options.executeMany ? connection.executeMany(this.sql, this.bindParameters, execOpts) : connection.execute(this.sql, this.bindParameters, execOpts);
-    // If we have some mapping with parameters to do - INSERT queries
-    return executePromise
-      .then(result => {
-        return this.formatResults(result);
-      })
-      .catch(error => {
-        throw this.formatError(error);
-      })
-      .finally(() => {
-        complete();
-      });
-    
+    try {
+      const result = await executePromise;
+      return this.formatResults(result);
+    } catch (error) {
+      throw this.formatError(error);
+    } finally {
+      complete();
+    }
   }
 
   run(sql, parameters) {
