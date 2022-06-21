@@ -164,16 +164,6 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
         // match[2] already has foreignKeys in correct format so we don't need to replace
         foreignKeys[attr] = match[2];
-      } else if (dataType.includes('CHECK')) {
-        // Check constraints go to the end
-        const match = dataType.match(/^(.+) (CHECK.*)$/);
-        attrStr.push(`${attr} ${match[1]}`);
-        match[2] = match[2].replace('ATTRIBUTENAME', attr);
-        const checkCond = match[2].replace(chkRegex, (match, column, condition) => {
-          return `CHECK (${this.quoteIdentifier(column)} ${condition})`;
-        });
-
-        checkStr.push(checkCond);
       } else {
         attrStr.push(`${attr} ${dataType}`);
       }
