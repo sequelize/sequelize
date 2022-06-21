@@ -14,24 +14,29 @@ docker-compose -p oraclexedb up -d
 ./wait-until-healthy.sh oraclexedb
 
 # Moving privileges.sql to docker container
-docker cp privileges.sql oraclexedb:/opt/oracle/. 
+docker cp privileges.sql oraclexedb:/opt/oracle/.
 
 # Granting all the needed privileges to sequelizetest user
 docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
 
 # Setting up Oracle instant client for oracledb
-if [ ! -d  ~/oracle ] && [ $(uname) == 'Linux' ]
-then 
-    mkdir ~/oracle && 
-    wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linuxx64.zip --no-check-certificate && 
-    unzip instantclient-basic-linuxx64.zip -d ~/oracle/ &&
+if [ ! -n "${SEQ_WORKSPACE:-}" ];
+then
+  SEQ_WORKSPACE=$PWD/../../../
+fi
+
+if [ ! -d  $SEQ_WORKSPACE/.oracle/ ] && [ $(uname) == 'Linux' ]
+then
+    mkdir $SEQ_WORKSPACE/.oracle/ &&
+    wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linuxx64.zip --no-check-certificate &&
+    unzip instantclient-basic-linuxx64.zip -d $SEQ_WORKSPACE/.oracle/ &&
     rm instantclient-basic-linuxx64.zip &&
-    mv ~/oracle/instantclient_21_6 ~/oracle/instantclient
+    mv $SEQ_WORKSPACE/.oracle/instantclient_21_6 $SEQ_WORKSPACE/.oracle/instantclient
 
     echo "Local Oracle instant client has been setup!"
 elif [ ! -d  ~/Downloads/instantclient_19_8 ] && [ $(uname) == 'Darwin' ]
 then
-    curl -O https://download.oracle.com/otn_software/mac/instantclient/instantclient-basic-macos.dmg && 
+    curl -O https://download.oracle.com/otn_software/mac/instantclient/instantclient-basic-macos.dmg &&
     hdiutil mount instantclient-basic-macos.dmg &&
     /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru/install_ic.sh &&
     hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru &&
