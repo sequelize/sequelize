@@ -18,9 +18,7 @@ jobs:
             fix
             feat
             docs
-            chore
-            build
-            test
+            meta
           scopes: |
             db2
             ibmi
