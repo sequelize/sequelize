@@ -234,13 +234,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     // The Oracle dialect doesn't support empty string in a non-null column
-    (dialect !== 'oracle' ? it : it.skip)('returns proper defaultValues after save when setter is set', async function() {
+    it('returns proper defaultValues after save when setter is set', async function() {
       const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
           title: {
             type: Sequelize.STRING(50),
             allowNull: false,
-            defaultValue: ''
+            defaultValue: dialect === 'oracle' ? 'A' : ''
           }
         }, {
           setterMethods: {
@@ -251,7 +251,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Task.sync({ force: true });
       const record = await Task.build().save();
       expect(record.title).to.be.a('string');
-      expect(record.title).to.equal('');
+      if (dialect === 'oracle') {
+        expect(record.title).to.equal('A');
+      } else {
+        expect(record.title).to.equal('');
+      }
       expect(titleSetter.notCalled).to.be.ok; // The setter method should not be invoked for default values
     });
 

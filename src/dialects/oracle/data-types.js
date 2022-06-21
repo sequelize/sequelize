@@ -145,6 +145,7 @@ module.exports = BaseTypes => {
   class CHAR extends BaseTypes.CHAR {
     toSql() {
       if (this._binary) {
+        warn('RAW is not of fixed length. Default value set to 255');
         return `RAW(${this._length})`;
       }
       return super.toSql();

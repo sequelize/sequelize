@@ -29,9 +29,7 @@ if (dialect !== 'sqlite') {
       let query = `SELECT ${now} as now`;
       if (dialect === 'db2') {
         query = `SELECT ${now} as "now"`;
-      }
-
-      if (dialect === 'oracle') {
+      } else if (dialect === 'oracle') {
         query = 'SELECT sysdate AS "now" FROM DUAL';
       }
 

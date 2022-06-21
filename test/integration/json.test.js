@@ -27,7 +27,9 @@ describe('model', () => {
         const table = await this.sequelize.queryInterface.describeTable('Users');
         // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
         // oracledb 19c doesn't support JSON and the DB datatype is BLOB
-        if (dialect !== 'mariadb' && dialect !== 'oracle') {
+        if (dialect === 'oracle') {
+          expect(table.emergency_contact.type).to.equal('BLOB');
+        } else if (dialect !== 'mariadb') {
           expect(table.emergency_contact.type).to.equal('JSON');
         }
       });

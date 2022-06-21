@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mysql: ['2015-01-20 01:00:00'],
             snowflake: ['2015-01-20 01:00:00'],
             mariadb: ['2015-01-20 01:00:00.000'],
-            oracle: [new Date(2015, 0, 20)],
+            oracle: [new Date(Date.UTC(2015, 0, 20))],
             default: ['2015-01-20 01:00:00.000 +01:00']
           }
         });
