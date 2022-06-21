@@ -138,7 +138,13 @@ export abstract class AbstractDataType<
   validate(value: any): asserts value is AcceptedType {}
 
   escape(value: AcceptedType, options: StringifyOptions): string {
-    return options.dialect.escapeString(this.stringify(value, options));
+    const asBindValue = this.toBindableValue(value, options);
+
+    if (!isString(asBindValue)) {
+      throw new Error(`${this.constructor.name}#stringify has been overridden to return a non-string value, so ${this.constructor.name}#escape must be implemented to handle that value correctly.`);
+    }
+
+    return options.dialect.escapeString(asBindValue);
   }
 
   /**
@@ -148,7 +154,7 @@ export abstract class AbstractDataType<
    * @param options
    */
   bindParam(value: AcceptedType, options: BindParamOptions): string {
-    return options.bindParam(this.stringify(value, options));
+    return options.bindParam(this.toBindableValue(value, options));
   }
 
   /**
@@ -157,7 +163,8 @@ export abstract class AbstractDataType<
    * @param value
    * @param _options
    */
-  stringify(value: AcceptedType, _options: StringifyOptions): string {
+  // TODO stringify is a misnomer. It's 'produce a value that can be used by the dialect in a bind parameter'.
+  toBindableValue(value: AcceptedType, _options: StringifyOptions): unknown {
     return String(value);
   }
 
@@ -311,7 +318,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
 
     throw new ValidationError(
-      util.format('%j is not a valid string', value),
+      util.format('%s is not a valid string', value),
       [],
     );
   }
@@ -343,7 +350,7 @@ export class CHAR extends STRING {
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
-    if (!dialect.supports.dataTypes.CHAR.BINARY) {
+    if (!dialect.supports.dataTypes.CHAR.BINARY && this.options.binary) {
       throw new Error(`${dialect.name} does not support the CHAR.BINARY DataType.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.`);
     }
   }
@@ -403,7 +410,7 @@ export class TEXT extends AbstractDataType<string> {
   validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
       throw new ValidationError(
-        util.format('%j is not a valid string', value),
+        util.format('%s is not a valid string', value),
         [],
       );
     }
@@ -425,7 +432,7 @@ export class CITEXT extends AbstractDataType<string> {
   validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
       throw new ValidationError(
-        util.format('%j is not a valid string', value),
+        util.format('%s is not a valid string', value),
         [],
       );
     }
@@ -512,7 +519,7 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
   validate(value: any): asserts value is number {
     if (typeof value === 'number' && Number.isInteger(value) && !Number.isSafeInteger(value)) {
       throw new ValidationError(
-        util.format(`%j is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+        util.format(`%s is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
         [],
       );
     }
@@ -520,7 +527,7 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
         util.format(
-          `%j is not a valid ${
+          `%s is not a valid ${
             super.toString()
               .toLowerCase()}`,
           value,
@@ -531,10 +538,10 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
   }
 
   escape(value: AcceptedNumber, options: StringifyOptions): string {
-    return this.stringify(value, options);
+    return this.toBindableValue(value, options);
   }
 
-  stringify(number: AcceptedNumber, _options: StringifyOptions): string {
+  toBindableValue(number: AcceptedNumber, _options: StringifyOptions): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(number);
 
@@ -573,14 +580,14 @@ export class INTEGER extends NUMBER {
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
       throw new ValidationError(
-        util.format(`%j is not a valid integer`, value),
+        util.format(`%O is not a valid integer`, value),
         [],
       );
     }
 
     if (!Validator.isInt(String(value))) {
       throw new ValidationError(
-        util.format(`%j is not a valid integer`, value),
+        util.format(`%O is not a valid integer`, value),
         [],
       );
     }
@@ -660,15 +667,21 @@ export class FLOAT extends NUMBER {
   }
 
   validate(value: any): asserts value is AcceptedNumber {
+    // Float is IEEE 754 floating point number, which supports NaN, Infinity, and -Infinity.
+    // If your dialect does not accept these types, override this method to reject them.
+    if (Number.isNaN(value) || value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
+      return;
+    }
+
     if (!Validator.isFloat(String(value))) {
       throw new ValidationError(
-        util.format('%j is not a valid float', value),
+        util.format('%O is not a valid float', value),
         [],
       );
     }
   }
 
-  stringify(value: AcceptedNumber) {
+  toBindableValue(value: AcceptedNumber) {
     const num = typeof value === 'number' ? value : Number(String(value));
 
     if (Number.isNaN(num)) {
@@ -771,7 +784,7 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   validate(value: any): asserts value is boolean {
     if (!Validator.isBoolean(String(value))) {
       throw new ValidationError(
-        util.format('%j is not a valid boolean', value),
+        util.format('%O is not a valid boolean', value),
         [],
       );
     }
@@ -782,10 +795,10 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   }
 
   escape(value: boolean | Falsy): string {
-    return this.stringify(value);
+    return this.toBindableValue(value);
   }
 
-  stringify(value: boolean | Falsy): string {
+  toBindableValue(value: boolean | Falsy): string {
     return value ? 'true' : 'false';
   }
 
@@ -879,7 +892,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   validate(value: any) {
     if (!Validator.isDate(String(value))) {
       throw new ValidationError(
-        util.format('%j is not a valid date', value),
+        util.format('%O is not a valid date', value),
         [],
       );
     }
@@ -936,7 +949,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return dayjs(date);
   }
 
-  stringify(
+  toBindableValue(
     date: AcceptedDate,
     options: StringifyOptions,
   ) {
@@ -955,7 +968,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return 'DATE';
   }
 
-  stringify(date: AcceptedDate, _options: StringifyOptions) {
+  toBindableValue(date: AcceptedDate, _options: StringifyOptions) {
     return dayjs(date).format('YYYY-MM-DD');
   }
 
@@ -993,12 +1006,12 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 
   validate(value: any) {
     if (!isPlainObject(value)) {
-      throw new ValidationError(`${String(value)} is not a valid hstore, it must be a plain object`);
+      throw new ValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
     }
 
     for (const key of Object.keys(value)) {
       if (!isString(value[key])) {
-        throw new ValidationError(`${String(value)} is not a valid hstore, its values must be strings but ${key} is ${globalThis.JSON.stringify(value[key])}`);
+        throw new ValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, value, value[key]));
       }
     }
   }
@@ -1014,7 +1027,7 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 export class JSON extends AbstractDataType<any> {
   static readonly [kDataTypeIdentifier]: string = 'JSON';
 
-  stringify(value: any): string {
+  toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
   }
 
@@ -1140,15 +1153,9 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
   }
 
   validate(value: any) {
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) || (value.length !== 2 && value.length !== 0)) {
       throw new ValidationError(
-        util.format(`%j is not a valid range`, value),
-      );
-    }
-
-    if (value.length !== 2) {
-      throw new ValidationError(
-        'A range must be an array with two elements',
+        'A range must either be an array with two elements, or an empty array for the empty range.',
       );
     }
   }
@@ -1168,7 +1175,7 @@ export class UUID extends AbstractDataType<string> {
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isUUID(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid uuid', value),
+        util.format('%O is not a valid uuid', value),
       );
     }
   }
@@ -1188,7 +1195,7 @@ export class UUIDV1 extends AbstractDataType<string> {
     // @ts-expect-error -- the typings for isUUID are missing '1' as a valid uuid version, but its implementation does accept it
     if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
       throw new ValidationError(
-        util.format('%j is not a valid uuidv1', value),
+        util.format('%O is not a valid uuidv1', value),
       );
     }
   }
@@ -1208,7 +1215,7 @@ export class UUIDV4 extends AbstractDataType<string> {
   validate(value: unknown) {
     if (typeof value !== 'string' || !Validator.isUUID(value, 4)) {
       throw new ValidationError(
-        util.format('%j is not a valid uuidv4', value),
+        util.format('%O is not a valid uuidv4', value),
       );
     }
   }
@@ -1340,7 +1347,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
 
     for (const value of values) {
       if (typeof value !== 'string') {
-        throw new TypeError(`One of the possible values passed to DataTypes.ENUM (${String(value)}) is not a string. Only strings can be used as enum values.`);
+        throw new TypeError(util.format(`One of the possible values passed to DataTypes.ENUM (%O) is not a string. Only strings can be used as enum values.`, value));
       }
     }
 
@@ -1352,7 +1359,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   validate(value: any): asserts value is Member {
     if (!this.options.values.includes(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid choice in %j', value, this.options.values),
+        util.format('%O is not a valid choice in %O', value, this.options.values),
       );
     }
   }
@@ -1404,11 +1411,16 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   validate(value: any) {
     if (!Array.isArray(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid array', value),
+        util.format('%O is not a valid array', value),
       );
     }
 
     // TODO: validate individual items
+  }
+
+  toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): string {
+    // @ts-expect-error
+    return value.map(val => this.options.type.toBindableValue(val, _options));
   }
 
   toDialectDataType(dialect: AbstractDialect): this {
@@ -1549,7 +1561,7 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
       : { type: typeOrOptions, srid };
   }
 
-  stringify(value: GeoJson, options: StringifyOptions) {
+  toBindableValue(value: GeoJson, options: StringifyOptions) {
     return `STGeomFromText(${options.escape(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
@@ -1602,7 +1614,7 @@ export class CIDR extends AbstractDataType<string> {
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid CIDR', value),
+        util.format('%O is not a valid CIDR', value),
       );
     }
   }
@@ -1622,7 +1634,7 @@ export class INET extends AbstractDataType<string> {
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid INET', value),
+        util.format('%O is not a valid INET', value),
       );
     }
   }
@@ -1643,7 +1655,7 @@ export class MACADDR extends AbstractDataType<string> {
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
       throw new ValidationError(
-        util.format('%j is not a valid MACADDR', value),
+        util.format('%O is not a valid MACADDR', value),
       );
     }
   }
@@ -1664,7 +1676,7 @@ export class TSVECTOR extends AbstractDataType<string> {
   validate(value: any) {
     if (typeof value !== 'string') {
       throw new ValidationError(
-        util.format('%j is not a valid string', value),
+        util.format('%O is not a valid string', value),
       );
     }
   }

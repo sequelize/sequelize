@@ -1,7 +1,9 @@
 import assert from 'assert';
+import NodeUtil from 'util';
 import wkx from 'wkx';
 import { setDataTypeDialectMeta } from '../../dialect-toolbox';
 import type { Rangable, Range } from '../../model.js';
+import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
@@ -55,7 +57,7 @@ setDataTypeDialectMeta(BaseTypes.TIME, 'postgres', ['time']);
 setDataTypeDialectMeta(BaseTypes.CHAR, 'postgres', ['char', 'bpchar']);
 
 export class DATEONLY extends BaseTypes.DATEONLY {
-  stringify(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
     if (value === Number.POSITIVE_INFINITY) {
       return 'infinity';
     }
@@ -64,7 +66,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
       return '-infinity';
     }
 
-    return super.stringify(value, options);
+    return super.toBindableValue(value, options);
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }): unknown {
@@ -184,7 +186,7 @@ export class DATE extends BaseTypes.DATE {
     super.validate(value);
   }
 
-  stringify(
+  toBindableValue(
     value: AcceptableTypeOf<BaseTypes.DATE>,
     options: StringifyOptions,
   ): string {
@@ -196,7 +198,7 @@ export class DATE extends BaseTypes.DATE {
       return options.escape('-infinity');
     }
 
-    return super.stringify(value, options);
+    return super.toBindableValue(value, options);
   }
 
   sanitize(value: unknown, options?: { raw?: boolean }) {
@@ -364,7 +366,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
-  stringify(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: StringifyOptions): string {
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: StringifyOptions): string {
     return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
   }
 
@@ -396,7 +398,7 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
-  stringify(
+  toBindableValue(
     value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>,
     options: StringifyOptions,
   ) {
@@ -411,7 +413,7 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
 setDataTypeDialectMeta(BaseTypes.GEOGRAPHY, 'postgres', ['geography']);
 
 export class HSTORE extends BaseTypes.HSTORE {
-  stringify(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
     if (value == null) {
       return value;
     }
@@ -427,18 +429,24 @@ export class HSTORE extends BaseTypes.HSTORE {
 setDataTypeDialectMeta(BaseTypes.HSTORE, 'postgres', ['hstore']);
 
 export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
-  stringify(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
+  toBindableValue(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
     if (!Array.isArray(values)) {
-      return this.options.subtype.stringify(values, options);
+      return this.options.subtype.toBindableValue(values, options);
     }
 
     return RangeParser.stringify(values, rangePart => {
-      return this.options.subtype.stringify(rangePart, options);
+      const out = this.options.subtype.toBindableValue(rangePart, options);
+
+      if (!isString(out)) {
+        throw new Error('DataTypes.RANGE only accepts types that can be stringified.');
+      }
+
+      return out;
     });
   }
 
   escape(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions): string {
-    const value = this.stringify(values, options);
+    const value = this.toBindableValue(values, options);
     if (!Array.isArray(values)) {
       return `'${value}'::${this.#toCastType()}`;
     }
@@ -450,7 +458,7 @@ export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> exten
     values: Rangable<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ): string {
-    const value = this.stringify(values, options);
+    const value = this.toBindableValue(values, options);
     if (!Array.isArray(values)) {
       return `${options.bindParam(value ?? '')}::${this.#toCastType()}`;
     }
@@ -489,7 +497,7 @@ export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> exten
 
   static parse(value: unknown, options?: { parser(val: unknown): unknown }): Range<unknown> {
     if (typeof value !== 'string') {
-      throw new TypeError(`Sequelize could not parse range "${value}" as its format is incompatible`);
+      throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
     }
 
     return RangeParser.parse(value, options?.parser ?? (val => val));
@@ -513,7 +521,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     options: BindParamOptions,
   ) {
     return options.bindParam(values.map((value: any) => {
-      return this.options.type.stringify(value, options);
+      return this.options.type.toBindableValue(value, options);
     }));
   }
 }
