@@ -963,12 +963,7 @@ class Sequelize {
       ...options
     };
 
-    let sql = 'SELECT 1+1 AS result';
-    if (this.dialect.name === 'oracle') {
-      sql += ' FROM DUAL';
-    }
-
-    await this.query(sql, options);
+    await this.query(this.dialect.queryGenerator.authTestQuery(), options);
 
     return;
   }
