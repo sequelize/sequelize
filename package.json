@@ -86,7 +86,7 @@
     "fs-jetpack": "4.3.1",
     "husky": "8.0.1",
     "ibm_db": "2.8.1",
-    "lcov-result-merger": "3.2.0",
+    "lcov-result-merger": "3.3.0",
     "lint-staged": "13.0.2",
     "mariadb": "2.5.6",
     "markdownlint-cli": "0.31.1",
