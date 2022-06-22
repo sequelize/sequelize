@@ -610,7 +610,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     returningModelAttributes.forEach((element, index) => {
       // generateReturnValues function quotes identifier based on the quoteIdentifier option
       // If the identifier starts with a quote we remove it else we use it as is
-      if (_.startsWith(element, '"')) {
+      if (element.startsWith('"')) {
         element = element.substring(1, element.length - 1);
       }
       outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });

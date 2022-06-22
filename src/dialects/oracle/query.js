@@ -97,19 +97,19 @@ export class OracleQuery extends AbstractQuery {
     }
 
     // TRANSACTION SUPPORT
-    if (_.startsWith(this.sql, 'BEGIN TRANSACTION')) {
+    if (this.sql.startsWith('BEGIN TRANSACTION')) {
       this.autocommit = false;
       return Promise.resolve();
     } 
-    if (_.startsWith(this.sql, 'SET AUTOCOMMIT ON')) {
+    if (this.sql.startsWith('SET AUTOCOMMIT ON')) {
       this.autocommit = true;
       return Promise.resolve();
     } 
-    if (_.startsWith(this.sql, 'SET AUTOCOMMIT OFF')) {
+    if (this.sql.startsWith('SET AUTOCOMMIT OFF')) {
       this.autocommit = false;
       return Promise.resolve();
     } 
-    if (_.startsWith(this.sql, 'DECLARE x NUMBER')) {
+    if (this.sql.startsWith('DECLARE x NUMBER')) {
       // Calling a stored procedure for bulkInsert with NO attributes, returns nothing
       if (this.autoCommit === undefined) {
         if (connection.uuid) {
@@ -128,7 +128,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     } 
-    if (_.startsWith(this.sql, 'BEGIN')) {
+    if (this.sql.startsWith('BEGIN')) {
       // Call to stored procedures - BEGIN TRANSACTION has been treated before
       if (this.autoCommit === undefined) {
         if (connection.uuid) {
@@ -153,7 +153,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     } 
-    if (_.startsWith(this.sql, 'COMMIT TRANSACTION')) {
+    if (this.sql.startsWith('COMMIT TRANSACTION')) {
       try {
         await connection.commit();
         return Object.create(null);
@@ -163,7 +163,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     } 
-    if (_.startsWith(this.sql, 'ROLLBACK TRANSACTION')) {
+    if (this.sql.startsWith('ROLLBACK TRANSACTION')) {
       try {
         await connection.rollback();
         return Object.create(null);
@@ -173,7 +173,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     } 
-    if (_.startsWith(this.sql, 'SET TRANSACTION')) {
+    if (this.sql.startsWith('SET TRANSACTION')) {
       try {
         await connection.execute(this.sql, [], { autoCommit: false });
         return Object.create(null);
