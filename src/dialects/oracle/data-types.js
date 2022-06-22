@@ -362,7 +362,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  class JSON extends BaseTypes.JSON {
+  class JSONTYPE extends BaseTypes.JSON {
     toSql() {
       return 'BLOB';
     }
@@ -372,11 +372,11 @@ module.exports = BaseTypes => {
     }
 
     _stringify(value, options) {
-      return options.operation === 'where' && typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+      return options.operation === 'where' && typeof value === 'string' ? value : JSON.stringify(value);
     }
 
     _bindParam(value, options) {
-      return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+      return options.bindParam(Buffer.from(JSON.stringify(value)));
     }
   }
 
@@ -466,7 +466,7 @@ module.exports = BaseTypes => {
     ENUM,
     TEXT,
     CHAR,
-    JSON,
+    JSON: JSONTYPE,
     REAL,
     DECIMAL
   };
