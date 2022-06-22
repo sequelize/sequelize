@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: dialect !== 'oracle' ?  'cascade' : null,
+          onUpdate: dialect !== 'oracle' ? 'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');

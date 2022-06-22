@@ -18,7 +18,7 @@ const { promisify } = require('util');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class OracleConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
@@ -118,13 +118,6 @@ class ConnectionManager extends AbstractConnectionManager {
 
       // We check if there are dialect options
       if (config.dialectOptions) {
-        // const dialectOptions = config.dialectOptions;
-
-        // //If stmtCacheSize is defined, we set it
-        // if (dialectOptions && 'stmtCacheSize' in dialectOptions) {
-        //   connectionConfig.stmtCacheSize = dialectOptions.stmtCacheSize;
-        // }
-
         Object.keys(config.dialectOptions).forEach(key => {
           connectionConfig[key] = config.dialectOptions[key];
         });
@@ -159,8 +152,6 @@ class ConnectionManager extends AbstractConnectionManager {
           throw new SequelizeErrors.HostNotReachableError(err); //ORA-12154: TNS:could not resolve the connect identifier specified
         case 'ORA-12514': // ORA-12514: TNS:listener does not currently know of service requested in connect descriptor
           throw new SequelizeErrors.HostNotFoundError(err);
-        // case 'ORA-12541': // ORA-12541: TNS:No listener
-        //   throw new SequelizeErrors.AccessDeniedError(err);
         default:
           throw new SequelizeErrors.ConnectionError(err);
       }
@@ -186,7 +177,3 @@ class ConnectionManager extends AbstractConnectionManager {
     return connection && connection.isHealthy();
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

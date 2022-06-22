@@ -3,10 +3,10 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractDialect = require('../abstract');
-const ConnectionManager = require('./connection-manager');
-const Query = require('./query');
-const QueryGenerator = require('./query-generator');
+const { AbstractDialect } = require('../abstract');
+const { OracleConnectionManager } = require('./connection-manager');
+const { OracleQuery } = require('./query');
+const { OracleQueryGenerator } = require('./query-generator');
 const DataTypes = require('../../data-types').oracle;
 const { OracleQueryInterface } = require('./query-interface');
 
@@ -14,9 +14,9 @@ class OracleDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
-    this.connectionManager = new ConnectionManager(this, sequelize);
+    this.connectionManager = new OracleConnectionManager(this, sequelize);
     this.connectionManager.initPools();
-    this.queryGenerator = new QueryGenerator({
+    this.queryGenerator = new OracleQueryGenerator({
       _dialect: this,
       sequelize
     });
@@ -55,8 +55,8 @@ OracleDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
 });
 
 OracleDialect.prototype.defaultVersion = '18.4.0';
-OracleDialect.prototype.Query = Query;
-OracleDialect.prototype.queryGenerator = QueryGenerator;
+OracleDialect.prototype.Query = OracleQuery;
+OracleDialect.prototype.queryGenerator = OracleQueryGenerator;
 OracleDialect.prototype.DataTypes = DataTypes;
 OracleDialect.prototype.name = 'oracle';
 OracleDialect.prototype.TICK_CHAR = '"';

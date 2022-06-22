@@ -63,16 +63,30 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
     });
 
-    // Oracle dialect doesn't support insert of multiple rows using insert into statement
-    // INSERT ALL INTO statement can be used instead
-    (dialect !== 'oracle' ? it : it.skip)('executes a query if a placeholder value is an array', async function() {
-      await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ` +
-        `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
-        replacements: [[
-          ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
-          ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']
-        ]]
-      });
+    it('executes a query if a placeholder value is an array', async function() {
+      if (dialect === 'oracle') {
+        await this.sequelize.query(
+          'INSERT ' + 
+          `INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ` +
+          `${qq('createdAt')}, ${qq('updatedAt')}) ` + 
+          `with p (${qq('username')}, ${qq('email_address')}, ${qq('createdAt')}, ${qq('updatedAt')}) as ( ` +
+          'select ? from dual union all ' +
+          'select ? from dual ' +
+          ') select * from p; ', {
+            replacements: [
+              ['john', 'john@gmail.com', new Date('2012-01-01 10:10:10'), new Date('2012-01-01 10:10:10')],
+              ['michael', 'michael@gmail.com', new Date('2012-01-01 10:10:10'), new Date('2012-01-01 10:10:10')]
+            ]
+          });
+      } else {
+        await this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ` +
+          `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
+          replacements: [[
+            ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+            ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']
+          ]]
+        });
+      }
 
       const rows = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
         type: this.sequelize.QueryTypes.SELECT
