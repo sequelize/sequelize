@@ -233,7 +233,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.deletedAtThisTime).to.exist;
     });
 
-    // The Oracle dialect doesn't support empty string in a non-null column
     it('returns proper defaultValues after save when setter is set', async function() {
       const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
