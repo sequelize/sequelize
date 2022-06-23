@@ -22,11 +22,18 @@
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./types/index.d.ts"
     },
-    "./lib/*": "./lib/*.js",
-    "./lib/errors": "./lib/errors/index.js",
-    "./*": "./*"
+    "./lib/*": {
+      "default": "./lib/*.js",
+      "types": "./types/*.d.ts"
+    },
+    "./lib/errors": {
+      "default": "./lib/errors/index.js",
+      "types": "./types/errors/index.d.ts"
+    },
+    "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -267,7 +274,7 @@
     "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
     "test-integration-db2": "cross-env DIALECT=db2 npm run test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake npm run test-integration",
-    "test-integration-oracle": "cross-env DIALECT=oracle npm run test-integration",
+    "test-integration-oracle": "cross-env LD_LIBRARY_PATH=$SEQ_WORKSPACE/.oracle/instantclient/ DIALECT=oracle UV_THREADPOOL_SIZE=128 npm run test-integration",
     "test-mariadb": "cross-env DIALECT=mariadb npm test",
     "test-mysql": "cross-env DIALECT=mysql npm test",
     "test-sqlite": "cross-env DIALECT=sqlite npm test",
@@ -275,7 +282,7 @@
     "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-db2": "cross-env DIALECT=db2 npm test",
-    "test-oracle": "cross-env DIALECT=oracle npm test",
+    "test-oracle": "cross-env LD_LIBRARY_PATH=$SEQ_WORKSPACE/.oracle/instantclient/ DIALECT=oracle UV_THREADPOOL_SIZE=128 npm test",
     "----------------------------------------- development ---------------------------------------------": "",
     "sscce": "node sscce.js",
     "sscce-mariadb": "cross-env DIALECT=mariadb node sscce.js",
@@ -285,7 +292,7 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite node sscce.js",
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "sscce-db2": "cross-env DIALECT=db2 node sscce.js",
-    "sscce-oracle": "cross-env DIALECT=oracle node sscce.js",
+    "sscce-oracle": "cross-env LD_LIBRARY_PATH=$SEQ_WORKSPACE/.oracle/instantclient/ DIALECT=oracle UV_THREADPOOL_SIZE=128 node sscce.js",
     "prepare": "npm run build && husky install",
     "build": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""

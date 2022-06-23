@@ -145,7 +145,7 @@ module.exports = BaseTypes => {
   class CHAR extends BaseTypes.CHAR {
     toSql() {
       if (this._binary) {
-        warn('RAW is not of fixed length. Default value set to 255');
+        warn('CHAR.BINARY datatype is not of Fixed Length.');
         return `RAW(${this._length})`;
       }
       return super.toSql();
@@ -287,7 +287,7 @@ module.exports = BaseTypes => {
 
       // ORACLE does not support any options for bigint
       if (this._length || this.options.length || this._unsigned || this._zerofill) {
-        warn('Oracle doesn\'t support any option for Bigint. `UNSIGNED` OR `ZEROFILL` OR `LENGTH` (IF PROVIDED) WAS REMOVED.');
+        warn('Oracle does not support BIGINT with options');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -362,7 +362,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  class JSON extends BaseTypes.JSON {
+  class JSONTYPE extends BaseTypes.JSON {
     toSql() {
       return 'BLOB';
     }
@@ -372,11 +372,11 @@ module.exports = BaseTypes => {
     }
 
     _stringify(value, options) {
-      return options.operation === 'where' && typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+      return options.operation === 'where' && typeof value === 'string' ? value : JSON.stringify(value);
     }
 
     _bindParam(value, options) {
-      return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+      return options.bindParam(Buffer.from(JSON.stringify(value)));
     }
   }
 
@@ -387,7 +387,7 @@ module.exports = BaseTypes => {
       BaseTypes.DOUBLE.apply(this, arguments);
 
       if (this._length || this._unsigned || this._zerofill) {
-        warn('Oracle doesn\'t support any option for DOUBLE. `UNSIGNED` OR `ZEROFILL` OR `LENGTH` (IF PROVIDED) WAS REMOVED.');
+        warn('Oracle does not support DOUBLE with options.');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -466,7 +466,7 @@ module.exports = BaseTypes => {
     ENUM,
     TEXT,
     CHAR,
-    JSON,
+    JSON: JSONTYPE,
     REAL,
     DECIMAL
   };

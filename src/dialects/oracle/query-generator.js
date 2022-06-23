@@ -1320,7 +1320,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
  * It causes bindbyPosition like :1, :2, :3
  * We pass the val parameter so that the outBind indexes
  * starts after the inBind indexes end
-   *
+ *
  * @param {Array} bind
  * @param {number} posOffset
  */
@@ -1331,9 +1331,9 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  /*
-    Returns the authenticate test query
-  */
+  /**
+   * Returns the authenticate test query string
+   */
   authTestQuery() {
     return 'SELECT 1+1 AS result FROM DUAL';
   }

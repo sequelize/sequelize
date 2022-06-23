@@ -240,6 +240,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           title: {
             type: Sequelize.STRING(50),
             allowNull: false,
+            // Oracle dialect doesn't support empty string in a non-null column
             defaultValue: dialect === 'oracle' ? 'A' : ''
           }
         }, {

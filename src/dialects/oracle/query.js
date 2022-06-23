@@ -46,7 +46,6 @@ export class OracleQuery extends AbstractQuery {
           fInfo[key] = { type: oracledb.STRING };
         }
       }
-
       if ( fInfo ) {
         execOpts.fetchInfo = fInfo;
       }
@@ -601,8 +600,8 @@ export class OracleQuery extends AbstractQuery {
         collate: undefined
       });
     });
-    const returnIndexes = [];
 
+    const returnIndexes = [];
     const accKeys = Object.keys(acc);
     for (const accKey of accKeys) {
       const columns = {};
@@ -614,7 +613,6 @@ export class OracleQuery extends AbstractQuery {
       }
       returnIndexes.push(acc[accKey]);
     }
-
     return returnIndexes;
   }
 

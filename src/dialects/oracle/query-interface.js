@@ -83,4 +83,3 @@ export class OracleQueryInterface extends QueryInterface {
     return await this.sequelize.query(sql, options);
   }
 }
-

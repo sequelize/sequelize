@@ -1228,6 +1228,7 @@ class QueryGenerator {
     let mainJoinQueries = [];
     let subJoinQueries = [];
     let query;
+    const hasAs = this._dialect.name === 'oracle' ? '' : 'AS ';
 
     // Aliases can be passed through subqueries and we don't want to reset them
     if (this.options.minifyAliases && !options.aliasesMapping) {
@@ -2830,9 +2831,9 @@ class QueryGenerator {
     return value;
   }
 
-  /*
-    Returns the authenticate test query
-  */
+  /**
+   * Returns the authenticate test query string
+   */
   authTestQuery() {
     return 'SELECT 1+1 AS result';
   }

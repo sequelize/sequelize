@@ -33,27 +33,28 @@ then
     wget https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linuxx64.zip --no-check-certificate &&
     unzip instantclient-basic-linuxx64.zip -d "$SEQ_WORKSPACE"/.oracle/ &&
     rm instantclient-basic-linuxx64.zip &&
-    mv "$SEQ_WORKSPACE"/.oracle/instantclient_21_6 "$SEQ_WORKSPACE"/.oracle/instantclient
+    mv "$SEQ_WORKSPACE"/.oracle/instantclient* "$SEQ_WORKSPACE"/.oracle/instantclient
 
     echo "Local Oracle instant client on Linux has been setup!"
   elif [[ $(uname) == 'Darwin' ]]
   then
-    curl -O https://download.oracle.com/otn_software/mac/instantclient/instantclient-basic-macos.dmg &&
-    hdiutil mount instantclient-basic-macos.dmg &&
-    /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru/install_ic.sh &&
-    hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru &&
-    rm instantclient-basic-macos.dmg &&
-    mv ~/Downloads/instantclient_19_8/ "$SEQ_WORKSPACE"/.oracle/instantclient &&
+    if [[ ! -d ~/Downloads/instantclient_19_8 ]]
+    then
+      curl -O https://download.oracle.com/otn_software/mac/instantclient/198000/instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+      hdiutil mount instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+      /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru/install_ic.sh &&
+      hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.8.0.0.0dbru &&
+      rm instantclient-basic-macos.x64-19.8.0.0.0dbru.dmg &&
+      mv ~/Downloads/instantclient_19_8/ "$SEQ_WORKSPACE"/.oracle/instantclient
+    else
+      cp -rf ~/Downloads/instantclient_19_8/ "$SEQ_WORKSPACE"/.oracle/instantclient
+    fi
     ln -s "$SEQ_WORKSPACE"/.oracle/instantclient/libclntsh.dylib "$SEQ_WORKSPACE"/node_modules/oracledb/build/Release/
 
     echo "Local Oracle instant client on macOS has been setup!"
-  # Windows
   else
-    wget https://download.oracle.com/otn_software/nt/instantclient/216000/instantclient-basic-windows.x64-21.6.0.0.0dbru.zip --no-check-certificate &&
-    unzip instantclient-basic-windows.x64-21.6.0.0.0dbru.zip -d "$SEQ_WORKSPACE"/.oracle/ &&
-    rm instantclient-basic-windows.x64-21.6.0.0.0dbru.zip &&
-    mv "$SEQ_WORKSPACE"/.oracle/instantclient_21_6 "$SEQ_WORKSPACE"/.oracle/instantclient
-    echo "Local Oracle instant client on $(uname) has been setup!"
+  # Windows TBD
+    echo "Local Oracle instant client on $(uname) is not supported!"
   fi
 fi
 echo "Local Oracle DB is ready for use!"
