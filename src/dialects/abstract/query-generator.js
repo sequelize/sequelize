@@ -1228,7 +1228,6 @@ class QueryGenerator {
     let mainJoinQueries = [];
     let subJoinQueries = [];
     let query;
-    const hasAs = this._dialect.name === 'oracle' ? '' : 'AS ';
 
     // Aliases can be passed through subqueries and we don't want to reset them
     if (this.options.minifyAliases && !options.aliasesMapping) {

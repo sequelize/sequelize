@@ -59,15 +59,16 @@ export class OracleQuery extends AbstractQuery {
     const outParameters = [];
     const bindParameters = [];
     const bindDef = [];
-    
+
     if (!sql.match(/END;$/)) {
       this.sql = sql.replace(/; *$/, '');
     } else {
       this.sql = sql;
     }
+
     // When this.options.bindAttributes exists then it is an insertQuery/upsertQuery
     // So we insert the return bind direction and type
-    if (parameters !== undefined && this.options.outBindAttributes) {
+    if (this.options.outBindAttributes && (Array.isArray(parameters) || _.isPlainObject(parameters))) {
       outParameters.push(...Object.values(this.options.outBindAttributes));
       // For upsertQuery we need to push the bindDef for isUpdate
       if (this.isUpsertQuery()) {
