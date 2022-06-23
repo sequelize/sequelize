@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
     name: Oracle DB (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -61,10 +61,11 @@ jobs:
       SEQ_ORACLE_DB: XEPDB1
       SEQ_ORACLE_HOST: localhost
       SEQ_ORACLE_PORT: 1521
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.oracle/instantclient
       UV_THREADPOOL_SIZE: 128
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -73,7 +74,7 @@ jobs:
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
-        run: yarn test-integration-oracle
+        run: yarn test-integration
   test-db2:
     strategy:
       fail-fast: false

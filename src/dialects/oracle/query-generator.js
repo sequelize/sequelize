@@ -2,7 +2,6 @@
 
 'use strict';
 
-/* jshint -W110 */
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const AbstractQueryGenerator = require('../abstract/query-generator');
@@ -12,7 +11,7 @@ const Transaction = require('../../transaction');
 
 /**
  * list of reserved words in Oracle DB 21c
- * source: https://docs.oracle.com/en/cloud/saas/taleo-enterprise/21d/otccu/r-reservedwords.html#id08ATA0RF05Z
+ * source: https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6
  *
  * @private
  */
@@ -21,7 +20,7 @@ const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*
 const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
 const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
-class OracleQueryGenerator extends AbstractQueryGenerator {
+export class OracleQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
   }
@@ -55,46 +54,48 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   createSchema(schema) {
-    const quotedSchema = this.quoteTable(schema);
-    const schemaName = this.getCatalogName(schema);
+    const quotedSchema = this.quoteIdentifier(schema);
     return [
       'DECLARE',
-      '  V_COUNT INTEGER;',
-      '  V_CURSOR_NAME INTEGER;',
-      '  V_RET INTEGER;',
+      'USER_FOUND BOOLEAN := FALSE;',
       'BEGIN',
-      '  SELECT COUNT(1) INTO V_COUNT FROM ALL_USERS WHERE USERNAME = ',
-      wrapSingleQuote(schemaName),
+      ' BEGIN',
+      '   EXECUTE IMMEDIATE ',
+      this.escape(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
       ';',
-      '  IF V_COUNT = 0 THEN',
+      '   EXCEPTION WHEN OTHERS THEN',
+      '     IF SQLCODE != -1920 THEN',
+      '       RAISE;',
+      '     ELSE',
+      '       USER_FOUND := TRUE;',
+      '     END IF;',
+      ' END;',
+      ' IF NOT USER_FOUND THEN',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`CREATE USER ${ quotedSchema } IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT "CONNECT" TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create table TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create view TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create any trigger TO ${quotedSchema}`),
+      this.escape(`GRANT "CONNECT" TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create any procedure TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE TABLE TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create sequence TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE VIEW TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`GRANT create synonym TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE ANY TRIGGER TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
+      this.escape(`GRANT CREATE ANY PROCEDURE TO ${quotedSchema}`),
       ';',
-      '  END IF;',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE SEQUENCE TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE SYNONYM TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
+      ';',
+      ' END IF;',
       'END;'
     ].join(' ');
   }
@@ -104,19 +105,14 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropSchema(schema) {
-    const schemaName = this.getCatalogName(schema);
     return [
-      'DECLARE',
-      '  V_COUNT INTEGER;',
       'BEGIN',
-      '  V_COUNT := 0;',
-      '  SELECT COUNT(1) INTO V_COUNT FROM ALL_USERS WHERE USERNAME = ',
-      wrapSingleQuote(schemaName),
+      'EXECUTE IMMEDIATE ',
+      this.escape(`DROP USER ${this.quoteTable(schema)} CASCADE`),
       ';',
-      '  IF V_COUNT != 0 THEN',
-      '    EXECUTE IMMEDIATE ',
-      wrapSingleQuote(`DROP USER ${this.quoteTable(schema)} CASCADE`),
-      ';',
+      'EXCEPTION WHEN OTHERS THEN',
+      '  IF SQLCODE != -1918 THEN',
+      '    RAISE;',
       '  END IF;',
       'END;'
     ].join(' ');
@@ -128,70 +124,48 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
   createTableQuery(tableName, attributes, options) {
     const primaryKeys = [],
-      foreignKeys = {},
+      foreignKeys = Object.create(null),
       attrStr = [],
-      self = this,
       checkStr = [];
 
     const values = {
       table: this.quoteTable(tableName)
     };
 
-    const chkRegex = /CHECK \(([a-zA-Z_.0-9]*) (.*)\)/g; // Check regex
-
     // Starting by dealing with all attributes
     for (let attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
-        const dataType = attributes[attr];
-        let match;
+      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) continue;
+      const dataType = attributes[attr];
+      attr = this.quoteIdentifier(attr);
 
-        attr = this.quoteIdentifier(attr);
-
-        // ORACLE doesn't support inline REFERENCES declarations: move to the end
-        if (_.includes(dataType, 'PRIMARY KEY')) {
-          // Primary key
-          primaryKeys.push(attr);
-          if (_.includes(dataType, 'REFERENCES')) {
-            match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
-
-            // match[2] already has foreignKeys in correct format so we don't need to replace
-            foreignKeys[attr] = match[2];
-          } else {
-            attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
-          }
-        } else if (_.includes(dataType, 'REFERENCES')) {
-          // Foreign key
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${attr} ${match[1]}`);
+      // ORACLE doesn't support inline REFERENCES declarations: move to the end
+      if (dataType.includes('PRIMARY KEY')) {
+        // Primary key
+        primaryKeys.push(attr);
+        if (dataType.includes('REFERENCES')) {
+          const match = dataType.match(/^(.+) (REFERENCES.*)$/);
+          attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
 
           // match[2] already has foreignKeys in correct format so we don't need to replace
           foreignKeys[attr] = match[2];
-        } else if (_.includes(dataType, 'CHECK')) {
-          // Check constraints go to the end
-          match = dataType.match(/^(.+) (CHECK.*)$/);
-          attrStr.push(`${attr} ${match[1]}`);
-          match[2] = match[2].replace('ATTRIBUTENAME', attr);
-          const checkCond = match[2].replace(chkRegex, (match, column, condition) => {
-            return `CHECK (${this.quoteIdentifier(column)} ${condition})`;
-          });
-
-          checkStr.push(checkCond);
         } else {
-          attrStr.push(`${attr} ${dataType}`);
+          attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
         }
+      } else if (dataType.includes('REFERENCES')) {
+        // Foreign key
+        const match = dataType.match(/^(.+) (REFERENCES.*)$/);
+        attrStr.push(`${attr} ${match[1]}`);
+
+        // match[2] already has foreignKeys in correct format so we don't need to replace
+        foreignKeys[attr] = match[2];
+      } else {
+        attrStr.push(`${attr} ${dataType}`);
       }
     }
 
     values['attributes'] = attrStr.join(', ');
 
-    const pkString = primaryKeys
-      .map(
-        (pk => {
-          return this.quoteIdentifier(pk);
-        }).bind(this)
-      )
-      .join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (pkString.length > 0) {
       // PrimarykeyName would be of form "PK_table_col"
@@ -219,13 +193,12 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
     // Dealing with FKs
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
-        // Oracle default response for FK, doesn't support if defined
-        if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
-          foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
-        }
-        values.attributes += `,FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
+      if (!Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) continue; 
+      // Oracle default response for FK, doesn't support if defined
+      if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
+        foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
       }
+      values.attributes += `,FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
     }
 
     if (checkStr.length > 0) {
@@ -352,10 +325,10 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
           // Add unique column again when it doesn't find unique constraint name after doing showIndexQuery
           // MYSQL doesn't support constraint name > 64 and they face similar issue if size exceed 64 chars
           if (indexName.length > 128) {
-            values.attributes += `,UNIQUE (${columns.fields.map(field => self.quoteIdentifier(field)).join(', ') })`;
+            values.attributes += `,UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ') })`;
           } else {
             values.attributes +=
-              `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => self.quoteIdentifier(field)).join(', ') })`;
+              `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ') })`;
           }
         }
       });
@@ -366,12 +339,12 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'CREATE TABLE',
       values.table,
       `(${values.attributes})`
-    ]).replace(/'/g, "''");
+    ]);
 
     return Utils.joinSQLFragments([
       'BEGIN',
       'EXECUTE IMMEDIATE',
-      `'${query}';`,
+      `${this.escape(query)};`,
       'EXCEPTION WHEN OTHERS THEN',
       'IF SQLCODE != -955 THEN',
       'RAISE;',
@@ -382,7 +355,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
   tableExistsQuery(table) {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
-    return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${wrapSingleQuote(tableName)} AND OWNER = ${table.schema ? wrapSingleQuote(schemaName) : 'USER'}`;
+    return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${this.escape(tableName)} AND OWNER = ${table.schema ? this.escape(schemaName) : 'USER'}`;
   }
 
   /**
@@ -407,9 +380,9 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'FROM all_tab_columns atc ',
       'LEFT OUTER JOIN all_cons_columns ucc ON(atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME ) ',
       schema
-        ? `WHERE (atc.OWNER = ${wrapSingleQuote(schema)}) `
+        ? `WHERE (atc.OWNER = ${this.escape(schema)}) `
         : 'WHERE atc.OWNER = USER ',
-      `AND (atc.TABLE_NAME = ${wrapSingleQuote(currTableName)})`,
+      `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
       'ORDER BY "PRIMARY", atc.COLUMN_NAME'
     ].join('');
   }
@@ -425,7 +398,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
   showConstraintsQuery(table) {
     const tableName = this.getCatalogName(table.tableName || table);
-    return `SELECT CONSTRAINT_NAME constraint_name FROM user_cons_columns WHERE table_name = ${wrapSingleQuote(tableName)}`;
+    return `SELECT CONSTRAINT_NAME constraint_name FROM user_cons_columns WHERE table_name = ${this.escape(tableName)}`;
   }
 
   showTablesQuery() {
@@ -463,12 +436,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifier(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
+    tableName = this.quoteTable(tableName);
     return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
@@ -478,10 +446,9 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     const attribute = Utils.joinSQLFragments([
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
+        attributeName: key,
         context: 'addColumn'
       })
-        .replace('ATTRIBUTENAME', this.quoteIdentifier(key))
-        .replace(/'/g, "'")
     ]);
 
     return Utils.joinSQLFragments([
@@ -512,34 +479,31 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
    * Since sequelize doesn't support multiple column foreign key, added complexity to
    * add the feature isn't needed
    *
-   * @param {Array} sql Array with sql blocks
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {string|object} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
    */
-  _alterForeignKeyConstraint(sql, definition, table, attributeName) {
+  _alterForeignKeyConstraint(definition, table, attributeName) {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
-    const attributeNameConstant = wrapSingleQuote(this.getCatalogName(attributeName));
-    const schemaNameConstant = table.schema ? wrapSingleQuote(this.getCatalogName(schemaName)) : 'USER';
-    const tableNameConstant = wrapSingleQuote(this.getCatalogName(tableName));
+    const attributeNameConstant = this.escape(this.getCatalogName(attributeName));
+    const schemaNameConstant = table.schema ? this.escape(this.getCatalogName(schemaName)) : 'USER';
+    const tableNameConstant = this.escape(this.getCatalogName(tableName));
     const getConsNameQuery = [
-      'select constraint_name into cons_name',
-      'from (',
-      '  select distinct cc.owner, cc.table_name, cc.constraint_name,',
-      '  cc.column_name',
-      '  as cons_columns',
-      '  from all_cons_columns cc, all_constraints c',
-      '  where cc.owner = c.owner',
-      '  and cc.table_name = c.table_name',
-      '  and cc.constraint_name = c.constraint_name',
-      '  and c.constraint_type = \'R\'',
-      '  group by cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
+      'SELECT constraint_name INTO cons_name',
+      'FROM (',
+      '  SELECT DISTINCT cc.owner, cc.table_name, cc.constraint_name, cc.column_name AS cons_columns',
+      '  FROM all_cons_columns cc, all_constraints c',
+      '  WHERE cc.owner = c.owner',
+      '  AND cc.table_name = c.table_name',
+      '  AND cc.constraint_name = c.constraint_name',
+      '  AND c.constraint_type = \'R\'',
+      '  GROUP BY cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
       ')',
-      'where owner =',
+      'WHERE owner =',
       schemaNameConstant,
-      'and table_name =',
+      'AND table_name =',
       tableNameConstant,
-      'and cons_columns =',
+      'AND cons_columns =',
       attributeNameConstant,
       ';'
     ].join(' ');
@@ -549,7 +513,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       `(${this.quoteIdentifier(attributeName)})`,
       definition.replace(/.+?(?=REFERENCES)/, '')
     ]);
-    const fullQuery = [
+    return [
       'BEGIN',
       getConsNameQuery,
       'EXCEPTION',
@@ -559,21 +523,19 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'IF CONS_NAME IS NOT NULL THEN',
       ` EXECUTE IMMEDIATE 'ALTER TABLE ${this.quoteTable(table)} DROP CONSTRAINT "'||CONS_NAME||'"';`,
       'END IF;',
-      `EXECUTE IMMEDIATE '${secondQuery}';`
+      `EXECUTE IMMEDIATE ${this.escape(secondQuery)};`
     ].join(' ');
-    sql.push(fullQuery);
   }
 
   /**
    * Function to alter table modify
    *
-   * @param {Array} sql Array with sql blocks
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {object|string} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
    */
-  _modifyQuery(sql, definition, table, attributeName) {
-    let query = Utils.joinSQLFragments([
+  _modifyQuery(definition, table, attributeName) {
+    const query = Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'MODIFY',
@@ -581,20 +543,19 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       definition
     ]);
     const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
-    query = [
+    return [
       'BEGIN',
-      `EXECUTE IMMEDIATE '${query}';`,
+      `EXECUTE IMMEDIATE ${this.escape(query)};`,
       'EXCEPTION',
       'WHEN OTHERS THEN',
       ' IF SQLCODE = -1442 OR SQLCODE = -1451 THEN',
       // We execute the statement without the NULL / NOT NULL clause if the first statement failed due to this
-      `   EXECUTE IMMEDIATE '${secondQuery}';`,
+      `   EXECUTE IMMEDIATE ${this.escape(secondQuery)};`,
       ' ELSE',
       '   RAISE;',
       ' END IF;',
       'END;'
     ].join(' ');
-    sql.push(query);
   }
 
   changeColumnQuery(table, attributes) {
@@ -604,15 +565,13 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'BEGIN'
     ];
     for (const attributeName in attributes) {
-      let definition = attributes[attributeName];
+      if (!Object.prototype.hasOwnProperty.call(attributes, attributeName)) continue;
+      const definition = attributes[attributeName];
       if (definition.match(/REFERENCES/)) {
-        this._alterForeignKeyConstraint(sql, definition, table, attributeName);
+        sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
       } else {
-        if (definition.indexOf('CHECK') > -1) {
-          definition = definition.replace(/'/g, "''");
-        }
         // Building the modify query
-        this._modifyQuery(sql, definition, table, attributeName);
+        sql.push(this._modifyQuery(definition, table, attributeName));
       }
     }
     sql.push('END;');
@@ -638,13 +597,13 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
    */
   getInsertQueryReturnIntoBinds(returnAttributes, inbindLength, returningModelAttributes, returnTypes, options) {
     const oracledb = this.sequelize.connectionManager.lib;
-    const outBindAttributes = {};
+    const outBindAttributes = Object.create(null);
     const outbind = [];
     const outbindParam = this.bindParam(outbind, inbindLength);
     returningModelAttributes.forEach((element, index) => {
       // generateReturnValues function quotes identifier based on the quoteIdentifier option
       // If the identifier starts with a quote we remove it else we use it as is
-      if (_.startsWith(element, '"')) {
+      if (element.startsWith('"')) {
         element = element.substring(1, element.length - 1);
       }
       outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });
@@ -873,7 +832,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     if (options.limit) {
       const whereTmpl = where ? ` AND ${where}` : '';
       queryTmpl =
-        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${options.limit}${ 
+        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${ 
           whereTmpl 
         })`;
     } else {
@@ -890,10 +849,10 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
-      `WHERE i.table_name = ${wrapSingleQuote(tableName)}`,
-      ' AND u.TABLE_OWNER = ',
-      owner ? wrapSingleQuote(owner) : 'USER',
-      ' ORDER BY INDEX_NAME, COLUMN_POSITION'
+      `WHERE i.table_name = ${this.escape(tableName)}`,
+      ' AND u.table_owner = ',
+      owner ? this.escape(owner) : 'USER',
+      ' ORDER BY index_name, column_position'
     ];
 
     return sql.join('');
@@ -940,7 +899,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       // enums are a special case
       template = attribute.type.toSql();
       template +=
-        ` CHECK (ATTRIBUTENAME IN(${ 
+        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${ 
           _.map(attribute.values, value => {
             return this.escape(value);
           }).join(', ') 
@@ -949,13 +908,13 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     } 
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
-      template += ' CHECK (ATTRIBUTENAME IS JSON)';
+      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
       return template;
     } 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
       template +=
-        ' CHECK (ATTRIBUTENAME IN(\'1\', \'0\'))';
+        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
       return template;
     } 
     if (attribute.autoIncrement) {
@@ -1025,7 +984,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     for (const key in attributes) {
       const attribute = attributes[key];
       const attributeName = attribute.field || key;
-      result[attributeName] = this.attributeToSQL(attribute, options).replace('ATTRIBUTENAME', this.quoteIdentifier(attributeName));
+      result[attributeName] = this.attributeToSQL(attribute, { attributeName, ...options });
     }
 
     return result;
@@ -1060,11 +1019,11 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     column = this.getCatalogName(column);
     const sql = [
       'SELECT CONSTRAINT_NAME FROM user_cons_columns WHERE TABLE_NAME = ',
-      wrapSingleQuote(tableName),
+      this.escape(tableName),
       ' and OWNER = ',
-      table.schema ? wrapSingleQuote(schemaName) : 'USER',
+      table.schema ? this.escape(schemaName) : 'USER',
       ' and COLUMN_NAME = ',
-      wrapSingleQuote(column),
+      this.escape(column),
       ' AND POSITION IS NOT NULL ORDER BY POSITION'
     ].join('');
 
@@ -1079,39 +1038,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       ' b.table_name "referencedTableName", b.column_name "referencedColumnName"',
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
-      ' join all_cons_columns b on c.owner = b.owner and c.r_constraint_name = b.constraint_name',
+      ' JOIN all_cons_columns b ON c.owner = b.owner AND c.r_constraint_name = b.constraint_name',
       " WHERE c.constraint_type  = 'R'",
       ' AND a.table_name = ',
-      wrapSingleQuote(tableName),
+      this.escape(tableName),
       ' AND a.owner = ',
-      table.schema ? wrapSingleQuote(schemaName) : 'USER',
-      ' order by a.table_name, a.constraint_name'
+      table.schema ? this.escape(schemaName) : 'USER',
+      ' ORDER BY a.table_name, a.constraint_name'
     ].join('');
 
     return sql;
-  }
-
-  quoteTable(param, as) {
-    let table = '';
-
-    if (_.isObject(param)) {
-      if (param.schema) {
-        table += `${this.quoteIdentifier(param.schema)}.`;
-      }
-      table += this.quoteIdentifier(param.tableName);
-    } else {
-      table = this.quoteIdentifier(param);
-    }
-
-    // Oracle don't support as for table aliases
-    if (as) {
-      if (as.indexOf('.') > -1 || as.indexOf('_') === 0) {
-        table += ` ${this.quoteIdentifier(as, true)}`;
-      } else {
-        table += ` ${this.quoteIdentifier(as)}`;
-      }
-    }
-    return table;
   }
 
   nameIndexes(indexes, rawTablename) {
@@ -1122,15 +1058,14 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       tableName = rawTablename;
     }
     return _.map(indexes, index => {
-      if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
-        if (index.unique) {
-          index.name = this._generateUniqueConstraintName(tableName, index.fields);
-        } else {
-          const onlyAttributeNames = index.fields.map(field =>
-            typeof field === 'string' ? field : field.name || field.attribute
-          );
-          index.name = Utils.underscore(`${tableName}_${onlyAttributeNames.join('_')}`);
-        }
+      if (Object.prototype.hasOwnProperty.call(index, 'name')) return;
+      if (index.unique) {
+        index.name = this._generateUniqueConstraintName(tableName, index.fields);
+      } else {
+        const onlyAttributeNames = index.fields.map(field =>
+          typeof field === 'string' ? field : field.name || field.attribute
+        );
+        index.name = Utils.underscore(`${tableName}_${onlyAttributeNames.join('_')}`);
       }
       return index;
     });
@@ -1147,9 +1082,9 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       'FROM all_constraints cons, all_cons_columns cols ',
       'INNER JOIN all_tab_columns atc ON(atc.table_name = cols.table_name AND atc.COLUMN_NAME = cols.COLUMN_NAME )',
       'WHERE cols.table_name = ',
-      wrapSingleQuote(tableName),
+      this.escape(tableName),
       'AND cols.owner = ',
-      table.schema ? wrapSingleQuote(schemaName) : 'USER ',
+      table.schema ? this.escape(schemaName) : 'USER ',
       "AND cons.constraint_type = 'P' ",
       'AND cons.constraint_name = cols.constraint_name ',
       'AND cons.owner = cols.owner ',
@@ -1159,41 +1094,8 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     return sql;
   }
 
-  /**
-  * Request to know if the table has a identity primary key, returns the name of the declaration of the identity if true
-  *
-  * @param {object|string} table
-  */
-  isIdentityPrimaryKey(table) {
-    const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
-    return [
-      'SELECT TABLE_NAME,COLUMN_NAME, COLUMN_NAME,GENERATION_TYPE,IDENTITY_OPTIONS FROM DBA_TAB_IDENTITY_COLS WHERE TABLE_NAME = ',
-      wrapSingleQuote(tableName),
-      'AND OWNER = ',
-      table.schema ? wrapSingleQuote(schemaName) : 'USER '
-    ].join('');
-  }
-
-  /**
-   * Drop identity
-   * Mandatory, Oracle doesn't support dropping a PK column if it's an identity -> results in database corruption
-   *
-   * @param {object|string} tableName
-   * @param {string} columnName
-   */
-  dropIdentityColumn(tableName, columnName) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} MODIFY ${columnName} DROP IDENTITY`;
-  }
-
   dropConstraintQuery(tableName, constraintName) {
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
-  }
-
-  setAutocommitQuery(value) {
-    if (value) {
-      // Do nothing, just for eslint
-    }
-    return '';
   }
 
   setIsolationLevelQuery(value, options) {
@@ -1214,9 +1116,13 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     }
   }
 
+  getAliasToken() {
+    return '';
+  }
+
   startTransactionQuery(transaction) {
     if (transaction.parent) {
-      return `SAVEPOINT "${transaction.name}"`;
+      return `SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
     }
 
     return 'BEGIN TRANSACTION';
@@ -1232,21 +1138,10 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
 
   rollbackTransactionQuery(transaction) {
     if (transaction.parent) {
-      return `ROLLBACK TO SAVEPOINT "${transaction.name}"`;
+      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
     }
 
     return 'ROLLBACK TRANSACTION';
-  }
-
-  selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
-    this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
-    let mainFragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
-
-    if (mainTableAs) {
-      mainFragment += ` ${mainTableAs}`;
-    }
-
-    return mainFragment;
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
@@ -1392,16 +1287,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
     return value ? 1 : 0;
   }
 
-  quoteIdentifier(identifier, force) {
-    const optForceQuote = force || false;
+  quoteIdentifier(identifier, force = false) {
+    const optForceQuote = force;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
     const rawIdentifier = Utils.removeTicks(identifier, '"');
-    const regExp = (/^(([\w][\w\d_]*))$/g);
+    const regExp = /^(([\w][\w\d_]*))$/g;
 
     if (
       optForceQuote !== true &&
       optQuoteIdentifiers === false &&
-      regExp.test(rawIdentifier) === true &&
+      regExp.test(rawIdentifier) &&
       !ORACLE_RESERVED_WORDS.includes(rawIdentifier.toUpperCase())
     ) {
       // In Oracle, if tables, attributes or alias are created double-quoted,
@@ -1418,7 +1313,7 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
  * It causes bindbyPosition like :1, :2, :3
  * We pass the val parameter so that the outBind indexes
  * starts after the inBind indexes end
-   *
+ *
  * @param {Array} bind
  * @param {number} posOffset
  */
@@ -1428,16 +1323,16 @@ class OracleQueryGenerator extends AbstractQueryGenerator {
       return `:${bind.length + posOffset}`;
     };
   }
-}
 
-// private methods
-function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, "'");
+  /**
+   * Returns the authenticate test query string
+   */
+  authTestQuery() {
+    return 'SELECT 1+1 AS result FROM DUAL';
+  }
 }
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
-
-module.exports = OracleQueryGenerator;

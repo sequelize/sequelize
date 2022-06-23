@@ -8,7 +8,7 @@ const momentTz = require('moment-timezone');
 module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(
     undefined,
-    'https://docs.oracle.com/database/122/SQLRF/Data-Types.htm#SQLRF30020'
+    'https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D424D23B-0933-425F-BC69-9C0E6724693C'
   );
 
   BaseTypes.DATE.types.oracle = ['TIMESTAMP', 'TIMESTAMP WITH LOCAL TIME ZONE'];
@@ -36,7 +36,7 @@ module.exports = BaseTypes => {
     toSql() {
       if (this.length > 4000 || this._binary && this._length > 2000) {
         warn(
-          'Oracle 12 supports length up to 32764; be sure that your administrator has extended the MAX_STRING_SIZE parameter. Check https://docs.oracle.com/database/121/REFRN/GUID-D424D23B-0933-425F-BC69-9C0E6724693C.htm#REFRN10321'
+          'Oracle supports length up to 32764 bytes or characters; Be sure that your administrator has extended the MAX_STRING_SIZE parameter. Check https://docs.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6'
         );
       }
       if (!this._binary) {
@@ -145,6 +145,7 @@ module.exports = BaseTypes => {
   class CHAR extends BaseTypes.CHAR {
     toSql() {
       if (this._binary) {
+        warn('CHAR.BINARY datatype is not of Fixed Length.');
         return `RAW(${this._length})`;
       }
       return super.toSql();
@@ -286,6 +287,7 @@ module.exports = BaseTypes => {
 
       // ORACLE does not support any options for bigint
       if (this._length || this.options.length || this._unsigned || this._zerofill) {
+        warn('Oracle does not support BIGINT with options');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -329,12 +331,12 @@ module.exports = BaseTypes => {
       return 'BINARY_DOUBLE';
     }
 
-    // https://docs.oracle.com/cd/E37502_01/server.751/es_eql/src/ceql_literals_nan.html
+    // https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0BA2E065-8006-426C-A3CB-1F6B0C8F283C
     _stringify(value) {
-      if (value === 'Infinity') {
+      if (value === Number.POSITIVE_INFINITY) {
         return 'inf';
       } 
-      if (value === '-Infinity') {
+      if (value === Number.NEGATIVE_INFINITY) {
         return '-inf';
       }
       return value;
@@ -385,6 +387,7 @@ module.exports = BaseTypes => {
       BaseTypes.DOUBLE.apply(this, arguments);
 
       if (this._length || this._unsigned || this._zerofill) {
+        warn('Oracle does not support DOUBLE with options.');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -414,13 +417,13 @@ module.exports = BaseTypes => {
       return value;
     }
 
-    _stringify(date) {
+    _stringify(date, options) {
       // If date is not null only then we format the date
       if (date) {
         const format = 'YYYY/MM/DD';
-        return `TO_DATE('${date}','${format}')`;
+        return options.escape(`TO_DATE('${date}','${format}')`);
       }
-      return date;
+      return options.escape(date);
     }
 
     _getBindDef(oracledb) {

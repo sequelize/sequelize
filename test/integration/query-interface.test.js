@@ -40,18 +40,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           await sequelize.query('DROP VIEW V_Fail');
         } else if (dialect === 'oracle') {
           const plsql = [
-            'DECLARE',
-            '  V_COUNT INTEGER;',
             'BEGIN',
-            '  V_COUNT := 0;',
-            '  SELECT COUNT(1) INTO V_COUNT FROM USER_VIEWS WHERE VIEW_NAME = \'V_FAIL\';',
-            '  IF V_COUNT != 0 THEN',
-            '    EXECUTE IMMEDIATE ',
-            '\'DROP VIEW V_Fail\'',
-            ';',
+            'EXECUTE IMMEDIATE',
+            '\'DROP VIEW V_Fail\';',
+            'EXCEPTION WHEN OTHERS THEN',
+            '  IF SQLCODE != -942 THEN',
+            '    RAISE;',
             '  END IF;',
             'END;'
-          ].join('');
+          ].join(' ');
           await sequelize.query(plsql);
         } else {
           await sequelize.query('DROP VIEW IF EXISTS V_Fail');
@@ -648,7 +645,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: dialect !== 'oracle' ?  'cascade' : null,
+          onUpdate: dialect !== 'oracle' ? 'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');

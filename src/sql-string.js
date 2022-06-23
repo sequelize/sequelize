@@ -74,13 +74,11 @@ function escape(val, timeZone, dialect, format) {
       // null character is not allowed in Postgres
       val = val.replace(/\0/g, '\\0');
     }
-  } else if (dialect === 'oracle' && (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1 || typeof val === 'string')) {
-    if (val.indexOf('TO_TIMESTAMP') > -1 || val.indexOf('TO_DATE') > -1) {
+  } else if (dialect === 'oracle' && typeof val === 'string') {
+    if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
       return val;
-    } 
-    if (typeof val === 'string') {
-      val = val.replace(/'/g, "''");
     }
+    val = val.replace(/'/g, "''");
   } else {
 
     // eslint-disable-next-line no-control-regex

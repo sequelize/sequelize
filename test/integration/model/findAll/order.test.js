@@ -22,6 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        // Oracle doesn't support operators in Order by clause
         if (current.dialect.name !== 'mssql' && current.dialect.name !== 'oracle') {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function() {
