@@ -60,13 +60,10 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
-      } 
-
-      else if (dialect === 'db2') {
+      } else if (dialect === 'db2') {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
-      } 
-      else if (dialect === 'oracle') {
-        await expect(seq.query('select 1 as hello FROM DUAL')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError);
+      } else if (dialect === 'oracle') {
+        await expect(seq.query('select 1 as hello FROM DUAL')).to.eventually.be.rejectedWith(Sequelize.HostNotReachableError);
       } else {
         await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }

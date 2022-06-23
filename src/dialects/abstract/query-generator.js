@@ -404,15 +404,15 @@ class QueryGenerator {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit) {
-      if (this.dialect !== 'mssql' && this.dialect !== 'db2' && this.dialect !== 'oracle') {
+      if (!['mssql', 'db2', 'oracle'].includes(this.dialect)) {
         suffix = ` LIMIT ${this.escape(options.limit)} `;
       } else if (this.dialect === 'oracle') {
-        //This cannot be setted in where because rownum will be quoted
+        // This cannot be setted in where because rownum will be quoted
         if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
-          //If we have a where clause, we add AND
+          // If we have a where clause, we add AND
           suffix += ' AND ';
         } else {
-          //No where clause, we add where
+          // No where clause, we add where
           suffix += ' WHERE ';
         }
         suffix += `rownum <= ${this.escape(options.limit)} `;

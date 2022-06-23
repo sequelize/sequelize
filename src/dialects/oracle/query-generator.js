@@ -11,7 +11,7 @@ const Transaction = require('../../transaction');
 
 /**
  * list of reserved words in Oracle DB 21c
- * source: https://docs.oracle.com/en/cloud/saas/taleo-enterprise/21d/otccu/r-reservedwords.html#id08ATA0RF05Z
+ * source: https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6
  *
  * @private
  */
@@ -55,45 +55,47 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   createSchema(schema) {
     const quotedSchema = this.quoteIdentifier(schema);
-    const schemaName = this.getCatalogName(schema);
     return [
       'DECLARE',
-      '  V_COUNT INTEGER;',
-      '  V_CURSOR_NAME INTEGER;',
-      '  V_RET INTEGER;',
+      'TABLE_FOUND BOOLEAN := FALSE;',
       'BEGIN',
-      '  SELECT COUNT(1) INTO V_COUNT FROM ALL_USERS WHERE USERNAME = ',
-      this.escape(schemaName),
-      ';',
-      '  IF V_COUNT = 0 THEN',
-      '    EXECUTE IMMEDIATE ',
+      ' BEGIN',
+      '   EXECUTE IMMEDIATE ',
       this.escape(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
       ';',
+      '   EXCEPTION WHEN OTHERS THEN',
+      '     IF SQLCODE != -1920 THEN',
+      '       RAISE;',
+      '     ELSE',
+      '       TABLE_FOUND := TRUE;',
+      '     END IF;',
+      ' END;',
+      ' IF NOT TABLE_FOUND THEN',
       '    EXECUTE IMMEDIATE ',
       this.escape(`GRANT "CONNECT" TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create table TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE TABLE TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create view TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE VIEW TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create any trigger TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE ANY TRIGGER TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create any procedure TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE ANY PROCEDURE TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create sequence TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE SEQUENCE TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT create synonym TO ${quotedSchema}`),
+      this.escape(`GRANT CREATE SYNONYM TO ${quotedSchema}`),
       ';',
       '    EXECUTE IMMEDIATE ',
       this.escape(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
       ';',
-      '  END IF;',
+      ' END IF;',
       'END;'
     ].join(' ');
   }
@@ -105,17 +107,13 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   dropSchema(schema) {
     const schemaName = this.getCatalogName(schema);
     return [
-      'DECLARE',
-      '  V_COUNT INTEGER;',
       'BEGIN',
-      '  V_COUNT := 0;',
-      '  SELECT COUNT(1) INTO V_COUNT FROM ALL_USERS WHERE USERNAME = ',
-      this.escape(schemaName),
-      ';',
-      '  IF V_COUNT != 0 THEN',
-      '    EXECUTE IMMEDIATE ',
+      'EXECUTE IMMEDIATE ',
       this.escape(`DROP USER ${this.quoteTable(schema)} CASCADE`),
       ';',
+      'EXCEPTION WHEN OTHERS THEN',
+      '  IF SQLCODE != -1918 THEN',
+      '    RAISE;',
       '  END IF;',
       'END;'
     ].join(' ');
@@ -494,17 +492,15 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const schemaNameConstant = table.schema ? this.escape(this.getCatalogName(schemaName)) : 'USER';
     const tableNameConstant = this.escape(this.getCatalogName(tableName));
     const getConsNameQuery = [
-      'select constraint_name into cons_name',
-      'from (',
-      '  select distinct cc.owner, cc.table_name, cc.constraint_name,',
-      '  cc.column_name',
-      '  as cons_columns',
-      '  from all_cons_columns cc, all_constraints c',
-      '  where cc.owner = c.owner',
-      '  and cc.table_name = c.table_name',
-      '  and cc.constraint_name = c.constraint_name',
-      '  and c.constraint_type = \'R\'',
-      '  group by cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
+      'SELECT constraint_name INTO cons_name',
+      'FROM (',
+      '  SELECT DISTINCT cc.owner, cc.table_name, cc.constraint_name, cc.column_name AS cons_columns',
+      '  FROM all_cons_columns cc, all_constraints c',
+      '  WHERE cc.owner = c.owner',
+      '  AND cc.table_name = c.table_name',
+      '  AND cc.constraint_name = c.constraint_name',
+      '  AND c.constraint_type = \'R\'',
+      '  GROUP BY cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
       ')',
       'where owner =',
       schemaNameConstant,
@@ -857,9 +853,9 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
       `WHERE i.table_name = ${this.escape(tableName)}`,
-      ' AND u.TABLE_OWNER = ',
+      ' AND u.table_owner = ',
       owner ? this.escape(owner) : 'USER',
-      ' ORDER BY INDEX_NAME, COLUMN_POSITION'
+      ' ORDER BY index_name, column_position'
     ];
 
     return sql.join('');
@@ -1045,13 +1041,13 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       ' b.table_name "referencedTableName", b.column_name "referencedColumnName"',
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
-      ' join all_cons_columns b on c.owner = b.owner and c.r_constraint_name = b.constraint_name',
+      ' JOIN all_cons_columns b ON c.owner = b.owner AND c.r_constraint_name = b.constraint_name',
       " WHERE c.constraint_type  = 'R'",
       ' AND a.table_name = ',
       this.escape(tableName),
       ' AND a.owner = ',
       table.schema ? this.escape(schemaName) : 'USER',
-      ' order by a.table_name, a.constraint_name'
+      ' ORDER BY a.table_name, a.constraint_name'
     ].join('');
 
     return sql;
