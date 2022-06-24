@@ -4,7 +4,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
   Support = require('../../support'),
-  getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
+  getAbstractQueryGenerator = Support.getAbstractQueryGenerator,
+  expectsql = Support.expectsql;
 const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
 describe('QueryGenerator', () => {
@@ -122,14 +123,20 @@ describe('QueryGenerator', () => {
 
     it('should correctly escape a single $ in sequelize.fn arguments', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
-      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.be.equal("upper('$$user')");
+      const value = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'));
+      expectsql(value, {
+        mssql: "upper(N'$$user')",
+        default: "upper('$$user')"
+      });
     });
 
     it('should correctly escape multiple instances of "$" in sequelize.fn arguments', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
-      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user and then another $user and some dollars: $42.69'))
-        .should.be.equal('upper(\'$$user and then another $$user and some dollars: $$42.69\')');
+      const value = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user and then another $user and some dollars: $42.69'));
+      expectsql(value, {
+        mssql: 'upper(N\'$$user and then another $$user and some dollars: $$42.69\')',
+        default: 'upper(\'$$user and then another $$user and some dollars: $$42.69\')'
+      });
     });
   });
 

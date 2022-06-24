@@ -2243,7 +2243,7 @@ class QueryGenerator {
           if (_.isPlainObject(arg)) {
             return this.whereItemsQuery(arg);
           }
-          return this.escape(typeof arg === 'string' ? arg.replaceAll('$', '$$$') : arg);
+          return this.escape(typeof arg === 'string' ? arg.replace(/\$/g, '$$$') : arg);
         }).join(', ')
       })`;
     }
