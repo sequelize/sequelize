@@ -120,10 +120,16 @@ describe('QueryGenerator', () => {
         .should.be.equal('foo IS NOT NULL');
     });
 
-    it('should correctly escape $ in sequelize.fn arguments', function() {
+    it('should correctly escape a single $ in sequelize.fn arguments', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.include('$$user');
+        .should.be.equal("upper('$$user')");
+    });
+
+    it('should correctly escape multiple instances of "$" in sequelize.fn arguments', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user and then another $user and some dollars: $42.69'))
+        .should.be.equal('upper(\'$$user and then another $$user and some dollars: $$42.69\')');
     });
   });
 
