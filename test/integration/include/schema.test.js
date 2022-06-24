@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               { title: 'Bed' },
               { title: 'Pen' },
               { title: 'Monitor' }
-            ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
+            ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
           ]);
           const groupMembers = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -936,7 +936,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([

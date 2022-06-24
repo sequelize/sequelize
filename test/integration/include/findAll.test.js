@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { title: 'Pen' },
             { title: 'Monitor' }
           ]);
-          const products = await Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {});
+          const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
@@ -360,7 +360,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -1208,7 +1208,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { title: 'Desk' }
         ]);
 
-        const products = await Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {});
+        const products = await Product.findAll({ order: [['id', 'ASC']] });
         await Promise.all([
           GroupMember.bulkCreate([
             { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
