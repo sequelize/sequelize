@@ -7740,10 +7740,10 @@ smart-buffer@^4.2.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
-snowflake-sdk@1.6.10:
-  version "1.6.10"
-  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.10.tgz#c6c4f267edbc50d3c1ef6fcc2651188bb8545dce"
-  integrity sha512-kguQQSGhmNqZfmN/yZNDaIaMMktTcrTYBjtyx+szJzV69b5F+5b77btpYp+bCFqao69otVM+IPUtb3sugvCVnQ==
+snowflake-sdk@1.6.11:
+  version "1.6.11"
+  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.11.tgz#2797c816d0d2af6d56180949e1364e53df8a9c13"
+  integrity sha512-w4oCXjNQ1peAJjhnrwihr+epYw1pSxbe5/+PdxexYb2rzowyOn0RA5PFbir90q/dx0jzM2gvPiHDjnSBEZ1/zA==
   dependencies:
     "@azure/storage-blob" "^12.5.0"
     "@techteamer/ocsp" "1.0.0"
