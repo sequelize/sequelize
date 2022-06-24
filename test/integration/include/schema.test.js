@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               { title: 'Bed' },
               { title: 'Pen' },
               { title: 'Monitor' }
-            ]).then(() => Product.findAll())
+            ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
           ]);
           const groupMembers = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -179,8 +179,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       await this.sequelize.createSchema('account');
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should support an include with multiple different association types', async function() {
+    it('should support an include with multiple different association types', async function() {
       await this.sequelize.dropSchema('account');
       await this.sequelize.createSchema('account');
       const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),
@@ -249,7 +248,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -868,8 +867,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function() {
+    it('should be possible to extend the on clause with a where option on nested includes', async function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }, { schema: 'account' }),
@@ -938,7 +936,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ]).then(() => Product.findAll(dialect === 'oracle' ? { order: [['id', 'ASC']] } : {}))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -1038,8 +1036,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1064,8 +1061,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to use limit and a where on a hasMany with additional includes', async function() {
+    it('should be possible to use limit and a where on a hasMany with additional includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1094,8 +1090,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({

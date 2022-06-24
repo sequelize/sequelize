@@ -500,7 +500,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [Op.between]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: '"date" BETWEEN \'2013-01-01\' AND \'2013-01-11\'',
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
