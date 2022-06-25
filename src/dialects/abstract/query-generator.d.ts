@@ -67,12 +67,19 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
-export type ChangeColumnAttribute = Partial<Omit<ColumnOptions, 'primaryKey' | 'unique' | 'references' | 'onUpdate' | 'onDelete'>> & {
+export type ChangeColumnAttribute = Partial<Omit<ColumnOptions, 'primaryKey' | 'unique'>> & {
   /**
    * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
    * to add a multi-column unique, or removing a column from a unique index.
    */
   unique?: Nullish<true>,
+
+  /**
+   * Set to true to remove the defaultValue.
+   *
+   * Cannot be used in conjunction with defaultValue.
+   */
+  dropDefaultValue?: boolean,
 };
 
 export type ChangeColumnAttributes = {

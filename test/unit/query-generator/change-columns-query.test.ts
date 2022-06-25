@@ -140,7 +140,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
   });
 
-  it('supports changing the allowNull option only', () => {
+  it('supports changing the allowNull option only (in supported dialects)', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
         allowNull: false,
@@ -156,7 +156,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
   });
 
-  it('supports changing the default value only', () => {
+  it('supports changing the default value only (in supported dialects)', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
         defaultValue: 'John',
@@ -166,6 +166,44 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" SET DEFAULT 'John';`,
       mysql: new Error('MySQL does not support changing the defaultValue option without also specifying the type of the column'),
+    });
+  });
+
+  it('supports dropping the default value only (in supported dialects)', () => {
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      firstName: {
+        dropDefaultValue: true,
+      },
+    });
+
+    expectsql(sql, {
+      default: `ALTER TABLE [users] ALTER COLUMN [firstName] DROP DEFAULT;`,
+    });
+  });
+
+  it('throws if dropDefaultValue is used with defaultValue', () => {
+    expect(() => {
+      queryGenerator.changeColumnsQuery('users', {
+        firstName: {
+          type: DataTypes.STRING,
+          dropDefaultValue: true,
+          defaultValue: 'John',
+        },
+      });
+    }).to.throw('Cannot use both dropDefaultValue and defaultValue on the same column.');
+  });
+
+  it('supports dropping the default value if type is specified (in all dialects)', () => {
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      firstName: {
+        type: DataTypes.CHAR(100),
+        dropDefaultValue: true,
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "firstName" DROP DEFAULT;`,
+      mysql: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100), ALTER COLUMN \`firstName\` DROP DEFAULT;`,
     });
   });
 
@@ -358,25 +396,68 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
   });
 
-  it('does not support updating foreign keys', () => {
-    const error = 'changeColumnsQuery does not support changing a foreign key. Use dropConstraint and addConstraint instead.';
-
-    expect(() => {
-      queryGenerator.changeColumnsQuery('users', {
-        id: {
-          // @ts-expect-error -- we're testing the error in case someone without typescript tries to do this
-          references: {
-            model: 'projects',
-            key: 'id',
-          },
+  it('supports adding a foreign key', () => {
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      otherKey: {
+        references: {
+          model: 'projects',
+          key: 'id',
         },
-      });
-    }).to.throw(error);
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "projects"("id") ON UPDATE CASCADE ON DELETE CASCADE;`,
+    });
+  });
+
+  it('supports models in references', () => {
+    class Project extends Model {}
+
+    Project.init({}, { sequelize, tableName: 'projects' });
+
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      otherKey: {
+        references: {
+          model: Project,
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "projects"("id") ON DELETE CASCADE;`,
+    });
+  });
+
+  it('supports schemas in references', () => {
+    class OtherModel extends Model {}
+
+    OtherModel.init({}, { sequelize, tableName: 'otherModel' });
+
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      otherKey: {
+        references: {
+          model: { tableName: 'projects', schema: 'other_schema' },
+          key: 'id',
+        },
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "other_schema"."projects"("id");`,
+    });
+  });
+
+  it('rejects specifying onUpdate or onDelete without references', () => {
+    const error = 'changeColumnsQuery does not support changing onUpdate or onDelete on their own. Use dropConstraint and addConstraint instead.';
 
     expect(() => {
       queryGenerator.changeColumnsQuery('users', {
         id: {
-          // @ts-expect-error -- we're testing the error in case someone without typescript tries to do this
           onUpdate: 'CASCADE',
         },
       });
@@ -385,7 +466,6 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expect(() => {
       queryGenerator.changeColumnsQuery('users', {
         id: {
-          // @ts-expect-error -- we're testing the error in case someone without typescript tries to do this
           onDelete: 'CASCADE',
         },
       });
@@ -393,7 +473,5 @@ describe('QueryGenerator#changeColumnsQuery', () => {
   });
 });
 
-// TODO: ADD FOREIGN KEY
 // TODO: enum!
-// TODO: removeDefaultValue
 // TODO: add Sync test to remove default value

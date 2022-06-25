@@ -446,8 +446,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const sql = [];
 
     const {
-      type, allowNull, defaultValue, autoIncrement,
-      autoIncrementIdentity, unique,
+      type, allowNull, unique,
+      autoIncrement, autoIncrementIdentity,
+      defaultValue, dropDefaultValue,
+      references, onUpdate, onDelete,
       ...unsupportedOptions
     } = columnDefinition;
 
@@ -462,6 +464,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     if (defaultValue !== undefined) {
       // TODO: how do we want to handle "DROP DEFAULT"?
       sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue, columnDefinition)}`);
+    }
+
+    if (dropDefaultValue) {
+      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
     }
 
     if (autoIncrement !== undefined) {
@@ -491,6 +497,22 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       });
 
       sql.push(`ADD CONSTRAINT ${this.quoteIdentifier(uniqueName)} UNIQUE (${this.quoteIdentifier(columnName)})`);
+    }
+
+    if (references !== undefined) {
+      const targetTable = this.extractTableDetails(references.model);
+
+      let fkSql = `ADD FOREIGN KEY (${this.quoteIdentifier(columnName)}) REFERENCES ${this.quoteTable(targetTable)}(${this.quoteIdentifier(references.key)})`;
+
+      if (onUpdate) {
+        fkSql += ` ON UPDATE ${onUpdate}`;
+      }
+
+      if (onDelete) {
+        fkSql += ` ON DELETE ${onDelete}`;
+      }
+
+      sql.push(fkSql);
     }
 
     // ALTER COLUMN cannot add comments, COMMENT ON COLUMN is added in changeColumnsQuery instead

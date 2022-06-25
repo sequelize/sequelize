@@ -807,8 +807,12 @@ export class AbstractQueryGenerator {
         throw new Error('changeColumnsQuery does not support adding or removing a column from a unique index because it would need to drop and recreate the index but it does not know whether other columns are already part of the index. Use dropIndex and addIndex instead.');
       }
 
-      if ('references' in columnDefinition || 'onUpdate' in columnDefinition || 'onDelete' in columnDefinition) {
-        throw new Error('changeColumnsQuery does not support changing a foreign key. Use dropConstraint and addConstraint instead.');
+      if (('onUpdate' in columnDefinition || 'onDelete' in columnDefinition) && !('references' in columnDefinition)) {
+        throw new Error('changeColumnsQuery does not support changing onUpdate or onDelete on their own. Use dropConstraint and addConstraint instead.');
+      }
+
+      if (columnDefinition.dropDefaultValue && columnDefinition.defaultValue !== undefined) {
+        throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
       }
 
       const columnSql = this._attributeToChangeColumn(tableName.tableName, columnName, columnDefinition);
