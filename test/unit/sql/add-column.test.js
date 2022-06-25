@@ -21,6 +21,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         autoIncrement: true,
       },
     }, { timestamps: false });
+
     if (['mysql', 'mariadb'].includes(current.dialect.name)) {
 
       it('properly generate alter queries', () => {
@@ -70,7 +71,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     it('defaults the schema to the one set in the Sequelize options', () => {
-      return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
+      const CustomUser = customSequelize.define('User', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+      }, { timestamps: false });
+
+      return expectsql(customSql.addColumnQuery(CustomUser.getTableName(), 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
         allowNull: false,
       })), {

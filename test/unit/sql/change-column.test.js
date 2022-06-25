@@ -45,7 +45,7 @@ if (current.dialect.name !== 'sqlite') {
             db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT ALTER COLUMN "level_id" SET NOT NULL;',
             mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
             mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
-            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT, ALTER COLUMN "level_id" SET NOT NULL;',
             snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
           });
         });
@@ -67,7 +67,7 @@ if (current.dialect.name !== 'sqlite') {
             db2: 'ALTER TABLE "users" ADD CONSTRAINT "level_id_foreign_idx" FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE;',
             mariadb: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
             mysql: 'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
-            postgres: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
+            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE INTEGER, ADD FOREIGN KEY ("level_id") REFERENCES "level"("id") ON UPDATE cascade ON DELETE cascade;',
             snowflake: 'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
           });
         });

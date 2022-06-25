@@ -19,7 +19,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.eq('');
+        expect(Project._schema).to.eq('public');
       });
 
       it('should apply default schema from define', () => {
@@ -36,7 +36,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('returns the current model if the schema is identical', () => {
-        assert(Project.withSchema('') === Project);
+        assert(Project.withSchema('') === Project, 'returned project is not identical');
         assert(Project.withSchema('test').withSchema('test') === Project.withSchema('test'));
       });
 
@@ -45,7 +45,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.eq('');
+        expect(Company.schema(null)._schema).to.eq('public');
       });
 
       it('should support multiple, coexistent schema models', () => {
