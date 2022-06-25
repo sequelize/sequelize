@@ -1367,7 +1367,12 @@ Specify a different name for either index to resolve this issue.`);
             }
           }
 
-          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+          const changeColumnOptions = {
+            ...currentAttribute,
+            dropDefaultValue: currentAttribute.defaultValue === undefined,
+          };
+
+          await this.queryInterface.changeColumn(tableName, columnName, changeColumnOptions, options);
         }
       }
     }

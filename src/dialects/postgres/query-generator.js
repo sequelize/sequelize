@@ -436,6 +436,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       if (columnDef.autoIncrement) {
         out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(this.#nameSequence(tableName.tableName, columnName))} OWNED BY ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)};`);
       }
+
+      if (
+        columnDef.type instanceof DataTypes.ENUM
+        || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.type instanceof DataTypes.ENUM
+      ) {
+        out.unshift(this.pgEnum(tableName, columnName, columnDef));
+      }
     }
 
     return out.join(' ');
@@ -450,11 +457,21 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       autoIncrement, autoIncrementIdentity,
       defaultValue, dropDefaultValue,
       references, onUpdate, onDelete,
-      ...unsupportedOptions
     } = columnDefinition;
 
     if (type !== undefined) {
-      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} TYPE ${this.attributeTypeToSql(columnDefinition)}`);
+      let typeSql;
+      if (
+        columnDefinition.type instanceof DataTypes.ENUM
+        || columnDefinition.type instanceof DataTypes.ARRAY && columnDefinition.type.type instanceof DataTypes.ENUM
+      ) {
+        typeSql = this.pgEnumName(tableName, columnName, { schema: false });
+        typeSql += ` USING (${this.quoteIdentifier(columnName)}::${this.pgEnumName(tableName, columnName)})`;
+      } else {
+        typeSql = this.attributeTypeToSql(columnDefinition);
+      }
+
+      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} TYPE ${typeSql}`);
     }
 
     if (allowNull !== undefined) {
@@ -462,7 +479,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (defaultValue !== undefined) {
-      // TODO: how do we want to handle "DROP DEFAULT"?
       sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue, columnDefinition)}`);
     }
 
@@ -515,14 +531,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       sql.push(fkSql);
     }
 
-    // ALTER COLUMN cannot add comments, COMMENT ON COLUMN is added in changeColumnsQuery instead
-    // but the option is still supported.
-    const unsupportedKeys = Object.keys(unsupportedOptions).filter(key => key !== 'comment');
-
-    if (unsupportedKeys.length > 0) {
-      throw new Error(`changeColumnsQuery received unsupported options: ${unsupportedKeys.join(', ')}`);
-    }
-
     return sql.join(', ');
   }
 
@@ -531,7 +539,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   attributeTypeToSql(attribute) {
-    let type;
     if (
       attribute.type instanceof DataTypes.ENUM
       || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
@@ -543,14 +550,14 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         values = enumType.values;
       }
 
-      if (Array.isArray(values) && values.length > 0) {
-        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
-
-        if (attribute.type instanceof DataTypes.ARRAY) {
-          type += '[]';
-        }
-      } else {
+      if (!Array.isArray(values) || values.length <= 0) {
         throw new Error('Values for ENUM haven\'t been defined.');
+      }
+
+      let type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
+
+      if (attribute.type instanceof DataTypes.ARRAY) {
+        type += '[]';
       }
 
       return type;
@@ -859,17 +866,19 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   pgListEnums(tableName, attrName, options) {
-    let enumName = '';
-    const tableDetails = this.extractTableDetails(tableName, options);
+    const tableDetails = tableName ? this.extractTableDetails(tableName, options) : null;
 
-    if (tableDetails.tableName && attrName) {
+    let enumName = '';
+    if (tableDetails?.tableName && attrName) {
       enumName = ` AND t.typname=${this.pgEnumName(tableDetails.tableName, attrName, { schema: false }).replace(/"/g, '\'')}`;
     }
+
+    const schema = tableDetails?.schema || this.options.schema || this._dialect.getDefaultSchema();
 
     return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
       + 'JOIN pg_enum e ON t.oid = e.enumtypid '
       + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
-      + `WHERE n.nspname = '${tableDetails.schema}'${enumName} GROUP BY 1`;
+      + `WHERE n.nspname = '${schema}'${enumName} GROUP BY 1`;
   }
 
   pgEnum(tableName, attr, dataType, options) {

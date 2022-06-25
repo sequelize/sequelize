@@ -109,6 +109,25 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(data).not.to.have.ownProperty('badgeNumber');
   });
 
+  it('can remove a default value', async () => {
+    const testSync = sequelize.define('testSync', {
+      height: { type: DataTypes.INTEGER, defaultValue: 100 },
+    });
+
+    await sequelize.sync();
+    const firstDescribe = await testSync.describe();
+    expect(firstDescribe.height.defaultValue).to.equal('100');
+
+    // replace model with one without default value
+    sequelize.define('testSync', {
+      height: { type: DataTypes.INTEGER },
+    });
+
+    await sequelize.sync({ alter: true });
+    const secondDescribe = await testSync.describe();
+    expect(secondDescribe.height.defaultValue).to.equal(null);
+  });
+
   // IBM i can't alter INTEGER -> STRING
   if (dialect !== 'ibmi') {
     it('changes a column if it exists in the model but is different in the database', async () => {

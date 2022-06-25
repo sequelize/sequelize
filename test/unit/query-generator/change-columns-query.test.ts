@@ -106,6 +106,20 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
   });
 
+  it('supports using an ENUM as the DataType', () => {
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      name: {
+        type: DataTypes.ENUM('A', 'B', 'C'),
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `
+        CREATE TYPE "public"."enum_users_name" AS ENUM('A', 'B', 'C');
+        ALTER TABLE "users" ALTER COLUMN "name" TYPE "enum_users_name" USING ("name"::"public"."enum_users_name");`,
+    });
+  });
+
   it('supports changing all base options', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
@@ -472,6 +486,3 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     }).to.throw(error);
   });
 });
-
-// TODO: enum!
-// TODO: add Sync test to remove default value
