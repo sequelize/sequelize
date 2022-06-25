@@ -921,7 +921,7 @@ Specify a different name for either index to resolve this issue.`);
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema || '';
+    this._schema = this.options.schema || this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
     this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
@@ -1472,10 +1472,20 @@ Specify a different name for either index to resolve this issue.`);
    * Get the table name of the model, taking schema into account. The method will return The name as a string if the model
    * has no schema, or an object with `tableName`, `schema` and `delimiter` properties.
    *
-   * @returns {string|object}
+   * @returns {TableNameWithSchema}
    */
   static getTableName() {
-    return this.queryGenerator.addSchema(this);
+    const self = this;
+
+    return {
+      tableName: this.tableName,
+      schema: this._schema || this.sequelize.dialect.getDefaultSchema(),
+      delimiter: this._schemaDelimiter || '.',
+      // TODO: remove, it should not be relied on
+      toString() {
+        return self.sequelize.queryInterface.queryGenerator.quoteTable(this);
+      },
+    };
   }
 
   /**

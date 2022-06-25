@@ -75,6 +75,10 @@ export class PostgresDialect extends AbstractDialect {
   static getDefaultPort() {
     return 5432;
   }
+
+  getDefaultSchema() {
+    return 'public';
+  }
 }
 
 PostgresDialect.prototype.defaultVersion = '9.5.0'; // minimum supported version

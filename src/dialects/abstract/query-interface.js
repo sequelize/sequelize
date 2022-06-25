@@ -495,24 +495,12 @@ export class QueryInterface {
     return this.queryGenerator.quoteIdentifiers(identifiers);
   }
 
-  /**
-   * Change a column definition
-   *
-   * @param {string} tableName          Table name to change from
-   * @param {string} attributeName      Column name
-   * @param {object} dataTypeOrOptions  Attribute definition for new column
-   * @param {object} [options]          Query options
-   */
-  async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
-    options = options || {};
+  async changeColumn(tableOrModel, columnName, dataTypeOrColumnOptions, options) {
+    return this.changeColumns(tableOrModel, { [columnName]: dataTypeOrColumnOptions }, options);
+  }
 
-    const query = this.queryGenerator.attributesToSQL({
-      [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
-    }, {
-      context: 'changeColumn',
-      table: tableName,
-    });
-    const sql = this.queryGenerator.changeColumnQuery(tableName, query);
+  async changeColumns(tableOrModel, columnDefinitions, options) {
+    const sql = this.queryGenerator.changeColumnsQuery(tableOrModel, columnDefinitions);
 
     return this.sequelize.queryRaw(sql, options);
   }

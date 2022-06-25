@@ -1,5 +1,7 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+import { isString } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 
@@ -47,24 +49,31 @@ export class AbstractQueryGenerator {
     this._initQuoteIdentifier();
   }
 
-  extractTableDetails(tableName, options) {
-    options = options || {};
-    tableName = tableName || {};
+  extractTableDetails(tableNameOrModel, options) {
+    const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
+      : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
+      : tableNameOrModel;
+
+    if (!isPlainObject(tableNameObject)) {
+      throw new Error('');
+    }
 
     return {
-      schema: tableName.schema || options.schema || this.options.schema || 'public',
-      tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
-      delimiter: tableName.delimiter || options.delimiter || '.',
+      ...tableNameObject,
+      schema: tableNameObject.schema || options?.schema || this.options.schema || this._dialect.getDefaultSchema(),
+      delimiter: tableNameObject.delimiter || options?.delimiter || '.',
     };
   }
 
-  // TODO: always return an object, instead of sometimes an object, sometimes a string
+  /**
+   * @deprecated use extractTableDetails instead
+   *
+   * @param {unknown} param
+   */
   addSchema(param) {
     if (!param._schema) {
       return param.tableName || param;
     }
-
-    const self = this;
 
     return {
       tableName: param.tableName || param,
@@ -73,7 +82,7 @@ export class AbstractQueryGenerator {
       schema: param._schema,
       delimiter: param._schemaDelimiter || '.',
       toString() {
-        return self.quoteTable(this);
+        throw new Error('toString should not be called on TableNameWithSchema, you are escaping the table identifier incorrectly');
       },
     };
   }
@@ -778,6 +787,36 @@ export class AbstractQueryGenerator {
     ]);
   }
 
+  changeColumnsQuery(tableOrModel, columnDefinitions) {
+    if (Object.keys(columnDefinitions).length === 0) {
+      throw new Error('changeColumnsQuery requires at least one column to be provided.');
+    }
+
+    columnDefinitions = _.mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
+
+    const columnsSql = [];
+
+    for (const [columnName, columnDefinition] of Object.entries(columnDefinitions)) {
+      const columnSql = this._attributeToChangeColumn(columnName, columnDefinition);
+
+      if (columnSql) {
+        columnsSql.push(columnSql);
+      }
+    }
+
+    // it is possible for this query to be empty but still valid if the dialect overrides this method.
+    // for instance, postgres set comments without using ALTER TABLE,
+    // so if the only change is a comment change, this will be empty,
+    // but the postgres dialect will add the necessary SET COMMENT statement.
+    if (columnsSql.length === 0) {
+      return '';
+    }
+
+    const tableName = this.extractTableDetails(tableOrModel);
+
+    return `ALTER TABLE ${this.quoteTable(tableName)} ${columnsSql.join(', ')};`;
+  }
+
   /*
     Quote an object based on its type. This is a more general version of quoteIdentifiers
     Strings: should proxy to quoteIdentifiers
@@ -1025,36 +1064,33 @@ export class AbstractQueryGenerator {
    * @returns {string}
    */
   quoteTable(param, alias = false) {
-    let table = '';
+    const tableName = this.extractTableDetails(param);
 
     if (alias === true) {
       alias = param.as || param.name || param;
     }
 
-    if (_.isObject(param)) {
-      if (this._dialect.supports.schemas) {
-        if (param.schema) {
-          table += `${this.quoteIdentifier(param.schema)}.`;
-        }
+    let sql = '';
 
-        table += this.quoteIdentifier(param.tableName);
-      } else {
-        if (param.schema) {
-          table += param.schema + (param.delimiter || '.');
-        }
-
-        table += param.tableName;
-        table = this.quoteIdentifier(table);
+    if (this._dialect.supports.schemas) {
+      if (tableName.schema && tableName.schema !== this._dialect.getDefaultSchema()) {
+        sql += `${this.quoteIdentifier(tableName.schema)}.`;
       }
+
+      sql += this.quoteIdentifier(tableName.tableName);
     } else {
-      table = this.quoteIdentifier(param);
+      if (tableName.schema && tableName.schema !== this._dialect.getDefaultSchema()) {
+        sql += tableName.schema + (tableName.delimiter || '.');
+      }
+
+      sql += tableName.tableName;
     }
 
     if (alias) {
-      table += ` AS ${this.quoteIdentifier(alias)}`;
+      sql += ` AS ${this.quoteIdentifier(alias)}`;
     }
 
-    return table;
+    return sql;
   }
 
   /*

@@ -1,7 +1,8 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { DataType } from '../../data-types.js';
 import type {
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumOptions, ColumnOptions,
   FindOptions,
   Model,
   ModelAttributeColumnOptions,
@@ -10,6 +11,7 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
+import type { QueryRawOptions } from '../../sequelize.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
@@ -63,6 +65,10 @@ export type WhereItemsQueryOptions = ParameterOptions & {
 
 type HandleSequelizeMethodOptions = ParameterOptions & {
 
+};
+
+export type ChangeColumnAttributes = {
+  [attributeName: string]: DataType | Partial<ColumnOptions>,
 };
 
 export class AbstractQueryGenerator {
@@ -124,4 +130,10 @@ export class AbstractQueryGenerator {
   ): string;
 
   dropSchema(tableName: TableName): string | { query: string, bind?: unknown[] };
+
+  changeColumnsQuery(
+    tableOrModel: TableName | ModelStatic,
+    columnDefinitions: ChangeColumnAttributes,
+    options?: QueryRawOptions
+  ): string;
 }

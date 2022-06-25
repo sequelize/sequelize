@@ -460,13 +460,63 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return fragment;
   }
 
-  attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
+  changeColumnsQuery(tableOrModel, columnDefinitions) {
+    const sql = super.changeColumnsQuery(tableOrModel, columnDefinitions);
+
+    columnDefinitions = _.mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
+    const tableName = this.extractTableDetails(tableOrModel);
+
+    const comments = [];
+    for (const [attributeName, attribute] of Object.entries(columnDefinitions)) {
+      if (!('comment' in attribute)) {
+        continue;
+      }
+
+      if (attribute.comment == null) {
+        comments.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS NULL;`);
+      } else {
+        comments.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS ${this.escape(attribute.comment)};`);
+      }
     }
 
+    if (!sql) {
+      return comments.join(' ');
+    }
+
+    return `${sql} ${comments.join(' ')}`;
+  }
+
+  _attributeToChangeColumn(attributeName, attributeDefinition) {
+    const sql = [];
+
+    for (const optionName of Object.keys(attributeDefinition)) {
+      switch (optionName) {
+        case 'type':
+          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} TYPE ${this.attributeTypeToSql(attributeDefinition)}`);
+          break;
+
+        case 'allowNull':
+          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} ${attributeDefinition.allowNull ? 'DROP' : 'SET'} NOT NULL`);
+          break;
+
+        case 'defaultValue':
+          // TODO: how do we want to handle "DROP DEFAULT"? Symbol?
+          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} SET DEFAULT ${this.escape(attributeDefinition.defaultValue, attributeDefinition)}`);
+          break;
+
+        case 'comment':
+          // ALTER COLUMN cannot add comments, COMMENT ON COLUMN is used instead in the override for changeColumnsQuery
+          break;
+
+        default:
+          throw new Error(`Unsupported column option: ${optionName}`);
+      }
+    }
+
+    return sql.join(', ');
+  }
+
+  attributeTypeToSql(attribute) {
     let type;
     if (
       attribute.type instanceof DataTypes.ENUM
@@ -485,17 +535,24 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         if (attribute.type instanceof DataTypes.ARRAY) {
           type += '[]';
         }
-
       } else {
         throw new Error('Values for ENUM haven\'t been defined.');
       }
+
+      return type;
     }
 
-    if (!type) {
-      type = attribute.type;
+    return attribute.type.toString();
+  }
+
+  attributeToSQL(attribute, options) {
+    if (!_.isPlainObject(attribute)) {
+      attribute = {
+        type: attribute,
+      };
     }
 
-    let sql = type.toString();
+    let sql = this.attributeTypeToSql(attribute);
 
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';

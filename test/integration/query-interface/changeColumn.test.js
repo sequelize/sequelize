@@ -63,16 +63,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
         currency: DataTypes.INTEGER,
       });
-      if (dialect === 'db2') { // DB2 can change only one attr of a column
-        await this.queryInterface.changeColumn('users', 'currency', {
-          type: DataTypes.FLOAT,
-        });
-      } else {
-        await this.queryInterface.changeColumn('users', 'currency', {
-          type: DataTypes.FLOAT,
-          allowNull: true,
-        });
-      }
+
+      await this.queryInterface.changeColumn('users', 'currency', {
+        type: DataTypes.FLOAT,
+      });
 
       const table = await this.queryInterface.describeTable({
         tableName: 'users',
@@ -85,6 +79,58 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
+    });
+
+    it('supports changing the nullability of a column', async function () {
+      await this.queryInterface.createTable('users', {
+        firstName: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+      });
+
+      await this.queryInterface.changeColumn('users', 'firstName', {
+        type: DataTypes.CHAR(255),
+        allowNull: true,
+      });
+
+      await this.queryInterface.changeColumn('users', 'lastName', {
+        type: DataTypes.CHAR(255),
+        allowNull: false,
+      });
+
+      const description = await this.queryInterface.describeTable('users');
+      expect(description.firstName.allowNull).to.equal(true);
+      expect(description.lastName.allowNull).to.equal(false);
+    });
+
+    it('does not change nullability unless explicitly requested', async function () {
+      await this.queryInterface.createTable('users', {
+        firstName: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+      });
+
+      await this.queryInterface.changeColumn('users', 'firstName', {
+        type: DataTypes.CHAR(255),
+      });
+
+      await this.queryInterface.changeColumn('users', 'lastName', {
+        type: DataTypes.CHAR(255),
+      });
+
+      const description = await this.queryInterface.describeTable('users');
+      expect(description.firstName.allowNull).to.equal(false);
+      expect(description.lastName.allowNull).to.equal(true);
     });
 
     // MSSQL doesn't support using a modified column in a check constraint.

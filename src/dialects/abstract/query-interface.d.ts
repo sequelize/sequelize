@@ -10,13 +10,13 @@ import type {
   ModelStatic,
   CreationAttributes,
   Attributes,
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumOptions, ColumnOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal } from '../../utils';
 import type { SetRequired } from '../../utils/set-required';
-import type { AbstractQueryGenerator } from './query-generator.js';
+import type { AbstractQueryGenerator, ChangeColumnAttributes } from './query-generator.js';
 
 interface Replaceable {
   /**
@@ -378,13 +378,26 @@ export class QueryInterface {
   ): Promise<void>;
 
   /**
-   * Changes a column
+   * Changes a column definition
    */
   changeColumn(
-    tableName: TableName,
-    attributeName: string,
-    dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
+    tableOrModel: TableName | ModelStatic,
+    columnName: string,
+    dataTypeOrColumnOption?: DataType | ColumnOptions,
     options?: QiOptionsWithReplacements
+  ): Promise<void>;
+
+  /**
+   * Changes one or more columns on a table.
+   *
+   * @param tableOrModel The table or model that the columns should be changed on.
+   * @param columnDefinitions An object with the names of the columns as keys and an object with the details as values.
+   * @param options The options passed to {@link Sequelize#queryRaw}
+   */
+  changeColumns(
+    tableOrModel: TableName | ModelStatic,
+    columnDefinitions: ChangeColumnAttributes,
+    options?: QueryRawOptions
   ): Promise<void>;
 
   /**
