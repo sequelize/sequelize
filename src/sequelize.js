@@ -1271,6 +1271,10 @@ Use Sequelize#query if you wish to use replacements.`);
       }
     }
 
+    if (attribute.allowNull !== false && !attribute.defaultValue) {
+      attribute.defaultValue = null;
+    }
+
     return attribute;
   }
 }

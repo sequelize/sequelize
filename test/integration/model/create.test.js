@@ -1395,6 +1395,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(newTasks[3].title).to.equal('SAVE TRANSACTION');
     });
 
+    it('should return null value when defaultValue is not defined', async function () {
+      const user = await this.User.create();
+
+      expect(user.username).to.equal(null);
+    });
+
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
