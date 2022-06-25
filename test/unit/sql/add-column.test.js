@@ -43,8 +43,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           onUpdate: 'cascade',
           onDelete: 'cascade',
         })), {
-          mariadb: 'ALTER TABLE `Users` ADD `level_id` INTEGER, ADD CONSTRAINT `Users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
-          mysql: 'ALTER TABLE `Users` ADD `level_id` INTEGER, ADD CONSTRAINT `Users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+          mariadb: 'ALTER TABLE `Users` ADD `level_id` INTEGER DEFAULT NULL, ADD CONSTRAINT `Users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+          mysql: 'ALTER TABLE `Users` ADD `level_id` INTEGER DEFAULT NULL, ADD CONSTRAINT `Users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
         });
       });
 
@@ -53,8 +53,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.STRING,
           first: true,
         })), {
-          mariadb: 'ALTER TABLE `Users` ADD `test_added_col_first` VARCHAR(255) FIRST;',
-          mysql: 'ALTER TABLE `Users` ADD `test_added_col_first` VARCHAR(255) FIRST;',
+          mariadb: 'ALTER TABLE `Users` ADD `test_added_col_first` VARCHAR(255) DEFAULT NULL FIRST;',
+          mysql: 'ALTER TABLE `Users` ADD `test_added_col_first` VARCHAR(255) DEFAULT NULL FIRST;',
         });
       });
 
@@ -63,8 +63,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.STRING,
           comment: 'This is a comment',
         })), {
-          mariadb: 'ALTER TABLE `Users` ADD `column_with_comment` VARCHAR(255) COMMENT \'This is a comment\';',
-          mysql: 'ALTER TABLE `Users` ADD `column_with_comment` VARCHAR(255) COMMENT \'This is a comment\';',
+          mariadb: 'ALTER TABLE `Users` ADD `column_with_comment` VARCHAR(255) DEFAULT NULL COMMENT \'This is a comment\';',
+          mysql: 'ALTER TABLE `Users` ADD `column_with_comment` VARCHAR(255) DEFAULT NULL COMMENT \'This is a comment\';',
         });
       });
     }

@@ -1271,7 +1271,8 @@ Use Sequelize#query if you wish to use replacements.`);
       }
     }
 
-    if (attribute.allowNull !== false && !attribute.defaultValue) {
+    // TODO: allowNull is often undefined, this should be normalized
+    if (attribute.allowNull !== false && attribute.defaultValue === undefined) {
       attribute.defaultValue = null;
     }
 
