@@ -1,6 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import NodeUtil from 'node:util';
 import { isString } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
@@ -55,7 +56,7 @@ export class AbstractQueryGenerator {
       : tableNameOrModel;
 
     if (!isPlainObject(tableNameObject)) {
-      throw new Error('');
+      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
 
     return {
@@ -792,12 +793,25 @@ export class AbstractQueryGenerator {
       throw new Error('changeColumnsQuery requires at least one column to be provided.');
     }
 
+    const tableName = this.extractTableDetails(tableOrModel);
     columnDefinitions = _.mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
 
     const columnsSql = [];
 
     for (const [columnName, columnDefinition] of Object.entries(columnDefinitions)) {
-      const columnSql = this._attributeToChangeColumn(columnName, columnDefinition);
+      if ('primaryKey' in columnDefinition) {
+        throw new Error('changeColumnsQuery does not support adding or removing a column from the primary key because it would need to drop and recreate the constraint but it does not know whether other columns are already part of the primary key. Use dropConstraint and addConstraint instead.');
+      }
+
+      if ('unique' in columnDefinition && columnDefinition.unique !== true) {
+        throw new Error('changeColumnsQuery does not support adding or removing a column from a unique index because it would need to drop and recreate the index but it does not know whether other columns are already part of the index. Use dropIndex and addIndex instead.');
+      }
+
+      if ('references' in columnDefinition || 'onUpdate' in columnDefinition || 'onDelete' in columnDefinition) {
+        throw new Error('changeColumnsQuery does not support changing a foreign key. Use dropConstraint and addConstraint instead.');
+      }
+
+      const columnSql = this._attributeToChangeColumn(tableName.tableName, columnName, columnDefinition);
 
       if (columnSql) {
         columnsSql.push(columnSql);
@@ -811,8 +825,6 @@ export class AbstractQueryGenerator {
     if (columnsSql.length === 0) {
       return '';
     }
-
-    const tableName = this.extractTableDetails(tableOrModel);
 
     return `ALTER TABLE ${this.quoteTable(tableName)} ${columnsSql.join(', ')};`;
   }

@@ -12,7 +12,7 @@ import type {
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
 import type { QueryRawOptions } from '../../sequelize.js';
-import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { Literal, Nullish, SequelizeMethod } from '../../utils/index.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
@@ -67,8 +67,16 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+export type ChangeColumnAttribute = Partial<Omit<ColumnOptions, 'primaryKey' | 'unique' | 'references' | 'onUpdate' | 'onDelete'>> & {
+  /**
+   * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
+   * to add a multi-column unique, or removing a column from a unique index.
+   */
+  unique?: Nullish<true>,
+};
+
 export type ChangeColumnAttributes = {
-  [attributeName: string]: DataType | Partial<ColumnOptions>,
+  [attributeName: string]: DataType | ChangeColumnAttribute,
 };
 
 export class AbstractQueryGenerator {

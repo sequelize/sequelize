@@ -296,53 +296,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
   }
 
-  changeColumnQuery(tableName, attributes) {
-    const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
-    const sql = [];
-    for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
-      let attrSql = '';
-
-      if (definition.includes('NOT NULL')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
-
-        definition = definition.replace('NOT NULL', '').trim();
-      } else if (!definition.includes('REFERENCES')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
-      }
-
-      if (definition.includes('DEFAULT')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`);
-
-        definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
-      }
-
-      if (attributes[attributeName].startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attributeName, { schema: false }));
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
-      }
-
-      if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql += query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace('ALTER COLUMN', '');
-      }
-
-      if (definition.includes('REFERENCES')) {
-        definition = definition.replace(/.+?(?=REFERENCES)/, '');
-        attrSql += query(`ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${definition}`).replace('ALTER COLUMN', '');
-      } else {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
-      }
-
-      sql.push(attrSql);
-    }
-
-    return sql.join('');
-  }
-
   renameColumnQuery(tableName, attrBefore, attributes) {
 
     const attrString = [];
@@ -466,54 +419,93 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     columnDefinitions = _.mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
     const tableName = this.extractTableDetails(tableOrModel);
 
-    const comments = [];
-    for (const [attributeName, attribute] of Object.entries(columnDefinitions)) {
-      if (!('comment' in attribute)) {
-        continue;
+    const out = [];
+    if (sql) {
+      out.push(sql);
+    }
+
+    for (const [columnName, columnDef] of Object.entries(columnDefinitions)) {
+      if ('comment' in columnDef) {
+        if (columnDef.comment == null) {
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS NULL;`);
+        } else {
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS ${this.escape(columnDef.comment)};`);
+        }
       }
 
-      if (attribute.comment == null) {
-        comments.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS NULL;`);
-      } else {
-        comments.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS ${this.escape(attribute.comment)};`);
+      if (columnDef.autoIncrement) {
+        out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(this.#nameSequence(tableName.tableName, columnName))} OWNED BY ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)};`);
       }
     }
 
-    if (!sql) {
-      return comments.join(' ');
-    }
-
-    return `${sql} ${comments.join(' ')}`;
+    return out.join(' ');
   }
 
-  _attributeToChangeColumn(attributeName, attributeDefinition) {
+  // used by changeColumnsQuery
+  _attributeToChangeColumn(tableName, columnName, columnDefinition) {
     const sql = [];
 
-    for (const optionName of Object.keys(attributeDefinition)) {
-      switch (optionName) {
-        case 'type':
-          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} TYPE ${this.attributeTypeToSql(attributeDefinition)}`);
-          break;
+    const {
+      type, allowNull, defaultValue, autoIncrement,
+      autoIncrementIdentity, unique,
+      ...unsupportedOptions
+    } = columnDefinition;
 
-        case 'allowNull':
-          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} ${attributeDefinition.allowNull ? 'DROP' : 'SET'} NOT NULL`);
-          break;
+    if (type !== undefined) {
+      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} TYPE ${this.attributeTypeToSql(columnDefinition)}`);
+    }
 
-        case 'defaultValue':
-          // TODO: how do we want to handle "DROP DEFAULT"? Symbol?
-          sql.push(`ALTER COLUMN ${this.quoteIdentifier(attributeName)} SET DEFAULT ${this.escape(attributeDefinition.defaultValue, attributeDefinition)}`);
-          break;
+    if (allowNull !== undefined) {
+      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} ${columnDefinition.allowNull ? 'DROP' : 'SET'} NOT NULL`);
+    }
 
-        case 'comment':
-          // ALTER COLUMN cannot add comments, COMMENT ON COLUMN is used instead in the override for changeColumnsQuery
-          break;
+    if (defaultValue !== undefined) {
+      // TODO: how do we want to handle "DROP DEFAULT"?
+      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue, columnDefinition)}`);
+    }
 
-        default:
-          throw new Error(`Unsupported column option: ${optionName}`);
+    if (autoIncrement !== undefined) {
+      if (columnDefinition.autoIncrement) {
+        // The sequence needs to be created, it is done as part of changeColumnsQuery
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT nextval(${this.escape(this.#nameSequence(tableName, columnName))}::regclass)`);
+      } else if (!('defaultValue' in columnDefinition)) {
+        // we only drop this default if defaultValue is not specified, otherwise the defaultValue takes priority
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
       }
+    }
+
+    if (autoIncrementIdentity !== undefined) {
+      if (columnDefinition.autoIncrementIdentity) {
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} ADD GENERATED BY DEFAULT AS IDENTITY`);
+      } else {
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP GENERATED BY DEFAULT`);
+      }
+    }
+
+    // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
+    // more complex uniques use addIndex and removing a unique uses removeIndex
+    if (columnDefinition.unique === true) {
+      const uniqueName = Utils.generateIndexName(tableName, {
+        fields: [columnName],
+        unique: true,
+      });
+
+      sql.push(`ADD CONSTRAINT ${this.quoteIdentifier(uniqueName)} UNIQUE (${this.quoteIdentifier(columnName)})`);
+    }
+
+    // ALTER COLUMN cannot add comments, COMMENT ON COLUMN is added in changeColumnsQuery instead
+    // but the option is still supported.
+    const unsupportedKeys = Object.keys(unsupportedOptions).filter(key => key !== 'comment');
+
+    if (unsupportedKeys.length > 0) {
+      throw new Error(`changeColumnsQuery received unsupported options: ${unsupportedKeys.join(', ')}`);
     }
 
     return sql.join(', ');
+  }
+
+  #nameSequence(tableName, columnName) {
+    return `${tableName}_${columnName}_seq`;
   }
 
   attributeTypeToSql(attribute) {
