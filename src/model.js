@@ -1372,6 +1372,12 @@ Specify a different name for either index to resolve this issue.`);
             dropDefaultValue: currentAttribute.defaultValue === undefined,
           };
 
+          // changeColumn is only able to add single-column uniques.
+          // more complex uniques are added via addIndex further in this method.
+          if (changeColumnOptions.unique !== true) {
+            delete changeColumnOptions.unique;
+          }
+
           await this.queryInterface.changeColumn(tableName, columnName, changeColumnOptions, options);
         }
       }
@@ -1489,6 +1495,7 @@ Specify a different name for either index to resolve this issue.`);
       schema: this._schema,
       delimiter: this._schemaDelimiter || '.',
       // TODO: remove, it should not be relied on
+      //  once this is removed, also remove the various omit(..., 'toString') that are used in tests when deep-equaling table names.
       toString() {
         return self.sequelize.queryInterface.queryGenerator.quoteTable(this);
       },

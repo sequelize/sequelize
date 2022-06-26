@@ -793,63 +793,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
       }
     });
-
-    describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works with a column that hasnt been defined before', function () {
-        const Task = this.sequelize.define('task', {});
-        const User = this.sequelize.define('user', {});
-
-        Task.belongsTo(User, {
-          foreignKey: {
-            allowNull: false,
-            name: 'uid',
-          },
-        });
-
-        expect(Task.rawAttributes.uid).to.be.ok;
-        expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Task.rawAttributes.uid.references.key).to.equal('id');
-      });
-
-      it('works when taking a column directly from the object', function () {
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-        const Profile = this.sequelize.define('project', {
-          user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-          },
-        });
-
-        Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id });
-
-        expect(Profile.rawAttributes.user_id).to.be.ok;
-        expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
-        expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
-      });
-
-      it('works when merging with an existing definition', function () {
-        const Task = this.sequelize.define('task', {
-          projectId: {
-            defaultValue: 42,
-            type: DataTypes.INTEGER,
-          },
-        });
-        const Project = this.sequelize.define('project', {});
-
-        Task.belongsTo(Project, { foreignKey: { allowNull: true } });
-
-        expect(Task.rawAttributes.projectId).to.be.ok;
-        expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
-        expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
-      });
-    });
   });
 
   describe('Eager loading', () => {

@@ -61,8 +61,8 @@ export class AbstractQueryGenerator {
 
     return {
       ...tableNameObject,
-      schema: tableNameObject.schema || options?.schema || this.options.schema || this._dialect.getDefaultSchema(),
-      delimiter: tableNameObject.delimiter || options?.delimiter || '.',
+      schema: options?.schema || tableNameObject.schema || this.options.schema || this._dialect.getDefaultSchema(),
+      delimiter: options?.delimiter || tableNameObject.delimiter || '.',
     };
   }
 
@@ -104,7 +104,9 @@ export class AbstractQueryGenerator {
     return `DESCRIBE ${table};`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    tableName = this.extractTableDetails(tableName, options);
+
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 

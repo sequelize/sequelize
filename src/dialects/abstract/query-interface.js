@@ -193,7 +193,7 @@ export class QueryInterface {
    * )
    * ```
    *
-   * @param {string} tableName  Name of table to create
+   * @param {TableName} tableName  Name of table to create
    * @param {object} attributes Object representing a list of table attributes to create
    * @param {object} [options] create table and query options
    * @param {Model}  [model] model class
@@ -201,9 +201,8 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async createTable(tableName, attributes, options, model) {
-    let sql = '';
-
     options = { ...options };
+    tableName = this.queryGenerator.extractTableDetails(tableName, options);
 
     if (options && options.uniqueKeys) {
       _.forOwn(options.uniqueKeys, uniqueKey => {
@@ -225,22 +224,15 @@ export class QueryInterface {
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
-    if (
-      !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
-    ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
-    }
-
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
+
+    const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
   }

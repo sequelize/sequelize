@@ -1,7 +1,9 @@
+import assert from 'node:assert';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
+import omit from 'lodash/omit';
 import sinon from 'sinon';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
@@ -103,6 +105,67 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     A.belongsTo(B);
 
     expect(A.rawAttributes.BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
+  });
+
+  describe('allows the user to provide an attribute definition object as foreignKey', () => {
+    it(`works with a column that hasn't been defined before`, () => {
+      const Task = sequelize.define('task', {});
+      const User = sequelize.define('user', {});
+
+      Task.belongsTo(User, {
+        foreignKey: {
+          allowNull: false,
+          name: 'uid',
+        },
+      });
+
+      expect(Task.rawAttributes.uid).to.be.ok;
+      expect(Task.rawAttributes.uid.allowNull).to.be.false;
+
+      assert(typeof Task.rawAttributes.uid.references?.model === 'object');
+      expect(omit(Task.rawAttributes.uid.references.model, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+      expect(Task.rawAttributes.uid.references.key).to.equal('id');
+    });
+
+    it('works when taking a column directly from the object', () => {
+      const User = sequelize.define('user', {
+        uid: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+      const Profile = sequelize.define('project', {
+        user_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+      });
+
+      Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id });
+
+      expect(Profile.rawAttributes.user_id).to.be.ok;
+      assert(typeof Profile.rawAttributes.user_id.references?.model === 'object');
+      expect(omit(Profile.rawAttributes.user_id.references.model, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+      expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
+      expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
+    });
+
+    it('works when merging with an existing definition', () => {
+      const Task = sequelize.define('task', {
+        projectId: {
+          defaultValue: 42,
+          type: DataTypes.INTEGER,
+        },
+      });
+
+      const Project = sequelize.define('project', {});
+
+      Task.belongsTo(Project, { foreignKey: { allowNull: true } });
+
+      expect(Task.rawAttributes.projectId).to.be.ok;
+      expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
+      expect(Task.rawAttributes.projectId.allowNull).to.equal(true);
+    });
   });
 
   describe('association hooks', () => {

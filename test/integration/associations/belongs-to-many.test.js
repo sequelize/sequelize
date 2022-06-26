@@ -3354,38 +3354,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
   });
 
-  describe('Association options', () => {
-    describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works when taking a column directly from the object', function () {
-        const Project = this.sequelize.define('project', {});
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-
-        const UserProjects = User.belongsToMany(Project, {
-          foreignKey: { name: 'user_id', defaultValue: 42 },
-          through: 'UserProjects',
-        });
-        expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
-        expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
-      });
-    });
-
-    it('should throw an error if foreignKey and as result in a name clash', function () {
-      const User = this.sequelize.define('user', {
-        user: DataTypes.INTEGER,
-      });
-
-      expect(User.belongsToMany.bind(User, User, { as: 'user', through: 'UserUser' })).to
-        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change the "as" options in your association definition');
-    });
-  });
-
   describe('thisAssociations', () => {
     it('should work with this reference', async function () {
       const User = this.sequelize.define('User', {

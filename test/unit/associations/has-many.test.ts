@@ -1,7 +1,9 @@
+import assert from 'node:assert';
 import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
+import omit from 'lodash/omit';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { sequelize, getTestDialectTeaser } from '../../support';
@@ -28,6 +30,65 @@ describe(getTestDialectTeaser('hasMany'), () => {
     const Category = sequelize.define('Category');
 
     Category.hasMany(Category, { as: 'childCategories', inverse: { as: 'parentCategory' } });
+  });
+
+  describe('allows the user to provide an attribute definition object as foreignKey', () => {
+    it('works with a column that hasnt been defined before', () => {
+      const Task = sequelize.define('task', {});
+      const User = sequelize.define('user', {});
+
+      User.hasMany(Task, {
+        foreignKey: {
+          name: 'uid',
+          allowNull: false,
+        },
+      });
+
+      expect(Task.rawAttributes.uid).to.be.ok;
+      expect(Task.rawAttributes.uid.allowNull).to.be.false;
+      assert(typeof Task.rawAttributes.uid.references?.model === 'object');
+      expect(omit(Task.rawAttributes.uid.references.model, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+      expect(Task.rawAttributes.uid.references.key).to.equal('id');
+    });
+
+    it('works when taking a column directly from the object', () => {
+      const Project = sequelize.define('project', {
+        user_id: {
+          type: DataTypes.INTEGER,
+          defaultValue: 42,
+        },
+      });
+      const User = sequelize.define('user', {
+        uid: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id });
+
+      expect(Project.rawAttributes.user_id).to.be.ok;
+      assert(typeof Project.rawAttributes.user_id.references?.model === 'object');
+      expect(omit(Project.rawAttributes.user_id.references.model, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+      expect(Project.rawAttributes.user_id.references.key).to.equal('uid');
+      expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
+    });
+
+    it('works when merging with an existing definition', () => {
+      const Task = sequelize.define('task', {
+        userId: {
+          defaultValue: 42,
+          type: DataTypes.INTEGER,
+        },
+      });
+      const User = sequelize.define('user', {});
+
+      User.hasMany(Task, { foreignKey: { allowNull: true } });
+
+      expect(Task.rawAttributes.userId).to.be.ok;
+      expect(Task.rawAttributes.userId.defaultValue).to.equal(42);
+      expect(Task.rawAttributes.userId.allowNull).to.be.ok;
+    });
   });
 
   describe('optimizations using bulk create, destroy and update', () => {

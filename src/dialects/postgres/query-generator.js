@@ -67,8 +67,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   createTableQuery(tableName, attributes, options) {
     options = { ...options };
 
-    // Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
     const attrStr = [];
     let comments = '';
     let columnComments = '';
@@ -123,11 +121,11 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       attributesClause += `, PRIMARY KEY (${pks})`;
     }
 
-    return `CREATE TABLE ${databaseVersion === 0 || semver.gte(databaseVersion, '9.1.0') ? 'IF NOT EXISTS ' : ''}${quotedTable} (${attributesClause})${comments}${columnComments};`;
+    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
-  dropTableQuery(tableName, options) {
-    options = options || {};
+  dropTableQuery(tableName, options = {}) {
+    tableName = this.extractTableDetails(tableName, options);
 
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}${options.cascade ? ' CASCADE' : ''};`;
   }
@@ -614,10 +612,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
 
       if (schema) {
-        referencesTable = this.quoteTable(this.addSchema({
-          tableName: referencesTable,
-          _schema: schema,
-        }));
+        referencesTable = this.quoteTable(this.extractTableDetails(referencesTable, { schema }));
       }
 
       let referencesKey;

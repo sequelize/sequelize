@@ -486,13 +486,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(tests[0].get('someProperty2')).to.be.ok;
       });
 
-      it('should sync foreign keys with custom field names', async function () {
-        await this.sequelize.sync({ force: true });
-        const attrs = this.Task.tableAttributes;
-        expect(attrs.user_id.references.model).to.equal('users');
-        expect(attrs.user_id.references.key).to.equal('userId');
-      });
-
       it('should find the value of an attribute with a custom field name', async function () {
         await this.User.create({ name: 'test user' });
         const user = await this.User.findOne({ where: { name: 'test user' } });

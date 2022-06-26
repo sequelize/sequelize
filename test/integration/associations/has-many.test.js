@@ -1297,63 +1297,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       expect(Task.rawAttributes.UserId.type instanceof DataTypes.STRING).to.be.ok;
     });
 
-    describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works with a column that hasnt been defined before', function () {
-        const Task = this.sequelize.define('task', {});
-        const User = this.sequelize.define('user', {});
-
-        User.hasMany(Task, {
-          foreignKey: {
-            name: 'uid',
-            allowNull: false,
-          },
-        });
-
-        expect(Task.rawAttributes.uid).to.be.ok;
-        expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());
-        expect(Task.rawAttributes.uid.references.key).to.equal('id');
-      });
-
-      it('works when taking a column directly from the object', function () {
-        const Project = this.sequelize.define('project', {
-          user_id: {
-            type: DataTypes.INTEGER,
-            defaultValue: 42,
-          },
-        });
-        const User = this.sequelize.define('user', {
-          uid: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-          },
-        });
-
-        User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id });
-
-        expect(Project.rawAttributes.user_id).to.be.ok;
-        expect(Project.rawAttributes.user_id.references.model).to.equal(User.getTableName());
-        expect(Project.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
-      });
-
-      it('works when merging with an existing definition', function () {
-        const Task = this.sequelize.define('task', {
-          userId: {
-            defaultValue: 42,
-            type: DataTypes.INTEGER,
-          },
-        });
-        const User = this.sequelize.define('user', {});
-
-        User.hasMany(Task, { foreignKey: { allowNull: true } });
-
-        expect(Task.rawAttributes.userId).to.be.ok;
-        expect(Task.rawAttributes.userId.defaultValue).to.equal(42);
-        expect(Task.rawAttributes.userId.allowNull).to.be.ok;
-      });
-    });
-
     it('should throw an error if foreignKey and as result in a name clash', function () {
       const User = this.sequelize.define('user', {
         user: DataTypes.INTEGER,
