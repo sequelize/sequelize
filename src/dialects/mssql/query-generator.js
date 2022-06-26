@@ -430,16 +430,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     const commands = [];
     let offset = 0;
-    const batch = Math.floor(250 / (allAttributes.length + 1)) + 1;
     while (offset < Math.max(tuples.length, 1)) {
-      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + batch));
+      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
       let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
         generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF;`;
       }
 
       commands.push(generatedQuery);
-      offset += batch;
+      offset += 1000;
     }
 
     return commands.join(';');
