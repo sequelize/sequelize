@@ -591,7 +591,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       {
         const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
 
-        expect(aFks.length).to.eq(1);
+        expect(aFks).to.have.length(1);
         expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
       }
 
@@ -601,7 +601,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       {
         const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
 
-        expect(aFks.length).to.eq(1);
+        expect(aFks).to.have.length(1);
         expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
       }
     });

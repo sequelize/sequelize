@@ -164,19 +164,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should work with enums with schemas', async function () {
         await this.sequelize.createSchema('archive');
 
-        await this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive',
-        }, {
+        const tableName = { tableName: 'users', schema: 'archive' };
+
+        await this.queryInterface.createTable(tableName, {
           firstName: DataTypes.STRING,
         });
 
-        await this.queryInterface.changeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'firstName', {
+        await this.queryInterface.changeColumn(tableName, 'firstName', {
           type: DataTypes.ENUM(['value1', 'value2', 'value3']),
         });
+
+        const table = await this.queryInterface.describeTable(tableName);
+
+        if (dialect === 'postgres') {
+          expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
+        }
+      });
+
+      it('can replace an enum with a different enum', async function () {
+        await this.queryInterface.createTable({ tableName: 'users' }, {
+          firstName: DataTypes.ENUM(['value1', 'value2', 'value3']),
+        }, { logging: true });
+
+        await this.queryInterface.changeColumn('users', 'firstName', {
+          type: DataTypes.ENUM(['value1', 'value3', 'value4', 'value5']),
+        });
+
+        const table = await this.queryInterface.describeTable('users');
+        expect(table.firstName.special).to.deep.eq(['value1', 'value3', 'value4', 'value5']);
       });
     }
 

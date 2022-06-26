@@ -1352,10 +1352,11 @@ Specify a different name for either index to resolve this issue.`);
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
+
               if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
-                && foreignKeyReference.referencedTableName === references.model
+                && foreignKeyReference.referencedTableName === references.model.tableName
                 && foreignKeyReference.referencedColumnName === references.key
                 && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
                 && !removedConstraints[constraintName])

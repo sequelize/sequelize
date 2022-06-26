@@ -1,4 +1,4 @@
-import { DataTypes, Model } from '@sequelize/core';
+import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { expect } from 'chai';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
@@ -115,8 +115,28 @@ describe('QueryGenerator#changeColumnsQuery', () => {
 
     expectsql(sql, {
       postgres: `
-        CREATE TYPE "public"."enum_users_name" AS ENUM('A', 'B', 'C');
-        ALTER TABLE "users" ALTER COLUMN "name" TYPE "enum_users_name" USING ("name"::"public"."enum_users_name");`,
+        CREATE TYPE "public"."tmp_enum_users_name" AS ENUM('A', 'B', 'C');
+        ALTER TABLE "users" ALTER COLUMN "name" TYPE "public"."tmp_enum_users_name" USING ("name"::text::"public"."tmp_enum_users_name");
+        DROP TYPE IF EXISTS "public"."enum_users_name";
+        ALTER TYPE "public"."tmp_enum_users_name" RENAME TO "enum_users_name";
+      `,
+    });
+  });
+
+  it('scopes enums per schema', () => {
+    const sql = queryGenerator.changeColumnsQuery({ tableName: 'users', schema: 'custom_schema' }, {
+      name: {
+        type: DataTypes.ENUM('A', 'B', 'C'),
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `
+        CREATE TYPE "custom_schema"."tmp_enum_users_name" AS ENUM('A', 'B', 'C');
+        ALTER TABLE "custom_schema"."users" ALTER COLUMN "name" TYPE "custom_schema"."tmp_enum_users_name" USING ("name"::text::"custom_schema"."tmp_enum_users_name");
+        DROP TYPE IF EXISTS "custom_schema"."enum_users_name";
+        ALTER TYPE "custom_schema"."tmp_enum_users_name" RENAME TO "enum_users_name";
+      `,
     });
   });
 
@@ -448,10 +468,6 @@ describe('QueryGenerator#changeColumnsQuery', () => {
   });
 
   it('supports schemas in references', () => {
-    class OtherModel extends Model {}
-
-    OtherModel.init({}, { sequelize, tableName: 'otherModel' });
-
     const sql = queryGenerator.changeColumnsQuery('users', {
       otherKey: {
         references: {
@@ -463,6 +479,34 @@ describe('QueryGenerator#changeColumnsQuery', () => {
 
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "other_schema"."projects"("id");`,
+    });
+  });
+
+  it('supports deferrable classes & instances', () => {
+    const sql = queryGenerator.changeColumnsQuery('users', {
+      projectId: {
+        references: {
+          model: { tableName: 'projects' },
+          key: 'id',
+          // class
+          deferrable: Deferrable.INITIALLY_IMMEDIATE,
+        },
+      },
+      groupId: {
+        references: {
+          model: { tableName: 'groups' },
+          key: 'id',
+          // instance
+          deferrable: new Deferrable.INITIALLY_DEFERRED(),
+        },
+      },
+    });
+
+    expectsql(sql, {
+      postgres: `
+        ALTER TABLE "users"
+          ADD FOREIGN KEY ("projectId") REFERENCES "projects"("id") DEFERRABLE INITIALLY IMMEDIATE,
+          ADD FOREIGN KEY ("groupId") REFERENCES "groups"("id") DEFERRABLE INITIALLY DEFERRED;`,
     });
   });
 

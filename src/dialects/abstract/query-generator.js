@@ -817,7 +817,7 @@ export class AbstractQueryGenerator {
         throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
       }
 
-      const columnSql = this._attributeToChangeColumn(tableName.tableName, columnName, columnDefinition);
+      const columnSql = this._attributeToChangeColumn(tableName, columnName, columnDefinition);
 
       if (columnSql) {
         columnsSql.push(columnSql);

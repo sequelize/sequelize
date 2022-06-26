@@ -439,7 +439,17 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         columnDef.type instanceof DataTypes.ENUM
         || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.type instanceof DataTypes.ENUM
       ) {
-        out.unshift(this.pgEnum(tableName, columnName, columnDef));
+        const existingEnumName = Utils.addTicks(Utils.generateEnumName(tableName.tableName, columnName), '"');
+        const tmpEnumName = Utils.addTicks(Utils.generateEnumName(tableName.tableName, columnName, { replacement: true }), '"');
+
+        // create enum under a temporary name
+        out.unshift(this.pgEnum(tableName, columnName, columnDef, { enumName: tmpEnumName }));
+
+        // rename new enum & drop old one
+        out.push(
+          this.pgEnumDrop(tableName, columnName),
+          `ALTER TYPE ${this.quoteIdentifier(tableName.schema)}.${tmpEnumName} RENAME TO ${existingEnumName};`,
+        );
       }
     }
 
@@ -463,8 +473,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         columnDefinition.type instanceof DataTypes.ENUM
         || columnDefinition.type instanceof DataTypes.ARRAY && columnDefinition.type.type instanceof DataTypes.ENUM
       ) {
-        typeSql = this.pgEnumName(tableName, columnName, { schema: false });
-        typeSql += ` USING (${this.quoteIdentifier(columnName)}::${this.pgEnumName(tableName, columnName)})`;
+        const enumName = this.pgEnumName(tableName, columnName, { replacement: true });
+
+        // cast enum to text to enum, because postgres won't let you cast from enum to enum
+        typeSql = `${enumName} USING (${this.quoteIdentifier(columnName)}::text::${enumName})`;
       } else {
         typeSql = this.attributeTypeToSql(columnDefinition);
       }
@@ -487,7 +499,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     if (autoIncrement !== undefined) {
       if (columnDefinition.autoIncrement) {
         // The sequence needs to be created, it is done as part of changeColumnsQuery
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT nextval(${this.escape(this.#nameSequence(tableName, columnName))}::regclass)`);
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT nextval(${this.escape(this.#nameSequence(tableName.tableName, columnName))}::regclass)`);
       } else if (!('defaultValue' in columnDefinition)) {
         // we only drop this default if defaultValue is not specified, otherwise the defaultValue takes priority
         sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
@@ -504,8 +516,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
     // more complex uniques use addIndex and removing a unique uses removeIndex
-    if (columnDefinition.unique === true) {
-      const uniqueName = Utils.generateIndexName(tableName, {
+    if (unique === true) {
+      const uniqueName = Utils.generateIndexName(tableName.tableName, {
         fields: [columnName],
         unique: true,
       });
@@ -524,6 +536,14 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       if (onDelete) {
         fkSql += ` ON DELETE ${onDelete}`;
+      }
+
+      if (references.deferrable) {
+        const deferrable = typeof references.deferrable === 'function'
+          ? new references.deferrable()
+          : references.deferrable;
+
+        fkSql += ` ${deferrable.toSql()}`;
       }
 
       sql.push(fkSql);
@@ -850,7 +870,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     options = options || {};
 
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr), '"');
+    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr, options), '"');
 
     // pgListEnums requires the enum name only, without the schema
     if (options.schema !== false && tableDetails.schema) {
@@ -877,7 +897,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   pgEnum(tableName, attr, dataType, options) {
-    const enumName = this.pgEnumName(tableName, attr, options);
+    const enumName = options?.enumName || this.pgEnumName(tableName, attr, { ...options, schema: false });
     let values;
 
     if (dataType.values) {
@@ -886,8 +906,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
 
-    let sql = `CREATE TYPE ${enumName} AS ${values};`;
-    if (Boolean(options) && options.force === true) {
+    let sql = `CREATE TYPE ${this.quoteIdentifier(tableName.schema)}.${enumName} AS ${values};`;
+    if (options?.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }
 

@@ -112,7 +112,7 @@ export class PostgresQueryInterface extends QueryInterface {
             const promisesLength = promises.length;
             // we go in reverse order so we could stop when we meet old value
             for (let reverseIdx = newValuesBefore.length - 1; reverseIdx >= 0; reverseIdx--) {
-              if (~enumVals.indexOf(newValuesBefore[reverseIdx])) {
+              if (enumVals.includes(newValuesBefore[reverseIdx])) {
                 break;
               }
 

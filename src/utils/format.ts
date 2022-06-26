@@ -251,13 +251,22 @@ export function removeNullishValuesFromHash(
  *
  * @param tableName
  * @param columnName
+ * @param options
+ * @param options.replacement
  * @private
  */
 export function generateEnumName(
   tableName: string,
   columnName: string,
+  options?: { replacement?: boolean },
 ): string {
-  return `enum_${tableName}_${columnName}`;
+  const out = `enum_${tableName}_${columnName}`;
+
+  if (options?.replacement) {
+    return `tmp_${out}`;
+  }
+
+  return out;
 }
 
 export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
