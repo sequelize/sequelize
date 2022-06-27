@@ -42,7 +42,11 @@ export class OracleQuery extends AbstractQuery {
       const keys = Object.keys(this.model.tableAttributes);
       for (const key of keys) {
         const keyValue = this.model.tableAttributes[key];
-        if ( keyValue.type.key === 'DECIMAL') {
+        if (keyValue.type.key === 'DECIMAL') {
+          fInfo[key] = { type: oracledb.STRING };
+        }
+        // Fetching BIGINT as string since, node-oracledb doesn't support JS BIGINT yet
+        if (keyValue.type.key === 'BIGINT') {
           fInfo[key] = { type: oracledb.STRING };
         }
       }

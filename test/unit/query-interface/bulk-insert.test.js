@@ -14,6 +14,7 @@ describe('QueryInterface#bulkInsert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
+  // The Oracle dialect doesn't support replacements for bulkInsert
   (dialect !== 'oracle' ? it : it.skip)('does not parse replacements outside of raw sql', async () => {
     const getSql = stubQueryRun();
 
