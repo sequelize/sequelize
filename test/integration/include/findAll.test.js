@@ -116,13 +116,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         const tags = await Tag.findAll();
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
-          const products = await Product.bulkCreate([
+          await Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' },
             { title: 'Bed' },
             { title: 'Pen' },
             { title: 'Monitor' }
           ]);
+          const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
@@ -133,38 +134,38 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           await Promise.all([
             GroupMember.bulkCreate(groupMembers),
             user.setProducts([
-              products[0],
-              products[1],
-              products[3]
+              products[i * 5 + 0],
+              products[i * 5 + 1],
+              products[i * 5 + 3]
             ]),
-            products[0].setTags([
+            products[i * 5 + 0].setTags([
               tags[0],
               tags[2]
             ]),
-            products[1].setTags([
+            products[i * 5 + 1].setTags([
               tags[1]
             ]),
-            products[0].setCategory(tags[1]),
-            products[2].setTags([
+            products[i * 5 + 0].setCategory(tags[1]),
+            products[i * 5 + 2].setTags([
               tags[0]
             ]),
-            products[3].setTags([
+            products[i * 5 + 3].setTags([
               tags[0]
             ]),
-            products[0].setCompany(companies[4]),
-            products[1].setCompany(companies[3]),
-            products[2].setCompany(companies[2]),
-            products[3].setCompany(companies[1]),
-            products[4].setCompany(companies[0]),
+            products[i * 5 + 0].setCompany(companies[4]),
+            products[i * 5 + 1].setCompany(companies[3]),
+            products[i * 5 + 2].setCompany(companies[2]),
+            products[i * 5 + 3].setCompany(companies[1]),
+            products[i * 5 + 4].setCompany(companies[0]),
             Price.bulkCreate([
-              { ProductId: products[0].id, value: 5 },
-              { ProductId: products[0].id, value: 10 },
-              { ProductId: products[1].id, value: 5 },
-              { ProductId: products[1].id, value: 10 },
-              { ProductId: products[1].id, value: 15 },
-              { ProductId: products[1].id, value: 20 },
-              { ProductId: products[2].id, value: 20 },
-              { ProductId: products[3].id, value: 20 }
+              { ProductId: products[i * 5 + 0].id, value: 5 },
+              { ProductId: products[i * 5 + 0].id, value: 10 },
+              { ProductId: products[i * 5 + 1].id, value: 5 },
+              { ProductId: products[i * 5 + 1].id, value: 10 },
+              { ProductId: products[i * 5 + 1].id, value: 15 },
+              { ProductId: products[i * 5 + 1].id, value: 20 },
+              { ProductId: products[i * 5 + 2].id, value: 20 },
+              { ProductId: products[i * 5 + 3].id, value: 20 }
             ])
           ]);
         }
@@ -353,14 +354,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'C' }
         ]).then(() => Tag.findAll())
       ]);
-      const iters = 5;
-      for (let i = 0; i < iters; i++) {
+      for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           User.create(),
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ])
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -368,24 +368,24 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[0],
-            products[1]
+            products[i * 2 + 0],
+            products[i * 2 + 1]
           ]),
-          products[0].setTags([
+          products[i * 2 + 0].setTags([
             tags[0],
             tags[2]
           ]),
-          products[1].setTags([
+          products[i * 2 + 1].setTags([
             tags[1]
           ]),
-          products[0].setCategory(tags[1]),
+          products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[0].id, value: 5 },
-            { ProductId: products[0].id, value: 10 },
-            { ProductId: products[1].id, value: 5 },
-            { ProductId: products[1].id, value: 10 },
-            { ProductId: products[1].id, value: 15 },
-            { ProductId: products[1].id, value: 20 }
+            { ProductId: products[i * 2 + 0].id, value: 5 },
+            { ProductId: products[i * 2 + 0].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 5 },
+            { ProductId: products[i * 2 + 1].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 15 },
+            { ProductId: products[i * 2 + 1].id, value: 20 }
           ])
         ]);
         const users = await User.findAll({
@@ -1200,39 +1200,39 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'C' }
         ]).then(() => Tag.findAll())
       ]);
-      const iters = 5;
-      for (let i = 0; i < iters; i++) {
+      for (const i of [0, 1, 2, 3, 4]) {
         const user = await User.create({ name: 'FooBarzz' });
 
-        const products = await Product.bulkCreate([
+        await Product.bulkCreate([
           { title: 'Chair' },
           { title: 'Desk' }
         ]);
 
+        const products = await Product.findAll({ order: [['id', 'ASC']] });
         await Promise.all([
           GroupMember.bulkCreate([
             { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[0],
-            products[1]
+            products[i * 2 + 0],
+            products[i * 2 + 1]
           ]),
-          products[0].setTags([
+          products[i * 2 + 0].setTags([
             tags[0],
             tags[2]
           ]),
-          products[1].setTags([
+          products[i * 2 + 1].setTags([
             tags[1]
           ]),
-          products[0].setCategory(tags[1]),
+          products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[0].id, value: 5 },
-            { ProductId: products[0].id, value: 10 },
-            { ProductId: products[1].id, value: 5 },
-            { ProductId: products[1].id, value: 10 },
-            { ProductId: products[1].id, value: 15 },
-            { ProductId: products[1].id, value: 20 }
+            { ProductId: products[i * 2 + 0].id, value: 5 },
+            { ProductId: products[i * 2 + 0].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 5 },
+            { ProductId: products[i * 2 + 1].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 15 },
+            { ProductId: products[i * 2 + 1].id, value: 20 }
           ])
         ]);
       }
