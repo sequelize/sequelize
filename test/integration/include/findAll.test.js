@@ -116,14 +116,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         const tags = await Tag.findAll();
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
-          await Product.bulkCreate([
+          const products = await Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' },
             { title: 'Bed' },
             { title: 'Pen' },
             { title: 'Monitor' }
           ]);
-          const products = await Product.findAll();
+          //await Product.findAll();
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
@@ -368,24 +368,24 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[0],
-            products[1]
+            products[i],
+            products[i + 1]
           ]),
-          products[0].setTags([
+          products[i].setTags([
             tags[0],
             tags[2]
           ]),
-          products[1].setTags([
+          products[i + 1].setTags([
             tags[1]
           ]),
-          products[0].setCategory(tags[1]),
+          products[i].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[0].id, value: 5 },
-            { ProductId: products[0].id, value: 10 },
-            { ProductId: products[1].id, value: 5 },
-            { ProductId: products[1].id, value: 10 },
-            { ProductId: products[1].id, value: 15 },
-            { ProductId: products[1].id, value: 20 }
+            { ProductId: products[i].id, value: 5 },
+            { ProductId: products[i].id, value: 10 },
+            { ProductId: products[i + 1].id, value: 5 },
+            { ProductId: products[i + 1].id, value: 10 },
+            { ProductId: products[i + 1].id, value: 15 },
+            { ProductId: products[i + 1].id, value: 20 }
           ])
         ]);
         const users = await User.findAll({
@@ -1203,36 +1203,36 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       for (const i of [0, 1, 2, 3, 4]) {
         const user = await User.create({ name: 'FooBarzz' });
 
-        await Product.bulkCreate([
+        const products = await Product.bulkCreate([
           { title: 'Chair' },
           { title: 'Desk' }
         ]);
 
-        const products = await Product.findAll();
+        //const products = await Product.findAll();
         await Promise.all([
           GroupMember.bulkCreate([
             { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[0],
-            products[1]
+            products[i],
+            products[i + 1]
           ]),
-          products[0].setTags([
+          products[i].setTags([
             tags[0],
             tags[2]
           ]),
-          products[1].setTags([
+          products[i + 1].setTags([
             tags[1]
           ]),
-          products[0].setCategory(tags[1]),
+          products[i].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[0].id, value: 5 },
-            { ProductId: products[0].id, value: 10 },
-            { ProductId: products[1].id, value: 5 },
-            { ProductId: products[1].id, value: 10 },
-            { ProductId: products[1].id, value: 15 },
-            { ProductId: products[1].id, value: 20 }
+            { ProductId: products[i].id, value: 5 },
+            { ProductId: products[i].id, value: 10 },
+            { ProductId: products[i + 1].id, value: 5 },
+            { ProductId: products[i + 1].id, value: 10 },
+            { ProductId: products[i + 1].id, value: 15 },
+            { ProductId: products[i + 1].id, value: 20 }
           ])
         ]);
       }
