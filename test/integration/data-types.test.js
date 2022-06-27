@@ -277,8 +277,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  // Node-oracledb doesn't support JS BigInt yet
-  (dialect !== 'oracle' ? it : it.skip)('should handle JS BigInt type', async function() {
+  it('should handle JS BigInt type', async function() {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT
     });
