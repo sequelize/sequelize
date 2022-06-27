@@ -1012,7 +1012,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         fields: ['secretValue'],
         logging(sql) {
           test = true;
-          if (dialect === 'mssql' || dialect === 'oracle') {
+          if (['mssql', 'oracle'].includes(dialect)) {
             expect(sql).to.not.contain('createdAt');
           } else {
             expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]=(\$1|\?),[`"]+updatedAt[`"]+=(\$2|\?)\s+WHERE [`"]+id[`"]+\s=\s(\$3|\?)/);
@@ -1650,15 +1650,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let sql = dialect === 'db2' || dialect === 'oracle' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
+      let sql = ['db2', 'oracle'].includes(dialect) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
       let result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      sql = dialect === 'db2' || dialect === 'oracle' ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
+      sql = ['db2', 'oracle'].includes(dialect) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
       result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      sql = dialect === 'db2' || dialect === 'oracle' ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
+      sql = ['db2', 'oracle'].includes(dialect) ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
       const [users] = await this.sequelize.query(sql, { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
@@ -1836,7 +1836,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
-    if (dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'oracle') {
+    if (!['mssql', 'db2', 'oracle'].includes(dialect)) {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {

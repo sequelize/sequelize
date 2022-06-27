@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         // Oracle doesn't support operators in Order by clause
-        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'oracle') {
+        if (!['mssql', 'oracle'].includes(current.dialect.name)) {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function() {
             const users = await this.User.findAll({
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function() {
-          if (current.dialect.name === 'db2' || current.dialect.name === 'oracle') {
+          if (['db2', 'oracle'].includes(current.dialect.name)) {
             await this.User.findAll({
               order: [
                 ['id', this.sequelize.literal('ASC, "name" DESC')]

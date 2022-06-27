@@ -228,7 +228,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(describedTable.level_id.allowNull).to.be.equal(true);
         });
         // For Oracle, comments are not part of table description and are stored differently.   
-        if (dialect !== 'db2' && dialect !== 'oracle') {
+        if (!['db2', 'oracle'].includes(dialect)) {
           it('should change the comment of column', async function() {
             const describedTable = await this.queryInterface.describeTable({
               tableName: 'users'

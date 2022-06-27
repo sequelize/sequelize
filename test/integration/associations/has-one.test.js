@@ -453,7 +453,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    
     if (!['mssql', 'db2', 'oracle'].includes(Support.getTestDialect())) {
       it('can cascade updates', async function() {
         const Task = this.sequelize.define('Task', { title: Sequelize.STRING }),
