@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2' && dialect != 'oracle') {
+    if (!['sqlite', 'postgres', 'db2', 'oracle'].includes(dialect)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function() {

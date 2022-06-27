@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // mssql/oracle has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql' || dialect === 'db2' || dialect === 'oracle') {
+    if (['mssql', 'db2', 'oracle'].includes(dialect)) {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -277,8 +277,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  // Node-oracledb doesn't support JS BigInt yet
-  (dialect !== 'oracle' ? it : it.skip)('should handle JS BigInt type', async function() {
+  it('should handle JS BigInt type', async function() {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT
     });

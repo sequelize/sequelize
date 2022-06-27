@@ -145,7 +145,7 @@ module.exports = BaseTypes => {
   class CHAR extends BaseTypes.CHAR {
     toSql() {
       if (this._binary) {
-        warn('CHAR.BINARY datatype is not of Fixed Length.');
+        warn('Oracle CHAR.BINARY datatype is not of Fixed Length.');
         return `RAW(${this._length})`;
       }
       return super.toSql();

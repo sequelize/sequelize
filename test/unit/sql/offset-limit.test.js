@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       db2: ' FETCH NEXT 10 ROWS ONLY',
       default: ' LIMIT 10',
-      oracle: ' OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
+      oracle: ' ORDER BY "tableRef"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
     });
   });

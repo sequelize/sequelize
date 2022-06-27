@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { title: 'Pen' },
             { title: 'Monitor' }
           ]);
-          const products = await Product.findAll();
+          const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
@@ -293,8 +293,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should support an include with multiple different association types', async function() {
+    it('should support an include with multiple different association types', async function() {
       const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
@@ -361,7 +360,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -1138,8 +1137,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function() {
+    it('should be possible to extend the on clause with a where option on nested includes', async function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }),
@@ -1210,7 +1208,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { title: 'Desk' }
         ]);
 
-        const products = await Product.findAll();
+        const products = await Product.findAll({ order: [['id', 'ASC']] });
         await Promise.all([
           GroupMember.bulkCreate([
             { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -1309,8 +1307,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1526,8 +1523,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
