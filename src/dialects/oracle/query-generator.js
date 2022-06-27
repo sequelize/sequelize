@@ -1266,9 +1266,10 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (options.limit || options.offset) {
-      if (!(options.order && options.group) && (!options.order || options.include && !orders.subQueryOrder.length)) {
-        fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';
-        fragment += `${this.quoteTable(options.tableAs || model.name) }.${this.quoteIdentifier(model.primaryKeyField)}`;
+      // Add needed order by clause only when it is not provided
+      if (!orders.mainQueryOrder?.length || isSubQuery && !orders.subQueryOrder?.length) {
+        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
+        fragment += ` ORDER BY ${tablePkFragment}`;
       }
 
       if (options.offset || options.limit) {
