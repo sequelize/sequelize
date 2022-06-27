@@ -134,38 +134,38 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           await Promise.all([
             GroupMember.bulkCreate(groupMembers),
             user.setProducts([
-              products[i * 5 + 0],
-              products[i * 5 + 1],
-              products[i * 5 + 3]
+              products[0],
+              products[1],
+              products[3]
             ]),
-            products[i * 5 + 0].setTags([
+            products[0].setTags([
               tags[0],
               tags[2]
             ]),
-            products[i * 5 + 1].setTags([
+            products[1].setTags([
               tags[1]
             ]),
-            products[i * 5 + 0].setCategory(tags[1]),
-            products[i * 5 + 2].setTags([
+            products[0].setCategory(tags[1]),
+            products[2].setTags([
               tags[0]
             ]),
-            products[i * 5 + 3].setTags([
+            products[3].setTags([
               tags[0]
             ]),
-            products[i * 5 + 0].setCompany(companies[4]),
-            products[i * 5 + 1].setCompany(companies[3]),
-            products[i * 5 + 2].setCompany(companies[2]),
-            products[i * 5 + 3].setCompany(companies[1]),
-            products[i * 5 + 4].setCompany(companies[0]),
+            products[0].setCompany(companies[4]),
+            products[1].setCompany(companies[3]),
+            products[2].setCompany(companies[2]),
+            products[3].setCompany(companies[1]),
+            products[4].setCompany(companies[0]),
             Price.bulkCreate([
-              { ProductId: products[i * 5 + 0].id, value: 5 },
-              { ProductId: products[i * 5 + 0].id, value: 10 },
-              { ProductId: products[i * 5 + 1].id, value: 5 },
-              { ProductId: products[i * 5 + 1].id, value: 10 },
-              { ProductId: products[i * 5 + 1].id, value: 15 },
-              { ProductId: products[i * 5 + 1].id, value: 20 },
-              { ProductId: products[i * 5 + 2].id, value: 20 },
-              { ProductId: products[i * 5 + 3].id, value: 20 }
+              { ProductId: products[0].id, value: 5 },
+              { ProductId: products[0].id, value: 10 },
+              { ProductId: products[1].id, value: 5 },
+              { ProductId: products[1].id, value: 10 },
+              { ProductId: products[1].id, value: 15 },
+              { ProductId: products[1].id, value: 20 },
+              { ProductId: products[2].id, value: 20 },
+              { ProductId: products[3].id, value: 20 }
             ])
           ]);
         }
@@ -293,8 +293,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should support an include with multiple different association types', async function() {
+    it('should support an include with multiple different association types', async function() {
       const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
@@ -361,7 +360,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ])
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -369,24 +368,24 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[i * 2 + 0],
-            products[i * 2 + 1]
+            products[0],
+            products[1]
           ]),
-          products[i * 2 + 0].setTags([
+          products[0].setTags([
             tags[0],
             tags[2]
           ]),
-          products[i * 2 + 1].setTags([
+          products[1].setTags([
             tags[1]
           ]),
-          products[i * 2 + 0].setCategory(tags[1]),
+          products[0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[i * 2 + 0].id, value: 5 },
-            { ProductId: products[i * 2 + 0].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 5 },
-            { ProductId: products[i * 2 + 1].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 15 },
-            { ProductId: products[i * 2 + 1].id, value: 20 }
+            { ProductId: products[0].id, value: 5 },
+            { ProductId: products[0].id, value: 10 },
+            { ProductId: products[1].id, value: 5 },
+            { ProductId: products[1].id, value: 10 },
+            { ProductId: products[1].id, value: 15 },
+            { ProductId: products[1].id, value: 20 }
           ])
         ]);
         const users = await User.findAll({
@@ -1138,8 +1137,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(products[0].Tags.length).to.equal(1);
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to extend the on clause with a where option on nested includes', async function() {
+    it('should be possible to extend the on clause with a where option on nested includes', async function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }),
@@ -1217,24 +1215,24 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
           user.setProducts([
-            products[i * 2 + 0],
-            products[i * 2 + 1]
+            products[0],
+            products[1]
           ]),
-          products[i * 2 + 0].setTags([
+          products[0].setTags([
             tags[0],
             tags[2]
           ]),
-          products[i * 2 + 1].setTags([
+          products[1].setTags([
             tags[1]
           ]),
-          products[i * 2 + 0].setCategory(tags[1]),
+          products[0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[i * 2 + 0].id, value: 5 },
-            { ProductId: products[i * 2 + 0].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 5 },
-            { ProductId: products[i * 2 + 1].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 15 },
-            { ProductId: products[i * 2 + 1].id, value: 20 }
+            { ProductId: products[0].id, value: 5 },
+            { ProductId: products[0].id, value: 10 },
+            { ProductId: products[1].id, value: 5 },
+            { ProductId: products[1].id, value: 10 },
+            { ProductId: products[1].id, value: 15 },
+            { ProductId: products[1].id, value: 20 }
           ])
         ]);
       }
@@ -1309,8 +1307,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
+    it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
@@ -1526,8 +1523,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    // On update cascade not supported in the Oracle dialect
-    (dialect !== 'oracle' ? it : it.skip)('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
+    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', async function() {
       await this.fixtureA();
 
       const products = await this.models.Product.findAll({
