@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('defaults the schema to the one set in the Sequelize options', () => {
       return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: false
       })), {
         mariadb: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
         mysql: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
