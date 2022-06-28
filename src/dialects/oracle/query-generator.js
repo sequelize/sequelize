@@ -1267,7 +1267,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
     if (options.limit || options.offset) {
       // Add needed order by clause only when it is not provided
-      if (!orders.mainQueryOrder?.length || isSubQuery && !orders.subQueryOrder?.length) {
+      if (!orders.mainQueryOrder || !orders.mainQueryOrder.length || isSubQuery && (!orders.subQueryOrder || !orders.subQueryOrder.length)) {
         const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
         fragment += ` ORDER BY ${tablePkFragment}`;
       }
