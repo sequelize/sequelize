@@ -61,6 +61,10 @@ export class MysqlDialect extends AbstractDialect {
     return createUnspecifiedOrderedBindCollector();
   }
 
+  canBackslashEscape() {
+    return true;
+  }
+
   static getDefaultPort() {
     return 3306;
   }

@@ -52,6 +52,7 @@ export class PostgresDialect extends AbstractDialect {
     TSVECTOR: true,
     deferrableConstraints: true,
     searchPath: true,
+    escapeStringConstants: true,
   });
 
   constructor(sequelize) {
@@ -70,6 +71,15 @@ export class PostgresDialect extends AbstractDialect {
 
   createBindCollector() {
     return createSpecifiedOrderedBindCollector();
+  }
+
+  canBackslashEscape() {
+    // postgres can use \ to escape if one of these is true:
+    // - standard_conforming_strings is off
+    // - backslash_quote is on
+    // - the string is prefixed with E (out of scope for this method)
+
+    return !this.sequelize.options.standardConformingStrings;
   }
 
   static getDefaultPort() {
