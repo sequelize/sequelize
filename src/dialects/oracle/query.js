@@ -603,11 +603,6 @@ export class OracleQuery extends AbstractQuery {
       const columns = {};
       columns.fields = acc[accKey].fields;
       // We are generating index field name in the format sequelize expects
-      // to avoid creating a unique index on primary key column
-      if (acc[accKey].primary === true) {
-        acc[accKey].name = Utils.nameIndex(columns, acc[accKey].tableName).name;
-      }
-      // We are generating index field name in the format sequelize expects
       // to avoid creating a unique index on auto-generated index name
       if (acc[accKey].name.match(/sys_c[0-9]*/)) {
         acc[accKey].name = Utils.nameIndex(columns, acc[accKey].tableName).name;
