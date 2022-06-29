@@ -365,6 +365,7 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>'name'`,
+      mssql: `SELECT * FROM users WHERE json_col->>N'name'`,
     });
   });
 
@@ -569,6 +570,7 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>'name'`,
+      mssql: `SELECT * FROM users WHERE json_col->>N'name'`,
     });
   });
 
