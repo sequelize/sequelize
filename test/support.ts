@@ -385,20 +385,23 @@ type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
   query: MaybeLazy<{ query: string, bind: unknown } | Error>,
-  assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
+  assertions: {
+    query: PartialRecord<ExpectationKey, string | Error | RegExp>,
+    bind: PartialRecord<ExpectationKey, unknown>,
+   },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
-  assertions: PartialRecord<ExpectationKey, string | Error>,
+  assertions: PartialRecord<ExpectationKey, string | Error | RegExp>,
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
   assertions:
-    | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
-    | PartialRecord<ExpectationKey, string | Error>,
+    | { query: PartialRecord<ExpectationKey, string | Error | RegExp>, bind: PartialRecord<ExpectationKey, unknown> }
+    | PartialRecord<ExpectationKey, string | Error | RegExp>,
 ): void {
-  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error | RegExp> = 'query' in assertions ? assertions.query : assertions;
+  const expectations: PartialRecord<'default' | Dialect, string | Error | RegExp> = Object.create(null);
 
   for (const [key, value] of Object.entries(rawExpectationMap)) {
     const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
@@ -452,6 +455,10 @@ export function expectsql(
     assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
 
     expect(query.message).to.equal(expectation.message);
+  } else if (expectation instanceof RegExp) {
+    assert(!(query instanceof Error), `Expected query to match ${expectation.toString()}, but it errored with ${query instanceof Error ? query.message : ''}`);
+
+    expect(isObject(query) ? query.query : query).to.match(expectation);
   } else {
     assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
 
