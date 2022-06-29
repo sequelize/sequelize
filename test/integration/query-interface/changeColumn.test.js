@@ -133,6 +133,80 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(description.lastName.allowNull).to.equal(true);
     });
 
+    it('can set the defaultValue of a column', async function () {
+      await this.queryInterface.createTable('users', {
+        id: {
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+        },
+        status: {
+          allowNull: false,
+          type: DataTypes.STRING,
+        },
+      });
+
+      await this.queryInterface.changeColumn('users', 'status', {
+        type: DataTypes.STRING,
+        defaultValue: 'active',
+      });
+
+      const table = await this.queryInterface.describeTable('users');
+
+      expect(table.status.defaultValue).to.equal('active');
+    });
+
+    it('can change the defaultValue of column', async function () {
+      await this.queryInterface.createTable('users', {
+        id: {
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+        },
+        status: {
+          allowNull: false,
+          type: DataTypes.STRING,
+          defaultValue: 'inactive',
+        },
+      });
+
+      await this.queryInterface.changeColumn('users', 'status', {
+        type: DataTypes.STRING,
+        defaultValue: 'active',
+      });
+
+      const table = await this.queryInterface.describeTable('users');
+
+      expect(table.status.defaultValue).to.equal('active');
+    });
+
+    it('can remove the defaultValue of a column', async function () {
+      await this.queryInterface.createTable('users', {
+        id: {
+          allowNull: false,
+          autoIncrement: true,
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+        },
+        status: {
+          allowNull: false,
+          type: DataTypes.STRING,
+          defaultValue: 'inactive',
+        },
+      });
+
+      await this.queryInterface.changeColumn('users', 'status', {
+        type: DataTypes.STRING,
+        dropDefaultValue: true,
+      });
+
+      const table = await this.queryInterface.describeTable('users');
+
+      expect(table.status.defaultValue).to.equal(null);
+    });
+
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
     if (dialect !== 'mssql' && dialect !== 'db2') {
