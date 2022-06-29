@@ -18,6 +18,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           allowNull: false,
           field: 'account_id',
         },
+        name: {
+          type: DataTypes.STRING,
+          set(v) {
+            this.setDataValue('name', v.toUpperCase());
+          },
+        },
       }, { timestamps: false });
 
       this.stub = sinon.stub(current.getQueryInterface(), 'bulkInsert').resolves([]);
@@ -39,6 +45,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(this.stub.getCall(0).args[1]).to.deep.equal([
           { account_id: 42, id: null },
+        ]);
+      });
+
+      it('should not return uppercased A', async function () {
+        await this.Model.bulkCreate([
+          { accountId: 42, name: 'a' },
+        ], { raw: true });
+
+        expect(this.stub.getCall(0).args[1]).to.deep.equal([
+          { account_id: 42, id: null, name: 'a' },
         ]);
       });
     });
