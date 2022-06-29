@@ -182,7 +182,7 @@ function mapBindParametersAndReplacements(
       const previousChar = sqlString[i - 1];
       // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
       // users need to add a space before the bind parameter (except after '(', ',', '=', and '[' (for arrays))
-      if (previousChar !== undefined && !/[\s(,=[]/.test(previousChar)) {
+      if (!canPrecedeNewToken(previousChar) && previousChar !== '[') {
         continue;
       }
 
@@ -262,7 +262,7 @@ function mapBindParametersAndReplacements(
 }
 
 function canPrecedeNewToken(char: string | undefined): boolean {
-  return char === undefined || /[\s(,=]/.test(char);
+  return char === undefined || /[\s(>,=]/.test(char);
 }
 
 /**

@@ -61,6 +61,17 @@ describe('mapBindParameters', () => {
     });
   });
 
+  it('parses bind parameters following JSONB indexing', () => {
+    const { sql } = mapBindParameters(`SELECT * FROM users WHERE json_col->>$key`, dialect);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE json_col->>?`,
+      postgres: `SELECT * FROM users WHERE json_col->>$1`,
+      sqlite: `SELECT * FROM users WHERE json_col->>$key`,
+      mssql: `SELECT * FROM users WHERE json_col->>@key`,
+    });
+  });
+
   it('parses bind parameters followed by a semicolon', () => {
     const { sql } = mapBindParameters('SELECT * FROM users WHERE id = $id;', dialect);
 
@@ -347,6 +358,16 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('parses named replacements following JSONB indexing', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE json_col->>:key`, dialect, {
+      key: 'name',
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE json_col->>'name'`,
+    });
+  });
+
   it('parses named replacements followed by a semicolon', () => {
     const sql = injectReplacements('SELECT * FROM users WHERE id = :id;', dialect, {
       id: 1,
@@ -540,6 +561,14 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = 1::string`,
+    });
+  });
+
+  it('parses named replacements following JSONB indexing', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE json_col->>?`, dialect, ['name']);
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE json_col->>'name'`,
     });
   });
 
