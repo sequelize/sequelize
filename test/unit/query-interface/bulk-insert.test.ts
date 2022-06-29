@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import range from 'lodash/range';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
@@ -10,6 +11,22 @@ describe('QueryInterface#bulkInsert', () => {
 
   afterEach(() => {
     sinon.restore();
+  });
+
+  it('uses minimal insert queries', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    const users = range(1000).map(i => ({ firstName: `user${i}` }));
+    await sequelize.getQueryInterface().bulkInsert(User.tableName, users);
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+
+    expectsql(firstCall.args[0] as string, {
+      default: /INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);/,
+      ibmi: /SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)/,
+      mssql: /INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);/,
+    });
   });
 
   // you'll find more replacement tests in query-generator tests
