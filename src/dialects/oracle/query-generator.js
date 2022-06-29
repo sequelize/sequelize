@@ -168,27 +168,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (pkString.length > 0) {
-      // PrimarykeyName would be of form "PK_table_col"
-      // Since values.table and pkstring has quoted values we first replace "" with _
-      // then we replace  [,"\s] with ''
-      // If primary key name exceeds 128 then we let Oracle DB autogenerate the constraint name
-      let primaryKeyName = `PK_${values.table}_${pkString}`.replace(/""/g, '_').replace(/[,"\s]/g, '');
-
-      if (primaryKeyName.length > 128) {
-        primaryKeyName = `PK_${values.table}`.replace(/""/g, '_').replace(/[,"\s]/g, '');
-      }
-
-      if (primaryKeyName.length > 128) {
-        primaryKeyName = '';
-      }
-
-      if (primaryKeyName.length > 0) {
-        values.attributes +=
-        `,CONSTRAINT ${this.quoteIdentifier(primaryKeyName)} PRIMARY KEY (${pkString})`;
-      } else {
-        values.attributes += `,PRIMARY KEY (${pkString})`;
-      }
-      
+      values.attributes += `,PRIMARY KEY (${pkString})`;
     }
 
     // Dealing with FKs
@@ -375,15 +355,16 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     schema = this.getCatalogName(schema);
     // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
-      'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ',
-      "CASE WHEN ucc.CONSTRAINT_NAME  LIKE'%PK%' THEN 'PRIMARY' ELSE '' END AS \"PRIMARY\" ",
+      'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
       'FROM all_tab_columns atc ',
-      'LEFT OUTER JOIN all_cons_columns ucc ON(atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME ) ',
+      'LEFT OUTER JOIN ',
+      '(SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ',
+      'ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) ',
       schema
         ? `WHERE (atc.OWNER = ${this.escape(schema)}) `
         : 'WHERE atc.OWNER = USER ',
       `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
-      'ORDER BY "PRIMARY", atc.COLUMN_NAME'
+      'ORDER BY atc.COLUMN_NAME'
     ].join('');
   }
 
@@ -845,10 +826,12 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   showIndexesQuery(table) {
     const [tableName, owner] = this.getSchemaNameAndTableName(table);
     const sql = [
-      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend ',
+      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type ',
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
+      'LEFT OUTER JOIN all_constraints c ',
+      'ON (c.table_name = i.table_name AND c.index_name = i.index_name) ',
       `WHERE i.table_name = ${this.escape(tableName)}`,
       ' AND u.table_owner = ',
       owner ? this.escape(owner) : 'USER',
