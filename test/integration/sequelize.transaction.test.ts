@@ -1,3 +1,4 @@
+import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import delay from 'delay';
@@ -76,7 +77,11 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     it('works for long running transactions', async () => {
       const sequelize2 = await prepareTransactionTest(sequelize);
 
-      const User = sequelize2.define('User', {
+      interface IUser extends Model<InferAttributes<IUser>, InferCreationAttributes<IUser>> {
+        name: string | null;
+      }
+
+      const User = sequelize2.define<IUser>('User', {
         name: DataTypes.STRING,
       }, { timestamps: false });
 
