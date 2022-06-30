@@ -168,27 +168,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (pkString.length > 0) {
-      // PrimarykeyName would be of form "PK_table_col"
-      // Since values.table and pkstring has quoted values we first replace "" with _
-      // then we replace  [,"\s] with ''
-      // If primary key name exceeds 128 then we let Oracle DB autogenerate the constraint name
-      let primaryKeyName = `PK_${values.table}_${pkString}`.replace(/""/g, '_').replace(/[,"\s]/g, '');
-
-      if (primaryKeyName.length > 128) {
-        primaryKeyName = `PK_${values.table}`.replace(/""/g, '_').replace(/[,"\s]/g, '');
-      }
-
-      if (primaryKeyName.length > 128) {
-        primaryKeyName = '';
-      }
-
-      if (primaryKeyName.length > 0) {
-        values.attributes +=
-        `,CONSTRAINT ${this.quoteIdentifier(primaryKeyName)} PRIMARY KEY (${pkString})`;
-      } else {
-        values.attributes += `,PRIMARY KEY (${pkString})`;
-      }
-      
+      values.attributes += `,PRIMARY KEY (${pkString})`;
     }
 
     // Dealing with FKs
@@ -244,11 +224,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
             }
 
             if (canContinue) {
-              let indexName = 'name' in index ? index.name : '';
-
-              if (indexName === '') {
-                indexName = this._generateUniqueConstraintName(values.table, fields);
-              }
+              const indexName = 'name' in index ? index.name : '';
               const constraintToAdd = {
                 name: indexName,
                 fields
@@ -311,20 +287,14 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
         // Oracle cannot have an unique AND a primary key on the same fields, prior to the primary key
         if (canBeUniq) {
-          if (!_.isString(indexName)) {
-            indexName = this._generateUniqueConstraintName(values.table, columns.fields);
-          }
-
           const index = options.uniqueKeys[columns.name];
           delete options.uniqueKeys[columns.name];
           indexName = indexName.replace(/[.,\s]/g, '');
           columns.name = indexName;
           options.uniqueKeys[indexName] = index;
 
-          // We cannot auto-generate unique constraint name because sequelize tries to 
-          // Add unique column again when it doesn't find unique constraint name after doing showIndexQuery
-          // MYSQL doesn't support constraint name > 64 and they face similar issue if size exceed 64 chars
-          if (indexName.length > 128) {
+          // Autogenerate Constraint name, if no indexName is given
+          if (indexName.length === 0) {
             values.attributes += `,UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ') })`;
           } else {
             values.attributes +=
@@ -357,33 +327,22 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
     return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${this.escape(tableName)} AND OWNER = ${table.schema ? this.escape(schemaName) : 'USER'}`;
   }
-
-  /**
-   * Generates a name for an unique constraint with the pattern : uniqTABLENAMECOLUMNNAMES
-   * If this indexName is too long for Oracle, it's hashed to have an acceptable length
-   *
-   * @param {object|string} table
-   * @param {Array} columns
-   */
-  _generateUniqueConstraintName(table, columns) {
-    const indexName = `uniq${table}${columns.join('')}`.replace(/[.,"\s]/g, '').toLowerCase();
-    return indexName;
-  }
   
   describeTableQuery(tableName, schema) {
     const currTableName = this.getCatalogName(tableName.tableName || tableName);
     schema = this.getCatalogName(schema);
     // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
-      'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ',
-      "CASE WHEN ucc.CONSTRAINT_NAME  LIKE'%PK%' THEN 'PRIMARY' ELSE '' END AS \"PRIMARY\" ",
+      'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
       'FROM all_tab_columns atc ',
-      'LEFT OUTER JOIN all_cons_columns ucc ON(atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME ) ',
+      'LEFT OUTER JOIN ',
+      '(SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ',
+      'ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) ',
       schema
         ? `WHERE (atc.OWNER = ${this.escape(schema)}) `
         : 'WHERE atc.OWNER = USER ',
       `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
-      'ORDER BY "PRIMARY", atc.COLUMN_NAME'
+      'ORDER BY atc.COLUMN_NAME'
     ].join('');
   }
 
@@ -845,10 +804,12 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   showIndexesQuery(table) {
     const [tableName, owner] = this.getSchemaNameAndTableName(table);
     const sql = [
-      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend ',
+      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type ',
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
+      'LEFT OUTER JOIN all_constraints c ',
+      'ON (c.table_name = i.table_name AND c.index_name = i.index_name) ',
       `WHERE i.table_name = ${this.escape(tableName)}`,
       ' AND u.table_owner = ',
       owner ? this.escape(owner) : 'USER',
@@ -1048,27 +1009,6 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     ].join('');
 
     return sql;
-  }
-
-  nameIndexes(indexes, rawTablename) {
-    let tableName;
-    if (_.isObject(rawTablename)) {
-      tableName = `${rawTablename.schema}.${rawTablename.tableName}`;
-    } else {
-      tableName = rawTablename;
-    }
-    return _.map(indexes, index => {
-      if (Object.prototype.hasOwnProperty.call(index, 'name')) return;
-      if (index.unique) {
-        index.name = this._generateUniqueConstraintName(tableName, index.fields);
-      } else {
-        const onlyAttributeNames = index.fields.map(field =>
-          typeof field === 'string' ? field : field.name || field.attribute
-        );
-        index.name = Utils.underscore(`${tableName}_${onlyAttributeNames.join('_')}`);
-      }
-      return index;
-    });
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {

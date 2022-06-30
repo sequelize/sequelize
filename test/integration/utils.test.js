@@ -159,7 +159,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         }
       ]);
     });
-    
     if (!['mssql', 'oracle'].includes(Support.getTestDialect())) {
       it('accepts condition object (with cast)', async function() {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
