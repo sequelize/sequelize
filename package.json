@@ -111,7 +111,7 @@
     "sqlite3": "5.0.8",
     "tedious": "14.4.0",
     "ts-node": "10.8.1",
-    "typedoc": "0.22.18",
+    "typedoc": "0.23.2",
     "typescript": "4.7.4"
   },
   "peerDependenciesMeta": {
