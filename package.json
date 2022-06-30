@@ -67,7 +67,7 @@
     "@types/mocha": "9.1.1",
     "@types/node": "16.11.41",
     "@types/semver": "7.3.10",
-    "@types/sinon": "10.0.11",
+    "@types/sinon": "10.0.12",
     "@types/sinon-chai": "3.2.8",
     "@types/uuid": "8.3.4",
     "chai": "4.3.6",
