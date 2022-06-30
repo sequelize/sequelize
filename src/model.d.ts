@@ -2837,12 +2837,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M[]>;
+  ): Promise<[affectedRows: M[]]>;
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<M[]>;
+  ): Promise<[affectedRows: M[]]>;
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
@@ -2871,12 +2871,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M[]>;
+  ): Promise<[affectedRows: M[]]>;
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<M[]>;
+  ): Promise<[affectedRows: M[]]>;
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
