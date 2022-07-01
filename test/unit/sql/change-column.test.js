@@ -9,7 +9,7 @@ const current = Support.sequelize;
 
 if (current.dialect.name !== 'sqlite') {
   describe(Support.getTestDialectTeaser('SQL'), () => {
-    describe('changeColumn', () => {
+    describe('QueryInterface#changeColumn', () => {
 
       const Model = current.define('users', {
         id: {

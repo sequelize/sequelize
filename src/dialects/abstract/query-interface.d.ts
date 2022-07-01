@@ -10,13 +10,13 @@ import type {
   ModelStatic,
   CreationAttributes,
   Attributes,
-  BuiltModelAttributeColumOptions, ColumnOptions,
+  BuiltModelAttributeColumOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal } from '../../utils';
 import type { SetRequired } from '../../utils/set-required';
-import type { AbstractQueryGenerator, ChangeColumnAttributes } from './query-generator.js';
+import type { AbstractQueryGenerator, ChangeColumnAttributes, ChangeColumnAttribute } from './query-generator.js';
 
 interface Replaceable {
   /**
@@ -239,10 +239,20 @@ export interface ColumnDescription {
   primaryKey: boolean;
   autoIncrement: boolean;
   comment: string | null;
+  unique: boolean;
+  // TODO: normalize this, it's used for enums
+  special?: unknown;
 }
 
 export interface ColumnsDescription {
   [key: string]: ColumnDescription;
+}
+
+export interface ForeignKeyReference {
+  tableName: string;
+  columnName: string;
+  referencedTableName: string;
+  referencedColumnName: string;
 }
 
 /**
@@ -354,7 +364,7 @@ export class QueryInterface {
    * Describe a table
    */
   describeTable(
-    tableName: TableName,
+    tableNameOrModel: TableName | ModelStatic,
     options?: string | { schema?: string, schemaDelimiter?: string } & Logging
   ): Promise<ColumnsDescription>;
 
@@ -383,7 +393,7 @@ export class QueryInterface {
   changeColumn(
     tableOrModel: TableName | ModelStatic,
     columnName: string,
-    dataTypeOrColumnOption?: DataType | ColumnOptions,
+    dataTypeOrColumnOption?: DataType | ChangeColumnAttribute,
     options?: QiOptionsWithReplacements
   ): Promise<void>;
 
@@ -462,7 +472,7 @@ export class QueryInterface {
   /**
    * Get foreign key references details for the table
    */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
+  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<ForeignKeyReference[]>;
 
   /**
    * Inserts a new record

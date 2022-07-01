@@ -370,12 +370,14 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {string} tableName table name
+   * @param {TableName | ModelStatic} tableNameOrModel the name of the table to describe, or of the model that is linked to the table to describe.
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
-  async describeTable(tableName, options) {
+  async describeTable(tableNameOrModel, options) {
+    let tableName = this.queryGenerator.extractTableDetails(tableNameOrModel);
+
     let schema = null;
     let schemaDelimiter = null;
 
@@ -396,6 +398,7 @@ export class QueryInterface {
 
     try {
       const data = await this.sequelize.queryRaw(sql, options);
+
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,

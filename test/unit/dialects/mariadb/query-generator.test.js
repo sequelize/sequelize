@@ -131,7 +131,7 @@ if (dialect === 'mariadb') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],
-          expectation: { id: 'INTEGER auto_increment PRIMARY KEY' },
+          expectation: { id: 'INTEGER AUTO_INCREMENT PRIMARY KEY' },
         },
         {
           arguments: [{ id: { type: 'INTEGER', defaultValue: 0 } }],
@@ -190,7 +190,7 @@ if (dialect === 'mariadb') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
-          expectation: { id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' },
+          expectation: { id: 'INTEGER NOT NULL AUTO_INCREMENT DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
       ],
 
@@ -240,8 +240,8 @@ if (dialect === 'mariadb') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
         },
         {
-          arguments: ['myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
+          arguments: ['myTable', { id: 'INTEGER AUTO_INCREMENT PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTO_INCREMENT , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
         },
       ],
 

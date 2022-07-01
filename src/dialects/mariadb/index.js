@@ -62,6 +62,10 @@ export class MariaDbDialect extends AbstractDialect {
     return createUnspecifiedOrderedBindCollector();
   }
 
+  getDefaultSchema() {
+    return this.sequelize.options.database;
+  }
+
   static getDefaultPort() {
     return 3306;
   }

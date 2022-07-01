@@ -83,14 +83,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: DataTypes.FLOAT,
         allowNull: false,
       })), {
-        mariadb: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
-        mysql: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
+        default: 'ALTER TABLE [custom].[Users] ADD [level_id] FLOAT NOT NULL;',
         postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" FLOAT NOT NULL;',
         sqlite: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
-        mssql: 'ALTER TABLE [Users] ADD [level_id] FLOAT NOT NULL;',
-        db2: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
-        snowflake: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
-        ibmi: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL',
       });
     });
   });

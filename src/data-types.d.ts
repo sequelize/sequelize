@@ -514,8 +514,10 @@ export const ENUM: EnumDataTypeConstructor;
 
 interface EnumDataTypeConstructor extends AbstractDataTypeConstructor {
   new <T extends string>(...values: T[]): EnumDataType<T>;
+  new <T extends string>(values: T[]): EnumDataType<T>;
   new <T extends string>(options: EnumDataTypeOptions<T>): EnumDataType<T>;
   <T extends string>(...values: T[]): EnumDataType<T>;
+  <T extends string>(values: T[]): EnumDataType<T>;
   <T extends string>(options: EnumDataTypeOptions<T>): EnumDataType<T>;
 }
 

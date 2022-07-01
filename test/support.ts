@@ -5,6 +5,7 @@ import { inspect, isDeepStrictEqual } from 'util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { isError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -289,15 +290,15 @@ type ExpectationKey = Dialect | 'default';
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectsql(
-  query: { query: string, bind: unknown } | Error,
+  query: { query: string, bind: unknown } | Error | (() => { query: string, bind: unknown }),
   assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
 ): void;
 export function expectsql(
-  query: string | Error,
+  query: string | Error | (() => string),
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: string | Error | { query: string, bind: unknown },
+  query: string | Error | { query: string, bind: unknown } | (() => string | { query: string, bind: unknown }),
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -320,6 +321,16 @@ export function expectsql(
       }
     } else {
       throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+    }
+  }
+
+  if (typeof query === 'function') {
+    try {
+      query = query();
+    } catch (error) {
+      assert(isError(error), `Function threw something other than an instance of Error: ${inspect(error)}`);
+
+      query = error;
     }
   }
 

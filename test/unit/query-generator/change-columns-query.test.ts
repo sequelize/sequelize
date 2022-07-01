@@ -1,14 +1,29 @@
+import type { Dialect } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { expect } from 'chai';
+import omit from 'lodash/omit';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
+// !TODO: add test with Model that maps attribute names to column names
+
 const queryGenerator: AbstractQueryGenerator = sequelize.queryInterface.queryGenerator;
+const dialectName: Dialect = sequelize.dialect.name;
+
+// Some dialects require specifying all options when altering a column
+// These options are used to reduce the size of the generated SQL when testing only part of it.
+const defaultOptions = dialectName === 'postgres' ? {} : {
+  allowNull: true,
+  defaultValue: null,
+  autoIncrement: false,
+  comment: null,
+};
 
 describe('QueryGenerator#changeColumnsQuery', () => {
   it('produces a query for changing a column', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       name: {
+        ...defaultOptions,
         type: DataTypes.CHAR(100),
       },
     });
@@ -16,7 +31,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expectsql(sql, {
       // changes to the nullability of a column should not be present in these queries!
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mysql: 'ALTER TABLE `users` MODIFY `name` CHAR(100);',
+      mariadb: 'ALTER TABLE `users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -26,27 +41,33 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     }).to.throw('changeColumnsQuery requires at least one column to be provided');
   });
 
-  it('supports passing a DataType instead of ColumnOptions', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
+  it('supports passing a DataType instead of ColumnOptions (in dialects that support it)', () => {
+    expectsql(() => queryGenerator.changeColumnsQuery('users', {
       name: DataTypes.INTEGER,
-    });
-
-    expectsql(sql, {
+    }), {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE INTEGER;',
-      mysql: 'ALTER TABLE `users` MODIFY `name` CHAR(100);',
+      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: \`users\`
+Column: \`name\``),
     });
   });
 
   it('supports passing a string as the DataType', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       name: {
+        ...defaultOptions,
         type: 'VARCHAR(5)',
       },
     });
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE VARCHAR(5);',
-      mysql: 'ALTER TABLE `users` MODIFY `name` VARCHAR(5);',
+      mariadb: 'ALTER TABLE `users` MODIFY `name` VARCHAR(5) DEFAULT NULL;',
     });
   });
 
@@ -56,12 +77,15 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     const sql = customSequelize.queryInterface.queryGenerator.changeColumnsQuery('users', {
-      name: DataTypes.CHAR(100),
+      name: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
     });
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mysql: 'ALTER TABLE `custom_schema`.`users` MODIFY `name` CHAR(100);',
+      mariadb: 'ALTER TABLE `custom_schema`.`users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -71,12 +95,15 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     User.init({}, { sequelize, tableName: 'custom_users', schema: 'custom_schema' });
 
     const sql = queryGenerator.changeColumnsQuery(User, {
-      name: DataTypes.CHAR(100),
+      name: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
     });
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."custom_users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mysql: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100);',
+      mariadb: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -85,30 +112,40 @@ describe('QueryGenerator#changeColumnsQuery', () => {
       schema: 'custom_schema',
       tableName: 'custom_users',
     }, {
-      name: DataTypes.CHAR(100),
+      name: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
     });
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."custom_users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mysql: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100);',
+      mariadb: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
   it('supports changing more than one column', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
-      firstName: DataTypes.CHAR(100),
-      lastName: DataTypes.CHAR(100),
+      firstName: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
+      lastName: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
     });
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "lastName" TYPE CHAR(100);',
-      mysql: 'ALTER TABLE `users` MODIFY `firstName` CHAR(100), MODIFY `lastName` CHAR(100);',
+      mariadb: 'ALTER TABLE `users` MODIFY `firstName` CHAR(100) DEFAULT NULL, MODIFY `lastName` CHAR(100) DEFAULT NULL;',
     });
   });
 
   it('supports using an ENUM as the DataType', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       name: {
+        ...defaultOptions,
         type: DataTypes.ENUM('A', 'B', 'C'),
       },
     });
@@ -120,12 +157,14 @@ describe('QueryGenerator#changeColumnsQuery', () => {
         DROP TYPE IF EXISTS "public"."enum_users_name";
         ALTER TYPE "public"."tmp_enum_users_name" RENAME TO "enum_users_name";
       `,
+      mariadb: `ALTER TABLE \`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
     });
   });
 
   it('scopes enums per schema', () => {
     const sql = queryGenerator.changeColumnsQuery({ tableName: 'users', schema: 'custom_schema' }, {
       name: {
+        ...defaultOptions,
         type: DataTypes.ENUM('A', 'B', 'C'),
       },
     });
@@ -137,22 +176,26 @@ describe('QueryGenerator#changeColumnsQuery', () => {
         DROP TYPE IF EXISTS "custom_schema"."enum_users_name";
         ALTER TYPE "custom_schema"."tmp_enum_users_name" RENAME TO "enum_users_name";
       `,
+      mariadb: `ALTER TABLE \`custom_schema\`.\`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
     });
   });
 
   it('supports changing all base options', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
+        ...defaultOptions,
         type: DataTypes.CHAR(100),
         allowNull: false,
         comment: 'First name of the user',
         defaultValue: 'John',
+        autoIncrement: false,
       },
       lastName: {
         type: DataTypes.CHAR(100),
         allowNull: true,
-        defaultValue: 'Smith',
+        defaultValue: null,
         comment: 'Last name of the user',
+        autoIncrement: false,
       },
     });
 
@@ -164,29 +207,36 @@ describe('QueryGenerator#changeColumnsQuery', () => {
           ALTER COLUMN "firstName" SET DEFAULT 'John',
           ALTER COLUMN "lastName" TYPE CHAR(100),
           ALTER COLUMN "lastName" DROP NOT NULL,
-          ALTER COLUMN "lastName" SET DEFAULT 'Smith';
+          ALTER COLUMN "lastName" SET DEFAULT NULL;
         COMMENT ON COLUMN "users"."firstName" IS 'First name of the user';
         COMMENT ON COLUMN "users"."lastName" IS 'Last name of the user';`,
-      mysql: `
+      mariadb: `
         ALTER TABLE \`users\`
           MODIFY \`firstName\` CHAR(100) NOT NULL DEFAULT 'John' COMMENT 'First name of the user',
-          MODIFY \`lastName\` CHAR(100) NULL DEFAULT 'Smith' COMMENT 'Last name of the user';`,
+          MODIFY \`lastName\` CHAR(100) DEFAULT NULL COMMENT 'Last name of the user';`,
     });
   });
 
   it('supports changing the allowNull option only (in supported dialects)', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
-      firstName: {
-        allowNull: false,
-      },
-      lastName: {
-        allowNull: true,
-      },
-    });
-
-    expectsql(sql, {
+    expectsql(() => {
+      return queryGenerator.changeColumnsQuery('users', {
+        firstName: {
+          allowNull: false,
+        },
+        lastName: {
+          allowNull: true,
+        },
+      });
+    }, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "firstName" SET NOT NULL, ALTER COLUMN "lastName" DROP NOT NULL;',
-      mysql: new Error('MySQL does not support changing the allowNull option without also specifying the type of the column'),
+      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: \`users\`
+Column: \`firstName\``),
     });
   });
 
@@ -198,8 +248,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" SET DEFAULT 'John';`,
-      mysql: new Error('MySQL does not support changing the defaultValue option without also specifying the type of the column'),
+      default: `ALTER TABLE [users] ALTER COLUMN [firstName] SET DEFAULT 'John';`,
     });
   });
 
@@ -230,6 +279,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
   it('supports dropping the default value if type is specified (in all dialects)', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
+        ...omit(defaultOptions, 'defaultValue'),
         type: DataTypes.CHAR(100),
         dropDefaultValue: true,
       },
@@ -237,20 +287,27 @@ describe('QueryGenerator#changeColumnsQuery', () => {
 
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "firstName" DROP DEFAULT;`,
-      mysql: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100), ALTER COLUMN \`firstName\` DROP DEFAULT;`,
+      mariadb: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100);`,
     });
   });
 
   it('supports changing the comment only', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
-      firstName: {
-        comment: 'First name of the user',
-      },
-    });
-
-    expectsql(sql, {
+    expectsql(() => {
+      return queryGenerator.changeColumnsQuery('users', {
+        firstName: {
+          comment: 'First name of the user',
+        },
+      });
+    }, {
       postgres: `COMMENT ON COLUMN "users"."firstName" IS 'First name of the user';`,
-      mysql: new Error('MySQL does not support changing the comment option without also specifying the type of the column'),
+      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: \`users\`
+Column: \`firstName\``),
     });
   });
 
@@ -259,6 +316,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
   it('does not break if the default value includes special tokens', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       firstName: {
+        ...defaultOptions,
         type: DataTypes.CHAR(100),
         defaultValue: 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT',
       },
@@ -266,40 +324,57 @@ describe('QueryGenerator#changeColumnsQuery', () => {
 
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "firstName" SET DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
-      mysql: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100) DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
+      mariadb: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100) DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
     });
   });
 
   it('supports enabling autoIncrement without other options (in compatible dialects)', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
-      int: {
-        autoIncrement: true,
-      },
-    });
-
-    expectsql(sql, {
+    expectsql(() => {
+      return queryGenerator.changeColumnsQuery('users', {
+        int: {
+          autoIncrement: true,
+        },
+      });
+    }, {
       postgres: `
         CREATE SEQUENCE IF NOT EXISTS "users_int_seq" OWNED BY "users"."int";
         ALTER TABLE "users" ALTER COLUMN "int" SET DEFAULT nextval('users_int_seq'::regclass);`,
+      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: \`users\`
+Column: \`int\``),
     });
   });
 
   it('supports disabling autoIncrement without other options (in compatible dialects)', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
-      int: {
-        autoIncrement: false,
-      },
-    });
-
-    expectsql(sql, {
+    expectsql(() => {
+      return queryGenerator.changeColumnsQuery('users', {
+        int: {
+          autoIncrement: false,
+        },
+      });
+    }, {
       postgres: `
         ALTER TABLE "users" ALTER COLUMN "int" DROP DEFAULT;`,
+      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: \`users\`
+Column: \`int\``),
     });
   });
 
   it('supports disabling autoIncrement and setting a new default value', () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
       int: {
+        ...defaultOptions,
         type: DataTypes.INTEGER,
         autoIncrement: false,
         defaultValue: 14,
@@ -309,52 +384,34 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expectsql(sql, {
       postgres: `
         ALTER TABLE "users" ALTER COLUMN "int" TYPE INTEGER, ALTER COLUMN "int" SET DEFAULT 14;`,
+      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT 14;',
     });
   });
 
   it(`supports enabling autoIncrement with 'type' specified (in all dialects)`, () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
-      smallInt: {
-        type: DataTypes.SMALLINT,
-        autoIncrement: true,
-      },
       int: {
+        ...defaultOptions,
         type: DataTypes.INTEGER,
-        autoIncrement: true,
-      },
-      bigInt: {
-        type: DataTypes.BIGINT,
         autoIncrement: true,
       },
     });
 
     expectsql(sql, {
       postgres: `
-        CREATE SEQUENCE IF NOT EXISTS "users_bigInt_seq" OWNED BY "users"."bigInt";
         CREATE SEQUENCE IF NOT EXISTS "users_int_seq" OWNED BY "users"."int";
-        CREATE SEQUENCE IF NOT EXISTS "users_smallInt_seq" OWNED BY "users"."smallInt";
         ALTER TABLE "users"
-          ALTER COLUMN "smallInt" TYPE SMALLINT,
-          ALTER COLUMN "smallInt" SET DEFAULT nextval('users_smallInt_seq'::regclass),
           ALTER COLUMN "int" TYPE INTEGER,
-          ALTER COLUMN "int" SET DEFAULT nextval('users_int_seq'::regclass),
-          ALTER COLUMN "bigInt" TYPE BIGINT,
-          ALTER COLUMN "bigInt" SET DEFAULT nextval('users_bigInt_seq'::regclass);`,
+          ALTER COLUMN "int" SET DEFAULT nextval('users_int_seq'::regclass);`,
+      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER AUTO_INCREMENT DEFAULT NULL;',
     });
   });
 
   it(`supports disabling autoIncrement with 'type' specified (in all dialects)`, () => {
     const sql = queryGenerator.changeColumnsQuery('users', {
-      smallInt: {
-        type: DataTypes.SMALLINT,
-        autoIncrement: false,
-      },
       int: {
+        ...defaultOptions,
         type: DataTypes.INTEGER,
-        autoIncrement: false,
-      },
-      bigInt: {
-        type: DataTypes.BIGINT,
         autoIncrement: false,
       },
     });
@@ -362,26 +419,24 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expectsql(sql, {
       postgres: `
         ALTER TABLE "users"
-          ALTER COLUMN "smallInt" TYPE SMALLINT,
-          ALTER COLUMN "smallInt" DROP DEFAULT,
           ALTER COLUMN "int" TYPE INTEGER,
-          ALTER COLUMN "int" DROP DEFAULT,
-          ALTER COLUMN "bigInt" TYPE BIGINT,
-          ALTER COLUMN "bigInt" DROP DEFAULT;`,
+          ALTER COLUMN "int" DROP DEFAULT;`,
+      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT NULL;',
     });
   });
 
   it('supports enabling autoIncrementIdentity (postgres)', () => {
-    const sql = queryGenerator.changeColumnsQuery('users', {
-      int: {
-        autoIncrementIdentity: true,
-        allowNull: false,
-      },
-    });
-
-    expectsql(sql, {
+    expectsql(() => {
+      return queryGenerator.changeColumnsQuery('users', {
+        int: {
+          autoIncrementIdentity: true,
+          allowNull: false,
+        },
+      });
+    }, {
       // nullability must be changed first, because 'generated by default as identity' is not allowed on nullable columns
       postgres: `ALTER TABLE "users" ALTER COLUMN "int" SET NOT NULL, ALTER COLUMN "int" ADD GENERATED BY DEFAULT AS IDENTITY;`,
+      mariadb: new Error(`${dialectName} does not support autoIncrementIdentity`),
     });
   });
 
@@ -426,7 +481,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: 'ALTER TABLE "users" ADD CONSTRAINT "users_id_unique" UNIQUE ("id");',
+      default: 'ALTER TABLE [users] ADD CONSTRAINT [users_id_unique] UNIQUE ([id]);',
     });
   });
 
@@ -443,7 +498,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "projects"("id") ON UPDATE CASCADE ON DELETE CASCADE;`,
+      default: `ALTER TABLE [users] ADD FOREIGN KEY ([otherKey]) REFERENCES [projects]([id]) ON UPDATE CASCADE ON DELETE CASCADE;`,
     });
   });
 
@@ -463,7 +518,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "projects"("id") ON DELETE CASCADE;`,
+      default: `ALTER TABLE [users] ADD FOREIGN KEY ([otherKey]) REFERENCES [projects]([id]) ON DELETE CASCADE;`,
     });
   });
 
@@ -478,7 +533,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: `ALTER TABLE "users" ADD FOREIGN KEY ("otherKey") REFERENCES "other_schema"."projects"("id");`,
+      default: `ALTER TABLE [users] ADD FOREIGN KEY ([otherKey]) REFERENCES [other_schema].[projects]([id]);`,
     });
   });
 
@@ -503,10 +558,10 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     });
 
     expectsql(sql, {
-      postgres: `
-        ALTER TABLE "users"
-          ADD FOREIGN KEY ("projectId") REFERENCES "projects"("id") DEFERRABLE INITIALLY IMMEDIATE,
-          ADD FOREIGN KEY ("groupId") REFERENCES "groups"("id") DEFERRABLE INITIALLY DEFERRED;`,
+      default: `
+        ALTER TABLE [users]
+          ADD FOREIGN KEY ([projectId]) REFERENCES [projects]([id]) DEFERRABLE INITIALLY IMMEDIATE,
+          ADD FOREIGN KEY ([groupId]) REFERENCES [groups]([id]) DEFERRABLE INITIALLY DEFERRED;`,
     });
   });
 

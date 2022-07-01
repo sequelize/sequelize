@@ -1,6 +1,10 @@
 'use strict';
 
+import mapValues from 'lodash/mapValues';
+import omit from 'lodash/omit';
+import { removeUndefined } from '../../utils';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { PROPERTIES_NEEDING_CHANGE_COLUMN } from './query-generator';
 
 const sequelizeErrors = require('../../errors');
 const { QueryInterface } = require('../abstract/query-interface');
@@ -10,6 +14,50 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
 export class MySqlQueryInterface extends QueryInterface {
+
+  async changeColumns(tableOrModel, columnDefinitions, options) {
+    // MySQL uses 'ALTER TABLE x CHANGE COLUMN' to alter columns, which require providing the complete definition,
+    // but we want to be able to only change one property of the column, so we need to get the current definition,
+    // and merge it with the new one.
+    const needsPropertyMerge = Object.keys(columnDefinitions).some(columnName => {
+      const newDefinition = columnDefinitions[columnName];
+
+      let allAreUndefined = true;
+      let allAreSet = true;
+
+      for (const propertyUsingChangeColumn of PROPERTIES_NEEDING_CHANGE_COLUMN) {
+        if (newDefinition[propertyUsingChangeColumn] !== undefined) {
+          allAreUndefined = false;
+        } else {
+          allAreSet = false;
+        }
+      }
+
+      return !(allAreUndefined || allAreSet);
+    });
+
+    if (needsPropertyMerge) {
+      const tableDescription = await this.describeTable(tableOrModel);
+
+      columnDefinitions = mapValues(columnDefinitions, (newDefinition, columnName) => {
+        const oldDefinition = tableDescription[columnName];
+
+        if (oldDefinition == null) {
+          return newDefinition;
+        }
+
+        return {
+          ...omit(oldDefinition, ['primaryKey', 'defaultValue']),
+          defaultValue: oldDefinition.defaultValue == null ? undefined : oldDefinition.defaultValue,
+          dropDefaultValue: oldDefinition.defaultValue == null && newDefinition.defaultValue === undefined,
+          ...removeUndefined(newDefinition),
+        };
+      });
+    }
+
+    return super.changeColumns(tableOrModel, columnDefinitions, options);
+  }
+
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *

@@ -1,5 +1,7 @@
 'use strict';
 
+import pick from 'lodash/pick';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -25,6 +27,14 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+
+/**
+ * When using changeColumnsQuery, these are the column properties that will use a 'CHANGE COLUMN' query in MySQL/MariaDB.
+ * 'CHANGE COLUMN' requires specifying the whole column definition, otherwise it will reset the other properties to their default values.
+ *
+ * @internal
+ */
+export const PROPERTIES_NEEDING_CHANGE_COLUMN = ['type', 'allowNull', 'autoIncrement', 'comment'];
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -205,28 +215,94 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  changeColumnQuery(tableName, attributes) {
-    const attrString = [];
-    const constraintString = [];
+  _attributeToChangeColumn(tableName, columnName, columnDefinition) {
+    const {
+      type, allowNull, unique,
+      autoIncrement, autoIncrementIdentity,
+      defaultValue, dropDefaultValue,
+      references, onUpdate, onDelete,
+      comment,
+    } = columnDefinition;
 
-    for (const attributeName in attributes) {
-      let definition = attributes[attributeName];
-      if (definition.includes('REFERENCES')) {
-        const attrName = this.quoteIdentifier(attributeName);
-        definition = definition.replace(/.+?(?=REFERENCES)/, '');
-        constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
-      } else {
-        attrString.push(`\`${attributeName}\` \`${attributeName}\` ${definition}`);
+    if (autoIncrementIdentity !== undefined) {
+      throw new Error(`${this.dialect} does not support autoIncrementIdentity`);
+    }
+
+    const sql = [];
+
+    const fieldsForChangeColumn = Object.values(pick(columnDefinition, PROPERTIES_NEEDING_CHANGE_COLUMN));
+
+    // !TODO: changeColumns (in queryInterface) must describe the columns and merge with the values provided by the user (if needed)
+
+    // TABLE t1 MODIFY b INT NOT NULL;
+    if (fieldsForChangeColumn.some(val => val !== undefined)) {
+      // eslint-disable-next-line unicorn/no-useless-undefined
+      if (fieldsForChangeColumn.includes(undefined) || (defaultValue === undefined && dropDefaultValue !== true)) {
+        throw new Error(`In ${this.dialect}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment
+Then all of the following properties must be specified too (set to a non-undefined value):
+> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
+
+Table: ${this.quoteTable(tableName)}
+Column: ${this.quoteIdentifier(columnName)}`);
+      }
+
+      sql.push(`MODIFY ${this.quoteIdentifier(columnName)} ${this.attributeToSQL(columnDefinition, {
+        context: 'changeColumn',
+        tableName,
+        columnName,
+      })}`);
+    } else {
+      // if MODIFY COLUMN is used, we don't need to include these, as they will be changed by MODIFY COLUMN anyway
+
+      if (defaultValue !== undefined) {
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue, columnDefinition)}`);
+      }
+
+      if (dropDefaultValue) {
+        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
       }
     }
 
-    return Utils.joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      attrString.length && `CHANGE ${attrString.join(', ')}`,
-      constraintString.length && `ADD ${constraintString.join(', ')}`,
-      ';',
-    ]);
+    // !TODO: dedupe 'unique' et foreign key with postgres
+
+    // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
+    // more complex uniques use addIndex and removing a unique uses removeIndex
+    if (unique === true) {
+      const uniqueName = Utils.generateIndexName(tableName.tableName, {
+        fields: [columnName],
+        unique: true,
+      });
+
+      sql.push(`ADD CONSTRAINT ${this.quoteIdentifier(uniqueName)} UNIQUE (${this.quoteIdentifier(columnName)})`);
+    }
+
+    if (references !== undefined) {
+      const targetTable = this.extractTableDetails(references.model);
+
+      let fkSql = `ADD FOREIGN KEY (${this.quoteIdentifier(columnName)}) REFERENCES ${this.quoteTable(targetTable)}(${this.quoteIdentifier(references.key)})`;
+
+      if (onUpdate) {
+        fkSql += ` ON UPDATE ${onUpdate}`;
+      }
+
+      if (onDelete) {
+        fkSql += ` ON DELETE ${onDelete}`;
+      }
+
+      if (references.deferrable) {
+        const deferrable = typeof references.deferrable === 'function'
+          ? new references.deferrable()
+          : references.deferrable;
+
+        fkSql += ` ${deferrable.toSql()}`;
+      }
+
+      sql.push(fkSql);
+    }
+
+    return sql.join(', ');
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -378,7 +454,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (attribute.autoIncrement) {
-      template += ' auto_increment';
+      template += ' AUTO_INCREMENT';
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
