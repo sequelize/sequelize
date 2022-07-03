@@ -2440,7 +2440,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findAll<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    options?: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
+    options: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
   ): Promise<R[]>;
   static findAll<M extends Model>(
     this: ModelStatic<M>,
