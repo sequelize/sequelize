@@ -96,10 +96,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         userId: {
           type: DataTypes.INTEGER,
           field: 'user_id',
+          allowNull: false,
         },
         projectId: {
           type: DataTypes.INTEGER,
           field: 'project_id',
+          allowNull: false,
         },
       }, { timestamps: false });
 
@@ -504,10 +506,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         userId: {
           type: DataTypes.INTEGER,
           field: 'user_id',
+          allowNull: false,
         },
         projectId: {
           type: DataTypes.INTEGER,
           field: 'project_id',
+          allowNull: false,
         },
       }, { timestamps: false });
 

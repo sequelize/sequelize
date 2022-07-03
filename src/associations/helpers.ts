@@ -6,7 +6,7 @@ import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
-import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
+import type { Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import type { OmitConstructors } from '../utils/index.js';
@@ -22,32 +22,6 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
       + ` and association '${associationName}' on model ${source.name}`
       + '. To remedy this, change the "as" options in your association definition',
     );
-  }
-}
-
-export function addForeignKeyConstraints(
-  newAttribute: ModelAttributeColumnOptions,
-  source: ModelStatic<Model>,
-  options: AssociationOptions<string>,
-  key: string,
-): void {
-  // FK constraints are opt-in: users must either set `foreignKeyConstraints`
-  // on the association, or request an `onDelete` or `onUpdate` behavior
-
-  if (options.foreignKeyConstraints !== false) {
-    // Find primary keys: composite keys not supported with this approach
-    const primaryKeys = Object.keys(source.primaryKeys)
-      .map(primaryKeyAttribute => source.getAttributes()[primaryKeyAttribute].field || primaryKeyAttribute);
-
-    if (primaryKeys.length === 1 || !primaryKeys.includes(key)) {
-      newAttribute.references = {
-        model: source.getTableName(),
-        key: key || primaryKeys[0],
-      };
-
-      newAttribute.onDelete = newAttribute.onDelete ?? (newAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE');
-      newAttribute.onUpdate = newAttribute.onUpdate ?? 'CASCADE';
-    }
   }
 }
 

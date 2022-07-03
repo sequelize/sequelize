@@ -20,18 +20,18 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const A = sequelize.define<IA>('A', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        BId: { type: DataTypes.INTEGER },
+        BId: { type: DataTypes.INTEGER, allowNull: true },
       });
 
       const B = sequelize.define<IB>('B', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        AId: { type: DataTypes.INTEGER },
+        AId: { type: DataTypes.INTEGER, allowNull: false },
       });
 
       // These models both have a foreign key that references the other model.
       // Sequelize should be able to create them.
-      A.belongsTo(B, { foreignKey: { allowNull: true } });
-      B.belongsTo(A, { foreignKey: { allowNull: false } });
+      A.belongsTo(B);
+      B.belongsTo(A);
 
       await sequelize.sync();
 

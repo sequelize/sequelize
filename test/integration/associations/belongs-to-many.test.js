@@ -1717,7 +1717,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         tag_id: { type: DataTypes.INTEGER, unique: false },
         taggable: { type: DataTypes.STRING },
-        taggable_id: { type: DataTypes.INTEGER, unique: false },
+        taggable_id: { type: DataTypes.INTEGER, unique: false, allowNull: false },
       });
       const Tag = this.sequelize.define('Tag', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -1735,11 +1735,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Post.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
         foreignKey: 'taggable_id',
+        foreignKeyConstraints: false,
       });
 
       Comment.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
         foreignKey: 'taggable_id',
+        foreignKeyConstraints: false,
       });
 
       await this.sequelize.sync({ force: true });
@@ -1770,7 +1772,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         tag_id: { type: DataTypes.INTEGER, unique: false },
         taggable: { type: DataTypes.STRING },
-        taggable_id: { type: DataTypes.INTEGER, unique: false },
+        taggable_id: { type: DataTypes.INTEGER, unique: false, allowNull: false },
       });
       const Tag = this.sequelize.define('Tag', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -1788,11 +1790,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Post.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
         foreignKey: 'taggable_id',
+        foreignKeyConstraints: false,
       });
 
       Comment.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
         foreignKey: 'taggable_id',
+        foreignKeyConstraints: false,
       });
 
       await this.sequelize.sync({ force: true });
@@ -3172,7 +3176,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     beforeEach(function () {
       this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
       this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-      this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+      this.UserTasks = this.sequelize.define('tasksusers', {
+        userId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        }, taskId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
+      });
     });
 
     it('can cascade deletes both ways by default', async function () {
@@ -3326,9 +3338,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         },
         id_user_very_long_field: {
           type: DataTypes.INTEGER(1),
+          allowNull: false,
         },
         id_task_very_long_field: {
           type: DataTypes.INTEGER(1),
+          allowNull: false,
         },
       }, {
         tableName: 'table_user_task_with_very_long_name',

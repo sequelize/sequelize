@@ -1120,8 +1120,16 @@ Specify a different name for either index to resolve this issue.`);
         definition.field = Utils.underscoredIf(name, this.underscored);
       }
 
-      if (definition.primaryKey === true) {
+      // attributes are not primary keys by default
+      definition.primaryKey = definition.primaryKey ?? false;
+
+      if (definition.primaryKey) {
         this.primaryKeys[name] = definition;
+      }
+
+      if (definition.allowNull == null) {
+        // non-primary-key attributes are nullable by default
+        definition.allowNull = !definition.primaryKey;
       }
 
       this.fieldRawAttributesMap[definition.field] = definition;
@@ -1260,11 +1268,60 @@ Specify a different name for either index to resolve this issue.`);
    * Only use if you know what you're doing.
    *
    * Warning: Attributes are not replaced, they are merged.
+   * Throws if an attribute already exists and one of the properties assigned to it is incompatible.
    *
    * @param {object} newAttributes
    */
   static mergeAttributesDefault(newAttributes) {
-    Utils.mergeDefaults(this.rawAttributes, newAttributes);
+    for (const attrName of Object.keys(newAttributes)) {
+      const newAttribute = newAttributes[attrName];
+      if (this.rawAttributes[attrName] == null) {
+        this.rawAttributes[attrName] = newAttribute;
+        continue;
+      }
+
+      const existingAttribute = this.rawAttributes[attrName];
+
+      for (const propertyName of Object.keys(newAttribute)) {
+        if (existingAttribute[propertyName] === undefined) {
+          existingAttribute[propertyName] = newAttribute[propertyName];
+
+          continue;
+        }
+
+        if (existingAttribute[propertyName] === newAttribute[propertyName]) {
+          continue;
+        }
+
+        if (propertyName === 'references') {
+          const newReferencesOption = newAttribute[propertyName];
+          const existingReferencesOption = existingAttribute[propertyName];
+
+          for (const referencesPropertyName of Object.keys(newReferencesOption)) {
+            if (existingReferencesOption[referencesPropertyName] === undefined) {
+              existingReferencesOption[referencesPropertyName] = newReferencesOption[referencesPropertyName];
+
+              continue;
+            }
+
+            // using isEqual because 'model' can be an object with the shape `{ tableName: string }`
+            if (_.isEqual(existingReferencesOption[referencesPropertyName], newReferencesOption[referencesPropertyName])) {
+              continue;
+            }
+
+            throw new Error(`Cannot merge attributes: The property "references.${referencesPropertyName}" is already defined for attribute "${this.name}"."${attrName}" and is incompatible with the new definition.
+Existing value: ${NodeUtil.inspect(existingReferencesOption[referencesPropertyName])}
+New Value: ${NodeUtil.inspect(newReferencesOption[referencesPropertyName])}`);
+          }
+
+          continue;
+        }
+
+        throw new Error(`Cannot merge attributes: The property "${propertyName}" is already defined for attribute "${this.name}"."${attrName}" and is incompatible with the new definition.
+Existing value: ${NodeUtil.inspect(existingAttribute[propertyName])}
+New Value: ${NodeUtil.inspect(newAttribute[propertyName])}`);
+      }
+    }
 
     this.refreshAttributes();
 
