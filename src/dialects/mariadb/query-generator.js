@@ -45,6 +45,17 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     ]);
   }
 
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param  {object} table  The table.
+   * @returns {string}            The generated sql query.
+   * @private
+   */
+  getForeignKeysQuery(table) {
+    return super.getForeignKeysQuery(table, table.schema || this.sequelize.config.database);
+  }
+
   showTablesQuery(database) {
     let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
     if (database) {

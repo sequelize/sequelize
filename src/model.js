@@ -1347,17 +1347,27 @@ Specify a different name for either index to resolve this issue.`);
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
           const references = currentAttribute.references;
           if (currentAttribute.references) {
-            const database = this.sequelize.config.database;
-            const schema = this.sequelize.config.schema;
+            let database = this.sequelize.config.database;
+            const schema = tableName.schema;
+            if (schema && this.sequelize.options.dialect === 'mariadb') {
+              // because for mariadb schema is synonym for database
+              database = schema;
+            }
+
+            const foreignReferenceSchema = currentAttribute.references.model.schema;
+            const foreignReferenceTableName = typeof references.model === 'object'
+              ? references.model.tableName : references.model;
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
               if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
-                && foreignKeyReference.referencedTableName === references.model
+                && foreignKeyReference.referencedTableName === foreignReferenceTableName
                 && foreignKeyReference.referencedColumnName === references.key
-                && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
+                && (foreignReferenceSchema
+                    ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
+                    : true)
                 && !removedConstraints[constraintName])
                 || this.sequelize.options.dialect === 'ibmi') {
                 // Remove constraint on foreign keys.
