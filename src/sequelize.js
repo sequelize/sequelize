@@ -1,6 +1,9 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { AggregateError } from './errors';
+import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -180,26 +183,31 @@ export class Sequelize {
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
-    let config;
-
-    if (arguments.length === 1 && typeof database === 'object') {
+    if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-      config = _.pick(options, 'host', 'port', 'database', 'username', 'password');
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && typeof username === 'object') {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
-
-      config = {};
-      options = username || {};
+      options = username ? { ...username } : Object.create(null);
 
       _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
-      options = options || {};
-      config = { database, username, password };
+      options = options ? { ...options } : Object.create(null);
+
+      _.defaults(options, {
+        database,
+        username,
+        password,
+      });
     }
 
-    Sequelize.runHooks('beforeInit', config, options);
+    Sequelize.runHooks('beforeInit', options, options);
+
+    // @ts-expect-error
+    if (options.pool === false) {
+      throw new Error('Support for pool:false was removed in v4.0');
+    }
 
     this.options = {
       dialect: null,
@@ -218,7 +226,6 @@ export class Sequelize {
       native: false,
       replication: false,
       ssl: undefined,
-      pool: {},
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -235,6 +242,13 @@ export class Sequelize {
       minifyAliases: false,
       logQueryParameters: false,
       ...options,
+      pool: _.defaults(options.pool || {}, {
+        max: 5,
+        min: 0,
+        idle: 10_000,
+        acquire: 60_000,
+        evict: 1000,
+      }),
     };
 
     if (!this.options.dialect) {
@@ -260,38 +274,9 @@ export class Sequelize {
 
     this._setupHooks(options.hooks);
 
-    this.config = {
-      database: config.database || this.options.database,
-      username: config.username || this.options.username,
-      password: config.password || this.options.password || null,
-      host: config.host || this.options.host,
-      port: config.port || this.options.port,
-      pool: this.options.pool,
-      protocol: this.options.protocol,
-      native: this.options.native,
-      ssl: this.options.ssl,
-      replication: this.options.replication,
-      dialectModule: this.options.dialectModule,
-      dialectModulePath: this.options.dialectModulePath,
-      keepDefaultTimezone: this.options.keepDefaultTimezone,
-      dialectOptions: this.options.dialectOptions,
-    };
-
-    // Convert replication connection strings to objects
-    if (this.options.replication) {
-      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
-        this.options.replication.write = parseConnectionString(this.options.replication.write);
-      }
-
-      if (this.options.replication.read) {
-        for (let i = 0; i < this.options.replication.read.length; i++) {
-          const server = this.options.replication.read[i];
-          if (typeof server === 'string') {
-            this.options.replication.read[i] = parseConnectionString(server);
-          }
-        }
-      }
-    }
+    // ==========================================
+    //  REPLICATION CONFIG NORMALIZATION
+    // ==========================================
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
@@ -324,6 +309,67 @@ export class Sequelize {
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
+
+    if (!this.options.port) {
+      this.options.port = Dialect.getDefaultPort();
+    } else {
+      this.options.port = Number(this.options.port);
+    }
+
+    const connectionConfig = {
+      database: this.options.database,
+      username: this.options.username,
+      password: this.options.password || null,
+      host: this.options.host,
+      port: this.options.port,
+      protocol: this.options.protocol,
+      ssl: this.options.ssl,
+      dialectOptions: this.options.dialectOptions,
+    };
+
+    if (!this.options.replication) {
+      this.options.replication = Object.create(null);
+    }
+
+    // Convert replication connection strings to objects
+    if (isString(this.options.replication.write)) {
+      this.options.replication.write = parseConnectionString(this.options.replication.write);
+    }
+
+    // Map main connection config
+    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write.port = Number(this.options.replication.write.port);
+
+    if (!this.options.replication.read) {
+      this.options.replication.read = [];
+    } else if (!Array.isArray(this.options.replication.read)) {
+      this.options.replication.read = [this.options.replication.read];
+    }
+
+    this.options.replication.read = this.options.replication.read.map(readEntry => {
+      if (isString(readEntry)) {
+        readEntry = parseConnectionString(readEntry);
+      }
+
+      readEntry.port = Number(readEntry.port);
+
+      // Apply defaults to each read config
+      return _.defaults(readEntry, connectionConfig);
+    });
+
+    // ==========================================
+    //  CONFIG
+    // ==========================================
+
+    this.config = {
+      ...connectionConfig,
+      pool: this.options.pool,
+      native: this.options.native,
+      replication: this.options.replication,
+      dialectModule: this.options.dialectModule,
+      dialectModulePath: this.options.dialectModulePath,
+      keepDefaultTimezone: this.options.keepDefaultTimezone,
+    };
 
     this.dialect = new Dialect(this);
     this.dialect.queryGenerator.typeValidation = options.typeValidation;
@@ -526,9 +572,10 @@ Only bind parameters can be provided, in the dialect-specific syntax.
 Use Sequelize#query if you wish to use replacements.`);
     }
 
-    options = { ...this.options.query, ...options };
+    options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
+    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -549,6 +596,8 @@ Use Sequelize#query if you wish to use replacements.`);
 
       sql = mappedResult.sql;
 
+      // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
+      options.bindParameterOrder = mappedResult.bindOrder;
       if (mappedResult.bindOrder == null) {
         bindParameters = options.bind;
       } else {
@@ -639,7 +688,7 @@ Use Sequelize#query if you wish to use replacements.`);
       } finally {
         await this.runHooks('afterQuery', options, query);
         if (!options.transaction) {
-          await this.connectionManager.releaseConnection(connection);
+          this.connectionManager.releaseConnection(connection);
         }
       }
     }, retryOptions);
@@ -794,22 +843,20 @@ Use Sequelize#query if you wish to use replacements.`);
       await this.drop(options);
     }
 
-    const models = [];
-
-    // Topologically sort by foreign key constraints to give us an appropriate
-    // creation order
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      } else {
-        // DB should throw an SQL error if referencing non-existent table
-      }
-    });
-
     // no models defined, just authenticate
-    if (models.length === 0) {
+    if (this.modelManager.models.length === 0) {
       await this.authenticate(options);
     } else {
+      const models = this.modelManager.getModelsTopoSortedByForeignKey();
+      if (models == null) {
+        return this._syncModelsWithCyclicReferences(options);
+      }
+
+      // reverse to start with the one model that does not depend on anything
+      models.reverse();
+
+      // Topologically sort by foreign key constraints to give us an appropriate
+      // creation order
       for (const model of models) {
         await model.sync(options);
       }
@@ -820,6 +867,35 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     return this;
+  }
+
+  /**
+   * Used instead of sync() when two models reference each-other, so their foreign keys cannot be created immediately.
+   *
+   * @param {object} options - sync options
+   * @private
+   */
+  async _syncModelsWithCyclicReferences(options) {
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.sync(options);
+        }
+      });
+
+      return;
+    }
+
+    // create all tables, but don't create foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, withoutForeignKeyConstraints: true });
+    }
+
+    // add foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, force: false, alter: true });
+    }
   }
 
   /**
@@ -834,13 +910,23 @@ Use Sequelize#query if you wish to use replacements.`);
    * {@link Model.truncate} for more information
    */
   async truncate(options) {
-    const models = [];
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const models = sortedModels || this.modelManager.models;
+    const hasCyclicDependencies = sortedModels == null;
 
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      }
-    }, { reverse: false });
+    // we have cyclic dependencies, cascade must be enabled.
+    if (hasCyclicDependencies && (!options || !options.cascade)) {
+      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" option to be able to delete rows from models that have cyclic references.');
+    }
+
+    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
+    if (hasCyclicDependencies && this.dialect.name === 'sqlite') {
+      // Workaround: SQLite does not support options.cascade, but we can disable its foreign key constraints while we
+      // truncate all tables.
+      return withSqliteForeignKeysOff(this, options, async () => {
+        await Promise.all(models.map(model => model.truncate(options)));
+      });
+    }
 
     if (options && options.cascade) {
       for (const model of models) {
@@ -864,15 +950,44 @@ Use Sequelize#query if you wish to use replacements.`);
    * @returns {Promise}
    */
   async drop(options) {
-    const models = [];
-
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
+    // if 'cascade' is specified, we don't have to worry about cyclic dependencies.
+    if (options && options.cascade) {
+      for (const model of this.modelManager.models) {
+        await model.drop(options);
       }
-    }, { reverse: false });
+    }
 
-    for (const model of models) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+
+    // no cyclic dependency between models, we can delete them in an order that will not cause an error.
+    if (sortedModels) {
+      for (const model of sortedModels) {
+        await model.drop(options);
+      }
+    }
+
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.drop(options);
+        }
+      });
+
+      return;
+    }
+
+    // has cyclic dependency: we first remove each foreign key, then delete each model.
+    for (const model of this.modelManager.models) {
+      const tableName = model.getTableName();
+      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+
+      await Promise.all(foreignKeys.map(foreignKey => {
+        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+      }));
+    }
+
+    for (const model of this.modelManager.models) {
       await model.drop(options);
     }
   }
@@ -952,7 +1067,7 @@ Use Sequelize#query if you wish to use replacements.`);
    * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
    *
    * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
+   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
    *     const user = await User.findOne(..., {transaction});
    *     await user.update(..., {transaction});
    *   });
@@ -988,33 +1103,31 @@ Use Sequelize#query if you wish to use replacements.`);
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment(false);
+      await transaction.prepareEnvironment(/* cls */ false);
 
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
-      try {
-        await transaction.prepareEnvironment();
-        const result = await autoCallback(transaction);
-        await transaction.commit();
+      await transaction.prepareEnvironment(/* cls */ true);
 
-        return await result;
+      let result;
+      try {
+        result = await autoCallback(transaction);
       } catch (error) {
         try {
-          if (!transaction.finished) {
-            await transaction.rollback();
-          } else {
-            // release the connection, even if we don't need to rollback
-            await transaction.cleanup();
-          }
+          await transaction.rollback();
         } catch {
-          // ignore
+          // ignore, because 'rollback' will already print the error before killing the connection
         }
 
         throw error;
       }
+
+      await transaction.commit();
+
+      return result;
     });
   }
 

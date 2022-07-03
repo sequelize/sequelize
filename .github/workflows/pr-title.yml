@@ -1,0 +1,33 @@
+name: "Lint PR"
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+jobs:
+  main:
+    name: PR has semantic title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            fix
+            feat
+            docs
+            meta
+          scopes: |
+            db2
+            ibmi
+            mariadb
+            mssql
+            mysql
+            postgres
+            snowflake
+            sqlite
+            types
+          ignoreLabels: |
+            ignore-semantic-pull-request

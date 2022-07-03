@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
 const { isValidTimeZone } = require('../../utils/dayjs');
 
@@ -12,9 +12,8 @@ const dataTypes = require('../../data-types');
 const dayjs = require('dayjs');
 const { promisify } = require('util');
 
-export class PostgresConnectionManager extends ConnectionManager {
+export class PostgresConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg');

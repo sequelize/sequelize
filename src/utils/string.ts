@@ -1,4 +1,7 @@
+import NodeUtil from 'node:util';
 import _inflection from 'inflection';
+import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
+import { SequelizeMethod } from './sequelize-method.js';
 
 /* Inflection */
 type Inflection = typeof _inflection;
@@ -60,7 +63,6 @@ type NameIndexIndex = {
   fields: Array<{ name: string, attribute: string }>,
   name: string,
 };
-type NameIndexTableName = string | { tableName: string };
 
 /**
  *
@@ -73,18 +75,51 @@ type NameIndexTableName = string | { tableName: string };
  */
 export function nameIndex(
   index: NameIndexIndex,
-  tableName: NameIndexTableName,
+  tableName: TableName,
 ) {
+  if (Object.prototype.hasOwnProperty.call(index, 'name')) {
+    return index;
+  }
+
+  index.name = generateIndexName(tableName, index);
+
+  return index;
+}
+
+export function generateIndexName(tableName: TableName, index: IndexOptions): string {
   if (typeof tableName !== 'string' && tableName.tableName) {
     tableName = tableName.tableName;
   }
 
-  if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
-    const fields = index.fields.map(field => (typeof field === 'string' ? field : field.name || field.attribute));
-    index.name = underscore(`${tableName}_${fields.join('_')}`);
+  if (!index.fields) {
+    throw new Error(`Index on table ${tableName} has not fields:
+${NodeUtil.inspect(index)}`);
   }
 
-  return index;
+  const fields = index.fields.map(field => {
+    if (typeof field === 'string') {
+      return field;
+    }
+
+    if (field instanceof SequelizeMethod) {
+      // eslint-disable-next-line unicorn/prefer-type-error -- not a type error.
+      throw new Error(`Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`);
+    }
+
+    if ('attribute' in field) {
+      throw new Error('Property "attribute" in IndexField has been renamed to "name"');
+    }
+
+    return field.name;
+  });
+
+  let out = `${tableName}_${fields.join('_')}`;
+
+  if (index.unique) {
+    out += '_unique';
+  }
+
+  return underscore(out);
 }
 
 /**

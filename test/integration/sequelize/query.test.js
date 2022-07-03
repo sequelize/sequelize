@@ -266,22 +266,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         })).to.include('john');
       });
     } else if (dialect === 'db2') {
-      it('executes stored procedures', function () {
-        const self = this;
+      it('executes stored procedures', async function () {
+        const { sequelize } = this;
 
-        return self.sequelize.query(this.insertQuery).then(() => {
-          return self.sequelize.query('DROP PROCEDURE foo').then(() => {
-            return self.sequelize.query(
-              `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${qq(self.User.tableName)}; OPEN cr1; END`,
-            ).then(() => {
-              return self.sequelize.query('CALL foo()').then(users => {
-                expect(users.map(u => {
-                  return u.username;
-                })).to.include('john');
-              });
-            });
-          });
-        });
+        await sequelize.query(this.insertQuery);
+
+        try {
+          await sequelize.query('DROP PROCEDURE foo');
+        } catch (error) {
+          // DB2 does not support DROP PROCEDURE IF EXISTS
+          // -204 means "FOO" does not exist
+          // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
+          if (error.cause.sqlcode !== -204) {
+            throw error;
+          }
+        }
+
+        await sequelize.query(
+          `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${qq(this.User.tableName)}; OPEN cr1; END`,
+        );
+
+        const users = await sequelize.query('CALL foo()');
+        expect(users.map(u => u.username)).to.include('john');
       });
     } else {
       console.log(': I want to be supported in this dialect as well :-(');
