@@ -102,7 +102,7 @@ function mapBindParametersAndReplacements(
     if (char === `'`) {
       isString = true;
 
-      // Fun fact, the following query is supported in almost all dialects,
+      // The following query is supported in almost all dialects,
       //  SELECT E'test';
       // but postgres interprets it as an E-prefixed string, while other dialects interpret it as
       //  SELECT E AS 'test';
