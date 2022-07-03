@@ -22,9 +22,13 @@
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./types/index.d.ts"
     },
-    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
+    "./_non-semver-use-at-your-own-risk_/*": {
+      "types": "./types/*",
+      "default": "./lib/*"
+    },
     "./package.json": "./package.json"
   },
   "engines": {
