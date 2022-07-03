@@ -431,6 +431,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const commands = [];
     let offset = 0;
     while (offset < Math.max(tuples.length, 1)) {
+      // SQL Server can insert a maximum of 1000 rows at a time,
+      // This splits the insert in multiple statements to respect that limit
       const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
       let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
