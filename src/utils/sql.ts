@@ -105,7 +105,8 @@ function mapBindParametersAndReplacements(
       // The following query is supported in almost all dialects,
       //  SELECT E'test';
       // but postgres interprets it as an E-prefixed string, while other dialects interpret it as
-      //  SELECT E AS 'test';
+      //  SELECT E 'test';
+      // which selects the type E and aliases it to 'test'.
 
       stringIsBackslashEscapable
         // all ''-style strings in this dialect can be backslash escaped
