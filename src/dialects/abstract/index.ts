@@ -108,6 +108,12 @@ export type DialectSupports = {
    * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
    */
   deferrableConstraints: false,
+
+  /**
+   * This dialect supports E-prefixed strings, e.g. "E'foo'", which
+   * enables the ability to use backslash escapes inside of the string.
+   */
+  escapeStringConstants: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -197,6 +203,7 @@ export abstract class AbstractDialect {
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
+    escapeStringConstants: false,
   };
 
   declare readonly defaultVersion: string;
@@ -215,6 +222,15 @@ export abstract class AbstractDialect {
   }
 
   abstract createBindCollector(): BindCollector;
+
+  /**
+   * Whether this dialect can use \ in strings to escape string delimiters.
+   *
+   * @returns
+   */
+  canBackslashEscape(): boolean {
+    return false;
+  }
 
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);
