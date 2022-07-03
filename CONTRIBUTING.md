@@ -202,17 +202,33 @@ If you open the `package.json` file with Visual Studio Code, you will find a sma
 
 ### 6. Commit your modifications
 
-Sequelize follows the [AngularJS Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#heading=h.em2hiij8p46d). The allowed categories are `build`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` and `meta`.
+We squash all commits into a single one when we merge your PR.
+That means you don't have to follow any convention in your commit messages,
+but you will need to follow the [Conventional Commits Conventions](https://www.conventionalcommits.org/en/v1.0.0/) when writing the title of your PR.
+
+We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
+
+We use a simple conventional commits convention:
+- The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
+- We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
+  - `postgres`
+  - `mysql`
+  - `mariadb`
+  - `sqlite`
+  - `mssql`
+  - `db2`
+  - `ibmi`
+  - `snowflake`
+  - `types`
+- If your changes impact more than one scope, simply omit the scope.
 
 Example:
 
 ```
-feat(pencil): add `graphiteWidth` option
+feat(postgres): support specifying a custom name for enums
 ```
 
-Commit messages are used to automatically generate a changelog and calculate the next version number according to [semver](https://semver.org/). They will be validated automatically using [commitlint](https://github.com/marionebl/commitlint).
-
-Then push and send your pull request. Happy hacking and thank you for contributing.
+Happy hacking and thank you for contributing.
 
 # Coding guidelines
 

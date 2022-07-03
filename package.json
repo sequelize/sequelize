@@ -56,8 +56,6 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "17.0.2",
-    "@commitlint/config-angular": "17.0.0",
     "@ephys/eslint-config-typescript": "17.0.0",
     "@rushstack/eslint-patch": "1.1.4",
     "@types/chai": "4.3.1",
@@ -78,7 +76,7 @@
     "cross-env": "7.0.3",
     "delay": "5.0.0",
     "esbuild": "0.14.48",
-    "eslint": "8.18.0",
+    "eslint": "8.19.0",
     "eslint-plugin-jsdoc": "39.3.3",
     "eslint-plugin-mocha": "10.0.5",
     "expect-type": "0.13.0",
@@ -110,8 +108,8 @@
     "source-map-support": "0.5.21",
     "sqlite3": "5.0.8",
     "tedious": "14.4.0",
-    "ts-node": "10.8.1",
-    "typedoc": "0.23.2",
+    "ts-node": "10.8.2",
+    "typedoc": "0.23.4",
     "typescript": "4.7.4"
   },
   "peerDependenciesMeta": {
@@ -162,30 +160,6 @@
     "database",
     "db"
   ],
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-angular"
-    ],
-    "rules": {
-      "type-enum": [
-        2,
-        "always",
-        [
-          "build",
-          "ci",
-          "docs",
-          "feat",
-          "fix",
-          "perf",
-          "refactor",
-          "revert",
-          "style",
-          "test",
-          "meta"
-        ]
-      ]
-    }
-  },
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   },
