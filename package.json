@@ -26,8 +26,8 @@
       "types": "./types/index.d.ts"
     },
     "./_non-semver-use-at-your-own-risk_/*": {
-      "default": "./lib/*",
-      "types": "./types/*.d.ts"
+      "types": "./types/*",
+      "default": "./lib/*"
     },
     "./package.json": "./package.json"
   },
