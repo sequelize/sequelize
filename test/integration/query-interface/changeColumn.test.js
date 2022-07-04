@@ -244,6 +244,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.
     // The tests below address these problems
+    // TODO: run in all dialects
     if (dialect === 'sqlite') {
       it('should not remove unique constraints when adding or modifying columns', async function () {
         await this.queryInterface.createTable({
@@ -364,6 +365,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should retain ON UPDATE and ON DELETE constraints after a column is changed', async function () {
+        await this.queryInterface.createTable('level', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.CHAR,
+            allowNull: false,
+          },
+        });
+
         await this.queryInterface.createTable('users', {
           id: {
             type: DataTypes.INTEGER,
@@ -386,23 +399,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         });
 
-        await this.queryInterface.createTable('level', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          name: {
-            type: DataTypes.CHAR,
-            allowNull: false,
-          },
-        });
-
         await this.queryInterface.changeColumn('users', 'name', {
           type: DataTypes.CHAR,
           allowNull: false,
         });
 
+        await this.queryInterface.changeColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          references: {
+            key: 'id',
+            model: 'level',
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        });
+
+        // TODO: replace with queryInterface.showConstraint once it lists foreign keys properly for sqlite
         const constraintsQuery = this.queryInterface.queryGenerator.showConstraintsQuery('users');
         const [{ sql: usersSql }] = await this.queryInterface.sequelize.query(constraintsQuery, {
           type: 'SELECT',
