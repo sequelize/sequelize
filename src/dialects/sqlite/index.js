@@ -55,6 +55,10 @@ export class SqliteDialect extends AbstractDialect {
   createBindCollector() {
     return createNamedParamBindCollector('$');
   }
+
+  static getDefaultPort() {
+    return 0;
+  }
 }
 
 SqliteDialect.prototype.defaultVersion = '3.8.0'; // minimum supported version

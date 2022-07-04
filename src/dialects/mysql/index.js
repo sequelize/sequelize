@@ -60,6 +60,14 @@ export class MysqlDialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  canBackslashEscape() {
+    return true;
+  }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 MysqlDialect.prototype.defaultVersion = '5.7.0'; // minimum supported version

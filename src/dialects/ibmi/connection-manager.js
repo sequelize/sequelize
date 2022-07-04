@@ -1,6 +1,6 @@
 'use strict';
 
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
@@ -8,7 +8,7 @@ const debug = logger.debugContext('connection:ibmi');
 const parserStore = require('../parserStore')('ibmi');
 const DataTypes = require('../../data-types').ibmi;
 
-export class IBMiConnectionManager extends ConnectionManager {
+export class IBMiConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
