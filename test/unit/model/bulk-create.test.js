@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
-      it('should not return uppercased A', async function () {
+      it('skips setters if the raw option is true', async function () {
         await this.Model.bulkCreate([
           { accountId: 42, name: 'a' },
         ], { raw: true });
