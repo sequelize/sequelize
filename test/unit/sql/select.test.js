@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
       });
 
-      const includeWithoutAttributes = Model._validateIncludedElements({
+      const includeWithoutAttributes = _validateIncludedElements({
         include: [{
           attributes: [],
           association: User.Posts,
