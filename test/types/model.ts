@@ -87,27 +87,27 @@ MyModel.count({ group: 'type' }).then(result => {
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });
 
-MyModel.increment('num', { by: 1 }).then((result) => {
+MyModel.increment('num', { by: 1 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
-MyModel.increment({ num: 2 }, {}).then((result) => {
+MyModel.increment({ num: 2 }, {}).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
-MyModel.increment(['num'], { by: 3 }).then((result) => {
+MyModel.increment(['num'], { by: 3 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
-MyModel.decrement('num', { by: 1 }).then((result) => {
+MyModel.decrement('num', { by: 1 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
-MyModel.decrement({ num: 2 }, {}).then((result) => {
+MyModel.decrement({ num: 2 }, {}).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
-MyModel.decrement(['num'], { by: 3 }).then((result) => {
+MyModel.decrement(['num'], { by: 3 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
 });
 
