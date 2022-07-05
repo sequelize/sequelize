@@ -2837,22 +2837,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
-  static increment<M extends Model>(
-    this: ModelStatic<M>,
-    fields: AllowReadonlyArray<keyof Attributes<M>>,
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<[affectedRows: M[], affectedCount: number]>;
-  static increment<M extends Model>(
-    this: ModelStatic<M>,
-    fields: { [key in keyof Attributes<M>]?: number },
-    options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<[affectedRows: M[], affectedCount: number]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
    * Decrements the value of one or more attributes.
@@ -2871,22 +2861,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
-  static decrement<M extends Model>(
-    this: ModelStatic<M>,
-    fields: AllowReadonlyArray<keyof Attributes<M>>,
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<[affectedRows: M[], affectedCount: number]>;
-  static decrement<M extends Model>(
-    this: ModelStatic<M>,
-    fields: { [key in keyof Attributes<M>]?: number },
-    options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<[affectedRows: M[], affectedCount: number]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
    * A hook that is run before validation
