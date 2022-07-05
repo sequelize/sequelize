@@ -87,28 +87,28 @@ MyModel.count({ group: 'type' }).then(result => {
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });
 
-MyModel.increment('num', { by: 1 }).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.increment('int', { by: 1 }).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
-MyModel.increment({ num: 2 }, {}).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.increment({ int: 2 }, {}).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
-MyModel.increment(['num'], { by: 3 }).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.increment(['int'], { by: 3 }).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
-MyModel.decrement('num', { by: 1 }).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.decrement('int', { by: 1 }).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
-MyModel.decrement({ num: 2 }, {}).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.decrement({ int: 2 }, {}).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
-MyModel.decrement(['num'], { by: 3 }).then(result => {
-  expectTypeOf(result).toEqualTypeOf<[MyModel[], number?]>();
+MyModel.decrement(['int'], { by: 3 }).then(result => {
+  expectTypeOf(result).toEqualTypeOf<[affectedRows: M[], affectedCount?: number]>();
 });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
