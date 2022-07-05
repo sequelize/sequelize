@@ -14,6 +14,7 @@ export * from './model';
 export * from './dialects/abstract/query-interface';
 export * from './sequelize';
 export * from './transaction';
+export * from './hooks';
 export { useInflection } from './utils';
 export { Validator } from './utils/validator-extras';
 export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
