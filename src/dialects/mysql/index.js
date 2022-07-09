@@ -65,6 +65,10 @@ export class MysqlDialect extends AbstractDialect {
     return this.sequelize.options.database;
   }
 
+  canBackslashEscape() {
+    return true;
+  }
+
   static getDefaultPort() {
     return 3306;
   }

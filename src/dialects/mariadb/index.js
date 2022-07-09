@@ -66,6 +66,10 @@ export class MariaDbDialect extends AbstractDialect {
     return this.sequelize.options.database;
   }
 
+  canBackslashEscape() {
+    return true;
+  }
+
   static getDefaultPort() {
     return 3306;
   }

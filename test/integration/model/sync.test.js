@@ -1,7 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const { DataTypes, Deferrable } = require('@sequelize/core');
+const { DataTypes, Deferrable, Model } = require('@sequelize/core');
 const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
 
 const dialect = getTestDialect();
@@ -604,6 +604,51 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         expect(aFks).to.have.length(1);
         expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
       }
+    });
+  }
+
+  if (sequelize.dialect.supports.schemas) {
+    it('should not recreate a foreign key if it already exists when { alter: true } is used with a custom schema', async () => {
+      const schema = 'test';
+      await sequelize.createSchema(schema);
+
+      const User = sequelize.define('User', {}, { schema });
+      const BelongsToUser = sequelize.define('BelongsToUser', {}, { schema  });
+      BelongsToUser.belongsTo(User, { foreignKey: { targetKey: 'id', allowNull: false } });
+      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: true });
+
+      const results = await sequelize
+        .getQueryInterface()
+        .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
+      expect(results).to.have.length(1);
+      await sequelize.dropSchema(schema);
+    });
+
+    it('should not recreate a foreign key if it already exists when { alter: true } is used with a custom schema (reference attribute is a Model)', async () => {
+      const schema = 'test';
+      await sequelize.createSchema(schema);
+
+      class User extends Model {}
+
+      class BelongsToUser extends Model {}
+
+      User.init({}, { sequelize, schema });
+      BelongsToUser.init({
+        user_id: {
+          type: DataTypes.INTEGER,
+          references: {
+            model: User,
+            key: 'id',
+          },
+        },
+      }, { sequelize, schema });
+      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: true });
+      const results = await sequelize
+        .getQueryInterface()
+        .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
+      expect(results).to.have.length(1);
     });
   }
 });

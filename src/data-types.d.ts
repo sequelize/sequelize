@@ -365,7 +365,7 @@ export interface DateOnlyDataType extends AbstractDataType {
 export const HSTORE: AbstractDataTypeConstructor;
 
 /**
- * A JSON string column. Only available in postgres.
+ * A JSON string column. Available in MySQL, Postgres and SQLite.
  */
 export const JSON: AbstractDataTypeConstructor;
 /**
