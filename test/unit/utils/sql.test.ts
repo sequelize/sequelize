@@ -222,6 +222,22 @@ SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
     });
   });
 
+  it('treats strings prefixed with a lowercase e as E-prefixed strings too', () => {
+    expectPerDialect(() => mapBindParameters(`SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`, dialect), {
+      default: new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
+
+      'mysql mariadb': toHaveProperties({
+        sql: toMatchSql(`SELECT * FROM users WHERE id = e'\\' $id' OR id = ?`),
+        bindOrder: ['id'],
+      }),
+      postgres: toHaveProperties({
+        sql: `SELECT * FROM users WHERE id = e'\\' $id' OR id = $1`,
+        bindOrder: ['id'],
+      }),
+    });
+  });
+
   it('considers the token to be a bind parameter if it is outside a string ending with an escaped backslash', () => {
     const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = '\\\\' OR id = $id`, dialect);
 
