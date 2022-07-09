@@ -25,9 +25,9 @@ if (dialect === 'mysql') {
 
     describe('ForeignKeyConstraintError', () => {
       beforeEach(function () {
-        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, { underscored: true });
-        this.User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
-        this.UserTasks = this.sequelize.define('TaskUser', {
+        this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
+        this.User = this.sequelize.define('user', { username: DataTypes.STRING });
+        this.UserTasks = this.sequelize.define('tasksusers', {
           userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -36,19 +36,14 @@ if (dialect === 'mysql') {
             type: DataTypes.INTEGER,
             allowNull: false,
           },
-        }, { underscored: true });
-
-        this.User.belongsToMany(this.Task, {
-          through: 'TaskUser',
-          foreignKey: { name: 'userId', onDelete: 'RESTRICT' },
-          otherKey: { name: 'taskId', onDelete: 'RESTRICT' },
         });
+
+        this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
 
         this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });
 
       it('in context of DELETE restriction', async function () {
-        const ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
         await this.sequelize.sync({ force: true });
 
         const [user1, task1] = await Promise.all([
@@ -59,18 +54,18 @@ if (dialect === 'mysql') {
         await user1.setTasks([task1]);
 
         await Promise.all([
-          validateError(user1.destroy(), ForeignKeyConstraintError, {
-            fields: ['user_id'],
+          validateError(user1.destroy(), Sequelize.ForeignKeyConstraintError, {
+            fields: ['userId'],
             table: 'users',
             value: undefined,
-            index: 'task_users_ibfk_1',
+            index: 'tasksusers_ibfk_1',
             reltype: 'parent',
           }),
-          validateError(task1.destroy(), ForeignKeyConstraintError, {
-            fields: ['task_id'],
+          validateError(task1.destroy(), Sequelize.ForeignKeyConstraintError, {
+            fields: ['taskId'],
             table: 'tasks',
             value: undefined,
-            index: 'task_users_ibfk_2',
+            index: 'tasksusers_ibfk_2',
             reltype: 'parent',
           }),
         ]);
