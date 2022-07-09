@@ -63,7 +63,7 @@ if (dialect === 'mariadb') {
             User.rawAttributes,
           ),
         ).to.deep.equal(
-          { username: 'VARCHAR(255) PRIMARY KEY' },
+          { username: 'VARCHAR(255) NOT NULL PRIMARY KEY' },
         );
       });
 
@@ -148,7 +148,7 @@ if (dialect === 'mariadb') {
             User.primaryKeys,
           ),
         ).to.deep.equal(
-          { foo: 'VARCHAR(255) PRIMARY KEY' },
+          { foo: 'VARCHAR(255) NOT NULL PRIMARY KEY' },
         );
       });
     });

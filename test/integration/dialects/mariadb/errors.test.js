@@ -25,12 +25,24 @@ if (dialect === 'mariadb') {
 
     describe('ForeignKeyConstraintError', () => {
       beforeEach(function () {
-        this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
-        this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers',
-          { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING }, { underscored: true });
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
+        this.UserTasks = this.sequelize.define('TaskUser', {
+          userId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+          taskId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+        }, { underscored: true });
 
-        this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
+        this.User.belongsToMany(this.Task, {
+          through: 'TaskUser',
+          foreignKey: { name: 'userId', onDelete: 'RESTRICT' },
+          otherKey: { name: 'taskId', onDelete: 'RESTRICT' },
+        });
 
         this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });
@@ -48,17 +60,17 @@ if (dialect === 'mariadb') {
 
         await Promise.all([
           validateError(user1.destroy(), ForeignKeyConstraintError, {
-            fields: ['userId'],
+            fields: ['user_id'],
             table: 'users',
             value: undefined,
-            index: 'tasksusers_ibfk_1',
+            index: 'task_users_ibfk_1',
             reltype: 'parent',
           }),
           validateError(task1.destroy(), ForeignKeyConstraintError, {
-            fields: ['taskId'],
+            fields: ['task_id'],
             table: 'tasks',
             value: undefined,
-            index: 'tasksusers_ibfk_2',
+            index: 'task_users_ibfk_2',
             reltype: 'parent',
           }),
         ]);

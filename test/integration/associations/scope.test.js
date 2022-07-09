@@ -457,6 +457,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               tag_id: {
                 type: DataTypes.INTEGER,
                 unique: 'item_tag_taggable',
+                allowNull: false,
               },
               taggable: {
                 type: DataTypes.STRING,
@@ -466,6 +467,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 type: DataTypes.INTEGER,
                 unique: 'item_tag_taggable',
                 references: null,
+                allowNull: false,
               },
             });
             this.Tag = this.sequelize.define('tag', {
