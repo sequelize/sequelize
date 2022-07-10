@@ -232,8 +232,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
     const fieldsForChangeColumn = Object.values(pick(columnDefinition, PROPERTIES_NEEDING_CHANGE_COLUMN));
 
-    // !TODO: changeColumns (in queryInterface) must describe the columns and merge with the values provided by the user (if needed)
-
     // TABLE t1 MODIFY b INT NOT NULL;
     if (fieldsForChangeColumn.some(val => val !== undefined)) {
       // eslint-disable-next-line unicorn/no-useless-undefined

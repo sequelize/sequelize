@@ -1,11 +1,9 @@
-import type { Dialect } from '@sequelize/core';
+import type { Dialect, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { expect } from 'chai';
 import omit from 'lodash/omit';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
-
-// !TODO: add test with Model that maps attribute names to column names
 
 const queryGenerator: AbstractQueryGenerator = sequelize.queryInterface.queryGenerator;
 const dialectName: Dialect = sequelize.dialect.name;
@@ -104,6 +102,31 @@ Column: \`name\``),
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."custom_users" ALTER COLUMN "name" TYPE CHAR(100);',
       mariadb: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
+    });
+  });
+
+  it('maps attribute names when using a Model class', () => {
+    class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare firstName: string;
+    }
+
+    User.init({
+      firstName: {
+        type: DataTypes.STRING,
+        field: 'first_name',
+      },
+    }, { sequelize });
+
+    const sql = queryGenerator.changeColumnsQuery(User, {
+      firstName: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
+    });
+
+    expectsql(sql, {
+      postgres: 'ALTER TABLE "Users" ALTER COLUMN "first_name" TYPE CHAR(100);',
+      mariadb: 'ALTER TABLE `Users` MODIFY `first_name` CHAR(100) DEFAULT NULL;',
     });
   });
 
