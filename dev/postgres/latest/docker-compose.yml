@@ -1,7 +1,7 @@
 services:
   postgres-latest:
     container_name: sequelize-postgres-latest
-    image: postgis/postgis:14-3.2
+    image: postgis/postgis:12-3.2
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
