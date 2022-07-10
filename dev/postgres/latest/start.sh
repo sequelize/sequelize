@@ -12,5 +12,3 @@ DIALECT=postgres ts-node ../../check-connection.ts
 
 docker exec sequelize-postgres-latest \
    bash -c "export PGPASSWORD=sequelize_test && psql -h localhost -p 5432 -U sequelize_test sequelize_test -c 'CREATE EXTENSION IF NOT EXISTS btree_gist; CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS citext;'"
-docker exec sequelize-postgres-latest \
-   bash -c "export PGPASSWORD=sequelize_test && psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'"

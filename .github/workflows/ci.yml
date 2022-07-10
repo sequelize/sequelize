@@ -81,6 +81,8 @@ jobs:
         run: yarn test-unit-mysql
       - name: Unit tests (postgres)
         run: yarn test-unit-postgres
+      - name: Unit tests (postgres-native)
+        run: yarn test-unit-postgres-native
       - name: Unit tests (sqlite)
         run: yarn test-unit-sqlite
       - name: Unit tests (mssql)
@@ -158,7 +160,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install Local DB2 Copy
-        run: yarn start-db2
+        run: yarn start-db2-oldest
       - name: Integration Tests
         run: yarn test-integration
   test-sqlite:
