@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'ALTER TABLE `user` DROP `email`;',
         postgres: 'ALTER TABLE "custom"."user" DROP COLUMN "email";',
         snowflake: 'ALTER TABLE "user" DROP "email";',
-        sqlite: 'CREATE TABLE IF NOT EXISTS `user_backup` (`0` e, `1` m, `2` a, `3` i, `4` l);INSERT INTO `user_backup` SELECT `0`, `1`, `2`, `3`, `4` FROM `user`;DROP TABLE `user`;CREATE TABLE IF NOT EXISTS `user` (`0` e, `1` m, `2` a, `3` i, `4` l);INSERT INTO `user` SELECT `0`, `1`, `2`, `3`, `4` FROM `user_backup`;DROP TABLE `user_backup`;',
+        sqlite: 'CREATE TABLE IF NOT EXISTS `user_backup` (`0` e, `1` m, `2` a, `3` i, `4` l);INSERT INTO `user_backup` SELECT `0`, `1`, `2`, `3`, `4` FROM `user`;DROP TABLE `user`;ALTER TABLE `user_backup` RENAME TO `user`;',
       });
     });
   });
