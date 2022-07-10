@@ -765,6 +765,12 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * Use sub queries. This should only be used if you know for sure the query does not result in a cartesian product.
    */
   subQuery?: boolean;
+
+  /**
+   * Fields to update if row key already exists (on duplicate key update)? These fields apply to the model being `include`d (only supported by MySQL,
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
+   */
+  updateOnDuplicate?: string[];
 }
 
 type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>, as: string } | string;
