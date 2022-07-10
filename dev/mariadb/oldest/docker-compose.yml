@@ -1,6 +1,6 @@
 services:
-  mariadb-103:
-    container_name: sequelize-mariadb-103
+  mariadb-oldest:
+    container_name: sequelize-mariadb-oldest
     image: mariadb:10.3
     environment:
       MYSQL_DATABASE: sequelize_test
@@ -17,4 +17,4 @@ services:
 
 networks:
   default:
-    name: sequelize-mariadb-103-network
+    name: sequelize-mariadb-oldest-network

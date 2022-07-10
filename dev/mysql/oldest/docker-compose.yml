@@ -1,6 +1,6 @@
 services:
-  mysql-57:
-    container_name: sequelize-mysql-57
+  mysql-oldest:
+    container_name: sequelize-mysql-oldest
     image: mysql:5.7
     environment:
       MYSQL_DATABASE: sequelize_test
@@ -18,4 +18,4 @@ services:
 
 networks:
   default:
-    name: sequelize-mysql-57-network
+    name: sequelize-mysql-oldest-network
