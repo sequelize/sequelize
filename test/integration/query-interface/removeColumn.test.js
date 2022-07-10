@@ -87,6 +87,130 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(table).to.not.have.property('email');
         });
       }
+
+      // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
+      // This leads to issues with losing data or losing foreign key references.
+      // The tests below address these problems
+      // TODO: run in all dialects
+      if (dialect === 'sqlite') {
+        it('should remove a column with from table with foreign key constraints without losing data', async function () {
+          await this.queryInterface.createTable('level', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.CHAR,
+              allowNull: false,
+            },
+          });
+
+          await this.queryInterface.createTable('actors', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: true,
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              references: {
+                key: 'id',
+                model: 'level',
+              },
+              onDelete: 'CASCADE',
+              onUpdate: 'CASCADE',
+            },
+          });
+
+          const levels = [{
+            id: 1,
+            name: 'L1',
+          }, {
+            id: 2,
+            name: 'L2',
+          },
+          {
+            id: 3,
+            name: 'L3',
+          }];
+
+          const actors = [
+            {
+              name: 'Keanu Reeves',
+              level_id: 2,
+            },
+            {
+              name: 'Laurence Fishburne',
+              level_id: 1,
+            },
+          ];
+
+          await Promise.all([
+            this.queryInterface.bulkInsert('level', levels),
+            this.queryInterface.bulkInsert('actors', actors),
+          ]);
+
+          await this.queryInterface.removeColumn('level', 'name');
+
+          const actorRows = await this.queryInterface.sequelize.query('SELECT * from actors;', {
+            type: 'SELECT',
+          });
+
+          expect(actorRows).to.have.length(actors.length, 'actors records should be unaffected');
+        });
+
+        it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async function () {
+          await this.queryInterface.createTable('level', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.CHAR,
+              allowNull: false,
+            },
+          });
+
+          await this.queryInterface.createTable('actors', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: true,
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              references: {
+                key: 'id',
+                model: 'level',
+              },
+              onDelete: 'CASCADE',
+              onUpdate: 'CASCADE',
+            },
+          });
+
+          await this.queryInterface.removeColumn('actors', 'name');
+
+          const constraintsQuery = this.queryInterface.queryGenerator.showConstraintsQuery('actors');
+          const [{ sql: actorsSql }] = await this.queryInterface.sequelize.query(constraintsQuery, {
+            type: 'SELECT',
+          });
+
+          expect(actorsSql).to.include('ON DELETE CASCADE', 'should include ON DELETE constraint');
+          expect(actorsSql).to.include('ON UPDATE CASCADE', 'should include ON UPDATE constraint');
+        });
+      }
     });
 
     describe('(with a schema)', () => {
