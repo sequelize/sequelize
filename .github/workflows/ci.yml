@@ -196,7 +196,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
-      SEQ_PORT: 5432
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
@@ -218,7 +217,6 @@ jobs:
         run: npm install --no-save --no-audit pg-native
         if: matrix.native && matrix.node-version == 18
       - run: yarn start-postgres-${{ matrix.postgres-version }}
-      - run: PGPASSWORD=sequelize_test psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'
       - name: Integration Tests
         run: yarn test-integration
   test-mysql-mariadb:
