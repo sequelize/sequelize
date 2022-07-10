@@ -650,79 +650,89 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync();
 
-        await Team.bulkCreate(
-          [
-            {
-              code: 'team1',
-              name: 'nameTeam1',
-              country: 'countryTeam001',
-              color: 'colorTeam1',
-              trophies: 1,
-              players: [
-                {
-                  code: 'player1',
-                  name: 'playername1',
-                  surname: 'playernSurname1',
-                  dateBirth: new Date(),
-                  country: 'country1',
-                },
-              ],
-            },
-          ],
-          {
-            include: [
+        const dialect = this.sequelize.options.dialect;
+
+        if (dialect === 'mssql' || dialect === 'db2') {
+          expect(
+            async () => await Team.bulkCreate({}).to.throw(
+              `${dialect} does not support the updateOnDuplicate option.`,
+            ),
+          );
+        } else {
+          await Team.bulkCreate(
+            [
               {
-                model: Player,
-                as: 'players',
-                updateOnDuplicate: ['name'],
+                code: 'team1',
+                name: 'nameTeam1',
+                country: 'countryTeam001',
+                color: 'colorTeam1',
+                trophies: 1,
+                players: [
+                  {
+                    code: 'player1',
+                    name: 'playername1',
+                    surname: 'playernSurname1',
+                    dateBirth: new Date(),
+                    country: 'country1',
+                  },
+                ],
               },
             ],
-            updateOnDuplicate: ['country', 'color', 'trophies'],
-          },
-        );
-
-        let playerOfInterest = await Player.findOne({
-          where: { code: 'player1' },
-        });
-
-        expect(playerOfInterest.name).to.equal('playername1');
-
-        await Team.bulkCreate(
-          [
             {
-              code: 'team1',
-              name: 'nameTeam1',
-              country: 'countryTeam1',
-              color: 'colorTeam1',
-              trophies: 1,
-              players: [
+              include: [
                 {
-                  code: 'player1',
-                  name: 'playername2',
-                  surname: 'playernSurname1',
-                  dateBirth: new Date(),
-                  country: 'country1',
+                  model: Player,
+                  as: 'players',
+                  updateOnDuplicate: ['name'],
                 },
               ],
+              updateOnDuplicate: ['country', 'color', 'trophies'],
             },
-          ],
-          {
-            include: [
+          );
+
+          let playerOfInterest = await Player.findOne({
+            where: { code: 'player1' },
+          });
+
+          expect(playerOfInterest.name).to.equal('playername1');
+
+          await Team.bulkCreate(
+            [
               {
-                model: Player,
-                as: 'players',
-                updateOnDuplicate: ['name'],
+                code: 'team1',
+                name: 'nameTeam1',
+                country: 'countryTeam1',
+                color: 'colorTeam1',
+                trophies: 1,
+                players: [
+                  {
+                    code: 'player1',
+                    name: 'playername2',
+                    surname: 'playernSurname1',
+                    dateBirth: new Date(),
+                    country: 'country1',
+                  },
+                ],
               },
             ],
-            updateOnDuplicate: ['country', 'color', 'trophies'],
-          },
-        );
+            {
+              include: [
+                {
+                  model: Player,
+                  as: 'players',
+                  updateOnDuplicate: ['name'],
+                },
+              ],
+              updateOnDuplicate: ['country', 'color', 'trophies'],
+            },
+          );
 
-        playerOfInterest = await Player.findOne({
-          where: { code: 'player1' },
-        });
+          playerOfInterest = await Player.findOne({
+            where: { code: 'player1' },
+          });
 
-        expect(playerOfInterest.name).to.equal('playername2');
+          expect(playerOfInterest.name).to.equal('playername2');
+        }
       });
     });
   });
