@@ -229,7 +229,6 @@
     "test-unit-mariadb": "cross-env DIALECT=mariadb yarn test-unit",
     "test-unit-mysql": "cross-env DIALECT=mysql yarn test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres yarn test-unit",
-    "test-unit-postgres-native": "cross-env DIALECT=postgres-native yarn test-unit",
     "test-unit-sqlite": "cross-env DIALECT=sqlite yarn test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql yarn test-unit",
     "test-unit-db2": "cross-env DIALECT=db2 yarn test-unit",
