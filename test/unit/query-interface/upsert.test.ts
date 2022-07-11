@@ -221,7 +221,6 @@ describe('QueryInterface#upsert', () => {
       dialectName === 'mssql' || dialectName === 'db2' ? { id: 1 } : {},
       {
         model: User,
-        bind: ['John'],
       },
     );
 
