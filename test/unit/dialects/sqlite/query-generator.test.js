@@ -633,9 +633,7 @@ if (dialect === 'sqlite') {
             'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
             + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
             + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
+            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
       getForeignKeysQuery: [
@@ -643,6 +641,18 @@ if (dialect === 'sqlite') {
           title: 'Property quotes table names',
           arguments: ['myTable'],
           expectation: 'PRAGMA foreign_key_list(`myTable`)',
+        },
+      ],
+      foreignKeyCheckQuery: [
+        {
+          title: 'Properly quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_check(`myTable`);',
+        },
+        {
+          title: 'Properly quotes table names as schema',
+          arguments: [{ schema: 'schema', tableName: 'myTable' }],
+          expectation: 'PRAGMA foreign_key_check(`schema.myTable`);',
         },
       ],
     };
