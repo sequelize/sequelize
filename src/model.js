@@ -1497,7 +1497,7 @@ Specify a different name for either index to resolve this issue.`);
    * By default, this will throw an error if a scope with that name already exists.
    * Use {@link AddScopeOptions.override} in the options object to silence this error.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    *
    * @param {string}          name The name of the scope. Use `defaultScope` to override the default scope
    * @param {object|Function} scope scope or options
@@ -1531,7 +1531,7 @@ Specify a different name for either index to resolve this issue.`);
   /**
    * Creates a copy of this model, with one or more scopes applied.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    *
    * @param {?Array|object|string} [scopes] The scope(s) to apply. Scopes can either be passed as consecutive arguments, or
    *   as an array of arguments. To apply simple scopes and scope functions with no arguments, pass them as strings. For
@@ -1600,7 +1600,7 @@ Specify a different name for either index to resolve this issue.`);
   /**
    * Returns a model without scope. The default scope is also omitted.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    */
   static unscoped() {
     scopeRenamedToWithScope();
@@ -1611,7 +1611,7 @@ Specify a different name for either index to resolve this issue.`);
   /**
    * Returns a model without scope. The default scope is also omitted.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    */
   static withoutScope() {
     return this.withScope(null);
@@ -1694,7 +1694,7 @@ Specify a different name for either index to resolve this issue.`);
 
   /**
    * Search for multiple instances.
-   * See {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information about querying.
+   * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/ for more information about querying.
    *
    * __Example of a simple search:__
    * ```js
@@ -4356,7 +4356,7 @@ Instead of specifying a Model, either:
    * Returns true if this instance is "soft deleted".
    * Throws an error if {@link ModelOptions.paranoid} is not enabled.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See https://sequelize.org/docs/v7/core-concepts/paranoid/ to learn more about soft deletion / paranoid models.
    *
    * @returns {boolean}
    */
@@ -4377,7 +4377,7 @@ Instead of specifying a Model, either:
    * Restores the row corresponding to this instance.
    * Only available for paranoid models.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See https://sequelize.org/docs/v7/core-concepts/paranoid/ to learn more about soft deletion / paranoid models.
    *
    * @param {object}      [options={}] restore options
    * @returns {Promise}
@@ -4543,7 +4543,7 @@ Instead of specifying a Model, either:
    * Defines a 1:n association between two models.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4562,7 +4562,7 @@ Instead of specifying a Model, either:
    * Create an N:M association with a join table. Defining `through` is required.
    * The foreign keys are added on the through model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4588,7 +4588,7 @@ Instead of specifying a Model, either:
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4607,7 +4607,7 @@ Instead of specifying a Model, either:
    * Creates an association between this (the source) and the provided target.
    * The foreign key is added on the source Model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript

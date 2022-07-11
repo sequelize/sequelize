@@ -80,7 +80,7 @@ export interface Filterable<TAttributes = any> {
   /**
    * The `WHERE` clause. Can be many things from a hash of attributes to raw SQL.
    *
-   * Visit {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information.
+   * Visit https://sequelize.org/docs/v7/core-concepts/model-querying-basics/ for more information.
    */
   where?: WhereOptions<TAttributes>;
 }
@@ -1816,7 +1816,7 @@ export interface ModelOptions<M extends Model = Model> {
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
    * find / findAll.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    */
   defaultScope?: FindOptions<Attributes<M>>;
 
@@ -1824,7 +1824,7 @@ export interface ModelOptions<M extends Model = Model> {
    * More scopes, defined in the same way as {@link ModelOptions.defaultScope} above.
    * See {@link Model.scope} for more information about how scopes are defined, and what you can do with them.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    */
   scopes?: ModelScopeOptions<Attributes<M>>;
 
@@ -2348,7 +2348,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Creates a copy of this model, with one or more scopes applied.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    *
    * @param scopes The scopes to apply.
    *   Scopes can either be passed as consecutive arguments, or as an array of arguments.
@@ -2381,7 +2381,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns a model without scope. The default scope is also omitted.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    *
    * If you want to access the Model Class in its state before any scope was applied, use {@link Model.withInitialScope}.
    */
@@ -2407,7 +2407,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * By default, this will throw an error if a scope with that name already exists.
    * Use {@link AddScopeOptions.override} in the options object to silence this error.
    *
-   * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
+   * See https://sequelize.org/docs/v7/other-topics/scopes/ to learn more about scopes.
    */
   static addScope<M extends Model>(
     this: ModelStatic<M>,
@@ -2420,7 +2420,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 
   /**
    * Search for multiple instances.
-   * See {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information about querying.
+   * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/ for more information about querying.
    *
    * __Example of a simple search:__
    * ```js
@@ -2773,7 +2773,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Restores multiple paranoid instances.
    * Only usable if {@link ModelOptions.paranoid} is true.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See https://sequelize.org/docs/v7/core-concepts/paranoid/ to learn more about soft deletion / paranoid models.
    */
   static restore<M extends Model>(
     this: ModelStatic<M>,
@@ -3240,7 +3240,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -3262,7 +3262,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Creates an association between this (the source) and the provided target.
    * The foreign key is added on the source Model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -3284,7 +3284,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Defines a 1:n association between two models.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -3306,7 +3306,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Create an N:M association with a join table. Defining `through` is required.
    * The foreign key is added on the through model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See https://sequelize.org/docs/v7/core-concepts/assocs/ to learn more about associations.
    *
    * @example
    * ```javascript
@@ -3512,7 +3512,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Restores the row corresponding to this instance.
    * Only available for paranoid models.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See https://sequelize.org/docs/v7/core-concepts/paranoid/ to learn more about soft deletion / paranoid models.
    */
   restore(options?: InstanceRestoreOptions): Promise<void>;
 
@@ -3587,7 +3587,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns true if this instance is "soft deleted".
    * Throws an error if {@link ModelOptions.paranoid} is not enabled.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See https://sequelize.org/docs/v7/core-concepts/paranoid/ to learn more about soft deletion / paranoid models.
    */
   isSoftDeleted(): boolean;
 }
