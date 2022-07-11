@@ -170,7 +170,7 @@ type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
  * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
  *
  * Example of plain-array treated as `Op.and`:
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
+ * User.findAll(\{ where: [\{ id: 1 \}, \{ id: 2 \}] \});
  *
  * Meant to be used by {@link WhereOptions}.
  */
@@ -187,7 +187,7 @@ type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
  * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
  *
  * Example of plain-array NOT treated as Op.and:
- * User.findAll({ where: { id: [1, 2] } });
+ * User.findAll(\{ where: \{ id: [1, 2] \} \});
  *
  * Meant to be used by {@link WhereAttributeHashValue}.
  */
@@ -3150,7 +3150,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): void;
 
   /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
+   * A hook that is run before a find (select) query, after any \{ include: \{all: ...\} \} options are expanded
    *
    * @param name
    * @param fn   A callback function that is called with options
@@ -3482,7 +3482,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Validate the attribute of this instance according to validation rules set in the model definition.
    *
    * Emits null if and only if validation successful; otherwise an Error instance containing
-   * { field name : [error msgs] } entries.
+   * \{ field name : [error msgs] \} entries.
    */
   validate(options?: ValidationOptions): Promise<void>;
 

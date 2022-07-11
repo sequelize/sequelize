@@ -449,8 +449,8 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
 
   /**
    * If true, transforms objects with `.` separated property names into nested objects using
-   * [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes
-   * { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`,
+   * [dottie.js](https://github.com/mickhansen/dottie.js). For example \{ 'user.username': 'john' \} becomes
+   * \{ user: \{ username: 'john' \}\}. When `nest` is true, the query type is assumed to be `'SELECT'`,
    * unless otherwise specified
    *
    * @default false
@@ -851,7 +851,7 @@ export class Sequelize extends Hooks {
   afterDisconnect(fn: (connection: unknown) => void): void;
 
   /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
+   * A hook that is run before a find (select) query, after any \{ include: \{all: ...\} \} options are expanded
    *
    * @param name
    * @param fn   A callback function that is called with options
@@ -1173,7 +1173,7 @@ export class Sequelize extends Hooks {
   beforeFind(fn: (options: FindOptions<any>) => void): void;
 
   /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
+   * A hook that is run before a find (select) query, after any \{ include: \{all: ...\} \} options are expanded
    *
    * @param name
    * @param fn   A callback function that is called with options

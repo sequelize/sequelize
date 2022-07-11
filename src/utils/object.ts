@@ -101,25 +101,25 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  *
  * - Input:
  *
- *  {
+ *  \{
  *    name: 'John',
- *    address: {
+ *    address: \{
  *      street: 'Fake St. 123',
- *      coordinates: {
+ *      coordinates: \{
  *        longitude: 55.6779627,
  *        latitude: 12.5964313
- *      }
- *    }
- *  }
+ *      \}
+ *    \}
+ *  \}
  *
  * - Output:
  *
- *  {
+ *  \{
  *    name: 'John',
  *    address.street: 'Fake St. 123',
  *    address.coordinates.latitude: 55.6779627,
  *    address.coordinates.longitude: 12.5964313
- *  }
+ *  \}
  *
  * @param value an Object
  * @returns a flattened object
