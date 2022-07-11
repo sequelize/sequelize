@@ -22,9 +22,13 @@
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./types/index.d.ts"
     },
-    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
+    "./_non-semver-use-at-your-own-risk_/*": {
+      "types": "./types/*",
+      "default": "./lib/*"
+    },
     "./package.json": "./package.json"
   },
   "engines": {
@@ -46,26 +50,26 @@
     "inflection": "^1.13.2",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^5.0.0",
+    "retry-as-promised": "^6.0.0",
     "semver": "^7.3.5",
     "sequelize-pool": "^7.1.0",
     "toposort-class": "^1.0.1",
+    "type-fest": "^2.12.2",
     "uuid": "^8.3.2",
     "validator": "^13.7.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "17.0.0",
-    "@commitlint/config-angular": "17.0.0",
     "@ephys/eslint-config-typescript": "17.0.0",
-    "@rushstack/eslint-patch": "1.1.3",
+    "@rushstack/eslint-patch": "1.1.4",
     "@types/chai": "4.3.1",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/lodash": "4.14.182",
     "@types/mocha": "9.1.1",
-    "@types/node": "16.11.36",
-    "@types/sinon": "10.0.11",
+    "@types/node": "16.11.43",
+    "@types/semver": "7.3.10",
+    "@types/sinon": "10.0.12",
     "@types/sinon-chai": "3.2.8",
     "@types/uuid": "8.3.4",
     "chai": "4.3.6",
@@ -75,17 +79,17 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.14.39",
-    "eslint": "8.16.0",
-    "eslint-plugin-jsdoc": "39.3.0",
-    "eslint-plugin-mocha": "10.0.4",
+    "esbuild": "0.14.49",
+    "eslint": "8.19.0",
+    "eslint-plugin-jsdoc": "39.3.3",
+    "eslint-plugin-mocha": "10.0.5",
     "expect-type": "0.13.0",
     "fast-glob": "3.2.11",
     "fs-jetpack": "4.3.1",
     "husky": "8.0.1",
     "ibm_db": "2.8.1",
-    "lcov-result-merger": "3.1.0",
-    "lint-staged": "12.4.1",
+    "lcov-result-merger": "3.3.0",
+    "lint-staged": "13.0.3",
     "mariadb": "2.5.6",
     "markdownlint-cli": "0.31.1",
     "mocha": "10.0.0",
@@ -100,16 +104,17 @@
     "pg": "8.7.3",
     "pg-hstore": "2.3.4",
     "rimraf": "3.0.2",
-    "semantic-release": "19.0.2",
+    "semantic-release": "19.0.3",
     "semantic-release-fail-on-major-bump": "1.0.0",
     "sinon": "14.0.0",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.9",
+    "snowflake-sdk": "1.6.11",
     "source-map-support": "0.5.21",
     "sqlite3": "5.0.8",
     "tedious": "14.4.0",
-    "typedoc": "0.22.15",
-    "typescript": "4.6.4"
+    "ts-node": "10.8.2",
+    "typedoc": "0.23.7",
+    "typescript": "4.7.4"
   },
   "peerDependenciesMeta": {
     "pg": {
@@ -159,30 +164,6 @@
     "database",
     "db"
   ],
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-angular"
-    ],
-    "rules": {
-      "type-enum": [
-        2,
-        "always",
-        [
-          "build",
-          "ci",
-          "docs",
-          "feat",
-          "fix",
-          "perf",
-          "refactor",
-          "revert",
-          "style",
-          "test",
-          "meta"
-        ]
-      ]
-    }
-  },
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   },
@@ -229,18 +210,21 @@
     "start-mysql": "bash dev/mysql/5.7/start.sh",
     "start-mysql-8": "bash dev/mysql/8.0/start.sh",
     "start-postgres": "bash dev/postgres/10/start.sh",
-    "start-mssql": "bash dev/mssql/2019/start.sh",
+    "start-mssql-oldest": "bash dev/mssql/oldest/start.sh",
+    "start-mssql-latest": "bash dev/mssql/latest/start.sh",
     "start-db2": "bash dev/db2/11.5/start.sh",
     "stop-mariadb": "bash dev/mariadb/10.3/stop.sh",
     "stop-mysql": "bash dev/mysql/5.7/stop.sh",
     "stop-mysql-8": "bash dev/mysql/8.0/stop.sh",
     "stop-postgres": "bash dev/postgres/10/stop.sh",
-    "stop-mssql": "bash dev/mssql/2019/stop.sh",
+    "stop-mssql-oldest": "bash dev/mssql/oldest/stop.sh",
+    "stop-mssql-latest": "bash dev/mssql/latest/stop.sh",
     "stop-db2": "bash dev/db2/11.5/stop.sh",
     "restart-mariadb": "yarn start-mariadb",
     "restart-mysql": "yarn start-mysql",
     "restart-postgres": "yarn start-postgres",
-    "restart-mssql": "yarn start-mssql",
+    "restart-mssql-oldest": "yarn start-mssql-oldest",
+    "restart-mssql-latest": "yarn start-mssql-latest",
     "restart-db2": "yarn start-db2",
     "----------------------------------------- local tests ---------------------------------------------": "",
     "test-unit-mariadb": "cross-env DIALECT=mariadb yarn test-unit",

@@ -153,7 +153,11 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));',
+          // SQLITE does not respect the index name when the index is created through CREATE TABLE
+          // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
+          // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
+          // as that query *does* respect the index name.
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255));',
         },
         {
           arguments: ['myTable', { foo1: 'INTEGER PRIMARY KEY NOT NULL', foo2: 'INTEGER PRIMARY KEY NOT NULL' }],
@@ -629,9 +633,7 @@ if (dialect === 'sqlite') {
             'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
             + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
             + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
+            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
       getForeignKeysQuery: [
@@ -639,6 +641,18 @@ if (dialect === 'sqlite') {
           title: 'Property quotes table names',
           arguments: ['myTable'],
           expectation: 'PRAGMA foreign_key_list(`myTable`)',
+        },
+      ],
+      foreignKeyCheckQuery: [
+        {
+          title: 'Properly quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_check(`myTable`);',
+        },
+        {
+          title: 'Properly quotes table names as schema',
+          arguments: [{ schema: 'schema', tableName: 'myTable' }],
+          expectation: 'PRAGMA foreign_key_check(`schema.myTable`);',
         },
       ],
     };

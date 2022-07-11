@@ -1,4 +1,4 @@
-import { Hookable } from "./model";
+import type { Hookable } from './model';
 
 export interface ValidationOptions extends Hookable {
   /**

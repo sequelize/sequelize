@@ -18,6 +18,9 @@ export class Db2Dialect extends AbstractDialect {
     autoIncrement: {
       defaultValue: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     index: {
       collate: false,
       using: false,
@@ -40,6 +43,10 @@ export class Db2Dialect extends AbstractDialect {
 
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
+  }
+
+  static getDefaultPort() {
+    return 3306;
   }
 }
 

@@ -1,5 +1,6 @@
 import assert from 'assert';
-import type { Logging, Sequelize, Deferrable, PartlyRequired, Connection } from './index.js';
+import type { Class } from 'type-fest';
+import type { Logging, Deferrable, PartlyRequired, Connection, Sequelize } from './index.js';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -72,10 +73,15 @@ export class Transaction {
     }
 
     try {
-      return await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      this.cleanup();
+    } catch (error) {
+      console.warn(`Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw error;
     } finally {
       this.finished = 'commit';
-      await this.cleanup();
       for (const hook of this._afterCommitHooks) {
         // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
         await Reflect.apply(hook, this, [this]);
@@ -96,12 +102,17 @@ export class Transaction {
     }
 
     try {
-      return await this
+      await this
         .sequelize
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
-    } finally {
-      await this.cleanup();
+
+      this.cleanup();
+    } catch (error) {
+      console.warn(`Rolling back transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      await this.forceCleanup();
+
+      throw error;
     }
   }
 
@@ -111,11 +122,7 @@ export class Transaction {
    *
    * @param useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
    */
-  async prepareEnvironment(useCLS?: boolean) {
-    if (useCLS === undefined) {
-      useCLS = true;
-    }
-
+  async prepareEnvironment(useCLS = true) {
     let connection;
     if (this.parent) {
       connection = this.parent.connection;
@@ -135,15 +142,17 @@ export class Transaction {
     let result;
     try {
       await this.begin();
+
       result = await this.setDeferrable();
     } catch (error) {
       try {
-        result = await this.rollback();
+        await this.rollback();
       } finally {
         throw error; // eslint-disable-line no-unsafe-finally -- while this will mask the error thrown by `rollback`, the previous error is more important.
       }
     }
 
+    // TODO (@ephys) [>=7.0.0]: move this inside of sequelize.transaction, remove parameter -- during the move to built-in AsyncLocalStorage
     if (useCLS && this.sequelize.Sequelize._cls) {
       this.sequelize.Sequelize._cls.set('transaction', this);
     }
@@ -174,26 +183,32 @@ export class Transaction {
     return queryInterface.startTransaction(this, this.options);
   }
 
-  async cleanup(): Promise<void> {
+  cleanup(): void {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
     if (this.parent || this.connection?.uuid === undefined) {
       return;
     }
 
-    this._clearCls();
-    const res = this.sequelize.connectionManager.releaseConnection(this.connection);
+    this.sequelize.connectionManager.releaseConnection(this.connection);
     this.connection.uuid = undefined;
-
-    await res;
   }
 
-  _clearCls() {
-    const cls = this.sequelize.Sequelize._cls;
-
-    if (cls && cls.get('transaction') === this) {
-      cls.set('transaction', null);
+  /**
+   * Kills the connection this transaction uses.
+   * Used as a last resort, for instance because COMMIT or ROLLBACK resulted in an error
+   * and the transaction is left in a broken state,
+   * and releasing the connection to the pool would be dangerous.
+   */
+  async forceCleanup() {
+    // Don't release the connection if there's a parent transaction or
+    // if we've already cleaned up
+    if (this.parent || this.connection?.uuid === undefined) {
+      return;
     }
+
+    await this.sequelize.connectionManager.destroyConnection(this.connection);
+    this.connection.uuid = undefined;
   }
 
   /**
@@ -408,7 +423,7 @@ export interface TransactionOptions extends Logging {
   autocommit?: boolean;
   isolationLevel?: ISOLATION_LEVELS;
   type?: TRANSACTION_TYPES;
-  deferrable?: string | Deferrable;
+  deferrable?: string | Deferrable | Class<Deferrable>;
   /**
    * Parent transaction.
    */

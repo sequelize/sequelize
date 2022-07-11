@@ -10,7 +10,8 @@
     },
     "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised", "chai-datetime"],
     "noEmit": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "exactOptionalPropertyTypes": false
   },
   "include": ["./types/**/*", "./**/**/*.ts"]
 }

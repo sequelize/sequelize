@@ -11,4 +11,6 @@ docker-compose -p sequelize-postgres-10 up -d
 # docker exec sequelize-postgres-10 \
 #   bash -c "export PGPASSWORD=sequelize_test && psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'"
 
+DIALECT=postgres ts-node ../../check-connection.ts
+
 echo "Local Postgres-10 instance is ready for Sequelize tests."

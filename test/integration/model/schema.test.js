@@ -28,11 +28,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.LocationOne = current.define('location', {
           name: DataTypes.STRING,
         });
-        this.RestaurantOne.belongsTo(this.LocationOne,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
+        this.RestaurantOne.belongsTo(this.LocationOne, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
         current.options.schema = SCHEMA_TWO;
         this.RestaurantTwo = current.define('restaurant', {
           foo: DataTypes.STRING,
@@ -41,11 +40,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.LocationTwo = current.define('location', {
           name: DataTypes.STRING,
         });
-        this.RestaurantTwo.belongsTo(this.LocationTwo,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
+        this.RestaurantTwo.belongsTo(this.LocationTwo, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
         current.options.schema = null;
       });
 
@@ -162,19 +160,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         { tableName: 'employees' });
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
-        this.Restaurant.belongsTo(this.Location,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
-        this.Employee.belongsTo(this.Restaurant,
-          {
-            foreignKey: 'restaurant_id',
-            constraints: false,
-          });
+        this.Restaurant.belongsTo(this.Location, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
+
+        this.Employee.belongsTo(this.Restaurant, {
+          foreignKey: 'restaurant_id',
+          foreignKeyConstraints: false,
+        });
+
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
         this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
         this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);
@@ -427,8 +425,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           const obj0 = await this.RestaurantTwo.findOne({
-            where: { foo: 'two' }, include: [{
-              model: this.Employee.schema(SCHEMA_TWO), as: 'employees',
+            where: { foo: 'two' },
+            include: [{
+              model: this.Employee.schema(SCHEMA_TWO),
+              as: 'employees',
             }],
           });
 
@@ -480,73 +480,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(restaurant.bar).to.contain('two');
           }
         });
-      });
-
-      describe('regressions', () => {
-        it('should be able to sync model with schema', async function () {
-          const User = this.sequelize.define('User1', {
-            name: DataTypes.STRING,
-            value: DataTypes.INTEGER,
-          }, {
-            schema: SCHEMA_ONE,
-            indexes: [
-              {
-                name: 'test_slug_idx',
-                fields: ['name'],
-              },
-            ],
-          });
-
-          const Task = this.sequelize.define('Task2', {
-            name: DataTypes.STRING,
-            value: DataTypes.INTEGER,
-          }, {
-            schema: SCHEMA_TWO,
-            indexes: [
-              {
-                name: 'test_slug_idx',
-                fields: ['name'],
-              },
-            ],
-          });
-
-          await User.sync({ force: true });
-          await Task.sync({ force: true });
-
-          const [user, task] = await Promise.all([
-            this.sequelize.queryInterface.describeTable(User.tableName, SCHEMA_ONE),
-            this.sequelize.queryInterface.describeTable(Task.tableName, SCHEMA_TWO),
-          ]);
-
-          expect(user).to.be.ok;
-          expect(task).to.be.ok;
-        });
-
-        // TODO: this should work with MSSQL / MariaDB too
-        // Need to fix addSchema return type
-        if (dialect.startsWith('postgres')) {
-          it('defaults to schema provided to sync() for references #11276', async function () {
-            const User = this.sequelize.define('UserXYZ', {
-              uid: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true,
-                allowNull: false,
-              },
-            });
-            const Task = this.sequelize.define('TaskXYZ', {});
-
-            Task.belongsTo(User);
-
-            await User.sync({ force: true, schema: SCHEMA_ONE });
-            await Task.sync({ force: true, schema: SCHEMA_ONE });
-            const user0 = await User.schema(SCHEMA_ONE).create({});
-            const task = await Task.schema(SCHEMA_ONE).create({});
-            await task.setUserXYZ(user0);
-            const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
-            expect(user).to.be.ok;
-          });
-        }
       });
     });
   }
