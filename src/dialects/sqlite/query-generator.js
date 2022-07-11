@@ -399,13 +399,10 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTableName);
     const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
 
-    // Temporary table cannot work for foreign keys.
-    return `${this.createTableQuery(backupTableName, attributes)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};${
-        this.createTableQuery(tableName, attributes)
-      }INSERT INTO ${quotedTableName} SELECT ${attributeNames} FROM ${quotedBackupTableName};`
-      + `DROP TABLE ${quotedBackupTableName};`;
+    return `${this.createTableQuery(backupTableName, attributes)}`
+      + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
+      + `DROP TABLE ${quotedTableName};`
+      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
 
   _alterConstraintQuery(tableName, attributes, createTableSql) {
@@ -503,6 +500,15 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
 
   tableExistsQuery(tableName) {
     return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+  }
+
+  /**
+   * Generates an SQL query to check if there are any foreign key violations in the db schema
+   *
+   * @param {string} tableName  The name of the table
+   */
+  foreignKeyCheckQuery(tableName) {
+    return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
   }
 
   /**
