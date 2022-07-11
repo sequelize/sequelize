@@ -378,8 +378,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.postC.getTags(),
             ]);
 
-            // Flaky test on MySQL8: randomly some values will be 0 sometimes, for
-            // now no solution. Not reproducible at local or cloud with logging enabled
             expect([
               postACategories.length,
               postATags.length,
