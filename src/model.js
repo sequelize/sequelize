@@ -1734,6 +1734,7 @@ class Model {
    * @param  {string}                                                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    * @param  {boolean|Error}                                             [options.rejectOnEmpty=false] Throws an error when no records found
    * @param  {boolean}                                                   [options.dotNotation] Allows including tables having the same attribute/column names - which have a dot in them.
+   * @param  {boolean}                                                   [options.nest=false] If true, transforms objects with `.` separated property names into nested objects.
    *
    * @see
    * {@link Sequelize#query}

@@ -43,7 +43,7 @@ class QueryGenerator {
     options = options || {};
     tableName = tableName || {};
     return {
-      schema: tableName.schema || options.schema || 'public',
+      schema: tableName.schema || options.schema || this.options.schema || 'public',
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.'
     };
@@ -939,8 +939,8 @@ class QueryGenerator {
   /**
    * Split a list of identifiers by "." and quote each part.
    *
-   * @param {string} identifiers 
-   * 
+   * @param {string} identifiers
+   *
    * @returns {string}
    */
   quoteIdentifiers(identifiers) {
@@ -2243,7 +2243,7 @@ class QueryGenerator {
           if (_.isPlainObject(arg)) {
             return this.whereItemsQuery(arg);
           }
-          return this.escape(typeof arg === 'string' ? arg.replace('$', '$$$') : arg);
+          return this.escape(typeof arg === 'string' ? arg.replace(/\$/g, '$$$') : arg);
         }).join(', ')
       })`;
     }
