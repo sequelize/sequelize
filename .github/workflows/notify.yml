@@ -5,13 +5,15 @@
 # curl -XPOST -u "username:access-token" -H "Accept: application/vnd.github.everest-preview+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": release-id}}'
 
 name: Notify release channels
+
 on: repository_dispatch
+
 jobs:
   tweet:
     name: Tweet release
     runs-on: ubuntu-latest
     steps:
-      - uses: cardinalby/git-get-release-action@v1.1
+      - uses: cardinalby/git-get-release-action@v1.1 # TODO: update after https://github.com/step-security/secure-workflows/issues/911
         id: releaseInfo
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -28,10 +30,10 @@ jobs:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - uses: sequelize/proxy-release-to-open-collective@main
+      - uses: sequelize/proxy-release-to-open-collective@main  # TODO: update after https://github.com/step-security/secure-workflows/issues/910
         with:
           releaseId: ${{ github.event.client_payload.release-id }}
           projectSlug: sequelize/sequelize
           ocSlug: sequelize
           ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
-          githubToken: ${{ secrets.GH_TOKEN }} 
+          githubToken: ${{ secrets.GH_TOKEN }}

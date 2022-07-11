@@ -1,4 +1,5 @@
 name: CI
+
 on:
   push:
     branches:
@@ -370,7 +371,7 @@ jobs:
         run: tar -xf install-build-node-18.tar
       - run: yarn semantic-release
       - id: sequelize
-        uses: sdepold/github-action-get-latest-release@master
+        uses: sdepold/github-action-get-latest-release@master # TODO: update after https://github.com/step-security/secure-workflows/issues/912
         with:
           repository: sequelize/sequelize
       - name: Notify channels

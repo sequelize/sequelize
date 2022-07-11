@@ -1,9 +1,11 @@
 name: Auto-remove "awaiting response" label
+
 on:
   issue_comment:
     types: [created]
 
 jobs:
+  # TODO: restrict permissions for GITHUB_TOKEN
   auto-remove-awaiting-response-label:
     name: Run
     if: "${{ contains(github.event.issue.labels.*.name, 'status: awaiting response') }}"

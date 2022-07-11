@@ -1,13 +1,19 @@
 name: "authors update"
+
 on:
+  workflow_dispatch:
   schedule:
     # Run once a week at 00:05 AM UTC on Sunday.
     - cron: "5 0 * * 0"
 
-  workflow_dispatch:
+permissions:
+  contents: read
 
 jobs:
   authors_update:
+    permissions:
+      contents: write  # for gr2m/create-or-update-pull-request-action to push local changes
+      pull-requests: write  # for gr2m/create-or-update-pull-request-action to create a PR
     if: github.repository == 'sequelize/sequelize'
     runs-on: ubuntu-latest
     steps:

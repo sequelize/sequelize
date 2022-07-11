@@ -1,12 +1,20 @@
 name: "Lint PR"
+
 on:
   pull_request:
     types:
       - opened
       - edited
       - synchronize
+
+permissions:
+  contents: read
+
 jobs:
   main:
+    permissions:
+      pull-requests: read  # for amannn/action-semantic-pull-request to analyze PRs
+      statuses: write  # for amannn/action-semantic-pull-request to mark status of analyzed PR
     name: PR has semantic title
     runs-on: ubuntu-latest
     steps:
