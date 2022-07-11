@@ -8,7 +8,7 @@ const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyCo
 const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;
 const sinon = require('sinon');
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
@@ -182,8 +182,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(updateSql).to.match(/; "li", 1$/);
           } else if (dialect === 'db2') {
             // TODO: db2 should be unified with the other positional parameter dialects
-            expect(createSql).to.match(/; \["john","john@gmail.com"]$/);
-            expect(updateSql).to.match(/; \["li",1]$/);
+            expect(createSql).to.match(/; \[ 'john', 'john@gmail.com' ]$/);
+            expect(updateSql).to.match(/; \[ 'li', 1 ]$/);
           } else {
             expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
             expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
@@ -207,7 +207,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             if (dialect === 'db2') {
               // TODO: db2 should be unified with the other positional parameter dialects
-              expect(logSql).to.match(/; \["foo","bar"]$/);
+              expect(logSql).to.match(/; \[ 'foo', 'bar' ]$/);
             } else {
               expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
             }
@@ -266,22 +266,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         })).to.include('john');
       });
     } else if (dialect === 'db2') {
-      it('executes stored procedures', function () {
-        const self = this;
+      it('executes stored procedures', async function () {
+        const { sequelize } = this;
 
-        return self.sequelize.query(this.insertQuery).then(() => {
-          return self.sequelize.query('DROP PROCEDURE foo').then(() => {
-            return self.sequelize.query(
-              `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${qq(self.User.tableName)}; OPEN cr1; END`,
-            ).then(() => {
-              return self.sequelize.query('CALL foo()').then(users => {
-                expect(users.map(u => {
-                  return u.username;
-                })).to.include('john');
-              });
-            });
-          });
-        });
+        await sequelize.query(this.insertQuery);
+
+        try {
+          await sequelize.query('DROP PROCEDURE foo');
+        } catch (error) {
+          // DB2 does not support DROP PROCEDURE IF EXISTS
+          // -204 means "FOO" does not exist
+          // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
+          if (error.cause.sqlcode !== -204) {
+            throw error;
+          }
+        }
+
+        await sequelize.query(
+          `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${qq(this.User.tableName)}; OPEN cr1; END`,
+        );
+
+        const users = await sequelize.query('CALL foo()');
+        expect(users.map(u => u.username)).to.include('john');
       });
     } else {
       console.log(': I want to be supported in this dialect as well :-(');
@@ -359,7 +365,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
 
           this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
-          this.UserVisit.belongsTo(this.User, { foreignKey: 'user_id', targetKey: 'id' });
 
           await this.UserVisit.sync({ force: true });
         });
@@ -727,7 +732,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }
 
       const [result] = await this.sequelize.query(`SELECT ${datetime} AS t${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`);
-      expect(moment(result[0].t).isValid()).to.be.true;
+      expect(dayjs(result[0].t).isValid()).to.be.true;
     });
 
     if (Support.getTestDialect() === 'postgres') {

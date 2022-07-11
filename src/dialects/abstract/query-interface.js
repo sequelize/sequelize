@@ -235,10 +235,32 @@ export class QueryInterface {
       });
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
+    attributes = this.queryGenerator.attributesToSQL(attributes, {
+      table: tableName,
+      context: 'createTable',
+      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+    });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
+   *
+   * @param {TableName} tableName - The name of the table
+   * @param {QueryOptions} options - Query options
+   * @returns {Promise<boolean>}
+   */
+  async tableExists(tableName, options) {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+
+    const out = await this.sequelize.query(sql, {
+      ...options,
+      type: QueryTypes.SHOWTABLES,
+    });
+
+    return out.length === 1;
   }
 
   /**
@@ -839,7 +861,7 @@ export class QueryInterface {
     if (options.upsertKeys.length === 0) {
       const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
       const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-      const indexKeys = Object.values(model._indexes).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
@@ -990,7 +1012,7 @@ export class QueryInterface {
         association = instance.constructor.associations[keys[i]];
         if (association.options && association.options.onDelete
           && association.options.onDelete.toLowerCase() === 'cascade'
-          && association.options.useHooks === true) {
+          && association.options.hooks === true) {
           cascades.push(association.accessors.get);
         }
       }

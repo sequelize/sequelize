@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -20,8 +20,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const Group = this.sequelize.define('Group', {});
 
       Group.hasMany(User);
-      Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
-      Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
+      Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
+      Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
 
       expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers']);
     });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
       User.hasMany(Task);
-      const subtasks = Task.hasMany(Task, { as: 'subtasks' });
+      const subtasks = Task.hasMany(Task, { as: 'subtasks', inverse: { as: 'supertask' } });
 
       await this.sequelize.sync({ force: true });
 
@@ -78,30 +78,34 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            id: 1,
-            tasks: [
-              {},
-              {},
-              {},
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            id: 2,
-            tasks: [
-              {},
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            id: 3,
-          })]);
+          const users = await Promise.all([
+            User.create({
+              id: 1,
+              tasks: [
+                {},
+                {},
+                {},
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              id: 2,
+              tasks: [
+                {},
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              id: 3,
+            }),
+          ]);
 
           const result = await User.Tasks.get(users);
-          expect(result[users[0].id].length).to.equal(3);
-          expect(result[users[1].id].length).to.equal(1);
-          expect(result[users[2].id].length).to.equal(0);
+          expect(result.get(users[0].id).length).to.equal(3);
+          expect(result.get(users[1].id).length).to.equal(1);
+          expect(result.get(users[2].id).length).to.equal(0);
         });
 
         it('should fetch associations for multiple instances with limit and order', async function () {
@@ -114,24 +118,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            tasks: [
-              { title: 'b' },
-              { title: 'd' },
-              { title: 'c' },
-              { title: 'a' },
-            ],
-          }, {
-            include: [User.Tasks],
-          }), User.create({
-            tasks: [
-              { title: 'a' },
-              { title: 'c' },
-              { title: 'b' },
-            ],
-          }, {
-            include: [User.Tasks],
-          })]);
+          const users = await Promise.all([
+            User.create({
+              tasks: [
+                { title: 'b' },
+                { title: 'd' },
+                { title: 'c' },
+                { title: 'a' },
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+            User.create({
+              tasks: [
+                { title: 'a' },
+                { title: 'c' },
+                { title: 'b' },
+              ],
+            }, {
+              include: [User.Tasks],
+            }),
+          ]);
 
           const result = await User.Tasks.get(users, {
             limit: 2,
@@ -140,13 +147,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ],
           });
 
-          expect(result[users[0].id].length).to.equal(2);
-          expect(result[users[0].id][0].title).to.equal('a');
-          expect(result[users[0].id][1].title).to.equal('b');
+          expect(result.get(users[0].id).length).to.equal(2);
+          expect(result.get(users[0].id)[0].title).to.equal('a');
+          expect(result.get(users[0].id)[1].title).to.equal('b');
 
-          expect(result[users[1].id].length).to.equal(2);
-          expect(result[users[1].id][0].title).to.equal('a');
-          expect(result[users[1].id][1].title).to.equal('b');
+          expect(result.get(users[1].id).length).to.equal(2);
+          expect(result.get(users[1].id)[0].title).to.equal('a');
+          expect(result.get(users[1].id)[1].title).to.equal('b');
         });
 
         it('should fetch multiple layers of associations with limit and order with separate=true', async function () {
@@ -163,58 +170,67 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          await Promise.all([User.create({
-            id: 1,
-            tasks: [
-              {
-                title: 'b', subtasks: [
-                  { title: 'c' },
-                  { title: 'a' },
-                ],
-              },
-              { title: 'd' },
-              {
-                title: 'c', subtasks: [
-                  { title: 'b' },
-                  { title: 'a' },
-                  { title: 'c' },
-                ],
-              },
-              {
-                title: 'a', subtasks: [
-                  { title: 'c' },
-                  { title: 'a' },
-                  { title: 'b' },
-                ],
-              },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.SubTasks] }],
-          }), User.create({
-            id: 2,
-            tasks: [
-              {
-                title: 'a', subtasks: [
-                  { title: 'b' },
-                  { title: 'a' },
-                  { title: 'c' },
-                ],
-              },
-              {
-                title: 'c', subtasks: [
-                  { title: 'a' },
-                ],
-              },
-              {
-                title: 'b', subtasks: [
-                  { title: 'a' },
-                  { title: 'b' },
-                ],
-              },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.SubTasks] }],
-          })]);
+          await Promise.all([
+            User.create({
+              id: 1,
+              tasks: [
+                {
+                  title: 'b',
+                  subtasks: [
+                    { title: 'c' },
+                    { title: 'a' },
+                  ],
+                },
+                { title: 'd' },
+                {
+                  title: 'c',
+                  subtasks: [
+                    { title: 'b' },
+                    { title: 'a' },
+                    { title: 'c' },
+                  ],
+                },
+                {
+                  title: 'a',
+                  subtasks: [
+                    { title: 'c' },
+                    { title: 'a' },
+                    { title: 'b' },
+                  ],
+                },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }],
+            }),
+            User.create({
+              id: 2,
+              tasks: [
+                {
+                  title: 'a',
+                  subtasks: [
+                    { title: 'b' },
+                    { title: 'a' },
+                    { title: 'c' },
+                  ],
+                },
+                {
+                  title: 'c',
+                  subtasks: [
+                    { title: 'a' },
+                  ],
+                },
+                {
+                  title: 'b',
+                  subtasks: [
+                    { title: 'a' },
+                    { title: 'b' },
+                  ],
+                },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }],
+            }),
+          ]);
 
           const users = await User.findAll({
             include: [{
@@ -279,24 +295,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([User.create({
-            tasks: [
-              { title: 'b', category: {} },
-              { title: 'd', category: {} },
-              { title: 'c', category: {} },
-              { title: 'a', category: {} },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.Category] }],
-          }), User.create({
-            tasks: [
-              { title: 'a', category: {} },
-              { title: 'c', category: {} },
-              { title: 'b', category: {} },
-            ],
-          }, {
-            include: [{ association: User.Tasks, include: [Task.Category] }],
-          })]);
+          const users = await Promise.all([
+            User.create({
+              tasks: [
+                { title: 'b', category: {} },
+                { title: 'd', category: {} },
+                { title: 'c', category: {} },
+                { title: 'a', category: {} },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }],
+            }),
+            User.create({
+              tasks: [
+                { title: 'a', category: {} },
+                { title: 'c', category: {} },
+                { title: 'b', category: {} },
+              ],
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }],
+            }),
+          ]);
 
           const result = await User.Tasks.get(users, {
             limit: 2,
@@ -306,17 +325,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             include: [Task.Category],
           });
 
-          expect(result[users[0].id].length).to.equal(2);
-          expect(result[users[0].id][0].title).to.equal('a');
-          expect(result[users[0].id][0].category).to.be.ok;
-          expect(result[users[0].id][1].title).to.equal('b');
-          expect(result[users[0].id][1].category).to.be.ok;
+          expect(result.get(users[0].id).length).to.equal(2);
+          expect(result.get(users[0].id)[0].title).to.equal('a');
+          expect(result.get(users[0].id)[0].category).to.be.ok;
+          expect(result.get(users[0].id)[1].title).to.equal('b');
+          expect(result.get(users[0].id)[1].category).to.be.ok;
 
-          expect(result[users[1].id].length).to.equal(2);
-          expect(result[users[1].id][0].title).to.equal('a');
-          expect(result[users[1].id][0].category).to.be.ok;
-          expect(result[users[1].id][1].title).to.equal('b');
-          expect(result[users[1].id][1].category).to.be.ok;
+          expect(result.get(users[1].id).length).to.equal(2);
+          expect(result.get(users[1].id)[0].title).to.equal('a');
+          expect(result.get(users[1].id)[0].category).to.be.ok;
+          expect(result.get(users[1].id)[1].title).to.equal('b');
+          expect(result.get(users[1].id)[1].category).to.be.ok;
         });
 
         it('supports schemas', async function () {
@@ -843,12 +862,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const user = await User.create({ username: 'foo' });
         const task = await Task.create({ title: 'task' });
         await task.setUsers([user]);
-        const _users0 = await task.getUsers();
-        expect(_users0).to.have.length(1);
+        expect(await task.getUsers()).to.have.length(1);
 
         await task.setUsers(null);
-        const _users = await task.getUsers();
-        expect(_users).to.have.length(0);
+        expect(await task.getUsers()).to.have.length(0);
       } finally {
         this.sequelize.options.omitNull = false;
       }
@@ -974,7 +991,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         ]);
 
         await article.setLabels([label1, label2]);
-        const labels = await article.getLabels({ where: { until: { [Op.gt]: moment('2014-01-02').toDate() } } });
+        const labels = await article.getLabels({ where: { until: { [Op.gt]: dayjs('2014-01-02').toDate() } } });
         expect(labels).to.be.instanceof(Array);
         expect(labels).to.have.length(1);
         expect(labels[0].text).to.equal('Epicness');
@@ -1031,6 +1048,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         this.User.hasMany(this.Task, {
           foreignKey: 'userId',
           as: 'activeTasks',
+          inverse: {
+            as: 'activeUsers',
+          },
           scope: {
             active: true,
           },
@@ -1044,7 +1064,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       it('should work with alias', async function () {
         const Person = this.sequelize.define('Group', {});
 
-        Person.hasMany(Person, { as: 'Children' });
+        Person.hasMany(Person, { as: 'Children', inverse: { as: 'parent' } });
 
         await this.sequelize.sync();
       });
@@ -1091,7 +1111,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasMany(Task, { constraints: false });
+        User.hasMany(Task, { foreignKeyConstraints: false });
 
         await this.sequelize.sync({ force: true });
 
@@ -1111,7 +1131,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        User.hasMany(Task, { onDelete: 'cascade' });
+        User.hasMany(Task, { foreignKey: { onDelete: 'cascade' } });
 
         await this.sequelize.sync({ force: true });
 
@@ -1132,7 +1152,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onUpdate: 'cascade' });
+          User.hasMany(Task, { foreignKey: { onUpdate: 'cascade' } });
 
           await this.sequelize.sync({ force: true });
 
@@ -1160,7 +1180,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onDelete: 'restrict' });
+          User.hasMany(Task, { foreignKey: { onDelete: 'restrict' } });
 
           let tasks;
           await this.sequelize.sync({ force: true });
@@ -1190,7 +1210,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, { onUpdate: 'restrict' });
+          User.hasMany(Task, { foreignKey: { onUpdate: 'restrict' } });
 
           let tasks;
           await this.sequelize.sync({ force: true });
@@ -1255,14 +1275,14 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
-        User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
+        User.hasMany(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         await Tasks[dataType].sync({ force: true });
         expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
       }
     });
 
-    it('infers the keyType if none provided', async function () {
+    it('infers the foreignKey.type if none provided', async function () {
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.STRING, primaryKey: true },
         username: DataTypes.STRING,
@@ -1340,7 +1360,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
-        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
+        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change the "as" options in your association definition');
     });
 
     it('should ignore group from ancestor on deep separated query', async function () {
@@ -1387,7 +1407,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey', () => {
     beforeEach(function () {
       const User = this.sequelize.define('UserXYZ',
-        { username: DataTypes.STRING, email: DataTypes.STRING },
+        { username: DataTypes.STRING, email: { type: DataTypes.STRING, allowNull: false } },
         { indexes: [{ fields: ['email'], unique: true }] });
       const Task = this.sequelize.define('TaskXYZ',
         { title: DataTypes.STRING, userEmail: { type: DataTypes.STRING, field: 'user_email_xyz' } });
@@ -1496,11 +1516,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       Child.belongsTo(Parent, {
         foreignKey: 'parent',
         targetKey: 'id',
-      });
-      Parent.hasMany(Child, {
-        foreignKey: 'parent',
-        targetKey: 'id',
-        as: 'children',
+        inverse: {
+          type: 'hasMany',
+          as: 'children',
+        },
       });
 
       const values = {
@@ -1525,7 +1544,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('sourceKey with where clause in include', () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User',
-        { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail' } },
+        { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail', allowNull: false } },
         { indexes: [{ fields: ['mail'], unique: true }] });
       this.Task = this.sequelize.define('Task',
         { title: DataTypes.STRING, userEmail: DataTypes.STRING, taskStatus: DataTypes.STRING });

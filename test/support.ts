@@ -25,9 +25,45 @@ chai.use(sinonChai);
 // Using util.inspect to correctly assert objects with symbols
 // Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
 chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai function
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
   expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
 });
+
+/**
+ * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
+ * that is also checks whether the message is present in the error cause.
+ */
+chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+function withInlineCause(cb: (() => any)): () => void {
+  return () => {
+    try {
+      return cb();
+    } catch (error) {
+      assert(error instanceof Error);
+
+      error.message = inlineErrorCause(error);
+
+      throw error;
+    }
+  };
+}
+
+function inlineErrorCause(error: Error) {
+  let message = error.message;
+
+  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
+  const cause = error.cause;
+  if (cause) {
+    message += `\nCaused by: ${inlineErrorCause(cause)}`;
+  }
+
+  return message;
+}
 
 chai.config.includeStack = true;
 chai.should();
@@ -60,10 +96,13 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-afterEach(() => {
-  onNextUnhandledRejection = null;
-  unhandledRejections = null;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof afterEach !== 'undefined') {
+  afterEach(() => {
+    onNextUnhandledRejection = null;
+    unhandledRejections = null;
+  });
+}
 
 /**
  * Returns a Promise that will reject with the next unhandled rejection that occurs
@@ -116,7 +155,7 @@ export async function prepareTransactionTest(sequelize: Sequelize) {
   return sequelize;
 }
 
-export function createSequelizeInstance(options: Options = {}) {
+export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
   const config = Config[options.dialect];
@@ -150,7 +189,7 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options) {
+export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
   options = options || {};
   options.dialect = options.dialect || getTestDialect();
 
@@ -185,11 +224,20 @@ export async function dropTestSchemas(sequelize: Sequelize) {
     // @ts-expect-error
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
-      schemasPromise.push(sequelize.dropSchema(schemaName));
+      const promise = sequelize.dropSchema(schemaName);
+
+      if (getTestDialect() === 'db2') {
+        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+        // eslint-disable-next-line no-await-in-loop
+        await promise;
+      } else {
+        schemasPromise.push(promise);
+      }
     }
   }
 
-  await Promise.all(schemasPromise.map(async p => p.catch((error: unknown) => error)));
+  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
@@ -237,8 +285,108 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = Dialect | 'default';
+type ExpectationKey = 'default' | Permutations<Dialect>;
+
+export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
+
+type Permutations<T extends string, U extends string = T> =
+  T extends any ? (T | `${T} ${Permutations<Exclude<U, T>>}`) : never;
+
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
+
+export function expectPerDialect<Out>(
+  method: () => Out,
+  assertions: ExpectationRecord<Out>,
+) {
+  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> = Object.create(null);
+
+  for (const [key, value] of Object.entries(assertions)) {
+    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    for (const dialect of acceptedDialects) {
+      if (dialect === 'default' && acceptedDialects.length > 1) {
+        throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+      }
+
+      if (expectations[dialect] !== undefined) {
+        throw new Error(`The expectation for ${dialect} was already defined.`);
+      }
+
+      expectations[dialect] = value;
+    }
+  }
+
+  let result: Out | Error;
+
+  try {
+    result = method();
+  } catch (error: unknown) {
+    assert(error instanceof Error, 'method threw a non-error');
+
+    result = error;
+  }
+
+  const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
+  if (expectation === undefined) {
+    throw new Error(`No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`);
+  }
+
+  if (expectation instanceof Error) {
+    assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
+
+    expect(result.message).to.equal(expectation.message);
+  } else {
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+
+    assertMatchesExpectation(result, expectation);
+  }
+}
+
+function assertMatchesExpectation<V>(result: V, expectation: V | Expectation<V>): void {
+  if (expectation instanceof Expectation) {
+    expectation.assert(result);
+  } else {
+    expect(result).to.deep.equal(expectation);
+  }
+}
+
+abstract class Expectation<Value> {
+  abstract assert(value: Value): void;
+}
+
+class SqlExpectation extends Expectation<string> {
+  constructor(private readonly sql: string) {
+    super();
+  }
+
+  assert(value: string) {
+    expect(minifySql(value)).to.equal(minifySql(this.sql));
+  }
+}
+
+export function toMatchSql(sql: string) {
+  return new SqlExpectation(sql);
+}
+
+type HasPropertiesInput<Obj extends Record<string, unknown>> = {
+  [K in keyof Obj]?: any | Expectation<Obj[K]> | Error;
+};
+
+class HasPropertiesExpectation<Obj extends Record<string, unknown>> extends Expectation<Obj> {
+  constructor(private readonly properties: HasPropertiesInput<Obj>) {
+    super();
+  }
+
+  assert(value: Obj) {
+    for (const key of Object.keys(this.properties) as Array<keyof Obj>) {
+      assertMatchesExpectation(value[key], this.properties[key]);
+    }
+  }
+}
+
+export function toHaveProperties<Obj extends Record<string, unknown>>(properties: HasPropertiesInput<Obj>) {
+  return new HasPropertiesExpectation<Obj>(properties);
+}
 
 export function expectsql(
   query: { query: string, bind: unknown } | Error,
@@ -254,7 +402,25 @@ export function expectsql(
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
 ): void {
-  const expectations: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
+  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
+  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+
+  for (const [key, value] of Object.entries(rawExpectationMap)) {
+    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    for (const dialect of acceptedDialects) {
+      if (dialect === 'default' && acceptedDialects.length > 1) {
+        throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+      }
+
+      if (expectations[dialect] !== undefined) {
+        throw new Error(`The expectation for ${dialect} was already defined.`);
+      }
+
+      expectations[dialect] = value;
+    }
+  }
+
   let expectation = expectations[sequelize.dialect.name];
 
   const dialect = sequelize.dialect;
@@ -321,17 +487,28 @@ export function minifySql(sql: string): string {
 
 export const sequelize = createSequelizeInstance();
 
-before(function onBefore() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+export function resetSequelizeInstance(): void {
+  for (const model of sequelize.modelManager.all) {
+    sequelize.modelManager.removeModel(model);
+  }
+}
 
-beforeEach(function onBeforeEach() {
-  // legacy, remove once all tests have been migrated
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this
-  this.sequelize = sequelize;
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof before !== 'undefined') {
+  before(function onBefore() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
+
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function onBeforeEach() {
+    // legacy, remove once all tests have been migrated
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.sequelize = sequelize;
+  });
+}
 
 type Tester<Params extends any[]> = {
   (...params: Params): void,
@@ -356,4 +533,38 @@ export function createTester<Params extends any[]>(
   };
 
   return tester;
+}
+
+/**
+ * Works like {@link beforeEach}, but returns an object that contains the values returned by its latest execution.
+ * @param cb
+ */
+export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
+  // it's not the right shape but we're cheating. We'll be updating the value of this object before each test!
+  const out = {} as T;
+
+  beforeEach(async () => {
+    const out2 = await cb();
+
+    Object.assign(out, out2);
+  });
+
+  return out;
+}
+
+/**
+ * Works like {@link before}, but returns an object that contains the values returned by its latest execution.
+ * @param cb
+ */
+export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
+  // it's not the right shape but we're cheating. We'll be updating the value of this object before each test!
+  const out = {} as T;
+
+  before(async () => {
+    const out2 = await cb();
+
+    Object.assign(out, out2);
+  });
+
+  return out;
 }

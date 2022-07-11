@@ -11,7 +11,7 @@ interface ExclusionConstraintErrorOptions {
 /**
  * Thrown when an exclusion constraint is violated in the database
  */
-class ExclusionConstraintError extends DatabaseError implements ExclusionConstraintErrorOptions {
+class ExclusionConstraintError extends DatabaseError {
   constraint: string | undefined;
   fields: Record<string, string | number> | undefined;
   table: string | undefined;

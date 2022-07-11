@@ -40,6 +40,7 @@ function mapBindParametersAndReplacements(
   let previousSliceEnd = 0;
   let isSingleLineComment = false;
   let isCommentBlock = false;
+  let stringIsBackslashEscapable = false;
 
   for (let i = 0; i < sqlString.length; i++) {
     const char = sqlString[i];
@@ -53,8 +54,9 @@ function mapBindParametersAndReplacements(
     }
 
     if (isString) {
-      if (char === `'` && !isBackslashEscaped(sqlString, i - 1)) {
+      if (char === `'` && (!stringIsBackslashEscapable || !isBackslashEscaped(sqlString, i - 1))) {
         isString = false;
+        stringIsBackslashEscapable = false;
       }
 
       continue;
@@ -99,6 +101,25 @@ function mapBindParametersAndReplacements(
 
     if (char === `'`) {
       isString = true;
+
+      // The following query is supported in almost all dialects,
+      //  SELECT E'test';
+      // but postgres interprets it as an E-prefixed string, while other dialects interpret it as
+      //  SELECT E 'test';
+      // which selects the type E and aliases it to 'test'.
+
+      stringIsBackslashEscapable
+        // all ''-style strings in this dialect can be backslash escaped
+        = dialect.canBackslashEscape()
+        // checking if this is a postgres-style E-prefixed string, which also supports backslash escaping
+        || (
+          dialect.supports.escapeStringConstants
+          // is this a E-prefixed string, such as `E'abc'`, `e'abc'` ?
+          && (sqlString[i - 1] === 'E' || sqlString[i - 1] === 'e')
+          // reject things such as `AE'abc'` (the prefix must be exactly E)
+          && canPrecedeNewToken(sqlString[i - 2])
+        );
+
       continue;
     }
 
@@ -133,12 +154,12 @@ function mapBindParametersAndReplacements(
       if (onBind) {
         // we want to be conservative with what we consider to be a bind parameter to avoid risk of conflict with potential operators
         // users need to add a space before the bind parameter (except after '(', ',', and '=')
-        if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+        if (!canPrecedeNewToken(previousChar)) {
           continue;
         }
 
         // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
-        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::)/i);
+        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::|;)/i);
         const bindParamName = match?.groups?.name;
         if (!bindParamName) {
           continue;
@@ -161,14 +182,14 @@ function mapBindParametersAndReplacements(
     if (isNamedReplacements && char === ':') {
       const previousChar = sqlString[i - 1];
       // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
-      // users need to add a space before the bind parameter (except after '(', ',', and '=')
-      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+      // users need to add a space before the bind parameter (except after '(', ',', '=', and '[' (for arrays))
+      if (!canPrecedeNewToken(previousChar) && previousChar !== '[') {
         continue;
       }
 
       const remainingString = sqlString.slice(i, sqlString.length);
 
-      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::)/i);
+      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::|;|])/i);
       const replacementName = match?.groups?.name;
       if (!replacementName) {
         continue;
@@ -196,8 +217,10 @@ function mapBindParametersAndReplacements(
       const previousChar = sqlString[i - 1];
 
       // we want to be conservative with what we consider to be a replacement to avoid risk of conflict with potential operators
-      // users need to add a space before the bind parameter (except after '(', ',', and '=')
-      if (previousChar !== undefined && !/[\s(,=]/.test(previousChar)) {
+      // users need to add a space before the bind parameter (except after '(', ',', '=', and '[' (for arrays))
+      // -> [ is temporarily added to allow 'ARRAY[:name]' to be replaced
+      // https://github.com/sequelize/sequelize/issues/14410 will make this obsolete.
+      if (!canPrecedeNewToken(previousChar) && previousChar !== '[') {
         continue;
       }
 
@@ -230,9 +253,17 @@ function mapBindParametersAndReplacements(
     }
   }
 
+  if (isString) {
+    throw new Error(`The following SQL query includes an unterminated string literal:\n${sqlString}`);
+  }
+
   output += sqlString.slice(previousSliceEnd, sqlString.length);
 
   return output;
+}
+
+function canPrecedeNewToken(char: string | undefined): boolean {
+  return char === undefined || /[\s(>,=]/.test(char);
 }
 
 /**

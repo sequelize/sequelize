@@ -6,8 +6,8 @@ You can use the information below to contact maintainers directly. We will try t
 ## Via Email
 
 - **Sascha Depold** sascha@depold.com
-- **Fauzan** fncolon@pm.me
 - **Zoé Cox** zoe@ephys.dev (accepts CoC violation reports, security reports)
+- **Rik Smale** sequelize@riksmale.info (accepts CoC violation reports, security reports)
 
 ## Via Slack
 

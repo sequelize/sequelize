@@ -1,19 +1,19 @@
 'use strict';
 
 const _ = require('lodash');
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
+const { isValidTimeZone } = require('../../utils/dayjs');
 
 const debug = logger.debugContext('connection:pg');
 const sequelizeErrors = require('../../errors');
 const semver = require('semver');
 const dataTypes = require('../../data-types');
-const momentTz = require('moment-timezone');
+const dayjs = require('dayjs');
 const { promisify } = require('util');
 
-export class PostgresConnectionManager extends ConnectionManager {
+export class PostgresConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg');
@@ -243,8 +243,7 @@ export class PostgresConnectionManager extends ConnectionManager {
     }
 
     if (!this.sequelize.config.keepDefaultTimezone) {
-      const isZone = Boolean(momentTz.tz.zone(this.sequelize.options.timezone));
-      if (isZone) {
+      if (isValidTimeZone(this.sequelize.options.timezone)) {
         query += `SET TIME ZONE '${this.sequelize.options.timezone}';`;
       } else {
         query += `SET TIME ZONE INTERVAL '${this.sequelize.options.timezone}' HOUR TO MINUTE;`;
