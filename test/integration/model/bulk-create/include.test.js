@@ -622,40 +622,53 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUsers[1].jobs.length).to.equal(2);
       });
 
-      it('should pass options to associated models as well', async function () {
+      it('supports updateOnDuplicate for associated models', async function () {
+        const dialectName = this.sequelize.dialect.name;
+
         const Player = this.sequelize.define('Player', {
           code: {
             type: DataTypes.STRING,
             primaryKey: true,
           },
           name: DataTypes.STRING,
-          surname: DataTypes.STRING,
-          dateBirth: DataTypes.DATE,
-          country: DataTypes.STRING,
         });
-
         const Team = this.sequelize.define('Team', {
           code: {
             type: DataTypes.STRING,
             primaryKey: true,
           },
-          name: DataTypes.STRING,
           country: DataTypes.STRING,
-          color: DataTypes.STRING,
-          trophies: DataTypes.INTEGER,
         });
-
         Team.hasMany(Player, { as: 'players' });
-        Player.belongsTo(Team);
-
         await this.sequelize.sync();
 
-        const dialect = this.sequelize.options.dialect;
-
-        if (dialect === 'mssql' || dialect === 'db2') {
+        if (dialectName === 'mssql' || dialectName === 'db2') {
           expect(
-            async () => await Team.bulkCreate({}).to.throw(
-              `${dialect} does not support the updateOnDuplicate option.`,
+            async () => await Team.bulkCreate(
+              [
+                {
+                  code: 'team1',
+                  country: 'countryTeam001',
+                  players: [
+                    {
+                      code: 'player1',
+                      name: 'playername1',
+                    },
+                  ],
+                },
+              ],
+              {
+                include: [
+                  {
+                    model: Player,
+                    as: 'players',
+                    updateOnDuplicate: ['name'],
+                  },
+                ],
+                updateOnDuplicate: ['country'],
+              },
+            ).to.be.rejectedWith(
+              `${dialectName} does not support the updateOnDuplicate option.`,
             ),
           );
         } else {
@@ -663,17 +676,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             [
               {
                 code: 'team1',
-                name: 'nameTeam1',
                 country: 'countryTeam001',
-                color: 'colorTeam1',
-                trophies: 1,
                 players: [
                   {
                     code: 'player1',
                     name: 'playername1',
-                    surname: 'playernSurname1',
-                    dateBirth: new Date(),
-                    country: 'country1',
                   },
                 ],
               },
@@ -686,31 +693,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   updateOnDuplicate: ['name'],
                 },
               ],
-              updateOnDuplicate: ['country', 'color', 'trophies'],
+              updateOnDuplicate: ['country'],
             },
           );
 
-          let playerOfInterest = await Player.findOne({
+          const preUpdatePlayer = await Player.findOne({
             where: { code: 'player1' },
           });
 
-          expect(playerOfInterest.name).to.equal('playername1');
+          expect(preUpdatePlayer.name).to.equal('playername1');
 
           await Team.bulkCreate(
             [
               {
                 code: 'team1',
-                name: 'nameTeam1',
                 country: 'countryTeam1',
-                color: 'colorTeam1',
-                trophies: 1,
                 players: [
                   {
                     code: 'player1',
                     name: 'playername2',
-                    surname: 'playernSurname1',
-                    dateBirth: new Date(),
-                    country: 'country1',
                   },
                 ],
               },
@@ -723,15 +724,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   updateOnDuplicate: ['name'],
                 },
               ],
-              updateOnDuplicate: ['country', 'color', 'trophies'],
+              updateOnDuplicate: ['country'],
             },
           );
 
-          playerOfInterest = await Player.findOne({
+          const postUpdatePlayer = await Player.findOne({
             where: { code: 'player1' },
           });
 
-          expect(playerOfInterest.name).to.equal('playername2');
+          expect(postUpdatePlayer.name).to.equal('playername2');
         }
       });
     });
