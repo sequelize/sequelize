@@ -11,7 +11,7 @@ const current = Support.sequelize;
 
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

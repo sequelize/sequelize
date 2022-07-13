@@ -9,7 +9,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

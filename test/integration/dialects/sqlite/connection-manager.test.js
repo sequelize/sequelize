@@ -15,7 +15,7 @@ const nestedFileName = jetpack.path(directoryName, 'subdirectory', 'test.sqlite'
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] Connection Manager', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

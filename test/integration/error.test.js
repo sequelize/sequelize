@@ -14,7 +14,7 @@ const {
 } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

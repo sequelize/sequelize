@@ -11,7 +11,7 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

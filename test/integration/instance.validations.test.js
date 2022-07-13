@@ -7,7 +7,7 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

@@ -10,7 +10,7 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] DAOFactory', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

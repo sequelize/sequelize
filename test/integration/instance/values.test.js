@@ -9,7 +9,7 @@ const dialect = Support.getTestDialect();
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

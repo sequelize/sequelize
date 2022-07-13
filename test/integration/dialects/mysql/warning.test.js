@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Warning'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

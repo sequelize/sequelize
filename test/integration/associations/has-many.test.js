@@ -14,7 +14,7 @@ const _ = require('lodash');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasMany'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

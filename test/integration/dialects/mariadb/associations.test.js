@@ -10,7 +10,7 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MariaDB Specific] Associations', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

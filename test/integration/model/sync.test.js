@@ -7,7 +7,7 @@ const { clearDatabase, sequelize, getTestDialect, getTestDialectTeaser } = requi
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await clearDatabase(sequelize);
   });
 

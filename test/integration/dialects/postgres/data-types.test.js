@@ -10,7 +10,7 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

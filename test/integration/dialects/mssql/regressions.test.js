@@ -12,7 +12,7 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe(Support.getTestDialectTeaser('Regressions'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

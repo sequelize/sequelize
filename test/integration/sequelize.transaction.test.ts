@@ -9,7 +9,7 @@ import { clearDatabase, sequelize, getTestDialectTeaser, getTestDialect, prepare
 const dialectName = sequelize.dialect.name;
 
 describe(getTestDialectTeaser('Sequelize#transaction'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await clearDatabase(sequelize);
   });
 

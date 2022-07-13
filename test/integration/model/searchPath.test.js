@@ -18,7 +18,7 @@ const current = Support.createSequelizeInstance({
 let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

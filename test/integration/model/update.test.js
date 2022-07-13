@@ -10,7 +10,7 @@ const current = Support.sequelize;
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

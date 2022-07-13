@@ -14,7 +14,7 @@ if (dialect.startsWith('postgres')) {
   const pg = require('pg');
 
   describe('[POSTGRES Specific] range datatype', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

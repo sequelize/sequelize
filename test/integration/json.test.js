@@ -11,7 +11,7 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe('model', () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

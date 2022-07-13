@@ -11,7 +11,7 @@ const semver = require('semver');
 const upperFirst = require('lodash/upperFirst');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

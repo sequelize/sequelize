@@ -11,7 +11,7 @@ const { Sequelize } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] Connection Manager', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

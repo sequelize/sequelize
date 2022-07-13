@@ -16,7 +16,7 @@ const pSettle = require('p-settle');
 if (current.dialect.supports.transactions) {
 
   describe(Support.getTestDialectTeaser('Transaction'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Alias'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

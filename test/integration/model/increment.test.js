@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

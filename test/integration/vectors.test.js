@@ -9,7 +9,7 @@ const Support = require('./support');
 chai.should();
 
 describe(Support.getTestDialectTeaser('Vectors'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

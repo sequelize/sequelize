@@ -24,7 +24,7 @@ const qq = str => {
 };
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

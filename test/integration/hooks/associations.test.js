@@ -10,7 +10,7 @@ const sinon = require('sinon');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

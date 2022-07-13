@@ -18,7 +18,7 @@ if (dialect === 'sqlite') {
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

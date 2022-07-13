@@ -9,7 +9,7 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Query Queue', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

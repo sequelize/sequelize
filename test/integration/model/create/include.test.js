@@ -7,7 +7,7 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

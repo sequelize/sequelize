@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Connection Manager', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

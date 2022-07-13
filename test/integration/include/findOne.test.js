@@ -8,7 +8,7 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

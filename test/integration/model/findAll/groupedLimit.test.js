@@ -13,7 +13,7 @@ const _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

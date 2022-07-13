@@ -14,7 +14,7 @@ const sinon = require('sinon');
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

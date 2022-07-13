@@ -15,7 +15,7 @@ const sortById = function (a, b) {
 };
 
 describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

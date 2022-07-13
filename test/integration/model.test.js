@@ -17,7 +17,7 @@ const pMap = require('p-map');
 const { expectsql } = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

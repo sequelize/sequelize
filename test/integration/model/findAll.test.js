@@ -16,7 +16,7 @@ const current = Support.sequelize;
 const promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

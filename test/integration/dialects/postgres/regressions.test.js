@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] Regressions', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

@@ -10,7 +10,7 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

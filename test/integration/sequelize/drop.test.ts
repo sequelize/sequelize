@@ -5,7 +5,7 @@ import { clearDatabase, sequelize } from '../support';
 const dialect = sequelize.getDialect();
 
 describe('Sequelize#drop', () => {
-  beforeEach(async () => {
+  before(async () => {
     await clearDatabase(sequelize);
   });
 

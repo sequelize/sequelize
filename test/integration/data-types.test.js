@@ -16,7 +16,7 @@ const dialect = Support.getTestDialect();
 const semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

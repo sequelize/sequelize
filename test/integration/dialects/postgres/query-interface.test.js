@@ -83,7 +83,6 @@ if (dialect.startsWith('postgres')) {
     });
 
     describe('createFunction', () => {
-
       beforeEach(async function () {
         // make sure we don't have a pre-existing function called create_job
         // this is needed to cover the edge case of afterEach not getting called because of an unexpected issue or stopage with the
@@ -185,6 +184,7 @@ if (dialect.startsWith('postgres')) {
           .to.be.rejectedWith(/function variable must have a name and type/);
       });
 
+      // TODO: figure out why before does not work here
       it('uses declared variables', async function () {
         const body = 'RETURN myVar + 1;';
         const options = { variables: [{ type: 'integer', name: 'myVar', default: 100 }] };

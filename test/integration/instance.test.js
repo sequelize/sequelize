@@ -11,7 +11,7 @@ const sinon = require('sinon');
 const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  beforeEach(async () => {
+  before(async () => {
     await Support.clearDatabase(Support.sequelize);
   });
 

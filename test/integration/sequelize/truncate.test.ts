@@ -14,7 +14,7 @@ interface IB extends Model<InferAttributes<IB>, InferCreationAttributes<IB>> {
 }
 
 describe('Sequelize#truncate', () => {
-  beforeEach(async () => {
+  before(async () => {
     await clearDatabase(sequelize);
   });
 

@@ -9,7 +9,7 @@ const sinon = require('sinon');
 
 if (Support.sequelize.dialect.supports.upserts) {
   describe(Support.getTestDialectTeaser('Hooks'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 

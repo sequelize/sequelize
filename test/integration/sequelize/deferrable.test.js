@@ -8,7 +8,7 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 
 if (Support.sequelize.dialect.supports.deferrableConstraints) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
-    beforeEach(async () => {
+    before(async () => {
       await Support.clearDatabase(Support.sequelize);
     });
 
