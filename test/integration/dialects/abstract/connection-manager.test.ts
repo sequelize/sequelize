@@ -6,7 +6,7 @@ import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import { Config } from '../../../config/config';
-import { getTestDialect, getTestDialectTeaser, createSequelizeInstance, clearDatabase, sequelize } from '../../support';
+import { getTestDialect, getTestDialectTeaser, createSequelizeInstance } from '../../support';
 
 const expect = chai.expect;
 const baseConf = Config[getTestDialect()];
@@ -19,10 +19,6 @@ const poolEntry = {
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Connection Manager'), () => {
-  beforeEach(async () => {
-    await clearDatabase(sequelize);
-  });
-
   let sandbox: SinonSandbox;
 
   beforeEach(() => {
@@ -38,10 +34,10 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       replication: null,
     };
 
-    const sequelizeInstance = createSequelizeInstance(options);
-    expect(sequelizeInstance.connectionManager.pool).to.be.instanceOf(ReplicationPool);
-    expect(sequelizeInstance.connectionManager.pool.read).to.be.null;
-    expect(sequelizeInstance.connectionManager.pool.write).to.be.instanceOf(Pool);
+    const sequelize = createSequelizeInstance(options);
+    expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
+    expect(sequelize.connectionManager.pool.read).to.be.null;
+    expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
   it('initializes a readOnly pool with replication', () => {
@@ -52,10 +48,10 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       },
     };
 
-    const sequelizeInstance = createSequelizeInstance(options);
-    expect(sequelizeInstance.connectionManager.pool).to.be.instanceOf(ReplicationPool);
-    expect(sequelizeInstance.connectionManager.pool.read).to.be.instanceOf(Pool);
-    expect(sequelizeInstance.connectionManager.pool.write).to.be.instanceOf(Pool);
+    const sequelize = createSequelizeInstance(options);
+    expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
+    expect(sequelize.connectionManager.pool.read).to.be.instanceOf(Pool);
+    expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
   it('should round robin calls to the read pool', async () => {
@@ -75,14 +71,14 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       },
     };
 
-    const sequelizeInstance = createSequelizeInstance(options);
-    const connectionManager = sequelizeInstance.connectionManager;
+    const sequelize = createSequelizeInstance(options);
+    const connectionManager = sequelize.connectionManager;
 
     const res: Connection = {};
 
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves();
-    sandbox.stub(sequelizeInstance, 'databaseVersion').resolves(sequelizeInstance.dialect.defaultVersion);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
 
     const queryOptions: GetConnectionOptions = {
       type: 'read',
@@ -110,10 +106,10 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
   if (dialect !== 'sqlite') {
     it('should trigger deprecation for non supported engine version', async () => {
       const stub = sandbox.stub(process, 'emitWarning');
-      const sequelizeInstance = createSequelizeInstance();
-      const connectionManager = sequelizeInstance.connectionManager;
+      const sequelize = createSequelizeInstance();
+      const connectionManager = sequelize.connectionManager;
 
-      sandbox.stub(sequelizeInstance, 'databaseVersion').resolves('0.0.1');
+      sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
 
       const res: Connection = {};
 
@@ -148,8 +144,8 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
           read: [{ ...poolEntry }],
         },
       };
-      const sequelizeInstance = createSequelizeInstance(options);
-      const connectionManager = sequelizeInstance.connectionManager;
+      const sequelize = createSequelizeInstance(options);
+      const connectionManager = sequelize.connectionManager;
 
       const res: Connection = {};
 
@@ -158,8 +154,8 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
         .resolves(res);
       sandbox.stub(connectionManager, '_disconnect').resolves();
       sandbox
-        .stub(sequelizeInstance, 'databaseVersion')
-        .resolves(sequelizeInstance.dialect.defaultVersion);
+        .stub(sequelize, 'databaseVersion')
+        .resolves(sequelize.dialect.defaultVersion);
 
       const queryOptions: GetConnectionOptions = {
         type: 'read',
@@ -177,8 +173,8 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: null,
     };
-    const sequelizeInstance = createSequelizeInstance(options);
-    const connectionManager = sequelizeInstance.connectionManager;
+    const sequelize = createSequelizeInstance(options);
+    const connectionManager = sequelize.connectionManager;
 
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
     const poolClearSpy = sandbox.spy(connectionManager.pool, 'destroyAllNow');

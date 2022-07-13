@@ -2,8 +2,6 @@ import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import {
-  clearDatabase,
-  sequelize,
   beforeEach2,
   getConnectionOptionsWithoutPool,
   getSequelizeInstance,
@@ -13,10 +11,6 @@ import {
 
 const dialect = getTestDialect();
 describe(getTestDialectTeaser('Replication'), () => {
-  beforeEach(async () => {
-    await clearDatabase(sequelize);
-  });
-
   if (['sqlite', 'ibmi'].includes(dialect)) {
     return;
   }
@@ -24,17 +18,17 @@ describe(getTestDialectTeaser('Replication'), () => {
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
       const sandbox = sinon.createSandbox();
-      const sequelizeInstance = getSequelizeInstance('', '', '', {
+      const sequelize = getSequelizeInstance('', '', '', {
         replication: {
           write: getConnectionOptionsWithoutPool(),
           read: [getConnectionOptionsWithoutPool()],
         },
       });
 
-      expect(sequelizeInstance.connectionManager.pool.write).to.be.ok;
-      expect(sequelizeInstance.connectionManager.pool.read).to.be.ok;
+      expect(sequelize.connectionManager.pool.write).to.be.ok;
+      expect(sequelize.connectionManager.pool.read).to.be.ok;
 
-      const User = sequelizeInstance.define('User', {
+      const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
           field: 'first_name',
@@ -42,12 +36,12 @@ describe(getTestDialectTeaser('Replication'), () => {
       });
 
       await User.sync({ force: true });
-      const readSpy = sandbox.spy(sequelizeInstance.connectionManager.pool.read!, 'acquire');
-      const writeSpy = sandbox.spy(sequelizeInstance.connectionManager.pool.write, 'acquire');
+      const readSpy = sandbox.spy(sequelize.connectionManager.pool.read!, 'acquire');
+      const writeSpy = sandbox.spy(sequelize.connectionManager.pool.write, 'acquire');
 
       return {
         User,
-        sequelizeInstance,
+        sequelize,
         sandbox,
         readSpy,
         writeSpy,
@@ -82,7 +76,7 @@ describe(getTestDialectTeaser('Replication'), () => {
     });
 
     it('should run read-only transactions on the replica', async () => {
-      await deps.sequelizeInstance.transaction({ readOnly: true }, async transaction => {
+      await deps.sequelize.transaction({ readOnly: true }, async transaction => {
         return deps.User.findAll({ transaction });
       });
 
@@ -90,7 +84,7 @@ describe(getTestDialectTeaser('Replication'), () => {
     });
 
     it('should run non-read-only transactions on the primary', async () => {
-      await deps.sequelizeInstance.transaction(async transaction => {
+      await deps.sequelize.transaction(async transaction => {
         return deps.User.findAll({ transaction });
       });
 
