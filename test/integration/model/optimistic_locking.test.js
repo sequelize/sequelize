@@ -7,6 +7,10 @@ const chai = require('chai');
 const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('optimistic locking', () => {
     let Account;
     beforeEach(async function () {

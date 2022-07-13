@@ -9,6 +9,10 @@ const { DataTypes } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   if (current.dialect.supports.GEOGRAPHY) {
     describe('GEOGRAPHY', () => {
       beforeEach(async function () {

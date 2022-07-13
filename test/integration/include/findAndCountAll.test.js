@@ -9,6 +9,10 @@ const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

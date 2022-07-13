@@ -10,6 +10,10 @@ const { DataTypes, Op, json } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DAO', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(async function () {
       this.sequelize.options.quoteIdentifiers = true;
       this.User = this.sequelize.define('User', {

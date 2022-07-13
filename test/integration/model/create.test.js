@@ -16,6 +16,10 @@ const current = Support.sequelize;
 const pTimeout = require('p-timeout');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     const sequelize = await Support.prepareTransactionTest(this.sequelize);
     this.sequelize = sequelize;

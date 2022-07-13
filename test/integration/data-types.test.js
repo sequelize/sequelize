@@ -16,6 +16,10 @@ const dialect = Support.getTestDialect();
 const semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   afterEach(function () {
     // Restore some sanity by resetting all parsers
     this.sequelize.connectionManager._clearTypeParser();

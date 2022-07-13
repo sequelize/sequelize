@@ -17,6 +17,10 @@ const pMap = require('p-map');
 const { expectsql } = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   let isMySQL8;
 
   before(function () {

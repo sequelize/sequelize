@@ -12,6 +12,10 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe(Support.getTestDialectTeaser('Regressions'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('does not duplicate columns in ORDER BY statement, #9008', async function () {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {

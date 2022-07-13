@@ -14,6 +14,10 @@ if (dialect.startsWith('postgres')) {
   const pg = require('pg');
 
   describe('[POSTGRES Specific] range datatype', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('stringify', () => {
       it('should handle empty objects correctly', () => {
         expect(range.stringify([])).to.equal('empty');

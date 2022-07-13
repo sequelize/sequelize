@@ -8,6 +8,10 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 
 if (Support.sequelize.dialect.supports.deferrableConstraints) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('Deferrable', () => {
       const describeDeferrableTest = (title, defineModels) => {
         describe(title, () => {

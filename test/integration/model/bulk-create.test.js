@@ -10,6 +10,10 @@ const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     const sequelize = await Support.prepareTransactionTest(this.sequelize);
     this.sequelize = sequelize;

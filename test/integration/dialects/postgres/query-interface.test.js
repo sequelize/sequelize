@@ -11,6 +11,10 @@ const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(function () {
       this.sequelize.options.quoteIdenifiers = true;
       this.queryInterface = this.sequelize.getQueryInterface();

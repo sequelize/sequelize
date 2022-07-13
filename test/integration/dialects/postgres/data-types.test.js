@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('DATE/DATEONLY Validate and Stringify', () => {
       const now = new Date();
       const nowString = now.toISOString();

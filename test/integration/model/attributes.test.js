@@ -7,6 +7,10 @@ const expect = chai.expect;
 const Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('attributes', () => {
     describe('set', () => {
       it('should only be called once when used on a join model called with an association getter', async function () {

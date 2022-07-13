@@ -9,6 +9,10 @@ const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('REGEXP', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('user', {

@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] Connection Manager', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
       const sequelize = Support.createSequelizeInstance();
       const User = sequelize.define('User', { username: DataTypes.STRING });

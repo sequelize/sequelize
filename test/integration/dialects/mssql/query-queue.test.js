@@ -9,6 +9,10 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Query Queue', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(async function () {
       const User = this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,

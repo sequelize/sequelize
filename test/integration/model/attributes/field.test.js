@@ -10,6 +10,9 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
 
   before(function () {
     this.clock = sinon.useFakeTimers();

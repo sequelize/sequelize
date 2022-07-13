@@ -18,6 +18,10 @@ const current = Support.createSequelizeInstance({
 let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   if (current.dialect.supports.searchPath) {
     describe('SEARCH PATH', () => {
       before(function () {

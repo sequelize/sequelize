@@ -11,6 +11,10 @@ const current = Support.sequelize;
 
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('trigger', () => {
       let User;
       let triggerQuery = 'create trigger User_ChangeTracking on [users] for insert,update, delete \n'

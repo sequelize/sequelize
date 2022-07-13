@@ -14,6 +14,10 @@ const sinon = require('sinon');
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));
     });

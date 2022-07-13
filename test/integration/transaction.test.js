@@ -16,6 +16,10 @@ const pSettle = require('p-settle');
 if (current.dialect.supports.transactions) {
 
   describe(Support.getTestDialectTeaser('Transaction'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(function () {
       this.sinon = sinon.createSandbox();
     });

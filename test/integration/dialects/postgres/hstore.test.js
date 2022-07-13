@@ -10,6 +10,10 @@ const hstore = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialec
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] hstore', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('stringify', () => {
       it('should handle empty objects correctly', () => {
         expect(hstore.stringify({})).to.equal('');

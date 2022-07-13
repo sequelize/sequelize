@@ -7,6 +7,10 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('create', () => {
     describe('include', () => {
       it('should create data for BelongsTo relations', async function () {

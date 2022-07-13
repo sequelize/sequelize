@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] associations', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {
         it('should create a table wp_table1wp_table2s', function () {

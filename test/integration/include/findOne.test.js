@@ -8,6 +8,10 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('findOne', () => {
     it('should include a non required model, with conditions and two includes N:M 1:M', async function () {
       const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true });

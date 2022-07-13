@@ -10,6 +10,9 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
 
     const validateError = async (promise, errClass, errValues) => {
       const wanted = { ...errValues };

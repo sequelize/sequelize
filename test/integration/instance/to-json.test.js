@@ -7,6 +7,10 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('toJSON', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {

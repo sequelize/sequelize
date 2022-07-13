@@ -10,9 +10,14 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });
+
   after(function () {
     this.clock.restore();
   });

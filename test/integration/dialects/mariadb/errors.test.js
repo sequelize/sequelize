@@ -10,6 +10,9 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MariaDB Specific] Errors', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
 
     const validateError = async (promise, errClass, errValues) => {
       const wanted = { ...errValues };

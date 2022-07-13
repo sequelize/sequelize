@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] sqlite_master raw queries', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(async function () {
       this.sequelize.define('SomeTable', {
         someColumn: DataTypes.INTEGER,

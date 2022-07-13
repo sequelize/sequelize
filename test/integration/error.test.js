@@ -14,6 +14,10 @@ const {
 } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('API Surface', () => {
     it('Should have the Error constructors exposed', () => {
       expect(Sequelize).to.have.property('Error');

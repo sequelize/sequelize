@@ -9,6 +9,10 @@ const dialect = Support.getTestDialect();
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('Values', () => {
     describe('set', () => {
       it('doesn\'t overwrite generated primary keys', function () {

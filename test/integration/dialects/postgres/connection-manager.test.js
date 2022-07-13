@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Sequelize', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     async function checkTimezoneParsing(baseOptions) {
       const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
       const sequelize = Support.createSequelizeInstance(options);

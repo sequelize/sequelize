@@ -10,6 +10,10 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('get', () => {
     describe('multiple', () => {
       it('should fetch associations for multiple instances', async function () {

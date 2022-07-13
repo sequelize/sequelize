@@ -9,6 +9,10 @@ const sinon = require('sinon');
 
 if (Support.sequelize.dialect.supports.upserts) {
   describe(Support.getTestDialectTeaser('Hooks'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: {

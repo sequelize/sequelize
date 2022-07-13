@@ -11,6 +11,10 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
   describe('[MSSQL Specific] Connection Manager', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('Errors', () => {
       // TODO [>=7.0.0-beta]: Refactor so this is the only connection it tries to connect with
       it.skip('ECONNREFUSED', async () => {

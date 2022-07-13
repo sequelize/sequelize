@@ -13,6 +13,10 @@ const sortById = function (a, b) {
 };
 
 describe(Support.getTestDialectTeaser('Include'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('findAll', () => {
     beforeEach(function () {
       this.fixtureA = async function () {

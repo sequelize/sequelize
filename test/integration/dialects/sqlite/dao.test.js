@@ -10,6 +10,10 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,

@@ -14,6 +14,10 @@ const _ = require('lodash');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasMany'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('Model.associations', () => {
     it('should store all assocations when associting to the same table multiple times', function () {
       const User = this.sequelize.define('User', {});

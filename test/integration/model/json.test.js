@@ -10,6 +10,10 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   if (current.dialect.supports.JSON) {
     describe('JSON', () => {
       beforeEach(async function () {

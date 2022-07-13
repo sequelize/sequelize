@@ -9,6 +9,10 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('attributes', () => {
     describe('types', () => {
       describe('VIRTUAL', () => {

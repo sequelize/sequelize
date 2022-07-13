@@ -8,6 +8,10 @@ const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

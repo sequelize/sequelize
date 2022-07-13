@@ -11,6 +11,10 @@ const sinon = require('sinon');
 const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

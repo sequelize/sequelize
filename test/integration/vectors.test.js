@@ -9,6 +9,10 @@ const Support = require('./support');
 chai.should();
 
 describe(Support.getTestDialectTeaser('Vectors'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   it('should not allow insert backslash', async function () {
     const Student = this.sequelize.define('student', {
       name: DataTypes.STRING,

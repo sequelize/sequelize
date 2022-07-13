@@ -1,7 +1,7 @@
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../support';
+import { clearDatabase, sequelize } from '../support';
 
 interface IA extends Model<InferAttributes<IA>, InferCreationAttributes<IA>> {
   id: CreationOptional<number>;
@@ -14,6 +14,10 @@ interface IB extends Model<InferAttributes<IB>, InferCreationAttributes<IB>> {
 }
 
 describe('Sequelize#truncate', () => {
+  beforeEach(async () => {
+    await clearDatabase(sequelize);
+  });
+
   // These dialects do not support the CASCADE option on TRUNCATE, so it's impossible to clear
   //  tables that reference each-other.
   if (!['mysql', 'mariadb', 'mssql', 'db2'].includes(sequelize.dialect.name)) {

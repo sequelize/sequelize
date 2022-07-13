@@ -13,6 +13,10 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(() => {
     Support.resetSequelizeInstance();
   });

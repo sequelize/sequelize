@@ -11,6 +11,10 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] Regressions', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {
         active: DataTypes.BOOLEAN,

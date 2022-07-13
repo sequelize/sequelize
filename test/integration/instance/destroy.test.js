@@ -12,6 +12,10 @@ const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('destroy', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {

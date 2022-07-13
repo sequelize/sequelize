@@ -18,6 +18,10 @@ if (dialect === 'sqlite') {
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('Connections problems should fail with a nice message', () => {
     if (dialect !== 'db2') {
       it('when we don\'t have the correct server details', async () => {

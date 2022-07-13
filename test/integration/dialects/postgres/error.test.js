@@ -11,6 +11,10 @@ const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     const constraintName = 'overlap_period';
     beforeEach(async function () {
       this.Booking = this.sequelize.define('Booking', {

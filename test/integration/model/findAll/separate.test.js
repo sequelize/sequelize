@@ -9,6 +9,10 @@ const { DataTypes } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('findAll', () => {
     describe('separate with limit', () => {
       it('should not throw syntax error (union)', async () => {

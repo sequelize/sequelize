@@ -12,6 +12,10 @@ const semver = require('semver');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', () => {
       beforeEach(async function () {

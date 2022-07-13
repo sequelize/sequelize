@@ -12,6 +12,10 @@ const storages = [dbFile];
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAOFactory', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     after(function () {
       this.sequelize.options.storage = ':memory:';
     });

@@ -10,6 +10,10 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MariaDB Specific] DAOFactory', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('constructor', () => {
       it('handles extended attributes (unique)', function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {

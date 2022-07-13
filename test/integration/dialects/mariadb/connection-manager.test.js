@@ -11,6 +11,9 @@ const { Sequelize } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] Connection Manager', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
 
     it('has existing init SQL', async () => {
       const sequelize = Support.createSequelizeInstance(

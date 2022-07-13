@@ -16,6 +16,10 @@ const current = Support.sequelize;
 const promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,

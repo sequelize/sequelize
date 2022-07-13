@@ -7,6 +7,10 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     this.Payment = this.sequelize.define('Payment', {
       amount: DataTypes.DECIMAL,

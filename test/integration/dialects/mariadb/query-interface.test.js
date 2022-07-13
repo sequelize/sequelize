@@ -9,6 +9,9 @@ const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mariadb')) {
   describe('QueryInterface', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
 
     describe('databases', () => {
       it('should create and drop database', async function () {

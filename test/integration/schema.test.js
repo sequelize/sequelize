@@ -7,6 +7,10 @@ const Support = require('./support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Schema'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     await this.sequelize.createSchema('testschema');
   });

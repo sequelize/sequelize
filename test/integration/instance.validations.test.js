@@ -7,6 +7,10 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('#update', () => {
     it('should allow us to update specific columns without tripping the validations', async function () {
       const User = this.sequelize.define('model', {

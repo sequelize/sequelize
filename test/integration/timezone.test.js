@@ -11,6 +11,10 @@ if (dialect !== 'sqlite' && dialect !== 'ibmi') {
   // Sqlite does not support setting timezone
 
   describe(Support.getTestDialectTeaser('Timezone'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     beforeEach(function () {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
         timezone: '+07:00',

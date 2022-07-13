@@ -9,6 +9,10 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {

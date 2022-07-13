@@ -24,6 +24,10 @@ const qq = str => {
 };
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('constructor', () => {
     it('should pass the global options correctly', () => {
       const sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored: true } });

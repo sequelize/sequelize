@@ -16,6 +16,10 @@ const SCHEMA_TWO = 'schema_two';
 let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   if (current.dialect.supports.schemas) {
 
     describe('global schema', () => {

@@ -10,6 +10,10 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('paranoid', () => {
     before(function () {
       this.clock = sinon.useFakeTimers();

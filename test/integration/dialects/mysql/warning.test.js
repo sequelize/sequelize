@@ -11,6 +11,10 @@ const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Warning'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   // We can only test MySQL warnings when using MySQL.
   if (dialect === 'mysql') {
     describe('logging', () => {

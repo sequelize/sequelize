@@ -10,6 +10,9 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
 
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';

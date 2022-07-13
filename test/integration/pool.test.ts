@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
-import { createSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
+import { clearDatabase, sequelize, createSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
 
 const dialect = getTestDialect();
 
@@ -91,6 +91,10 @@ afterEach(() => {
 });
 
 describe(getTestDialectTeaser('Pooling'), () => {
+  beforeEach(async () => {
+    await clearDatabase(sequelize);
+  });
+
   if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
     return;
   }
@@ -104,7 +108,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         }
 
         if (dialect === 'db2') {
-          await sequelize.connectionManager.pool.destroy(connection);
+          await sequelizeInstance.connectionManager.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
           error.code = 'ECONNRESET';
@@ -113,11 +117,11 @@ describe(getTestDialectTeaser('Pooling'), () => {
         }
       }
 
-      const sequelize = createSequelizeInstance({
+      const sequelizeInstance = createSequelizeInstance({
         pool: { max: 1, idle: 5000 },
       });
-      const cm = sequelize.connectionManager;
-      await sequelize.sync();
+      const cm = sequelizeInstance.connectionManager;
+      await sequelizeInstance.sync();
 
       const firstConnection = await cm.getConnection();
       await simulateUnexpectedError(firstConnection);
@@ -164,11 +168,11 @@ describe(getTestDialectTeaser('Pooling'), () => {
         }
       }
 
-      const sequelize = createSequelizeInstance({
+      const sequelizeInstance = createSequelizeInstance({
         pool: { max: 1, idle: 5000 },
       });
-      const cm = sequelize.connectionManager;
-      await sequelize.sync();
+      const cm = sequelizeInstance.connectionManager;
+      await sequelizeInstance.sync();
 
       const oldConnection = await cm.getConnection();
       await cm.releaseConnection(oldConnection);
@@ -185,11 +189,11 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
   describe('idle', () => {
     it('should maintain connection within idle range', async () => {
-      const sequelize = createSequelizeInstance({
+      const sequelizeInstance = createSequelizeInstance({
         pool: { max: 1, idle: 100 },
       });
-      const cm = sequelize.connectionManager;
-      await sequelize.sync();
+      const cm = sequelizeInstance.connectionManager;
+      await sequelizeInstance.sync();
 
       const firstConnection = await cm.getConnection();
 
@@ -210,11 +214,11 @@ describe(getTestDialectTeaser('Pooling'), () => {
     });
 
     it('[MSSQL Flaky] should get new connection beyond idle range', async () => {
-      const sequelize = createSequelizeInstance({
+      const sequelizeInstance = createSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 },
       });
-      const cm = sequelize.connectionManager;
-      await sequelize.sync();
+      const cm = sequelizeInstance.connectionManager;
+      await sequelizeInstance.sync();
 
       const firstConnection = await cm.getConnection();
 

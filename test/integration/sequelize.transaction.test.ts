@@ -4,11 +4,15 @@ import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { sequelize, getTestDialectTeaser, getTestDialect, prepareTransactionTest } from './support';
+import { clearDatabase, sequelize, getTestDialectTeaser, getTestDialect, prepareTransactionTest } from './support';
 
 const dialectName = sequelize.dialect.name;
 
 describe(getTestDialectTeaser('Sequelize#transaction'), () => {
+  beforeEach(async () => {
+    await clearDatabase(sequelize);
+  });
+
   if (!sequelize.dialect.supports.transactions) {
     return;
   }

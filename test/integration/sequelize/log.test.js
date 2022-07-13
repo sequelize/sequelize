@@ -8,6 +8,10 @@ const { Sequelize } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('log', () => {
     beforeEach(function () {
       this.stub = stub(console, 'debug');

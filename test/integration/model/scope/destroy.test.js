@@ -7,6 +7,10 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('scope', () => {
     describe('destroy', () => {
       beforeEach(async function () {

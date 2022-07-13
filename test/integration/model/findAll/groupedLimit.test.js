@@ -13,6 +13,10 @@ const _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('findAll', () => {
       describe('groupedLimit', () => {
         before(function () {

@@ -10,6 +10,10 @@ const current = Support.sequelize;
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('update', () => {
     beforeEach(async function () {
       this.Account = this.sequelize.define('Account', {

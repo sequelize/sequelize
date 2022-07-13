@@ -1,10 +1,14 @@
 import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
-import { sequelize } from '../support';
+import { clearDatabase, sequelize } from '../support';
 
 const dialect = sequelize.getDialect();
 
 describe('Sequelize#drop', () => {
+  beforeEach(async () => {
+    await clearDatabase(sequelize);
+  });
+
   it('supports dropping cyclic associations', async () => {
     const A = sequelize.define('A', {
       BId: {

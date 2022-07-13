@@ -11,6 +11,10 @@ const current = Support.sequelize;
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();

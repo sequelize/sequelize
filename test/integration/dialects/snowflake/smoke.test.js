@@ -8,6 +8,10 @@ const dayjs = require('dayjs');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] Smoke test', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     describe('[SNOWFLAKE Specific] Basic test for one table', () => {
       let User;
 

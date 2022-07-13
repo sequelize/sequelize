@@ -23,6 +23,10 @@ const qq = str => {
 };
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('query', () => {
     afterEach(function () {
       this.sequelize.options.quoteIdentifiers = true;

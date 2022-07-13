@@ -10,6 +10,10 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  beforeEach(async () => {
+    await Support.clearDatabase(Support.sequelize);
+  });
+
   describe('findAll', () => {
     describe('group', () => {
       it('should correctly group with attributes, #3009', async () => {
