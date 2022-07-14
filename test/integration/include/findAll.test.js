@@ -14,7 +14,9 @@ const sortById = function (a, b) {
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findAll', () => {
-    beforeEach(function () {
+    beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.fixtureA = async function () {
         const User = this.sequelize.define('User', {});
         const Company = this.sequelize.define('Company', {

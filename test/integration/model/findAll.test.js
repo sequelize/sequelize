@@ -884,6 +884,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
       describe('include all', () => {
         beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           this.Continent = this.sequelize.define('continent', { name: DataTypes.STRING });
           this.Country = this.sequelize.define('country', { name: DataTypes.STRING });
           this.Industry = this.sequelize.define('industry', { name: DataTypes.STRING });

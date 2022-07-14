@@ -327,6 +327,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('createAssociation', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('creates an associated model instance', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
@@ -522,6 +526,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('foreign key constraints', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('are enabled by default', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -639,6 +647,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('association column', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('has correct type and name for non-id primary keys with non-integer type', async function () {
       const User = this.sequelize.define('UserPKBT', {
         username: {

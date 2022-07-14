@@ -403,6 +403,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('without timestamps option', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('doesn\'t update the updatedAt column', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
@@ -416,6 +420,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('with custom timestamp options', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('updates the createdAt column if updatedAt is disabled', async function () {
         const now = new Date();
         this.clock.tick(1000);

@@ -38,6 +38,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('showAllTables', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('should not contain views', async function () {
       async function cleanup(sequelize) {
         if (dialect === 'db2') {
@@ -517,6 +521,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('constraints', () => {
     beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.User = this.sequelize.define('users', {
         // Db2 does not allow unique constraint for a nullable column, Db2
         // throws SQL0542N error if we create constraint on nullable column.

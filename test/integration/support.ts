@@ -15,6 +15,8 @@ const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? 
 let runningQueries = new Set<AbstractQuery>();
 
 before(async () => {
+  await Support.clearDatabase(Support.sequelize);
+
   if (Support.getTestDialect() === 'db2') {
     const res = await Support.sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
       type: QueryTypes.SELECT,
@@ -46,13 +48,7 @@ before(async () => {
   });
 });
 
-beforeEach(async () => {
-  await Support.clearDatabase(Support.sequelize);
-});
-
-afterEach(async function checkRunningQueries() {
-  // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
-
+after(async function checkRunningQueries() {
   let runningQueriesProblem;
 
   if (runningQueries.size > 0) {

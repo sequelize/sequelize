@@ -28,6 +28,8 @@ if (current.dialect.supports['UNION ALL']) {
         });
 
         beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           this.User = this.sequelize.define('user', {
             age: DataTypes.INTEGER,
           });

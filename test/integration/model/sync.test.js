@@ -2,11 +2,15 @@
 
 const { expect } = require('chai');
 const { DataTypes, Deferrable, Model } = require('@sequelize/core');
-const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
+const { clearDatabase, sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
 
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
+  beforeEach(async () => {
+    await clearDatabase(sequelize);
+  });
+
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,

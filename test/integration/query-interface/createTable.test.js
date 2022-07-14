@@ -98,6 +98,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     describe('enums', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('should work with enums (1)', async function () {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),

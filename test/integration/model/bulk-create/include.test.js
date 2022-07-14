@@ -9,6 +9,10 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {
     describe('include', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('should bulkCreate data for BelongsTo relations', async function () {
         const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING,

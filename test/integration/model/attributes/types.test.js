@@ -13,6 +13,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('types', () => {
       describe('VIRTUAL', () => {
         beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           this.User = this.sequelize.define('user', {
             storage: DataTypes.STRING,
             field1: {

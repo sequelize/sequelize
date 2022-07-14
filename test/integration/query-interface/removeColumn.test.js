@@ -21,6 +21,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('removeColumn', () => {
     describe('(without a schema)', () => {
       beforeEach(async function () {
+        await Support.clearDatabase(Support.sequelize);
+
         await this.queryInterface.createTable('users', {
           id: {
             type: DataTypes.INTEGER,

@@ -10,6 +10,8 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(async function () {
+    await Support.clearDatabase(Support.sequelize);
+
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
     await Support.dropTestSchemas(this.sequelize);

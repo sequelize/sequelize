@@ -12,6 +12,10 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('get', () => {
     describe('multiple', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('should fetch associations for multiple instances', async function () {
         const User = this.sequelize.define('User', {});
         const Player = this.sequelize.define('Player', {});
@@ -368,6 +372,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   });
 
   describe('foreign key constraints', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('are enabled by default', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });

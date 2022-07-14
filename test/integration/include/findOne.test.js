@@ -9,6 +9,10 @@ const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
+    beforeEach(async () => {
+      await Support.clearDatabase(Support.sequelize);
+    });
+
     it('should include a non required model, with conditions and two includes N:M 1:M', async function () {
       const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true });
       const B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true });

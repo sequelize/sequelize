@@ -24,7 +24,9 @@ if (dialect.startsWith('postgres')) {
       });
 
       describe('when join table name is specified', () => {
-        beforeEach(function () {
+        beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           const Table2 = this.sequelize.define('ms_table1', { foo: DataTypes.STRING });
           const Table1 = this.sequelize.define('ms_table2', { foo: DataTypes.STRING });
 
@@ -79,6 +81,10 @@ if (dialect.startsWith('postgres')) {
       });
 
       describe('removeDAO', () => {
+        beforeEach(async () => {
+          await Support.clearDatabase(Support.sequelize);
+        });
+
         it('should correctly remove associated objects', async function () {
           const users = [];
           const tasks = [];

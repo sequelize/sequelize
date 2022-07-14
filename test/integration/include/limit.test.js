@@ -32,7 +32,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      *                            N
      *                        [Footnote]
      */
-    beforeEach(function () {
+    beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.Project = this.sequelize.define('Project', {
         name: {
           type: DataTypes.STRING,

@@ -10,6 +10,8 @@ const { DataTypes } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
   beforeEach(async function () {
+    await Support.clearDatabase(Support.sequelize);
+
     const S = this.sequelize;
     const DT = DataTypes;
 

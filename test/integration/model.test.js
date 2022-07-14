@@ -28,6 +28,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function () {
+    await Support.clearDatabase(Support.sequelize);
+
     isMySQL8 = dialect === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
 
     this.User = this.sequelize.define('User', {

@@ -19,7 +19,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.clock.restore();
   });
 
-  beforeEach(function () {
+  beforeEach(async function () {
+    await Support.clearDatabase(Support.sequelize);
     this.clock.reset();
   });
 

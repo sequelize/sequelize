@@ -11,6 +11,8 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
     beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.User = this.sequelize.define('user', {
         id: {
           type: DataTypes.INTEGER,

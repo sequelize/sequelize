@@ -751,6 +751,10 @@ if (current.dialect.supports.transactions) {
     }
 
     describe('isolation levels', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
         const User = this.sequelize.define('user', {
           username: DataTypes.STRING,
@@ -829,6 +833,10 @@ if (current.dialect.supports.transactions) {
 
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
+        beforeEach(async () => {
+          await Support.clearDatabase(Support.sequelize);
+        });
+
         it('supports for update', async function () {
           const User = this.sequelize.define('user', {
             username: DataTypes.STRING,

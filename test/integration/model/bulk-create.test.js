@@ -11,6 +11,8 @@ const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
+    await Support.clearDatabase(Support.sequelize);
+
     const sequelize = await Support.prepareTransactionTest(this.sequelize);
     this.sequelize = sequelize;
 

@@ -1542,7 +1542,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('sourceKey with where clause in include', () => {
-    beforeEach(function () {
+    beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.User = this.sequelize.define('User',
         { username: DataTypes.STRING, email: { type: DataTypes.STRING, field: 'mail', allowNull: false } },
         { indexes: [{ fields: ['mail'], unique: true }] });

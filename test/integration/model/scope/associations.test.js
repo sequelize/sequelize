@@ -10,6 +10,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('associations', () => {
       beforeEach(async function () {
+        await Support.clearDatabase(Support.sequelize);
+
         const sequelize = this.sequelize;
 
         this.ScopeMe = this.sequelize.define('ScopeMe', {

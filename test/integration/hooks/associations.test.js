@@ -440,6 +440,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     describe('M:M', () => {
       describe('cascade', () => {
         beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
           });
@@ -518,6 +520,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       describe('no cascade', () => {
         beforeEach(async function () {
+          await Support.clearDatabase(Support.sequelize);
+
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
           });

@@ -22,6 +22,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('field', () => {
       beforeEach(async function () {
+        await Support.clearDatabase(Support.sequelize);
+
         const queryInterface = this.sequelize.getQueryInterface();
 
         this.User = this.sequelize.define('user', {

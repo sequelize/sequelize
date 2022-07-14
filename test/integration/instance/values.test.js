@@ -429,6 +429,10 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
     });
 
     describe('changed', () => {
+      beforeEach(async () => {
+        await Support.clearDatabase(Support.sequelize);
+      });
+
       it('should return false if object was built from database', async function () {
         const User = this.sequelize.define('User', {
           name: { type: DataTypes.STRING },

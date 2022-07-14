@@ -21,6 +21,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       this.fixtureA = async function () {
         await this.sequelize.dropSchema('account');
         await this.sequelize.createSchema('account');

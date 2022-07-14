@@ -20,6 +20,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('dropEnum', () => {
     beforeEach(async function () {
+      await Support.clearDatabase(Support.sequelize);
+
       await this.queryInterface.createTable('menus',  {
         structuretype: DataTypes.ENUM('menus', 'submenu', 'routine'),
         sequence: DataTypes.INTEGER,
