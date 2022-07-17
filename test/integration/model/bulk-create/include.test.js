@@ -642,60 +642,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         Team.hasMany(Player, { as: 'players' });
         await this.sequelize.sync();
 
+        const bulkCreateOptions = [
+          {
+            code: 'team1',
+            country: 'countryTeam001',
+            players: [
+              {
+                code: 'player1',
+                name: 'playername1',
+              },
+            ],
+          },
+        ];
+        const includeOptions = {
+          include: [
+            {
+              model: Player,
+              as: 'players',
+              updateOnDuplicate: ['name'],
+            },
+          ],
+          updateOnDuplicate: ['country'],
+        };
+
         if (dialectName === 'mssql' || dialectName === 'db2') {
           expect(
             async () => await Team.bulkCreate(
-              [
-                {
-                  code: 'team1',
-                  country: 'countryTeam001',
-                  players: [
-                    {
-                      code: 'player1',
-                      name: 'playername1',
-                    },
-                  ],
-                },
-              ],
-              {
-                include: [
-                  {
-                    model: Player,
-                    as: 'players',
-                    updateOnDuplicate: ['name'],
-                  },
-                ],
-                updateOnDuplicate: ['country'],
-              },
+              bulkCreateOptions,
+              includeOptions,
             ).to.be.rejectedWith(
               `${dialectName} does not support the updateOnDuplicate option.`,
             ),
           );
         } else {
-          await Team.bulkCreate(
-            [
-              {
-                code: 'team1',
-                country: 'countryTeam001',
-                players: [
-                  {
-                    code: 'player1',
-                    name: 'playername1',
-                  },
-                ],
-              },
-            ],
-            {
-              include: [
-                {
-                  model: Player,
-                  as: 'players',
-                  updateOnDuplicate: ['name'],
-                },
-              ],
-              updateOnDuplicate: ['country'],
-            },
-          );
+          await Team.bulkCreate(bulkCreateOptions, includeOptions);
 
           const preUpdatePlayer = await Player.findOne({
             where: { code: 'player1' },
@@ -716,16 +696,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 ],
               },
             ],
-            {
-              include: [
-                {
-                  model: Player,
-                  as: 'players',
-                  updateOnDuplicate: ['name'],
-                },
-              ],
-              updateOnDuplicate: ['country'],
-            },
+            includeOptions,
           );
 
           const postUpdatePlayer = await Player.findOne({
