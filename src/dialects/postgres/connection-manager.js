@@ -200,6 +200,13 @@ class ConnectionManager extends AbstractConnectionManager {
       });
     });
 
+    // Don't let a Postgres restart (or error) to take down the whole app
+    connection.once('error', error => {
+      connection._invalid = true;
+      debug(`connection error ${error.code || error.message}`);
+      this.pool.destroy(connection);
+    });
+
     let query = '';
 
     if (this.sequelize.options.standardConformingStrings !== false && connection['standard_conforming_strings'] !== 'on') {
@@ -240,12 +247,6 @@ class ConnectionManager extends AbstractConnectionManager {
       this.enumOids.arrayOids.length === 0) {
       await this._refreshDynamicOIDs(connection);
     }
-    // Don't let a Postgres restart (or error) to take down the whole app
-    connection.on('error', error => {
-      connection._invalid = true;
-      debug(`connection error ${error.code || error.message}`);
-      this.pool.destroy(connection);
-    });
 
     return connection;
   }
