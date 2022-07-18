@@ -1,4 +1,4 @@
-<p style="text-align: center;">
+<p align="center">
   <img src="logo.svg" width="100" alt="Sequelize logo" />
   <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
 </p>
