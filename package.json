@@ -87,7 +87,7 @@
     "fast-glob": "3.2.11",
     "fs-jetpack": "4.3.1",
     "husky": "8.0.1",
-    "ibm_db": "2.8.1",
+    "ibm_db": "2.8.2",
     "lcov-result-merger": "3.3.0",
     "lint-staged": "13.0.3",
     "mariadb": "2.5.6",
