@@ -668,6 +668,11 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   duplicating?: boolean;
 
   /**
+   * Do not use alias when generating join clauses.
+   */
+  noAlias?: boolean;
+
+  /**
    * The model you want to eagerly load.
    *
    * This option only works if this model is only associated once to the parent model of this query.

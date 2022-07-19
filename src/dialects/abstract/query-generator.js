@@ -1253,7 +1253,7 @@ export class AbstractQueryGenerator {
           continue;
         }
 
-        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements });
+        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements, noAlias: include.noAlias });
 
         subJoinQueries = subJoinQueries.concat(joinQueries.subQuery);
         mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
@@ -1832,7 +1832,7 @@ export class AbstractQueryGenerator {
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, asRight),
+      body: this.quoteTable(tableRight, !options.noAlias && asRight),
       condition: joinOn,
       attributes: {
         main: [],
