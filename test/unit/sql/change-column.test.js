@@ -53,7 +53,6 @@ if (current.dialect.name !== 'sqlite') {
 
       it('properly generate alter queries for foreign keys', () => {
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
-          type: DataTypes.INTEGER,
           references: {
             model: 'level',
             key: 'id',
