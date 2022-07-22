@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(logger.args[0][0]).to.be.match(/^Executing \((\d*|default)\): select 1/);
       });
 
-      it('executes a query with benchmarking option, queryLabel option, and custom logger', async () => {
+      it('executes a query with benchmarking option, queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
           logging: logger,
