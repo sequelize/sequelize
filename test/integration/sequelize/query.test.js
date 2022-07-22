@@ -130,6 +130,46 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(typeof logger.args[0][1] === 'number').to.be.true;
       });
 
+      it('executes a query with queryLabel option and custom logger', async () => {
+        const logger = sinon.spy();
+        const sequelize = Support.createSequelizeInstance({
+          logging: logger,
+        });
+
+        await sequelize.query(`select 1${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`, {
+          queryLabel: 'tricky select',
+        });
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/^tricky select[\n]Executing \((\d*|default)\): select 1/);
+      });
+
+      it('executes a query with empty string queryLabel option and custom logger', async () => {
+        const logger = sinon.spy();
+        const sequelize = Support.createSequelizeInstance({
+          logging: logger,
+        });
+
+        await sequelize.query(`select 1${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`, {
+          queryLabel: '',
+        });
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/^Executing \((\d*|default)\): select 1/);
+      });
+
+      it('executes a query with benchmarking option, queryLabel option, and custom logger', async () => {
+        const logger = sinon.spy();
+        const sequelize = Support.createSequelizeInstance({
+          logging: logger,
+          benchmark: true,
+        });
+
+        await sequelize.query(`select 1${dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`, {
+          queryLabel: 'tricky select',
+        });
+        expect(logger.calledOnce).to.be.true;
+        expect(logger.args[0][0]).to.be.match(/^tricky select[\n]Executed \((\d*|default)\): select 1/);
+      });
+
       describe('with logQueryParameters', () => {
         beforeEach(async function () {
           this.sequelize = Support.createSequelizeInstance({

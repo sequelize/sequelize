@@ -290,14 +290,15 @@ export class AbstractQuery {
     }
 
     const fmt = `(${connection.uuid || 'default'}): ${sql}${logParameter}`;
-    const msg = `Executing ${fmt}`;
+    const queryLabel = options.queryLabel ? `${options.queryLabel}\n` : '';
+    const msg = `${queryLabel}Executing ${fmt}`;
     debugContext(msg);
     if (!benchmark) {
-      this.sequelize.log(`Executing ${fmt}`, options);
+      this.sequelize.log(`${queryLabel}Executing ${fmt}`, options);
     }
 
     return () => {
-      const afterMsg = `Executed ${fmt}`;
+      const afterMsg = `${queryLabel}Executed ${fmt}`;
       debugContext(afterMsg);
       if (benchmark) {
         this.sequelize.log(afterMsg, Date.now() - startTime, options);
