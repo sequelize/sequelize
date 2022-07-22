@@ -1,7 +1,9 @@
 {
   "extends": [
     "config:base",
-    ":semanticCommitType(build)",
     ":maintainLockFilesWeekly"
-  ]
+  ],
+  "baseBranches": ["main", "v6"],
+  "semanticCommitType": "meta",
+  "semanticCommitScope": null
 }
