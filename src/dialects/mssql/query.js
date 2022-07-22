@@ -351,15 +351,17 @@ export class MsSqlQuery extends AbstractQuery {
       });
     }
 
-    for (const error of err.errors) {
-      match = error.message.match(/Could not create constraint or index. See previous errors./);
-      if (match && match.length > 0) {
-        return new sequelizeErrors.ForeignKeyConstraintError({
-          fields: null,
-          index: match[1],
-          cause: error,
-          stack: errStack,
-        });
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not create constraint or index. See previous errors./);
+        if (match && match.length > 0) {
+          return new sequelizeErrors.ForeignKeyConstraintError({
+            fields: null,
+            index: match[1],
+            cause: error,
+            stack: errStack,
+          });
+        }
       }
     }
 
@@ -379,21 +381,23 @@ export class MsSqlQuery extends AbstractQuery {
       });
     }
 
-    for (const error of err.errors) {
-      match = error.message.match(/Could not drop constraint. See previous errors./);
-      if (match && match.length > 0) {
-        let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
-        constraint = constraint ? constraint[1] : undefined;
-        let table = err.sql.match(/table \[(.+?)]/i);
-        table = table ? table[1] : undefined;
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not drop constraint. See previous errors./);
+        if (match && match.length > 0) {
+          let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
+          constraint = constraint ? constraint[1] : undefined;
+          let table = err.sql.match(/table \[(.+?)]/i);
+          table = table ? table[1] : undefined;
 
-        return new sequelizeErrors.UnknownConstraintError({
-          message: match[1],
-          constraint,
-          table,
-          cause: error,
-          stack: errStack,
-        });
+          return new sequelizeErrors.UnknownConstraintError({
+            message: match[1],
+            constraint,
+            table,
+            cause: error,
+            stack: errStack,
+          });
+        }
       }
     }
 
