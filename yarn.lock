@@ -6440,10 +6440,10 @@ p-settle@4.1.1:
     p-limit "^2.2.2"
     p-reflect "^2.1.0"
 
-p-timeout@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/p-timeout/-/p-timeout-4.1.0.tgz#788253c0452ab0ffecf18a62dff94ff1bd09ca0a"
-  integrity sha512-+/wmHtzJuWii1sXn3HCuH/FTwGhrp4tmJTxSKJbfS+vkipci6osxXM5mY0jUiRzWKMTgUT8l7HFbeSwZAynqHw==
+p-timeout@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/p-timeout/-/p-timeout-6.0.0.tgz#84c210f5500da1af4c31ab2768d794e5e081dd91"
+  integrity sha512-5iS61MOdUMemWH9CORQRxVXTp9g5K8rPnI9uQpo97aWgsH3vVXKjkIhDi+OgIDmN3Ly9+AZ2fZV01Wut1yzfKA==
 
 p-try@^1.0.0:
   version "1.0.0"
