@@ -128,7 +128,10 @@ class Query extends AbstractQuery {
     }
 
     if (this.isSelectQuery()) {
-      this.handleJsonSelectQuery(data);
+      if (this.sequelize.config.dialectOptions && !this.sequelize.config.dialectOptions.autoJsonMap) {
+        this.handleJsonSelectQuery(data);
+      }
+
       return this.handleSelectQuery(data);
     }
     if (this.isInsertQuery() || this.isUpdateQuery()) {
