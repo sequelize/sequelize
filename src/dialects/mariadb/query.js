@@ -128,9 +128,7 @@ class Query extends AbstractQuery {
     }
 
     if (this.isSelectQuery()) {
-      if (this.sequelize.config.dialectOptions && this.sequelize.config.dialectOptions.autoJsonMap === false) {
-        this.handleJsonSelectQuery(data);
-      }
+      this.handleJsonSelectQuery(data);
 
       return this.handleSelectQuery(data);
     }
@@ -187,7 +185,7 @@ class Query extends AbstractQuery {
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && this.sequelize.config.dialectOptions && this.sequelize.config.dialectOptions.autoJsonMap === false) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
           if (DataTypes.JSON.parse) {
