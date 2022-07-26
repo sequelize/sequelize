@@ -5400,10 +5400,10 @@ markdown-it@13.0.1:
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
-markdownlint-cli@0.32.0:
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.32.0.tgz#bd2263f16fe214b6e3acf762921671aeb772915e"
-  integrity sha512-Bu7ZOhTNR5RH10L/fcBjwp1qVy27IkExY5YQvkU9wTPXLD3EtxSZiDDc0HslQ4h9F5LEkPs/V+cBHSBDPoDLzQ==
+markdownlint-cli@0.32.1:
+  version "0.32.1"
+  resolved "https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.32.1.tgz#09925582833b73a578eab71bc7c5a467ae84aaa3"
+  integrity sha512-hVLQ+72b5esQd7I+IqzBEB4x/4C+wJaxS2M6nqaGoDwrtNY6gydGf5CIUJtQcXtqsM615++a8TZPsvEtH6H4gw==
   dependencies:
     commander "~9.4.0"
     get-stdin "~9.0.0"
@@ -5411,20 +5411,20 @@ markdownlint-cli@0.32.0:
     ignore "~5.2.0"
     js-yaml "^4.1.0"
     jsonc-parser "~3.1.0"
-    markdownlint "~0.26.0"
-    markdownlint-rule-helpers "~0.17.0"
+    markdownlint "~0.26.1"
+    markdownlint-rule-helpers "~0.17.1"
     minimatch "~5.1.0"
     run-con "~1.2.11"
 
-markdownlint-rule-helpers@~0.17.0:
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.17.0.tgz#eca5d0c1c132608cbe287cd924969a9e6c9821ed"
-  integrity sha512-9rCC9hEKHic9h1jEYbRWsvxh+ldPPDX2Rdh6Fq1q3Tkt619HDkAk1yv1CMVMncuMHAxX9oMhhjpscITTHyjVoQ==
+markdownlint-rule-helpers@~0.17.1:
+  version "0.17.1"
+  resolved "https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.17.1.tgz#c7305a5f3b01b2f9e3a4d98e911f1d067abbda53"
+  integrity sha512-Djc5IjJt7VA5sZRisISsJC/rQXR7hr8JS9u6Q9/ce3mjPZdzw535cFGG0U6Mag+ldRTRmRwCcTfivOh57KUP4w==
 
-markdownlint@~0.26.0:
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.26.0.tgz#1e800ecc709ed4061c18ab03f1cba23f58511421"
-  integrity sha512-I7nfRVwKVs/AJi4BlBkUCNj/S4HJjZSSM1wbzdy7vZerFkSGpbs7wX9Rk8rvopvZjTTKFPQWItqdbl2Hh6YXQQ==
+markdownlint@~0.26.1:
+  version "0.26.1"
+  resolved "https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.26.1.tgz#0f6ea2d0fc08c4f41c6e001b467736405327a392"
+  integrity sha512-8sLz1ktz5s4E0IDum2H9aiWLQU7RA5Eket9HUW5IRwfFnW2RD2ZyqYePW+z71tMc7lrFZc1+yPmlN9lirbJnlg==
   dependencies:
     markdown-it "13.0.1"
 
