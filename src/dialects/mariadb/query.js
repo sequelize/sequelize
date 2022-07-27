@@ -185,7 +185,7 @@ class Query extends AbstractQuery {
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && this.sequelize.config.dialectOptions && this.sequelize.config.dialectOptions.autoJsonMap === false) {
+          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
           if (DataTypes.JSON.parse) {
