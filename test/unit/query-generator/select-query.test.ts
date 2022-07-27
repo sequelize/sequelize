@@ -2,7 +2,7 @@ import type { InferAttributes, Model } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
-import { expectsql, sequelize, createSequelizeInstance } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -73,49 +73,6 @@ describe('QueryGenerator#selectQuery', () => {
       ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = '9007199254740993'`,
       mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
-  });
-
-  it('orders by a literal when subquery and minifyAliases are enabled', async () => {
-    const sequelizeMinifyAliases = createSequelizeInstance({
-      logQueryParameters: true,
-      benchmark: true,
-      minifyAliases: true,
-      define: {
-        timestamps: false,
-      },
-    });
-
-    interface TFoo extends Model<InferAttributes<TFoo>> {
-      name: string;
-    }
-
-    const Foo = sequelizeMinifyAliases.define<TFoo>('Foo', {
-      name: {
-        field: 'my_name',
-        type: DataTypes.TEXT,
-      },
-    }, { timestamps: false });
-    await sequelizeMinifyAliases.sync({ force: true });
-
-    await Foo.create({ name: 'record1' });
-    await Foo.create({ name: 'record2' });
-
-    const thisWorks = (await Foo.findAll({
-      subQuery: false,
-      order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
-    })).map((f: any) => f.name);
-    expect(thisWorks[0]).to.equal('record1');
-
-    // const thisDoesNotWork: any[] =  (await Foo.findAll({
-    //   attributes: {
-    //     include: [
-    //       [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute']
-    //     ]
-    //   },
-    //   subQuery: false,
-    //   order: ['customAttribute', 'DESC']
-    // })).map((f: any) => f.name);
-    // expect(thisDoesNotWork[0]).to.equal('record2')
   });
 
   describe('replacements', () => {

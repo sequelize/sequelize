@@ -2143,7 +2143,15 @@ export class AbstractQueryGenerator {
           && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          subQueryOrder.push(this.quote(order, model, '->', options));
+          const modelName = this.quoteIdentifier(model.name);
+          let subQueryAlias;
+
+          // if the field is aliased, we want to push the alias instead of the real field
+          if (this._getAliasForField(modelName, order[0], options) != null) {
+            subQueryAlias = this._getAliasForField(modelName, order[0], options);
+          }
+
+          subQueryOrder.push(this.quote(subQueryAlias == null ? order : subQueryAlias, model, '->', options));
         }
 
         if (subQuery) {
