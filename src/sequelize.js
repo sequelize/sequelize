@@ -78,7 +78,7 @@ export class Sequelize {
    *   protocol: null,
    *
    *   // disable logging or provide a custom logging function; default: console.log
-   *   logging: false,
+   *   logging: true,
    *
    *   // you can also pass any dialect options to the underlying dialect library
    *   // - default is empty

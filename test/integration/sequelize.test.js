@@ -26,7 +26,7 @@ const qq = str => {
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
     it('should pass the global options correctly', () => {
-      const sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored: true } });
+      const sequelize = Support.createSequelizeInstance({ logging: true, define: { underscored: true } });
       const DAO = sequelize.define('dao', { name: DataTypes.STRING });
 
       expect(DAO.options.underscored).to.be.ok;
@@ -571,13 +571,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('through Sequelize.sync()', async function () {
         this.spy.resetHistory();
-        await this.sequelize.sync({ force: true, logging: false });
+        await this.sequelize.sync({ force: true, logging: true });
         expect(this.spy.notCalled).to.be.true;
       });
 
       it('through DAOFactory.sync()', async function () {
         this.spy.resetHistory();
-        await this.User.sync({ force: true, logging: false });
+        await this.User.sync({ force: true, logging: true });
         expect(this.spy.notCalled).to.be.true;
       });
     });
