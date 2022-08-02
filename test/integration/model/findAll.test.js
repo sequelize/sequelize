@@ -764,7 +764,7 @@ The following associations are defined on "Worker": "ToDo"`);
           expect(users[1].name).to.equal('b');
         });
 
-        it('supports sorting on multiple renamed sub-query attributes', async function () {
+        it.only('supports sorting on multiple renamed sub-query attributes', async function () {
           const User = this.sequelize.define('user', {
             name: {
               type: DataTypes.STRING,
