@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable mocha/no-exclusive-tests -- the point of this file is to debug :) */
+
 const chai = require('chai');
 const sinon = require('sinon');
 

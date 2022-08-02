@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable no-console -- the point of this file is to debug :) */
+
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 
@@ -2125,7 +2127,7 @@ export class AbstractQueryGenerator {
   getQueryOrders(options, model, subQuery) {
     const mainQueryOrder = [];
     const subQueryOrder = [];
-console.log('asdas')
+    console.log('asdas');
     if (Array.isArray(options.order)) {
       for (let order of options.order) {
 
@@ -2134,7 +2136,7 @@ console.log('asdas')
           order = [order];
         }
 
-        console.log(1)
+        console.log(1);
 
         if (
           subQuery
@@ -2148,20 +2150,20 @@ console.log('asdas')
           const modelName = this.quoteIdentifier(model.name);
           let subQueryAlias;
 
-          console.log(2)
-          
+          console.log(2);
+
           // if the field is aliased, we want to push the alias instead of the real field
           if (this._getAliasForField(modelName, order[0], options) != null) {
-            console.log(3)
+            console.log(3);
             subQueryAlias = this._getAliasForField(modelName, order[0], options);
           }
-          
-          console.log(4)
+
+          console.log(4);
           subQueryOrder.push(this.quote(subQueryAlias == null ? order : subQueryAlias, model, '->', options));
         }
-        
+
         if (subQuery) {
-          console.log(5)
+          console.log(5);
           // Handle case where sub-query renames attribute we want to order by,
           // see https://github.com/sequelize/sequelize/issues/8739
           // if the first element in the attriute is an object, it's aliased and we want the second element to match order instead
