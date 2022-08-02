@@ -19,6 +19,7 @@ export const sequelize = new Sequelize({
     match: ['hurr'],
   },
   dialectModule: {},
+  keepDefaultTimezone: false,
   pool: {
     evict: 1000,
   },
