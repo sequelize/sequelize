@@ -294,6 +294,11 @@ export interface Options extends Logging {
    */
   timezone?: string;
 
+  /**
+   * A flag that defines if the default timezone is used to convert dates from the database.
+   *
+   * @default false
+   */
   keepDefaultTimezone?: boolean;
 
   /**
