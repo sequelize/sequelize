@@ -767,7 +767,7 @@ The following associations are defined on "Worker": "ToDo"`);
         });
 
         it.only('supports sorting on multiple renamed sub-query attributes', async function () {
-          const User = this.sequelize.define('user', {
+          const User = this.sequelize.define('userWithCustomFieldNames', {
             name: {
               type: DataTypes.STRING,
               field: 'some_other_name',
