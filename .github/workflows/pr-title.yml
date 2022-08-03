@@ -19,6 +19,8 @@ jobs:
             feat
             docs
             meta
+            chore
+            build
           scopes: |
             db2
             ibmi
@@ -29,5 +31,6 @@ jobs:
             snowflake
             sqlite
             types
+            deps
           ignoreLabels: |
             ignore-semantic-pull-request
