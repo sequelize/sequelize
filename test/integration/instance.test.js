@@ -456,7 +456,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
         bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
         bool_value3: { type: DataTypes.BOOLEAN, allowNull: true },
-      }, { timestamps: false, logging: false });
+      }, { timestamps: false, logging: true });
 
       await Setting.sync({ force: true });
       await Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined });
@@ -508,7 +508,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns all values', async function () {
       const User = this.sequelize.define('UserHelper', {
         username: DataTypes.STRING,
-      }, { timestamps: false, logging: false });
+      }, { timestamps: false, logging: true });
 
       await User.sync();
       const user = User.build({ username: 'foo' });

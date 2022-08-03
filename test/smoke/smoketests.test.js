@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns all values', async function () {
       const User = this.sequelize.define('UserHelper', {
         username: DataTypes.STRING,
-      }, { timestamps: false, logging: false });
+      }, { timestamps: false, logging: true });
 
       await User.sync();
       const user = User.build({ username: 'foo' });

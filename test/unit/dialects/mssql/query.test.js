@@ -22,7 +22,7 @@ if (dialect === 'mssql') {
       const options = {
         transaction: { name: 'transactionName' },
         isolationLevel: 'REPEATABLE_READ',
-        logging: false,
+        logging: true,
       };
       sandbox.stub(connectionStub, 'beginTransaction').callsArg(0);
       query = new Query(connectionStub, sequelize, options);

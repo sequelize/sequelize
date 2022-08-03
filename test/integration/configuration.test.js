@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     if (dialect !== 'db2') {
       it('when we don\'t have the correct server details', async () => {
         const options = {
-          logging: false,
+          logging: true,
           host: 'localhost',
           port: 19_999, // Wrong port
           dialect,
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         return;
       }
 
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
+      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: true, host: config[dialect].host, port: 1, dialect });
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;

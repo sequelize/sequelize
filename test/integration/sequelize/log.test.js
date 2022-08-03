@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('with disabled logging', () => {
       beforeEach(function () {
-        this.sequelize = new Sequelize('db', 'user', 'pw', { dialect, logging: false });
+        this.sequelize = new Sequelize('db', 'user', 'pw', { dialect, logging: true });
       });
 
       it('does not call the log method of the logger', function () {

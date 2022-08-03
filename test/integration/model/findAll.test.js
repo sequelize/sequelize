@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable mocha/no-exclusive-tests -- the point of this file is to debug :) */
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -764,8 +766,8 @@ The following associations are defined on "Worker": "ToDo"`);
           expect(users[1].name).to.equal('b');
         });
 
-        it('supports sorting on multiple renamed sub-query attributes', async function () {
-          const User = this.sequelize.define('user', {
+        it.only('supports sorting on multiple renamed sub-query attributes', async function () {
+          const User = this.sequelize.define('userWithCustomFieldNames', {
             name: {
               type: DataTypes.STRING,
               field: 'some_other_name',
