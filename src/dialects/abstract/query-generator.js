@@ -2148,14 +2148,15 @@ export class AbstractQueryGenerator {
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
           const modelName = this.quoteIdentifier(model.name);
+          const fieldAlias = this._getAliasForField(modelName, order[0], options);
           let subQueryAlias;
 
           console.log(2);
 
           // if the field is aliased, we want to push the alias instead of the real field
-          if (this._getAliasForField(modelName, order[0], options) != null) {
+          if (fieldAlias !== null) {
             console.log(3);
-            subQueryAlias = this._getAliasForField(modelName, order[0], options);
+            subQueryAlias = fieldAlias;
           }
 
           console.log(4);

@@ -10,7 +10,7 @@ const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-
+  
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
