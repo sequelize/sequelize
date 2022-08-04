@@ -3,7 +3,6 @@
     "config:base",
     ":maintainLockFilesWeekly"
   ],
-  "baseBranches": ["main", "v6"],
   "semanticCommitType": "meta",
   "semanticCommitScope": null
 }
