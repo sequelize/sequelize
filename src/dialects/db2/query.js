@@ -35,11 +35,12 @@ export class Db2Query extends AbstractQuery {
 
     this.sql = sql;
     const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
+    const queryLabel = this.options.queryLabel ? `${this.options.queryLabel}\n` : '';
     let queryBegin;
     if (benchmark) {
       queryBegin = Date.now();
     } else {
-      this.sequelize.log(`Executing (${this.connection.uuid || 'default'}): ${this.sql}`, this.options);
+      this.sequelize.log(`${queryLabel}Executing (${this.connection.uuid || 'default'}): ${this.sql}`, this.options);
     }
 
     const errStack = new Error().stack;
@@ -126,7 +127,7 @@ export class Db2Query extends AbstractQuery {
             }
 
             if (benchmark) {
-              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
+              this.sequelize.log(`${queryLabel}Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {
