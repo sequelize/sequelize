@@ -137,7 +137,6 @@ if (dialect.startsWith('postgres')) {
     });
 
     it('orders by a literal when subquery and minifyAliases are enabled', async () => {
-    // it('orders by a literal when subquery and minifyAliases are enabled', async () => {
       const sequelizeMinifyAliases = Support.createSequelizeInstance({
         logQueryParameters: true,
         benchmark: true,

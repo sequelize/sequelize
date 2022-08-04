@@ -2143,21 +2143,19 @@ export class AbstractQueryGenerator {
           && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
+          // TESTS ONLY PASS IF THIS IS INCLUDED
+          this.quote(order, model, '->', options);
           const modelName = this.quoteIdentifier(model.name);
-          let subQueryAlias;
 
           // if the field is aliased, we want to push the alias instead of the real field
-          if (this._getAliasForField(modelName, order[0], options) != null) {
-            subQueryAlias = this._getAliasForField(modelName, order[0], options);
-          }
-
+          const subQueryAlias = this._getAliasForField(modelName, order[0], options);
           subQueryOrder.push(this.quote(subQueryAlias == null ? order : subQueryAlias, model, '->', options));
         }
 
         if (subQuery) {
           // Handle case where sub-query renames attribute we want to order by,
           // see https://github.com/sequelize/sequelize/issues/8739
-          // if the first element in the attriute is an object, it's aliased and we want the second element to match order instead
+          // need to check if either of the attribute options match the order
           const subQueryAttribute = options.attributes.find(a => Array.isArray(a)
             && a[1]
             && (a[0] === order[0] || (a[1] === order[0])));
