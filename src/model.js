@@ -2075,6 +2075,20 @@ Specify a different name for either index to resolve this issue.`);
     options.offset = null;
     options.order = null;
 
+    // counting grouped rows is not possible with `this.aggregate`
+    // use a subquery to get the count
+    if (options.group && options.countGroupedRows) {
+      const query = this.queryGenerator.selectQuery(this.getTableName(), options);
+
+      const queryCountAll = `Select Count(*) FROM (${query.slice(0, -1)}) AS Z`;
+
+      const result = await this.sequelize.query(queryCountAll);
+
+      const count = Number((result[0][0].count));
+
+      return count;
+    }
+
     const result = await this.aggregate(col, 'count', options);
 
     // When grouping is used, some dialects such as PG are returning the count as string

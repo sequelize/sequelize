@@ -199,5 +199,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(counts).to.deep.equal([1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
+    it('can count grouped rows', async function () {
+      await this.User.bulkCreate([
+        { username: 'user1', age: 10 },
+        { username: 'user2', age: 20 },
+        { username: 'user3', age: 30 },
+        { username: 'user4', age: 10 },
+        { username: 'user5', age: 20 },
+        { username: 'user6', age: 30 },
+      ]);
+
+      const count = this.User.count({
+        attributes: [
+          'age',
+        ],
+        group: [
+          'age',
+        ],
+        countGroupedRows: true,
+      });
+
+      expect(count).to.be.eql(3);
+    });
   });
 });
