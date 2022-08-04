@@ -2160,8 +2160,7 @@ export class AbstractQueryGenerator {
           // if the first element in the attriute is an object, it's aliased and we want the second element to match order instead
           const subQueryAttribute = options.attributes.find(a => Array.isArray(a)
             && a[1]
-            && (a[0] === order[0]
-            || (typeof a[0] === 'object' && a[1] === order[0])));
+            && (a[0] === order[0] || (a[1] === order[0])));
 
           if (subQueryAttribute) {
             const modelName = this.quoteIdentifier(model.name);
