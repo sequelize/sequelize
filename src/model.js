@@ -2080,7 +2080,7 @@ Specify a different name for either index to resolve this issue.`);
     if (options.group && options.countGroupedRows) {
       const query = this.queryGenerator.selectQuery(this.getTableName(), options);
 
-      const queryCountAll = `Select Count(*) FROM (${query.slice(0, -1)}) AS Z`;
+      const queryCountAll = `Select Count(*) AS 'count' FROM (${query.slice(0, -1)}) AS Z`;
 
       const result = await this.sequelize.query(queryCountAll);
 

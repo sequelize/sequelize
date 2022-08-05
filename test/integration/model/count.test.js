@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'user6', age: 30 },
       ]);
 
-      const count = this.User.count({
+      const count = await this.User.count({
         attributes: [
           'age',
         ],

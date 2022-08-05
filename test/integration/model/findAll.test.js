@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -1454,9 +1454,9 @@ The following associations are defined on "Worker": "ToDos"`);
   describe('findAndCountAll', () => {
     beforeEach(async function () {
       await this.User.bulkCreate([
-        { username: 'user', data: 'foobar' },
-        { username: 'user2', data: 'bar' },
-        { username: 'bobby', data: 'foo' },
+        { username: 'user', data: 'foobar', intVal: 5 },
+        { username: 'user2', data: 'bar', intVal: 5 },
+        { username: 'bobby', data: 'foo', intVal: 5 },
       ]);
 
       const users = await this.User.findAll();
@@ -1557,6 +1557,22 @@ The following associations are defined on "Worker": "ToDos"`);
       expect(info.rows.length).to.equal(2);
       expect(info.rows[0].dataValues).to.not.have.property('username');
       expect(info.rows[1].dataValues).to.not.have.property('username');
+    });
+
+    it('handles grouped rows', async function () {
+      const info = await this.User.findAndCountAll({
+        attributes: [
+          [literal('SUM(`intVal`)'), 'sum'],
+        ],
+        group: ['intVal'],
+        countGroupedRows: true,
+        raw: true,
+      });
+      expect(info.count).to.equal(1);
+      expect(Array.isArray(info.rows)).to.be.ok;
+      expect(info.rows).to.deep.equal([
+        { sum: 15 },
+      ]);
     });
   });
 
