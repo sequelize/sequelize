@@ -2143,13 +2143,10 @@ export class AbstractQueryGenerator {
           && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          // TESTS ONLY PASS IF THIS IS INCLUDED
-          this.quote(order, model, '->', options);
-          const modelName = this.quoteIdentifier(model.name);
-
-          // if the field is aliased, we want to push the alias instead of the real field
-          const subQueryAlias = this._getAliasForField(modelName, order[0], options);
-          subQueryOrder.push(this.quote(subQueryAlias == null ? order : subQueryAlias, model, '->', options));
+          // TODO - refactor this.quote() to not change the first argument
+          const field = model.rawAttributes[order[0]]?.field || order[0];
+          const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
+          subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->', options));
         }
 
         if (subQuery) {

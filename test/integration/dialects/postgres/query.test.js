@@ -152,8 +152,8 @@ if (dialect.startsWith('postgres')) {
           type: DataTypes.TEXT,
         },
       }, { timestamps: false });
-      await sequelizeMinifyAliases.sync({ force: true });
 
+      await sequelizeMinifyAliases.sync({ force: true });
       await Foo.create({ name: 'record1' });
       await Foo.create({ name: 'record2' });
 
