@@ -1563,16 +1563,18 @@ The following associations are defined on "Worker": "ToDos"`);
       const info = await this.User.findAndCountAll({
         attributes: [
           [literal('SUM(`intVal`)'), 'sum'],
+          'intVal',
         ],
-        group: ['intVal'],
+        group: [Sequelize.col('intVal')],
         countGroupedRows: true,
         raw: true,
       });
       expect(info.count).to.equal(1);
       expect(Array.isArray(info.rows)).to.be.ok;
-      expect(info.rows).to.deep.equal([
-        { sum: 15 },
-      ]);
+      const row = info.rows[0];
+      // MySQL returns sum as string, other dialects return number
+      row.sum = Number(row.sum);
+      expect(info.rows).to.deep.equal([row]);
     });
   });
 

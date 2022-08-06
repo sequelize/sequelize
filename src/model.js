@@ -2056,15 +2056,6 @@ Specify a different name for either index to resolve this issue.`);
       await this.runHooks('beforeCount', options);
     }
 
-    let col = options.col || '*';
-    if (options.include) {
-      col = `${this.name}.${options.col || this.primaryKeyField}`;
-    }
-
-    if (options.distinct && col === '*') {
-      col = this.primaryKeyField;
-    }
-
     options.plain = !options.group;
     options.dataType = new DataTypes.INTEGER();
     options.includeIgnoreAttributes = false;
@@ -2088,6 +2079,15 @@ Specify a different name for either index to resolve this issue.`);
       const count = Number((result[0][0].count));
 
       return count;
+    }
+
+    let col = options.col || '*';
+    if (options.include) {
+      col = `${this.name}.${options.col || this.primaryKeyField}`;
+    }
+
+    if (options.distinct && col === '*') {
+      col = this.primaryKeyField;
     }
 
     const result = await this.aggregate(col, 'count', options);
@@ -2154,7 +2154,7 @@ Specify a different name for either index to resolve this issue.`);
 
     const countOptions = Utils.cloneDeep(options);
 
-    if (countOptions.attributes) {
+    if (countOptions.attributes && !options.countGroupedRows) {
       countOptions.attributes = undefined;
     }
 
