@@ -2078,9 +2078,10 @@ Specify a different name for either index to resolve this issue.`);
     // counting grouped rows is not possible with `this.aggregate`
     // use a subquery to get the count
     if (options.group && options.countGroupedRows) {
-      const query = this.queryGenerator.selectQuery(this.getTableName(), options);
+      // remove trailing semicolon for wrap query
+      const query = this.queryGenerator.selectQuery(this.getTableName(), options).slice(0, -1);
 
-      const queryCountAll = `Select Count(*) AS 'count' FROM (${query.slice(0, -1)}) AS Z`;
+      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
 
       const result = await this.sequelize.query(queryCountAll);
 
