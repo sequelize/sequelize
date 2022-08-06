@@ -1562,10 +1562,10 @@ The following associations are defined on "Worker": "ToDos"`);
     it('handles grouped rows', async function () {
       const info = await this.User.findAndCountAll({
         attributes: [
-          [literal('SUM(intVal)'), 'sum'],
-          'intVal',
+          [Sequelize.fn('sum', Sequelize.col('intVal')), 'sum'],
+          Sequelize.col('intVal'),
         ],
-        group: ['intVal'],
+        group: [Sequelize.col('intVal')],
         countGroupedRows: true,
         raw: true,
       });
