@@ -16,7 +16,7 @@ const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
 const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1347,17 +1347,27 @@ Specify a different name for either index to resolve this issue.`);
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
           const references = currentAttribute.references;
           if (currentAttribute.references) {
-            const database = this.sequelize.config.database;
-            const schema = this.sequelize.config.schema;
+            let database = this.sequelize.config.database;
+            const schema = tableName.schema;
+            if (schema && this.sequelize.options.dialect === 'mariadb') {
+              // because for mariadb schema is synonym for database
+              database = schema;
+            }
+
+            const foreignReferenceSchema = currentAttribute.references.model.schema;
+            const foreignReferenceTableName = typeof references.model === 'object'
+              ? references.model.tableName : references.model;
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
               if ((Boolean(constraintName)
                 && foreignKeyReference.tableCatalog === database
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
-                && foreignKeyReference.referencedTableName === references.model
+                && foreignKeyReference.referencedTableName === foreignReferenceTableName
                 && foreignKeyReference.referencedColumnName === references.key
-                && (schema ? foreignKeyReference.referencedTableSchema === schema : true)
+                && (foreignReferenceSchema
+                    ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
+                    : true)
                 && !removedConstraints[constraintName])
                 || this.sequelize.options.dialect === 'ibmi') {
                 // Remove constraint on foreign keys.
@@ -1719,6 +1729,9 @@ Specify a different name for either index to resolve this issue.`);
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     _.defaults(options, { hooks: true, model: this });
 
     // set rejectOnEmpty option, defaults to model options
@@ -2034,6 +2047,10 @@ Specify a different name for either index to resolve this issue.`);
   static async count(options) {
     options = Utils.cloneDeep(options);
     options = _.defaults(options, { hooks: true });
+
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     options.raw = true;
     if (options.hooks) {
       await this.runHooks('beforeCount', options);
@@ -2468,6 +2485,9 @@ Specify a different name for either index to resolve this issue.`);
       ...Utils.cloneDeep(options),
     };
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
     const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
@@ -2560,6 +2580,9 @@ Specify a different name for either index to resolve this issue.`);
     const dialect = this.sequelize.options.dialect;
     const now = Utils.now(this.sequelize.options.dialect);
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
 
     options.model = this;
 
@@ -2908,6 +2931,9 @@ Specify a different name for either index to resolve this issue.`);
   static async destroy(options) {
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     this._injectScope(options);
 
     if (!options || !(options.where || options.truncate)) {
@@ -2996,6 +3022,9 @@ Specify a different name for either index to resolve this issue.`);
       ...options,
     };
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     options.type = QueryTypes.RAW;
     options.model = this;
 
@@ -3052,6 +3081,9 @@ Specify a different name for either index to resolve this issue.`);
    */
   static async update(values, options) {
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -3920,6 +3952,9 @@ Instead of specifying a Model, either:
       validate: true,
     });
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     if (!options.fields) {
       if (this.isNewRecord) {
         options.fields = Object.keys(this.constructor.rawAttributes);
@@ -4280,6 +4315,9 @@ Instead of specifying a Model, either:
       ...options,
     };
 
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
+
     // Run before hook
     if (options.hooks) {
       await this.constructor.runHooks('beforeDestroy', this, options);
@@ -4354,6 +4392,9 @@ Instead of specifying a Model, either:
       force: false,
       ...options,
     };
+
+    // Add CLS transaction
+    setTransactionFromCls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {

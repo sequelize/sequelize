@@ -2,6 +2,8 @@
 
 import isPlainObject from 'lodash/isPlainObject';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { AggregateError } from './errors';
+import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -153,10 +155,12 @@ export class Sequelize {
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
    * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
+   * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
@@ -181,26 +185,31 @@ export class Sequelize {
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
-    let config;
-
-    if (arguments.length === 1 && typeof database === 'object') {
+    if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-      config = _.pick(options, 'host', 'port', 'database', 'username', 'password');
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && typeof username === 'object') {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
-
-      config = {};
-      options = username || {};
+      options = username ? { ...username } : Object.create(null);
 
       _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
-      options = options || {};
-      config = { database, username, password };
+      options = options ? { ...options } : Object.create(null);
+
+      _.defaults(options, {
+        database,
+        username,
+        password,
+      });
     }
 
-    Sequelize.runHooks('beforeInit', config, options);
+    Sequelize.runHooks('beforeInit', options, options);
+
+    // @ts-expect-error
+    if (options.pool === false) {
+      throw new Error('Support for pool:false was removed in v4.0');
+    }
 
     this.options = {
       dialect: null,
@@ -213,13 +222,13 @@ export class Sequelize {
       query: {},
       sync: {},
       timezone: '+00:00',
+      keepDefaultTimezone: false,
       standardConformingStrings: true,
       logging: console.debug,
       omitNull: false,
       native: false,
       replication: false,
       ssl: undefined,
-      pool: {},
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -236,6 +245,13 @@ export class Sequelize {
       minifyAliases: false,
       logQueryParameters: false,
       ...options,
+      pool: _.defaults(options.pool || {}, {
+        max: 5,
+        min: 0,
+        idle: 10_000,
+        acquire: 60_000,
+        evict: 1000,
+      }),
     };
 
     if (!this.options.dialect) {
@@ -261,38 +277,9 @@ export class Sequelize {
 
     this._setupHooks(options.hooks);
 
-    this.config = {
-      database: config.database || this.options.database,
-      username: config.username || this.options.username,
-      password: config.password || this.options.password || null,
-      host: config.host || this.options.host,
-      port: config.port || this.options.port,
-      pool: this.options.pool,
-      protocol: this.options.protocol,
-      native: this.options.native,
-      ssl: this.options.ssl,
-      replication: this.options.replication,
-      dialectModule: this.options.dialectModule,
-      dialectModulePath: this.options.dialectModulePath,
-      keepDefaultTimezone: this.options.keepDefaultTimezone,
-      dialectOptions: this.options.dialectOptions,
-    };
-
-    // Convert replication connection strings to objects
-    if (this.options.replication) {
-      if (this.options.replication.write && typeof this.options.replication.write === 'string') {
-        this.options.replication.write = parseConnectionString(this.options.replication.write);
-      }
-
-      if (this.options.replication.read) {
-        for (let i = 0; i < this.options.replication.read.length; i++) {
-          const server = this.options.replication.read[i];
-          if (typeof server === 'string') {
-            this.options.replication.read[i] = parseConnectionString(server);
-          }
-        }
-      }
-    }
+    // ==========================================
+    //  REPLICATION CONFIG NORMALIZATION
+    // ==========================================
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
@@ -325,6 +312,67 @@ export class Sequelize {
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
+
+    if (!this.options.port) {
+      this.options.port = Dialect.getDefaultPort();
+    } else {
+      this.options.port = Number(this.options.port);
+    }
+
+    const connectionConfig = {
+      database: this.options.database,
+      username: this.options.username,
+      password: this.options.password || null,
+      host: this.options.host,
+      port: this.options.port,
+      protocol: this.options.protocol,
+      ssl: this.options.ssl,
+      dialectOptions: this.options.dialectOptions,
+    };
+
+    if (!this.options.replication) {
+      this.options.replication = Object.create(null);
+    }
+
+    // Convert replication connection strings to objects
+    if (isString(this.options.replication.write)) {
+      this.options.replication.write = parseConnectionString(this.options.replication.write);
+    }
+
+    // Map main connection config
+    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write.port = Number(this.options.replication.write.port);
+
+    if (!this.options.replication.read) {
+      this.options.replication.read = [];
+    } else if (!Array.isArray(this.options.replication.read)) {
+      this.options.replication.read = [this.options.replication.read];
+    }
+
+    this.options.replication.read = this.options.replication.read.map(readEntry => {
+      if (isString(readEntry)) {
+        readEntry = parseConnectionString(readEntry);
+      }
+
+      readEntry.port = Number(readEntry.port);
+
+      // Apply defaults to each read config
+      return _.defaults(readEntry, connectionConfig);
+    });
+
+    // ==========================================
+    //  CONFIG
+    // ==========================================
+
+    this.config = {
+      ...connectionConfig,
+      pool: this.options.pool,
+      native: this.options.native,
+      replication: this.options.replication,
+      dialectModule: this.options.dialectModule,
+      dialectModulePath: this.options.dialectModulePath,
+      keepDefaultTimezone: this.options.keepDefaultTimezone,
+    };
 
     this.dialect = new Dialect(this);
     this.dialect.queryGenerator.typeValidation = options.typeValidation;
@@ -643,7 +691,7 @@ Use Sequelize#query if you wish to use replacements.`);
       } finally {
         await this.runHooks('afterQuery', options, query);
         if (!options.transaction) {
-          await this.connectionManager.releaseConnection(connection);
+          this.connectionManager.releaseConnection(connection);
         }
       }
     }, retryOptions);
@@ -1022,7 +1070,7 @@ Use Sequelize#query if you wish to use replacements.`);
    * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
    *
    * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
+   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
    *     const user = await User.findOne(..., {transaction});
    *     await user.update(..., {transaction});
    *   });
@@ -1058,33 +1106,31 @@ Use Sequelize#query if you wish to use replacements.`);
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment(false);
+      await transaction.prepareEnvironment(/* cls */ false);
 
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
-      try {
-        await transaction.prepareEnvironment();
-        const result = await autoCallback(transaction);
-        await transaction.commit();
+      await transaction.prepareEnvironment(/* cls */ true);
 
-        return await result;
+      let result;
+      try {
+        result = await autoCallback(transaction);
       } catch (error) {
         try {
-          if (!transaction.finished) {
-            await transaction.rollback();
-          } else {
-            // release the connection, even if we don't need to rollback
-            await transaction.cleanup();
-          }
+          await transaction.rollback();
         } catch {
-          // ignore
+          // ignore, because 'rollback' will already print the error before killing the connection
         }
 
         throw error;
       }
+
+      await transaction.commit();
+
+      return result;
     });
   }
 

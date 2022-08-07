@@ -342,12 +342,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           });
 
           it('should create, find and include associations with scope values', async function () {
-            // We don't know the databaseVersion outside of the tests
-            const isMySQL8 = Support.getTestDialect() === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
-            if (isMySQL8) {
-              return;
-            }
-
             const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
               this.Post.create(),
               this.Post.create(),
@@ -365,11 +359,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             await Promise.all([
               postA0.addCategory(categoryA),
               postA0.createTag(),
-              postB0.setCategories([categoryB]),
               postB0.addTag(tagA),
               postC0.createCategory(),
-              postC0.setTags([tagB]),
             ]);
+
+            // we're calling 'setX' methods after the different 'addX' methods because
+            // setCategories is not supposed to overwrite tags and vice-versa.
+            // tags & categories use the same through table so this could happen is the association scope is not handled correctly.
+            await postB0.setCategories([categoryB]);
+            await postC0.setTags([tagB]);
 
             const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
               this.postA.getCategories(),
@@ -380,8 +378,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.postC.getTags(),
             ]);
 
-            // Flaky test on MySQL8: randomly some values will be 0 sometimes, for
-            // now no solution. Not reproducible at local or cloud with logging enabled
             expect([
               postACategories.length,
               postATags.length,

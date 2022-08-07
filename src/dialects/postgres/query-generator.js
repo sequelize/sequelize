@@ -133,7 +133,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery() {
-    return 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\' AND table_type LIKE \'%TABLE\' AND table_name != \'spatial_ref_sys\';';
+    const schema = this.options.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
   }
 
   tableExistsQuery(tableName) {
@@ -144,9 +146,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
-    if (!schema) {
-      schema = 'public';
-    }
+    schema = schema || this.options.schema || 'public';
 
     return 'SELECT '
       + 'pk.constraint_type as "Constraint",'
@@ -167,7 +167,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'ON pk.table_schema=c.table_schema '
       + 'AND pk.table_name=c.table_name '
       + 'AND pk.column_name=c.column_name '
-      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)} `;
+      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**

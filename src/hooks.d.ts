@@ -1,5 +1,6 @@
-import { ValidationOptions } from './instance-validator';
-import {
+import type { AbstractQuery } from './dialects/abstract/query';
+import type { ValidationOptions } from './instance-validator';
+import type {
   Model,
   BulkCreateOptions,
   CountOptions,
@@ -10,11 +11,10 @@ import {
   InstanceUpdateOptions,
   ModelAttributes,
   ModelOptions, RestoreOptions, UpdateOptions, UpsertOptions,
-  Attributes, CreationAttributes, ModelStatic
+  Attributes, CreationAttributes, ModelStatic,
 } from './model';
-import { AbstractQuery } from './dialects/abstract/query';
-import { Config, Options, Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import { DeepWriteable } from './utils';
+import type { Config, Options, Sequelize, SyncOptions, QueryOptions } from './sequelize';
+import type { DeepWriteable } from './utils';
 
 export type HookReturn = Promise<void> | void;
 
@@ -64,11 +64,10 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
 }
 
-
 export interface SequelizeHooks<
   M extends Model<TAttributes, TCreationAttributes> = Model,
   TAttributes = any,
-  TCreationAttributes = TAttributes
+  TCreationAttributes = TAttributes,
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
   afterDefine(model: ModelStatic): void;
@@ -86,7 +85,7 @@ export interface SequelizeHooks<
 export class Hooks<
   M extends Model<TModelAttributes, TCreationAttributes> = Model,
   TModelAttributes extends {} = any,
-  TCreationAttributes extends {} = TModelAttributes
+  TCreationAttributes extends {} = TModelAttributes,
 > {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
@@ -117,18 +116,18 @@ export class Hooks<
    * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
    *   hooks based on some sort of priority system in the future.
    */
-  public static addHook<
+  static addHook<
     H extends Hooks,
-    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>
+    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
     >(
     this: HooksStatic<H>,
     hookType: K,
     name: string,
     fn: SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>[K]
   ): HooksCtor<H>;
-  public static addHook<
+  static addHook<
     H extends Hooks,
-    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>
+    K extends keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
   >(
     this: HooksStatic<H>,
     hookType: K,
@@ -138,7 +137,7 @@ export class Hooks<
   /**
    * Remove hook from the model
    */
-  public static removeHook<H extends Hooks>(
+  static removeHook<H extends Hooks>(
     this: HooksStatic<H>,
     hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
     name: string,
@@ -147,11 +146,11 @@ export class Hooks<
   /**
    * Check whether the mode has any hooks of this type
    */
-  public static hasHook<H extends Hooks>(
+  static hasHook<H extends Hooks>(
     this: HooksStatic<H>,
     hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
   ): boolean;
-  public static hasHooks<H extends Hooks>(
+  static hasHooks<H extends Hooks>(
     this: HooksStatic<H>,
     hookType: keyof SequelizeHooks<H['_model'], Attributes<H>, CreationAttributes<H>>,
   ): boolean;
@@ -162,17 +161,17 @@ export class Hooks<
    * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
    *   hooks based on some sort of priority system in the future.
    */
-  public addHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
+  addHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
     hookType: K,
     name: string,
     fn: SequelizeHooks<Model, TModelAttributes, TCreationAttributes>[K]
   ): this;
-  public addHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
+  addHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
     hookType: K, fn: SequelizeHooks<M, TModelAttributes, TCreationAttributes>[K]): this;
   /**
    * Remove hook from the model
    */
-  public removeHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
+  removeHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(
     hookType: K,
     name: string
   ): this;
@@ -180,8 +179,10 @@ export class Hooks<
   /**
    * Check whether the mode has any hooks of this type
    */
-  public hasHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
-  public hasHooks<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
+  hasHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
+  hasHooks<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
+
+  runHooks(name: string, ...params: unknown[]): Promise<void>;
 }
 
 export type HooksCtor<H extends Hooks> = typeof Hooks & { new(): H };

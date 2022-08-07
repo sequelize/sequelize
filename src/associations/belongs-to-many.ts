@@ -592,6 +592,11 @@ Add your own primary key to the through model, on different attributes than the 
       raw: true,
       // force this option to be false, in case the user enabled
       rejectOnEmpty: false,
+      include: this.scope ? [{
+        association: this.fromThroughToTarget,
+        where: this.scope,
+        required: true,
+      }] : [],
     });
 
     const obsoleteTargets: Array<TargetModel | Exclude<TargetModel[TargetKey], any[]>> = [];

@@ -141,6 +141,255 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    // reason for this test: https://github.com/sequelize/sequelize/issues/12973
+    describe('Model Hook integration', () => {
+
+      function testHooks({ method, hooks: hookNames, optionPos, execute, getModel }) {
+        it(`passes the transaction to hooks {${hookNames.join(',')}} when calling ${method}`, async function () {
+          await this.sequelize.transaction(async transaction => {
+            const hooks = Object.create(null);
+
+            for (const hookName of hookNames) {
+              hooks[hookName] = sinon.spy();
+            }
+
+            const User = Reflect.apply(getModel, this, []);
+
+            for (const [hookName, spy] of Object.entries(hooks)) {
+              User[hookName](spy);
+            }
+
+            await Reflect.apply(execute, this, [User]);
+
+            const spyMatcher = [];
+            // ignore all arguments until we get to the option bag.
+            for (let i = 0; i < optionPos; i++) {
+              spyMatcher.push(sinon.match.any);
+            }
+
+            // find the transaction in the option bag
+            spyMatcher.push(sinon.match.has('transaction', transaction));
+
+            for (const [hookName, spy] of Object.entries(hooks)) {
+              expect(
+                spy,
+                `hook ${hookName} did not receive the transaction from CLS.`,
+              ).to.have.been.calledWith(...spyMatcher);
+            }
+          });
+        });
+      }
+
+      testHooks({
+        method: 'Model.bulkCreate',
+        hooks: ['beforeBulkCreate', 'beforeCreate', 'afterCreate', 'afterBulkCreate'],
+        optionPos: 1,
+        async execute(User) {
+          await User.bulkCreate([{ name: 'bob' }], { individualHooks: true });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.findAll',
+        hooks: ['beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions'],
+        optionPos: 0,
+        async execute(User) {
+          await User.findAll();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.findAll',
+        hooks: ['afterFind'],
+        optionPos: 1,
+        async execute(User) {
+          await User.findAll();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.count',
+        hooks: ['beforeCount'],
+        optionPos: 0,
+        async execute(User) {
+          await User.count();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.upsert',
+        hooks: ['beforeUpsert', 'afterUpsert'],
+        optionPos: 1,
+        async execute(User) {
+          await User.upsert({
+            id: 1,
+            name: 'bob',
+          });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.destroy',
+        hooks: ['beforeBulkDestroy', 'afterBulkDestroy'],
+        optionPos: 0,
+        async execute(User) {
+          await User.destroy({ where: { name: 'bob' } });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.destroy with individualHooks',
+        hooks: ['beforeDestroy', 'beforeDestroy'],
+        optionPos: 1,
+        async execute(User) {
+          await User.create({ name: 'bob' });
+          await User.destroy({ where: { name: 'bob' }, individualHooks: true });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model#destroy',
+        hooks: ['beforeDestroy', 'beforeDestroy'],
+        optionPos: 1,
+        async execute(User) {
+          const user = await User.create({ name: 'bob' });
+          await user.destroy();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.update',
+        hooks: ['beforeBulkUpdate', 'afterBulkUpdate'],
+        optionPos: 0,
+        async execute(User) {
+          await User.update({ name: 'alice' }, { where: { name: 'bob' } });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model.update with individualHooks',
+        hooks: ['beforeUpdate', 'afterUpdate'],
+        optionPos: 1,
+        async execute(User) {
+          await User.create({ name: 'bob' });
+          await User.update({ name: 'alice' }, { where: { name: 'bob' }, individualHooks: true });
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model#save (isNewRecord)',
+        hooks: ['beforeCreate', 'afterCreate'],
+        optionPos: 1,
+        async execute(User) {
+          const user = User.build({ name: 'bob' });
+          user.name = 'alice';
+          await user.save();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      testHooks({
+        method: 'Model#save (!isNewRecord)',
+        hooks: ['beforeUpdate', 'afterUpdate'],
+        optionPos: 1,
+        async execute(User) {
+          const user = await User.create({ name: 'bob' });
+          user.name = 'alice';
+          await user.save();
+        },
+        getModel() {
+          return this.User;
+        },
+      });
+
+      describe('paranoid restore', () => {
+        beforeEach(async function () {
+          this.ParanoidUser = this.sequelize.define('ParanoidUser', {
+            name: DataTypes.STRING,
+          }, { paranoid: true });
+
+          await this.ParanoidUser.sync({ force: true });
+        });
+
+        testHooks({
+          method: 'Model.restore',
+          hooks: ['beforeBulkRestore', 'afterBulkRestore'],
+          optionPos: 0,
+          async execute() {
+            const User = this.ParanoidUser;
+            await User.restore({ where: { name: 'bob' } });
+          },
+          getModel() {
+            return this.ParanoidUser;
+          },
+        });
+
+        testHooks({
+          method: 'Model.restore with individualHooks',
+          hooks: ['beforeRestore', 'afterRestore'],
+          optionPos: 1,
+          async execute() {
+            const User = this.ParanoidUser;
+
+            await User.create({ name: 'bob' });
+            await User.destroy({ where: { name: 'bob' } });
+            await User.restore({ where: { name: 'bob' }, individualHooks: true });
+          },
+          getModel() {
+            return this.ParanoidUser;
+          },
+        });
+
+        testHooks({
+          method: 'Model#restore',
+          hooks: ['beforeRestore', 'afterRestore'],
+          optionPos: 1,
+          async execute() {
+            const User = this.ParanoidUser;
+
+            const user = await User.create({ name: 'bob' });
+            await user.destroy();
+            await user.restore();
+          },
+          getModel() {
+            return this.ParanoidUser;
+          },
+        });
+      });
+    });
+
     it('CLS namespace is stored in Sequelize._cls', function () {
       expect(Sequelize._cls).to.equal(this.ns);
     });

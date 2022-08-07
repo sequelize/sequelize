@@ -1,6 +1,6 @@
 'use strict';
 
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').snowflake;
@@ -15,9 +15,8 @@ const parserStore = require('../parserStore')('snowflake');
  *
  * @private
  */
-export class SnowflakeConnectionManager extends ConnectionManager {
+export class SnowflakeConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('snowflake-sdk');
     this.refreshTypeParser(DataTypes);

@@ -1,6 +1,6 @@
 'use strict';
 
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const { AsyncQueue } = require('./async-queue');
 const { logger } = require('../../utils/logger');
 const sequelizeErrors = require('../../errors');
@@ -10,9 +10,8 @@ const parserStore = require('../parserStore')('mssql');
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
 
-export class MsSqlConnectionManager extends ConnectionManager {
+export class MsSqlConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 1433;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('tedious');
     this.refreshTypeParser(DataTypes);
