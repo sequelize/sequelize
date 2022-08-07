@@ -2083,7 +2083,7 @@ class QueryGenerator {
           && !(typeof order[0].model === 'function' && order[0].model.prototype instanceof Model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          const field = model.rawAttributes[order[0]]?.field || order[0];
+          const field = model.rawAttributes[order[0]] ? model.rawAttributes[order[0]].field : order[0];
           const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
 
           subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->'));
