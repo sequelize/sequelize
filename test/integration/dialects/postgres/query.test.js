@@ -135,5 +135,44 @@ if (dialect.startsWith('postgres')) {
         },
       });
     });
+
+    it('orders by a literal when subquery and minifyAliases are enabled', async () => {
+      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+        logQueryParameters: true,
+        benchmark: true,
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      const Foo = sequelizeMinifyAliases.define('Foo', {
+        name: {
+          field: 'my_name',
+          type: DataTypes.TEXT,
+        },
+      }, { timestamps: false });
+
+      await sequelizeMinifyAliases.sync({ force: true });
+      await Foo.create({ name: 'record1' });
+      await Foo.create({ name: 'record2' });
+
+      const thisWorks = (await Foo.findAll({
+        subQuery: false,
+        order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
+      })).map(f => f.name);
+      expect(thisWorks[0]).to.equal('record1');
+
+      const thisShouldAlsoWork = (await Foo.findAll({
+        attributes: {
+          include: [
+            [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
+          ],
+        },
+        subQuery: true,
+        order: ['customAttribute'],
+      })).map(f => f.name);
+      expect(thisShouldAlsoWork[0]).to.equal('record1');
+    });
   });
 }
