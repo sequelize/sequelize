@@ -1,7 +1,7 @@
 services:
   mssql-oldest:
     container_name: sequelize-mssql-oldest
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: Y
       SA_PASSWORD: Password12!
