@@ -7559,10 +7559,10 @@ seq-queue@^0.0.5:
   resolved "https://registry.yarnpkg.com/seq-queue/-/seq-queue-0.0.5.tgz#d56812e1c017a6e4e7c3e3a37a1da6d78dd3c93e"
   integrity sha512-hr3Wtp/GZIc/6DAGPDcV4/9WoZhjrkXsi5B/07QgX8tsdc6ilr7BFM6PM6rbdAX1kFSDYeZGLipIZZKyQP0O5Q==
 
-sequelize-pool@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-7.1.0.tgz#210b391af4002762f823188fd6ecfc7413020768"
-  integrity sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==
+sequelize-pool@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/sequelize-pool/-/sequelize-pool-8.0.0.tgz#4bd3a62b9ab8ec336190e2cbce81aa769d7365ee"
+  integrity sha512-xY04c5ctp6lKE4ZoSVo7YJHN5FHVhoYMoH2Z8jWIJG26c9kJSkIjql5HgD9XG5cwJbYMF0Ko2Fhgws20HC90Ug==
 
 serialize-javascript@6.0.0:
   version "6.0.0"
