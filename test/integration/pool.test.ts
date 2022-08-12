@@ -209,7 +209,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(secondConnection);
     });
 
-    it('[MSSQL Flaky] should get new connection beyond idle range', async () => {
+    it('[Flaky] should get new connection beyond idle range', async () => {
       const sequelize = createSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 },
       });
