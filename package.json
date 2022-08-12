@@ -111,7 +111,7 @@
     "snowflake-sdk": "1.6.12",
     "source-map-support": "0.5.21",
     "sqlite3": "5.0.11",
-    "tedious": "14.4.0",
+    "tedious": "14.7.0",
     "ts-node": "10.9.1",
     "typedoc": "0.22.18",
     "typescript": "4.7.4"
