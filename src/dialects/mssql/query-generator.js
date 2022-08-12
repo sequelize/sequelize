@@ -975,13 +975,28 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     if (options.limit || options.offset) {
       // TODO: document why this is adding the primary key of the model in ORDER BY
       //  if options.include is set
-      if (orders.mainQueryOrder.length === 0 && orders.subQueryOrder.length === 0) {
-        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
+      if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
+        let primaryKey = model.primaryKeyField;
+
+        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(primaryKey)}`;
+        const aliasedAttribute = (options.attributes || []).find(attr => Array.isArray(attr)
+            && attr[1]
+            && (attr[0] === primaryKey || attr[1] === primaryKey));
+
+        if (aliasedAttribute) {
+          const modelName = this.quoteIdentifier(options.tableAs || model.name);
+          const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+
+          primaryKey = new Utils.Col(alias || aliasedAttribute[1]);
+        }
+
         if (!options.order || !options.order.length) {
           fragment += ` ORDER BY ${tablePkFragment}`;
         } else {
-          const orderFieldNames = _.map(options.order, order => order[0]);
-          const primaryKeyFieldAlreadyPresent = _.includes(orderFieldNames, model.primaryKeyField);
+          const orderFieldNames = _.map(options.order, _.first);
+          const primaryKeyFieldAlreadyPresent = orderFieldNames.some(
+            fieldName => (fieldName.col || fieldName) === (primaryKey.col || primaryKey)
+          );
 
           if (!primaryKeyFieldAlreadyPresent) {
             fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';
