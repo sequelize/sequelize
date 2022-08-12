@@ -975,7 +975,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     if (options.limit || options.offset) {
       // TODO: document why this is adding the primary key of the model in ORDER BY
       //  if options.include is set
-      if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
+      if (orders.mainQueryOrder.length === 0 && orders.subQueryOrder.length === 0) {
         const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
         if (!options.order || !options.order.length) {
           fragment += ` ORDER BY ${tablePkFragment}`;
