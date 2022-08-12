@@ -993,9 +993,21 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
         if (!options.order || !options.order.length) {
           fragment += ` ORDER BY ${tablePkFragment}`;
         } else {
-          const orderFieldNames = _.map(options.order, _.first);
+          const orderFieldNames = (options.order || []).map(order => {
+            const value = Array.isArray(order) ? order[0] : order;
+
+            if (value instanceof Utils.Col) {
+              return value.col;
+            }
+
+            if (value instanceof Utils.Literal) {
+              return value.val;
+            }
+
+            return value;
+          });
           const primaryKeyFieldAlreadyPresent = orderFieldNames.some(
-            fieldName => (fieldName.col || fieldName) === (primaryKey.col || primaryKey)
+            fieldName => fieldName === (primaryKey.col || primaryKey)
           );
 
           if (!primaryKeyFieldAlreadyPresent) {
