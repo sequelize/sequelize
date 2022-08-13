@@ -1415,7 +1415,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ truncate: true });
       expect(await User.findAll()).to.have.lengthOf(0);
-      expect(affectedRows).to.be.a('number');
+      expect(affectedRows).to.be.an('array');
     });
 
     it('throws an error if no where clause is given', async function () {
@@ -1435,7 +1435,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ where: {} });
-      expect(affectedRows).to.equal(2);
+      expect(affectedRows).to.be.an('array').that.includes(2);
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
@@ -1697,9 +1697,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.User.bulkCreate(data);
       let affectedRows = await this.User.destroy({ where: { secretValue: '42' } });
-      expect(affectedRows).to.equal(2);
+      expect(affectedRows).to.be.an('array').that.includes(2);
       affectedRows = await this.User.destroy({ where: { secretValue: '44' } });
-      expect(affectedRows).to.equal(0);
+      expect(affectedRows).to.be.an('array').that.includes(0);
     });
 
     it('supports table schema/prefix', async function () {
