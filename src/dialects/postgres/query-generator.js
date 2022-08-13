@@ -396,7 +396,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       query = `${baseQuery} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
       if (options.returning) {
-        returnValues = this.generateReturnValues(options);
+        returnValues = this.generateValuesToReturn(options);
         query = `${query}${returnValues}`;
       }
 
@@ -404,7 +404,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (options.returning) {
-      returnValues = this.generateReturnValues(options);
+      returnValues = this.generateValuesToReturn(options);
       query = `${baseQuery}${whereClause}${returnValues}`;
 
       return query;
@@ -413,7 +413,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `${baseQuery}${whereClause}`;
   }
 
-  generateReturnValues(options) {
+  generateValuesToReturn(options) {
     const returnFields = [];
     let returningFragment = '';
     if (Array.isArray(options.returning)) {

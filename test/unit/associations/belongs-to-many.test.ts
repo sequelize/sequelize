@@ -285,7 +285,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       sinon.stub(UserTasks, 'findAll').resolves([]);
       sinon.stub(UserTasks, 'bulkCreate').resolves([]);
-      sinon.stub(UserTasks, 'destroy').resolves(0);
+      sinon.stub(UserTasks, 'destroy').resolves([0]);
 
       return { user, task1, task2, UserTasks };
     }
