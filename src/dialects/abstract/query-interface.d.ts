@@ -41,6 +41,7 @@ export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
 
 export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
   limit?: number | Literal | null | undefined;
+  returning?: boolean | string[];
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {

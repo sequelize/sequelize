@@ -1202,6 +1202,11 @@ export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttr
    * __Danger__: This will completely empty your table!
    */
   truncate?: boolean;
+
+  /**
+   * Return the destroyed rows (only for postgres)
+   */
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
@@ -2762,12 +2767,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * @returns The number of destroyed rows
+   * The promise resolves with an array of one or two elements
+   * - The first element is always the number of destroyed rows
+   * - The second element is the list of destroyed entities (only supported in postgres)
    */
   static destroy<M extends Model>(
     this: ModelStatic<M>,
+    options: Omit<DestroyOptions<Attributes<M>>, 'returning'>
+      & { returning: Exclude<DestroyOptions<Attributes<M>>['returning'], undefined | false> }
+  ): Promise<[deletedCount: number, deletedRows: M[]]>;
+  static destroy<M extends Model>(
+    this: ModelStatic<M>,
     options?: DestroyOptions<Attributes<M>>
-  ): Promise<number>;
+  ): Promise<[deletedCount: number]>;
 
   /**
    * Restores multiple paranoid instances.

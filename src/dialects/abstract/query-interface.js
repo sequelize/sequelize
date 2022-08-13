@@ -995,7 +995,7 @@ export class QueryInterface {
   async delete(instance, tableName, identifier, options) {
     const cascades = [];
 
-    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
+    const sql = this.queryGenerator.deleteQuery(tableName, identifier, options, instance.constructor);
 
     options = { ...options };
 

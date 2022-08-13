@@ -48,6 +48,7 @@ type UpdateOptions = ParameterOptions & {
 
 type DeleteOptions = ParameterOptions & {
   limit?: number | Literal | null | undefined,
+  returning?: boolean | string[],
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {

@@ -2950,6 +2950,7 @@ Specify a different name for either index to resolve this issue.`);
       force: false,
       cascade: false,
       restartIdentity: false,
+      returing: false,
     });
 
     options.type = QueryTypes.BULKDELETE;
@@ -2971,6 +2972,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     let result;
+    let affectedRows;
     // Run delete query (or update if paranoid)
     if (this._timestampAttributes.deletedAt && !options.force) {
       // Set query type appropriately when running soft delete
@@ -2984,9 +2986,15 @@ Specify a different name for either index to resolve this issue.`);
       };
 
       attrValueHash[field] = Utils.now(this.sequelize.options.dialect);
-      result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, this.rawAttributes);
+      affectedRows = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, this.rawAttributes);
     } else {
-      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+      affectedRows = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+    }
+
+    if (options.returning) {
+      result = [affectedRows.length, affectedRows];
+    } else {
+      result = [affectedRows];
     }
 
     // Run afterDestroy hook on each record individually

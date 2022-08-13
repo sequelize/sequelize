@@ -377,7 +377,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
-
+    const baseQuery = `DELETE FROM ${table}`;
+    let query = '';
+    let returnValues = '';
     if (whereClause) {
       whereClause = ` WHERE ${whereClause}`;
     }
@@ -392,10 +394,39 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
       primaryKeysSelection = pks;
 
-      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
+      query = `${baseQuery} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
+      if (options.returning) {
+        returnValues = this.generateReturnValues(options);
+        query = `${query}${returnValues}`;
+      }
+
+      return query;
     }
 
-    return `DELETE FROM ${table}${whereClause}`;
+    if (options.returning) {
+      returnValues = this.generateReturnValues(options);
+      query = `${baseQuery}${whereClause}${returnValues}`;
+
+      return query;
+    }
+
+    return `${baseQuery}${whereClause}`;
+  }
+
+  generateReturnValues(options) {
+    const returnFields = [];
+    let returningFragment = '';
+    if (Array.isArray(options.returning)) {
+      returnFields.push(...options.returning.map(field => this.quoteIdentifier(field)));
+    }
+
+    if (_.isEmpty(returnFields)) {
+      returnFields.push('*');
+    }
+
+    returningFragment = ` RETURNING ${returnFields.join(',')}`;
+
+    return returningFragment;
   }
 
   showIndexesQuery(tableName) {
