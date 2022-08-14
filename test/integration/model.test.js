@@ -1415,7 +1415,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ truncate: true });
       expect(await User.findAll()).to.have.lengthOf(0);
-      expect(affectedRows).to.be.an('array');
+      expect(affectedRows).to.be.a('number');
     });
 
     it('throws an error if no where clause is given', async function () {
@@ -1435,7 +1435,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ where: {} });
-      expect(affectedRows).to.be.an('array').that.includes(2);
+      expect(affectedRows).to.be.a('number');
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
@@ -1697,10 +1697,77 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.User.bulkCreate(data);
       let affectedRows = await this.User.destroy({ where: { secretValue: '42' } });
-      expect(affectedRows).to.be.an('array').that.includes(2);
+      expect(affectedRows).to.be.a('number');
       affectedRows = await this.User.destroy({ where: { secretValue: '44' } });
-      expect(affectedRows).to.be.an('array').that.includes(0);
+      expect(affectedRows).to.be.a('number');
     });
+    if (dialect === 'postgres') {
+      const data = [
+        { username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' },
+        { username: 'Rob', secretValue: '41' },
+        { username: 'Billy', secretValue: '40' },
+      ];
+      it('returns the affected rows if `options.returning` is set to true', async function () {
+        await this.User.bulkCreate(data);
+        let [affectedRowsCount, affectedRows] = await this.User.destroy({ where: { secretValue: '42' }, returning: true });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(2);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(2);
+        [affectedRowsCount, affectedRows] = await this.User.destroy({ where: {}, returning: true });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(3);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(3);
+      });
+
+      it('returns the affected rows count if `options.returning` is set to false', async function () {
+        await this.User.bulkCreate(data);
+        let affectedRowsCount = await this.User.destroy({ where: { secretValue: '42' }, returning: false });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(2);
+        affectedRowsCount = await this.User.destroy({ where: {}, returning: false });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(3);
+      });
+
+      it('returns only the fields in affected rows specified in `options.returning`', async function () {
+        await this.User.bulkCreate(data);
+        let [affectedRowsCount, affectedRows] = await this.User.destroy({ where: { secretValue: '42' }, returning: ['username'] });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(2);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(2);
+        JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
+          expect(userObj).to.have.all.keys('username');
+          expect(userObj).to.not.have.keys('id', 'secretValue');
+        });
+        [affectedRowsCount, affectedRows] = await this.User.destroy({ where: {}, returning: ['*'] });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(3);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(3);
+        JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
+          expect(userObj).to.include.keys('secretValue', 'username', 'id');
+        });
+      });
+
+      it('returns all the fields in affected rows when `options.returning` is set to []', async function () {
+        await this.User.bulkCreate(data);
+        let [affectedRowsCount, affectedRows] = await this.User.destroy({ where: { secretValue: '42' }, returning: [] });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(2);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(2);
+        JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
+          expect(userObj).to.include.keys('secretValue', 'username', 'id');
+        });
+        [affectedRowsCount, affectedRows] = await this.User.destroy({ where: {}, returning: [] });
+        expect(affectedRowsCount).to.be.a('number');
+        expect(affectedRowsCount).to.equal(3);
+        expect(affectedRows).to.be.an('array').to.have.lengthOf(3);
+        JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
+          expect(userObj).to.include.keys('secretValue', 'username', 'id');
+        });
+      });
+    }
 
     it('supports table schema/prefix', async function () {
       const data = [

@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const count2 = await Account.count();
       expect(count2).to.be.equal(1);
       const result = await Account.destroy({ where: { ownerId: 12 } });
-      expect(result).to.be.an('array').that.includes(1);
+      expect(result).to.be.a('number');
       const count1 = await Account.count();
       expect(count1).to.be.equal(0);
       const count0 = await Account.count({ paranoid: false });
@@ -85,6 +85,74 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const count = await Account.count();
       expect(count).to.be.equal(1);
     });
+
+    if (current.dialect.supports.returnValues.returning) {
+      it('should be able to return soft deleted records with timestamps when `options.returning` is set to true', async function () {
+        const Account = this.sequelize.define('Account', {
+          ownerId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            field: 'owner_id',
+          },
+          name: {
+            type: DataTypes.STRING,
+          },
+        }, {
+          paranoid: true,
+          timestamps: true,
+        });
+
+        await Account.sync({ force: true });
+        await Account.create({ ownerId: 12 });
+        const count2 = await Account.count();
+        expect(count2).to.be.equal(1);
+        let [affectedRowsCount, affectedRows] = await Account.destroy({ where: { ownerId: 12 }, returning: true });
+        expect(affectedRowsCount).to.be.a('number').to.equal(1);
+        expect(affectedRows).to.have.length(1);
+        const count1 = await Account.count();
+        expect(count1).to.be.equal(0);
+        const count0 = await Account.count({ paranoid: false });
+        expect(count0).to.be.equal(1);
+        await Account.restore({ where: { ownerId: 12 } });
+        const count = await Account.count();
+        expect(count).to.be.equal(1);
+        [affectedRowsCount, affectedRows] = await Account.destroy({ where: { ownerId: 12 }, returning: ['name'] });
+        expect(affectedRowsCount).to.be.a('number').to.equal(1);
+        JSON.parse(JSON.stringify(affectedRows)).forEach(accountObj => {
+          expect(accountObj).to.have.all.keys('name');
+        });
+      });
+
+      it('should not be able to return soft deleted records with timestamps when `options.returning` is set to false', async function () {
+        const Account = this.sequelize.define('Account', {
+          ownerId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            field: 'owner_id',
+          },
+          name: {
+            type: DataTypes.STRING,
+          },
+        }, {
+          paranoid: true,
+          timestamps: true,
+        });
+
+        await Account.sync({ force: true });
+        await Account.create({ ownerId: 12 });
+        const count2 = await Account.count();
+        expect(count2).to.be.equal(1);
+        const affectedRowsCount = await Account.destroy({ where: { ownerId: 12 }, returning: false });
+        expect(affectedRowsCount).to.be.a('number');
+        const count1 = await Account.count();
+        expect(count1).to.be.equal(0);
+        const count0 = await Account.count({ paranoid: false });
+        expect(count0).to.be.equal(1);
+        await Account.restore({ where: { ownerId: 12 } });
+        const count = await Account.count();
+        expect(count).to.be.equal(1);
+      });
+    }
 
     if (current.dialect.supports.JSON) {
       describe('JSON', () => {
