@@ -59,8 +59,11 @@ describe('QueryInterface#delete', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "id","firstName"`,
+      default: 'DELETE FROM `Users` WHERE `id` = \':id\'',
       postgres: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "id","firstName"`,
+      mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 
@@ -83,8 +86,11 @@ describe('QueryInterface#delete', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING *`,
+      default: 'DELETE FROM `Users` WHERE `id` = \':id\'',
       postgres: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "firstName"`,
+      mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 
@@ -107,8 +113,11 @@ describe('QueryInterface#delete', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      default: 'DELETE FROM `Users` WHERE `id` = \':id\'',
       postgres: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 });
