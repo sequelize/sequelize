@@ -181,8 +181,8 @@ if (dialect.startsWith('postgres')) {
         benchmark: true,
         minifyAliases: true,
         define: {
-          timestamps: false
-        }
+          timestamps: false,
+        },
       });
 
       const Foo = sequelizeMinifyAliases.define(
@@ -190,10 +190,10 @@ if (dialect.startsWith('postgres')) {
         {
           name: {
             field: 'my_name',
-            type: DataTypes.TEXT
-          }
+            type: DataTypes.TEXT,
+          },
         },
-        { timestamps: false }
+        { timestamps: false },
       );
 
       await sequelizeMinifyAliases.sync({ force: true });
@@ -202,10 +202,10 @@ if (dialect.startsWith('postgres')) {
         subQuery: false,
         attributes: {
           include: [
-            [sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0']
-          ]
+            [sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0'],
+          ],
         },
-        order: [['order_0', 'DESC']]
+        order: [['order_0', 'DESC']],
       });
     });
   });
