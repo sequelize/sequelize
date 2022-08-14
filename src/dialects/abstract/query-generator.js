@@ -2146,21 +2146,23 @@ export class AbstractQueryGenerator {
           // TODO - refactor this.quote() to not change the first argument
           const field = model.rawAttributes[order[0]]?.field || order[0];
           const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
+
           subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->', options));
         }
 
-        if (subQuery) {
-          // Handle case where sub-query renames attribute we want to order by,
-          // see https://github.com/sequelize/sequelize/issues/8739
-          // need to check if either of the attribute options match the order
-          const subQueryAttribute = options.attributes.find(a => Array.isArray(a)
-            && a[1]
-            && (a[0] === order[0] || (a[1] === order[0])));
+        // Handle case where renamed attributes are used to order by,
+        // see https://github.com/sequelize/sequelize/issues/8739
+        // need to check if either of the attribute options match the order
+        if (options.attributes && model) {
+          const aliasedAttribute = options.attributes.find(
+            attr => Array.isArray(attr) && attr[1] && (attr[0] === order[0] || attr[1] === order[0]),
+          );
 
-          if (subQueryAttribute) {
+          if (aliasedAttribute) {
             const modelName = this.quoteIdentifier(model.name);
+            const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
 
-            order[0] = new Utils.Col(this._getAliasForField(modelName, subQueryAttribute[1], options) || subQueryAttribute[1]);
+            order[0] = new Utils.Col(alias || aliasedAttribute[1]);
           }
         }
 
