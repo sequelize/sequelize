@@ -2767,7 +2767,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
    *
-   * The promise resolves with an array of one or two elements
+   * The promise resolves with an array of two elements
    * - The first element is always the number of destroyed rows
    * - The second element is the list of destroyed entities (only supported in postgres)
    */
@@ -2776,10 +2776,16 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     options: Omit<DestroyOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<DestroyOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[deletedCount: number, deletedRows: M[]]>;
+
+  /**
+   * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
+   *
+   * @returns the promise resolves to the number of affected rows
+   */
   static destroy<M extends Model>(
     this: ModelStatic<M>,
     options?: DestroyOptions<Attributes<M>>
-  ): Promise<[deletedCount: number]>;
+  ): Promise<number>;
 
   /**
    * Restores multiple paranoid instances.

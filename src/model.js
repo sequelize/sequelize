@@ -2950,7 +2950,7 @@ Specify a different name for either index to resolve this issue.`);
       force: false,
       cascade: false,
       restartIdentity: false,
-      returing: false,
+      returning: false,
     });
 
     options.type = QueryTypes.BULKDELETE;
@@ -2994,7 +2994,7 @@ Specify a different name for either index to resolve this issue.`);
     if (options.returning) {
       result = [affectedRows.length, affectedRows];
     } else {
-      result = [affectedRows];
+      result = affectedRows;
     }
 
     // Run afterDestroy hook on each record individually
