@@ -396,37 +396,21 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       query = `${baseQuery} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
       if (options.returning) {
-        returnValues = this.generateValuesToReturn(options);
-        query = `${query}${returnValues}`;
+        returnValues = this.generateReturnValues(model.rawAttributes, options);
+        query = `${query}${returnValues.returningFragment}`;
       }
 
       return query;
     }
 
     if (options.returning) {
-      returnValues = this.generateValuesToReturn(options);
-      query = `${baseQuery}${whereClause}${returnValues}`;
+      returnValues = this.generateReturnValues(model.rawAttributes, options);
+      query = `${baseQuery}${whereClause}${returnValues.returningFragment}`;
 
       return query;
     }
 
     return `${baseQuery}${whereClause}`;
-  }
-
-  generateValuesToReturn(options) {
-    const returnFields = [];
-    let returningFragment = '';
-    if (Array.isArray(options.returning)) {
-      returnFields.push(...options.returning.map(field => this.quoteIdentifier(field)));
-    }
-
-    if (_.isEmpty(returnFields)) {
-      returnFields.push('*');
-    }
-
-    returningFragment = ` RETURNING ${returnFields.join(',')}`;
-
-    return returningFragment;
   }
 
   showIndexesQuery(tableName) {
