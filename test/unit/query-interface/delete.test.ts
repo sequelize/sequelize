@@ -64,6 +64,7 @@ describe('QueryInterface#delete', () => {
       mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
       db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      ibmi: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 
@@ -91,6 +92,7 @@ describe('QueryInterface#delete', () => {
       mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
       db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      ibmi: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 
@@ -118,6 +120,7 @@ describe('QueryInterface#delete', () => {
       mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       snowflake: `DELETE FROM "Users" WHERE "id" = ':id'`,
       db2: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      ibmi: `DELETE FROM "Users" WHERE "id" = ':id'`,
     });
   });
 });
