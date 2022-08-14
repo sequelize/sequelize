@@ -39,4 +39,76 @@ describe('QueryInterface#delete', () => {
 
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
+
+  it('returns query with `options.returning` set to true', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    const instance = new User();
+
+    await sequelize.getQueryInterface().delete(
+      instance,
+      User.tableName,
+      { id: ':id' },
+      {
+        returning: true,
+        replacements: {
+          id: '123',
+        },
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0] as string, {
+      default: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "id","firstName"`,
+      postgres: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "id","firstName"`,
+    });
+  });
+
+  it('returns query with fields specified in `options.returning`', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    const instance = new User();
+
+    await sequelize.getQueryInterface().delete(
+      instance,
+      User.tableName,
+      { id: ':id' },
+      {
+        returning: ['firstName'],
+        replacements: {
+          id: '123',
+        },
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0] as string, {
+      default: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING *`,
+      postgres: `DELETE FROM "Users" WHERE "id" = ':id' RETURNING "firstName"`,
+    });
+  });
+
+  it('returns query with `options.returning` set to false', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    const instance = new User();
+
+    await sequelize.getQueryInterface().delete(
+      instance,
+      User.tableName,
+      { id: ':id' },
+      {
+        returning: false,
+        replacements: {
+          id: '123',
+        },
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0] as string, {
+      default: `DELETE FROM "Users" WHERE "id" = ':id'`,
+      postgres: `DELETE FROM "Users" WHERE "id" = ':id'`,
+    });
+  });
 });

@@ -1109,6 +1109,28 @@ if (dialect.startsWith('postgres')) {
         },
       ],
 
+      deleteQuery: [
+        {
+          arguments: ['myTable', { name: 'foo' }, { returning: true }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo' RETURNING *`,
+        }, {
+          arguments: ['myTable', { name: 'foo' }, { returning: false }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo'`,
+        }, {
+          arguments: ['myTable', { name: 'foo' }, { returning: ['*'] }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo' RETURNING *`,
+        }, {
+          arguments: ['myTable', { name: 'foo' }, { returning: ['name', 'title'] }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo' RETURNING "name","title"`,
+        }, {
+          arguments: ['myTable', { name: 'foo' }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo'`,
+        }, {
+          arguments: ['myTable', { name: 'foo' }, { returning: [] }, 'myTable'],
+          expectation: `DELETE FROM "myTable" WHERE "name" = 'foo' RETURNING *`,
+        },
+      ],
+
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],

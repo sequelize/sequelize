@@ -1435,7 +1435,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ where: {} });
-      expect(affectedRows).to.be.a('number');
+      expect(affectedRows).to.be.a('number').to.equal(2);
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
@@ -1697,9 +1697,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.User.bulkCreate(data);
       let affectedRows = await this.User.destroy({ where: { secretValue: '42' } });
-      expect(affectedRows).to.be.a('number');
+      expect(affectedRows).to.be.a('number').to.equal(2);
       affectedRows = await this.User.destroy({ where: { secretValue: '44' } });
-      expect(affectedRows).to.be.a('number');
+      expect(affectedRows).to.be.a('number').to.equal(0);
     });
     if (dialect === 'postgres') {
       const data = [
@@ -1737,6 +1737,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(affectedRowsCount).to.be.a('number');
         expect(affectedRowsCount).to.equal(2);
         expect(affectedRows).to.be.an('array').to.have.lengthOf(2);
+        expect(affectedRows[0]).to.be.instanceOf(this.User);
         JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
           expect(userObj).to.have.all.keys('username');
           expect(userObj).to.not.have.keys('id', 'secretValue');
@@ -1745,6 +1746,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(affectedRowsCount).to.be.a('number');
         expect(affectedRowsCount).to.equal(3);
         expect(affectedRows).to.be.an('array').to.have.lengthOf(3);
+        expect(affectedRows[0]).to.be.instanceOf(this.User);
         JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
           expect(userObj).to.include.keys('secretValue', 'username', 'id');
         });
@@ -1756,6 +1758,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(affectedRowsCount).to.be.a('number');
         expect(affectedRowsCount).to.equal(2);
         expect(affectedRows).to.be.an('array').to.have.lengthOf(2);
+        expect(affectedRows[0]).to.be.instanceOf(this.User);
         JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
           expect(userObj).to.include.keys('secretValue', 'username', 'id');
         });
@@ -1763,6 +1766,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(affectedRowsCount).to.be.a('number');
         expect(affectedRowsCount).to.equal(3);
         expect(affectedRows).to.be.an('array').to.have.lengthOf(3);
+        expect(affectedRows[0]).to.be.instanceOf(this.User);
         JSON.parse(JSON.stringify(affectedRows)).forEach(userObj => {
           expect(userObj).to.include.keys('secretValue', 'username', 'id');
         });
