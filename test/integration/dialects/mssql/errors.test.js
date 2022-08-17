@@ -25,7 +25,7 @@ if (dialect === 'mssql') {
 
           return this.sequelize.sync({ force: true }).catch(error => {
             expect(error).to.be.instanceOf(DatabaseError);
-            expect(error.message).to.equal('Cannot use duplicate column names in index. Column name \'username\' listed more than once.');
+            expect(error.message).to.match(/\s|^Cannot use duplicate column names in index. Column name 'username' listed more than once.$/);
           });
         });
 
@@ -42,7 +42,7 @@ if (dialect === 'mssql') {
 
           return this.sequelize.sync({ force: true }).catch(error => {
             expect(error).to.be.instanceOf(DatabaseError);
-            expect(error.message).to.equal('Column name \'email\' does not exist in the target table or view.');
+            expect(error.message).to.match(/\s|^Column name 'email' does not exist in the target table or view.$/);
           });
         });
 
@@ -59,7 +59,7 @@ if (dialect === 'mssql') {
 
           return this.sequelize.sync({ force: true }).catch(error => {
             expect(error).to.be.instanceOf(DatabaseError);
-            expect(error.message).to.equal('Column \'username\' in table \'users\' is of a type that is invalid for use as a key column in an index.');
+            expect(error.message).to.match(/\s|^Column 'username' in table 'users' is of a type that is invalid for use as a key column in an index.$/);
           });
         });
       });
