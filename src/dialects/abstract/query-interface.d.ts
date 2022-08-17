@@ -175,6 +175,11 @@ export interface IndexOptions {
    * Prefix to append to the index name.
    */
   prefix?: string;
+
+  /**
+   * Non-key columns to be added to the lead level of the nonclustered index.
+   */
+  include?: string[];
 }
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}

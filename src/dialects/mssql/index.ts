@@ -35,6 +35,7 @@ export class MssqlDialect extends AbstractDialect {
       type: true,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {

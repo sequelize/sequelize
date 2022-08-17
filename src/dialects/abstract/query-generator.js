@@ -589,6 +589,7 @@ export class AbstractQueryGenerator {
         - using
         - operator
         - concurrently: Pass CONCURRENT so other operations run while the index is created
+        - include
       - rawTablename, the name of the table, without schema. Used to create the name of the index
    @private
   */
@@ -653,6 +654,11 @@ export class AbstractQueryGenerator {
       return result;
     });
 
+    let includeSql;
+    if (this.dialect.supports.index.include && options.include) {
+      includeSql = options.include.map(column => this.quoteIdentifier(column));
+    }
+
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
@@ -705,6 +711,7 @@ export class AbstractQueryGenerator {
       this.dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
       `(${fieldsSql.join(', ')})`,
       this.dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
+      this.dialect.supports.index.include && options.include ? `INCLUDE (${includeSql.join(', ')})` : undefined,
       this.dialect.supports.index.where && options.where ? options.where : undefined,
     );
 

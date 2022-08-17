@@ -253,6 +253,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
     }
+
+    if (current.dialect.supports.index.include) {
+      it('INCLUDE', () => {
+        expectsql(sql.addIndexQuery('User',  {
+          name: 'email_include_name',
+          fields: ['email'],
+          include: ['first_name', 'last_name'],
+        }), {
+          mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        });
+      });
+    }
   });
 
   describe('removeIndex', () => {
