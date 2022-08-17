@@ -3251,7 +3251,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       it('can cascade and restrict deletes', async function () {
         this.User.belongsToMany(this.Task, {
           through: 'tasksusers',
-          foreignKey: {  onDelete: 'RESTRICT' },
+          foreignKey: { onDelete: 'RESTRICT' },
           otherKey: { onDelete: 'CASCADE' },
         });
 
@@ -3536,6 +3536,99 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(hat.name).to.equal('Baz');
       expect(hat.hatwornbys.length).to.equal(1);
       expect(hat.hatwornbys[0].name).to.equal('Foo Bar');
+    });
+  });
+
+  describe('Disabling default unique constraint', () => {
+    beforeEach(function () {
+      this.Order = this.sequelize.define('order', {});
+      this.Good = this.sequelize.define('good', {
+        name: DataTypes.STRING,
+      });
+      this.OrderItem = this.sequelize.define('orderitem', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        isUpsell: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        },
+      });
+
+      this.Order.belongsToMany(this.Good, {
+        through: {
+          model: this.OrderItem,
+          unique: false,
+        },
+      });
+      this.Good.belongsToMany(this.Order, {
+        through: {
+          model: this.OrderItem,
+          unique: false,
+        },
+      });
+    });
+
+    it('should create new relations in parallel', async function () {
+      await this.sequelize.sync({ force: true });
+
+      const { Order, Good } = this;
+
+      const order = await Order.create();
+      const good = await Good.create({ name: 'Coca-Cola' });
+
+      await Promise.all([
+        order.addGood(good, {
+          through: {
+            isUpsell: false,
+          },
+        }),
+        order.addGood(good, {
+          through: {
+            isUpsell: true,
+          },
+        }),
+      ]);
+
+      const orderGoods = await order.getGoods();
+
+      const [firstGood, secondGood] = orderGoods;
+
+      expect(orderGoods.length).to.equal(2);
+      expect(firstGood.orderGood.isUpsell)
+        .to.be.not
+        .equal(secondGood.orderGood.isUpsell);
+    });
+
+    it('should create new relations sequentialy', async function () {
+      await this.sequelize.sync({ force: true });
+
+      const { Order, Good } = this;
+
+      const order = await Order.create();
+      const good = await Good.create({ name: 'Coca-Cola' });
+
+      await order.addGood(good, {
+        through: {
+          isUpsell: false,
+        },
+      });
+      await order.addGood(good, {
+        through: {
+          isUpsell: true,
+        },
+      });
+
+      const orderGoods = await order.getGoods();
+
+      const [firstGood, secondGood] = orderGoods;
+
+      expect(orderGoods.length).to.equal(2);
+      expect(firstGood.orderGood.isUpsell)
+        .to.be.not
+        .equal(secondGood.orderGood.isUpsell);
     });
   });
 });
