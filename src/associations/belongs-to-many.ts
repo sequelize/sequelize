@@ -649,7 +649,6 @@ Add your own primary key to the through model, on different attributes than the 
     let currentRows: any[] = [];
     if (this.through?.unique ?? true) {
       currentRows = await this.through.model.findAll({
-        // const currentRows = await this.through.model.findAll({
         ...options,
         raw: true,
         where: {
