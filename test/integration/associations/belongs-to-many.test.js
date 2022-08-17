@@ -3608,7 +3608,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const { Order, Good } = this;
 
       const order = await Order.create();
-      const good = await Good.create({ name: 'Coca-Cola' });
+      const good = await Good.create({ name: 'Drink' });
 
       await order.addGood(good, {
         through: {
