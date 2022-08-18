@@ -178,6 +178,11 @@ export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'd
 export interface RetryOptions {
   match?: Array<RegExp | string | Function>;
   max?: number;
+  timeout?: number;
+  backoffBase?: number;
+  backoffExponent?: number;
+  report?(msg: string, options: RetryOptions & { $current: number }): void;
+  name?: string;
 }
 
 /**
