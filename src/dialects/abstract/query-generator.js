@@ -1739,6 +1739,12 @@ export class AbstractQueryGenerator {
     return null;
   }
 
+  _getAliasForFieldFromQueryOptions(field, options) {
+    return (options.attributes || []).find(
+      attr => Array.isArray(attr) && attr[1] && (attr[0] === field || attr[1] === field),
+    );
+  }
+
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
@@ -2154,9 +2160,7 @@ export class AbstractQueryGenerator {
         // see https://github.com/sequelize/sequelize/issues/8739
         // need to check if either of the attribute options match the order
         if (options.attributes && model) {
-          const aliasedAttribute = options.attributes.find(
-            attr => Array.isArray(attr) && attr[1] && (attr[0] === order[0] || attr[1] === order[0]),
-          );
+          const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
 
           if (aliasedAttribute) {
             const modelName = this.quoteIdentifier(model.name);

@@ -999,13 +999,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       // TODO: document why this is adding the primary key of the model in ORDER BY if options.include is set
       if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
         let primaryKey = model.primaryKeyField;
-
         const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(primaryKey)}`;
-        const aliasedAttribute = (options.attributes || []).find(
-          attr => Array.isArray(attr)
-            && attr[1]
-            && (attr[0] === primaryKey || attr[1] === primaryKey),
-        );
+        const aliasedAttribute = this._getAliasForFieldFromQueryOptions(primaryKey, options);
 
         if (aliasedAttribute) {
           const modelName = this.quoteIdentifier(options.tableAs || model.name);
