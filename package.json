@@ -17,7 +17,7 @@
   },
   "homepage": "https://sequelize.org/",
   "main": "./lib/index.js",
-  "types": "./types",
+  "types": "./types/index.d.ts",
   "type": "commonjs",
   "exports": {
     ".": {
