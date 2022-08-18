@@ -111,10 +111,24 @@ if (current.dialect.supports.transactions) {
         expect(hook).to.not.have.been.called;
       });
 
+      it('does not run hooks when a transaction is rolled back from database', async function () {
+        this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
+        const hook = sinon.spy();
+
+        await expect(this.sequelize.transaction(async transaction => {
+          transaction.afterCommit(hook);
+        })).to.eventually.be.rejected;
+
+        expect(hook).to.not.have.been.called;
+      });
+
       if (dialect === 'postgres') {
         // See #3689, #3726 and #6972 (https://github.com/sequelize/sequelize/pull/6972/files#diff-533eac602d424db379c3d72af5089e9345fd9d3bbe0a26344503c22a0a5764f7L75)
         it('does not try to rollback a transaction that failed upon committing with SERIALIZABLE isolation level (#3689)', async function () {
           // See https://wiki.postgresql.org/wiki/SSI
+
+          const hook1 = sinon.spy();
+          const hook2 = sinon.spy();
 
           const Dots = this.sequelize.define('dots', { color: DataTypes.STRING });
           await Dots.sync({ force: true });
@@ -149,6 +163,7 @@ if (current.dialect.supports.transactions) {
 
           const firstTransaction = async () => {
             await this.sequelize.transaction({ isolationLevel }, async t => {
+              t.afterCommit(hook1);
               await Dots.update({ color: 'red' }, {
                 where: { color: 'green' },
                 transaction: t,
@@ -161,6 +176,7 @@ if (current.dialect.supports.transactions) {
           const secondTransaction = async () => {
             await delay(500);
             await this.sequelize.transaction({ isolationLevel }, async t => {
+              t.afterCommit(hook2);
               await Dots.update({ color: 'green' }, {
                 where: { color: 'red' },
                 transaction: t,
@@ -184,6 +200,9 @@ if (current.dialect.supports.transactions) {
           // Only the second transaction worked
           expect(await Dots.count({ where: { color: 'red' } })).to.equal(0);
           expect(await Dots.count({ where: { color: 'green' } })).to.equal(initialData.length);
+
+          expect(hook1).to.not.have.been.called;
+          expect(hook2).to.have.been.called;
         });
       }
 
@@ -298,6 +317,23 @@ if (current.dialect.supports.transactions) {
           expect(hook).to.not.have.been.called;
         })(),
       ).to.eventually.be.fulfilled;
+    });
+
+    it('should not run hooks if a non-auto callback transaction is rolled back in database', async function () {
+      const hook = sinon.spy();
+
+      this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
+
+      await expect(
+        (async () => {
+          const t = await this.sequelize.transaction();
+          t.afterCommit(hook);
+          await t.commit();
+          expect(hook).to.have.been.called;
+        })(),
+      ).to.eventually.be.rejected;
+
+      expect(hook).to.not.have.been.called;
     });
 
     it('should throw an error if null is passed to afterCommit', async function () {
