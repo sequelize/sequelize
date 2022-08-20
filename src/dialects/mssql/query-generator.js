@@ -1006,7 +1006,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
           const modelName = this.quoteIdentifier(options.tableAs || model.name);
           const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
 
-          primaryKey = new Utils.Col(alias || aliasedAttribute[1]);
+          primaryKey = alias || aliasedAttribute[1];
         }
 
         if (!orders.mainQueryOrder || orders.mainQueryOrder.length === 0) {
