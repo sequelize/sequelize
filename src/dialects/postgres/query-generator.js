@@ -379,7 +379,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let primaryKeysSelection = '';
     const baseQuery = `DELETE FROM ${table}`;
     let query = '';
-    const returnValues = this.generateReturnValues(model.rawAttributes, options);
+    const returnValues = this.generateReturnValues(null, options);
     if (whereClause) {
       whereClause = ` WHERE ${whereClause}`;
     }
