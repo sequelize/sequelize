@@ -1214,7 +1214,7 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
   integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
 
-"@types/validator@^13.7.1":
+"@types/validator@^13.7.5":
   version "13.7.5"
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.7.5.tgz#96ad8c50d441c8c86a639efccc4d8d9d5d9cd5ea"
   integrity sha512-9rQHeAqz6Jw3gDhttkmWetoriW5FPbxylv/6h6mXtaj2NKRcOvOmvfcswVdLVpbuy10NrO486K3lCoLgoIhiIA==
@@ -2488,7 +2488,7 @@ dateformat@^3.0.0:
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"
   integrity sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==
 
-dayjs@^1.11.1:
+dayjs@^1.11.5:
   version "1.11.5"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.5.tgz#00e8cc627f231f9499c19b38af49f56dc0ac5e93"
   integrity sha512-CAdX5Q3YW3Gclyo5Vpqkgpj8fSdLQcRuzfX6mC6Phy0nfJ0eGYOeS7m4mt2plDWLAtA4TqTakvbboHvUxfe4iA==
@@ -8509,10 +8509,10 @@ type-fest@^1.0.2:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-1.4.0.tgz#e9fb813fe3bf1744ec359d55d1affefa76f14be1"
   integrity sha512-yGSza74xk0UG8k+pLh5oeoYirvIiWo5t0/o3zHHAO2tRDiZcxWP7fywNlXhqb6/r6sWvwi+RsyQMWhVLe4BVuA==
 
-type-fest@^2.12.2:
-  version "2.18.0"
-  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-2.18.0.tgz#fdef3a74e0a9e68ebe46054836650fb91ac3881e"
-  integrity sha512-pRS+/yrW5TjPPHNOvxhbNZexr2bS63WjrMU8a+VzEBhUi9Tz1pZeD+vQz3ut0svZ46P+SRqMEPnJmk2XnvNzTw==
+type-fest@^2.18.1:
+  version "2.18.1"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-2.18.1.tgz#a94f068c60b5a2d6beccccffa711210d7dd99b38"
+  integrity sha512-UKCINsd4qiATXD6OIlnQw9t1ux/n2ld+Nl0kzPbCONhCaUIS/BhJbNw14w6584HCQWf3frBK8vmWnGZq/sbPHQ==
 
 typedarray-to-buffer@^3.1.5:
   version "3.1.5"
