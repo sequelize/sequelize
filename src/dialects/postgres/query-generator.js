@@ -379,7 +379,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let primaryKeysSelection = '';
     const baseQuery = `DELETE FROM ${table}`;
     let query = '';
-    let returnValues = '';
+    const returnValues = this.generateReturnValues(model.rawAttributes, options);
     if (whereClause) {
       whereClause = ` WHERE ${whereClause}`;
     }
@@ -396,7 +396,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       query = `${baseQuery} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
       if (options.returning) {
-        returnValues = this.generateReturnValues(model.rawAttributes, options);
         query = `${query}${returnValues.returningFragment}`;
       }
 
@@ -404,7 +403,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (options.returning) {
-      returnValues = this.generateReturnValues(model.rawAttributes, options);
       query = `${baseQuery}${whereClause}${returnValues.returningFragment}`;
 
       return query;
