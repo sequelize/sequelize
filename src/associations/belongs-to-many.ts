@@ -646,17 +646,20 @@ Add your own primary key to the through model, on different attributes than the 
 
     const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
-    const currentRows = await this.through.model.findAll({
-      ...options,
-      raw: true,
-      where: {
-        [this.foreignKey]: sourceInstance.get(this.sourceKey),
-        [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
-        ...this.through.scope,
-      },
-      // force this option to be false, in case the user enabled
-      rejectOnEmpty: false,
-    });
+    let currentRows: any[] = [];
+    if (this.through?.unique ?? true) {
+      currentRows = await this.through.model.findAll({
+        ...options,
+        raw: true,
+        where: {
+          [this.foreignKey]: sourceInstance.get(this.sourceKey),
+          [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
+          ...this.through.scope,
+        },
+        // force this option to be false, in case the user enabled
+        rejectOnEmpty: false,
+      });
+    }
 
     await this.#updateAssociations(sourceInstance, currentRows, newInstances, options);
   }
