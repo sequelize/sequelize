@@ -7494,10 +7494,10 @@ semantic-release-fail-on-major-bump@1.0.0:
   resolved "https://registry.yarnpkg.com/semantic-release-fail-on-major-bump/-/semantic-release-fail-on-major-bump-1.0.0.tgz#a4fe055258415040f6170c175596cedb4d4ffb82"
   integrity sha512-vFbUVEQC60p3n+0NJc4D+Z6TS+5Q4AdG72pe5hsmcVEcaK+w+nPxjefLl3bJjphxc6AVH9cAZM0ZTnmiTG6eLA==
 
-semantic-release@19.0.4:
-  version "19.0.4"
-  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-19.0.4.tgz#57aa5512098fbd84da449c2622bafb7d9b08d905"
-  integrity sha512-RqINReH6NZTFTFz+XM/9lClT/xh7uOg81w5dMTA4FkRjCJjL2eJjagRGHzbkGF77zi1ZfUxrUnd7uezArBOQrQ==
+semantic-release@19.0.5:
+  version "19.0.5"
+  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-19.0.5.tgz#d7fab4b33fc20f1288eafd6c441e5d0938e5e174"
+  integrity sha512-NMPKdfpXTnPn49FDogMBi36SiBfXkSOJqCkk0E4iWOY1tusvvgBwqUmxTX1kmlT6kIYed9YwNKD1sfPpqa5yaA==
   dependencies:
     "@semantic-release/commit-analyzer" "^9.0.2"
     "@semantic-release/error" "^3.0.0"
@@ -7526,7 +7526,7 @@ semantic-release@19.0.4:
     semver "^7.3.2"
     semver-diff "^3.1.1"
     signale "^1.2.1"
-    yargs "^17.0.0"
+    yargs "^16.2.0"
 
 semver-compare@^1.0.0:
   version "1.0.0"
@@ -9135,11 +9135,6 @@ yargs-parser@^20.2.2, yargs-parser@^20.2.3:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-20.2.9.tgz#2eb7dc3b0289718fc295f362753845c41a0c94ee"
   integrity sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==
 
-yargs-parser@^21.0.0:
-  version "21.1.1"
-  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-21.1.1.tgz#9096bceebf990d21bb31fa9516e0ede294a77d35"
-  integrity sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==
-
 yargs-unparser@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/yargs-unparser/-/yargs-unparser-2.0.0.tgz#f131f9226911ae5d9ad38c432fe809366c2325eb"
@@ -9179,19 +9174,6 @@ yargs@^15.0.2:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^18.1.2"
-
-yargs@^17.0.0:
-  version "17.5.1"
-  resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.5.1.tgz#e109900cab6fcb7fd44b1d8249166feb0b36e58e"
-  integrity sha512-t6YAJcxDkNX7NFYiVtKvWUz8l+PaKTLiL63mJYWR2GnHq2gjEWISzsLp9wg3aY36dY1j+gfIEL3pIF+XlJJfbA==
-  dependencies:
-    cliui "^7.0.2"
-    escalade "^3.1.1"
-    get-caller-file "^2.0.5"
-    require-directory "^2.1.1"
-    string-width "^4.2.3"
-    y18n "^5.0.5"
-    yargs-parser "^21.0.0"
 
 yn@3.1.1:
   version "3.1.1"
