@@ -2517,7 +2517,7 @@ Specify a different name for either index to resolve this issue.`);
       insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
     }
 
-    if (updatedAtAttr && !insertValues[updatedAtAttr]) {
+    if (updatedAtAttr && !updateValues[updatedAtAttr]) {
       const field = this.rawAttributes[updatedAtAttr].field || updatedAtAttr;
       insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
     }

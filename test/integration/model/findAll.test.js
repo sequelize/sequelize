@@ -1290,7 +1290,6 @@ The following associations are defined on "Worker": "ToDos"`);
             const countries = await this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]],
-              logging: true,
             });
 
             expect(countries).to.exist;
