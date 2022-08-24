@@ -115,9 +115,13 @@ if (current.dialect.supports.transactions) {
         this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
         const hook = sinon.spy();
 
-        await expect(this.sequelize.transaction(async transaction => {
-          transaction.afterCommit(hook);
-        })).to.eventually.be.rejected;
+        await expect(
+          (async function () {
+            await this.sequelize.transaction(transaction => {
+              transaction.afterCommit(hook);
+            });
+          }()),
+        ).to.eventually.be.rejected;
 
         expect(hook).to.not.have.been.called;
       });
@@ -325,12 +329,11 @@ if (current.dialect.supports.transactions) {
       this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
 
       await expect(
-        (async () => {
+        (async function () {
           const t = await this.sequelize.transaction();
           t.afterCommit(hook);
           await t.commit();
-          expect(hook).to.have.been.called;
-        })(),
+        }()),
       ).to.eventually.be.rejected;
 
       expect(hook).to.not.have.been.called;
