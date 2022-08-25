@@ -6782,10 +6782,10 @@ pg-int8@1.0.1:
   resolved "https://registry.yarnpkg.com/pg-int8/-/pg-int8-1.0.1.tgz#943bd463bf5b71b4170115f80f8efc9a0c0eb78c"
   integrity sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==
 
-pg-pool@^3.5.1:
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/pg-pool/-/pg-pool-3.5.1.tgz#f499ce76f9bf5097488b3b83b19861f28e4ed905"
-  integrity sha512-6iCR0wVrro6OOHFsyavV+i6KYL4lVNyYAB9RD18w66xSzN+d8b66HiwuP30Gp1SH5O9T82fckkzsRjlrhD0ioQ==
+pg-pool@^3.5.2:
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/pg-pool/-/pg-pool-3.5.2.tgz#ed1bed1fb8d79f1c6fd5fb1c99e990fbf9ddf178"
+  integrity sha512-His3Fh17Z4eg7oANLob6ZvH8xIVen3phEZh2QuyrIl4dQSDVEabNducv6ysROKpDNPSD+12tONZVWfSgMvDD9w==
 
 pg-protocol@^1.5.0:
   version "1.5.0"
@@ -6803,15 +6803,15 @@ pg-types@^2.1.0:
     postgres-date "~1.0.4"
     postgres-interval "^1.1.0"
 
-pg@8.7.3:
-  version "8.7.3"
-  resolved "https://registry.yarnpkg.com/pg/-/pg-8.7.3.tgz#8a5bdd664ca4fda4db7997ec634c6e5455b27c44"
-  integrity sha512-HPmH4GH4H3AOprDJOazoIcpI49XFsHCe8xlrjHkWiapdbHK+HLtbm/GQzXYAZwmPju/kzKhjaSfMACG+8cgJcw==
+pg@8.8.0:
+  version "8.8.0"
+  resolved "https://registry.yarnpkg.com/pg/-/pg-8.8.0.tgz#a77f41f9d9ede7009abfca54667c775a240da686"
+  integrity sha512-UXYN0ziKj+AeNNP7VDMwrehpACThH7LUl/p8TDFpEUuSejCUIwGSfxpHsPvtM6/WXFy6SU4E5RG4IJV/TZAGjw==
   dependencies:
     buffer-writer "2.0.0"
     packet-reader "1.0.0"
     pg-connection-string "^2.5.0"
-    pg-pool "^3.5.1"
+    pg-pool "^3.5.2"
     pg-protocol "^1.5.0"
     pg-types "^2.1.0"
     pgpass "1.x"
@@ -7494,10 +7494,10 @@ semantic-release-fail-on-major-bump@1.0.0:
   resolved "https://registry.yarnpkg.com/semantic-release-fail-on-major-bump/-/semantic-release-fail-on-major-bump-1.0.0.tgz#a4fe055258415040f6170c175596cedb4d4ffb82"
   integrity sha512-vFbUVEQC60p3n+0NJc4D+Z6TS+5Q4AdG72pe5hsmcVEcaK+w+nPxjefLl3bJjphxc6AVH9cAZM0ZTnmiTG6eLA==
 
-semantic-release@19.0.4:
-  version "19.0.4"
-  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-19.0.4.tgz#57aa5512098fbd84da449c2622bafb7d9b08d905"
-  integrity sha512-RqINReH6NZTFTFz+XM/9lClT/xh7uOg81w5dMTA4FkRjCJjL2eJjagRGHzbkGF77zi1ZfUxrUnd7uezArBOQrQ==
+semantic-release@19.0.5:
+  version "19.0.5"
+  resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-19.0.5.tgz#d7fab4b33fc20f1288eafd6c441e5d0938e5e174"
+  integrity sha512-NMPKdfpXTnPn49FDogMBi36SiBfXkSOJqCkk0E4iWOY1tusvvgBwqUmxTX1kmlT6kIYed9YwNKD1sfPpqa5yaA==
   dependencies:
     "@semantic-release/commit-analyzer" "^9.0.2"
     "@semantic-release/error" "^3.0.0"
@@ -7526,7 +7526,7 @@ semantic-release@19.0.4:
     semver "^7.3.2"
     semver-diff "^3.1.1"
     signale "^1.2.1"
-    yargs "^17.0.0"
+    yargs "^16.2.0"
 
 semver-compare@^1.0.0:
   version "1.0.0"
@@ -7729,10 +7729,10 @@ smart-buffer@^4.2.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
-snowflake-sdk@1.6.12:
-  version "1.6.12"
-  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.12.tgz#6434c3c26ecf9ec6b96dd157f9047ccde868e65b"
-  integrity sha512-nkwtsWsZr4KrloLgpMpLgCnJIxfcuWlD4sqR53kn8BQRmhOi6cSBgnvZmoYcFvW2arVvfHh/Dc3vOQ/4OuRSLg==
+snowflake-sdk@1.6.13:
+  version "1.6.13"
+  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.13.tgz#75e6521f83cecb24a2d2276575d753b14496fef2"
+  integrity sha512-X/eiT4v/yw6+aLdEJK85te4lvkB45lkTzad2CtJdofzxWqtfi1CB2hafTJTfXoDKKJTxLTyYVo+zIYhvhcEarA==
   dependencies:
     "@azure/storage-blob" "^12.5.0"
     "@techteamer/ocsp" "1.0.0"
@@ -9135,11 +9135,6 @@ yargs-parser@^20.2.2, yargs-parser@^20.2.3:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-20.2.9.tgz#2eb7dc3b0289718fc295f362753845c41a0c94ee"
   integrity sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==
 
-yargs-parser@^21.0.0:
-  version "21.1.1"
-  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-21.1.1.tgz#9096bceebf990d21bb31fa9516e0ede294a77d35"
-  integrity sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==
-
 yargs-unparser@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/yargs-unparser/-/yargs-unparser-2.0.0.tgz#f131f9226911ae5d9ad38c432fe809366c2325eb"
@@ -9179,19 +9174,6 @@ yargs@^15.0.2:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^18.1.2"
-
-yargs@^17.0.0:
-  version "17.5.1"
-  resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.5.1.tgz#e109900cab6fcb7fd44b1d8249166feb0b36e58e"
-  integrity sha512-t6YAJcxDkNX7NFYiVtKvWUz8l+PaKTLiL63mJYWR2GnHq2gjEWISzsLp9wg3aY36dY1j+gfIEL3pIF+XlJJfbA==
-  dependencies:
-    cliui "^7.0.2"
-    escalade "^3.1.1"
-    get-caller-file "^2.0.5"
-    require-directory "^2.1.1"
-    string-width "^4.2.3"
-    y18n "^5.0.5"
-    yargs-parser "^21.0.0"
 
 yn@3.1.1:
   version "3.1.1"
