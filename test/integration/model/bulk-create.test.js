@@ -426,6 +426,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
+        await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         const users = await this.User.findAll({ order: ['id'] });
         expect(users.length).to.equal(3);
         expect(users[0].uniqueName).to.equal('Peter');
@@ -445,11 +446,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-        try {
-          await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
-        } catch (error) {
-          expect(error.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
-        }
+        await expect(
+          this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }),
+        ).to.be.rejectedWith(`${dialect} does not support the ignoreDuplicates option.`);
       });
     }
 
@@ -851,6 +850,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           for (const user of users) {
             expect(user.get()).to.have.property('not_on_model');
           }
+        });
+
+        it('should handle no returned values (with returning=false)', async function () {
+          const User = this.sequelize.define('user');
+
+          await User.sync({ force: true });
+
+          await User.bulkCreate([
+            {},
+            {},
+            {},
+          ], {
+            returning: false,
+          });
+
+          const actualUsers = await User.findAll();
+          expect(actualUsers.length).to.eql(3);
         });
       });
     }
