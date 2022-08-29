@@ -2132,17 +2132,25 @@ class QueryGenerator {
           && !(typeof order[0].model === 'function' && order[0].model.prototype instanceof Model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          subQueryOrder.push(this.quote(order, model, '->'));
+          const field = model.rawAttributes[order[0]] ? model.rawAttributes[order[0]].field : order[0];
+          const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
+
+          subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->'));
         }
 
-        if (subQuery) {
-          // Handle case where sub-query renames attribute we want to order by,
-          // see https://github.com/sequelize/sequelize/issues/8739
-          const subQueryAttribute = options.attributes.find(a => Array.isArray(a) && a[0] === order[0] && a[1]);
-          if (subQueryAttribute) {
-            const modelName = this.quoteIdentifier(model.name);
+        // Handle case where renamed attributes are used to order by,
+        // see https://github.com/sequelize/sequelize/issues/8739
+        // need to check if either of the attribute options match the order
+        if (options.attributes && model) {
+          const aliasedAttribute = options.attributes.find(attr => Array.isArray(attr)
+              && attr[1]
+              && (attr[0] === order[0] || attr[1] === order[0]));
 
-            order[0] = new Utils.Col(this._getAliasForField(modelName, subQueryAttribute[1], options) || subQueryAttribute[1]);
+          if (aliasedAttribute) {
+            const modelName = this.quoteIdentifier(model.name);
+            const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+
+            order[0] = new Utils.Col(alias || aliasedAttribute[1]);
           }
         }
 
