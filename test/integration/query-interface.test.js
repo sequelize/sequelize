@@ -724,4 +724,40 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
   });
+
+  describe('constraints in a schema', () => {
+    beforeEach(async function () {
+      await this.queryInterface.createSchema('mySchema');
+
+      this.User = this.sequelize.define('users', {
+        // Db2 does not allow unique constraint for a nullable column, Db2
+        // throws SQL0542N error if we create constraint on nullable column.
+        username: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        email: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        roles: DataTypes.STRING,
+      }, { schema: 'mySchema' });
+
+      await this.sequelize.sync({ force: true });
+    });
+
+    describe('unique', () => {
+      it('should add, read & remove unique constraint', async function () {
+        await this.queryInterface.addConstraint({ schema: 'mySchema', tableName: 'users' }, { type: 'unique', fields: ['email'] });
+
+        let constraints = await this.queryInterface.showConstraint({ schema: 'mySchema', tableName: 'users' });
+
+        constraints = constraints.map(constraint => constraint.constraintName);
+
+        expect(constraints).to.include('mySchema.users_email_uk');
+
+        await this.queryInterface.removeConstraint({ schema: 'mySchema', tableName: 'users' }, 'mySchema.users_email_uk');
+
+        constraints = await this.queryInterface.showConstraint({ schema: 'mySchema', tableName: 'users' });
+
+        constraints = constraints.map(constraint => constraint.constraintName);
+
+        expect(constraints).to.not.include('mySchema.users_email_uk');
+      });
+    });
+  });
 });

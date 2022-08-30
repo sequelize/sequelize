@@ -95,7 +95,7 @@ export class MySqlQueryInterface extends QueryInterface {
     if (constraint.constraintType === 'FOREIGN KEY') {
       query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
     } else {
-      query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
+      query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
     }
 
     return await this.sequelize.queryRaw(query, options);
