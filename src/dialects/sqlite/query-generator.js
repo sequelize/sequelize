@@ -348,7 +348,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
+    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${Utils.removeTicks(this.quoteTable(tableName))}'`;
 
     if (constraintName) {
       sql += ` AND sql LIKE '%${constraintName}%'`;
@@ -378,7 +378,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
+    return `SELECT sql FROM sqlite_master WHERE tbl_name='${Utils.removeTicks(this.quoteTable(tableName))}';`;
+  }
+
+  getConstraintSnippet(tableName, options) {
+    return super.getConstraintSnippet(Utils.removeTicks(this.quoteTable(tableName)), options);
   }
 
   removeColumnQuery(tableName, attributes) {
