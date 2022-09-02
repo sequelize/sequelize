@@ -125,7 +125,7 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @returns a flattened object
  * @private
  */
-export function flattenObjectDeep<T>(value: T): T extends object ? Flatten<T> : T {
+export function flattenObjectDeep<T extends { [key: string]: any }>(value: T): T extends object ? Flatten<T> : T {
   if (!isPlainObject(value)) {
     // TypeScript doesn't know T is an object due to isPlainObject's typings. Cast to any.
     return value as any;
@@ -218,6 +218,6 @@ export function camelizeObjectKeys(obj: { [key: string]: any }) {
 
 type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
-export function removeUndefined<T>(val: T): NoUndefinedField<T> {
+export function removeUndefined<T extends object | null | undefined>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }
