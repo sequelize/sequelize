@@ -129,6 +129,7 @@ class Query extends AbstractQuery {
 
     if (this.isSelectQuery()) {
       this.handleJsonSelectQuery(data);
+
       return this.handleSelectQuery(data);
     }
     if (this.isInsertQuery() || this.isUpdateQuery()) {
@@ -184,7 +185,9 @@ class Query extends AbstractQuery {
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          // JSON fields for MariaDB server 10.5.2+ already results in JSON format, skip JSON.parse
+          // this is due to this https://jira.mariadb.org/browse/MDEV-17832 and how mysql2 connector interacts with MariaDB and JSON fields
+          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
           if (DataTypes.JSON.parse) {
