@@ -26,8 +26,8 @@ export function parseConnectionString(connectionString: string): Options {
   }
 
   if (urlParts.pathname) {
-    // decode URI from urlParts.pathname value
-    options.database = decodeURI(urlParts.pathname.replace(/^\//, ''));
+    // decode the URI component from urlParts.pathname value
+    options.database = decodeURIComponent(urlParts.pathname.replace(/^\//, ''));
   }
 
   if (urlParts.port) {
