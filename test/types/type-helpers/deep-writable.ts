@@ -6,13 +6,11 @@
  * Thank you!
  */
 
-import {
+import type {
   Model,
   Sequelize,
-  ModelCtor,
-  ModelDefined,
   ModelStatic,
-} from 'sequelize';
+} from '@sequelize/core';
 
 type Builtin =
   | string
@@ -31,9 +29,7 @@ type SequelizeBasic =
   | Builtin
   | Sequelize
   | Model
-  | ModelCtor<Model>
-  | ModelDefined<any, any>
-  | ModelStatic<Model>;
+  | ModelStatic;
 
 // type ToMutableArrayIfNeeded<T> = T extends readonly any[]
 //   ? { -readonly [K in keyof T]: ToMutableArrayIfNeeded<T[K]> }

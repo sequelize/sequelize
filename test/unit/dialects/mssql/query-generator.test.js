@@ -4,10 +4,9 @@ const Support = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const DataTypes = require('sequelize/lib/data-types');
-const { Op } = require('sequelize/lib/operators');
-const { TableHints } = require('sequelize/lib/table-hints');
-const QueryGenerator = require('sequelize/lib/dialects/mssql/query-generator');
+const { DataTypes, Op, TableHints } = require('@sequelize/core');
+const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -94,6 +93,10 @@ if (current.dialect.name === 'mssql') {
 
     it('createTableQuery with comments', function () {
       expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+    });
+
+    it('createTableQuery with comments and table object', function () {
+      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
     });
 
     it('getDefaultConstraintQuery', function () {
@@ -197,7 +200,7 @@ if (current.dialect.name === 'mssql') {
       });
 
       // With limit, offset, include, and where
-      const foo = this.sequelize.define('Foo', {
+      const Foo = this.sequelize.define('Foo', {
         id: {
           type: DataTypes.INTEGER,
           field: 'id',
@@ -215,22 +218,24 @@ if (current.dialect.name === 'mssql') {
       }, {
         tableName: 'Bars',
       });
-      foo.Bar = foo.belongsTo(bar, { foreignKey: 'barId' });
+      Foo.Bar = Foo.belongsTo(bar, { foreignKey: 'barId' });
       let options = {
-        limit: 10, offset: 10,
+        model: Foo,
+        limit: 10,
+        offset: 10,
         include: [
           {
             model: bar,
-            association: foo.Bar,
+            association: Foo.Bar,
             as: 'Bars',
             required: true,
           },
         ],
       };
-      foo._conformIncludes(options);
-      options = foo._validateIncludedElements(options);
-      expectsql(modifiedGen.selectFromTableFragment(options, foo, ['[Foo].[id]', '[Foo].[barId]'], foo.tableName, 'Foo', '[Bar].[id] = 12'), {
-        mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bar] ON [Foo].[barId] = [Bar].[id] WHERE [Bar].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo',
+      Foo._conformIncludes(options, Foo);
+      options = _validateIncludedElements(options);
+      expectsql(modifiedGen.selectFromTableFragment(options, Foo, ['[Foo].[id]', '[Foo].[barId]'], Foo.tableName, 'Foo', '[Bars].[id] = 12'), {
+        mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bars] ON [Foo].[barId] = [Bars].[id] WHERE [Bars].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo',
       });
     });
 
@@ -291,10 +296,10 @@ if (current.dialect.name === 'mssql') {
     it('addColumnQuery with comment', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)', comment: 'This is a comment' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL; EXEC sp_addextendedproperty '
-        + '@name = N\'MS_Description\', @value = N\'This is a comment\', '
-        + '@level0type = N\'Schema\', @level0name = \'dbo\', '
-        + '@level1type = N\'Table\', @level1name = [myTable], '
-        + '@level2type = N\'Column\', @level2name = [myColumn];',
+          + '@name = N\'MS_Description\', @value = N\'This is a comment\', '
+          + '@level0type = N\'Schema\', @level0name = \'dbo\', '
+          + '@level1type = N\'Table\', @level1name = [myTable], '
+          + '@level2type = N\'Column\', @level2name = [myColumn];',
       });
     });
 

@@ -1,11 +1,10 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const expect = require('chai').expect;
 
 const expectsql = Support.expectsql;
-const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
 
@@ -171,7 +170,7 @@ if (current.dialect.supports.JSON) {
           });
         });
 
-        it('unbalnced statement', () => {
+        it('unbalanced statement', () => {
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json())'))).to.throw();
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json_extract(json()'))).to.throw();
         });

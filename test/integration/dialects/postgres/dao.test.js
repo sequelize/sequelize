@@ -5,11 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const Op = Sequelize.Op;
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
-const sequelize = require('sequelize/lib/sequelize');
+const { DataTypes, Op, json } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DAO', () => {
@@ -98,7 +95,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact->>\'name\'', 'kate'), attributes: ['username', 'emergency_contact'] });
+        const user = await this.User.findOne({ where: json('emergency_contact->>\'name\'', 'kate'), attributes: ['username', 'emergency_contact'] });
         expect(user.emergency_contact.name).to.equal('kate');
       });
 
@@ -108,7 +105,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
         const user = await this.User.findOne({
-          where: sequelize.json({ emergency_contact: { name: 'kate' } }),
+          where: json({ emergency_contact: { name: 'kate' } }),
         });
 
         expect(user.emergency_contact.name).to.equal('kate');
@@ -119,7 +116,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.name', 'joe') });
+        const user = await this.User.findOne({ where: json('emergency_contact.name', 'joe') });
         expect(user.emergency_contact.name).to.equal('joe');
       });
 
@@ -129,8 +126,8 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })]);
 
         const user = await this.User.findOne({
-          attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
-          where: sequelize.json('emergencyContact.name', 'joe'),
+          attributes: [[json('emergencyContact.name'), 'contactName']],
+          where: json('emergencyContact.name', 'joe'),
         });
 
         expect(user.get('contactName')).to.equal('joe');
@@ -142,7 +139,7 @@ if (dialect.startsWith('postgres')) {
         const user0 = await this.User.create({ username: 'swen', emergency_contact: { value: text } });
         expect(user0.isNewRecord).to.equal(false);
         await this.User.findOne({ where: { username: 'swen' } });
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
+        const user = await this.User.findOne({ where: json('emergency_contact.value', text) });
         expect(user.username).to.equal('swen');
       });
 
@@ -152,7 +149,7 @@ if (dialect.startsWith('postgres')) {
         const user0 = await this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } });
         expect(!user0.isNewRecord).to.equal(true);
         await this.User.findOne({ where: { username: 'swen' } });
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
+        const user = await this.User.findOne({ where: json('emergency_contact.value', text) });
         expect(user.username).to.equal('swen');
       });
     });
@@ -467,9 +464,10 @@ if (dialect.startsWith('postgres')) {
           expect(user.length).to.equal(1);
         });
 
-        it('should be able to insert a new record even with an array of enums in a schema', async function () {
+        it('should be able to insert a new record with an array of enums in a schema', async function () {
           const schema = 'special_schema';
-          this.sequelize.createSchema(schema);
+          await this.sequelize.createSchema(schema);
+
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
             type: DataTypes.ENUM('A', 'B', 'C'),

@@ -1,12 +1,15 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('mssql');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
+
+const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
+const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
 
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) {
@@ -21,14 +24,13 @@ function getScale(aNum) {
   return Math.log10(e);
 }
 
-class Query extends AbstractQuery {
+export class MsSqlQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
 
   getSQLTypeFromJsType(value, TYPES) {
-    const paramType = { type: TYPES.VarChar, typeOptions: {} };
-    paramType.type = TYPES.NVarChar;
+    const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
         if (value >= -2_147_483_648 && value <= 2_147_483_647) {
@@ -40,6 +42,13 @@ class Query extends AbstractQuery {
         paramType.type = TYPES.Numeric;
         // Default to a reasonable numeric precision/scale pending more sophisticated logic
         paramType.typeOptions = { precision: 30, scale: getScale(value) };
+      }
+    } else if (typeof value === 'bigint') {
+      if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
+        paramType.type = TYPES.VarChar;
+        paramType.value = value.toString();
+      } else {
+        return this.getSQLTypeFromJsType(Number(value), TYPES);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
@@ -88,10 +97,19 @@ class Query extends AbstractQuery {
       const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
 
       if (parameters) {
-        _.forOwn(parameters, (value, key) => {
-          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES);
-          request.addParameter(key, paramType.type, value, paramType.typeOptions);
-        });
+        if (Array.isArray(parameters)) {
+          // eslint-disable-next-line unicorn/no-for-loop
+          for (let i = 0; i < parameters.length; i++) {
+            const paramType = this.getSQLTypeFromJsType(parameters[i], connection.lib.TYPES);
+            request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
+          }
+        } else {
+          _.forOwn(parameters, (parameter, parameterName) => {
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
+          });
+        }
+
       }
 
       request.on('row', columns => {
@@ -142,22 +160,6 @@ class Query extends AbstractQuery {
     const errForStack = new Error();
 
     return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = {};
-    const replacementFunc = (match, key, valuesIn) => {
-      if (valuesIn[key] !== undefined) {
-        bindParam[key] = valuesIn[key];
-
-        return `@${key}`;
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam];
   }
 
   /**
@@ -334,7 +336,7 @@ class Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -344,9 +346,23 @@ class Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
+    }
+
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not create constraint or index. See previous errors./);
+        if (match && match.length > 0) {
+          return new sequelizeErrors.ForeignKeyConstraintError({
+            fields: null,
+            index: match[1],
+            cause: error,
+            stack: errStack,
+          });
+        }
+      }
     }
 
     match = err.message.match(/Could not drop constraint. See previous errors./);
@@ -360,9 +376,29 @@ class Query extends AbstractQuery {
         message: match[1],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
+    }
+
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not drop constraint. See previous errors./);
+        if (match && match.length > 0) {
+          let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
+          constraint = constraint ? constraint[1] : undefined;
+          let table = err.sql.match(/table \[(.+?)]/i);
+          table = table ? table[1] : undefined;
+
+          return new sequelizeErrors.UnknownConstraintError({
+            message: match[1],
+            constraint,
+            table,
+            cause: error,
+            stack: errStack,
+          });
+        }
+      }
     }
 
     return new sequelizeErrors.DatabaseError(err, { stack: errStack });
@@ -453,7 +489,3 @@ class Query extends AbstractQuery {
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

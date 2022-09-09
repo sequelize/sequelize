@@ -1,11 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
@@ -18,7 +17,7 @@ const sortById = function (a, b) {
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
-    it('should support an empty belongsTo include', async function () {
+    it('supports a model+alias includeable', async function () {
       const Company = this.sequelize.define('Company', {});
       const User = this.sequelize.define('User', {});
 
@@ -34,7 +33,63 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(user).to.be.ok;
     });
 
-    it('should support a belongsTo association reference', async function () {
+    it('supports an alias includeable', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+
+      await this.sequelize.sync({ force: true });
+      await User.create();
+
+      const user = await User.findOne({
+        include: [{ as: 'Employer' }],
+      });
+
+      expect(user).to.be.ok;
+    });
+
+    it('supports a model includeable if only one association has the model as its target', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+
+      await this.sequelize.sync({ force: true });
+      await User.create();
+
+      const user = await User.findOne({
+        include: [Company],
+      });
+
+      expect(user).to.be.ok;
+    });
+
+    it('rejects a model includeable if more than one association has the model as its target', async function () {
+      const Company = this.sequelize.define('Company', {});
+      const User = this.sequelize.define('User', {});
+
+      User.belongsTo(Company, { as: 'Employer' });
+      User.belongsTo(Company, { as: 'SecondaryEmployer' });
+
+      await expect(User.findOne({ include: [Company] })).to.be.rejectedWith(`
+Ambiguous Include received:
+You're trying to include the model "Company", but is associated to "User" multiple times.
+
+Instead of specifying a Model, either:
+1. pass one of the Association object (available in "User.associations") in the "association" option, e.g.:
+   include: {
+     association: User.associations.Employer,
+   },
+
+2. pass the name of one of the associations in the "association" option, e.g.:
+   include: {
+     association: 'Employer',
+   },
+`.trim());
+    });
+
+    it('supports a belongsTo association reference includeable', async function () {
       const Company = this.sequelize.define('Company', {});
       const User = this.sequelize.define('User', {});
       const Employer = User.belongsTo(Company, { as: 'Employer' });
@@ -471,7 +526,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         },
         include: [
           {
-            model: Product, include: [
+            model: Product,
+            include: [
               { model: Tag },
             ],
           },
@@ -581,7 +637,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           },
           {
             model: Product, include: [
-              Tag,
+              { model: Tag, as: 'Tags' },
               { model: Tag, as: 'Category' },
               Price,
             ],
@@ -609,12 +665,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support specifying attributes', async function () {
       const Project = this.sequelize.define('Project', {
-        title: Sequelize.STRING,
+        title: DataTypes.STRING,
       });
 
       const Task = this.sequelize.define('Task', {
-        title: Sequelize.STRING,
-        description: Sequelize.TEXT,
+        title: DataTypes.STRING,
+        description: DataTypes.TEXT,
       });
 
       Project.hasMany(Task);
@@ -646,8 +702,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should support Sequelize.literal and renaming of attributes in included model attributes', async function () {
       const Post = this.sequelize.define('Post', {});
       const PostComment = this.sequelize.define('PostComment', {
-        someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
-        comment_title: Sequelize.STRING,
+        someProperty: DataTypes.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+        comment_title: DataTypes.STRING,
       });
 
       Post.hasMany(PostComment);
@@ -664,6 +720,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         findAttributes = [
           Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
           [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
+        ];
+      } else if (dialect === 'ibmi') {
+        findAttributes = [
+          Sequelize.literal('1 AS "PostComments.someProperty"'),
+          [Sequelize.literal('1'), 'someProperty2'],
         ];
       } else if (dialect === 'db2') {
         findAttributes = [
@@ -698,7 +759,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         name: DataTypes.STRING,
       });
 
-      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies' });
+      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies', inverse: { as: 'OutsourcedCompanies' } });
 
       await this.sequelize.sync({ force: true });
 
@@ -724,10 +785,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support including date fields, with the correct timeszone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false });
 
       User.belongsToMany(Group, { through: 'group_user' });
@@ -769,10 +830,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsToMany(Group, {
         through: UserGroup,
         as: 'Clubs',
-      });
-      Group.belongsToMany(User, {
-        through: UserGroup,
-        as: 'Members',
+        inverse: {
+          as: 'Members',
+        },
       });
 
       await this.sequelize.sync({ force: true });
@@ -954,12 +1014,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsToMany(Group, {
         through: UserGroup,
         as: 'Clubs',
-        constraints: false,
-      });
-      Group.belongsToMany(User, {
-        through: UserGroup,
-        as: 'Members',
-        constraints: false,
+        foreignKeyConstraints: false,
+        inverse: {
+          as: 'Members',
+          foreignKeyConstraints: false,
+        },
       });
 
       await this.sequelize.sync({ force: true });
@@ -1002,8 +1061,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Clearence = this.sequelize.define('Clearence', { level: DataTypes.INTEGER });
 
       Team.Members = Team.hasMany(Employee, { as: 'members' });
-      Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence' });
-      Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee' });
+      Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence', foreignKey: 'employeeId' });
+      Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee', foreignKey: 'employeeId' });
 
       this.Employee = Employee;
       this.Team = Team;

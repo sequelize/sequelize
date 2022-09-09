@@ -1,13 +1,12 @@
-import {Model} from "sequelize"
-import {sequelize} from './connection';
+import { Model } from '@sequelize/core';
+import { sequelize } from './connection';
 
-class TestModel extends Model<{ foo: string; bar: string }, {}> {
-}
+class TestModel extends Model<{ foo: string, bar: string }, {}> {}
 
 TestModel.init({
-    foo: '<foo>',
-    bar: '<bar>',
-}, {sequelize})
+  foo: '<foo>',
+  bar: '<bar>',
+}, { sequelize });
 
 sequelize.transaction(async trx => {
   const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
@@ -41,6 +40,6 @@ sequelize.transaction(async trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
-    conflictFields: ['foo', 'bar']
+    conflictFields: ['foo', 'bar'],
   });
-})
+});

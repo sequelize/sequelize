@@ -6,8 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const _ = require('lodash');
@@ -30,7 +29,7 @@ if (current.dialect.supports['UNION ALL']) {
 
         beforeEach(async function () {
           this.User = this.sequelize.define('user', {
-            age: Sequelize.INTEGER,
+            age: DataTypes.INTEGER,
           });
           this.Project = this.sequelize.define('project', {
             title: DataTypes.STRING,
@@ -44,11 +43,9 @@ if (current.dialect.supports['UNION ALL']) {
             updatedAt: false,
           });
 
-          this.User.Projects = this.User.belongsToMany(this.Project, { through: 'project_user' });
-          this.Project.belongsToMany(this.User, { as: 'members', through: 'project_user' });
+          this.User.Projects = this.User.belongsToMany(this.Project, { through: 'project_user', inverse: { as: 'members' } });
 
-          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, { through: this.ProjectUserParanoid });
-          this.Project.belongsToMany(this.User, { as: 'paranoidMembers', through: this.ProjectUserParanoid });
+          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, { as: 'paranoidProjects', through: this.ProjectUserParanoid, inverse: { as: 'paranoidMembers' } });
 
           this.User.Tasks = this.User.hasMany(this.Task);
 
@@ -84,11 +81,11 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(users).to.have.length(5);
             for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('projects')).to.have.length(1);
+              expect(u.get('project_user')).to.have.length(1);
             }
 
             for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('projects')).to.have.length(2);
+              expect(u.get('project_user')).to.have.length(2);
             }
           });
 
@@ -112,11 +109,11 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(users[2].get('tasks')).to.have.length(2);
             for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('projects')).to.have.length(1);
+              expect(u.get('project_user')).to.have.length(1);
             }
 
             for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('projects')).to.have.length(2);
+              expect(u.get('project_user')).to.have.length(2);
             }
           });
 

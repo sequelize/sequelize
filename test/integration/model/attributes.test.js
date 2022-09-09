@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('sequelize');
+const { DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -13,25 +13,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let callCount = 0;
 
         this.Student = this.sequelize.define('student', {
-          no: { type: Sequelize.INTEGER, primaryKey: true },
-          name: Sequelize.STRING,
+          no: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING,
         }, {
           tableName: 'student',
           timestamps: false,
         });
 
         this.Course = this.sequelize.define('course', {
-          no: { type: Sequelize.INTEGER, primaryKey: true },
-          name: Sequelize.STRING,
+          no: { type: DataTypes.INTEGER, primaryKey: true },
+          name: DataTypes.STRING,
         }, {
           tableName: 'course',
           timestamps: false,
         });
 
         this.Score = this.sequelize.define('score', {
-          score: Sequelize.INTEGER,
+          score: DataTypes.INTEGER,
           test_value: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             set(v) {
               callCount++;
               this.setDataValue('test_value', v + 1);
@@ -42,8 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           timestamps: false,
         });
 
-        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId' });
-        this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
+        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId', otherKey: 'CourseId' });
 
         await this.sequelize.sync({ force: true });
 
@@ -63,14 +62,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         expect(score.test_value).to.equal(1001);
-        expect(courses[0].score.toJSON().test_value).to.equal(1001);
+        expect(courses[0].studentCourse.toJSON().test_value).to.equal(1001);
         expect(callCount).to.equal(1);
       });
 
       it('allows for an attribute to be called "toString"', async function () {
         const Person = this.sequelize.define('person', {
-          name: Sequelize.STRING,
-          nick: Sequelize.STRING,
+          name: DataTypes.STRING,
+          nick: DataTypes.STRING,
         }, {
           timestamps: false,
         });
@@ -94,12 +93,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('allows for an attribute to be called "toString" with associations', async function () {
         const Person = this.sequelize.define('person', {
-          name: Sequelize.STRING,
-          nick: Sequelize.STRING,
+          name: DataTypes.STRING,
+          nick: DataTypes.STRING,
         });
 
         const Computer = this.sequelize.define('computer', {
-          hostname: Sequelize.STRING,
+          hostname: DataTypes.STRING,
         });
 
         Person.hasMany(Computer);

@@ -1,11 +1,11 @@
 'use strict';
 
 const Support = require('../support');
+const { Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
-const Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -33,6 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table',
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
+          db2: 'CREATE INDEX "schema"."schema_table_column1_column2" ON "schema"."table" ("column1", "column2")',
           mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
@@ -51,6 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: 'FULLTEXT',
         concurrently: true,
       }), {
+        ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
         db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
@@ -68,6 +70,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
         mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
         db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
+        ibmi: `BEGIN
+      DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
+        BEGIN END;
+        ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
+      END`,
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
@@ -75,10 +82,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('POJO field', () => {
-      expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
+      expectsql(sql.addIndexQuery('table', [{ name: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
         db2: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
+        ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
       });
@@ -111,6 +119,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: 'public',
           },
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
@@ -128,6 +137,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
@@ -142,6 +152,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
@@ -248,6 +259,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('removeIndex', () => {
     it('naming', () => {
       expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+        ibmi: 'BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = \'table_column1_column2\') THEN DROP INDEX "table_column1_column2"; COMMIT; END IF; END',
         mariadb: 'DROP INDEX `table_column1_column2` ON `table`',
         mysql: 'DROP INDEX `table_column1_column2` ON `table`',
         mssql: 'DROP INDEX [table_column1_column2] ON [table]',

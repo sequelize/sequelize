@@ -1,8 +1,9 @@
-import { Model, Sequelize, HasMany } from 'sequelize';
+import type { HasMany } from '@sequelize/core';
+import { Model, Sequelize } from '@sequelize/core';
 
 class MyModel extends Model {
-  public static associations: {
-    relation: HasMany
+  static associations: {
+    relation: HasMany,
   };
 }
 
@@ -17,7 +18,7 @@ MyModel.findAll({
       on: {
         a: 1,
       },
-      order: [['id', 'DESC'], [ 'AssociatedModel', MyModel, 'id', 'DESC' ], [ MyModel, 'id' ] ],
+      order: [['id', 'DESC'], ['AssociatedModel', MyModel, 'id', 'DESC'], [MyModel, 'id']],
       separate: true,
       where: { state: Sequelize.col('project.state') },
       all: true,
@@ -34,8 +35,8 @@ MyModel.findAll({
   include: [{
     limit: 1,
     association: 'relation',
-    order: [['id', 'DESC'], 'id', [ AssociatedModel, MyModel, 'id', 'ASC' ]],
+    order: [['id', 'DESC'], 'id', [AssociatedModel, MyModel, 'id', 'ASC']],
     separate: true,
     where: { state: Sequelize.col('project.state') },
-  }]
+  }],
 });

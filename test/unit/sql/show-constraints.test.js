@@ -16,6 +16,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name=\'myTable\';',
         db2: 'SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = \'myTable\' ORDER BY CONSTNAME;',
         snowflake: 'SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name=\'myTable\';',
+        ibmi: 'SELECT CONSTRAINT_NAME AS "constraintName", CONSTRAINT_SCHEMA AS "constraintSchema", CONSTRAINT_TYPE AS "constraintType", TABLE_NAME AS "tableName", TABLE_SCHEMA AS "tableSchema" from QSYS2.SYSCST WHERE table_name=\'myTable\'',
         default: 'SELECT sql FROM sqlite_master WHERE tbl_name=\'myTable\';',
       });
     });
@@ -28,6 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name=\'myTable\' AND constraint_name = \'myConstraintName\';',
         db2: 'SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = \'myTable\' AND CONSTNAME LIKE \'%myConstraintName%\' ORDER BY CONSTNAME;',
         snowflake: 'SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name=\'myTable\' AND constraint_name = \'myConstraintName\';',
+        ibmi: 'SELECT CONSTRAINT_NAME AS "constraintName", CONSTRAINT_SCHEMA AS "constraintSchema", CONSTRAINT_TYPE AS "constraintType", TABLE_NAME AS "tableName", TABLE_SCHEMA AS "tableSchema" from QSYS2.SYSCST WHERE table_name=\'myTable\' AND CONSTRAINT_NAME = \'myConstraintName\'',
         default: 'SELECT sql FROM sqlite_master WHERE tbl_name=\'myTable\' AND sql LIKE \'%myConstraintName%\';',
       });
     });

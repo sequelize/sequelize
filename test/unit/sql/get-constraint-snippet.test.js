@@ -1,13 +1,12 @@
 'use strict';
 
 const Support = require('../support');
+const { Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
 const expect = require('chai').expect;
-
-const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('getConstraintSnippet', () => {
@@ -122,20 +121,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      it('uses onDelete, onUpdate', () => {
-        expectsql(sql.getConstraintSnippet('myTable', {
-          type: 'foreign key',
-          fields: ['myColumn'],
-          references: {
-            table: 'myOtherTable',
-            field: 'id',
-          },
-          onUpdate: 'cascade',
-          onDelete: 'cascade',
-        }), {
-          default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+      if (current.dialect.name !== 'ibmi') {
+        it('uses onDelete, onUpdate', () => {
+          expectsql(sql.getConstraintSnippet('myTable', {
+            type: 'foreign key',
+            fields: ['myColumn'],
+            references: {
+              table: 'myOtherTable',
+              field: 'id',
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          }), {
+            default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+          });
         });
-      });
+      }
 
       it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {

@@ -19,15 +19,15 @@ describe('ESM module', () => {
     // important: if you transpile this file, it's important
     //  that we still use both the native import() and the native require().
     //  don't transpile this import() to a require().
-    const sequelizeEsm = await import('sequelize');
-    const sequelizeCjs = require('sequelize');
+    const sequelizeEsm = await import('@sequelize/core');
+    const sequelizeCjs = require('@sequelize/core');
 
     const esmKeys = Object.keys(sequelizeEsm);
 
     // include non-enumerables as "Sequelize.{and, or, ...}" are non-enumerable
     const cjsKeys = Object.getOwnPropertyNames(sequelizeCjs);
 
-    // require('sequelize') returns the Sequelize class
+    // require('@sequelize/core') returns the Sequelize class
     // The typings do not reflect this as some properties of the Sequelize class are not declared as exported in types/index.d.ts.
     // This array lists the properties that are present on the class, but should not be exported in the esm export file nor in types/index.d.ts.
     const ignoredCjsKeys = [
@@ -49,6 +49,7 @@ describe('ESM module', () => {
       'snowflake',
       'db2',
       'mssql',
+      'ibmi',
       '_setupHooks',
       'runHooks',
       'addHook',
@@ -123,6 +124,7 @@ Either add these exports to "index.mjs" (and "types/index.d.ts"), or mark them a
 
     for (const key of esmKeys) {
       expect(sequelizeEsm[key]).not.to.eq(undefined, `esm is exporting undefined under key ${JSON.stringify(key)}`);
+
       expect(cjsKeys).to.include(key, `esm entry point is declaring export ${JSON.stringify(key)} that is missing from CJS`);
 
       // exported values need to be the same instances

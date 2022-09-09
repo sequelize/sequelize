@@ -1,7 +1,9 @@
 'use strict';
 
-const errors = require('sequelize/lib/errors');
 const expect = require('chai').expect;
+const errors = require('@sequelize/core/_non-semver-use-at-your-own-risk_/errors/index.js');
+
+const { AggregateError } = errors;
 
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
@@ -59,7 +61,6 @@ describe('errors', () => {
 
   describe('AggregateError', () => {
     it('get .message works', () => {
-      const { AggregateError } = errors;
       expect(String(
         new AggregateError([
           new Error('foo'),

@@ -4,15 +4,15 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const InstanceValidator = require('sequelize/lib/instance-validator');
+const { InstanceValidator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
 const sinon = require('sinon');
-const SequelizeValidationError = require('sequelize/lib/errors').ValidationError;
+const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   beforeEach(function () {
     this.User = Support.sequelize.define('user', {
       fails: {
-        type: Support.Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         validate: {
           isNotTrue(value) {
             if (value) {
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     it('has a useful default error message for not null validation failures', async () => {
       const User = Support.sequelize.define('user', {
         name: {
-          type: Support.Sequelize.STRING,
+          type: DataTypes.STRING,
           allowNull: false,
         },
       });

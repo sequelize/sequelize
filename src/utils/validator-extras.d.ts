@@ -1,5 +1,5 @@
 // tslint:disable-next-line:no-implicit-dependencies
-import * as val from 'validator';
+import type * as val from 'validator';
 
 type OrigValidator = typeof val;
 

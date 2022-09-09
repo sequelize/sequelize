@@ -1,5 +1,5 @@
-import { expectTypeOf } from "expect-type";
-import { BaseError, EmptyResultError, Error as AliasedBaseError, UniqueConstraintError, OptimisticLockError } from 'sequelize';
+import type { BaseError, EmptyResultError, Error as AliasedBaseError, UniqueConstraintError, OptimisticLockError } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 
 expectTypeOf<AliasedBaseError>().toEqualTypeOf<BaseError>();
 expectTypeOf<UniqueConstraintError>().toHaveProperty('sql').toBeString();

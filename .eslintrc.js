@@ -135,7 +135,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js', 'docs/**/*.js'],
+    files: ['test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
@@ -149,8 +149,8 @@ module.exports = {
       'no-multi-spaces': 'off',
     },
   }, {
-    // Disable slow rules that are not important in tests & docs (perf)
-    files: ['test/**/*', 'docs/**/*'],
+    // Disable slow rules that are not important in tests (perf)
+    files: ['test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -158,11 +158,8 @@ module.exports = {
       'jsdoc/valid-types': 'off',
       'jsdoc/newline-after-description': 'off',
       'jsdoc/check-tag-names': 'off',
-    },
-  }, {
-    // Enable test-specific rules (perf)
-    files: ['test/**/*'],
-    rules: {
+
+      // Enable test-specific rules (perf)
       'mocha/no-exclusive-tests': 'error',
       'mocha/no-skipped-tests': 'warn',
 
@@ -179,20 +176,50 @@ module.exports = {
     parserOptions: {
       project: ['./test/tsconfig.json'],
     },
+  }, {
+    files: ['test/types/**/*'],
+    rules: {
+      // This code is never executed, it's typing only, so these rules make no sense:
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      'no-console': 'off',
+    },
+  }, {
+    files: ['**/tsconfig.json'],
+    rules: {
+      'json/*': ['error', { allowComments: true }],
+    },
+  }, {
+    files: ['dev/**/*'],
+    parserOptions: {
+      project: ['./dev/tsconfig.json'],
+    },
   }],
   settings: {
     jsdoc: {
       tagNamePreference: {
         augments: 'extends',
       },
+      structuredTags: {
+        typeParam: {
+          type: false,
+          required: ['name'],
+        },
+        internal: {
+          type: false,
+        },
+      },
     },
   },
   parserOptions: {
     ecmaVersion: 2020,
-    sourceType: 'script',
+    sourceType: 'module',
   },
-  // TODO: un-ignore test/types/**, src/**/*.d.ts, and 'dev/**/*'
-  ignorePatterns: ['lib/**/*', 'types/**/*', 'test/types/**/*', 'src/**/*.d.ts', 'dev/**/*'],
+  ignorePatterns: [
+    'lib/**/*',
+    'types/**/*',
+    '.typedoc-build',
+  ],
   env: {
     node: true,
     mocha: true,

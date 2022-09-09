@@ -3,140 +3,10 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Utils = require('sequelize/lib/utils');
 const Support = require('./support');
-const DataTypes = require('sequelize/lib/data-types');
-const Sequelize = require('sequelize');
-
-const Op = Sequelize.Op;
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
-  describe('underscore', () => {
-    describe('underscoredIf', () => {
-      it('is defined', () => {
-        expect(Utils.underscoredIf).to.be.ok;
-      });
-
-      it('underscores if second param is true', () => {
-        expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
-      });
-
-      it('doesn\'t underscore if second param is false', () => {
-        expect(Utils.underscoredIf('fooBar', false)).to.equal('fooBar');
-      });
-    });
-
-    describe('camelizeIf', () => {
-      it('is defined', () => {
-        expect(Utils.camelizeIf).to.be.ok;
-      });
-
-      it('camelizes if second param is true', () => {
-        expect(Utils.camelizeIf('foo_bar', true)).to.equal('fooBar');
-      });
-
-      it('doesn\'t camelize if second param is false', () => {
-        expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
-      });
-    });
-  });
-
-  describe('format', () => {
-    it('should format where clause correctly when the value is truthy', () => {
-      const where = ['foo = ?', 1];
-      expect(Utils.format(where)).to.equal('foo = 1');
-    });
-
-    it('should format where clause correctly when the value is false', () => {
-      const where = ['foo = ?', 0];
-      expect(Utils.format(where)).to.equal('foo = 0');
-    });
-  });
-
-  describe('cloneDeep', () => {
-    it('should clone objects', () => {
-      const obj = { foo: 1 };
-      const clone = Utils.cloneDeep(obj);
-
-      expect(obj).to.not.equal(clone);
-    });
-
-    it('should clone nested objects', () => {
-      const obj = { foo: { bar: 1 } };
-      const clone = Utils.cloneDeep(obj);
-
-      expect(obj.foo).to.not.equal(clone.foo);
-    });
-
-    it('should not call clone methods on plain objects', () => {
-      expect(() => {
-        Utils.cloneDeep({
-          clone() {
-            throw new Error('clone method called');
-          },
-        });
-      }).to.not.throw();
-    });
-
-    it('should not call clone methods on arrays', () => {
-      expect(() => {
-        const arr = [];
-        arr.clone = function () {
-          throw new Error('clone method called');
-        };
-
-        Utils.cloneDeep(arr);
-      }).to.not.throw();
-    });
-  });
-
-  if (Support.getTestDialect() === 'postgres') {
-    describe('json', () => {
-      beforeEach(function () {
-        this.queryGenerator = this.sequelize.getQueryInterface().queryGenerator;
-      });
-
-      it('successfully parses a complex nested condition hash', function () {
-        const conditions = {
-          metadata: {
-            language: 'icelandic',
-            pg_rating: { dk: 'G' },
-          },
-          another_json_field: { x: 1 },
-        };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
-      });
-
-      it('successfully parses a string using dot notation', function () {
-        const path = 'metadata.pg_rating.dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
-      });
-
-      it('allows postgres json syntax', function () {
-        const path = 'metadata->pg_rating->>dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
-      });
-
-      it('can take a value to compare against', function () {
-        const path = 'metadata.pg_rating.is';
-        const value = 'U';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
-      });
-    });
-  }
-
-  describe('inflection', () => {
-    it('works better than lingo ;)', () => {
-      expect(Utils.pluralize('buy')).to.equal('buys');
-      expect(Utils.pluralize('holiday')).to.equal('holidays');
-      expect(Utils.pluralize('days')).to.equal('days');
-      expect(Utils.pluralize('status')).to.equal('statuses');
-
-      expect(Utils.singularize('status')).to.equal('status');
-    });
-  });
-
   describe('Sequelize.fn', () => {
     let Airplane;
 
@@ -162,7 +32,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       ]);
     });
 
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (with cast)', async function () {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
@@ -190,7 +60,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres' && Support.getTestDialect() !== 'ibmi') {
       it('accepts condition object (auto casting)', async function () {
         const [airplane] = await Airplane.findAll({
           attributes: [
@@ -215,35 +85,5 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         expect(Number.parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
       });
     }
-  });
-
-  describe('flattenObjectDeep', () => {
-    it('should return the value if it is not an object', () => {
-      const value = 'non-object';
-      const returnedValue = Utils.flattenObjectDeep(value);
-      expect(returnedValue).to.equal(value);
-    });
-
-    it('should return correctly if values are null', () => {
-      const value = {
-        name: 'John',
-        address: {
-          street: 'Fake St. 123',
-          city: null,
-          coordinates: {
-            longitude: 55.677_962_7,
-            latitude: 12.596_431_3,
-          },
-        },
-      };
-      const returnedValue = Utils.flattenObjectDeep(value);
-      expect(returnedValue).to.deep.equal({
-        name: 'John',
-        'address.street': 'Fake St. 123',
-        'address.city': null,
-        'address.coordinates.longitude': 55.677_962_7,
-        'address.coordinates.latitude': 12.596_431_3,
-      });
-    });
   });
 });

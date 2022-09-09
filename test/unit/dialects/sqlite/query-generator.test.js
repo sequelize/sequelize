@@ -4,13 +4,12 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const moment = require('moment');
-const { Op } = require('sequelize/lib/operators');
-const QueryGenerator = require('sequelize/lib/dialects/sqlite/query-generator');
+const dayjs = require('dayjs');
+const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {
@@ -154,7 +153,11 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));',
+          // SQLITE does not respect the index name when the index is created through CREATE TABLE
+          // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
+          // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
+          // as that query *does* respect the index name.
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255));',
         },
         {
           arguments: ['myTable', { foo1: 'INTEGER PRIMARY KEY NOT NULL', foo2: 'INTEGER PRIMARY KEY NOT NULL' }],
@@ -325,12 +328,12 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10;',
+          expectation: 'SELECT * FROM `myTable` LIMIT 10 OFFSET 2;',
           context: QueryGenerator,
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
+          expectation: 'SELECT * FROM `myTable` LIMIT -1 OFFSET 2;',
           context: QueryGenerator,
         }, {
           title: 'multiple where arguments',
@@ -384,76 +387,76 @@ if (dialect === 'sqlite') {
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: '\'bar\'' }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
-            bind: ['\'bar\''],
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: '\'bar\'' },
           },
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
-            bind: [Buffer.from('Sequelize')],
+            query: 'INSERT INTO `myTable` (`data`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: Buffer.from('Sequelize') },
           },
         }, {
           arguments: ['myTable', { name: 'bar', value: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
-            bind: ['bar', null],
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'bar', sequelize_2: null },
           },
         }, {
           arguments: ['myTable', { name: 'bar', value: undefined }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
-            bind: ['bar', undefined],
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'bar', sequelize_2: undefined },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()],
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() },
           },
         }, {
           arguments: ['myTable', { name: 'foo', value: true }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
-            bind: ['foo', true],
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: true },
           },
         }, {
           arguments: ['myTable', { name: 'foo', value: false }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
-            bind: ['foo', false],
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: false },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null],
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null],
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
@@ -464,7 +467,7 @@ if (dialect === 'sqlite') {
           }],
           expectation: {
             query: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
-            bind: [],
+            bind: {},
           },
           needsSequelize: true,
         },
@@ -478,7 +481,7 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', [{ name: '\'bar\'' }, { name: 'foo' }]],
           expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'\'\'bar\'\'\'),(\'foo\');',
         }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
+          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
         }, {
           arguments: ['myTable', [{ name: 'bar', value: null }, { name: 'foo', value: 1 }]],
@@ -518,71 +521,71 @@ if (dialect === 'sqlite') {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
-          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
+          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1 WHERE `id` = $2',
-            bind: ['foo', 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1 WHERE `id` = $sequelize_2',
+            bind: { sequelize_1: 'foo', sequelize_2: 2 },
           },
         }, {
           arguments: ['myTable', { name: '\'bar\'' }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1 WHERE `id` = $2',
-            bind: ['\'bar\'', 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1 WHERE `id` = $sequelize_2',
+            bind: { sequelize_1: '\'bar\'', sequelize_2: 2 },
           },
         }, {
           arguments: ['myTable', { name: 'bar', value: null }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`value`=$2 WHERE `id` = $3',
-            bind: ['bar', null, 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`value`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'bar', sequelize_2: null, sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { name: 'bar', value: undefined }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`value`=$2 WHERE `id` = $3',
-            bind: ['bar', undefined, 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`value`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'bar', sequelize_2: undefined, sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { flag: true }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `flag`=$1 WHERE `id` = $2',
-            bind: [true, 2],
+            query: 'UPDATE `myTable` SET `flag`=$sequelize_1 WHERE `id` = $sequelize_2',
+            bind: { sequelize_1: true, sequelize_2: 2 },
           },
         }, {
           arguments: ['myTable', { flag: false }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `flag`=$1 WHERE `id` = $2',
-            bind: [false, 2],
+            query: 'UPDATE `myTable` SET `flag`=$sequelize_1 WHERE `id` = $sequelize_2',
+            bind: { sequelize_1: false, sequelize_2: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1,`nullValue`=$sequelize_2 WHERE `name` = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1,`nullValue`=$sequelize_2 WHERE `name` = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null,  sequelize_3: 'foo' },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
@@ -592,8 +595,8 @@ if (dialect === 'sqlite') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
-            bind: ['foo'],
+            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         }, {
@@ -603,8 +606,8 @@ if (dialect === 'sqlite') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
-            bind: ['foo'],
+            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         },
@@ -630,9 +633,7 @@ if (dialect === 'sqlite') {
             'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
             + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
             + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
+            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
       getForeignKeysQuery: [
@@ -640,6 +641,18 @@ if (dialect === 'sqlite') {
           title: 'Property quotes table names',
           arguments: ['myTable'],
           expectation: 'PRAGMA foreign_key_list(`myTable`)',
+        },
+      ],
+      foreignKeyCheckQuery: [
+        {
+          title: 'Properly quotes table names',
+          arguments: ['myTable'],
+          expectation: 'PRAGMA foreign_key_check(`myTable`);',
+        },
+        {
+          title: 'Properly quotes table names as schema',
+          arguments: [{ schema: 'schema', tableName: 'myTable' }],
+          expectation: 'PRAGMA foreign_key_check(`schema.myTable`);',
         },
       ],
     };

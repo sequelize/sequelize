@@ -2,11 +2,10 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const Sequelize = require('sequelize');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -177,7 +176,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.ModelUnderTest = this.sequelize.define('ModelUnderTest', {
               identifier: {
                 primaryKey: true,
-                type: Sequelize.STRING,
+                type: DataTypes.STRING,
                 allowNull: false,
               },
             });
@@ -291,7 +290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should bulk update', async function () {
         const Entity = this.sequelize.define('Entity', {
-          strField: { type: Sequelize.STRING, field: 'str_field' },
+          strField: { type: DataTypes.STRING, field: 'str_field' },
         });
 
         await this.sequelize.sync({ force: true });
@@ -315,7 +314,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should not contain the field properties after create', async function () {
         const Model = this.sequelize.define('test', {
           id: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             field: 'test_id',
             autoIncrement: true,
             primaryKey: true,
@@ -325,7 +324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           title: {
             allowNull: false,
-            type: Sequelize.STRING(255),
+            type: DataTypes.STRING(255),
             field: 'test_title',
           },
         }, {
@@ -456,7 +455,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should support renaming of sequelize method fields', async function () {
         const Test = this.sequelize.define('test', {
-          someProperty: Sequelize.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
+          someProperty: DataTypes.VIRTUAL, // Since we specify the AS part as a part of the literal string, not with sequelize syntax, we have to tell sequelize about the field
         });
 
         await this.sequelize.sync({ force: true });
@@ -467,7 +466,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
             [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
           ];
-        } else if (dialect === 'db2') {
+        } else if (['db2', 'ibmi'].includes(dialect)) {
           findAttributes = [
             Sequelize.literal('1 AS "someProperty"'),
             [Sequelize.literal('1'), 'someProperty2'],

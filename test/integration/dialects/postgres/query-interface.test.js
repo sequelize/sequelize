@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {

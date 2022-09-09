@@ -1,5 +1,5 @@
+import { DataTypes } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
-import { DataTypes } from 'sequelize';
 
 const { TINYINT, SMALLINT, MEDIUMINT, BIGINT, INTEGER, JSON, JSONB, CITEXT, MACADDR, TSVECTOR, CIDR, INET } = DataTypes;
 

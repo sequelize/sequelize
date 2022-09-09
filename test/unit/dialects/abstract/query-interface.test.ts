@@ -1,7 +1,5 @@
 import { expect } from 'chai';
-import Support from '../../support';
-
-const { sequelize } = Support as any;
+import { sequelize } from '../../../support';
 
 describe('QueryInterface', () => {
   describe('quoteIdentifier', () => {
@@ -13,7 +11,8 @@ describe('QueryInterface', () => {
         .quoteIdentifier(identifier);
       const expectedQuotedIdentifier = sequelize
         .getQueryInterface()
-        .queryGenerator.quoteIdentifier(identifier);
+        .queryGenerator
+        .quoteIdentifier(identifier);
 
       expect(quotedIdentifier).not.to.be.undefined;
       expect(expectedQuotedIdentifier).not.to.be.undefined;
@@ -30,7 +29,8 @@ describe('QueryInterface', () => {
         .quoteIdentifiers(identifier);
       const expectedQuotedIdentifiers = sequelize
         .getQueryInterface()
-        .queryGenerator.quoteIdentifiers(identifier);
+        .queryGenerator
+        .quoteIdentifiers(identifier);
 
       expect(quotedIdentifiers).not.to.be.undefined;
       expect(expectedQuotedIdentifiers).not.to.be.undefined;

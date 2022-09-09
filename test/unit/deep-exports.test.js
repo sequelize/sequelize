@@ -1,31 +1,25 @@
-const chai = require('chai');
-
-const expect = chai.expect;
+const { expect } = require('chai');
 
 /**
- * Tests whether users can import files deeper than "sequelize" (eg. "sequelize/package.json").
+ * Tests whether users can import files deeper than '@sequelize/core" (eg. "@sequelize/core/package.json').
  * Context: https://github.com/sequelize/sequelize/issues/13787
  */
-
-const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
 
 describe('exports', () => {
   it('exposes /package.json', async () => {
     // TODO: uncomment test once https://nodejs.org/api/esm.html#json-modules are stable
-    // if (nodeMajorVersion >= 16) {
-    //   await import('sequelize/package.json', {
-    //     assert: { type: 'json' }
-    //   });
-    // }
+    // await import('@sequelize/core/package.json', {
+    //   assert: { type: 'json' }
+    // });
 
-    require('sequelize/package.json');
+    require('@sequelize/core/package.json');
   });
 
-  it('exposes lib files', async () => {
-    if (nodeMajorVersion >= 12) {
-      await import('sequelize/lib/model');
-    }
+  it('blocks access to lib files', async () => {
+    await expect(import('@sequelize/core/lib/model')).to.be.rejectedWith('Package subpath \'./lib/model\' is not defined by "exports"');
+  });
 
-    require('sequelize/lib/model');
+  it('allows access to lib if the user acknowledges that it is unsafe', async () => {
+    await import('@sequelize/core/_non-semver-use-at-your-own-risk_/model.js');
   });
 });

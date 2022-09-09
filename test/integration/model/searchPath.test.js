@@ -4,9 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('sequelize/lib/data-types');
-
-const Op = Support.Sequelize.Op;
+const { DataTypes, Op } = require('@sequelize/core');
 
 const SEARCH_PATH_ONE = 'schema_one,public';
 const SEARCH_PATH_TWO = 'schema_two,public';
@@ -38,19 +36,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           last_name: DataTypes.STRING,
         },
         { tableName: 'employees' });
-        this.Restaurant.belongsTo(this.Location,
-          {
-            foreignKey: 'location_id',
-            constraints: false,
-          });
-        this.Employee.belongsTo(this.Restaurant,
-          {
-            foreignKey: 'restaurant_id',
-            constraints: false,
-          });
+        this.Restaurant.belongsTo(this.Location, {
+          foreignKey: 'location_id',
+          foreignKeyConstraints: false,
+        });
+        this.Employee.belongsTo(this.Restaurant, {
+          foreignKey: 'restaurant_id',
+          foreignKeyConstraints: false,
+        });
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          foreignKeyConstraints: false,
         });
       });
 

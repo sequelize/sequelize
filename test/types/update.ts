@@ -1,30 +1,28 @@
-import { Model, fn, col, literal } from 'sequelize';
-import { User } from './models/User';
+import { Model, fn, col, literal } from '@sequelize/core';
+import { User } from './models/user';
 
-class TestModel extends Model {
-}
+class TestModel extends Model {}
 
 TestModel.update({}, { where: {} });
 TestModel.update({}, { where: {}, returning: false });
 TestModel.update({}, { where: {}, returning: true });
 TestModel.update({}, { where: {}, returning: ['foo'] });
 
-
 User.update({}, { where: {} });
 User.update({
-    id: 123,
-    username: fn('FN'),
-    firstName: col('id'),
-    lastName: literal('Smith'),
+  id: 123,
+  username: fn('FN'),
+  firstName: col('id'),
+  lastName: literal('Smith'),
 }, { where: {} });
 User.update({}, { where: {}, returning: true });
 User.update({}, { where: {}, returning: false });
 User.update({}, { where: {}, returning: ['username'] });
 User.build().update({
-    id: 123,
-    username: fn('FN'),
-    firstName: col('id'),
-    lastName: literal('Smith'),
+  id: 123,
+  username: fn('FN'),
+  firstName: col('id'),
+  lastName: literal('Smith'),
 });
 // @ts-expect-error invalid `returning`
 User.update({}, { where: {}, returning: ['foo'] });

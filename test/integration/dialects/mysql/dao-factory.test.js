@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] DAOFactory', () => {
@@ -16,7 +16,14 @@ if (dialect === 'mysql') {
           username: { type: DataTypes.STRING, unique: true },
         }, { timestamps: false });
 
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ username: 'VARCHAR(255) UNIQUE', id: 'INTEGER NOT NULL auto_increment PRIMARY KEY' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({
+          // note: UNIQUE is not specified here because it is only specified if the option passed to attributesToSQL is
+          //  'unique: true'.
+          // Model.init normalizes the 'unique' to ensure a consistent index, and createTableQuery handles adding
+          //  a named UNIQUE constraint
+          username: 'VARCHAR(255)',
+          id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
+        });
       });
 
       it('handles extended attributes (default)', function () {

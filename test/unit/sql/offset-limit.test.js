@@ -30,6 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       model: { primaryKeyField: 'id', name: 'tableRef' },
     }, {
       default: ' LIMIT 10',
+      ibmi: ' FETCH NEXT 10 ROWS ONLY',
       db2: ' FETCH NEXT 10 ROWS ONLY',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
     });
@@ -41,6 +42,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ],
     }, {
       default: ' LIMIT 10',
+      ibmi: ' FETCH NEXT 10 ROWS ONLY',
       db2: ' FETCH NEXT 10 ROWS ONLY',
       mssql: ' OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
     });
@@ -52,41 +54,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ['email', 'DESC'], // for MSSQL
       ],
     }, {
-      default: ' LIMIT 20, 10',
-      snowflake: ' LIMIT 10 OFFSET 20',
-      postgres: ' LIMIT 10 OFFSET 20',
+      default: ' LIMIT 10 OFFSET 20',
+      ibmi: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
       db2: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
       mssql: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY',
     });
 
     testsql({
-      limit: '\';DELETE FROM user',
+      limit: `';DELETE FROM user`,
       order: [
         ['email', 'DESC'], // for MSSQL
       ],
     }, {
-      default: ' LIMIT \'\'\';DELETE FROM user\'',
-      mariadb: ' LIMIT \'\\\';DELETE FROM user\'',
-      snowflake: ' LIMIT \'\'\';DELETE FROM user\'',
-      mysql: ' LIMIT \'\\\';DELETE FROM user\'',
-      db2: ' FETCH NEXT \'\'\';DELETE FROM user\' ROWS ONLY',
-      mssql: ' OFFSET 0 ROWS FETCH NEXT N\'\'\';DELETE FROM user\' ROWS ONLY',
+      default: ` LIMIT ''';DELETE FROM user'`,
+      mariadb: ` LIMIT '\\';DELETE FROM user'`,
+      snowflake: ` LIMIT ''';DELETE FROM user'`,
+      mysql: ` LIMIT '\\';DELETE FROM user'`,
+      db2: ` FETCH NEXT ''';DELETE FROM user' ROWS ONLY`,
+      mssql: ` OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY`,
+      ibmi: ` FETCH NEXT ''';DELETE FROM user' ROWS ONLY`,
     });
 
     testsql({
       limit: 10,
-      offset: '\';DELETE FROM user',
+      offset: `';DELETE FROM user`,
       order: [
         ['email', 'DESC'], // for MSSQL
       ],
     }, {
-      sqlite: ' LIMIT \'\'\';DELETE FROM user\', 10',
-      postgres: ' LIMIT 10 OFFSET \'\'\';DELETE FROM user\'',
-      mariadb: ' LIMIT \'\\\';DELETE FROM user\', 10',
-      snowflake: ' LIMIT 10 OFFSET \'\'\';DELETE FROM user\'',
-      mysql: ' LIMIT \'\\\';DELETE FROM user\', 10',
-      db2: ' FETCH NEXT 10 ROWS ONLY',
-      mssql: ' OFFSET N\'\'\';DELETE FROM user\' ROWS FETCH NEXT 10 ROWS ONLY',
+      default: ` LIMIT 10 OFFSET ''';DELETE FROM user'`,
+      mariadb: ` LIMIT 10 OFFSET '\\';DELETE FROM user'`,
+      mysql: ` LIMIT 10 OFFSET '\\';DELETE FROM user'`,
+      db2: ` OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY`,
+      mssql: ` OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY`,
+      ibmi: ` OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY`,
     });
 
     testsql({
@@ -97,6 +98,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       db2: ' FETCH NEXT 10 ROWS ONLY',
       default: ' LIMIT 10',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY',
+      ibmi: ' FETCH NEXT 10 ROWS ONLY',
     });
   });
 });

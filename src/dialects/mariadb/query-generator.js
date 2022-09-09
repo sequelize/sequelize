@@ -1,10 +1,10 @@
 'use strict';
 
-const MySQLQueryGenerator = require('../mysql/query-generator');
+const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const Utils = require('./../../utils');
 const _ = require('lodash');
 
-class MariaDBQueryGenerator extends MySQLQueryGenerator {
+export class MariaDbQueryGenerator extends MySqlQueryGenerator {
   createSchema(schema, options) {
     options = {
       charset: null,
@@ -43,6 +43,17 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
       `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.join(', ')})`,
       ';',
     ]);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param  {object} table  The table.
+   * @returns {string}            The generated sql query.
+   * @private
+   */
+  getForeignKeysQuery(table) {
+    return super.getForeignKeysQuery(table, table.schema || this.sequelize.config.database);
   }
 
   showTablesQuery(database) {
@@ -91,5 +102,3 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 }
-
-module.exports = MariaDBQueryGenerator;

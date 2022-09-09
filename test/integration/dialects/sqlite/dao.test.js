@@ -5,10 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const Op = Sequelize.Op;
 const dialect = Support.getTestDialect();
-const DataTypes = require('sequelize/lib/data-types');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {

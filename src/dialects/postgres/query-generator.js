@@ -3,7 +3,7 @@
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -15,7 +15,7 @@ const _ = require('lodash');
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-class PostgresQueryGenerator extends AbstractQueryGenerator {
+export class PostgresQueryGenerator extends AbstractQueryGenerator {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
@@ -96,9 +96,17 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
+      _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
-          attributesClause += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+          if (typeof indexName !== 'string') {
+            indexName = Utils.generateIndexName(tableName, columns);
+          }
+
+          attributesClause += `, CONSTRAINT ${
+            this.quoteIdentifier(indexName)
+          } UNIQUE (${
+            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+          })`;
         }
       });
     }
@@ -125,13 +133,20 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery() {
-    return 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\' AND table_type LIKE \'%TABLE\' AND table_name != \'spatial_ref_sys\';';
+    const schema = this.options.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
+  }
+
+  tableExistsQuery(tableName) {
+    const table = tableName.tableName || tableName;
+    const schema = tableName.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
   }
 
   describeTableQuery(tableName, schema) {
-    if (!schema) {
-      schema = 'public';
-    }
+    schema = schema || this.options.schema || 'public';
 
     return 'SELECT '
       + 'pk.constraint_type as "Constraint",'
@@ -152,7 +167,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'ON pk.table_schema=c.table_schema '
       + 'AND pk.table_name=c.table_name '
       + 'AND pk.column_name=c.column_name '
-      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)} `;
+      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**
@@ -359,7 +374,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit)}` : '';
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -422,7 +437,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [
@@ -435,11 +450,11 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     }
 
-    if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset)}`;
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
     }
 
     return fragment;
@@ -482,7 +497,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     let sql = type.toString();
 
-    if (Object.prototype.hasOwnProperty.call(attribute, 'allowNull') && !attribute.allowNull) {
+    if (attribute.allowNull === false) {
       sql += ' NOT NULL';
     }
 
@@ -529,24 +544,26 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       let referencesKey;
 
-      if (attribute.references.key) {
-        referencesKey = this.quoteIdentifiers(attribute.references.key);
-      } else {
-        referencesKey = this.quoteIdentifier('id');
-      }
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
 
-      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-      if (attribute.onDelete) {
-        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
 
-      if (attribute.onUpdate) {
-        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
 
-      if (attribute.references.deferrable) {
-        sql += ` ${attribute.references.deferrable.toString(this)}`;
+        if (attribute.references.deferrable) {
+          sql += ` ${attribute.references.deferrable.toString(this)}`;
+        }
       }
     }
 
@@ -891,6 +908,8 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'tc.table_name as table_name,'
       + 'tc.table_schema as table_schema,'
       + 'tc.table_catalog as table_catalog,'
+      + 'tc.initially_deferred as initially_deferred,'
+      + 'tc.is_deferrable as is_deferrable,'
       + 'kcu.column_name as column_name,'
       + 'ccu.table_schema  AS referenced_table_schema,'
       + 'ccu.table_catalog  AS referenced_table_catalog,'
@@ -991,5 +1010,3 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `(${quotedColumn}${join}${pathStr})`;
   }
 }
-
-module.exports = PostgresQueryGenerator;
