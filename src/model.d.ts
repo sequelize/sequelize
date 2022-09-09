@@ -10,6 +10,9 @@ import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json }
 import { LOCK, Transaction, Op, Optional } from './index';
 import { SetRequired } from './utils/set-required';
 
+// Backport of https://github.com/sequelize/sequelize/blob/a68b439fb3ea748d3f3d37356d9fe610f86184f6/src/utils/index.ts#L85
+export type AllowReadonlyArray<T> = T | readonly T[];
+
 export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
@@ -2468,58 +2471,66 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<[affectedCount: number]>;
 
   /**
-   * Increments a single field.
+   * Increments the value of one or more attributes.
+   *
+   * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
+   *
+   * @example <caption>increment number by 1</caption>
+   * ```javascript
+   * Model.increment('number', { where: { foo: 'bar' });
+   * ```
+   *
+   * @example <caption>increment number and count by 2</caption>
+   * ```javascript
+   * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
+   * ```
+   *
+   * @example <caption>increment answer by 42, and decrement tries by 1</caption>
+   * ```javascript
+   * // `by` cannot be used, as each attribute specifies its own value
+   * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });
+   * ```
+   *
+   * @param fields If a string is provided, that column is incremented by the
+   *   value of `by` given in options. If an array is provided, the same is true for each column.
+   *   If an object is provided, each key is incremented by the corresponding value, `by` is ignored.
+   *
+   * @returns an array of affected rows or with affected count if `options.returning` is true, whenever supported by dialect
    */
-  public static increment<M extends Model>(
+  static increment<M extends Model>(
     this: ModelStatic<M>,
-    field: keyof Attributes<M>,
+    fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M>;
-
-  /**
-   * Increments multiple fields by the same value.
-   */
-  public static increment<M extends Model>(
-    this: ModelStatic<M>,
-    fields: ReadonlyArray<keyof Attributes<M>>,
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M>;
-
-  /**
-   * Increments multiple fields by different values.
-   */
-  public static increment<M extends Model>(
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
+  static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<M>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
-   * Decrements a single field.
+   * Decrements the value of one or more attributes.
+   *
+   * Works like {@link Model.increment}
+   *
+   * @param fields If a string is provided, that column is incremented by the
+   *   value of `by` given in options. If an array is provided, the same is true for each column.
+   *   If an object is provided, each key is incremented by the corresponding value, `by` is ignored.
+   *
+   * @returns an array of affected rows or with affected count if `options.returning` is true, whenever supported by dialect
+   *
+   * @since 4.36.0
    */
-  public static decrement<M extends Model>(
+  static decrement<M extends Model>(
     this: ModelStatic<M>,
-    field: keyof Attributes<M>,
+    fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M>;
-
-  /**
-   * Decrements multiple fields by the same value.
-   */
-  public static decrement<M extends Model>(
-    this: ModelStatic<M>,
-    fields: (keyof Attributes<M>)[],
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M>;
-
-  /**
-   * Decrements multiple fields by different values.
-   */
-  public static decrement<M extends Model>(
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
+  static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<M>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
