@@ -84,7 +84,7 @@
     "eslint-plugin-jsdoc": "39.3.6",
     "eslint-plugin-mocha": "10.1.0",
     "expect-type": "0.13.0",
-    "fast-glob": "3.2.11",
+    "fast-glob": "3.2.12",
     "fs-jetpack": "4.3.1",
     "husky": "8.0.1",
     "ibm_db": "2.8.2",
