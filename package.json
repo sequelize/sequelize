@@ -65,7 +65,7 @@
     "@types/chai": "4.3.3",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
-    "@types/lodash": "4.14.184",
+    "@types/lodash": "4.14.185",
     "@types/mocha": "9.1.1",
     "@types/node": "18.7.9",
     "@types/semver": "7.3.12",
