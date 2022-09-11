@@ -154,4 +154,16 @@ describe(getTestDialectTeaser('Utils'), () => {
       });
     });
   });
+  
+   describe('url', () => {
+    it('should return the correct options after parsed', () => {
+      const options = Utils.parseConnectionString('pg://wpx%20ss:wpx%20ss@21.77.77:4001/database ss');
+      expect(options.dialect).to.equal('pg');
+      expect(options.host).to.equal('21.77.77');
+      expect(options.port).to.equal('4001');
+      expect(options.database).to.equal('database ss');
+      expect(options.username).to.equal('wpx ss');
+      expect(options.password).to.equal('wpx ss');
+    });
+  });
 });
