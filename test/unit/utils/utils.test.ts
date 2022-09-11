@@ -154,8 +154,8 @@ describe(getTestDialectTeaser('Utils'), () => {
       });
     });
   });
-  
-   describe('url', () => {
+
+  describe('url', () => {
     it('should return the correct options after parsed', () => {
       const options = Utils.parseConnectionString('pg://wpx%20ss:wpx%20ss@21.77.77:4001/database ss');
       expect(options.dialect).to.equal('pg');
