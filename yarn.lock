@@ -6453,10 +6453,10 @@ object.values@^1.1.5:
     define-properties "^1.1.3"
     es-abstract "^1.19.1"
 
-odbc@2.4.4:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.4.tgz#7f318000011de5d3fce82ef5e537fc468da85872"
-  integrity sha512-L3V+4iqTVroKY2RMvvx7pGo7+cS1PSgVF0x1BLazmWvOIg+ipvKFTGxS6m5xixBVQJXtT6JIT1cQlDkjK38oJg==
+odbc@2.4.5:
+  version "2.4.5"
+  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.5.tgz#2c4972e613a7da4cdf8fbe20d8f301682cba6e47"
+  integrity sha512-McvU/hj7PeT4TR+N0vUTZwFEbfeXc9Le87iPi//cehzVa05/UIrpNXavK6byvZ1hyvYwbpDzO/YvHrSxGnsccg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
     async "^3.0.1"
