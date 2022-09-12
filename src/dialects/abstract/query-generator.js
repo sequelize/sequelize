@@ -89,12 +89,12 @@ class QueryGenerator {
   }
 
   /**
-   * Helper method for getting the returning into bind information 
+   * Helper method for populating the returning into bind information
    * that is needed by some dialects (currently Oracle)
    * 
    * @private
    */
-  getInsertQueryReturnIntoBinds() {
+  populateInsertQueryReturnIntoBinds() {
     // noop by default
   }
 
@@ -261,8 +261,8 @@ class QueryGenerator {
     }
 
     if (this._dialect.supports.returnIntoValues && options.returning) {
-      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery 
-      this.getInsertQueryReturnIntoBinds(returnAttributes, bind.length, returningModelAttributes, returnTypes, options);
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
+      this.populateInsertQueryReturnIntoBinds(returnAttributes, bind.length, returningModelAttributes, returnTypes, options);
     }
 
     query = `${replacements.attributes.length ? valueQuery : emptyQuery}${returnAttributes.join(',')};`;

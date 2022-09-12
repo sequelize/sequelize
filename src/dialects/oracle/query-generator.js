@@ -544,7 +544,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   /**
    * Populates the returnAttributes array with outbind bindByPosition values
-   * and also the outBindAttributes map with bindDef for outbind of InsertQuery
+   * and also the options.outBindAttributes map with bindDef for outbind of InsertQuery
    *
    * @param {object} returnAttributes
    * @param {number} inbindLength
@@ -554,7 +554,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
    *
    * @private
    */
-  getInsertQueryReturnIntoBinds(returnAttributes, inbindLength, returningModelAttributes, returnTypes, options) {
+  populateInsertQueryReturnIntoBinds(returnAttributes, inbindLength, returningModelAttributes, returnTypes, options) {
     const oracledb = this.sequelize.connectionManager.lib;
     const outBindAttributes = Object.create(null);
     const outbind = [];
