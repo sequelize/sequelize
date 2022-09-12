@@ -262,7 +262,7 @@ class QueryGenerator {
 
     if (this._dialect.supports.returnIntoValues && options.returning) {
       // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
-      this.populateInsertQueryReturnIntoBinds(returnAttributes, bind.length, returningModelAttributes, returnTypes, options);
+      this.populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, bind.length, returnAttributes, options);
     }
 
     query = `${replacements.attributes.length ? valueQuery : emptyQuery}${returnAttributes.join(',')};`;
