@@ -1355,7 +1355,7 @@ class QueryGenerator {
           
           // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
           // So the top level ORDER BY is required
-          if (this._dialect.name !== 'oracle') {
+          if (!this._dialect.supports.topLevelOrderByRequired) {
             delete options.order;
           }
           where[Op.placeholder] = true;

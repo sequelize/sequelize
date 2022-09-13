@@ -25,15 +25,23 @@ export class OracleConnectionManager extends AbstractConnectionManager {
     this.sequelize = sequelize;
     this.sequelize.config.port = this.sequelize.config.port || 1521;
     this.lib = this._loadDialectModule('oracledb');
+    this.extendLib();
     this.refreshTypeParser(DataTypes);
+  }
+
+  /**
+   * Method for initializing the lib
+   *
+   */
+  extendLib() {
     this.lib.maxRows = 1000;
-    if (sequelize.config && 'dialectOptions' in sequelize.config) {
-      const dialectOptions = sequelize.config.dialectOptions;
+    if (this.sequelize.config && 'dialectOptions' in this.sequelize.config) {
+      const dialectOptions = this.sequelize.config.dialectOptions;
       if (dialectOptions && 'maxRows' in dialectOptions) {
-        this.lib.maxRows = sequelize.config.dialectOptions.maxRows;
+        this.lib.maxRows = this.sequelize.config.dialectOptions.maxRows;
       }
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        this.lib.fetchAsString = sequelize.config.dialectOptions.fetchAsString;
+        this.lib.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
       } else {
         this.lib.fetchAsString = [this.lib.CLOB];
       }
