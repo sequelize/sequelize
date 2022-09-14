@@ -603,17 +603,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should allow custom timestamps with underscored: true', async function () {
       const User = this.sequelize.define('UserCustomTimestampUnderscored', {}, {
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-        timestamps: true,
+        createdAt: 'createdOn',
+        updatedAt: 'modifiedOn',
         underscored: true,
       });
 
-      expect(User.rawAttributes).to.haveOwnProperty('createdAt');
-      expect(User.rawAttributes).to.haveOwnProperty('updatedAt');
+      expect(User.rawAttributes).to.haveOwnProperty('createdOn');
+      expect(User.rawAttributes).to.haveOwnProperty('modifiedOn');
 
-      expect(User._timestampAttributes.createdAt).to.equal('createdAt');
-      expect(User._timestampAttributes.updatedAt).to.equal('updatedAt');
+      expect(User._timestampAttributes.createdAt).to.equal('createdOn');
+      expect(User._timestampAttributes.updatedAt).to.equal('modifiedOn');
 
       expect(User.rawAttributes).not.to.have.property('created_at');
       expect(User.rawAttributes).not.to.have.property('updated_at');
