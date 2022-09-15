@@ -119,7 +119,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   versionQuery() {
-    return "SELECT VERSION FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
+    return "SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
   }
 
   createTableQuery(tableName, attributes, options) {

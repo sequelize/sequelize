@@ -421,6 +421,13 @@ export class OracleQuery extends AbstractQuery {
             defaultValue: undefined,
             primaryKey: _result.CONSTRAINT_TYPE === 'P'
           };
+        } else {
+          result[_result.COLUMN_NAME] = {
+            type: _result.DATA_TYPE.toUpperCase(),
+            allowNull: _result.NULLABLE === 'N' ? false : true,
+            defaultValue: void 0,
+            primaryKey: _result.CONSTRAINT_TYPE === 'P'
+          };
         }
       });
     } else if (this.isShowIndexesQuery()) {
@@ -438,7 +445,7 @@ export class OracleQuery extends AbstractQuery {
     } else if (this.isBulkDeleteQuery()) {
       result = data.rowsAffected;
     } else if (this.isVersionQuery()) {
-      const version = data.rows[0].VERSION;
+      const version = data.rows[0].VERSION_FULL;
       if (version) {
         const versions = version.split('.');
         result = `${versions[0]}.${versions[1]}.${versions[2]}`;
