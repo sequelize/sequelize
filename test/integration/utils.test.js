@@ -159,8 +159,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         }
       ]);
     });
-
-    if (Support.getTestDialect() !== 'mssql') {
+    if (!['mssql', 'oracle'].includes(Support.getTestDialect())) {
       it('accepts condition object (with cast)', async function() {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
@@ -188,7 +187,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+    if (!['mssql', 'postgres', 'oracle'].includes(Support.getTestDialect())) {
       it('accepts condition object (auto casting)', async function() {
         const [airplane] = await Airplane.findAll({
           attributes: [

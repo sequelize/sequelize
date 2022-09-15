@@ -166,6 +166,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });
@@ -179,6 +180,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });
@@ -192,6 +194,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });

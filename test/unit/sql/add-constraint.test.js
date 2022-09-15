@@ -156,7 +156,8 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('supports composite keys', () => {
+        // The Oracle dialect doesn't support onUpdate cascade
+        (current.dialect.name !== 'oracle' ? it : it.skip)('supports composite keys', () => {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'foreign key',
@@ -175,8 +176,8 @@ if (current.dialect.supports.constraints.addConstraint) {
             }
           );
         });
-
-        it('uses onDelete, onUpdate', () => {
+        // The Oracle dialect doesn't support onUpdate cascade
+        (current.dialect.name !== 'oracle' ? it : it.skip)('uses onDelete, onUpdate', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
             fields: ['myColumn'],

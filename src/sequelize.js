@@ -340,6 +340,9 @@ class Sequelize {
       case 'mysql':
         Dialect = require('./dialects/mysql');
         break;
+      case 'oracle':
+        Dialect = require('./dialects/oracle');
+        break;
       case 'postgres':
         Dialect = require('./dialects/postgres');
         break;
@@ -353,7 +356,7 @@ class Sequelize {
         Dialect = require('./dialects/snowflake');
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2 and sqlite.`);
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, oracle, postgres, db2 and sqlite.`);
     }
 
     this.dialect = new Dialect(this);
@@ -960,7 +963,7 @@ class Sequelize {
       ...options
     };
 
-    await this.query('SELECT 1+1 AS result', options);
+    await this.query(this.dialect.queryGenerator.authTestQuery(), options);
 
     return;
   }

@@ -142,7 +142,7 @@ if (current.dialect.supports.transactions) {
 
     it('promises returned by sequelize.query are correctly patched', async function() {
       await this.sequelize.transaction(async t => {
-        await this.sequelize.query('select 1', { type: Sequelize.QueryTypes.SELECT });
+        await this.sequelize.query(`select 1${  Support.addDualInSelect()}`, { type: Sequelize.QueryTypes.SELECT });
         return expect(this.ns.get('transaction')).to.equal(t);
       }
       );
@@ -160,12 +160,12 @@ if (current.dialect.supports.transactions) {
       const result = this.ns.runPromise(async () => {
         this.ns.set('value', 1);
         await delay(500);
-        return sequelize.query('select 1;');
+        return sequelize.query(`select 1${  Support.addDualInSelect()  };`);
       });
 
       await this.ns.runPromise(() => {
         this.ns.set('value', 2);
-        return sequelize.query('select 2;');
+        return sequelize.query(`select 2${  Support.addDualInSelect()  };`);
       });
 
       await result;

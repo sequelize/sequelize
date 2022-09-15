@@ -2644,8 +2644,8 @@ class Model {
           options.returning = true;
         }
       }
-
-      if (options.ignoreDuplicates && ['mssql', 'db2'].includes(dialect)) {
+      if (options.ignoreDuplicates && !this.sequelize.dialect.supports.inserts.ignoreDuplicates &&
+          !this.sequelize.dialect.supports.inserts.onConflictDoNothing) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
       if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {
