@@ -448,7 +448,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   /**
-   * Check whether the statmement is json function or simple path
+   * Check whether the statement is json function or simple path
    *
    * @param   {string}  stmt  The statement to validate
    * @returns {boolean}       true if the given statement is json function
