@@ -293,9 +293,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
           columns.name = indexName;
           options.uniqueKeys[indexName] = index;
 
-          // We cannot auto-generate unique constraint name because sequelize tries to 
-          // Add unique column again when it doesn't find unique constraint name after doing showIndexQuery
-          // MYSQL doesn't support constraint name > 64 and they face similar issue if size exceed 64 chars
+          // Autogenerate Constraint name, if no indexName is given
           if (indexName.length === 0) {
             values.attributes += `,UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ') })`;
           } else {
@@ -546,17 +544,17 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
   /**
    * Populates the returnAttributes array with outbind bindByPosition values
-   * and also the outBindAttributes map with bindDef for outbind of InsertQuery
+   * and also the options.outBindAttributes map with bindDef for outbind of InsertQuery
    *
-   * @param {object} returnAttributes
-   * @param {number} inbindLength
    * @param {Array} returningModelAttributes
    * @param {Array} returnTypes
+   * @param {number} inbindLength
+   * @param {object} returnAttributes
    * @param {object} options
    *
    * @private
    */
-  getInsertQueryReturnIntoBinds(returnAttributes, inbindLength, returningModelAttributes, returnTypes, options) {
+  populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, inbindLength, returnAttributes, options) {
     const oracledb = this.sequelize.connectionManager.lib;
     const outBindAttributes = Object.create(null);
     const outbind = [];

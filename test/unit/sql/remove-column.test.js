@@ -26,8 +26,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
           postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
-          oracle: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
-          snowflake: 'ALTER TABLE "archive"."user" DROP "email";'
+          snowflake: 'ALTER TABLE "archive"."user" DROP "email";',
+          oracle: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
         });
       });
     }

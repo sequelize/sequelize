@@ -1703,7 +1703,7 @@ class Model {
    * @param  {Array<string>}                                             [options.attributes.include] Select all the attributes of the model, plus some additional ones. Useful for aggregations, e.g. `{ attributes: { include: [[sequelize.fn('COUNT', sequelize.col('id')), 'total']] }`
    * @param  {Array<string>}                                             [options.attributes.exclude] Select all the attributes of the model, except some few. Useful for security purposes e.g. `{ attributes: { exclude: ['password'] } }`
    * @param  {boolean}                                                   [options.paranoid=true] If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if `options.paranoid` is true for the model.
-   * @param  {Array<object|Model|string>}                                [options.include] A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}` or `{ include: ['Alias']}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y).
+   * @param  {Array<object|Model|string>}                                [options.include] A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}` or `{ include: ['Alias']}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z' }`, you need to specify Z in the as attribute when eager loading Y).
    * @param  {Model}                                                     [options.include[].model] The model you want to eagerly load
    * @param  {string}                                                    [options.include[].as] The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
    * @param  {Association}                                               [options.include[].association] The association you want to eagerly load. (This can be used instead of providing a model/as pair)
@@ -2644,8 +2644,8 @@ class Model {
           options.returning = true;
         }
       }
-
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'oracle'].includes(dialect)) {
+      if (options.ignoreDuplicates && !this.sequelize.dialect.supports.inserts.ignoreDuplicates &&
+          !this.sequelize.dialect.supports.inserts.onConflictDoNothing) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
       if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {

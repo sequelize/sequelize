@@ -292,13 +292,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }
       }, {
         oracle: 'SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM (' +
-        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 1 ORDER BY "user"."last_name" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub UNION ALL ' +
-        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 5 ORDER BY "user"."last_name" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub) ' +
-        '"user" LEFT OUTER JOIN "post" "POSTS" ON "user"."id" = "POSTS"."user_id" ORDER BY "user"."last_name" ASC;',
+        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 1 ORDER BY "lastName" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub UNION ALL ' +
+        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 5 ORDER BY "lastName" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub) ' +
+        '"user" LEFT OUTER JOIN "post" "POSTS" ON "user"."id" = "POSTS"."user_id" ORDER BY "lastName" ASC;',
         default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
           [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`
       });
@@ -390,13 +390,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }
       }, {
         oracle: 'SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title", "POSTS->COMMENTS"."id" AS "POSTS.COMMENTS.id", "POSTS->COMMENTS"."title" AS "POSTS.COMMENTS.title" FROM (' +
-          'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 1 ORDER BY "user"."last_name" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub UNION ALL ' +
-          'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 5 ORDER BY "user"."last_name" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub)' +
-          ' "user" LEFT OUTER JOIN "post" "POSTS" ON "user"."id" = "POSTS"."user_id" LEFT OUTER JOIN "comment" "POSTS->COMMENTS" ON "POSTS"."id" = "POSTS->COMMENTS"."post_id" ORDER BY "user"."last_name" ASC;',
+        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 1 ORDER BY "lastName" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub UNION ALL ' +
+        'SELECT * FROM (SELECT "id_user" AS "id", "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "users" "user" WHERE "user"."companyId" = 5 ORDER BY "lastName" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) sub)' +
+        ' "user" LEFT OUTER JOIN "post" "POSTS" ON "user"."id" = "POSTS"."user_id" LEFT OUTER JOIN "comment" "POSTS->COMMENTS" ON "POSTS"."id" = "POSTS->COMMENTS"."post_id" ORDER BY "lastName" ASC;',
         default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
           [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`
       });

@@ -17,7 +17,7 @@
   },
   "homepage": "https://sequelize.org/",
   "main": "./lib/index.js",
-  "types": "./types",
+  "types": "./types/index.d.ts",
   "type": "commonjs",
   "exports": {
     ".": {
@@ -54,7 +54,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^5.0.0",
+    "retry-as-promised": "^6.1.0",
     "semver": "^7.3.5",
     "sequelize-pool": "^7.1.0",
     "toposort-class": "^1.0.1",
@@ -267,8 +267,8 @@
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-db2": "cross-env DIALECT=db2 npm run test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake npm run test-unit",
-    "test-unit-all": "npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite && npm run test-unit-snowflake && npm run test-unit-db2 && npm run test-unit-oracle",
     "test-unit-oracle": "cross-env DIALECT=oracle npm run test-unit",
+    "test-unit-all": "npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite && npm run test-unit-snowflake && npm run test-unit-db2 && npm run test-unit-oracle",
     "test-integration-mariadb": "cross-env DIALECT=mariadb npm run test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",

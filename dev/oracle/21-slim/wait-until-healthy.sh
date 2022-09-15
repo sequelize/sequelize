@@ -1,5 +1,3 @@
-# Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
-
 #!/usr/bin/env bash
 
 if [ "$#" -ne 1 ]; then

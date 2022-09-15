@@ -401,6 +401,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(userAfterUpdate.username).to.equal('$SEQUELIZE');
     });
 
+    it('updates with function that contains multiple escaped dollar symbols', async function() {
+      const user = await this.User.create({});
+      user.username = this.sequelize.fn('upper', '$sequelize and $sequelize2 and some money $42.69');
+      await user.save();
+      const userAfterUpdate = await this.User.findByPk(user.id);
+      expect(userAfterUpdate.username).to.equal('$SEQUELIZE AND $SEQUELIZE2 AND SOME MONEY $42.69');
+    });
+
     describe('without timestamps option', () => {
       it("doesn't update the updatedAt column", async function() {
         const User2 = this.sequelize.define('User2', {

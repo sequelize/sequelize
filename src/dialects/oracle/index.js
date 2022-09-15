@@ -43,7 +43,6 @@ OracleDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
   returnValues: false,
   returnIntoValues: true,
   'ORDER NULLS': true,
-  ignoreDuplicates: ' IGNORE',
   schemas: true,
   updateOnDuplicate: false,
   indexViaAlter: false,
@@ -51,6 +50,7 @@ OracleDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
   JSON: true,
   upserts: true,
   bulkDefault: true,
+  topLevelOrderByRequired: true,
   GEOMETRY: false
 });
 
