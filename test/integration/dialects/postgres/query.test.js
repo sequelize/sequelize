@@ -170,9 +170,10 @@ if (dialect.startsWith('postgres')) {
           ],
         },
         subQuery: true,
-        order: ['customAttribute'],
+        order: [['customAttribute', 'DESC']],
+        limit: 1,
       })).map(f => f.name);
-      expect(thisShouldAlsoWork[0]).to.equal('record1');
+      expect(thisShouldAlsoWork[0]).to.equal('record2');
     });
 
     it('returns the minified aliased attributes', async () => {
