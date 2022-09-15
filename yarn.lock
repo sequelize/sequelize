@@ -7934,10 +7934,10 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==
 
-sqlite3@5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-5.1.0.tgz#d82bd1f85668453904ef9a6f0a6b13c70b53c837"
-  integrity sha512-/cZl9DfeSQMWR5g9SdluHGt+YL3URetjtvgv1XPQx7rzXOFdZx30EnZj709wCEIznjjzZdo5Lmt5GUeNyGgUbQ==
+sqlite3@5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-5.1.1.tgz#c6561220fd875fd88eb2ef717631e0a11af1ec38"
+  integrity sha512-mMinkrQr/LKJqFiFF+AF7imPSzRCCpTCreusZO3D/ssJHVjZOrbu2Caz+zPH5KTmGGXBxXMGSRDssL+44CLxvg==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.0"
     node-addon-api "^4.2.0"
