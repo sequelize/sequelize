@@ -133,7 +133,7 @@ export class OracleConnectionManager extends AbstractConnectionManager {
 
       const connection = await this.lib.getConnection(connectionConfig);
       // Setting the sequelize database version to Oracle DB server version to remove the roundtrip for DB version query
-      this.sequelize.options.databaseVersion = connection.oracleServerVersionString.split('.').slice(0, 3).join('.');
+      // this.sequelize.options.databaseVersion = connection.oracleServerVersionString.split('.').slice(0, 3).join('.');
 
       debug('connection acquired');
       connection.on('error', error => {
