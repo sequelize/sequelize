@@ -6,9 +6,9 @@ const expect = chai.expect;
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
+const { Sequelize, DataTypes } = require('@sequelize/core');
+
 const current = Support.sequelize;
-const DataTypes = Sequelize.DataTypes;
 
 describe('model', () => {
   if (current.dialect.supports.JSON) {
@@ -42,6 +42,8 @@ describe('model', () => {
           logging: sql => {
             if (/^mysql|mariadb/.test(dialect)) {
               expect(sql).to.include('?');
+            } else if (dialect === 'sqlite') {
+              expect(sql).to.include('$sequelize_1');
             } else {
               expect(sql).to.include('$1');
             }

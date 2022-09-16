@@ -134,8 +134,8 @@ interface NumberDataTypeConstructor extends AbstractDataTypeConstructor {
   options: NumberDataTypeOptions;
   UNSIGNED: this;
   ZEROFILL: this;
-  new (options?: NumberDataTypeOptions): NumberDataType;
-  (options?: NumberDataTypeOptions): NumberDataType;
+  new (options?: NumberDataTypeOptions | number): NumberDataType;
+  (options?: NumberDataTypeOptions | number): NumberDataType;
   validate(value: unknown): boolean;
 }
 
@@ -359,14 +359,13 @@ interface DateOnlyDataTypeConstructor extends AbstractDataTypeConstructor {
 export interface DateOnlyDataType extends AbstractDataType {
 }
 
-
 /**
  * A key / value column. Only available in postgres.
  */
 export const HSTORE: AbstractDataTypeConstructor;
 
 /**
- * A JSON string column. Only available in postgres.
+ * A JSON string column. Available in MySQL, Postgres and SQLite.
  */
 export const JSON: AbstractDataTypeConstructor;
 /**

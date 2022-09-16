@@ -1,6 +1,6 @@
 'use strict';
 
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').snowflake;
@@ -15,9 +15,8 @@ const parserStore = require('../parserStore')('snowflake');
  *
  * @private
  */
-class ConnectionManager extends AbstractConnectionManager {
+export class SnowflakeConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 3306;
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('snowflake-sdk');
     this.refreshTypeParser(DataTypes);
@@ -59,7 +58,7 @@ class ConnectionManager extends AbstractConnectionManager {
       /*
       flags: '-FOUND_ROWS',
       timezone: this.sequelize.options.timezone,
-      typeCast: ConnectionManager._typecast.bind(this),
+      typeCast: SnowflakeConnectionManager._typecast.bind(this),
       bigNumberStrings: false,
       supportBigNumbers: true,
       */
@@ -148,7 +147,3 @@ class ConnectionManager extends AbstractConnectionManager {
     return connection.isUp();
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

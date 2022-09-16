@@ -1,5 +1,8 @@
 'use strict';
 
+import { AggregateError, DatabaseError } from '../../errors';
+import { assertNoReservedBind } from '../../utils/sql';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { Op } = require('../../operators');
@@ -9,7 +12,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk with Db2 database
  */
-class Db2QueryInterface extends QueryInterface {
+export class Db2QueryInterface extends QueryInterface {
   async getForeignKeyReferencesForTable(tableName, options) {
     const queryOptions = {
       ...options,
@@ -17,16 +20,19 @@ class Db2QueryInterface extends QueryInterface {
     };
     const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase());
 
-    return this.sequelize.query(query, queryOptions);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     const model = options.model;
     const wheres = [];
     const attributes = Object.keys(insertValues);
-    let indexes = [];
     let indexFields;
 
     options = _.clone(options);
@@ -36,11 +42,11 @@ class Db2QueryInterface extends QueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    indexes = _.map(model.uniqueKeys, value => {
+    const indexes = _.map(model.uniqueKeys, value => {
       return value.fields;
     });
 
-    for (const value of model._indexes) {
+    for (const value of model.getIndexes()) {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
         indexFields = value.fields.map(field => {
@@ -71,9 +77,67 @@ class Db2QueryInterface extends QueryInterface {
     options.raw = true;
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
-    const result = await this.sequelize.query(sql, options);
+
+    delete options.replacements;
+
+    const result = await this.sequelize.queryRaw(sql, options);
 
     return [result, undefined];
+  }
+
+  async dropSchema(schema, options) {
+    const outParams = new Map();
+
+    // DROP SCHEMA works in a weird way in DB2:
+    // Its query uses ADMIN_DROP_SCHEMA, which stores the error message in a table
+    // specified by two IN-OUT parameters.
+    // If the returned values for these parameters is not null, then an error occurred.
+    const response = await super.dropSchema(schema, {
+      ...options,
+      // TODO: db2 supports out parameters. We don't have a proper API for it yet
+      //   for now, this temporary API will have to do.
+      _unsafe_db2Outparams: outParams,
+    });
+
+    const errorTable = outParams.get('sequelize_errorTable');
+    if (errorTable != null) {
+      const errorSchema = outParams.get('sequelize_errorSchema');
+
+      const errorData = await this.sequelize.queryRaw(`SELECT * FROM "${errorSchema}"."${errorTable}"`, {
+        type: QueryTypes.SELECT,
+      });
+
+      // replicate the data ibm_db adds on an error object
+      const error = new Error(errorData[0].DIAGTEXT);
+      error.sqlcode = errorData[0].SQLCODE;
+      error.sql = errorData[0].STATEMENT;
+      error.state = errorData[0].SQLSTATE;
+
+      const wrappedError = new DatabaseError(error);
+
+      try {
+        await this.dropTable({
+          tableName: errorTable,
+          schema: errorSchema,
+        });
+      } catch (dropError) {
+        throw new AggregateError([
+          wrappedError,
+          new Error(`An error occurred while cleaning up table ${errorSchema}.${errorTable}`, { cause: dropError }),
+        ]);
+      }
+
+      // -204 is "name is undefined" (schema does not exist)
+      // 'queryInterface.dropSchema' is supposed to be DROP SCHEMA IF EXISTS
+      // so we can ignore this error
+      if (error.sqlcode === -204 && error.state === '42704') {
+        return response;
+      }
+
+      throw wrappedError;
+    }
+
+    return response;
   }
 
   async createTable(tableName, attributes, options, model) {
@@ -97,35 +161,6 @@ class Db2QueryInterface extends QueryInterface {
       attributes,
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
-    if (options.indexes) {
-      for (const fields of options.indexes) {
-        const fieldArr = fields.fields;
-        if (fieldArr.length === 1) {
-          for (const field of fieldArr) {
-            for (const property in attributes) {
-              if (field === attributes[property].field) {
-                attributes[property].unique = true;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (options.alter && options.indexes) {
-      for (const fields of options.indexes) {
-        const fieldArr = fields.fields;
-        if (fieldArr.length === 1) {
-          for (const field of fieldArr) {
-            for (const property in attributes) {
-              if (field === attributes[property].field && attributes[property].unique) {
-                attributes[property].unique = false;
-              }
-            }
-          }
-        }
-      }
-    }
 
     if (
       !tableName.schema
@@ -137,12 +172,41 @@ class Db2QueryInterface extends QueryInterface {
       });
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
+    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
-}
+  async addConstraint(tableName, options) {
+    try {
+      return await super.addConstraint(tableName, options);
+    } catch (error) {
+      if (!error.cause) {
+        throw error;
+      }
 
-exports.Db2QueryInterface = Db2QueryInterface;
+      // Operation not allowed for reason code "7" on table "DB2INST1.users".  SQLSTATE=57007
+      if (error.cause.sqlcode !== -668 || error.cause.state !== '57007') {
+        throw error;
+      }
+
+      // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
+      await this.executeTableReorg(tableName);
+      await super.addConstraint(tableName, options);
+    }
+  }
+
+  /**
+   * DB2 can put tables in the "reorg pending" state after a structure change (e.g. ALTER)
+   * Other changes cannot be done to these tables until the reorg has been completed.
+   *
+   * This method forces a reorg to happen now.
+   *
+   * @param {TableName} tableName - The name of the table to reorg
+   */
+  async executeTableReorg(tableName) {
+    // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
+    return await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`);
+  }
+}

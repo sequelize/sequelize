@@ -4,10 +4,10 @@ const chai    = require('chai');
 
 const expect  = chai.expect;
 const Support = require('../../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const range   = require('@sequelize/core/lib/dialects/postgres/range');
+const range   = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/range.js');
 
 if (dialect.startsWith('postgres')) {
   // Don't try to load pg until we know we're running on postgres.

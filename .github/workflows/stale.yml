@@ -18,6 +18,6 @@ jobs:
           operations-per-run: 1000
           days-before-pr-stale: -1
           days-before-pr-close: -1
-          exempt-issue-labels: 'type: bug, type: docs, type: feature, type: other, type: performance, type: refactor, type: typescript' # All 'type: ' labels
+          exempt-issue-labels: 'type: bug, type: docs, type: feature, type: other, type: performance, type: refactor, type: typescript, RFC' # All 'type: ' and 'RFC' labels
       - name: Print outputs
         run: echo ${{ join(steps.stale.outputs.*, ',') }}

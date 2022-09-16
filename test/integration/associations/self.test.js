@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Self'), () => {
   it('supports freezeTableName', async function () {
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   it('can handle 1:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id' });
+    Person.hasMany(Person, { as: 'children', foreignKey: 'parent_id', inverse: { as: 'parent' } });
 
     expect(Person.rawAttributes.parent_id).to.be.ok;
 
@@ -47,17 +47,14 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   it('can handle n:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
-    Person.belongsToMany(Person, { as: 'Childs', through: 'Family', foreignKey: 'PersonId', otherKey: 'ChildId' });
+    Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId', inverse: { as: 'Childs' } });
 
-    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
+    expect(Person.associations.Parents.otherKey).to.eq('PersonId');
+    expect(Person.associations.Childs.otherKey).to.eq('ChildId');
+
     const rawAttributes = Object.keys(this.sequelize.models.Family.rawAttributes);
-
-    expect(foreignIdentifiers.length).to.equal(2);
-    expect(rawAttributes.length).to.equal(4);
-
-    expect(foreignIdentifiers).to.have.members(['PersonId', 'ChildId']);
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
+    expect(rawAttributes.length).to.equal(4);
 
     await this.sequelize.sync({ force: true });
 
@@ -86,17 +83,14 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       },
     }, { timestamps: false });
 
-    Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent' });
-    Person.belongsToMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent', otherKey: 'preexisting_child' });
+    Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent', inverse: { as: 'Children' } });
 
-    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
+    expect(Person.associations.Parents.otherKey).to.eq('preexisting_parent');
+    expect(Person.associations.Children.otherKey).to.eq('preexisting_child');
+
     const rawAttributes = Object.keys(Family.rawAttributes);
-
-    expect(foreignIdentifiers.length).to.equal(2);
-    expect(rawAttributes.length).to.equal(2);
-
-    expect(foreignIdentifiers).to.have.members(['preexisting_parent', 'preexisting_child']);
     expect(rawAttributes).to.have.members(['preexisting_parent', 'preexisting_child']);
+    expect(rawAttributes.length).to.equal(2);
 
     let count = 0;
     await this.sequelize.sync({ force: true });

@@ -6,8 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const Sequelize = require('@sequelize/core');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
@@ -30,8 +29,7 @@ if (dialect === 'mysql') {
         this.User = this.sequelize.define('user', { username: DataTypes.STRING });
         this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
 
-        this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT', through: 'tasksusers' });
-        this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT', through: 'tasksusers' });
+        this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
 
         this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });

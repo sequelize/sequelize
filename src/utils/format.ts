@@ -1,28 +1,20 @@
+import assert from 'assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
+import type {
+  Model,
+  ModelStatic,
+  WhereOptions,
+  ModelAttributeColumnOptions,
+  Attributes,
+  BuiltModelAttributeColumOptions,
+} from '..';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
 
 const DataTypes = require('../data-types');
-const SqlString = require('../sql-string');
 
 const operatorsSet = new Set(Object.values(operators));
-
-export function format(arr: unknown[], dialect: string): string {
-  const timeZone = null;
-
-  // Make a clone of the array because format modifies the passed args
-  return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
-}
-
-export function formatNamedParameters(
-  sql: string,
-  parameters: Record<string, unknown>,
-  dialect: string,
-): string {
-  return SqlString.formatNamedParameters(sql, parameters, null, dialect);
-}
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],
@@ -266,4 +258,12 @@ export function generateEnumName(
   columnName: string,
 ): string {
   return `enum_${tableName}_${columnName}`;
+}
+
+export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+  assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
+
+  // field is the column name alias
+  // if no alias is set, fieldName (the JS name) will be used instead.
+  return attribute.field || attribute.fieldName;
 }

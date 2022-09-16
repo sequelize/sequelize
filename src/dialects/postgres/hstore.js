@@ -2,7 +2,7 @@
 
 const hstore = require('pg-hstore')({ sanitize: true });
 
-function stringify(data) {
+export function stringify(data) {
   if (data === null) {
     return null;
   }
@@ -10,14 +10,10 @@ function stringify(data) {
   return hstore.stringify(data);
 }
 
-exports.stringify = stringify;
-
-function parse(value) {
+export function parse(value) {
   if (value === null) {
     return null;
   }
 
   return hstore.parse(value);
 }
-
-exports.parse = parse;

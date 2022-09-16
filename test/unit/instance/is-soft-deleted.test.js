@@ -6,10 +6,9 @@ const expect = chai.expect;
 const Support   = require('../support');
 
 const current   = Support.sequelize;
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
-const moment    = require('moment');
+const dayjs    = require('dayjs');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('isSoftDeleted', () => {
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         birthdate: DataTypes.DATE,
         meta: DataTypes.JSON,
         deletedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       });
 
@@ -28,7 +27,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         birthdate: DataTypes.DATE,
         meta: DataTypes.JSON,
         deletedAt: {
-          type: Sequelize.DATE,
+          type: DataTypes.DATE,
         },
       }, {
         paranoid: true,
@@ -67,7 +66,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true if the soft-delete property is set', function () {
-      this.paranoidUser.setDataValue('deletedAt', moment().subtract(5, 'days').format());
+      this.paranoidUser.setDataValue('deletedAt', dayjs().subtract(5, 'days').format());
       expect(this.paranoidUser.isSoftDeleted()).to.be.true;
     });
   });

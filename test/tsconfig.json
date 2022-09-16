@@ -5,12 +5,13 @@
     "baseUrl": ".",
     "paths": {
       "@sequelize/core": ["../types/index.d.ts"],
-      "@sequelize/core/lib/*": ["../types/*"],
-      "@sequelize/core/*": ["../*"]
+      "@sequelize/core/_non-semver-use-at-your-own-risk_/*": ["../types/*"],
+      "@sequelize/core/package.json": ["../package.json"]
     },
-    "types": ["node", "mocha", "sinon", "chai"],
+    "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised", "chai-datetime"],
     "noEmit": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "exactOptionalPropertyTypes": false
   },
   "include": ["./types/**/*", "./**/**/*.ts"]
 }
