@@ -2,9 +2,9 @@
 
 const _ = require('lodash');
 const validator = _.cloneDeep(require('validator'));
-const moment = require('moment');
+const dayjs = require('dayjs');
 
-const extensions = {
+export const extensions = {
   extend(name, fn) {
     this[name] = fn;
 
@@ -65,7 +65,6 @@ const extensions = {
     return this.regex(str, pattern, modifiers);
   },
 };
-exports.extensions = extensions;
 
 // instance based validators
 validator.isImmutable = function (value, validatorArgs, field, modelInstance) {
@@ -89,19 +88,7 @@ validator.isNull = validator.isEmpty;
 // isDate removed in 7.0.0
 // https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
 validator.isDate = function (dateString) {
-  // avoid http://momentjs.com/guides/#/warnings/js-date/
-  // by doing a preliminary check on `dateString`
-  const parsed = Date.parse(dateString);
-  if (isNaN(parsed)) {
-    // fail if we can't parse it
-    return false;
-  }
-
-  // otherwise convert to ISO 8601 as moment prefers
-  // http://momentjs.com/docs/#/parsing/string/
-  const date = new Date(parsed);
-
-  return moment(date.toISOString()).isValid();
+  return dayjs(dateString).isValid();
 };
 
-exports.validator = validator;
+export { validator };

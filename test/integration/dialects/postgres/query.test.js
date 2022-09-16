@@ -6,32 +6,36 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
 
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
+    const sponsorAlias = 'AnotherVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
 
     const executeTest = async (options, test) => {
       const sequelize = Support.createSequelizeInstance(options);
 
       const User = sequelize.define('User', { name: DataTypes.STRING, updatedAt: DataTypes.DATE }, { underscored: true });
       const Team = sequelize.define('Team', { name: DataTypes.STRING });
+      const Sponsor = sequelize.define('Sponsor', { name: DataTypes.STRING });
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
       User.belongsTo(Task, { as: taskAlias, foreignKey: 'task_id' });
-      User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', through: 'UserTeam' });
-      Team.belongsToMany(User, { foreignKey: 'userId', through: 'UserTeam' });
+      User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', otherKey: 'userId', through: 'UserTeam' });
+      Team.belongsToMany(Sponsor, { as: sponsorAlias, foreignKey: 'sponsorId', otherKey: 'teamId', through: 'TeamSponsor' });
 
       await sequelize.sync({ force: true });
+      const sponsor = await Sponsor.create({ name: 'Company' });
       const team = await Team.create({ name: 'rocket' });
       const task = await Task.create({ title: 'SuperTask' });
       const user = await User.create({ name: 'test', task_id: task.id, updatedAt: new Date() });
       await user[`add${teamAlias}`](team);
+      await team[`add${sponsorAlias}`](sponsor);
 
-      return test(await User.findOne({
+      const predicate = {
         include: [
           {
             model: Task,
@@ -42,22 +46,52 @@ if (dialect.startsWith('postgres')) {
             as: teamAlias,
           },
         ],
-      }));
+      };
+
+      return test({ User, Team, Sponsor, Task }, predicate);
     };
 
     it('should throw due to alias being truncated', async function () {
       const options = { ...this.sequelize.options, minifyAliases: false };
 
-      await executeTest(options, res => {
-        expect(res[taskAlias]).to.not.exist;
+      await executeTest(options, async (db, predicate) => {
+        expect((await db.User.findOne(predicate))[taskAlias]).to.not.exist;
       });
     });
 
     it('should be able to retrieve include due to alias minifying', async function () {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
-      await executeTest(options, res => {
-        expect(res[taskAlias].title).to.be.equal('SuperTask');
+      await executeTest(options, async (db, predicate) => {
+        expect((await db.User.findOne(predicate))[taskAlias].title).to.be.equal('SuperTask');
+      });
+    });
+
+    it('should throw due to long alias on through table', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: false };
+
+      await executeTest(options, async (db, predicate) => {
+        predicate.include[1].include = [
+          {
+            model: db.Sponsor,
+            as: sponsorAlias,
+          },
+        ];
+        await expect(db.User.findOne(predicate)).to.eventually.be.rejected;
+      });
+    });
+
+    it('should be able to retrieve includes with nested through joins due to alias minifying', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: true };
+
+      await executeTest(options, async (db, predicate) => {
+        predicate.include[1].include = [
+          {
+            model: db.Sponsor,
+            as: sponsorAlias,
+          },
+        ];
+        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.be.equal('Company');
       });
     });
 
@@ -99,6 +133,79 @@ if (dialect.startsWith('postgres')) {
           model: Project,
           include: Company,
         },
+      });
+    });
+
+    it('orders by a literal when subquery and minifyAliases are enabled', async () => {
+      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+        logQueryParameters: true,
+        benchmark: true,
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      const Foo = sequelizeMinifyAliases.define('Foo', {
+        name: {
+          field: 'my_name',
+          type: DataTypes.TEXT,
+        },
+      }, { timestamps: false });
+
+      await sequelizeMinifyAliases.sync({ force: true });
+      await Foo.create({ name: 'record1' });
+      await Foo.create({ name: 'record2' });
+
+      const thisWorks = (await Foo.findAll({
+        subQuery: false,
+        order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
+      })).map(f => f.name);
+      expect(thisWorks[0]).to.equal('record1');
+
+      const thisShouldAlsoWork = (await Foo.findAll({
+        attributes: {
+          include: [
+            [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
+          ],
+        },
+        subQuery: true,
+        order: ['customAttribute'],
+      })).map(f => f.name);
+      expect(thisShouldAlsoWork[0]).to.equal('record1');
+    });
+
+    it('returns the minified aliased attributes', async () => {
+      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+        logQueryParameters: true,
+        benchmark: true,
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      const Foo = sequelizeMinifyAliases.define(
+        'Foo',
+        {
+          name: {
+            field: 'my_name',
+            type: DataTypes.TEXT,
+          },
+        },
+        { timestamps: false },
+      );
+
+      await sequelizeMinifyAliases.sync({ force: true });
+
+      await Foo.findAll({
+        subQuery: false,
+        attributes: {
+          include: [
+            [sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0'],
+          ],
+        },
+        order: [['order_0', 'DESC']],
       });
     });
   });

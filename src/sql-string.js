@@ -3,7 +3,7 @@
 const dataTypes = require('./data-types');
 const { logger } = require('./utils/logger');
 
-function arrayToList(array, timeZone, dialect, format) {
+export function arrayToList(array, timeZone, dialect, format) {
   return array.reduce((sql, val, i) => {
     if (i !== 0) {
       sql += ', ';
@@ -19,9 +19,7 @@ function arrayToList(array, timeZone, dialect, format) {
   }, '');
 }
 
-exports.arrayToList = arrayToList;
-
-function escape(val, timeZone, dialect, format) {
+export function escape(val, timeZone, dialect, format) {
   let prependN = false;
   if (val === undefined || val === null) {
     // There are cases in Db2 for i where 'NULL' isn't accepted, such as
@@ -44,6 +42,7 @@ function escape(val, timeZone, dialect, format) {
 
       return (Boolean(val)).toString();
     case 'number':
+    case 'bigint':
       return val.toString();
     case 'string':
     // In mssql, prepend N to all quoted vals which are originally a string (for
@@ -108,39 +107,3 @@ function escape(val, timeZone, dialect, format) {
 
   return `${(prependN ? 'N\'' : '\'') + val}'`;
 }
-
-exports.escape = escape;
-
-function format(sql, values, timeZone, dialect) {
-  values = [values].flat();
-
-  if (typeof sql !== 'string') {
-    throw new TypeError(`Invalid SQL string provided: ${sql}`);
-  }
-
-  return sql.replace(/\?/g, match => {
-    if (values.length === 0) {
-      return match;
-    }
-
-    return escape(values.shift(), timeZone, dialect, true);
-  });
-}
-
-exports.format = format;
-
-function formatNamedParameters(sql, values, timeZone, dialect) {
-  return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
-    if (dialect === 'postgres' && value.slice(0, 2) === '::') {
-      return value;
-    }
-
-    if (values[key] !== undefined) {
-      return escape(values[key], timeZone, dialect, true);
-    }
-
-    throw new Error(`Named parameter "${value}" has no value in the given object.`);
-  });
-}
-
-exports.formatNamedParameters = formatNamedParameters;

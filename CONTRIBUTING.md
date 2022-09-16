@@ -130,7 +130,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `yarn start-mariadb`
 - `yarn start-mysql`
 - `yarn start-postgres`
-- `yarn start-mssql`
+- `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
 - `yarn start-db2`
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
@@ -202,21 +202,37 @@ If you open the `package.json` file with Visual Studio Code, you will find a sma
 
 ### 6. Commit your modifications
 
-Sequelize follows the [AngularJS Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#heading=h.em2hiij8p46d). The allowed categories are `build`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` and `meta`.
+We squash all commits into a single one when we merge your PR.
+That means you don't have to follow any convention in your commit messages,
+but you will need to follow the [Conventional Commits Conventions](https://www.conventionalcommits.org/en/v1.0.0/) when writing the title of your PR.
+
+We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
+
+We use a simple conventional commits convention:
+- The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
+- We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
+  - `postgres`
+  - `mysql`
+  - `mariadb`
+  - `sqlite`
+  - `mssql`
+  - `db2`
+  - `ibmi`
+  - `snowflake`
+  - `types`
+- If your changes impact more than one scope, simply omit the scope.
 
 Example:
 
 ```
-feat(pencil): add `graphiteWidth` option
+feat(postgres): support specifying a custom name for enums
 ```
 
-Commit messages are used to automatically generate a changelog and calculate the next version number according to [semver](https://semver.org/). They will be validated automatically using [commitlint](https://github.com/marionebl/commitlint).
-
-Then push and send your pull request. Happy hacking and thank you for contributing.
+Happy hacking and thank you for contributing.
 
 # Coding guidelines
 
-Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/main/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Have a look at our [.eslintrc.js](https://github.com/sequelize/sequelize/blob/main/.eslintrc.js) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
 # Contributing to the documentation
 

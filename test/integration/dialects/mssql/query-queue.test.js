@@ -1,11 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, ConnectionError, AsyncQueueError } = require('@sequelize/core');
 const Support = require('../../support');
-const Sequelize = require('@sequelize/core/lib/sequelize');
-const ConnectionError = require('@sequelize/core/lib/errors/connection-error');
-const { AsyncQueueError } = require('@sequelize/core/lib/dialects/mssql/async-queue');
 
 const expect = chai.expect;
 const dialect = Support.getTestDialect();

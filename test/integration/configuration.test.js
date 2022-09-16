@@ -3,11 +3,11 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const config = require('../config/config');
+const { Config: config } = require('../config/config');
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.');
     });
   });
 

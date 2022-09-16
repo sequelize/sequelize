@@ -5,7 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('mssql')) {
@@ -29,7 +30,11 @@ if (dialect.startsWith('mssql')) {
       });
 
       it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
-        const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
+        const sequelize = Support.createSequelizeInstance({
+          database: 'db',
+          username: 'was',
+          password: 'ddsd',
+        });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
     });

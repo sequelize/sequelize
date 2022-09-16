@@ -1,8 +1,9 @@
-import { expectTypeOf } from "expect-type";
-import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions, Config, Utils } from '@sequelize/core';
-import { ModelHooks } from '@sequelize/core/lib/hooks';
-import { AbstractQuery } from '@sequelize/core/lib/dialects/abstract/query';
-import { SemiDeepWritable } from "./type-helpers/deep-writable";
+import type { FindOptions, QueryOptions, SaveOptions, UpsertOptions, Config, Utils } from '@sequelize/core';
+import { Model, Sequelize } from '@sequelize/core';
+import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/hooks.js';
+import { expectTypeOf } from 'expect-type';
+import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {
   class TestModel extends Model {}
@@ -61,28 +62,81 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
 {
   const hooks: ModelHooks = 0 as any;
 
-  hooks.beforeValidate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeCreate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeDestroy = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeRestore = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeUpdate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeSave = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeBulkCreate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeBulkDestroy = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeBulkRestore = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeBulkUpdate = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeFind = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeCount = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeFindAfterExpandIncludeAll = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeFindAfterOptions = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeBulkSync = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeQuery = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
-  hooks.beforeUpsert = (...args) => { expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>(); };
+  hooks.beforeValidate = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeCreate = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeDestroy = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeRestore = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeUpdate = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeSave = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeBulkCreate = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeBulkDestroy = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeBulkRestore = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeBulkUpdate = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeFind = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeCount = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeFindAfterExpandIncludeAll = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeFindAfterOptions = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeSync = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeBulkSync = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeQuery = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
+
+  hooks.beforeUpsert = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
+  };
 }
 
-{
-  Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
-  Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
-  Sequelize.addHook('beforeConnect', (...args) => { expectTypeOf(args).toEqualTypeOf<[Utils.DeepWriteable<Config>]>(); });
-}
+Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
+Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
+Sequelize.addHook('beforeConnect', (...args) => {
+  expectTypeOf(args).toEqualTypeOf<[Utils.DeepWriteable<Config>]>();
+});

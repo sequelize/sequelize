@@ -1,4 +1,5 @@
-import { DataTypes, Model, fn, literal, col, QueryInterface } from '@sequelize/core';
+import type { QueryInterface } from '@sequelize/core';
+import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
 
 declare let queryInterface: QueryInterface;
 
@@ -15,8 +16,8 @@ async function test() {
       },
       // foreign key usage
       attr4: {
-        onDelete: 'cascade',
-        onUpdate: 'cascade',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         references: {
           key: 'id',
           model: 'another_table_name',
@@ -24,8 +25,8 @@ async function test() {
         type: DataTypes.INTEGER,
       },
       attr5: {
-        onDelete: 'cascade',
-        onUpdate: 'cascade',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
         references: {
           key: 'id',
           model: { schema: '<schema>', tableName: 'another_table_name' },
@@ -52,9 +53,9 @@ async function test() {
         test: {
           customIndex: true,
           fields: ['attr2', 'attr3'],
-        }
-      }
-    }
+        },
+      },
+    },
   );
   await queryInterface.createTable({ tableName: '<table-name>' }, {});
 
@@ -71,19 +72,17 @@ async function test() {
 
   await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
 
-  await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
-
-  queryInterface.quoteIdentifier("foo");
-  queryInterface.quoteIdentifier("foo", true);
-  queryInterface.quoteIdentifiers("table.foo");
+  queryInterface.quoteIdentifier('foo');
+  queryInterface.quoteIdentifier('foo', true);
+  queryInterface.quoteIdentifiers('table.foo');
 
   await queryInterface.dropAllTables();
 
   await queryInterface.renameTable('Person', 'User');
   await queryInterface.renameTable(
-      { schema: '<schema>', tableName: 'Person' },
-      { schema: '<schema>', tableName: 'User' },
-    );
+    { schema: '<schema>', tableName: 'Person' },
+    { schema: '<schema>', tableName: 'User' },
+  );
 
   const tableNames: string[] = await queryInterface.showAllTables();
 
@@ -112,7 +111,7 @@ async function test() {
   await queryInterface.addColumn(
     { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
     'nameOfTheNewAttribute',
-    DataTypes.STRING
+    DataTypes.STRING,
   );
 
   // or
@@ -130,7 +129,7 @@ async function test() {
 
   await queryInterface.changeColumn('nameOfAnExistingTable', 'nameOfAnExistingAttribute', {
     allowNull: false,
-    defaultValue: 0.0,
+    defaultValue: 0,
     type: DataTypes.FLOAT,
   });
 
@@ -141,9 +140,9 @@ async function test() {
     'nameOfAnExistingAttribute',
     {
       allowNull: false,
-      defaultValue: 0.0,
+      defaultValue: 0,
       type: DataTypes.FLOAT,
-    }
+    },
   );
 
   await queryInterface.renameColumn('Person', 'signature', 'sig');
@@ -169,23 +168,23 @@ async function test() {
     fields: [
       { name: 'foo_b', order: 'DESC' },
       'foo_c',
-      { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
+      { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 },
     ],
   });
 
   await queryInterface.addIndex('Foo', {
     name: 'foo_b_lower',
     fields: [
-      fn('lower', col('foo_b'))
+      fn('lower', col('foo_b')),
     ],
   });
 
   await queryInterface.addIndex('Foo', {
     name: 'foo_c_lower',
     fields: [
-      literal('LOWER(foo_c)')
-    ]
-  })
+      literal('LOWER(foo_c)'),
+    ],
+  });
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
@@ -194,12 +193,12 @@ async function test() {
 
   await queryInterface.removeIndex('Person', ['firstname', 'lastname']);
 
-  await queryInterface.sequelize.transaction(trx => queryInterface.addConstraint('Person', {
+  await queryInterface.sequelize.transaction(async trx => queryInterface.addConstraint('Person', {
     name: 'firstnamexlastname',
     fields: ['firstname', 'lastname'],
     type: 'unique',
     transaction: trx,
-  }))
+  }));
 
   await queryInterface.removeConstraint('Person', 'firstnamexlastname');
   await queryInterface.removeConstraint({ schema: '<schema>', tableName: 'Person' }, 'firstnamexlastname');
@@ -223,7 +222,7 @@ async function test() {
 
   class TestModel extends Model {}
 
-  await queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, {model: TestModel});
+  await queryInterface.upsert('test', { a: 1 }, { b: 2 }, { c: 3 }, { model: TestModel });
 
   await queryInterface.insert(null, 'test', {});
 }
