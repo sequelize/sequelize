@@ -4,12 +4,11 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Sequelize = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const Op = Sequelize.Op;
 const semver = require('semver');
+const upperFirst = require('lodash/upperFirst');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
   describe('scope', () => {
@@ -18,23 +17,26 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.Image = this.sequelize.define('image', {});
       this.Question = this.sequelize.define('question', {});
       this.Comment = this.sequelize.define('comment', {
-        title: Sequelize.STRING,
-        type: Sequelize.STRING,
-        commentable: Sequelize.STRING,
-        commentable_id: Sequelize.INTEGER,
+        title: DataTypes.STRING,
+        type: DataTypes.STRING,
+        commentable: DataTypes.STRING,
+        commentable_id: DataTypes.INTEGER,
         isMain: {
           field: 'is_main',
-          type: Sequelize.BOOLEAN,
+          type: DataTypes.BOOLEAN,
           defaultValue: false,
         },
       });
 
       this.Comment.prototype.getItem = function () {
-        return this[`get${this.get('commentable').slice(0, 1).toUpperCase()}${this.get('commentable').slice(1)}`]();
+        return this[`get${upperFirst(this.get('commentable'))}`]();
       };
 
       this.Post.addScope('withComments', {
-        include: [this.Comment],
+        include: [{
+          model: this.Comment,
+          as: 'comments',
+        }],
       });
       this.Post.addScope('withMainComment', {
         include: [{
@@ -47,7 +49,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'post',
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Post.hasMany(this.Comment, {
         foreignKey: 'commentable_id',
@@ -56,7 +58,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           commentable: 'post',
           type: { [Op.in]: ['blue', 'green'] },
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Post.hasOne(this.Comment, {
         foreignKey: 'commentable_id',
@@ -65,12 +67,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           commentable: 'post',
           isMain: true,
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Comment.belongsTo(this.Post, {
         foreignKey: 'commentable_id',
         as: 'post',
-        constraints: false,
+        foreignKeyConstraints: false,
       });
 
       this.Image.hasMany(this.Comment, {
@@ -78,12 +80,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'image',
         },
-        constraints: false,
+        foreignKeyConstraints: false,
       });
       this.Comment.belongsTo(this.Image, {
         foreignKey: 'commentable_id',
         as: 'image',
-        constraints: false,
+        foreignKeyConstraints: false,
       });
 
       this.Question.hasMany(this.Comment, {
@@ -91,12 +93,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'question',
         },
-        constraints: false,
-      });
-      this.Comment.belongsTo(this.Question, {
-        foreignKey: 'commentable_id',
-        as: 'question',
-        constraints: false,
+        foreignKeyConstraints: false,
+        inverse: {
+          as: 'question',
+        },
       });
     });
 
@@ -216,13 +216,26 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         expect(image0).to.be.instanceof(this.Image);
         expect(question0).to.be.instanceof(this.Question);
 
-        const [post, image, question] = await Promise.all([this.Post.findOne({
-          include: [this.Comment],
-        }), this.Image.findOne({
-          include: [this.Comment],
-        }), this.Question.findOne({
-          include: [this.Comment],
-        })]);
+        const [post, image, question] = await Promise.all([
+          this.Post.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+          this.Image.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+          this.Question.findOne({
+            include: [{
+              model: this.Comment,
+              as: 'comments',
+            }],
+          }),
+        ]);
 
         expect(post.comments.length).to.equal(1);
         expect(post.comments[0].get('title')).to.equal('I am a post comment');
@@ -322,21 +335,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             });
             this.PostTag = this.sequelize.define('post_tag');
 
-            this.Tag.belongsToMany(this.Post, { through: this.PostTag });
             this.Post.belongsToMany(this.Tag, { as: 'categories', through: this.PostTag, scope: { type: 'category' } });
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
+
+            return this.sequelize.sync({ force: true });
           });
 
           it('should create, find and include associations with scope values', async function () {
-            // We don't know the databaseVersion outside of the tests
-            const isMySQL8 = Support.getTestDialect() === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
-            if (isMySQL8) {
-              return;
-            }
-
-            await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
-            await this.PostTag.sync({ force: true });
-
             const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
               this.Post.create(),
               this.Post.create(),
@@ -354,11 +359,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             await Promise.all([
               postA0.addCategory(categoryA),
               postA0.createTag(),
-              postB0.setCategories([categoryB]),
               postB0.addTag(tagA),
               postC0.createCategory(),
-              postC0.setTags([tagB]),
             ]);
+
+            // we're calling 'setX' methods after the different 'addX' methods because
+            // setCategories is not supposed to overwrite tags and vice-versa.
+            // tags & categories use the same through table so this could happen is the association scope is not handled correctly.
+            await postB0.setCategories([categoryB]);
+            await postC0.setTags([tagB]);
 
             const [postACategories, postBCategories, postCCategories, postATags, postBTags, postCTags] = await Promise.all([
               this.postA.getCategories(),
@@ -369,8 +378,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.postC.getTags(),
             ]);
 
-            // Flaky test on MySQL8: randomly some values will be 0 sometimes, for
-            // now no solution. Not reproducible at local or cloud with logging enabled
             expect([
               postACategories.length,
               postATags.length,
@@ -470,14 +477,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
-              constraints: false,
-            });
-            this.Tag.belongsToMany(this.Post, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              otherKey: 'tag_id',
+              foreignKeyConstraints: false,
+              inverse: {
+                foreignKeyConstraints: false,
               },
-              foreignKey: 'tag_id',
             });
 
             this.Image.belongsToMany(this.Tag, {
@@ -489,14 +493,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
-              constraints: false,
-            });
-            this.Tag.belongsToMany(this.Image, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              otherKey: 'tag_id',
+              foreignKeyConstraints: false,
+              inverse: {
+                foreignKeyConstraints: false,
               },
-              foreignKey: 'tag_id',
             });
 
             this.Question.belongsToMany(this.Tag, {
@@ -508,14 +509,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 },
               },
               foreignKey: 'taggable_id',
-              constraints: false,
-            });
-            this.Tag.belongsToMany(this.Question, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
+              otherKey: 'tag_id',
+              foreignKeyConstraints: false,
+              inverse: {
+                foreignKeyConstraints: false,
               },
-              foreignKey: 'tag_id',
             });
           });
 

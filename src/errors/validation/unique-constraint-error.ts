@@ -1,14 +1,17 @@
-import type { CommonErrorProperties, ErrorOptions } from '../base-error';
+import { useErrorCause } from '../../utils/deprecations.js';
+import type { CommonErrorProperties, SequelizeErrorOptions } from '../base-error';
 import type { ValidationErrorItem } from '../validation-error';
 import ValidationError from '../validation-error';
 
-interface UniqueConstraintErrorParent
-  extends Error,
-    Pick<CommonErrorProperties, 'sql'> {}
+interface UniqueConstraintErrorParent extends Error, Pick<CommonErrorProperties, 'sql'> {}
 
-export interface UniqueConstraintErrorOptions extends ErrorOptions {
+export interface UniqueConstraintErrorOptions extends SequelizeErrorOptions {
+  cause?: UniqueConstraintErrorParent;
+
+  /**
+   * @deprecated use {@link UniqueConstraintErrorOptions.cause}
+   */
   parent?: UniqueConstraintErrorParent;
-  original?: UniqueConstraintErrorParent;
   errors?: ValidationErrorItem[];
   fields?: Record<string, unknown>;
   message?: string;
@@ -17,25 +20,26 @@ export interface UniqueConstraintErrorOptions extends ErrorOptions {
 /**
  * Thrown when a unique constraint is violated in the database
  */
-class UniqueConstraintError extends ValidationError implements CommonErrorProperties {
-  readonly parent: UniqueConstraintErrorParent;
-  readonly original: UniqueConstraintErrorParent;
+class UniqueConstraintError extends ValidationError {
+  /** The database specific error which triggered this one */
+  declare cause?: UniqueConstraintErrorParent;
+
   readonly fields: Record<string, unknown>;
   readonly sql: string;
 
-  constructor(options: UniqueConstraintErrorOptions) {
-    options = options ?? {};
-    options.parent = options.parent ?? { sql: '', name: '', message: '' };
-    options.message
-      = options.message || options.parent.message || 'Validation Error';
-    options.errors = options.errors ?? [];
-    super(options.message, options.errors, { stack: options.stack });
+  constructor(options: UniqueConstraintErrorOptions = {}) {
+    if ('parent' in options) {
+      useErrorCause();
+    }
+
+    const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
+    const message = options.message || parent.message || 'Validation Error';
+    const errors = options.errors ?? [];
+    super(message, errors, { stack: options.stack, cause: parent });
 
     this.name = 'SequelizeUniqueConstraintError';
     this.fields = options.fields ?? {};
-    this.parent = options.parent;
-    this.original = options.parent;
-    this.sql = options.parent.sql;
+    this.sql = parent.sql;
   }
 }
 

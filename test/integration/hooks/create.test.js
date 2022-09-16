@@ -4,9 +4,8 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
@@ -91,10 +90,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     it('should not trigger hooks on parent when using N:M association setters', async function () {
       const A = this.sequelize.define('A', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
       const B = this.sequelize.define('B', {
-        name: Sequelize.STRING,
+        name: DataTypes.STRING,
       });
 
       let hookCalled = 0;

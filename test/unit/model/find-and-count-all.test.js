@@ -7,7 +7,7 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAndCountAll', () => {

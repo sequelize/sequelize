@@ -4,8 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Sequelize = require('@sequelize/core');
+const { Sequelize, DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('options.underscored', () => {
@@ -22,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.M = this.sequelize.define('M', {
         id: {
-          type: Sequelize.CHAR(20),
+          type: DataTypes.CHAR(20),
           primaryKey: true,
           field: 'm_id',
         },
@@ -39,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasOne does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: Sequelize.CHAR(20),
+        type: DataTypes.CHAR(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -51,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('belongsTo does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: Sequelize.CHAR(20),
+        type: DataTypes.CHAR(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -63,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasOne/belongsTo does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: Sequelize.CHAR(20),
+        type: DataTypes.CHAR(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -76,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasMany does not override already defined field', function () {
       this.M.rawAttributes.nId = {
-        type: Sequelize.CHAR(20),
+        type: DataTypes.CHAR(20),
         field: 'nana_id',
       };
       this.M.refreshAttributes();
@@ -92,19 +91,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('belongsToMany does not override already defined field', function () {
       this.NM = this.sequelize.define('NM', {
         n_id: {
-          type: Sequelize.CHAR(10),
+          type: DataTypes.CHAR(10),
           field: 'nana_id',
         },
         m_id: {
-          type: Sequelize.CHAR(20),
+          type: DataTypes.CHAR(20),
           field: 'mama_id',
         },
       }, {
         underscored: true,
       });
 
-      this.N.belongsToMany(this.M, { through: this.NM, foreignKey: 'n_id' });
-      this.M.belongsToMany(this.N, { through: this.NM, foreignKey: 'm_id' });
+      this.N.belongsToMany(this.M, { through: this.NM, foreignKey: 'n_id', otherKey: 'm_id' });
 
       expect(this.NM.rawAttributes.n_id.field).to.equal('nana_id');
       expect(this.NM.rawAttributes.m_id.field).to.equal('mama_id');

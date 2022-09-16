@@ -4,10 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const _ = require('lodash');
 
@@ -42,7 +41,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should not contain views', async function () {
       async function cleanup(sequelize) {
         if (dialect === 'db2') {
-          await sequelize.query('DROP VIEW V_Fail');
+          // DB2 does not support DROP VIEW IF EXISTS
+          try {
+            await sequelize.query('DROP VIEW V_Fail');
+          } catch (error) {
+            // -204 means V_Fail does not exist
+            // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
+            if (error.cause.sqlcode !== -204) {
+              throw error;
+            }
+          }
         } else {
           await sequelize.query('DROP VIEW IF EXISTS V_Fail');
         }
@@ -400,7 +408,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
-          type: Sequelize.ARRAY(Sequelize.ENUM(
+          type: DataTypes.ARRAY(DataTypes.ENUM(
             'Value1',
             'Value2',
             'Value3',
@@ -497,6 +505,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(ref.tableName).to.equal('hosts');
         expect(ref.referencedColumnName).to.equal('id');
         expect(ref.referencedTableName).to.equal('users');
+        if (dialect === 'sqlite') {
+          expect(ref).to.have.property('constraints');
+        }
       }
 
       const columnNames = references.map(reference => reference.columnName);
@@ -610,6 +621,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.STRING,
           allowNull: false,
         });
+
         await this.queryInterface.addConstraint('users', {
           fields: ['username'],
           type: 'PRIMARY KEY',
@@ -626,6 +638,39 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include(expectedConstraintName);
       });
+
+      // TODO: addConstraint does not support schemas yet.
+      it.skip('can add a constraint to a table in a non-default schema', async function () {
+        const tableName = {
+          tableName: 'users',
+          schema: 'archive',
+        };
+
+        await this.queryInterface.createTable(tableName, {
+          id: {
+            type: DataTypes.INTEGER,
+          },
+        });
+
+        // changeColumn before addConstraint puts the DB2 table in "reorg pending state"
+        // addConstraint will be forced to execute a REORG TABLE command, which checks that it is done properly when using schemas.
+        await this.queryInterface.changeColumn(tableName, 'id', {
+          type: DataTypes.BIGINT,
+        });
+
+        await this.queryInterface.addConstraint(tableName, {
+          type: 'PRIMARY KEY',
+          fields: ['id'],
+        });
+
+        const constraints = await this.queryInterface.showConstraint(tableName);
+
+        expect(constraints).to.deep.eq([{
+          constraintName: 'users_username_pk',
+          schemaName: tableName.schema,
+          tableName: tableName.tableName,
+        }]);
+      });
     });
 
     describe('foreign key', () => {
@@ -635,10 +680,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.STRING,
           allowNull: false,
         });
+
         await this.queryInterface.addConstraint('users', {
           type: 'PRIMARY KEY',
           fields: ['username'],
         });
+
         await this.queryInterface.addConstraint('posts', {
           fields: ['username'],
           references: {

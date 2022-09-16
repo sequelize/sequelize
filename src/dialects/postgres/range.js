@@ -31,7 +31,7 @@ function parseRangeBound(bound, parseType) {
 
 }
 
-function stringify(data) {
+export function stringify(data) {
   if (data === null) {
     return null;
   }
@@ -78,9 +78,7 @@ function stringify(data) {
   return `${(data.inclusive[0] ? '[' : '(') + lowerBound},${upperBound}${data.inclusive[1] ? ']' : ')'}`;
 }
 
-exports.stringify = stringify;
-
-function parse(value, parser) {
+export function parse(value, parser) {
   if (value === null) {
     return null;
   }
@@ -107,5 +105,3 @@ function parse(value, parser) {
 
   return result;
 }
-
-exports.parse = parse;

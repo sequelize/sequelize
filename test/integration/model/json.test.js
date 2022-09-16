@@ -1,14 +1,11 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
-
-const Op = Sequelize.Op;
-const moment = require('moment');
+const dayjs = require('dayjs');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -252,10 +249,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query dates with array operators', async function () {
-          const now = moment().milliseconds(0).toDate();
-          const before = moment().milliseconds(0).subtract(1, 'day')
+          const now = dayjs().millisecond(0).toDate();
+          const before = dayjs().millisecond(0).subtract(1, 'day')
             .toDate();
-          const after = moment().milliseconds(0).add(1, 'day')
+          const after = dayjs().millisecond(0).add(1, 'day')
             .toDate();
 
           await Promise.all([this.Event.create({

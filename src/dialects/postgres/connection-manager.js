@@ -1,19 +1,19 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractConnectionManager = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
+const { isValidTimeZone } = require('../../utils/dayjs');
 
 const debug = logger.debugContext('connection:pg');
 const sequelizeErrors = require('../../errors');
 const semver = require('semver');
 const dataTypes = require('../../data-types');
-const momentTz = require('moment-timezone');
+const dayjs = require('dayjs');
 const { promisify } = require('util');
 
-class ConnectionManager extends AbstractConnectionManager {
+export class PostgresConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg');
@@ -108,7 +108,7 @@ class ConnectionManager extends AbstractConnectionManager {
     ]);
 
     connectionConfig.types = {
-      getTypeParser: ConnectionManager.prototype.getTypeParser.bind(this),
+      getTypeParser: PostgresConnectionManager.prototype.getTypeParser.bind(this),
     };
 
     if (config.dialectOptions) {
@@ -219,6 +219,13 @@ class ConnectionManager extends AbstractConnectionManager {
       });
     });
 
+    // Don't let a Postgres restart (or error) to take down the whole app
+    connection.once('error', error => {
+      connection._invalid = true;
+      debug(`connection error ${error.code || error.message}`);
+      this.pool.destroy(connection);
+    });
+
     let query = '';
 
     if (this.sequelize.options.standardConformingStrings !== false && connection.standard_conforming_strings !== 'on') {
@@ -243,8 +250,7 @@ class ConnectionManager extends AbstractConnectionManager {
     }
 
     if (!this.sequelize.config.keepDefaultTimezone) {
-      const isZone = Boolean(momentTz.tz.zone(this.sequelize.options.timezone));
-      if (isZone) {
+      if (isValidTimeZone(this.sequelize.options.timezone)) {
         query += `SET TIME ZONE '${this.sequelize.options.timezone}';`;
       } else {
         query += `SET TIME ZONE INTERVAL '${this.sequelize.options.timezone}' HOUR TO MINUTE;`;
@@ -260,13 +266,6 @@ class ConnectionManager extends AbstractConnectionManager {
       && this.enumOids.arrayOids.length === 0) {
       await this._refreshDynamicOIDs(connection);
     }
-
-    // Don't let a Postgres restart (or error) to take down the whole app
-    connection.on('error', error => {
-      connection._invalid = true;
-      debug(`connection error ${error.code || error.message}`);
-      this.pool.destroy(connection);
-    });
 
     return connection;
   }
@@ -356,7 +355,3 @@ class ConnectionManager extends AbstractConnectionManager {
     this.enumOids = { oids: [], arrayOids: [] };
   }
 }
-
-module.exports = ConnectionManager;
-module.exports.ConnectionManager = ConnectionManager;
-module.exports.default = ConnectionManager;

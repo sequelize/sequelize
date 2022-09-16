@@ -1,32 +1,33 @@
-import { Group, User } from './models/User';
+import { Group, User } from './models/user';
 
 async function test(): Promise<void> {
-    let user = await User.findOne({ include: [Group] });
-    if (!user) {
-        return;
-    }
-    User.update({}, { where: {} });
-    user.firstName = 'John';
-    await user.save();
-    await user.setGroup(2);
+  let user = await User.findOne({ include: [Group] });
+  if (!user) {
+    return;
+  }
 
-    user = new User();
-    user = new User({ firstName: 'John' });
+  User.update({}, { where: {} });
+  user.firstName = 'John';
+  await user.save();
+  await user.setGroup(2);
 
-    user = await User.findOne();
+  user = new User();
+  user = new User({ firstName: 'John' });
 
-    if (!user) {
-      return;
-    }
+  user = await User.findOne();
 
-    user.update({}, {});
-    user.update({}, {
-      silent: true
-    });
+  if (!user) {
+    return;
+  }
 
-    const user2 = await User.create({ firstName: 'John', groupId: 1 });
-    await User.findAndCountAll({ distinct: true });
+  user.update({}, {});
+  user.update({}, {
+    silent: true,
+  });
 
-    const user3 = await User.create({ firstName: 'Jane', groupId: 1 }, { validate: false });
-    await User.findAndCountAll({ distinct: true });
+  const user2 = await User.create({ firstName: 'John', groupId: 1 });
+  await User.findAndCountAll({ distinct: true });
+
+  const user3 = await User.create({ firstName: 'Jane', groupId: 1 }, { validate: false });
+  await User.findAndCountAll({ distinct: true });
 }

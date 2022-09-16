@@ -4,7 +4,7 @@ const _ = require('lodash');
 const Utils = require('./utils');
 const sequelizeError = require('./errors');
 const DataTypes = require('./data-types');
-const BelongsTo = require('./associations/belongs-to');
+const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('util');
 
@@ -16,7 +16,7 @@ const { promisify } = require('util');
  *
  * @private
  */
-class InstanceValidator {
+export class InstanceValidator {
   constructor(modelInstance, options) {
     options = {
       // assign defined and default options
@@ -353,7 +353,7 @@ class InstanceValidator {
   _validateSchema(rawAttribute, field, value) {
     if (rawAttribute.allowNull === false && (value === null || value === undefined)) {
       const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsTo && association.foreignKey === rawAttribute.fieldName);
-      if (!association || !this.modelInstance.get(association.associationAccessor)) {
+      if (!association || !this.modelInstance.get(association.as)) {
         const validators = this.modelInstance.validators[field];
         const errMsg = _.get(validators, 'notNull.msg', `${this.modelInstance.constructor.name}.${field} cannot be null`);
 
@@ -419,7 +419,3 @@ class InstanceValidator {
  * @private
  */
 InstanceValidator.RAW_KEY_NAME = 'original';
-
-module.exports = InstanceValidator;
-module.exports.InstanceValidator = InstanceValidator;
-module.exports.default = InstanceValidator;

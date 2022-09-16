@@ -13,15 +13,29 @@ export function isPrimitive(val: any): val is string | number | boolean {
   return ['string', 'number', 'boolean'].includes(type);
 }
 
+export function isNodeError(val: any): val is NodeJS.ErrnoException {
+  return val instanceof Error && 'code' in val;
+}
+
+export function isError(val: any): val is Error {
+  return val instanceof Error;
+}
+
+export function isString(val: any): val is string {
+  return typeof val === 'string';
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *
  * @param value The attribute reference to check.
  *
  * @example
+ * ```javascript
  * isColString('$id$'); // true
  * isColString('$project.name$'); // true
  * isColString('name'); // false
+ * ```
  */
 export function isColString(value: string): boolean {
   return (

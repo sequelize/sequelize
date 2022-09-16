@@ -1,12 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const Sequelize = require('@sequelize/core');
 
-const Op = Sequelize.Op;
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -275,17 +273,21 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             { ProductId: products[i * 2 + 1].id, value: 20 },
           ]),
         ]);
+
         const users = await AccUser.findAll({
           include: [
             {
-              model: GroupMember, as: 'Memberships', include: [
+              model: GroupMember,
+              as: 'Memberships',
+              include: [
                 Group,
                 Rank,
               ],
             },
             {
-              model: Product, include: [
-                Tag,
+              model: Product,
+              include: [
+                'Tags',
                 { model: Tag, as: 'Category' },
                 Price,
               ],
@@ -295,6 +297,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             [AccUser.rawAttributes.id, 'ASC'],
           ],
         });
+
         for (const user of users) {
           expect(user.Memberships).to.be.ok;
           user.Memberships.sort(sortById);
@@ -991,17 +994,21 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         const users = await User.findAll({
           include: [
             {
-              model: GroupMember, as: 'Memberships', include: [
+              model: GroupMember,
+              as: 'Memberships',
+              include: [
                 Group,
                 { model: Rank, where: { name: 'Admin' } },
               ],
             },
             {
-              model: Product, include: [
-                Tag,
+              model: Product,
+              include: [
+                'Tags',
                 { model: Tag, as: 'Category' },
                 {
-                  model: Price, where: {
+                  model: Price,
+                  where: {
                     value: {
                       [Op.gt]: 15,
                     },
@@ -1073,7 +1080,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         attributes: ['title'],
         include: [
           { model: this.models.Company, where: { name: 'NYSE' } },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           { model: this.models.Price },
         ],
         limit: 3,
@@ -1097,9 +1104,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag },
+          { model: this.models.Tag, as: 'Tags' },
           {
-            model: this.models.Price, where: {
+            model: this.models.Price,
+            where: {
               value: { [Op.gt]: 5 },
             },
           },
@@ -1128,7 +1136,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag, where: { name: ['A', 'B', 'C'] } },
+          { model: this.models.Tag, as: 'Tags', where: { name: ['A', 'B', 'C'] } },
           { model: this.models.Price },
         ],
         limit: 10,
@@ -1151,10 +1159,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
     it('should support including date fields, with the correct timezone', async function () {
       const User = this.sequelize.define('user', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false, schema: 'account' });
       const Group = this.sequelize.define('group', {
-        dateField: Sequelize.DATE,
+        dateField: DataTypes.DATE,
       }, { timestamps: false, schema: 'account' });
 
       User.belongsToMany(Group, { through: 'group_user' });
@@ -1205,22 +1213,22 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         timestamps: false,
       });
 
-      const UserIdColumn = { type: Sequelize.INTEGER, references: { model: UserModel, key: 'Id' } };
+      const UserIdColumn = { type: DataTypes.INTEGER, references: { model: UserModel, key: 'Id' } };
 
       const ResumeModel = this.sequelize.define('Resume', {
         Id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
         },
         UserId: UserIdColumn,
-        Name: Sequelize.STRING,
-        Contact: Sequelize.STRING,
-        School: Sequelize.STRING,
-        WorkingAge: Sequelize.STRING,
-        Description: Sequelize.STRING,
-        PostType: Sequelize.INTEGER,
-        RefreshDatetime: Sequelize.DATE,
-        CreatedDatetime: Sequelize.DATE,
+        Name: DataTypes.STRING,
+        Contact: DataTypes.STRING,
+        School: DataTypes.STRING,
+        WorkingAge: DataTypes.STRING,
+        Description: DataTypes.STRING,
+        PostType: DataTypes.INTEGER,
+        RefreshDatetime: DataTypes.DATE,
+        CreatedDatetime: DataTypes.DATE,
       }, {
         schema: 'hero',
         tableName: 'resume',
