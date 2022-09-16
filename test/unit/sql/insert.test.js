@@ -282,8 +282,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
             User.fieldRawAttributesMap,
           );
-        } catch (err) {
-          result = err;
+        } catch (error) {
+          result = error;
         }
 
         expectsql(result, {
