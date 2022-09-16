@@ -2759,17 +2759,9 @@ Specify a different name for either index to resolve this issue.`);
           } else {
             const upsertKeys = [];
 
-<<<<<<< HEAD
-            for (const i of model._indexes) {
-              if (i.unique && !i.where) {
-                // Don't infer partial indexes
-                upsertKeys.push(...i.fields);
-              }
-=======
           for (const i of model.getIndexes()) {
             if (i.unique && !i.where) { // Don't infer partial indexes
               upsertKeys.push(...i.fields);
->>>>>>> 0ea005a3cb83b3dc058d9a2e34db2aeb028f8a95
             }
 
             const firstUniqueKey = Object.values(model.uniqueKeys).find(
@@ -2785,13 +2777,6 @@ Specify a different name for either index to resolve this issue.`);
                 ? upsertKeys
                 : Object.values(model.primaryKeys).map(x => x.field);
           }
-<<<<<<< HEAD
-=======
-
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
->>>>>>> 0ea005a3cb83b3dc058d9a2e34db2aeb028f8a95
         }
 
         // Map returning attributes to fields
