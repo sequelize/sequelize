@@ -2759,23 +2759,24 @@ Specify a different name for either index to resolve this issue.`);
           } else {
             const upsertKeys = [];
 
-          for (const i of model.getIndexes()) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model.getIndexes()) {
+              if (i.unique && !i.where) { // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
+
+              const firstUniqueKey = Object.values(model.uniqueKeys).find(
+                c => c.fields.length > 0,
+              );
+
+              if (firstUniqueKey && firstUniqueKey.fields) {
+                upsertKeys.push(...firstUniqueKey.fields);
+              }
+
+              options.upsertKeys
+                = upsertKeys.length > 0
+                  ? upsertKeys
+                  : Object.values(model.primaryKeys).map(x => x.field);
             }
-
-            const firstUniqueKey = Object.values(model.uniqueKeys).find(
-              c => c.fields.length > 0,
-            );
-
-            if (firstUniqueKey && firstUniqueKey.fields) {
-              upsertKeys.push(...firstUniqueKey.fields);
-            }
-
-            options.upsertKeys
-              = upsertKeys.length > 0
-                ? upsertKeys
-                : Object.values(model.primaryKeys).map(x => x.field);
           }
         }
 
