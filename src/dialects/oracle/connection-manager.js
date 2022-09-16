@@ -118,18 +118,18 @@ export class OracleConnectionManager extends AbstractConnectionManager {
     };
 
     try {
-      // Check the config object
-      this.checkConfigObject(connectionConfig);
-
-      // We assume that the database has been correctly formed
-      connectionConfig.connectString = connectionConfig.database;
-
-      // We check if there are dialect options
       if (config.dialectOptions) {
         Object.keys(config.dialectOptions).forEach(key => {
           connectionConfig[key] = config.dialectOptions[key];
         });
       }
+
+      if (!config.dialectOptions || config.dialectOptions && !config.dialectOptions.connectString) {
+        // Check the config object
+        this.checkConfigObject(connectionConfig);
+      }
+      // We assume that the database has been correctly formed
+      connectionConfig.connectString = connectionConfig.database;
 
       const connection = await this.lib.getConnection(connectionConfig);
 
