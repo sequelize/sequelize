@@ -438,7 +438,7 @@ export class OracleQuery extends AbstractQuery {
     } else if (this.isBulkDeleteQuery()) {
       result = data.rowsAffected;
     } else if (this.isVersionQuery()) {
-      const version = data.rows[0].VERSION;
+      const version = data.rows[0].VERSION_FULL;
       if (version) {
         const versions = version.split('.');
         result = `${versions[0]}.${versions[1]}.${versions[2]}`;

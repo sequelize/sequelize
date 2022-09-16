@@ -51,8 +51,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        oracle-version: [18, 21]
         node-version: [10, 18]
-    name: Oracle DB (Node ${{ matrix.node-version }})
+    name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
       DIALECT: oracle
@@ -70,7 +71,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Install Local Oracle DB
-        run: yarn start-oracle
+        run: yarn start-oracle-${{ matrix.oracle-version }}
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
