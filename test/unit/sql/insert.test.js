@@ -269,6 +269,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attr => User.rawAttributes[attr].field || attr,
         );
 
+        let result;
+
         try {
           result = sql.bulkInsertQuery(
             User.tableName,
@@ -291,7 +293,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres:
             'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") WHERE "deleted_at" IS NULL DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           sqlite:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) WHERE `deleted_at` IS NULL DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON CONFLICT (`user_name`) WHERE `deleted_at` IS NULL DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
         });
       });
     }
