@@ -67,8 +67,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
 
 export interface SequelizeHooks<
   M extends Model<TAttributes, TCreationAttributes> = Model,
-  TAttributes = any,
-  TCreationAttributes = TAttributes
+  TAttributes extends {} = any,
+  TCreationAttributes extends {} = TAttributes
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
   afterDefine(model: ModelType): void;
