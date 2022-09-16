@@ -1,3 +1,8 @@
+import type {
+  BeforeAssociateEventData,
+  AfterAssociateEventData,
+  AssociationOptions,
+} from './associations';
 import type { AbstractQuery } from './dialects/abstract/query';
 import type { ValidationOptions } from './instance-validator';
 import type {
@@ -15,11 +20,6 @@ import type {
 } from './model';
 import type { Config, Options, Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type { DeepWriteable } from './utils';
-import type {
-  BeforeAssociateEventData,
-  AfterAssociateEventData,
-  AssociationOptions,
-} from './associations';
 
 export type HookReturn = Promise<void> | void;
 
