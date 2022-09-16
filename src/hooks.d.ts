@@ -15,6 +15,11 @@ import type {
 } from './model';
 import type { Config, Options, Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type { DeepWriteable } from './utils';
+import type {
+  BeforeAssociateEventData,
+  AfterAssociateEventData,
+  AssociationOptions,
+} from './associations';
 
 export type HookReturn = Promise<void> | void;
 
@@ -25,6 +30,7 @@ export type HookReturn = Promise<void> | void;
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeValidate(instance: M, options: ValidationOptions): HookReturn;
   afterValidate(instance: M, options: ValidationOptions): HookReturn;
+  validationFailed(instance: M, options: ValidationOptions, error: unknown): HookReturn;
   beforeCreate(attributes: M, options: CreateOptions<TAttributes>): HookReturn;
   afterCreate(attributes: M, options: CreateOptions<TAttributes>): HookReturn;
   beforeDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
@@ -62,6 +68,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterBulkSync(options: SyncOptions): HookReturn;
   beforeQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
   afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
+  beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<any>): HookReturn;
+  afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): HookReturn;
 }
 
 export interface SequelizeHooks<
