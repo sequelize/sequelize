@@ -1154,7 +1154,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
    * Only supported in Postgres >= 9.5 and squlite >= 9.5
    */
-   conflictWhere: WhereOptions<TAttributes>
+   conflictWhere?: WhereOptions<TAttributes>;
 }
 
 /**
@@ -2796,13 +2796,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static update<M extends Model>(
     this: ModelStatic<M>,
-<<<<<<< HEAD
-    values: {
-        [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
-    },
-=======
     values: UpdateValues<M>,
->>>>>>> 0ea005a3cb83b3dc058d9a2e34db2aeb028f8a95
     options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
       & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
