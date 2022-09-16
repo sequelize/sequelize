@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     chai.expect(calls[3].args[0].host).to.eql('slave1');
   });
 
-  it('should trigger deprecation for non supported engine version', async () => {
+  it.only('should trigger deprecation for non supported engine version', async () => {
     const stub = sandbox.stub(process, 'emitWarning');
     const sequelize = Support.createSequelizeInstance();
     const connectionManager = new ConnectionManager(
@@ -142,6 +142,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     await connectionManager.getConnection(queryOptions);
     chai.expect(stub).to.have.been.calledOnce;
+    console.log(stub.getCalls()[0].args[0])
     chai
       .expect(stub.getCalls()[0].args[0])
       .to.contain(
