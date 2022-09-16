@@ -142,7 +142,6 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     await connectionManager.getConnection(queryOptions);
     chai.expect(stub).to.have.been.calledOnce;
-    console.log(stub.getCalls()[0].args[0]);
     chai
       .expect(stub.getCalls()[0].args[0])
       .to.contain(
