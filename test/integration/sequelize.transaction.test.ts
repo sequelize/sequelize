@@ -156,7 +156,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       await Promise.all([
         (async () => {
           try {
-            return await Model.create({ name: 'omnom' }, { transaction: t2 });
+            return Model.create({ name: 'omnom' }, { transaction: t2 });
           } catch (error) {
             expect(error).to.be.ok;
 

@@ -748,7 +748,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (current.dialect.supports.inserts.conflictFields) {
           it('should respect the conflictFields option', async function () {
-            const Model = this.sequelize.define(
+            const Permissions = this.sequelize.define(
               'permissions',
               {
                 userId: {
@@ -767,7 +767,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             );
 
-            await Model.sync({ force: true });
+            await Permissions.sync({ force: true });
 
             // We don't want to create this index with the table, since we don't want our sequelize instance
             // to know it exists.  This prevents it from being inferred.
@@ -794,7 +794,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             ];
 
-            const initialResults = await Model.bulkCreate(initialPermissions, {
+            const initialResults = await Permissions.bulkCreate(initialPermissions, {
               conflictFields: ['userId'],
               updateOnDuplicate: ['permissions'],
             });
@@ -825,7 +825,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             ];
 
-            const newResults = await Model.bulkCreate(newPermissions, {
+            const newResults = await Permissions.bulkCreate(newPermissions, {
               conflictFields: ['userId'],
               updateOnDuplicate: ['permissions'],
             });
