@@ -2512,7 +2512,7 @@ Specify a different name for either index to resolve this issue.`);
     const now = Utils.now(this.sequelize.options.dialect);
 
     options.conflictFields = options.conflictFields?.map(
-      attr => (this.rawAttributes[attr] && this.rawAttributes[attr].field) || attr,
+      attr => (this.rawAttributes[attr]?.field) || attr,
     );
 
     // Attach createdAt
