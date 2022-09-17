@@ -1,4 +1,4 @@
-import type { FindOptions, QueryOptions, SaveOptions, UpsertOptions, Config, Utils, ValidationOptions } from '@sequelize/core';
+import type { FindOptions, QueryOptions, SaveOptions, UpsertOptions, Config, Utils } from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
 import type {
   BeforeAssociateEventData,
@@ -7,6 +7,7 @@ import type {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/associations';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/hooks.js';
+import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import { expectTypeOf } from 'expect-type';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
@@ -49,11 +50,11 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
     },
     beforeAssociate(data, options) {
       expectTypeOf(data).toEqualTypeOf<BeforeAssociateEventData>();
-      expectTypeOf(options).toEqualTypeOf<AssociationOptions>();
+      expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
     afterAssociate(data, options) {
       expectTypeOf(data).toEqualTypeOf<BeforeAssociateEventData>();
-      expectTypeOf(options).toEqualTypeOf<AssociationOptions>();
+      expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
   };
 
