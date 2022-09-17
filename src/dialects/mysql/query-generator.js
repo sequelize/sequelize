@@ -65,8 +65,25 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  showSchemasQuery() {
-    return 'SHOW TABLES';
+  showSchemasQuery(options) {
+    const schemasToSkip = [
+      `'MYSQL'`,
+      `'INFORMATION_SCHEMA'`,
+      `'PERFORMANCE_SCHEMA'`,
+    ];
+
+    if (options.skip && Array.isArray(options.skip) && options.skip.length > 0) {
+      for (const schemaName of options.skip) {
+        schemasToSkip.push(this.escape(schemaName));
+      }
+    }
+
+    return Utils.joinSQLFragments([
+      'SELECT SCHEMA_NAME as schema_name',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.join(', ')})`,
+      ';',
+    ]);
   }
 
   versionQuery() {
@@ -166,12 +183,12 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
-  showTablesQuery(database) {
-    let query = 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (database) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
+  showTablesQuery(schemaName) {
+    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
+    if (schemaName) {
+      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
     } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\', \'mysql\', \'information_schema\', \'performance_schema\', \'sys\')';
+      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\')';
     }
 
     return `${query};`;
@@ -518,13 +535,14 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
+   * @param {object} table The table.
+   * @returns {string} The generated sql query.
    * @private
    */
-  getForeignKeysQuery(table, schemaName) {
+  getForeignKeysQuery(table) {
     const tableName = table.tableName || table;
+    // TODO (https://github.com/sequelize/sequelize/pull/14687): use dialect.getDefaultSchema() instead of this.sequelize.config.database
+    const schemaName = table.schema || this.sequelize.config.database;
 
     return Utils.joinSQLFragments([
       'SELECT',
@@ -631,18 +649,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
 
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
-  }
-
-  _createBindParamCollector(bindContext /* : BindContext */) {
-    return function collect(value) {
-      if (!bindContext.normalizedBind) {
-        bindContext.normalizedBind = [];
-      }
-
-      bindContext.normalizedBind.push(value);
-
-      return '?';
-    };
   }
 }
 
