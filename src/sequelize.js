@@ -155,10 +155,12 @@ export class Sequelize {
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
    * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
+   * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
@@ -176,6 +178,11 @@ export class Sequelize {
    * @param {object}   [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}    [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {number}   [options.retry.max] How many times a failing query is automatically retried.  Set to 0 to disable retrying on SQL_BUSY error.
+   * @param {number}   [options.retry.timeout] Maximum duration, in milliseconds, to retry until an error is thrown.
+   * @param {number}   [options.retry.backoffBase=100] Initial backoff duration, in milliseconds.
+   * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
+   * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
+   * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
    * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
@@ -220,6 +227,7 @@ export class Sequelize {
       query: {},
       sync: {},
       timezone: '+00:00',
+      keepDefaultTimezone: false,
       standardConformingStrings: true,
       logging: console.debug,
       omitNull: false,
@@ -532,6 +540,11 @@ export class Sequelize {
    * @param {object}          [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}           [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {Integer}         [options.retry.max] How many times a failing query is automatically retried.
+   * @param {number}          [options.retry.timeout] Maximum duration, in milliseconds, to retry until an error is thrown.
+   * @param {number}          [options.retry.backoffBase=100] Initial backoff duration, in milliseconds.
+   * @param {number}          [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
+   * @param {Function}        [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
+   * @param {string}          [options.retry.name='unknown'] Name used when composing error/reporting messages.
    * @param {string}          [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    * @param {boolean}         [options.supportsSearchPath] If false do not prepend the query with the search_path (Postgres only)
    * @param {boolean}         [options.mapToModel=false] Map returned fields to model's fields if `options.model` or `options.instance` is present. Mapping will occur before building the model instance.

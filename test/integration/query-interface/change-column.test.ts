@@ -1,6 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import { dropTestSchemas, getTestDialect, getTestDialectTeaser, sequelize } from '../support';
+import { QueryTypes } from '../../../src/index.js';
 
 const dialect = getTestDialect();
 const queryInterface = sequelize.getQueryInterface();
@@ -328,6 +329,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         expect(foreignKeys).to.be.empty;
 
         await queryInterface.changeColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
           references: {
             model: 'level',
             key: 'id',
@@ -355,6 +357,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         });
 
         await queryInterface.changeColumn('users', 'level_id', {
+          type: DataTypes.INTEGER,
           references: {
             model: 'level',
             key: 'id',
@@ -384,6 +387,24 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
         expect(describedTable.level_id.allowNull).to.be.equal(true);
       });
+
+      if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
+        it('should change the comment of column', async () => {
+          const describedTable = await queryInterface.describeTable({
+            tableName: 'users',
+          });
+
+          expect(describedTable.level_id.comment).to.be.equal(null);
+
+          await queryInterface.changeColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            comment: 'FooBar',
+          });
+
+          const describedTable2 = await queryInterface.describeTable({ tableName: 'users' });
+          expect(describedTable2.level_id.comment).to.be.equal('FooBar');
+        });
+      }
     });
   }
 
@@ -504,6 +525,142 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       expect(refs[0].columnName).to.equal('UserId');
       expect(refs[0].referencedTableName).to.equal('Users');
       expect(refs[0].referencedColumnName).to.equal('id');
+    });
+
+    it('should retain ON UPDATE and ON DELETE constraints after a column is changed', async () => {
+      await queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        name: {
+          type: DataTypes.CHAR,
+          allowNull: false,
+        },
+      });
+
+      await queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        level_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          references: {
+            key: 'id',
+            model: 'level',
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      });
+
+      await queryInterface.changeColumn('users', 'name', {
+        type: DataTypes.CHAR,
+        allowNull: false,
+      });
+
+      await queryInterface.changeColumn('users', 'level_id', {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          key: 'id',
+          model: 'level',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
+
+      // TODO: replace with queryInterface.showConstraint once it lists foreign keys properly for sqlite
+      const constraintsQuery = queryInterface.queryGenerator.showConstraintsQuery('users');
+      const [{ sql: usersSql }] = await queryInterface.sequelize.query<{sql: string}>(constraintsQuery, {
+        type: QueryTypes.SELECT,
+      });
+
+      expect(usersSql).to.include('ON DELETE CASCADE', 'should include ON DELETE constraint');
+      expect(usersSql).to.include('ON UPDATE CASCADE', 'should include ON UPDATE constraint');
+    });
+
+    it('should change columns with foreign key constraints without data loss', async () => {
+      await queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        name: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        level_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          references: {
+            key: 'id',
+            model: 'level',
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        },
+      });
+
+      await queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        name: {
+          type: DataTypes.CHAR,
+          allowNull: false,
+        },
+      });
+
+      const levels = [{
+        id: 1,
+        name: 'L1',
+      }, {
+        id: 2,
+        name: 'L2',
+      },
+      {
+        id: 3,
+        name: 'L3',
+      }];
+
+      const users = [
+        {
+          name: 'Morpheus',
+          level_id: 2,
+        },
+        {
+          name: 'Neo',
+          level_id: 1,
+        },
+      ];
+
+      await Promise.all([
+        queryInterface.bulkInsert('level', levels),
+        queryInterface.bulkInsert('users', users),
+      ]);
+
+      await queryInterface.changeColumn('level', 'name', {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+
+      const userRows = await queryInterface.sequelize.query('SELECT * from users;', {
+        type: 'SELECT',
+      });
+
+      expect(userRows).to.have.length(users.length, 'user records should be unaffected');
     });
   }
 });
