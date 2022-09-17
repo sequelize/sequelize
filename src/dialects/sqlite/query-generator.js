@@ -16,7 +16,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   createSchema() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  dropSchema() {
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
   showSchemasQuery() {
