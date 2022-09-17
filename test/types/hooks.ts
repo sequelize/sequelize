@@ -14,7 +14,7 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
 {
   class TestModel extends Model {}
 
-  const hooks: Partial<ModelHooks> = {
+  const hooks: Partial<ModelHooks<TestModel>> = {
     validationFailed(m, options, error) {
       expectTypeOf(m).toEqualTypeOf<TestModel>();
       expectTypeOf(options).toEqualTypeOf<ValidationOptions>();
