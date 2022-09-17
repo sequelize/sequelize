@@ -2,6 +2,6 @@
 * text=auto
 
 # Explicitly declare text files you want to always be normalized and converted
-# to native line endings on checkout.
+# to unix line endings on checkout.
 *.js text
 *.ts text
