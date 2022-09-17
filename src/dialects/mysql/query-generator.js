@@ -70,6 +70,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       `'MYSQL'`,
       `'INFORMATION_SCHEMA'`,
       `'PERFORMANCE_SCHEMA'`,
+      `'mysql'`,
+      `'information_schema'`,
+      `'performance_schema'`,
     ];
 
     if (options.skip && Array.isArray(options.skip) && options.skip.length > 0) {

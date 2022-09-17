@@ -2144,17 +2144,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to list schemas', async function () {
         const schemas = await this.sequelize.showAllSchemas();
-        expect(schemas).to.be.instanceof(Array);
-        const expectedLengths = {
-          mssql: 2,
-          postgres: 2,
-          db2: 2,
-          mariadb: 3,
-          mysql: 1,
-          sqlite: 1,
-          ibmi: 3,
+
+        const expectedSchemas = {
+          // "sequelize_test" is the default schema, which some dialects will not delete
+          mysql: ['sequelize_test', 'schema_test', 'special'],
+          mariadb: ['sequelize_test', 'schema_test', 'special'],
+          ibmi: ['sequelize_test', 'schema_test', 'special'],
+          mssql: ['schema_test', 'special'],
+          postgres: ['schema_test', 'special'],
+          db2: ['schema_test', 'special'],
         };
-        expect(schemas).to.have.length(expectedLengths[dialectName]);
+
+        expect(schemas).to.deep.equal(expectedSchemas[dialectName]);
       });
 
       if (['mysql', 'sqlite'].includes(dialectName)) {
