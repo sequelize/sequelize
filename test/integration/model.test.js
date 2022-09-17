@@ -610,6 +610,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(User.rawAttributes).to.haveOwnProperty('createdOn');
       expect(User.rawAttributes).to.haveOwnProperty('modifiedOn');
+      expect(User.rawAttributes.modifiedOn.field).to.eq('modified_on');
 
       expect(User._timestampAttributes.createdAt).to.equal('createdOn');
       expect(User._timestampAttributes.updatedAt).to.equal('modifiedOn');
