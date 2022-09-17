@@ -14,7 +14,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
       db2: 'CREATE SCHEMA "myDatabase";',
       ibmi: 'CREATE SCHEMA "myDatabase"',
       mssql: `IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'myDatabase') BEGIN EXEC sp_executesql N'CREATE SCHEMA [myDatabase] ;' END;`,
-      'sqlite snowflake': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
@@ -22,7 +22,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
     expectsql(() => queryGenerator.createSchemaQuery('myDatabase', { collate: 'en_US.UTF-8' }), {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['collate']),
       'mysql mariadb': `CREATE SCHEMA IF NOT EXISTS \`myDatabase\` DEFAULT COLLATE 'en_US.UTF-8';`,
-      'sqlite snowflake': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
@@ -30,7 +30,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
     expectsql(() => queryGenerator.createSchemaQuery('myDatabase', { charset: 'utf8mb4' }), {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset']),
       'mysql mariadb': `CREATE SCHEMA IF NOT EXISTS \`myDatabase\` DEFAULT CHARACTER SET 'utf8mb4';`,
-      'sqlite snowflake': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 });

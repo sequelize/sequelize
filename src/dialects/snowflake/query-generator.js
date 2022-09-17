@@ -37,6 +37,8 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
 
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -65,6 +67,26 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 
   dropDatabaseQuery(databaseName) {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
+  }
+
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+    }
+
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
+  }
+
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+  }
+
+  listSchemasQuery(options) {
+    if (options) {
+      rejectInvalidOptions('listSchemasQuery', this.dialect, LIST_SCHEMAS_SUPPORTED_OPTIONS, options);
+    }
+
+    return `SHOW SCHEMAS;`;
   }
 
   versionQuery() {

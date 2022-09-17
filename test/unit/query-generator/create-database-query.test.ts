@@ -3,7 +3,7 @@ import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
-const notSupportedUseSchemaError = new Error(`Creating databases is not supported in ${dialectName}. In ${dialectName}, Databases and Schemas are equivalent. Use createSchema instead.`);
+const notSupportedUseSchemaError = new Error(`Creating databases is not supported in ${dialectName}. In ${dialectName}, Databases and Schemas are equivalent. Use createSchemaQuery instead.`);
 const notSupportedError = new Error(`Creating databases is not supported in ${dialectName}.`);
 
 describe('QueryGenerator#createDatabaseQuery', () => {

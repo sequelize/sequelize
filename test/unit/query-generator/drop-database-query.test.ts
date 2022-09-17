@@ -2,7 +2,7 @@ import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '.
 
 const dialectName = getTestDialect();
 
-const notSupportedUseSchemaError = new Error(`Dropping databases is not supported in ${dialectName}. In ${dialectName}, Databases and Schemas are equivalent. Use dropSchema instead.`);
+const notSupportedUseSchemaError = new Error(`Dropping databases is not supported in ${dialectName}. In ${dialectName}, Databases and Schemas are equivalent. Use dropSchemaQuery instead.`);
 const notSupportedError = new Error(`Dropping databases is not supported in ${dialectName}.`);
 
 describe('QueryGenerator#dropDatabaseQuery', () => {

@@ -123,15 +123,13 @@ export class QueryInterface {
    * @returns {Promise<Array>}
    */
   async showAllSchemas(options) {
-    options = {
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
+
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
       ...options,
       raw: true,
       type: this.sequelize.QueryTypes.SELECT,
-    };
-
-    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
+    });
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
