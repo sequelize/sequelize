@@ -55,9 +55,13 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  listSchemasQuery() {
-    return 'SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE '
-      + '(SCHEMANAME NOT LIKE \'SYS%\') AND SCHEMANAME NOT IN (\'NULLID\', \'SQLJ\', \'ERRORSCHEMA\')';
+  listSchemasQuery(options) {
+    const schemasToSkip = ['NULLID', 'SQLJ', 'ERRORSCHEMA'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   versionQuery() {

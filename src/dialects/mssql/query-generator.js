@@ -102,12 +102,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  listSchemasQuery() {
+  listSchemasQuery(options) {
+    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
     return [
       'SELECT "name" as "schema_name" FROM sys.schemas as s',
       'WHERE "s"."name" NOT IN (',
-      '\'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\'',
-      ')', 'AND', '"s"."name" NOT LIKE', '\'db_%\'',
+      schemasToSkip.map(schema => this.escape(schema)).join(', '),
+      `) AND "s"."name" NOT LIKE 'db_%'`,
     ].join(' ');
   }
 

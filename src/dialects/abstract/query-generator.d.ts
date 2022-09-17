@@ -78,6 +78,11 @@ export interface CreateSchemaQueryOptions {
   charset?: string;
 }
 
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -138,7 +143,7 @@ export class AbstractQueryGenerator {
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
-  listSchemasQuery(): string;
+  listSchemasQuery(options?: ListSchemasQueryOptions): string;
 
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;

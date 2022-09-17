@@ -59,8 +59,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  listSchemasQuery() {
-    return 'SELECT schema_name FROM information_schema.schemata WHERE schema_name <> \'information_schema\' AND schema_name != \'public\' AND schema_name !~ E\'^pg_\';';
+  listSchemasQuery(options) {
+    const schemasToSkip = ['information_schema', 'public'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   versionQuery() {

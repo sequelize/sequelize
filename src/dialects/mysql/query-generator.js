@@ -69,7 +69,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       `'performance_schema'`,
     ];
 
-    if (options.skip && Array.isArray(options.skip) && options.skip.length > 0) {
+    if (Array.isArray(options?.skip) && options.skip.length > 0) {
       for (const schemaName of options.skip) {
         schemasToSkip.push(this.escape(schemaName));
       }

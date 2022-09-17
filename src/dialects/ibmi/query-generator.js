@@ -35,9 +35,9 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
   listSchemasQuery(options) {
     let skippedSchemas = '';
-    if (options.skip) {
+    if (options?.skip) {
       for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != '${options.skip[i]}'`;
+        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
       }
     }
 
