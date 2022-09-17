@@ -68,7 +68,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterBulkSync(options: SyncOptions): HookReturn;
   beforeQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
   afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
-  beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<any>): HookReturn;
+  beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<unknown>): HookReturn;
   afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): HookReturn;
 }
 
