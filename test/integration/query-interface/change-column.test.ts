@@ -1,7 +1,6 @@
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import { dropTestSchemas, getTestDialect, getTestDialectTeaser, sequelize } from '../support';
-import { QueryTypes } from '../../../src/index.js';
 
 const dialect = getTestDialect();
 const queryInterface = sequelize.getQueryInterface();
@@ -580,7 +579,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
 
       // TODO: replace with queryInterface.showConstraint once it lists foreign keys properly for sqlite
       const constraintsQuery = queryInterface.queryGenerator.showConstraintsQuery('users');
-      const [{ sql: usersSql }] = await queryInterface.sequelize.query<{sql: string}>(constraintsQuery, {
+      const [{ sql: usersSql }] = await queryInterface.sequelize.query<{ sql: string }>(constraintsQuery, {
         type: QueryTypes.SELECT,
       });
 
