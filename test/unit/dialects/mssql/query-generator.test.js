@@ -239,12 +239,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('showSchemasQuery', function () {
-      expectsql(this.queryGenerator.showSchemasQuery(), {
-        mssql: 'SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN ( \'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\' ) AND "s"."name" NOT LIKE \'db_%\'',
-      });
-    });
-
     it('versionQuery', function () {
       expectsql(this.queryGenerator.versionQuery(), {
         mssql: 'DECLARE @ms_ver NVARCHAR(20); SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY(\'ProductVersion\'))); SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX(\'.\', @ms_ver)+1, 20)) AS \'version\'',

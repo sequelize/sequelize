@@ -6,10 +6,10 @@ const dialectName = getTestDialect();
 const notSupportedUseSchemaError = new Error(`Creating databases is not supported in ${dialectName}. In ${dialectName}, Databases and Schemas are equivalent. Use createSchema instead.`);
 const notSupportedError = new Error(`Creating databases is not supported in ${dialectName}.`);
 
-describe('QueryGenerator#dropDatabaseQuery', () => {
+describe('QueryGenerator#createDatabaseQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
-  it('produces a DROP DATABASE query in supported dialects', () => {
+  it('produces a CREATE DATABASE query in supported dialects', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase'), {
       default: 'CREATE DATABASE [myDatabase];',
       snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',

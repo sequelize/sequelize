@@ -68,7 +68,7 @@ export class QueryInterface {
    */
   async createSchema(schema, options) {
     options = options || {};
-    const sql = this.queryGenerator.createSchema(schema);
+    const sql = this.queryGenerator.createSchemaQuery(schema);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -83,7 +83,7 @@ export class QueryInterface {
    */
   async dropSchema(schema, options) {
     options = options || {};
-    const query = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql;
     if (typeof query === 'object') {
@@ -129,7 +129,7 @@ export class QueryInterface {
       type: this.sequelize.QueryTypes.SELECT,
     };
 
-    const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
 
     const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
 

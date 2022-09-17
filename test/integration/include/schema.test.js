@@ -4,10 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
-const dialectName = Support.getTestDialect();
 const _ = require('lodash');
 const promiseProps = require('p-props');
 
@@ -1185,13 +1184,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         include: [Group],
       });
 
-      if (dialectName === 'sqlite') {
-        expect(new Date(users[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-        expect(new Date(users[0].groups[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-      } else {
-        expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-        expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-      }
+      expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+      expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
     });
 
   });

@@ -38,34 +38,28 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery() {
-    throw new Error(`Creating databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use createSchema instead.`);
+    throw new Error(`Creating databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use createSchemaQuery instead.`);
   }
 
   dropDatabaseQuery() {
-    throw new Error(`Dropping databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use dropSchema instead.`);
+    throw new Error(`Dropping databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use dropSchemaQuery instead.`);
   }
 
-  createSchema(schemaName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
-
+  createSchemaQuery(schemaName, options) {
     return Utils.joinSQLFragments([
-      'CREATE DATABASE IF NOT EXISTS',
+      'CREATE SCHEMA IF NOT EXISTS',
       this.quoteIdentifier(schemaName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
 
-  dropSchema(schemaName) {
+  dropSchemaQuery(schemaName) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  showSchemasQuery(options) {
+  listSchemasQuery(options) {
     const schemasToSkip = [
       `'MYSQL'`,
       `'INFORMATION_SCHEMA'`,

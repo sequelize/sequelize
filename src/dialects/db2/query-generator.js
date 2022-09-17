@@ -1,6 +1,6 @@
 'use strict';
 
-import { removeTrailingSemicolon } from '../../utils';
+import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -9,7 +9,8 @@ const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
-/* istanbul ignore next */
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
@@ -25,17 +26,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     this.autoGenValue = 1;
   }
 
-  createSchema(schema) {
-    return [
-      'CREATE SCHEMA',
-      this.quoteIdentifier(schema),
-      ';',
-    ].join(' ');
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+    }
+
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   _errorTableCount = 0;
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
@@ -54,7 +55,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  showSchemasQuery() {
+  listSchemasQuery() {
     return 'SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE '
       + '(SCHEMANAME NOT LIKE \'SYS%\') AND SCHEMANAME NOT IN (\'NULLID\', \'SQLJ\', \'ERRORSCHEMA\')';
   }

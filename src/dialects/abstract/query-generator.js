@@ -90,8 +90,28 @@ export class AbstractQueryGenerator {
     };
   }
 
-  dropSchema(tableName, options) {
-    return this.dropTableQuery(tableName, options);
+  createSchemaQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but createSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  dropSchemaQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but dropSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  listSchemasQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
   describeTableQuery(tableName, schema, schemaDelimiter) {

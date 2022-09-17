@@ -15,15 +15,15 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     throw new Error(`Dropping databases is not supported in ${this.dialect}.`);
   }
 
-  createSchema() {
+  createSchemaQuery() {
     throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
-  dropSchema() {
+  dropSchemaQuery() {
     throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
-  showSchemasQuery() {
+  listSchemasQuery() {
     return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }
 

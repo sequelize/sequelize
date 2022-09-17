@@ -18,6 +18,7 @@ const _ = require('lodash');
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set([]);
 
 export class PostgresQueryGenerator extends AbstractQueryGenerator {
   setSearchPath(searchPath) {
@@ -29,7 +30,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
     }
 
-    const quotedDatabaseName = this.quoteTable(databaseName);
+    const quotedDatabaseName = this.quoteIdentifier(databaseName);
     const encoding = options?.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '';
     const collation = options?.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '';
     const ctype = options?.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '';
@@ -39,28 +40,26 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteTable(databaseName)};`;
+    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
   listDatabasesQuery() {
     return `SELECT datname AS name FROM pg_database;`;
   }
 
-  createSchema(schema) {
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
-
-    if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
   }
 
-  dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  showSchemasQuery() {
+  listSchemasQuery() {
     return 'SELECT schema_name FROM information_schema.schemata WHERE schema_name <> \'information_schema\' AND schema_name != \'public\' AND schema_name !~ E\'^pg_\';';
   }
 

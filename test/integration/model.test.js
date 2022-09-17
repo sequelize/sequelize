@@ -2158,35 +2158,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(schemas).to.deep.equal(expectedSchemas[dialectName]);
       });
 
-      if (['sqlite'].includes(dialectName)) {
-        it('should take schemaDelimiter into account if applicable', async function () {
-          let test = 0;
-          const UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {
-            age: DataTypes.INTEGER,
-          }, { schema: 'hello', schemaDelimiter: '_' });
-          const UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', {
-            age: DataTypes.INTEGER,
-          });
-          const User = await UserSpecialUnderscore.sync({ force: true });
-          const DblUser = await UserSpecialDblUnderscore.schema('hello', '__').sync({ force: true });
-          await DblUser.create({ age: 3 }, {
-            logging(sql) {
-              test++;
-              expect(sql).to.exist;
-              expect(sql).to.include('INSERT INTO `hello__UserSpecialDblUnderscores`');
-            },
-          });
-          await User.create({ age: 3 }, {
-            logging(sql) {
-              test++;
-              expect(sql).to.exist;
-              expect(sql).to.include('INSERT INTO `hello_UserSpecialUnderscores`');
-            },
-          });
-          expect(test).to.equal(2);
-        });
-      }
-
       it('should describeTable using the default schema settings', async function () {
         const UserPublic = this.sequelize.define('Public', {
           username: DataTypes.STRING,

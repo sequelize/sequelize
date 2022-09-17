@@ -67,9 +67,14 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 export interface CreateDatabaseQueryOptions {
   collate?: string;
+  charset?: string;
   encoding?: string;
   ctype?: string;
   template?: string;
+}
+
+export interface CreateSchemaQueryOptions {
+  collate?: string;
   charset?: string;
 }
 
@@ -131,7 +136,9 @@ export class AbstractQueryGenerator {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  dropSchema(tableName: TableName): string | { query: string, bind?: unknown[] };
+  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
+  dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
+  listSchemasQuery(): string;
 
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;

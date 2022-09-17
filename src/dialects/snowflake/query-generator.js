@@ -67,14 +67,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema() {
-    return 'SHOW TABLES';
-  }
-
-  showSchemasQuery() {
-    return 'SHOW TABLES';
-  }
-
   versionQuery() {
     return 'SELECT CURRENT_VERSION()';
   }

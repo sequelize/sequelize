@@ -41,7 +41,6 @@ export class SnowflakeDialect extends AbstractDialect {
     // GEOMETRY: true,
     // JSON: true,
     REGEXP: true,
-    schemas: true,
   });
 
   constructor(sequelize) {

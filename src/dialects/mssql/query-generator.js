@@ -17,6 +17,7 @@ function throwMethodUndefined(methodName) {
 }
 
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -48,7 +49,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT name FROM sys.databases;`;
   }
 
-  createSchema(schema) {
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+    }
+
     return [
       'IF NOT EXISTS (SELECT schema_name',
       'FROM information_schema.schemata',
@@ -61,7 +66,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     // Mimics Postgres CASCADE, will drop objects belonging to the schema
     const quotedSchema = wrapSingleQuote(schema);
 
@@ -97,7 +102,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  showSchemasQuery() {
+  listSchemasQuery() {
     return [
       'SELECT "name" as "schema_name" FROM sys.schemas as s',
       'WHERE "s"."name" NOT IN (',
