@@ -1,14 +1,15 @@
 services:
-  mariadb-103:
-    container_name: sequelize-mariadb-103
-    image: mariadb:10.3
+  mysql-oldest:
+    container_name: sequelize-mysql-oldest
+    image: mysql:5.7.0
     environment:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
       MYSQL_ROOT_PASSWORD: sequelize_test
     ports:
-      - 21103:3306
+      - 20057:3306
+    # tmpfs: /var/lib/mysql:rw
     healthcheck:
       test: ["CMD", "mysqladmin", "-usequelize_test", "-psequelize_test", "status"]
       interval: 3s
@@ -17,4 +18,4 @@ services:
 
 networks:
   default:
-    name: sequelize-mariadb-103-network
+    name: sequelize-mysql-oldest-network
