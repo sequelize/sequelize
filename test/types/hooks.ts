@@ -53,7 +53,7 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
       expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
     afterAssociate(data, options) {
-      expectTypeOf(data).toEqualTypeOf<BeforeAssociateEventData>();
+      expectTypeOf(data).toEqualTypeOf<AfterAssociateEventData>();
       expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
   };
