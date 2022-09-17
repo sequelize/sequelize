@@ -680,16 +680,15 @@ if (dialect === 'mysql') {
         },
         {
           arguments: [{ tableName: 'User', schema: 'schema' }],
-          // FIXME: this is not the right way to handle schemas in MySQL, it should be `schema`.`User` like MariaDB
-          expectation: 'SHOW INDEX FROM `schema.User`',
+          expectation: 'SHOW INDEX FROM `schema`.`User`',
         },
-        // FIXME: enable this test once fixed
+        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
         // {
         //   sequelizeOptions: {
         //     schema: 'schema',
         //   },
         //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema.User`',
+        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
         // },
         {
           arguments: ['User', { database: 'sequelize' }],

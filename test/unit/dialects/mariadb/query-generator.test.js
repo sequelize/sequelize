@@ -708,7 +708,7 @@ if (dialect === 'mariadb') {
           arguments: [{ tableName: 'User', schema: 'schema' }],
           expectation: 'SHOW INDEX FROM `schema`.`User`',
         },
-        // FIXME: enable this test once fixed
+        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
         // {
         //   sequelizeOptions: {
         //     schema: 'schema',
