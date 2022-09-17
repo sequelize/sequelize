@@ -1,2 +1,13 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
 * text=auto
+
+# Avoid normalization guessed wrong for an image file that it was a text file and made it corrupt.
+*.txt text
+*.js text
+*.ts text
+*.md text
+*.json text
+*.jsonc text
+*.yml text
+*.sh text
+*.sql text
