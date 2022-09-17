@@ -1,4 +1,6 @@
-cd dev/db2/11.5
+#!/usr/bin/env bash
+set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 export DIALECT=db2
 SEQ_DB="${SEQ_DB:-testdb}"
