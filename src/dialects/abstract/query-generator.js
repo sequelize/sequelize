@@ -55,6 +55,10 @@ export class AbstractQueryGenerator {
     throw new Error(`Dropping databases is not supported in ${this.dialect}.`);
   }
 
+  listDatabasesQuery() {
+    throw new Error(`Listing databases is not supported in ${this.dialect}.`);
+  }
+
   extractTableDetails(tableName, options) {
     options = options || {};
     tableName = tableName || {};

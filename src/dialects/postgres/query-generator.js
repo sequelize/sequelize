@@ -42,6 +42,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteTable(databaseName)};`;
   }
 
+  listDatabasesQuery() {
+    return `SELECT datname AS name FROM pg_database;`;
+  }
+
   createSchema(schema) {
     const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
 

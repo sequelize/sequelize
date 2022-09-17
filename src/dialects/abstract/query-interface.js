@@ -1,6 +1,8 @@
 'use strict';
 
+import { QueryRawOptions } from '../../sequelize';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { DatabaseDescription } from './query-interface';
 
 const _ = require('lodash');
 
@@ -47,10 +49,15 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropDatabase(database, options) {
-    options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async listDatabases(options) {
+    const sql = this.queryGenerator.listDatabasesQuery();
+
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -764,16 +771,21 @@ export class QueryInterface {
    *
    * @param {string} tableName                   Table name where you want to add a constraint
    * @param {object} options                     An object to define the constraint name, type etc
-   * @param {string} options.type                Type of constraint. One of the values in available constraints(case insensitive)
+   * @param {string} options.type                Type of constraint. One of the values in available constraints(case
+   *   insensitive)
    * @param {Array}  options.fields              Array of column names to apply the constraint over
-   * @param {string} [options.name]              Name of the constraint. If not specified, sequelize automatically creates a named constraint based on constraint type, table & column names
+   * @param {string} [options.name]              Name of the constraint. If not specified, sequelize automatically creates a
+   *   named constraint based on constraint type, table & column names
    * @param {string} [options.defaultValue]      The value for the default constraint
    * @param {object} [options.where]             Where clause/expression for the CHECK constraint
-   * @param {object} [options.references]        Object specifying target table, column name to create foreign key constraint
+   * @param {object} [options.references]        Object specifying target table, column name to create foreign key
+   *   constraint
    * @param {string} [options.references.table]  Target table name
    * @param {string} [options.references.field]  Target column name
-   * @param {string} [options.references.fields] Target column names for a composite primary key. Must match the order of fields in options.fields.
-   * @param {string} [options.deferrable]        Sets the constraint to be deferred or immediately checked. See Sequelize.Deferrable. PostgreSQL Only
+   * @param {string} [options.references.fields] Target column names for a composite primary key. Must match the order of
+   *   fields in options.fields.
+   * @param {string} [options.deferrable]        Sets the constraint to be deferred or immediately checked. See
+   *   Sequelize.Deferrable. PostgreSQL Only
    *
    * @returns {Promise}
    */
@@ -1046,8 +1058,10 @@ export class QueryInterface {
    * @param {object}  where                where conditions to find records to delete
    * @param {object}  [options]            options
    * @param {boolean} [options.truncate]   Use truncate table command
-   * @param {boolean} [options.cascade=false]         Only used in conjunction with TRUNCATE. Truncates  all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
-   * @param {boolean} [options.restartIdentity=false] Only used in conjunction with TRUNCATE. Automatically restart sequences owned by columns of the truncated table.
+   * @param {boolean} [options.cascade=false]         Only used in conjunction with TRUNCATE. Truncates  all tables that
+   *   have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
+   * @param {boolean} [options.restartIdentity=false] Only used in conjunction with TRUNCATE. Automatically restart
+   *   sequences owned by columns of the truncated table.
    * @param {Model}   [model]              Model
    *
    * @returns {Promise}
@@ -1227,8 +1241,10 @@ export class QueryInterface {
    * @param {string}  body          Source code of function
    * @param {Array}   optionsArray  Extra-options for creation
    * @param {object}  [options]     query options
-   * @param {boolean} options.force If force is true, any existing functions with the same parameters will be replaced. For postgres, this means using `CREATE OR REPLACE FUNCTION` instead of `CREATE FUNCTION`. Default is false
-   * @param {Array<object>}   options.variables List of declared variables. Each variable should be an object with string fields `type` and `name`, and optionally having a `default` field as well.
+   * @param {boolean} options.force If force is true, any existing functions with the same parameters will be replaced. For
+   *   postgres, this means using `CREATE OR REPLACE FUNCTION` instead of `CREATE FUNCTION`. Default is false
+   * @param {Array<object>}   options.variables List of declared variables. Each variable should be an object with string
+   *   fields `type` and `name`, and optionally having a `default` field as well.
    *
    * @returns {Promise}
    */

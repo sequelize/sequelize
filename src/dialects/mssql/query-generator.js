@@ -44,6 +44,10 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
+  listDatabasesQuery() {
+    return `SELECT name FROM sys.databases;`;
+  }
+
   createSchema(schema) {
     return [
       'IF NOT EXISTS (SELECT schema_name',

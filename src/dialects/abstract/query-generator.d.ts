@@ -135,4 +135,5 @@ export class AbstractQueryGenerator {
 
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
+  listDatabasesQuery(): string;
 }
