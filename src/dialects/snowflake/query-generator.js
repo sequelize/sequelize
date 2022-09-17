@@ -1,5 +1,7 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -34,6 +36,8 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
@@ -46,17 +50,15 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
+    }
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset, undefined, options)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate, undefined, options)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }

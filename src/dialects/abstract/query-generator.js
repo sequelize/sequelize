@@ -47,6 +47,14 @@ export class AbstractQueryGenerator {
     this._initQuoteIdentifier();
   }
 
+  createDatabaseQuery() {
+    throw new Error(`Creating databases is not supported in ${this.dialect}.`);
+  }
+
+  dropDatabaseQuery() {
+    throw new Error(`Dropping databases is not supported in ${this.dialect}.`);
+  }
+
   extractTableDetails(tableName, options) {
     options = options || {};
     tableName = tableName || {};

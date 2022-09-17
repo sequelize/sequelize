@@ -1,5 +1,7 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
@@ -14,11 +16,15 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
+
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
-    options = { collate: null, ...options };
+    if (options) {
+      rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
+    }
 
-    const collation = options.collate ? `COLLATE ${this.escape(options.collate)}` : '';
+    const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
       'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',

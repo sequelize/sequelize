@@ -5,26 +5,6 @@ const Utils = require('./../../utils');
 const _ = require('lodash');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
-  createSchema(schema, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
-
-    return Utils.joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schema),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)};`;
-  }
-
   showSchemasQuery(options) {
     const schemasToSkip = [
       '\'MYSQL\'',

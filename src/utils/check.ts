@@ -82,3 +82,21 @@ export function defaultValueSchemable(value: DataType): boolean {
 export function isWhereEmpty(obj: object): boolean {
   return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
 }
+
+export function rejectInvalidOptions(
+  methodName: string,
+  dialectName: string,
+  validOptions: Set<string>,
+  receivedOptions: Record<string, unknown>,
+): void {
+  const receivedOptionNames = Object.keys(receivedOptions);
+  const unsupportedOptions = receivedOptionNames.filter(optionName => !validOptions.has(optionName));
+
+  if (unsupportedOptions.length > 0) {
+    throw buildInvalidOptionReceivedError(methodName, dialectName, unsupportedOptions);
+  }
+}
+
+export function buildInvalidOptionReceivedError(methodName: string, dialectName: string, invalidOptions: string[]): Error {
+  return new Error(`The following options are not supported by ${methodName} in ${dialectName}: ${invalidOptions.join(', ')}`);
+}

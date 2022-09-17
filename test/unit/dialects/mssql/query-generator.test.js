@@ -17,12 +17,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('createDatabaseQuery', function () {
-      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase'), {
-        mssql: 'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN CREATE DATABASE [myDatabase] ; END;',
-      });
-    });
-
     it('upsertQuery with falsey values', function () {
       const testTable = this.sequelize.define(
         'test_table',
@@ -70,18 +64,6 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable), {
         mssql:
           'MERGE INTO [test_table] WITH(HOLDLOCK) AS [test_table_target] USING (VALUES(24)) AS [test_table_source]([Age]) ON [test_table_target].[Name] = [test_table_source].[Name] AND [test_table_target].[IsOnline] = [test_table_source].[IsOnline] WHEN MATCHED THEN UPDATE SET [test_table_target].[Name] = N\'Charlie\', [test_table_target].[Age] = 24, [test_table_target].[IsOnline] = 0 WHEN NOT MATCHED THEN INSERT ([Age]) VALUES(24) OUTPUT $action, INSERTED.*;',
-      });
-    });
-
-    it('createDatabaseQuery with collate', function () {
-      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase', { collate: 'Latin1_General_CS_AS_KS_WS' }), {
-        mssql: 'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N\'Latin1_General_CS_AS_KS_WS\'; END;',
-      });
-    });
-
-    it('dropDatabaseQuery', function () {
-      expectsql(this.queryGenerator.dropDatabaseQuery('myDatabase'), {
-        mssql: 'IF EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN DROP DATABASE [myDatabase] ; END;',
       });
     });
 

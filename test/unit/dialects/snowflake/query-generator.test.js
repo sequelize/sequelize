@@ -13,59 +13,6 @@ const { SnowflakeQueryGenerator: QueryGenerator } = require('@sequelize/core/_no
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT CHARACTER SET \'utf8mb4\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS "myDatabase";',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS myDatabase;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',

@@ -37,7 +37,15 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  createDatabaseQuery(databaseName, options) {
+  createDatabaseQuery() {
+    throw new Error(`Creating databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use createSchema instead.`);
+  }
+
+  dropDatabaseQuery() {
+    throw new Error(`Dropping databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use dropSchema instead.`);
+  }
+
+  createSchema(schemaName, options) {
     options = {
       charset: null,
       collate: null,
@@ -46,19 +54,15 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
-      this.quoteIdentifier(databaseName),
+      this.quoteIdentifier(schemaName),
       options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
       options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
 
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  createSchema() {
-    return 'SHOW TABLES';
+  dropSchema(schemaName) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
   showSchemasQuery() {

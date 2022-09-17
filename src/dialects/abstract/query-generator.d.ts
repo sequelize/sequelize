@@ -65,6 +65,14 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+export interface CreateDatabaseQueryOptions {
+  collate?: string;
+  encoding?: string;
+  ctype?: string;
+  template?: string;
+  charset?: string;
+}
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -124,4 +132,7 @@ export class AbstractQueryGenerator {
   ): string;
 
   dropSchema(tableName: TableName): string | { query: string, bind?: unknown[] };
+
+  createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
+  dropDatabaseQuery(databaseName: string): string;
 }

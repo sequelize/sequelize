@@ -7,6 +7,14 @@ const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
+  createDatabaseQuery() {
+    throw new Error(`Creating databases is not supported in ${this.dialect}.`);
+  }
+
+  dropDatabaseQuery() {
+    throw new Error(`Dropping databases is not supported in ${this.dialect}.`);
+  }
+
   createSchema() {
     return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }
