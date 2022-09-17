@@ -22,6 +22,7 @@ export interface AbstractQueryOptions {
    * A function that gets executed while running the query to log the sql.
    */
   logging?: boolean | ((sql: string, timing?: number) => void);
+  queryLabel?: string;
 
   include: boolean;
   includeNames: unknown[];

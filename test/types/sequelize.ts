@@ -17,8 +17,14 @@ export const sequelize = new Sequelize({
   retry: {
     max: 123,
     match: ['hurr'],
+    timeout: 3000,
+    backoffBase: 1000,
+    backoffExponent: 1.2,
+    report: (msg, options) => {},
+    name: 'durr',
   },
   dialectModule: {},
+  keepDefaultTimezone: false,
   pool: {
     evict: 1000,
   },

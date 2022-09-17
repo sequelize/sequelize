@@ -996,15 +996,38 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (options.limit || options.offset) {
-      // TODO: document why this is adding the primary key of the model in ORDER BY
-      //  if options.include is set
+      // TODO: document why this is adding the primary key of the model in ORDER BY if options.include is set
       if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
-        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
-        if (!options.order || options.order.length === 0) {
+        let primaryKey = model.primaryKeyField;
+        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(primaryKey)}`;
+        const aliasedAttribute = this._getAliasForFieldFromQueryOptions(primaryKey, options);
+
+        if (aliasedAttribute) {
+          const modelName = this.quoteIdentifier(options.tableAs || model.name);
+          const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+
+          primaryKey = alias || aliasedAttribute[1];
+        }
+
+        if (!orders.mainQueryOrder || orders.mainQueryOrder.length === 0) {
           fragment += ` ORDER BY ${tablePkFragment}`;
         } else {
-          const orderFieldNames = _.map(options.order, order => order[0]);
-          const primaryKeyFieldAlreadyPresent = _.includes(orderFieldNames, model.primaryKeyField);
+          const orderFieldNames = (options.order || []).map(order => {
+            const value = Array.isArray(order) ? order[0] : order;
+
+            if (value instanceof Utils.Col) {
+              return value.col;
+            }
+
+            if (value instanceof Utils.Literal) {
+              return value.val;
+            }
+
+            return value;
+          });
+          const primaryKeyFieldAlreadyPresent = orderFieldNames.includes(
+            (primaryKey.col || primaryKey),
+          );
 
           if (!primaryKeyFieldAlreadyPresent) {
             fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';
