@@ -69,7 +69,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
   afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
   beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<unknown>): HookReturn;
-  afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): HookReturn;
+  afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<unknown>): HookReturn;
 }
 
 export interface SequelizeHooks<
