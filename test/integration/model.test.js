@@ -2158,7 +2158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(schemas).to.deep.equal(expectedSchemas[dialectName]);
       });
 
-      if (['mysql', 'sqlite'].includes(dialectName)) {
+      if (['sqlite'].includes(dialectName)) {
         it('should take schemaDelimiter into account if applicable', async function () {
           let test = 0;
           const UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {
@@ -2246,10 +2246,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
-        if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi'].includes(dialectName)) {
-          await Support.dropTestSchemas(this.sequelize);
-          await this.sequelize.queryInterface.createSchema('prefix');
-        }
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.queryInterface.createSchema('prefix');
 
         let test = false;
 
@@ -2273,6 +2271,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 break;
               }
 
+              case 'mysql':
               case 'mariadb': {
                 expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
 
@@ -2320,16 +2319,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 break;
               }
 
-              case 'mariadb': {
+              case 'mysql':
+              case 'mariadb':
+              default: {
                 expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special`.`UserSpecials`');
                 expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
 
                 break;
-              }
-
-              default: {
-                expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-                expect(UserPublic).to.include('INSERT INTO `UserPublics`');
               }
             }
           },
@@ -2359,14 +2355,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 break;
               }
 
-              case 'mariadb': {
+              case 'mysql':
+              case 'mariadb':
+              default: {
                 expect(UserSpecial).to.include('INSERT INTO `special`.`UserSpecials`');
 
                 break;
-              }
-
-              default: {
-                expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
               }
             }
           },
@@ -2390,14 +2384,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 break;
               }
 
-              case 'mariadb': {
+              case 'mysql':
+              case 'mariadb':
+              default: {
                 expect(user).to.include('UPDATE `special`.`UserSpecials`');
 
                 break;
-              }
-
-              default: {
-                expect(user).to.include('UPDATE `special.UserSpecials`');
               }
             }
           },
