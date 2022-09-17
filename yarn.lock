@@ -4021,7 +4021,7 @@ glob@^7.0.5, glob@^7.1.1, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6, glob@^7.2.0:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^8.0.1, glob@^8.0.3, glob@~8.0.3:
+glob@^8.0.1, glob@~8.0.3:
   version "8.0.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-8.0.3.tgz#415c6eb2deed9e502c68fa44a272e6da6eeca42e"
   integrity sha512-ull455NHSHI/Y1FqGaaYFaLGkNMMJbavMrEGFXG/PGrg6y7sutWHUHrz6gy6WEBH6akM1M414dWKCNs+IhKdiQ==
@@ -5581,7 +5581,7 @@ marked-terminal@^5.0.0:
     node-emoji "^1.11.0"
     supports-hyperlinks "^2.2.0"
 
-marked@^4.0.10, marked@^4.0.16:
+marked@^4.0.10, marked@^4.0.19:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/marked/-/marked-4.1.0.tgz#3fc6e7485f21c1ca5d6ec4a39de820e146954796"
   integrity sha512-+Z6KDjSPa6/723PQYyc1axYZpYYpDnECDaU6hkaf5gqBieBkMKYReL5hteF2QizhlMbgbo8umXl/clZ67+GlsA==
@@ -7688,14 +7688,14 @@ shell-quote@^1.7.3:
   resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.7.3.tgz#aa40edac170445b9a431e17bb62c0b881b9c4123"
   integrity sha512-Vpfqwm4EnqGdlsBFNmHhxhElJYrdfcxPThu+ryKS5J8L/fhAwLazFZtq+S+TWZ9ANj2piSQLGj6NQg+lKPmxrw==
 
-shiki@^0.10.1:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.10.1.tgz#6f9a16205a823b56c072d0f1a0bcd0f2646bef14"
-  integrity sha512-VsY7QJVzU51j5o1+DguUd+6vmCmZ5v/6gYu4vyYAhzjuNQU6P/vmSy4uQaOhvje031qQMiW0d2BwgMH52vqMng==
+shiki@^0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.11.1.tgz#df0f719e7ab592c484d8b73ec10e215a503ab8cc"
+  integrity sha512-EugY9VASFuDqOexOgXR18ZV+TbFrQHeCpEYaXamO+SZlsnT/2LxuLBX25GGtIrwaEVFXUAbUQ601SWE2rMwWHA==
   dependencies:
     jsonc-parser "^3.0.0"
     vscode-oniguruma "^1.6.1"
-    vscode-textmate "5.2.0"
+    vscode-textmate "^6.0.0"
 
 shimmer@^1.2.0:
   version "1.2.1"
@@ -8597,16 +8597,15 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc@0.22.18:
-  version "0.22.18"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.22.18.tgz#1d000c33b66b88fd8cdfea14a26113a83b7e6591"
-  integrity sha512-NK9RlLhRUGMvc6Rw5USEYgT4DVAUFk7IF7Q6MYfpJ88KnTZP7EneEa4RcP+tX1auAcz7QT1Iy0bUSZBYYHdoyA==
+typedoc@0.23.14:
+  version "0.23.14"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.14.tgz#d3af50b38fe98210ac39e112b5892f9d88546c93"
+  integrity sha512-s2I+ZKBET38EctZvbXp2GooHrNaKjWZkrwGEK/sttnOGiKJqU0vHrsdcwLgKZGuo2aedNL3RRPj1LnAAeYscig==
   dependencies:
-    glob "^8.0.3"
     lunr "^2.3.9"
-    marked "^4.0.16"
+    marked "^4.0.19"
     minimatch "^5.1.0"
-    shiki "^0.10.1"
+    shiki "^0.11.1"
 
 typescript@4.7.4:
   version "4.7.4"
@@ -8973,10 +8972,10 @@ vscode-oniguruma@^1.6.1:
   resolved "https://registry.yarnpkg.com/vscode-oniguruma/-/vscode-oniguruma-1.6.2.tgz#aeb9771a2f1dbfc9083c8a7fdd9cccaa3f386607"
   integrity sha512-KH8+KKov5eS/9WhofZR8M8dMHWN2gTxjMsG4jd04YhpbPR91fUj7rYQ2/XjeHCJWbg7X++ApRIU9NUwM2vTvLA==
 
-vscode-textmate@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.2.0.tgz#01f01760a391e8222fe4f33fbccbd1ad71aed74e"
-  integrity sha512-Uw5ooOQxRASHgu6C7GVvUxisKXfSgW4oFlO+aa+PAkgmH89O3CXxEEzNRNtHSqtXFTl0nAC1uYj0GMSH27uwtQ==
+vscode-textmate@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-6.0.0.tgz#a3777197235036814ac9a92451492f2748589210"
+  integrity sha512-gu73tuZfJgu+mvCSy4UZwd2JXykjK9zAZsfmDeut5dx/1a7FeTk0XwJsSuqQn+cuMCGVbIBfl+s53X4T19DnzQ==
 
 vscode-uri@^3.0.3:
   version "3.0.3"
