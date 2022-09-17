@@ -21,7 +21,6 @@ describe('QueryGenerator#listSchemasQuery', () => {
 
   it('supports a skip option', () => {
     expectsql(() => queryGenerator.listSchemasQuery({ skip: ['test', 'Te\'st2'] }), {
-      default: 'nop',
       'mysql mariadb': `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema', 'test', 'Te\\'st2');`,
       mssql: `SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN (N'INFORMATION_SCHEMA', N'dbo', N'guest', N'sys', N'archive', N'test', N'Te''st2') AND "s"."name" NOT LIKE 'db_%'`,
       postgres: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public', 'test', 'Te''st2');`,
