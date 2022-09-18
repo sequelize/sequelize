@@ -618,6 +618,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.rawAttributes).not.to.have.property('created_at');
       expect(User.rawAttributes).not.to.have.property('updated_at');
     });
+
+    it('should allow custom timestamps with underscored: true (unit test variant)', async function () {
+      const User = this.sequelize.define('User', {}, {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
+        timestamps: true,
+        underscored: true,
+      });
+
+      expect(User.rawAttributes).to.haveOwnProperty('createdAt');
+      expect(User.rawAttributes).to.haveOwnProperty('updatedAt');
+      expect(User.rawAttributes.updatedAt.field).to.eq('updated_at');
+
+      expect(User._timestampAttributes.createdAt).to.equal('createdAt');
+      expect(User._timestampAttributes.updatedAt).to.equal('updatedAt');
+
+      expect(User.rawAttributes).not.to.have.property('created_at');
+      expect(User.rawAttributes).not.to.have.property('updated_at');
+    });
   });
 
   describe('build', () => {
