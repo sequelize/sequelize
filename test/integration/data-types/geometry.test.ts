@@ -43,7 +43,7 @@ describe(getTestDialectTeaser('Model'), () => {
       const user1 = await User.create({ geometry: point1 });
       await User.update({ geometry: point2 }, { where: { id: user1.id } });
       const user2 = await User.findOne({ rejectOnEmpty: true });
-      expect(user2.geometry).to.deep.eq(point2);
+      expect(user2.geometry).to.deep.include(point2);
     });
 
     it('works with crs field', async () => {
@@ -148,7 +148,7 @@ describe(getTestDialectTeaser('Model'), () => {
       const point: GeoJsonPoint = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
 
       const newUser = await User.create({ geometry: point });
-      expect(newUser.geometry).to.deep.eq(point);
+      expect(newUser.geometry).to.deep.include(point);
     });
 
     it('works with crs field', async () => {
@@ -180,7 +180,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
       const newUser = await User.create({ geometry: point });
       expect(newUser).not.to.be.null;
-      expect(newUser.geometry).to.deep.eq(point);
+      expect(newUser.geometry).to.deep.include(point);
     });
 
     it('should update a geometry object', async () => {
@@ -191,7 +191,7 @@ describe(getTestDialectTeaser('Model'), () => {
       const user1 = await User.create({ geometry: point1 });
       await User.update({ geometry: point2 }, { where: { id: user1.id } });
       const user = await User.findOne({ where: { id: user1.id }, rejectOnEmpty: true });
-      expect(user.geometry).to.deep.eq(point2);
+      expect(user.geometry).to.deep.include(point2);
     });
 
     it('works with crs field', async () => {
@@ -229,7 +229,7 @@ describe(getTestDialectTeaser('Model'), () => {
       };
 
       const newUser = await User.create({ geometry: point });
-      expect(newUser.geometry).to.deep.eq(point);
+      expect(newUser.geometry).to.deep.include(point);
     });
 
     it('works with crs field', async () => {
@@ -273,7 +273,7 @@ describe(getTestDialectTeaser('Model'), () => {
       const user1 = await User.create(props);
       await User.update({ geometry: polygon2 }, { where: { id: user1.id } });
       const user = await User.findOne({ where: { id: user1.id }, rejectOnEmpty: true });
-      expect(user.geometry).to.deep.eq(polygon2);
+      expect(user.geometry).to.deep.include(polygon2);
     });
   });
 });

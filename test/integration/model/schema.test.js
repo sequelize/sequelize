@@ -159,21 +159,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           last_name: DataTypes.STRING,
         },
         { tableName: 'employees' });
-        this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location, {
           foreignKey: 'location_id',
           foreignKeyConstraints: false,
         });
-
         this.Employee.belongsTo(this.Restaurant, {
           foreignKey: 'restaurant_id',
           foreignKeyConstraints: false,
         });
-
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
           foreignKeyConstraints: false,
         });
+
+        this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
+        this.EmployeeTwo = this.Employee.schema(SCHEMA_TWO);
         this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
         this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);
       });
@@ -350,12 +350,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('Get schema specific associated data via include', () => {
         beforeEach(async function () {
-          const Employee = this.Employee;
-
-          await Promise.all([
-            Employee.schema(SCHEMA_ONE).sync({ force: true }),
-            Employee.schema(SCHEMA_TWO).sync({ force: true }),
-          ]);
+          await this.EmployeeOne.sync({ force: true });
+          await this.EmployeeTwo.sync({ force: true });
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', async function () {
@@ -378,9 +374,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           const obj0 = await this.RestaurantOne.findOne({
-            where: { foo: 'one' }, include: [{
-              model: this.EmployeeOne, as: 'employees',
+            where: { foo: 'one' },
+            include: [{
+              model: this.EmployeeOne,
+              as: 'employees',
             }],
+            logging: console.log,
           });
 
           expect(obj0).to.not.be.null;
@@ -418,7 +417,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(obj1.foo).to.equal('two');
           const restaurantId = obj1.id;
 
-          await this.Employee.schema(SCHEMA_TWO).create({
+          await this.EmployeeTwo.create({
             first_name: 'Restaurant',
             last_name: 'two',
             restaurant_id: restaurantId,
@@ -427,7 +426,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const obj0 = await this.RestaurantTwo.findOne({
             where: { foo: 'two' },
             include: [{
-              model: this.Employee.schema(SCHEMA_TWO),
+              model: this.EmployeeTwo,
               as: 'employees',
             }],
           });

@@ -72,7 +72,7 @@ if (dialect.name === 'postgres') {
         const testRange: Range<number> = [{ value: 5, inclusive: true }, { value: 10, inclusive: true }];
         const rangeType = DataTypes.RANGE(DataTypes.INTEGER).toDialectDataType(dialect);
 
-        const stringified = rangeType.stringify(testRange, {
+        const stringified = rangeType.toBindableValue(testRange, {
           dialect,
           escape: identity,
         });
