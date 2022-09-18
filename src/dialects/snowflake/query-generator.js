@@ -1,6 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION, LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -53,7 +57,13 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 
   createDatabaseQuery(databaseName, options) {
     if (options) {
-      rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return Utils.joinSQLFragments([
@@ -75,7 +85,13 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 
   createSchemaQuery(schema, options) {
     if (options) {
-      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
@@ -87,7 +103,13 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 
   listSchemasQuery(options) {
     if (options) {
-      rejectInvalidOptions('listSchemasQuery', this.dialect, LIST_SCHEMAS_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'listSchemasQuery',
+        this.dialect,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+        LIST_SCHEMAS_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return `SHOW SCHEMAS;`;

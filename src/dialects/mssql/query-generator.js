@@ -1,6 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -22,7 +26,13 @@ const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
     if (options) {
-      rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
@@ -51,7 +61,13 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
   createSchemaQuery(schema, options) {
     if (options) {
-      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return [

@@ -1,6 +1,7 @@
 'use strict';
 
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
+import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -28,7 +29,13 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
   createSchemaQuery(schema, options) {
     if (options) {
-      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;

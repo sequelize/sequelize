@@ -1,6 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -27,7 +31,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   createDatabaseQuery(databaseName, options) {
     if (options) {
-      rejectInvalidOptions('createDatabaseQuery', this.dialect, CREATE_DATABASE_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     const quotedDatabaseName = this.quoteIdentifier(databaseName);
@@ -49,7 +59,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   createSchemaQuery(schema, options) {
     if (options) {
-      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;

@@ -65,6 +65,7 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+// keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
   charset?: string;
@@ -73,11 +74,13 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
+// keep CREATE_SCHEMA_QUERY_OPTION_NAMES updated when modifying this
 export interface CreateSchemaQueryOptions {
   collate?: string;
   charset?: string;
 }
 
+// keep LIST_SCHEMAS_QUERY_OPTION_NAMES updated when modifying this
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];

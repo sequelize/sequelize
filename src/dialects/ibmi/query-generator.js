@@ -1,6 +1,7 @@
 'use strict';
 
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
+import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -23,7 +24,13 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   // Schema queries
   createSchemaQuery(schema, options) {
     if (options) {
-      rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
     return `CREATE SCHEMA "${schema}"`;

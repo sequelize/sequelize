@@ -67,7 +67,6 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async createSchema(schema, options) {
-    options = options || {};
     const sql = this.queryGenerator.createSchemaQuery(schema);
 
     return await this.sequelize.queryRaw(sql, options);
@@ -82,12 +81,11 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropSchema(schema, options) {
-    options = options || {};
     const query = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql;
     if (typeof query === 'object') {
-      options.bind = query.bind;
+      options = { ...options, bind: query.bind };
       sql = query.query;
     } else {
       sql = query;

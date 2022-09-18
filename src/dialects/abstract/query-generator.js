@@ -22,6 +22,15 @@ const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
 /**
+ * List of possible options listed in {@link CreateDatabaseQueryOptions}.
+ * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
+ * as not all of them are supported by all dialects.
+ */
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
+export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
+
+/**
  * Abstract Query Generator
  *
  * @private
