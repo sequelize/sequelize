@@ -172,6 +172,19 @@ export abstract class AbstractDataType<
     return String(value);
   }
 
+  toString(): string {
+    try {
+      return this.toSql({ dialect: this.usageContext?.sequelize.dialect! });
+    } catch {
+      // best effort introspection (dialect may not be available)
+      return this.constructor.toString();
+    }
+  }
+
+  static toString() {
+    return this.name;
+  }
+
   /**
    * Returns a SQL declaration of this data type.
    * e.g. 'VARCHAR(255)', 'TEXT', etc…

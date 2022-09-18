@@ -3,12 +3,12 @@
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
 import { escapeMysqlString } from './mysql-utils';
+import * as DataTypes from '../../data-types';
 
 const _ = require('lodash');
 const { MySqlConnectionManager } = require('./connection-manager');
 const { MySqlQuery } = require('./query');
 const { MySqlQueryGenerator } = require('./query-generator');
-const DataTypes = require('../../data-types').mysql;
 const { MySqlQueryInterface } = require('./query-interface');
 
 export class MysqlDialect extends AbstractDialect {
