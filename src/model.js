@@ -1861,9 +1861,9 @@ Specify a different name for either index to resolve this issue.`);
     for (const attribute of attributes) {
       if (
         this._virtualAttributes.has(attribute)
-        && this.rawAttributes[attribute].type.fields
+        && this.rawAttributes[attribute].type.attributeDependencies
       ) {
-        attributes = attributes.concat(this.rawAttributes[attribute].type.fields);
+        attributes = attributes.concat(this.rawAttributes[attribute].type.attributeDependencies);
       }
     }
 

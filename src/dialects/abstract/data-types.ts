@@ -1234,6 +1234,11 @@ export class UUIDV4 extends AbstractDataType<string> {
   }
 }
 
+export interface VirtualOptions {
+  returnType: DataTypeClassOrInstance;
+  attributeDependencies?: string[] | undefined;
+}
+
 /**
  * A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model that is returned to the user but not stored in the DB.
  *
@@ -1277,25 +1282,46 @@ export class UUIDV4 extends AbstractDataType<string> {
 export class VIRTUAL<T> extends AbstractDataType<T> {
   static readonly [kDataTypeIdentifier]: string = 'VIRTUAL';
 
-  returnType: AbstractDataType<T> | undefined;
-  fields: string[] | undefined;
+  options: VirtualOptions;
+
+  constructor(returnType: DataTypeClassOrInstance, attributeDependencies?: string[]);
+  constructor(options: VirtualOptions);
+
+  // we have to define the constructor overloads using tuples due to a TypeScript limitation
+  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
+  /** @internal */
+  constructor(...args:
+    | [returnType: DataTypeClassOrInstance, attributeDependencies?: string[]]
+    | [options: VirtualOptions]
+  );
 
   /**
-   * @param [ReturnType] return type for virtual type
-   * @param [fields] array of fields this virtual type is dependent on
+   * @param [returnTypeOrOptions] return type for virtual type, or an option bag
+   * @param [attributeDependencies] array of attributes this virtual type is dependent on
    */
-  constructor(ReturnType?: DataTypeClassOrInstance, fields?: string[]) {
+  constructor(returnTypeOrOptions: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
     super();
-    if (typeof ReturnType === 'function') {
-      ReturnType = new ReturnType();
-    }
 
-    this.returnType = ReturnType;
-    this.fields = fields;
+    const returnType = isDataType(returnTypeOrOptions) ? returnTypeOrOptions : returnTypeOrOptions.returnType;
+
+    this.options = {
+      returnType: typeof returnType === 'function' ? new returnType() : returnType,
+      attributeDependencies: isDataType(returnTypeOrOptions)
+        ? attributeDependencies
+        : returnTypeOrOptions.attributeDependencies,
+    };
   }
 
   toSql(): string {
     throw new Error('toSQL should not be called on DataTypes.VIRTUAL');
+  }
+
+  get returnType() {
+    return this.options.returnType;
+  }
+
+  get attributeDependencies() {
+    return this.options.attributeDependencies;
   }
 }
 

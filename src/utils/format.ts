@@ -33,7 +33,7 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
  */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<Attributes<M>>>(
   options: T,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic<M>,
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
