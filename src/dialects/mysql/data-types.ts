@@ -44,11 +44,17 @@ export class DECIMAL extends BaseTypes.DECIMAL {
       definition += ' UNSIGNED';
     }
 
-    if (this.options.unsigned) {
+    if (this.options.zerofill) {
       definition += ' ZEROFILL';
     }
 
     return definition;
+  }
+}
+
+export class DOUBLE extends BaseTypes.DOUBLE {
+  protected getNumberSqlTypeName(): string {
+    return 'DOUBLE PRECISION';
   }
 }
 

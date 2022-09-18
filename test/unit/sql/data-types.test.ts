@@ -1440,6 +1440,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         expectsql(enumType.toSql({ dialect }), {
           postgres: '"public"."enum_Users_anEnum"',
+          mysql: `ENUM('value 1', 'value 2')`,
         });
       });
 

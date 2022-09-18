@@ -49,29 +49,33 @@ describe('DataTypes', () => {
       expect(dateType.sanitize(nowString)).to.equalTime(now);
     });
 
-    it('DATE should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-      expect(dateType.sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
-      expect(dateType.sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
-    });
+    if (dialect.supports.dataTypes.DATETIME.infinity) {
+      it('DATE should sanitize numeric Infinity/-Infinity as Infinity/-Infinity', () => {
+        expect(dateType.sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
+        expect(dateType.sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
+      });
 
-    it('DATE should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-      expect(dateType.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
-      expect(dateType.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
-    });
+      it('DATE should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
+        expect(dateType.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
+        expect(dateType.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
+      });
+    }
 
     it('DATEONLY should sanitize a Date as normal', () => {
       expect(dateOnlyType.sanitize(now)).to.equal(nowDateOnly);
       expect(dateOnlyType.sanitize(nowString)).to.equal(nowDateOnly);
     });
 
-    it('DATEONLY should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-      expect(dateOnlyType.sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
-      expect(dateOnlyType.sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
-    });
+    if (dialect.supports.dataTypes.DATEONLY.infinity) {
+      it('DATEONLY should sanitize numeric Infinity/-Infinity as Infinity/-Infinity', () => {
+        expect(dateOnlyType.sanitize(Number.POSITIVE_INFINITY)).to.equal(Number.POSITIVE_INFINITY);
+        expect(dateOnlyType.sanitize(Number.NEGATIVE_INFINITY)).to.equal(Number.NEGATIVE_INFINITY);
+      });
 
-    it('DATEONLY should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-      expect(dateOnlyType.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
-      expect(dateOnlyType.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
-    });
+      it('DATEONLY should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
+        expect(dateOnlyType.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
+        expect(dateOnlyType.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
+      });
+    }
   });
 });

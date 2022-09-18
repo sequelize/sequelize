@@ -109,6 +109,14 @@ export type DialectSupports = {
     IREGEXP: boolean,
     HSTORE: boolean,
     TSVECTOR: boolean,
+    DATETIME: {
+      /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
+      infinity: boolean,
+    },
+    DATEONLY: {
+      /** Whether "infinity" is a valid value in this dialect's DATEONLY data type */
+      infinity: boolean,
+    },
   },
   tmpTableTrigger: boolean,
   indexHints: boolean,
@@ -217,6 +225,12 @@ export abstract class AbstractDialect {
       GEOGRAPHY: false,
       HSTORE: false,
       TSVECTOR: false,
+      DATETIME: {
+        infinity: false,
+      },
+      DATEONLY: {
+        infinity: false,
+      },
     },
     deferrableConstraints: false,
     tmpTableTrigger: false,
