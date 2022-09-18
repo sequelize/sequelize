@@ -39,30 +39,9 @@ class DatabaseError
     this.parameters = parent.parameters ?? {};
 
     if (options.stack) {
-      this.stack = mergeStacks(this.stack, options.stack);
+      this.stack = options.stack;
     }
   }
-}
-
-function mergeStacks(stackWithMessage: string | undefined, stackWithTrace: string): string {
-  if (!stackWithMessage) {
-    return stackWithTrace;
-  }
-
-  const messageEndIndex = stackWithMessage.indexOf('    at ');
-  if (messageEndIndex === -1) {
-    return stackWithTrace;
-  }
-
-  const traceStartIndex = stackWithTrace.indexOf('    at ');
-  if (traceStartIndex === -1) {
-    return stackWithTrace;
-  }
-
-  const message: string = stackWithMessage.slice(0, messageEndIndex);
-  const trace: string = stackWithTrace.slice(traceStartIndex);
-
-  return message + trace;
 }
 
 export default DatabaseError;
