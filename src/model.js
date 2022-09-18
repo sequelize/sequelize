@@ -2596,10 +2596,8 @@ Specify a different name for either index to resolve this issue.`);
 
     const instances = records.map(values => this.build(values, {
       isNewRecord: true,
-      attributes: options.fields,
       include: options.include,
       raw: options.raw,
-      silent: options.silent,
     }));
 
     const recursiveBulkCreate = async (instances, options) => {
