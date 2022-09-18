@@ -287,6 +287,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    *
    * @param connection
    * @private
+   * @internal
    */
   async _disconnect(connection: TConnection) {
     await this.sequelize.runHooks('beforeDisconnect', connection);
