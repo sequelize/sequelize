@@ -58,7 +58,7 @@ function inlineErrorCause(error: Error) {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
   // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
-  if (cause) {
+  if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
   }
 
