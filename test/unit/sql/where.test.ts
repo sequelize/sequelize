@@ -850,16 +850,18 @@ describe(getTestDialectTeaser('SQL'), () => {
           const ignoreWrong3: TestModelWhere = { intAttr1: { [Op.between]: [] } };
         }
 
-        {
-          const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.between]: [[1, 2], [3, 4]] } };
-          testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-            default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[] AND ARRAY[3,4]::INTEGER[]`,
-          });
-        }
+        if (dialectSupportsArray()) {
+          {
+            const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.between]: [[1, 2], [3, 4]] } };
+            testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
+              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[] AND ARRAY[3,4]::INTEGER[]`,
+            });
+          }
 
-        {
-          // @ts-expect-error - this is not valid because intAttr1 is not an array and cannot be compared to arrays
-          const ignore: TestModelWhere = { intAttr1: { [Op.between]: [[1, 2], [3, 4]] } };
+          {
+            // @ts-expect-error - this is not valid because intAttr1 is not an array and cannot be compared to arrays
+            const ignore: TestModelWhere = { intAttr1: { [Op.between]: [[1, 2], [3, 4]] } };
+          }
         }
 
         {

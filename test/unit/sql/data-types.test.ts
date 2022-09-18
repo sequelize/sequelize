@@ -6,7 +6,8 @@ import { expect } from 'chai';
 import { v1 as uuidV1, v4 as uuidV4 } from 'uuid';
 import { expectsql, sequelize, getTestDialect, getTestDialectTeaser, createTester } from '../../support';
 
-const dialect = getTestDialect();
+const dialectName = getTestDialect();
+const dialect = sequelize.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when the default expectation is used.
 
@@ -18,7 +19,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         let result: Error | string;
 
         try {
-          result = sequelize.normalizeDataType(dataType).toSql();
+          result = sequelize.normalizeDataType(dataType).toSql({ dialect });
         } catch (error) {
           assert(error instanceof Error);
           result = error;
@@ -1437,7 +1438,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         const enumType = User.rawAttributes.anEnum.type;
         assert(typeof enumType !== 'string');
 
-        expectsql(enumType.toSql(), {
+        expectsql(enumType.toSql({ dialect }), {
           postgres: '"public"."enum_Users_anEnum"',
         });
       });
@@ -1633,7 +1634,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           });
         }
 
-        if (dialect === 'postgres') {
+        if (dialectName === 'postgres') {
           testsql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
             postgres: 'CITEXT[]',
           });
