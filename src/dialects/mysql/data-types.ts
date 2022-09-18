@@ -8,12 +8,12 @@ import type { AcceptedDate, StringifyOptions, ToSqlOptions, GeometryType } from 
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
 
-/**
-   * types: [buffer_type, ...]
-   *
-   * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
-   * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
-   */
+/*
+ * types: [buffer_type, ...]
+ *
+ * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
+ * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
+ */
 
 setDataTypeDialectMeta(BaseTypes.DATE, 'mysql', ['DATETIME']);
 setDataTypeDialectMeta(BaseTypes.STRING, 'mysql', ['VAR_STRING']);

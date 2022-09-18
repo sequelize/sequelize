@@ -233,7 +233,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
-  abstract readonly connectionManager: AbstractConnectionManager;
+  abstract readonly connectionManager: AbstractConnectionManager<any>;
   abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   #dataTypeOverridesCache: Map<string, Class<AbstractDataType<any>>> | undefined;

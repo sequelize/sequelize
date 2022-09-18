@@ -34,16 +34,16 @@ export class AbstractQueryGenerator {
       throw new Error('QueryGenerator initialized without options.sequelize');
     }
 
-    if (!options._dialect) {
-      throw new Error('QueryGenerator initialized without options._dialect');
+    if (!options.dialect) {
+      throw new Error('QueryGenerator initialized without options.dialect');
     }
 
     this.sequelize = options.sequelize;
     this.options = options.sequelize.options;
 
     // dialect name
-    this.dialect = options._dialect.name;
-    this._dialect = options._dialect;
+    this.dialect = options.dialect.name;
+    this._dialect = options.dialect;
 
     // wrap quoteIdentifier with common logic
     this._initQuoteIdentifier();

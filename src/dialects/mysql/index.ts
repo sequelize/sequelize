@@ -1,19 +1,18 @@
-'use strict';
-
+import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
+import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
+import { MySqlConnectionManager } from './connection-manager';
+import * as DataTypes from './data-types';
 import { escapeMysqlString } from './mysql-utils';
-import * as DataTypes from '../../data-types';
-
-const _ = require('lodash');
-const { MySqlConnectionManager } = require('./connection-manager');
-const { MySqlQuery } = require('./query');
-const { MySqlQueryGenerator } = require('./query-generator');
-const { MySqlQueryInterface } = require('./query-interface');
+import { MySqlQuery } from './query';
+import { MySqlQueryGenerator } from './query-generator';
+import { MySqlQueryInterface } from './query-interface';
 
 export class MysqlDialect extends AbstractDialect {
-  static supports = _.merge(
-    _.cloneDeep(AbstractDialect.supports),
+  static supports = merge(
+    cloneDeep(AbstractDialect.supports),
     {
       'VALUES ()': true,
       'LIMIT ON UPDATE': true,
@@ -49,12 +48,26 @@ export class MysqlDialect extends AbstractDialect {
     },
   );
 
-  constructor(sequelize) {
+  readonly sequelize: Sequelize;
+  readonly connectionManager: MySqlConnectionManager;
+  readonly queryGenerator: MySqlQueryGenerator;
+  readonly queryInterface: MySqlQueryInterface;
+  readonly Query = MySqlQuery;
+  readonly DataTypes = DataTypes;
+
+  // minimum supported version
+  readonly defaultVersion = '5.7.0';
+  readonly name = 'mysql';
+  readonly TICK_CHAR = '`';
+  readonly TICK_CHAR_LEFT = '`';
+  readonly TICK_CHAR_RIGHT = '`';
+
+  constructor(sequelize: Sequelize) {
     super();
     this.sequelize = sequelize;
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MySqlQueryInterface(
@@ -67,7 +80,7 @@ export class MysqlDialect extends AbstractDialect {
     return createUnspecifiedOrderedBindCollector();
   }
 
-  escapeString(value) {
+  escapeString(value: string): string {
     return escapeMysqlString(value);
   }
 
@@ -79,13 +92,4 @@ export class MysqlDialect extends AbstractDialect {
     return 3306;
   }
 }
-
-MysqlDialect.prototype.defaultVersion = '5.7.0'; // minimum supported version
-MysqlDialect.prototype.Query = MySqlQuery;
-MysqlDialect.prototype.QueryGenerator = MySqlQueryGenerator;
-MysqlDialect.prototype.DataTypes = DataTypes;
-MysqlDialect.prototype.name = 'mysql';
-MysqlDialect.prototype.TICK_CHAR = '`';
-MysqlDialect.prototype.TICK_CHAR_LEFT = MysqlDialect.prototype.TICK_CHAR;
-MysqlDialect.prototype.TICK_CHAR_RIGHT = MysqlDialect.prototype.TICK_CHAR;
 

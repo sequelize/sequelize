@@ -3,15 +3,11 @@ import merge from 'lodash/merge';
 import type { Sequelize } from '../../sequelize.js';
 import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
-import type { AbstractQueryGenerator } from '../abstract/query-generator.js';
-import type { QueryInterface } from '../abstract/query-interface.js';
 import { PostgresConnectionManager } from './connection-manager';
-// eslint-disable-next-line import/order
 import * as DataTypes from './data-types';
-
-const { PostgresQuery } = require('./query');
-const { PostgresQueryGenerator } = require('./query-generator');
-const { PostgresQueryInterface } = require('./query-interface');
+import { PostgresQuery } from './query';
+import { PostgresQueryGenerator } from './query-generator';
+import { PostgresQueryInterface } from './query-interface';
 
 export class PostgresDialect extends AbstractDialect {
   static readonly supports = merge(cloneDeep(AbstractDialect.supports), {
@@ -61,15 +57,14 @@ export class PostgresDialect extends AbstractDialect {
   });
 
   readonly sequelize: Sequelize;
-
   readonly connectionManager: PostgresConnectionManager;
-  readonly queryGenerator: AbstractQueryGenerator;
-  readonly queryInterface: QueryInterface;
+  readonly queryGenerator: PostgresQueryGenerator;
+  readonly queryInterface: PostgresQueryInterface;
+  readonly Query = PostgresQuery;
+  readonly DataTypes = DataTypes;
 
   // minimum supported version
-  readonly DataTypes = DataTypes;
   readonly defaultVersion = '9.5.0';
-  readonly Query = PostgresQuery;
   readonly name = 'postgres';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
@@ -80,7 +75,7 @@ export class PostgresDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
     this.queryGenerator = new PostgresQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new PostgresQueryInterface(

@@ -264,7 +264,7 @@ export class QueryInterface {
    */
   sequelize: Sequelize;
 
-  constructor(sequelize: Sequelize);
+  constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
 
   /**
    * Queries the schema (table list).

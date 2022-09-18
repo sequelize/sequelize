@@ -10,6 +10,7 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
+import type { Sequelize } from '../../sequelize.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
@@ -72,8 +73,15 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+interface QueryGeneratorOptions {
+  sequelize: Sequelize;
+  dialect: AbstractDialect;
+}
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
+
+  constructor(options: QueryGeneratorOptions);
 
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
