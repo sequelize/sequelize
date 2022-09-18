@@ -5,10 +5,10 @@ import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
 import type { AbstractQueryGenerator } from '../abstract/query-generator.js';
 import type { QueryInterface } from '../abstract/query-interface.js';
+import { PostgresConnectionManager } from './connection-manager';
 // eslint-disable-next-line import/order
 import * as DataTypes from './data-types';
 
-const { PostgresConnectionManager } = require('./connection-manager');
 const { PostgresQuery } = require('./query');
 const { PostgresQueryGenerator } = require('./query-generator');
 const { PostgresQueryInterface } = require('./query-interface');
@@ -61,8 +61,7 @@ export class PostgresDialect extends AbstractDialect {
 
   readonly sequelize: Sequelize;
 
-  // TODO: type these once they have been migrated to TypeScript
-  readonly connectionManager: unknown;
+  readonly connectionManager: PostgresConnectionManager;
   readonly queryGenerator: AbstractQueryGenerator;
   readonly queryInterface: QueryInterface;
 

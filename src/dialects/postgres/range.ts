@@ -1,7 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { Rangable, RangePart, Range, InputRangePart } from '../../model.js';
 
-function stringifyRangeBound<T>(bound: T | number | null, stringifyBoundary: (val: T) => string): string {
+function stringifyRangeBound<T extends {}>(bound: T | number | null, stringifyBoundary: (val: T) => string): string {
   if (bound === null) {
     return '';
   }
@@ -31,7 +31,7 @@ function parseRangeBound<T>(bound: string, parseType: ParseValue<T>): T | number
   return parseType(bound);
 }
 
-export function stringify<T>(range: Rangable<T>, stringifyBoundary: (val: T) => string): string {
+export function stringify<T extends {}>(range: Rangable<T>, stringifyBoundary: (val: T) => string): string {
   // if (!Array.isArray(data)) {
   //   throw new TypeError('range must be an array');
   // }
