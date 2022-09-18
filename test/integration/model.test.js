@@ -2152,7 +2152,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ibmi: ['sequelize_test', 'schema_test', 'special'],
           mssql: ['schema_test', 'special'],
           postgres: ['schema_test', 'special'],
-          db2: ['schema_test', 'special'],
+          db2: ['schema_test', 'special '],
         };
 
         expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
