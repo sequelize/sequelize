@@ -69,6 +69,10 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
+  listDatabasesQuery() {
+    return `SHOW DATABASES;`;
+  }
+
   createSchemaQuery(schema, options) {
     if (options) {
       rejectInvalidOptions('createSchemaQuery', this.dialect, CREATE_SCHEMA_SUPPORTED_OPTIONS, options);

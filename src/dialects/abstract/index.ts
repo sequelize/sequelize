@@ -42,7 +42,10 @@ export type DialectSupports = {
   },
   /* Do we need to say DEFAULT for bulk insert */
   bulkDefault: boolean,
+  /** Whether this dialect has native support for schemas */
   schemas: boolean,
+  /** Whether this dialect has native support for databases (in the postgres or mssql sense) */
+  databases: boolean,
   transactions: boolean,
   settingIsolationLevelDuringTransaction: boolean,
   transactionOptions: {
@@ -148,6 +151,7 @@ export abstract class AbstractDialect {
     },
     bulkDefault: false,
     schemas: false,
+    databases: false,
     transactions: true,
     settingIsolationLevelDuringTransaction: true,
     transactionOptions: {

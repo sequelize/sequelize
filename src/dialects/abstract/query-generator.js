@@ -48,15 +48,27 @@ export class AbstractQueryGenerator {
   }
 
   createDatabaseQuery() {
-    throw new Error(`Creating databases is not supported in ${this.dialect}.`);
+    if (this._dialect.supports.databases) {
+      throw new Error(`${this.dialect} declares supporting databases but createDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
   }
 
   dropDatabaseQuery() {
-    throw new Error(`Dropping databases is not supported in ${this.dialect}.`);
+    if (this._dialect.supports.databases) {
+      throw new Error(`${this.dialect} declares supporting databases but dropDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
   }
 
   listDatabasesQuery() {
-    throw new Error(`Listing databases is not supported in ${this.dialect}.`);
+    if (this._dialect.supports.databases) {
+      throw new Error(`${this.dialect} declares supporting databases but listDatabasesQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
   }
 
   extractTableDetails(tableName, options) {

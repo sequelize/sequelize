@@ -37,14 +37,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  createDatabaseQuery() {
-    throw new Error(`Creating databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use createSchemaQuery instead.`);
-  }
-
-  dropDatabaseQuery() {
-    throw new Error(`Dropping databases is not supported in ${this.dialect}. In ${this.dialect}, Databases and Schemas are equivalent. Use dropSchemaQuery instead.`);
-  }
-
   createSchemaQuery(schemaName, options) {
     return Utils.joinSQLFragments([
       'CREATE SCHEMA IF NOT EXISTS',
