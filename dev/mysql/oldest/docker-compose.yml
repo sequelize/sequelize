@@ -1,7 +1,7 @@
 services:
   mysql-oldest:
     container_name: sequelize-mysql-oldest
-    image: mysql:8.0.30
+    image: mysql:5.7.0
     environment:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
