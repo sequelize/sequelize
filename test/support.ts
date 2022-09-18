@@ -256,7 +256,7 @@ export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
   }
 
   // @ts-expect-error
-  return new ModdedQueryGenerator({ sequelize, _dialect: sequelize.dialect });
+  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 
 export function getTestDialect(): Dialect {

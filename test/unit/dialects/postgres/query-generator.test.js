@@ -1272,7 +1272,7 @@ if (dialect.startsWith('postgres')) {
         beforeEach(function () {
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+            dialect: this.sequelize.dialect,
           });
         });
 
@@ -1304,7 +1304,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: this.sequelize,
-          _dialect: this.sequelize.dialect,
+          dialect: this.sequelize.dialect,
         });
       });
 
@@ -1344,7 +1344,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: customSequelize,
-          _dialect: customSequelize.dialect,
+          dialect: customSequelize.dialect,
         });
       });
 

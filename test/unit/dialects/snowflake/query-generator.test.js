@@ -1477,7 +1477,7 @@ if (dialect === 'snowflake') {
         beforeEach(function () {
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+            dialect: this.sequelize.dialect,
           });
         });
 

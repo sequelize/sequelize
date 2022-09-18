@@ -2,14 +2,13 @@ import util from 'util';
 import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
-import isPlainObject from 'lodash/isPlainObject';
 import type { Class } from 'type-fest';
 import wkx from 'wkx';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { isString } from '../../utils/check.js';
+import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
@@ -1235,8 +1234,13 @@ export class UUIDV4 extends AbstractDataType<string> {
 }
 
 export interface VirtualOptions {
-  returnType: DataTypeClassOrInstance;
+  returnType?: DataTypeClassOrInstance | undefined;
   attributeDependencies?: string[] | undefined;
+}
+
+export interface NormalizedVirtualOptions {
+  returnType: DataTypeClassOrInstance | undefined;
+  attributeDependencies: string[];
 }
 
 /**
@@ -1282,33 +1286,35 @@ export interface VirtualOptions {
 export class VIRTUAL<T> extends AbstractDataType<T> {
   static readonly [kDataTypeIdentifier]: string = 'VIRTUAL';
 
-  options: VirtualOptions;
+  options: NormalizedVirtualOptions;
 
-  constructor(returnType: DataTypeClassOrInstance, attributeDependencies?: string[]);
-  constructor(options: VirtualOptions);
+  constructor(returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]);
+  constructor(options?: VirtualOptions);
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @internal */
   constructor(...args:
-    | [returnType: DataTypeClassOrInstance, attributeDependencies?: string[]]
-    | [options: VirtualOptions]
+    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
+    | [options?: VirtualOptions]
   );
 
   /**
    * @param [returnTypeOrOptions] return type for virtual type, or an option bag
    * @param [attributeDependencies] array of attributes this virtual type is dependent on
    */
-  constructor(returnTypeOrOptions: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
+  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
     super();
 
-    const returnType = isDataType(returnTypeOrOptions) ? returnTypeOrOptions : returnTypeOrOptions.returnType;
+    const returnType = returnTypeOrOptions == null ? undefined
+      : isDataType(returnTypeOrOptions) ? returnTypeOrOptions
+      : returnTypeOrOptions.returnType;
 
     this.options = {
       returnType: typeof returnType === 'function' ? new returnType() : returnType,
-      attributeDependencies: isDataType(returnTypeOrOptions)
+      attributeDependencies: (isDataType(returnTypeOrOptions)
         ? attributeDependencies
-        : returnTypeOrOptions.attributeDependencies,
+        : returnTypeOrOptions?.attributeDependencies) ?? [],
     };
   }
 

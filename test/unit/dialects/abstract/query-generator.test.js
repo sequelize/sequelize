@@ -145,7 +145,7 @@ describe('QueryGenerator', () => {
 
   describe('queryIdentifier', () => {
     it('should throw an error if call base quoteIdentifier', function () {
-      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
+      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, dialect: this.sequelize.dialect });
       expect(() => QG.quoteIdentifier('test', true))
         .to.throw(`quoteIdentifier for Dialect "${this.sequelize.dialect.name}" is not implemented`);
     });

@@ -1,4 +1,3 @@
-import isPlainObject from 'lodash/isPlainObject';
 import { Where } from './sequelize-method';
 
 export function isNullish(val: unknown): val is null | undefined {
@@ -15,6 +14,21 @@ export function isError(val: unknown): val is Error {
 
 export function isString(val: unknown): val is string {
   return typeof val === 'string';
+}
+
+/**
+ * Works like lodash's isPlainObject, but has better typings
+ *
+ * @param value The value to check
+ */
+export function isPlainObject(value: unknown): value is Record<PropertyKey, any> {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === null || prototype === Object.prototype;
 }
 
 /**
