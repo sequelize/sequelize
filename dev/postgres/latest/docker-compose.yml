@@ -1,7 +1,7 @@
 services:
-  postgres-10:
-    container_name: sequelize-postgres-10
-    image: sushantdhiman/postgres:10
+  postgres-latest:
+    container_name: sequelize-postgres-latest
+    image: postgis/postgis:12-3.2
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
@@ -16,4 +16,4 @@ services:
 
 networks:
   default:
-    name: sequelize-postgres-10-network
+    name: sequelize-postgres-latest-network

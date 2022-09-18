@@ -178,6 +178,11 @@ export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'd
 export interface RetryOptions {
   match?: Array<RegExp | string | Function>;
   max?: number;
+  timeout?: number;
+  backoffBase?: number;
+  backoffExponent?: number;
+  report?(msg: string, options: RetryOptions & { $current: number }): void;
+  name?: string;
 }
 
 /**
@@ -293,6 +298,13 @@ export interface Options extends Logging {
    * @default '+00:00'
    */
   timezone?: string;
+
+  /**
+   * A flag that defines if the default timezone is used to convert dates from the database.
+   *
+   * @default false
+   */
+  keepDefaultTimezone?: boolean;
 
   /**
    * A flag that defines if null values should be passed to SQL queries or not.
