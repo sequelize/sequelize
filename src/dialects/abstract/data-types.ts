@@ -1399,8 +1399,8 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     }
   }
 
-  toSql(_options: ToSqlOptions): string {
-    throw new Error('ENUM has not been implemented in this dialect.');
+  toSql(options: ToSqlOptions): string {
+    throw new Error(`ENUM has not been implemented in the ${options.dialect.name} dialect.`);
   }
 }
 
@@ -1636,6 +1636,10 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
  */
 export class GEOGRAPHY extends GEOMETRY {
   static readonly [kDataTypeIdentifier]: string = 'GEOGRAPHY';
+
+  toSql(): string {
+    return 'GEOGRAPHY';
+  }
 }
 
 /**
