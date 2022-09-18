@@ -1,14 +1,25 @@
 import type { FindOptions, QueryOptions, SaveOptions, UpsertOptions, Config, Utils } from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
+import type {
+  BeforeAssociateEventData,
+  AfterAssociateEventData,
+  AssociationOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/associations';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/hooks.js';
+import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import { expectTypeOf } from 'expect-type';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {
   class TestModel extends Model {}
 
-  const hooks: Partial<ModelHooks> = {
+  const hooks: Partial<ModelHooks<TestModel>> = {
+    validationFailed(m, options, error) {
+      expectTypeOf(m).toEqualTypeOf<TestModel>();
+      expectTypeOf(options).toEqualTypeOf<ValidationOptions>();
+      expectTypeOf(error).toEqualTypeOf<unknown>();
+    },
     beforeSave(m, options) {
       expectTypeOf(m).toEqualTypeOf<TestModel>();
       expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
@@ -36,6 +47,14 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
     afterQuery(options, query) {
       expectTypeOf(options).toEqualTypeOf<QueryOptions>();
       expectTypeOf(query).toEqualTypeOf<AbstractQuery>();
+    },
+    beforeAssociate(data, options) {
+      expectTypeOf(data).toEqualTypeOf<BeforeAssociateEventData>();
+      expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
+    },
+    afterAssociate(data, options) {
+      expectTypeOf(data).toEqualTypeOf<AfterAssociateEventData>();
+      expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
   };
 
