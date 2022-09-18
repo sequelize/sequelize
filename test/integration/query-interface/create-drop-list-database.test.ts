@@ -29,9 +29,9 @@ describe('QueryInterface#{create,drop,list}Database', () => {
     });
   } else {
     it('should throw, indicating that the method is not supported', async () => {
-      await expect(queryInterface.createDatabase(newDbName)).to.be.rejectedWith(`Creating databases is not supported in ${dialect}.`);
-      await expect(queryInterface.dropDatabase(newDbName)).to.be.rejectedWith(`Dropping databases is not supported in ${dialect}.`);
-      await expect(queryInterface.listDatabases()).to.be.rejectedWith(`Listing databases is not supported in ${dialect}.`);
+      await expect(queryInterface.createDatabase(newDbName)).to.be.rejectedWith(`Databases are not supported in ${dialect}.`);
+      await expect(queryInterface.dropDatabase(newDbName)).to.be.rejectedWith(`Databases are not supported in ${dialect}.`);
+      await expect(queryInterface.listDatabases()).to.be.rejectedWith(`Databases are not supported in ${dialect}.`);
     });
   }
 });
