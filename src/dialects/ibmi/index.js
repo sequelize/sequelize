@@ -37,6 +37,7 @@ export class IBMiDialect extends AbstractDialect {
           BINARY: true,
         },
       },
+      milliseconds: true,
     },
   );
 

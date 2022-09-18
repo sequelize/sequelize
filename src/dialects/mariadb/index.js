@@ -46,6 +46,7 @@ export class MariaDbDialect extends AbstractDialect {
           BINARY: true,
         },
       },
+      milliseconds: true,
     },
   );
 

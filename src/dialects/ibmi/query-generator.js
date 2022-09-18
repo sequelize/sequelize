@@ -644,7 +644,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this._dialect });
       if (options && options.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }

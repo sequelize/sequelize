@@ -45,6 +45,7 @@ export class MysqlDialect extends AbstractDialect {
           BINARY: true,
         },
       },
+      milliseconds: true,
     },
   );
 

@@ -40,6 +40,7 @@ export class SqliteDialect extends AbstractDialect {
       },
       JSON: true,
     },
+    milliseconds: true,
   });
 
   constructor(sequelize) {

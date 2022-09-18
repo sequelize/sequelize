@@ -43,6 +43,7 @@ export class MssqlDialect extends AbstractDialect {
         BINARY: true,
       },
     },
+    milliseconds: true,
   });
 
   constructor(sequelize) {

@@ -38,8 +38,8 @@ module.exports = BaseTypes => {
   BaseTypes.JSON.types.mariadb = ['JSON'];
 
   class DECIMAL extends BaseTypes.DECIMAL {
-    toSql() {
-      let definition = super.toSql();
+    toSql(options) {
+      let definition = super.toSql(options);
       if (this._unsigned) {
         definition += ' UNSIGNED';
       }

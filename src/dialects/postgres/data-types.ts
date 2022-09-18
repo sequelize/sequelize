@@ -8,7 +8,7 @@ import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
   StringifyOptions,
-  BindParamOptions,
+  BindParamOptions, ToSqlOptions,
 } from '../abstract/data-types';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as Hstore from './hstore';
@@ -130,12 +130,12 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 setDataTypeDialectMeta(BaseTypes.DECIMAL, 'postgres', ['numeric']);
 
 export class STRING extends BaseTypes.STRING {
-  toSql() {
+  toSql(options: ToSqlOptions) {
     if (this.options.binary) {
       return 'BYTEA';
     }
 
-    return super.toSql();
+    return super.toSql(options);
   }
 }
 
@@ -513,7 +513,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 
     return `ARRAY[${values.map((value: any) => {
       return type.escape(value, options);
-    }).join(',')}]::${type.toSql()}[]`;
+    }).join(',')}]::${type.toSql(options)}[]`;
   }
 
   bindParam(

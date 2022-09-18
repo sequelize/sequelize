@@ -38,6 +38,10 @@ export type DataType =
   | string
   | DataTypeClassOrInstance;
 
+export interface ToSqlOptions {
+  dialect: AbstractDialect;
+}
+
 export interface StringifyOptions {
   dialect: AbstractDialect;
   escape(value: unknown): string;
@@ -168,19 +172,11 @@ export abstract class AbstractDataType<
     return String(value);
   }
 
-  toString(): string {
-    return this.toSql();
-  }
-
   /**
    * Returns a SQL declaration of this data type.
    * e.g. 'VARCHAR(255)', 'TEXT', etc…
    */
-  abstract toSql(): string;
-
-  static toString() {
-    return this.name;
-  }
+  abstract toSql(options: ToSqlOptions): string;
 
   /**
    * Override this method to emit an error or a warning if the Data Type, as it is configured, is not compatible
@@ -298,7 +294,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     Object.freeze(this.options);
   }
 
-  toSql() {
+  toSql(_options: ToSqlOptions): string {
     return joinSQLFragments([
       `VARCHAR(${this.options.length})`,
       this.options.binary && 'BINARY',
@@ -490,7 +486,7 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     throw new Error(`getNumberSqlTypeName has not been implemented in ${this.constructor.name}`);
   }
 
-  toSql(): string {
+  toSql(_options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
     if (!result) {
       throw new Error('toSql called on a NUMBER DataType that did not declare its key property.');
@@ -759,7 +755,7 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
     }
   }
 
-  toSql() {
+  toSql(_options?: ToSqlOptions): string {
     if (this.options.precision || this.options.scale) {
       return `DECIMAL(${[this.options.precision, this.options.scale]
         .filter(num => num != null)
@@ -937,7 +933,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return false;
   }
 
-  private _applyTimezone(date: AcceptedDate, options: { timezone?: string | undefined }) {
+  protected _applyTimezone(date: AcceptedDate, options: { timezone?: string | undefined }) {
     if (options.timezone) {
       if (isValidTimeZone(options.timezone)) {
         return dayjs(date).tz(options.timezone);
@@ -1364,7 +1360,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     }
   }
 
-  toSql(): string {
+  toSql(_options: ToSqlOptions): string {
     throw new Error('ENUM has not been implemented in this dialect.');
   }
 }
@@ -1404,8 +1400,8 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     };
   }
 
-  toSql() {
-    return `${this.options.type.toSql()}[]`;
+  toSql(options: ToSqlOptions): string {
+    return `${this.options.type.toSql(options)}[]`;
   }
 
   validate(value: any) {

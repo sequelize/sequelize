@@ -32,6 +32,7 @@ export class Db2Dialect extends AbstractDialect {
         BINARY: true,
       },
     },
+    milliseconds: true,
   });
 
   constructor(sequelize) {

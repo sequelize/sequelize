@@ -163,12 +163,12 @@ module.exports = BaseTypes => {
   }
 
   class CHAR extends BaseTypes.CHAR {
-    toSql() {
+    toSql(options) {
       if (this._binary) {
         return `CLOB(${this._length})`;
       }
 
-      return super.toSql();
+      return super.toSql(options);
     }
   }
 

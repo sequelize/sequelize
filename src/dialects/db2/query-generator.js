@@ -610,7 +610,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this._dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
@@ -896,7 +896,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
-          dataValues[key] = Utils.now('db2');
+          dataValues[key] = Utils.now(this._dialect);
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
         } else if (rawAttributes[key].type instanceof DataTypes.INTEGER) {

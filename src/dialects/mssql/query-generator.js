@@ -602,7 +602,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this._dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, options);
       }).join(', ')}))`;
