@@ -1,8 +1,8 @@
-/* Connection string URL utils */
 import path from 'path';
 import url from 'url';
+import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
-import type { Dialect, Options } from '../sequelize';
+import type { Dialect, DialectOptions, Options } from '../sequelize';
 
 /**
  * Parses a connection string into an Options object with connection properties
@@ -26,7 +26,8 @@ export function parseConnectionString(connectionString: string): Options {
   }
 
   if (urlParts.pathname) {
-    options.database = urlParts.pathname.replace(/^\//, '');
+    // decode the URI component from urlParts.pathname value
+    options.database = decodeURIComponent(urlParts.pathname.replace(/^\//, ''));
   }
 
   if (urlParts.port) {
@@ -54,7 +55,7 @@ export function parseConnectionString(connectionString: string): Options {
       options.host = urlParts.query.host as string;
     }
 
-    options.dialectOptions = urlParts.query as object;
+    options.dialectOptions = urlParts.query;
     if (urlParts.query.options) {
       try {
         const o = JSON.parse(urlParts.query.options as string);
@@ -69,8 +70,17 @@ export function parseConnectionString(connectionString: string): Options {
   // For postgres, we can use this helper to load certs directly from the
   // connection string.
   if (options.dialect === 'postgres') {
-    options.dialectOptions = options.dialectOptions || {};
-    Object.assign(options.dialectOptions, pgConnectionString.parse(connectionString));
+    const parseResult: Partial<ConnectionOptions> = pgConnectionString.parse(connectionString);
+
+    delete parseResult.database;
+    delete parseResult.password;
+    delete parseResult.user;
+    delete parseResult.host;
+    delete parseResult.port;
+    delete parseResult.options; // we JSON.parse it
+
+    options.dialectOptions ||= Object.create(null) as DialectOptions;
+    Object.assign(options.dialectOptions, parseResult);
   }
 
   return options;

@@ -22,8 +22,7 @@ if (dialect !== 'ibmi') {
           close() {},
         });
 
-      this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
-        .resolves();
+      this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection');
     });
 
     beforeEach(function () {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { createNamedParamBindCollector, createSpecifiedOrderedBindCollector } from '../../utils/sql';
+import { createNamedParamBindCollector } from '../../utils/sql';
 
 const _ = require('lodash');
 const { AbstractDialect } = require('../abstract');
@@ -69,6 +69,10 @@ export class MssqlDialect extends AbstractDialect {
     value = value.replace(/'/g, '\'\'');
 
     return `N'${value}'`;
+  }
+
+  static getDefaultPort() {
+    return 1433;
   }
 }
 

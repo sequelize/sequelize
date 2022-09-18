@@ -69,6 +69,14 @@ export class MysqlDialect extends AbstractDialect {
   escapeString(value) {
     return escapeMysqlString(value);
   }
+
+  canBackslashEscape() {
+    return true;
+  }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 MysqlDialect.prototype.defaultVersion = '5.7.0'; // minimum supported version

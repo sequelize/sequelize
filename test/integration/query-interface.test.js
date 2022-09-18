@@ -504,6 +504,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(ref.tableName).to.equal('hosts');
         expect(ref.referencedColumnName).to.equal('id');
         expect(ref.referencedTableName).to.equal('users');
+        if (dialect === 'sqlite') {
+          expect(ref).to.have.property('constraints');
+        }
       }
 
       const columnNames = references.map(reference => reference.columnName);

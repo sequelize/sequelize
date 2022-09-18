@@ -2451,7 +2451,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findAll<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    options?: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
+    options: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
   ): Promise<R[]>;
   static findAll<M extends Model>(
     this: ModelStatic<M>,
@@ -2842,18 +2842,18 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *   value of `by` given in options. If an array is provided, the same is true for each column.
    *   If an object is provided, each key is incremented by the corresponding value, `by` is ignored.
    *
-   * @returns an array of affected rows and affected count with `options.returning` true, whenever supported by dialect
+   * @returns an array of affected rows or with affected count if `options.returning` is true, whenever supported by dialect
    */
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<[affectedRows: M[]]>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
    * Decrements the value of one or more attributes.
@@ -2864,7 +2864,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *   value of `by` given in options. If an array is provided, the same is true for each column.
    *   If an object is provided, each key is incremented by the corresponding value, `by` is ignored.
    *
-   * @returns an array of affected rows and affected count with `options.returning` true, whenever supported by dialect
+   * @returns an array of affected rows or with affected count if `options.returning` is true, whenever supported by dialect
    *
    * @since 4.36.0
    */
@@ -2872,12 +2872,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
     options: IncrementDecrementOptionsWithBy<Attributes<M>>
-  ): Promise<M>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
     options: IncrementDecrementOptions<Attributes<M>>
-  ): Promise<M>;
+  ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
    * A hook that is run before validation
@@ -3603,7 +3603,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   isSoftDeleted(): boolean;
 }
 
-export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new(): M };

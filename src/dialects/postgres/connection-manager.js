@@ -3,7 +3,7 @@
 import { getDataTypeDialectMeta } from '../../dialect-toolbox';
 
 const _ = require('lodash');
-const { ConnectionManager } = require('../abstract/connection-manager');
+const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const { logger } = require('../../utils/logger');
 const { isValidTimeZone } = require('../../utils/dayjs');
 
@@ -14,9 +14,8 @@ const dataTypes = require('./data-types');
 
 const { promisify } = require('util');
 
-export class PostgresConnectionManager extends ConnectionManager {
+export class PostgresConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
-    sequelize.config.port = sequelize.config.port || 5432;
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg');
@@ -222,6 +221,13 @@ export class PostgresConnectionManager extends ConnectionManager {
       });
     });
 
+    // Don't let a Postgres restart (or error) to take down the whole app
+    connection.once('error', error => {
+      connection._invalid = true;
+      debug(`connection error ${error.code || error.message}`);
+      this.pool.destroy(connection);
+    });
+
     let query = '';
 
     if (this.sequelize.options.standardConformingStrings !== false && connection.standard_conforming_strings !== 'on') {
@@ -262,13 +268,6 @@ export class PostgresConnectionManager extends ConnectionManager {
       && this.enumOids.arrayOids.length === 0) {
       await this._refreshDynamicOIDs(connection);
     }
-
-    // Don't let a Postgres restart (or error) to take down the whole app
-    connection.on('error', error => {
-      connection._invalid = true;
-      debug(`connection error ${error.code || error.message}`);
-      this.pool.destroy(connection);
-    });
 
     return connection;
   }

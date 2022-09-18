@@ -61,7 +61,7 @@ function inlineErrorCause(error: Error) {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
   // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
-  if (cause) {
+  if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
   }
 
@@ -288,8 +288,108 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = Dialect | 'default';
+type ExpectationKey = 'default' | Permutations<Dialect>;
+
+export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
+
+type Permutations<T extends string, U extends string = T> =
+  T extends any ? (T | `${T} ${Permutations<Exclude<U, T>>}`) : never;
+
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
+
+export function expectPerDialect<Out>(
+  method: () => Out,
+  assertions: ExpectationRecord<Out>,
+) {
+  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> = Object.create(null);
+
+  for (const [key, value] of Object.entries(assertions)) {
+    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    for (const dialect of acceptedDialects) {
+      if (dialect === 'default' && acceptedDialects.length > 1) {
+        throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+      }
+
+      if (expectations[dialect] !== undefined) {
+        throw new Error(`The expectation for ${dialect} was already defined.`);
+      }
+
+      expectations[dialect] = value;
+    }
+  }
+
+  let result: Out | Error;
+
+  try {
+    result = method();
+  } catch (error: unknown) {
+    assert(error instanceof Error, 'method threw a non-error');
+
+    result = error;
+  }
+
+  const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
+  if (expectation === undefined) {
+    throw new Error(`No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`);
+  }
+
+  if (expectation instanceof Error) {
+    assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
+
+    expect(result.message).to.equal(expectation.message);
+  } else {
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+
+    assertMatchesExpectation(result, expectation);
+  }
+}
+
+function assertMatchesExpectation<V>(result: V, expectation: V | Expectation<V>): void {
+  if (expectation instanceof Expectation) {
+    expectation.assert(result);
+  } else {
+    expect(result).to.deep.equal(expectation);
+  }
+}
+
+abstract class Expectation<Value> {
+  abstract assert(value: Value): void;
+}
+
+class SqlExpectation extends Expectation<string> {
+  constructor(private readonly sql: string) {
+    super();
+  }
+
+  assert(value: string) {
+    expect(minifySql(value)).to.equal(minifySql(this.sql));
+  }
+}
+
+export function toMatchSql(sql: string) {
+  return new SqlExpectation(sql);
+}
+
+type HasPropertiesInput<Obj extends Record<string, unknown>> = {
+  [K in keyof Obj]?: any | Expectation<Obj[K]> | Error;
+};
+
+class HasPropertiesExpectation<Obj extends Record<string, unknown>> extends Expectation<Obj> {
+  constructor(private readonly properties: HasPropertiesInput<Obj>) {
+    super();
+  }
+
+  assert(value: Obj) {
+    for (const key of Object.keys(this.properties) as Array<keyof Obj>) {
+      assertMatchesExpectation(value[key], this.properties[key]);
+    }
+  }
+}
+
+export function toHaveProperties<Obj extends Record<string, unknown>>(properties: HasPropertiesInput<Obj>) {
+  return new HasPropertiesExpectation<Obj>(properties);
+}
 
 export function expectsql(
   query: { query: string, bind: unknown } | Error,
@@ -305,7 +405,25 @@ export function expectsql(
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
 ): void {
-  const expectations: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
+  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
+  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+
+  for (const [key, value] of Object.entries(rawExpectationMap)) {
+    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    for (const dialect of acceptedDialects) {
+      if (dialect === 'default' && acceptedDialects.length > 1) {
+        throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+      }
+
+      if (expectations[dialect] !== undefined) {
+        throw new Error(`The expectation for ${dialect} was already defined.`);
+      }
+
+      expectations[dialect] = value;
+    }
+  }
+
   let expectation = expectations[sequelize.dialect.name];
 
   const dialect = sequelize.dialect;

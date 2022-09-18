@@ -59,6 +59,10 @@ export class SnowflakeDialect extends AbstractDialect {
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 SnowflakeDialect.prototype.defaultVersion = '5.7.0';

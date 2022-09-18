@@ -176,7 +176,7 @@ if (current.dialect.supports.dataTypes.JSON) {
           });
         });
 
-        it('unbalnced statement', () => {
+        it('unbalanced statement', () => {
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json())'))).to.throw();
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json_extract(json()'))).to.throw();
         });

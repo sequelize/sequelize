@@ -56,6 +56,7 @@ export class PostgresDialect extends AbstractDialect {
     },
     deferrableConstraints: true,
     searchPath: true,
+    escapeStringConstants: true,
   });
 
   readonly sequelize: Sequelize;
@@ -107,5 +108,17 @@ export class PostgresDialect extends AbstractDialect {
       .replace(/\0/g, '\\0');
 
     return `'${value}'`;
+  }
+
+  canBackslashEscape() {
+    // postgres can use \ to escape if one of these is true:
+    // - standard_conforming_strings is off
+    // - the string is prefixed with E (out of scope for this method)
+
+    return !this.sequelize.options.standardConformingStrings;
+  }
+
+  static getDefaultPort() {
+    return 5432;
   }
 }

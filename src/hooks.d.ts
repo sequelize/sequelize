@@ -1,3 +1,8 @@
+import type {
+  BeforeAssociateEventData,
+  AfterAssociateEventData,
+  AssociationOptions,
+} from './associations';
 import type { AbstractQuery } from './dialects/abstract/query';
 import type { ValidationOptions } from './instance-validator';
 import type {
@@ -25,6 +30,7 @@ export type HookReturn = Promise<void> | void;
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeValidate(instance: M, options: ValidationOptions): HookReturn;
   afterValidate(instance: M, options: ValidationOptions): HookReturn;
+  validationFailed(instance: M, options: ValidationOptions, error: unknown): HookReturn;
   beforeCreate(attributes: M, options: CreateOptions<TAttributes>): HookReturn;
   afterCreate(attributes: M, options: CreateOptions<TAttributes>): HookReturn;
   beforeDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
@@ -62,12 +68,14 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterBulkSync(options: SyncOptions): HookReturn;
   beforeQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
   afterQuery(options: QueryOptions, query: AbstractQuery): HookReturn;
+  beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<any>): HookReturn;
+  afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): HookReturn;
 }
 
 export interface SequelizeHooks<
   M extends Model<TAttributes, TCreationAttributes> = Model,
-  TAttributes = any,
-  TCreationAttributes = TAttributes,
+  TAttributes extends {} = any,
+  TCreationAttributes extends {} = TAttributes,
 > extends ModelHooks<M, TAttributes> {
   beforeDefine(attributes: ModelAttributes<M, TCreationAttributes>, options: ModelOptions<M>): void;
   afterDefine(model: ModelStatic): void;
@@ -181,6 +189,8 @@ export class Hooks<
    */
   hasHook<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
   hasHooks<K extends keyof SequelizeHooks<M, TModelAttributes, TCreationAttributes>>(hookType: K): boolean;
+
+  runHooks(name: string, ...params: unknown[]): Promise<void>;
 }
 
 export type HooksCtor<H extends Hooks> = typeof Hooks & { new(): H };

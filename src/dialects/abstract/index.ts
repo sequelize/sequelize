@@ -1,5 +1,6 @@
 import type { Class } from 'type-fest';
 import type { Dialect } from '../../sequelize.js';
+import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
@@ -117,6 +118,12 @@ export type DialectSupports = {
    * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
    */
   deferrableConstraints: false,
+
+  /**
+   * This dialect supports E-prefixed strings, e.g. "E'foo'", which
+   * enables the ability to use backslash escapes inside of the string.
+   */
+  escapeStringConstants: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -210,6 +217,7 @@ export abstract class AbstractDialect {
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
+    escapeStringConstants: false,
   };
 
   abstract readonly defaultVersion: string;
@@ -219,6 +227,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly connectionManager: AbstractConnectionManager;
   abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   #dataTypeOverridesCache: Map<string, Class<AbstractDataType<any>>> | undefined;
@@ -285,6 +294,19 @@ export abstract class AbstractDialect {
     value = value.replace(/'/g, '\'\'');
 
     return `'${value}'`;
+  }
+
+  /**
+   * Whether this dialect can use \ in strings to escape string delimiters.
+   *
+   * @returns
+   */
+  canBackslashEscape(): boolean {
+    return false;
+  }
+
+  static getDefaultPort(): number {
+    throw new Error(`getDefaultPort not implemented in ${this.name}`);
   }
 }
 

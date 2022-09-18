@@ -10,6 +10,7 @@ export * from './object';
 export * from './sequelize-method';
 export * from './string';
 export * from './dayjs';
+export * from './url';
 
 /**
  * getComplexSize

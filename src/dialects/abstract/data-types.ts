@@ -1022,7 +1022,7 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 }
 
 /**
- * A JSON string column. Available in MySQL, Postgres and SQLite
+ * A JSON string column.
  */
 export class JSON extends AbstractDataType<any> {
   static readonly [kDataTypeIdentifier]: string = 'JSON';

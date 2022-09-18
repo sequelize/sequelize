@@ -438,7 +438,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
-        this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        this.sequelizeWithInvalidCredentials = Support.createSequelizeInstance({
+          database: 'omg',
+          username: 'bar',
+          password: null,
+        });
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 

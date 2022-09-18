@@ -175,6 +175,18 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
+  tableExistsQuery(table) {
+    const tableName = table.tableName ?? table;
+    const schema = table.schema;
+
+    return Utils.joinSQLFragments([
+      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
+      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
+      `AND TABLE_NAME = ${this.escape(tableName)}`,
+      ';',
+    ]);
+  }
+
   addColumnQuery(table, key, dataType) {
     return Utils.joinSQLFragments([
       'ALTER TABLE',

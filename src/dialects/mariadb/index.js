@@ -70,6 +70,14 @@ export class MariaDbDialect extends AbstractDialect {
   escapeString(value) {
     return escapeMysqlString(value);
   }
+
+  canBackslashEscape() {
+    return true;
+  }
+
+  static getDefaultPort() {
+    return 3306;
+  }
 }
 
 MariaDbDialect.prototype.defaultVersion = '10.1.44'; // minimum supported version
