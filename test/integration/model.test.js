@@ -2155,7 +2155,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           db2: ['schema_test', 'special'],
         };
 
-        expect(schemas).to.deep.equal(expectedSchemas[dialectName]);
+        expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
       });
 
       it('should describeTable using the default schema settings', async function () {

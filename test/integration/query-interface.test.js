@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialectName)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -165,7 +165,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialectName)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
