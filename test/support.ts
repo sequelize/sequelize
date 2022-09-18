@@ -13,7 +13,6 @@ import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
-import { beforeEach } from 'mocha';
 import sinonChai from 'sinon-chai';
 import { Config } from './config/config';
 

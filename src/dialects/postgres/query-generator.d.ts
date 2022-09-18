@@ -1,8 +1,8 @@
 import { AbstractQueryGenerator } from '../abstract/query-generator.js';
-import { TableName } from '../abstract/query-interface.js';
+import type { TableName } from '../abstract/query-interface.js';
 
 type PgEnumNameOptions = {
-  schema?: boolean
+  schema?: boolean,
 };
 
 export class PostgresQueryGenerator extends AbstractQueryGenerator {
