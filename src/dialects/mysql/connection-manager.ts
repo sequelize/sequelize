@@ -15,10 +15,7 @@ import { isError, isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-// eslint-disable-next-line import/order
 import type { AbstractDialect } from '../abstract/index.js';
-
-const parserStore = require('../parserStore')('mysql');
 
 const debug = logger.debugContext('connection:mysql');
 
@@ -40,17 +37,18 @@ export type MySqlConnection = Connection & AbstractConnection;
  * @private
  */
 export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConnection> {
-  readonly #lib: Lib;
+  private readonly lib: Lib;
 
   constructor(dialect: AbstractDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
-    this.#lib = this._loadDialectModule('mysql2') as Lib;
+    this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 
   #typecast(field: any, next: () => void): void {
-    if (parserStore.get(field.type)) {
-      return parserStore.get(field.type)(field, this.sequelize.options, next);
-    }
+    // TODO
+    // if (parserStore.get(field.type)) {
+    //   return parserStore.get(field.type)(field, this.sequelize.options, next);
+    // }
 
     return next();
   }
@@ -82,7 +80,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     };
 
     try {
-      const connection: MySqlConnection = await createConnection(this.#lib, connectionConfig);
+      const connection: MySqlConnection = await createConnection(this.lib, connectionConfig);
 
       debug('connection acquired');
 

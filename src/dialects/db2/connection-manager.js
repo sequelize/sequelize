@@ -6,7 +6,7 @@ const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').db2;
 
 const debug = logger.debugContext('connection:db2');
-const parserStore = require('../parser-store')('db2');
+// const parserStore = require('../parser-store')('db2');
 
 /**
  * DB2 Connection Manager
@@ -18,11 +18,11 @@ const parserStore = require('../parser-store')('db2');
  * @private
  */
 export class Db2ConnectionManager extends AbstractConnectionManager {
-  #lib;
+  lib;
 
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
-    this.#lib = this._loadDialectModule('ibm_db');
+    this.lib = this._loadDialectModule('ibm_db');
   }
 
   /**

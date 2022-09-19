@@ -46,7 +46,7 @@ interface PgConnection extends Connection, Client {
 }
 
 export class PostgresConnectionManager extends AbstractConnectionManager<PgConnection> {
-  readonly #lib: Lib;
+  private readonly lib: Lib;
   readonly #arrayParserLib: ArrayParserLib;
 
   #oidMap = new Map<number, TypeOids>();
@@ -55,7 +55,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg') as Lib;
-    this.#lib = this.sequelize.config.native ? pgLib.native! : pgLib;
+    this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
 
     this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
   }
@@ -100,7 +100,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       },
     };
 
-    const connection: PgConnection = new this.#lib.Client(connectionConfig);
+    const connection: PgConnection = new this.lib.Client(connectionConfig);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -349,7 +349,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       }
     }
 
-    return this.#lib.types.getTypeParser(oid, format);
+    return this.lib.types.getTypeParser(oid, format);
   }
 
   /**

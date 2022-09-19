@@ -6,7 +6,7 @@ const { logger } = require('../../utils/logger');
 const DataTypes = require('../../data-types').snowflake;
 
 const debug = logger.debugContext('connection:snowflake');
-const parserStore = require('../parser-store')('snowflake');
+// const parserStore = require('../parser-store')('snowflake');
 
 /**
  * Snowflake Connection Manager
@@ -16,11 +16,11 @@ const parserStore = require('../parser-store')('snowflake');
  * @private
  */
 export class SnowflakeConnectionManager extends AbstractConnectionManager {
-  #lib;
+  lib;
 
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
-    this.#lib = this._loadDialectModule('snowflake-sdk');
+    this.lib = this._loadDialectModule('snowflake-sdk');
     this.refreshTypeParser(DataTypes);
   }
 

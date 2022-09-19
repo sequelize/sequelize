@@ -8,7 +8,7 @@ const DataTypes = require('../../data-types').mariadb;
 const dayjs = require('dayjs');
 
 const debug = logger.debugContext('connection:mariadb');
-const parserStore = require('../parser-store')('mariadb');
+// const parserStore = require('../parser-store')('mariadb');
 
 /**
  * MariaDB Connection Manager
@@ -20,11 +20,11 @@ const parserStore = require('../parser-store')('mariadb');
  * @private
  */
 export class MariaDbConnectionManager extends AbstractConnectionManager {
-  #lib;
+  lib;
 
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
-    this.#lib = this._loadDialectModule('mariadb');
+    this.lib = this._loadDialectModule('mariadb');
     this.refreshTypeParser(DataTypes);
   }
 

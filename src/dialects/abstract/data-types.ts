@@ -18,6 +18,9 @@ import { isDataType, isDataTypeClass } from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
+// TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.
+//       right now, they share a lot of the same logic.
+
 // legacy support
 let Moment: any;
 try {
@@ -631,34 +634,27 @@ export class INTEGER extends NUMBER {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      throw new ValidationError(
-        util.format(`%O is not a valid integer`, value),
-        [],
-      );
+      throw new ValidationError(util.format(`%O is not a valid integer`, value));
     }
 
     if (!Validator.isInt(String(value))) {
-      throw new ValidationError(
-        util.format(`%O is not a valid integer`, value),
-        [],
-      );
+      throw new ValidationError(util.format(`%O is not a valid integer`, value));
     }
   }
 
   sanitize(value: unknown): unknown {
-    if (typeof value === 'string') {
-      return parseNumber(value);
+    if (typeof value === 'string' || typeof value === 'bigint') {
+      const out = parseNumber(value);
+
+      // let validate sort this validation instead
+      if (Number.isNaN(out)) {
+        return value;
+      }
+
+      return out;
     }
 
-    if (typeof value === 'bigint') {
-      return Number(value);
-    }
-
-    if (typeof value === 'number') {
-      return value;
-    }
-
-    throw new TypeError(`Received value that cannot be cast to Number: ${util.inspect(value)} (${typeof value})`);
+    return value;
   }
 
   protected getNumberSqlTypeName(): string {
@@ -723,7 +719,8 @@ export class BIGINT extends INTEGER {
     }
 
     if (typeof value !== 'string' && typeof value !== 'number') {
-      throw new TypeError(`Received value that cannot be cast to BigInt: ${util.inspect(value)} (${typeof value})`);
+      // let validate() handle this instead
+      return value;
     }
 
     // TODO: Breaking Change: Return a BigInt by default - https://github.com/sequelize/sequelize/issues/14296

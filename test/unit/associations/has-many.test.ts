@@ -161,7 +161,12 @@ describe(getTestDialectTeaser('hasMany'), () => {
         declare user_id: ForeignKey<string | null>;
       }
 
-      User.init({}, { sequelize });
+      User.init({
+        id: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
+      }, { sequelize });
       Task.init({}, { sequelize });
 
       return { Task, User };

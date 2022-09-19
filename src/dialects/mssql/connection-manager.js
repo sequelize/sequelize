@@ -5,17 +5,17 @@ const { AsyncQueue } = require('./async-queue');
 const { logger } = require('../../utils/logger');
 const sequelizeErrors = require('../../errors');
 const DataTypes = require('../../data-types').mssql;
-const parserStore = require('../parser-store')('mssql');
+// const parserStore = require('../parser-store')('mssql');
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
 
 export class MsSqlConnectionManager extends AbstractConnectionManager {
-  #lib;
+  lib;
 
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
-    this.#lib = this._loadDialectModule('tedious');
+    this.lib = this._loadDialectModule('tedious');
     this.refreshTypeParser(DataTypes);
   }
 

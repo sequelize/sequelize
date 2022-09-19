@@ -1,3 +1,5 @@
+import type { Class } from 'type-fest';
+
 const BASE10_NUMBER_SCIENTIFIC_REGEX = /^[-+]?[0-9]*(\.[0-9]+)?([eE][-+]?[0-9]+)?$/;
 
 /**
@@ -26,6 +28,16 @@ export function parseNumber(value: string | bigint): number {
   }
 
   return Number(value);
+}
+
+export function parseNumberOrThrow(value: string | bigint, ErrorClass: Class<Error> = SyntaxError): number {
+  const result = parseNumber(value);
+
+  if (Number.isNaN(result)) {
+    throw new ErrorClass(`Cannot parse String ${value} as a Number.`);
+  }
+
+  return result;
 }
 
 const BASE10_INTEGER_REGEX = /^[-+]?[0-9]+$/;

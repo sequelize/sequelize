@@ -5,7 +5,7 @@ import util from 'node:util';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parser-store')('db2');
+// const parserStore = require('../parser-store')('db2');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 const dayjs = require('dayjs');

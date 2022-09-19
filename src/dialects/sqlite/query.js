@@ -7,7 +7,7 @@ const Utils = require('../../utils');
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parser-store')('sqlite');
+// const parserStore = require('../parser-store')('sqlite');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
