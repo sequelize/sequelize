@@ -3390,13 +3390,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
 
   /**
-   * If no key is given, returns all values of the instance, also invoking virtual getters.
+   * If no key is given, returns all values of the instance, also invoking virtual getters. If an object has child objects or if clone==true, the object will be a copy. Otherwise, it will reference instance.dataValues.
    *
    * If key is given and a field or virtual getter is present for the key it will call that getter - else it
    * will return the value for key.
    *
    * @param options.plain If set to true, included instances will be returned as plain objects
    * @param options.raw  If set to true, field and virtual setters will be ignored
+   * @param options.clone Only evaluated when key==undefined. If set to true, all objects including child-objects will be copies and not reference the original dataValues-object. (default: false)
    */
   get(options?: { plain?: boolean, clone?: boolean, raw?: boolean }): TModelAttributes;
   get<K extends keyof this>(key: K, options?: { plain?: boolean, clone?: boolean, raw?: boolean }): this[K];
