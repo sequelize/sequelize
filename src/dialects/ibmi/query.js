@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
-const parserStore = require('../parserStore')('ibmi');
+const parserStore = require('../parser-store')('ibmi');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 

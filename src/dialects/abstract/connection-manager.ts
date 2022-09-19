@@ -1,5 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-import each from 'lodash/each';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
@@ -87,19 +86,6 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     } else {
       debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`);
     }
-  }
-
-  // TODO: Update once we have DataTypes migrated to TS
-  refreshTypeParser(dataTypes: Record<string, any>) {
-    each(dataTypes, dataType => {
-      if ('parse' in dataType) {
-        this._refreshTypeParser(dataType);
-      }
-    });
-  }
-
-  _refreshTypeParser(_dataType: unknown): void {
-    throw new Error(`_refreshTypeParser not implemented in ${this.constructor.name}`);
   }
 
   /**

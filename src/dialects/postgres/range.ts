@@ -28,14 +28,18 @@ function parseRangeBound<T>(bound: string, parseType: ParseValue<T>): T | number
     return Number.NEGATIVE_INFINITY;
   }
 
+  if (bound.startsWith('"')) {
+    bound = bound.slice(1);
+  }
+
+  if (bound.endsWith('"')) {
+    bound = bound.slice(0, -1);
+  }
+
   return parseType(bound);
 }
 
 export function stringify<T extends {}>(range: Rangable<T>, stringifyBoundary: (val: T) => string): string {
-  // if (!Array.isArray(data)) {
-  //   throw new TypeError('range must be an array');
-  // }
-
   if (range.length === 0) {
     return 'empty';
   }

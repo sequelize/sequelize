@@ -3,6 +3,7 @@ import merge from 'lodash/merge';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
+import * as BaseTypes from '../abstract/data-types.js';
 import { MySqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { escapeMysqlString } from './mysql-utils';
@@ -74,6 +75,29 @@ export class MysqlDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+
+    /*
+     * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
+     * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
+     */
+    this.registerDataTypeParser(BaseTypes.DATE, ['DATETIME']);
+    this.registerDataTypeParser(BaseTypes.STRING, ['VAR_STRING']);
+    this.registerDataTypeParser(BaseTypes.CHAR, ['STRING']);
+    this.registerDataTypeParser(BaseTypes.TEXT, ['BLOB']);
+    this.registerDataTypeParser(BaseTypes.TINYINT, ['TINY']);
+    this.registerDataTypeParser(BaseTypes.SMALLINT, ['SHORT']);
+    this.registerDataTypeParser(BaseTypes.MEDIUMINT, ['INT24']);
+    this.registerDataTypeParser(BaseTypes.INTEGER, ['LONG']);
+    this.registerDataTypeParser(BaseTypes.BIGINT, ['LONGLONG']);
+    this.registerDataTypeParser(BaseTypes.FLOAT, ['FLOAT']);
+    this.registerDataTypeParser(BaseTypes.TIME, ['TIME']);
+    this.registerDataTypeParser(BaseTypes.DATEONLY, ['DATE']);
+    this.registerDataTypeParser(BaseTypes.BOOLEAN, ['TINY']);
+    this.registerDataTypeParser(BaseTypes.BLOB, ['TINYBLOB', 'BLOB', 'LONGBLOB']);
+    this.registerDataTypeParser(BaseTypes.DECIMAL, ['NEWDECIMAL']);
+    this.registerDataTypeParser(BaseTypes.DOUBLE, ['DOUBLE']);
+    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['GEOMETRY']);
+    this.registerDataTypeParser(BaseTypes.JSON, ['JSON']);
   }
 
   createBindCollector() {

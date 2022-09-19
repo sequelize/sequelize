@@ -842,6 +842,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   fromArray(text) {
+    if (Array.isArray(text)) {
+      return text;
+    }
+
     text = text.replace(/^{/, '').replace(/}$/, '');
     let matches = text.match(/("(?:\\.|[^"\\])*"|[^,]*)(?:\s*,\s*|\s*$)/gi);
 

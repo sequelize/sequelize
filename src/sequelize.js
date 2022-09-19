@@ -1,16 +1,14 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
-import { AbstractDataType } from './dialects/abstract/data-types';
+import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { AggregateError } from './errors';
 import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isSameInitialModel, isModelStatic } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { parseConnectionString } from './utils/url';
 
-const NodeUtils = require('util');
 const retry = require('retry-as-promised');
 const _ = require('lodash');
 const Utils = require('./utils');
@@ -1239,19 +1237,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeDataType(Type) {
-    if (typeof Type === 'string') {
-      return Type;
-    }
-
-    if (typeof Type !== 'function' && !(Type instanceof AbstractDataType)) {
-      throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
-    }
-
-    const type = typeof Type === 'function'
-      ? new Type()
-      : Type;
-
-    return type.toDialectDataType(this.dialect);
+    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {

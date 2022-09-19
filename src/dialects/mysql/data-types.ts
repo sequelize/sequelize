@@ -1,41 +1,11 @@
 import dayjs from 'dayjs';
 import wkx from 'wkx';
-import { setDataTypeDialectMeta } from '../../dialect-toolbox.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate, StringifyOptions, ToSqlOptions, GeometryType } from '../abstract/data-types.js';
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
-
-/*
- * types: [buffer_type, ...]
- *
- * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
- * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
- */
-
-setDataTypeDialectMeta(BaseTypes.DATE, 'mysql', ['DATETIME']);
-setDataTypeDialectMeta(BaseTypes.STRING, 'mysql', ['VAR_STRING']);
-setDataTypeDialectMeta(BaseTypes.CHAR, 'mysql', ['STRING']);
-setDataTypeDialectMeta(BaseTypes.TEXT, 'mysql', ['BLOB']);
-setDataTypeDialectMeta(BaseTypes.TINYINT, 'mysql', ['TINY']);
-setDataTypeDialectMeta(BaseTypes.SMALLINT, 'mysql', ['SHORT']);
-setDataTypeDialectMeta(BaseTypes.MEDIUMINT, 'mysql', ['INT24']);
-setDataTypeDialectMeta(BaseTypes.INTEGER, 'mysql', ['LONG']);
-setDataTypeDialectMeta(BaseTypes.BIGINT, 'mysql', ['LONGLONG']);
-setDataTypeDialectMeta(BaseTypes.FLOAT, 'mysql', ['FLOAT']);
-setDataTypeDialectMeta(BaseTypes.TIME, 'mysql', ['TIME']);
-setDataTypeDialectMeta(BaseTypes.DATEONLY, 'mysql', ['DATE']);
-setDataTypeDialectMeta(BaseTypes.BOOLEAN, 'mysql', ['TINY']);
-setDataTypeDialectMeta(BaseTypes.BLOB, 'mysql', ['TINYBLOB', 'BLOB', 'LONGBLOB']);
-setDataTypeDialectMeta(BaseTypes.DECIMAL, 'mysql', ['NEWDECIMAL']);
-setDataTypeDialectMeta(BaseTypes.UUID, 'mysql', false);
-setDataTypeDialectMeta(BaseTypes.ENUM, 'mysql', false);
-setDataTypeDialectMeta(BaseTypes.REAL, 'mysql', ['DOUBLE']);
-setDataTypeDialectMeta(BaseTypes.DOUBLE, 'mysql', ['DOUBLE']);
-setDataTypeDialectMeta(BaseTypes.GEOMETRY, 'mysql', ['GEOMETRY']);
-setDataTypeDialectMeta(BaseTypes.JSON, 'mysql', ['JSON']);
 
 export class DECIMAL extends BaseTypes.DECIMAL {
   toSql(options: ToSqlOptions) {

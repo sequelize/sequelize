@@ -5,24 +5,17 @@ const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('connection:ibmi');
-const parserStore = require('../parserStore')('ibmi');
+const parserStore = require('../parser-store')('ibmi');
 const DataTypes = require('../../data-types').ibmi;
 
 export class IBMiConnectionManager extends AbstractConnectionManager {
+  #lib;
+
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
     this.connections = {};
-    this.lib = this._loadDialectModule('odbc');
-    this.refreshTypeParser(DataTypes);
-  }
-
-  _refreshTypeParser(dataType) {
-    parserStore.refresh(dataType);
-  }
-
-  _clearTypeParser() {
-    parserStore.clear();
+    this.#lib = this._loadDialectModule('odbc');
   }
 
   async connect(config) {

@@ -1,7 +1,8 @@
 import type { Class } from 'type-fest';
 import type { Dialect } from '../../sequelize.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
-import type { AbstractDataType } from './data-types.js';
+import { normalizeDataType } from './data-types-utils.js';
+import type { AbstractDataType, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
@@ -251,6 +252,7 @@ export abstract class AbstractDialect {
   abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   #dataTypeOverridesCache: Map<string, Class<AbstractDataType<any>>> | undefined;
+  #dataTypeParsers = new Map<unknown, AbstractDataType<any>>();
 
   /**
    * A map that lists the dialect-specific data-type extensions.
@@ -323,6 +325,34 @@ export abstract class AbstractDialect {
    */
   canBackslashEscape(): boolean {
     return false;
+  }
+
+  getDefaultPort(): number {
+    // @ts-expect-error untyped constructor
+    return this.constructor.getDefaultPort();
+  }
+
+  /**
+   * Used to register a base parser for a Database type.
+   * See {@link AbstractDataType#parse} for more information.
+   *
+   * @param dataType The DataType whose {@link AbstractDataType#parse} method will be used to parse this Database data type value.
+   * @param databaseDataTypes Dialect-specific DB data type identifiers that will use this dataType's {@link AbstractDataType#parse} method as their parser.
+   */
+  registerDataTypeParser(dataType: DataType, databaseDataTypes: unknown[]) {
+    dataType = normalizeDataType(dataType, this);
+
+    for (const databaseDataType of databaseDataTypes) {
+      if (this.#dataTypeParsers.has(databaseDataType)) {
+        throw new Error(`Sequelize DataType for DB DataType ${databaseDataType} already registered for dialect ${this.name}`);
+      }
+
+      this.#dataTypeParsers.set(databaseDataType, dataType);
+    }
+  }
+
+  getParserForDatabaseDataType(databaseDataType: unknown): AbstractDataType<any> | undefined {
+    return this.#dataTypeParsers.get(databaseDataType);
   }
 
   static getDefaultPort(): number {

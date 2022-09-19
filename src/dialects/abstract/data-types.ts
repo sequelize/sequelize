@@ -6,16 +6,27 @@ import type { Class } from 'type-fest';
 import wkx from 'wkx';
 import { ValidationError } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
-import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable } from '../../model.js';
+import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { isDataType, isDataTypeClass } from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
+
+// legacy support
+let Moment: any;
+try {
+  Moment = require('moment');
+} catch { /* ignore */ }
+
+function isMoment(value: any): boolean {
+  return Moment?.isMoment(value) ?? false;
+}
 
 // If T is a constructor, returns the type of what `new T()` would return,
 // otherwise, returns T
@@ -51,6 +62,10 @@ export interface StringifyOptions {
 
 export interface BindParamOptions extends StringifyOptions {
   bindParam(value: unknown): string;
+}
+
+export interface SanitizeOptions {
+  raw?: boolean;
 }
 
 export type DataTypeUseContext =
@@ -121,14 +136,37 @@ export abstract class AbstractDataType<
   }
 
   /**
-   * Used to normalize a value when {@link Model#set} is called. Typically, when retrieved from the database, but
-   * also when called by the user manually.
+   * Used to parse a value when retrieved from the Database.
+   * Parsers are based on the Database Type, not the JS type.
+   * Only one JS DataType can be assigned as the parser for a Database Type.
+   * For this reason, prefer neutral implementations.
+   *
+   * For instance, when implementing "parse" for a Date type,
+   * prefer returning a String rather than a Date object.
+   * The {@link sanitize} method will then be called on the DataType instance defined by the user,
+   * which can decide on a more specific JS type (e.g. parse the date string & return a Date instance or a Temporal instance).
+   *
+   * If this method is implemented, you also need to register it with your dialect's {@link AbstractDialect#registerDataTypeParser} method.
+   *
+   * You typically do not need to implement this method. This is mainly used to provide default parsers when no DataType
+   * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
+   * If you don't need this, implementing {@link sanitize} is sufficient.
+   *
+   * @param value The value to parse
+   */
+  parse(value: unknown): unknown {
+    return value;
+  }
+
+  /**
+   * Used to normalize a value when {@link Model#set} is called.
+   * Typically, when populating a model instance from a database query.
    *
    * @param value
    * @param _options
    * @param _options.raw
    */
-  sanitize(value: unknown, _options?: { raw?: true }): unknown {
+  sanitize(value: unknown, _options?: SanitizeOptions): unknown {
     return value;
   }
 
@@ -527,7 +565,7 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
   validate(value: any): asserts value is number {
     if (typeof value === 'number' && Number.isInteger(value) && !Number.isSafeInteger(value)) {
       throw new ValidationError(
-        util.format(`%s is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+        util.format(`${this.constructor.name} received an integer % that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
         [],
       );
     }
@@ -543,6 +581,12 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
         [],
       );
     }
+  }
+
+  sanitize(value: unknown): unknown {
+    this.validate(value);
+
+    return value;
   }
 
   escape(value: AcceptedNumber, options: StringifyOptions): string {
@@ -601,8 +645,28 @@ export class INTEGER extends NUMBER {
     }
   }
 
+  sanitize(value: unknown): unknown {
+    if (typeof value === 'string') {
+      return parseNumber(value);
+    }
+
+    if (typeof value === 'bigint') {
+      return Number(value);
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    throw new TypeError(`Received value that cannot be cast to Number: ${util.inspect(value)} (${typeof value})`);
+  }
+
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
+  }
+
+  parse(value: unknown) {
+    return this.sanitize(value);
   }
 }
 
@@ -647,6 +711,23 @@ export class BIGINT extends INTEGER {
 
   protected getNumberSqlTypeName(): string {
     return 'BIGINT';
+  }
+
+  sanitize(value: unknown, options?: SanitizeOptions): unknown {
+    if (options?.raw) {
+      return value;
+    }
+
+    if (typeof value === 'bigint') {
+      return value;
+    }
+
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      throw new TypeError(`Received value that cannot be cast to BigInt: ${util.inspect(value)} (${typeof value})`);
+    }
+
+    // TODO: Breaking Change: Return a BigInt by default - https://github.com/sequelize/sequelize/issues/14296
+    return String(parseBigInt(value));
   }
 }
 
@@ -798,21 +879,13 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     }
   }
 
-  sanitize(value: unknown): boolean | null {
-    return BOOLEAN.parse(value);
+  parse(value: unknown): boolean {
+    return this.sanitize(value);
   }
 
-  escape(value: boolean | Falsy): string {
-    return this.toBindableValue(value);
-  }
-
-  toBindableValue(value: boolean | Falsy): string {
-    return value ? 'true' : 'false';
-  }
-
-  static parse(value: unknown): boolean {
+  sanitize(value: unknown): boolean {
     if (Buffer.isBuffer(value) && value.length === 1) {
-      // Bit fields are returned as buffers
+    // Bit fields are returned as buffers
       value = value[0];
     }
 
@@ -851,6 +924,14 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     }
 
     throw new Error(`Valid cannot be parsed as boolean: ${value}`);
+  }
+
+  escape(value: boolean | Falsy): string {
+    return this.toBindableValue(value);
+  }
+
+  toBindableValue(value: boolean | Falsy): string {
+    return value ? 'true' : 'false';
   }
 }
 
@@ -906,12 +987,12 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     }
   }
 
-  sanitize(value: unknown, options?: { raw?: boolean }): unknown {
+  sanitize(value: unknown, options?: SanitizeOptions): unknown {
     if (options?.raw) {
       return value;
     }
 
-    if (value instanceof Date) {
+    if (value instanceof Date || dayjs.isDayjs(value) || isMoment(value)) {
       return value;
     }
 
@@ -919,7 +1000,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
       return new Date(value);
     }
 
-    throw new TypeError(`${value} cannot be converted to a date`);
+    throw new TypeError(`${util.inspect(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`);
   }
 
   areValuesEqual(
@@ -980,7 +1061,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return dayjs(date).format('YYYY-MM-DD');
   }
 
-  sanitize(value: unknown, options?: { raw?: boolean }): unknown {
+  sanitize(value: unknown, options?: SanitizeOptions): unknown {
     if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
       throw new TypeError(`${value} cannot be normalized into a DateOnly string.`);
     }
@@ -1158,6 +1239,48 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
     this.options = {
       subtype,
     };
+  }
+
+  toDialectDataType(dialect: AbstractDialect): this {
+    let replacement = super.toDialectDataType(dialect);
+
+    if (replacement === this) {
+      replacement = replacement.clone();
+    }
+
+    replacement.options.subtype = replacement.options.subtype.toDialectDataType(dialect);
+
+    return replacement;
+  }
+
+  sanitize(value: unknown, options?: SanitizeOptions): unknown {
+    if (options?.raw || !Array.isArray(value)) {
+      return value;
+    }
+
+    // this is the "empty" range, which is not the same value as "(,)" (represented by [null, null])
+    if (value.length === 0) {
+      return value;
+    }
+
+    let [low, high] = value;
+    if (!isPlainObject(low)) {
+      low = { value: low ?? null, inclusive: true };
+    }
+
+    if (!isPlainObject(high)) {
+      high = { value: high ?? null, inclusive: false };
+    }
+
+    return [this.#sanitizeSide(low, options), this.#sanitizeSide(high, options)];
+  }
+
+  #sanitizeSide(rangePart: RangePart<unknown>, options?: SanitizeOptions) {
+    if (rangePart.value == null) {
+      return rangePart;
+    }
+
+    return { ...rangePart, value: this.options.subtype.sanitize(rangePart.value, options) };
   }
 
   validate(value: any) {
@@ -1465,10 +1588,10 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   }
 
   toDialectDataType(dialect: AbstractDialect): this {
-    const replacement = super.toDialectDataType(dialect);
+    let replacement = super.toDialectDataType(dialect);
 
     if (replacement === this) {
-      return this;
+      replacement = replacement.clone();
     }
 
     replacement.options.type = replacement.options.type.toDialectDataType(dialect);

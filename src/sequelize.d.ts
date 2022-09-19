@@ -436,7 +436,7 @@ export interface DialectOptions {
   odbcConnectionString?: string;
   charset?: string;
   timeout?: number;
-  options?: Record<string, any>;
+  options?: string;
 }
 
 export interface QueryOptionsTransactionRequired { }

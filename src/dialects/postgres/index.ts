@@ -3,6 +3,7 @@ import merge from 'lodash/merge';
 import type { Sequelize } from '../../sequelize.js';
 import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
+import * as BaseTypes from '../abstract/data-types.js';
 import { PostgresConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { PostgresQuery } from './query';
@@ -88,6 +89,21 @@ export class PostgresDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+
+    // types & OIDs listed here https://github.com/lib/pq/blob/master/oid/types.go
+    // range & enum are also supported, but use a special path as they are custom types
+    this.registerDataTypeParser(BaseTypes.DATEONLY, ['date']);
+    this.registerDataTypeParser(BaseTypes.DECIMAL, ['numeric']);
+    this.registerDataTypeParser(BaseTypes.BOOLEAN, ['bool']);
+    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['geometry']);
+    this.registerDataTypeParser(BaseTypes.GEOGRAPHY, ['geography']);
+    this.registerDataTypeParser(BaseTypes.HSTORE, ['hstore']);
+    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.INTEGER), ['int4range']);
+    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.BIGINT), ['int8range']);
+    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DECIMAL), ['numrange']);
+    // TODO: tsrange (without timezone) -- https://github.com/sequelize/sequelize/issues/14295
+    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DATE), ['tstzrange']);
+    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DATEONLY), ['daterange']);
   }
 
   createBindCollector() {

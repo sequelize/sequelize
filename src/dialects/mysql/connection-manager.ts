@@ -3,10 +3,12 @@ import { promisify } from 'util';
 import dayjs from 'dayjs';
 import type { createConnection as mysqlCreateConnection, Connection, ConnectionOptions as MySqlConnectionOptions } from 'mysql2';
 import {
-  AccessDeniedError, ConnectionError,
+  AccessDeniedError,
+  ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
-  HostNotReachableError, InvalidConnectionError,
+  HostNotReachableError,
+  InvalidConnectionError,
 } from '../../errors';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { isError, isNodeError } from '../../utils/index.js';
@@ -16,7 +18,6 @@ import { AbstractConnectionManager } from '../abstract/connection-manager';
 // eslint-disable-next-line import/order
 import type { AbstractDialect } from '../abstract/index.js';
 
-const DataTypes = require('../../data-types').mysql;
 const parserStore = require('../parserStore')('mysql');
 
 const debug = logger.debugContext('connection:mysql');
@@ -39,20 +40,11 @@ export type MySqlConnection = Connection & AbstractConnection;
  * @private
  */
 export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConnection> {
-  private readonly lib: Lib;
+  readonly #lib: Lib;
 
   constructor(dialect: AbstractDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
-    this.lib = this._loadDialectModule('mysql2') as Lib;
-    this.refreshTypeParser(DataTypes);
-  }
-
-  _refreshTypeParser(dataType: unknown): void {
-    parserStore.refresh(dataType);
-  }
-
-  _clearTypeParser() {
-    parserStore.clear();
+    this.#lib = this._loadDialectModule('mysql2') as Lib;
   }
 
   #typecast(field: any, next: () => void): void {
@@ -90,7 +82,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     };
 
     try {
-      const connection: MySqlConnection = await createConnection(this.lib, connectionConfig);
+      const connection: MySqlConnection = await createConnection(this.#lib, connectionConfig);
 
       debug('connection acquired');
 

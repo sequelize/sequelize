@@ -1,6 +1,6 @@
 'use strict';
 
-import { kIsDataTypeOverrideOf } from '../../dialect-toolbox';
+const kIsDataTypeOverrideOf = Symbol();
 
 module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');

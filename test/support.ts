@@ -247,15 +247,13 @@ export function getSupportedDialects() {
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
-// TODO: type once QueryGenerator has been migrated to TS
-export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
+export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
   class ModdedQueryGenerator extends AbstractQueryGenerator {
     quoteIdentifier(x: string): string {
       return x;
     }
   }
 
-  // @ts-expect-error
   return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 

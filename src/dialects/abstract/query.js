@@ -231,13 +231,13 @@ export class AbstractQuery {
         includeMap: this.options.includeMap,
         includeValidated: true,
         attributes: this.options.originalAttributes || this.options.attributes,
-        raw: true,
+        raw: this.options.raw,
       });
     // Regular queries
     } else {
       result = this.model.bulkBuild(results, {
         isNewRecord: false,
-        raw: true,
+        raw: this.options.raw,
         attributes: this.options.originalAttributes || this.options.attributes,
       });
     }

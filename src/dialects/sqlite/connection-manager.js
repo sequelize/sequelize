@@ -8,10 +8,12 @@ const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('connection:sqlite');
 const dataTypes = require('../../data-types').sqlite;
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('sqlite');
+const parserStore = require('../parser-store')('sqlite');
 const { promisify } = require('util');
 
 export class SqliteConnectionManager extends AbstractConnectionManager {
+  #lib;
+
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
 
@@ -22,7 +24,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager {
     }
 
     this.connections = {};
-    this.lib = this._loadDialectModule('sqlite3');
+    this.#lib = this._loadDialectModule('sqlite3');
     this.refreshTypeParser(dataTypes);
   }
 

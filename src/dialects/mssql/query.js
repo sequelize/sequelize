@@ -2,7 +2,7 @@
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('mssql');
+const parserStore = require('../parser-store')('mssql');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 

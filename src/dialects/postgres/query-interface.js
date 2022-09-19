@@ -142,7 +142,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
     // If ENUM processed, then refresh OIDs
     if (promises.length > 0) {
-      await this.sequelize.dialect.connectionManager._refreshDynamicOIDs();
+      await this.sequelize.dialect.connectionManager.refreshDynamicOids();
     }
 
     return result;

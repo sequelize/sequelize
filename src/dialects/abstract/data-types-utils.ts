@@ -1,6 +1,8 @@
+import NodeUtils from 'util';
 import { logger } from '../../utils/logger.js';
 import type { DataType, DataTypeClass, DataTypeInstance } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
+import type { AbstractDialect } from './index.js';
 
 const printedWarnings = new Set<string>();
 
@@ -29,4 +31,22 @@ export function cloneDataType(value: DataTypeInstance | string): DataTypeInstanc
   }
 
   return value.clone();
+}
+
+export function normalizeDataType(Type: DataType, dialect: AbstractDialect): AbstractDataType<unknown>;
+export function normalizeDataType(Type: string, dialect: AbstractDialect): string;
+export function normalizeDataType(Type: DataType | string, dialect: AbstractDialect): AbstractDataType<unknown> | string {
+  if (typeof Type === 'string') {
+    return Type;
+  }
+
+  if (typeof Type !== 'function' && !(Type instanceof AbstractDataType)) {
+    throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
+  }
+
+  const type = typeof Type === 'function'
+    ? new Type()
+    : Type;
+
+  return type.toDialectDataType(dialect);
 }
