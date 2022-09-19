@@ -3260,7 +3260,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 }
 
 /** @deprecated use ModelStatic */
-export type ModelType<TModelAttributes = any, TCreationAttributes = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
+export type ModelType<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes> = new () => Model<TModelAttributes, TCreationAttributes>;
 
 type NonConstructorKeys<T> = ({[P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
 type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
@@ -3268,7 +3268,7 @@ type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
 /** @deprecated use ModelStatic */
 export type ModelCtor<M extends Model> = ModelStatic<M>;
 
-export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model> = NonConstructor<typeof Model> & { new(): M };
