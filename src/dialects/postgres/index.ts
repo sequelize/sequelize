@@ -93,6 +93,7 @@ export class PostgresDialect extends AbstractDialect {
     // types & OIDs listed here https://github.com/lib/pq/blob/master/oid/types.go
     // range & enum are also supported, but use a special path as they are custom types
     this.registerDataTypeParser(BaseTypes.DATEONLY, ['date']);
+    this.registerDataTypeParser(BaseTypes.DATE, ['timestamptz', 'timestamp']);
     this.registerDataTypeParser(BaseTypes.DECIMAL, ['numeric']);
     this.registerDataTypeParser(BaseTypes.BOOLEAN, ['bool']);
     this.registerDataTypeParser(BaseTypes.GEOMETRY, ['geometry']);

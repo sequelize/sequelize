@@ -39,11 +39,7 @@ export class DATE extends BaseTypes.DATE {
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
 
-  sanitize(value: unknown, options?: { raw?: boolean, timezone?: string }): unknown {
-    if (options?.raw) {
-      return value;
-    }
-
+  sanitize(value: unknown, options?: { timezone?: string }): unknown {
     if (isString(value) && options?.timezone) {
       if (isValidTimeZone(options.timezone)) {
         return dayjs.tz(value, options.timezone).toDate();
@@ -52,7 +48,7 @@ export class DATE extends BaseTypes.DATE {
       return new Date(`${value} ${options.timezone}`);
     }
 
-    return super.sanitize(value, options);
+    return super.sanitize(value);
   }
 }
 

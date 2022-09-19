@@ -264,11 +264,11 @@ export class PostgresQuery extends AbstractQuery {
 
         for (const key in rows[0]) {
           if (Object.prototype.hasOwnProperty.call(rows[0], key)) {
-            const record = rows[0][key];
+            const updatedValue = rows[0][key];
 
             const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
+            this.instance.set(attr?.fieldName || key, updatedValue, { raw: true });
           }
         }
       }

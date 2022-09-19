@@ -351,43 +351,29 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'booleanAttr', false, false);
     });
 
-    it('accepts some strings', async () => {
-      await testSimpleInOut(vars.User, 'booleanAttr', 'true', true);
-      await testSimpleInOut(vars.User, 'booleanAttr', 't', true);
-      await testSimpleInOut(vars.User, 'booleanAttr', '1', true);
-      await testSimpleInOut(vars.User, 'booleanAttr', 'false', false);
-      await testSimpleInOut(vars.User, 'booleanAttr', 'f', false);
-      await testSimpleInOut(vars.User, 'booleanAttr', '0', false);
+    // these values are allowed when parsed from the Database, but not when inputted by the user.
+    it('rejects strings', async () => {
+      await expect(vars.User.create({ booleanAttr: 'true' })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 'false' })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: '1' })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: '0' })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 't' })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 'f' })).to.be.rejected;
     });
 
-    it('rejects non-boolean strings', async () => {
-      await expect(vars.User.create({ booleanAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: 'abc' })).to.be.rejected;
+    it('rejects numbers', async () => {
+      await expect(vars.User.create({ booleanAttr: 1 })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 0 })).to.be.rejected;
     });
 
-    it('accepts some numbers', async () => {
-      await testSimpleInOut(vars.User, 'booleanAttr', 1, true);
-      await testSimpleInOut(vars.User, 'booleanAttr', 0, false);
+    it('rejects bigints', async () => {
+      await expect(vars.User.create({ booleanAttr: 1n })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 0n })).to.be.rejected;
     });
 
-    it('rejects non-boolean numbers', async () => {
-      await expect(vars.User.create({ booleanAttr: -1 })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: 2 })).to.be.rejected;
-    });
-
-    it('accepts some bigints', async () => {
-      await testSimpleInOut(vars.User, 'booleanAttr', 1n, true);
-      await testSimpleInOut(vars.User, 'booleanAttr', 0n, false);
-    });
-
-    it('rejects non-boolean bigints', async () => {
-      await expect(vars.User.create({ booleanAttr: -1n })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: 2n })).to.be.rejected;
-    });
-
-    it('accepts some buffers', async () => {
-      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([1]), true);
-      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([0]), false);
+    it('rejects buffers', async () => {
+      await expect(vars.User.create({ booleanAttr: Buffer.from([1]) })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: Buffer.from([0]) })).to.be.rejected;
     });
   });
 
@@ -961,9 +947,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOut(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
       await testSimpleInOut(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
-      // Coercion to boolean follows JavaScript Coercion Behavior.
-      // Even though values can end up being stored as 'f' in the database depending on the dialect, sending 'f' to the database will be stored as true.
-      await testSimpleInOut(vars.User, 'booleanArray', [1n, 0, '1', '0', 't', 'f', 'true', 'false', '', 'abc'], [true, false, true, true, true, true, true, true, false, true]);
+      await testSimpleInOut(vars.User, 'booleanArray', [true, false], [true, false]);
       await testSimpleInOut(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], [new Date('2022-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')]);
       await testSimpleInOut(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
       await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);

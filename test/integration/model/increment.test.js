@@ -156,10 +156,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const user = await User.create({ aNumber: 1 });
         const oldDate = user.updatedAt;
+        expect(oldDate).to.be.instanceOf(Date, 'Date from User.create is not a Date');
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, silent: true, where: {} });
 
-        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+        const updatedUser = await User.findByPk(1, { logging: true });
+
+        await expect(updatedUser.updatedAt).to.equalTime(oldDate);
       });
 
       it('should work with scopes', async function () {

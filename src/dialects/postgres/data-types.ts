@@ -49,27 +49,24 @@ export class DATEONLY extends BaseTypes.DATEONLY {
     return super.toBindableValue(value, options);
   }
 
-  sanitize(value: unknown, options?: { raw?: boolean }): unknown {
-    if (
-      !options?.raw
-      && value !== Number.POSITIVE_INFINITY
-      && value !== Number.NEGATIVE_INFINITY
-    ) {
-      if (typeof value === 'string') {
-        const lower = value.toLowerCase();
-        if (lower === 'infinity') {
-          return Number.POSITIVE_INFINITY;
-        }
-
-        if (lower === '-infinity') {
-          return Number.NEGATIVE_INFINITY;
-        }
-      }
-
-      return super.sanitize(value);
+  sanitize(value: unknown): unknown {
+    if (value === Number.POSITIVE_INFINITY
+        || value === Number.NEGATIVE_INFINITY) {
+      return value;
     }
 
-    return value;
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      if (lower === 'infinity') {
+        return Number.POSITIVE_INFINITY;
+      }
+
+      if (lower === '-infinity') {
+        return Number.NEGATIVE_INFINITY;
+      }
+    }
+
+    return super.sanitize(value);
   }
 
   parse(value: unknown) {
@@ -162,11 +159,7 @@ export class DATE extends BaseTypes.DATE {
     return super.toBindableValue(value, options);
   }
 
-  sanitize(value: unknown, options?: { raw?: boolean }) {
-    if (options?.raw) {
-      return value;
-    }
-
+  sanitize(value: unknown) {
     if (value == null) {
       return value;
     }
@@ -190,7 +183,12 @@ export class DATE extends BaseTypes.DATE {
       }
     }
 
-    return super.sanitize(value, options);
+    return super.sanitize(value);
+  }
+
+  parse(value: unknown): unknown {
+    // return dates as string, not Date objects. Different implementations could be used instead (such as Temporal, dayjs)
+    return value;
   }
 }
 

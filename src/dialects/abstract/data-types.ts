@@ -67,10 +67,6 @@ export interface BindParamOptions extends StringifyOptions {
   bindParam(value: unknown): string;
 }
 
-export interface SanitizeOptions {
-  raw?: boolean;
-}
-
 export type DataTypeUseContext =
   | { model: ModelStatic, attributeName: string, sequelize: Sequelize }
   | { tableName: TableNameWithSchema, columnName: string, sequelize: Sequelize };
@@ -166,10 +162,8 @@ export abstract class AbstractDataType<
    * Typically, when populating a model instance from a database query.
    *
    * @param value
-   * @param _options
-   * @param _options.raw
    */
-  sanitize(value: unknown, _options?: SanitizeOptions): unknown {
+  sanitize(value: unknown): unknown {
     return value;
   }
 
@@ -709,11 +703,7 @@ export class BIGINT extends INTEGER {
     return 'BIGINT';
   }
 
-  sanitize(value: unknown, options?: SanitizeOptions): unknown {
-    if (options?.raw) {
-      return value;
-    }
-
+  sanitize(value: unknown): unknown {
     if (typeof value === 'bigint') {
       return value;
     }
@@ -868,7 +858,7 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   }
 
   validate(value: any): asserts value is boolean {
-    if (!Validator.isBoolean(String(value))) {
+    if (typeof value !== 'boolean') {
       throw new ValidationError(
         util.format('%O is not a valid boolean', value),
         [],
@@ -876,19 +866,18 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     }
   }
 
-  parse(value: unknown): boolean {
-    return this.sanitize(value);
-  }
+  // this type is not sanitized: Only true & false are allowed as user inputs
+  // it is parsed: DBs represent booleans in a variety of ways.
 
-  sanitize(value: unknown): boolean {
+  parse(value: unknown): unknown {
     if (Buffer.isBuffer(value) && value.length === 1) {
-    // Bit fields are returned as buffers
+      // Bit fields are returned as buffers
       value = value[0];
     }
 
     const type = typeof value;
     if (type === 'boolean') {
-      return value as boolean;
+      return value;
     }
 
     if (type === 'string') {
@@ -920,7 +909,7 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
       }
     }
 
-    throw new Error(`Valid cannot be parsed as boolean: ${value}`);
+    throw new Error(`Cannot parse ${util.inspect(value)} as a boolean`);
   }
 
   escape(value: boolean | Falsy): string {
@@ -984,11 +973,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     }
   }
 
-  sanitize(value: unknown, options?: SanitizeOptions): unknown {
-    if (options?.raw) {
-      return value;
-    }
-
+  sanitize(value: unknown): unknown {
     if (value instanceof Date || dayjs.isDayjs(value) || isMoment(value)) {
       return value;
     }
@@ -1058,12 +1043,12 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return dayjs(date).format('YYYY-MM-DD');
   }
 
-  sanitize(value: unknown, options?: SanitizeOptions): unknown {
+  sanitize(value: unknown): unknown {
     if (typeof value !== 'string' && typeof value !== 'number' && !(value instanceof Date)) {
       throw new TypeError(`${value} cannot be normalized into a DateOnly string.`);
     }
 
-    if (!options?.raw && value) {
+    if (value) {
       return dayjs(value).format('YYYY-MM-DD');
     }
 
@@ -1250,8 +1235,8 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
     return replacement;
   }
 
-  sanitize(value: unknown, options?: SanitizeOptions): unknown {
-    if (options?.raw || !Array.isArray(value)) {
+  sanitize(value: unknown): unknown {
+    if (!Array.isArray(value)) {
       return value;
     }
 
@@ -1269,15 +1254,15 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
       high = { value: high ?? null, inclusive: false };
     }
 
-    return [this.#sanitizeSide(low, options), this.#sanitizeSide(high, options)];
+    return [this.#sanitizeSide(low), this.#sanitizeSide(high)];
   }
 
-  #sanitizeSide(rangePart: RangePart<unknown>, options?: SanitizeOptions) {
+  #sanitizeSide(rangePart: RangePart<unknown>) {
     if (rangePart.value == null) {
       return rangePart;
     }
 
-    return { ...rangePart, value: this.options.subtype.sanitize(rangePart.value, options) };
+    return { ...rangePart, value: this.options.subtype.sanitize(rangePart.value) };
   }
 
   validate(value: any) {
@@ -1520,7 +1505,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   validate(value: any): asserts value is Member {
     if (!this.options.values.includes(value)) {
       throw new ValidationError(
-        util.format('%O is not a valid choice in %O', value, this.options.values),
+        util.format('%O is not a valid choice for enum %O', value, this.options.values),
       );
     }
   }
@@ -1576,7 +1561,17 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       );
     }
 
-    // TODO: validate individual items
+    for (const item of value) {
+      this.options.type.validate(item);
+    }
+  }
+
+  sanitize(value: unknown): unknown {
+    if (!Array.isArray(value)) {
+      return value;
+    }
+
+    return value.map(item => this.options.type.sanitize(item));
   }
 
   toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): string {
