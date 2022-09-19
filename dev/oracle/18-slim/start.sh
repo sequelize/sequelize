@@ -26,10 +26,10 @@ then
   mkdir "$SEQ_WORKSPACE"/.oracle/
   if [[ $(uname) == 'Linux' ]]
   then
-    wget https://download.oracle.com/otn_software/linux/instantclient/1916000/instantclient-basic-linux.x64-19.16.0.0.0dbru.zip --no-check-certificate &&
-    unzip instantclient-basic-linux.x64-19.16.0.0.0dbru.zip -d "$SEQ_WORKSPACE"/.oracle/ &&
-    rm instantclient-basic-linux.x64-19.16.0.0.0dbru.zip &&
-    mv "$SEQ_WORKSPACE"/.oracle/instantclient_19_16 "$SEQ_WORKSPACE"/.oracle/instantclient
+    wget https://download.oracle.com/otn_software/linux/instantclient/217000/instantclient-basic-linux.x64-21.7.0.0.0dbru.zip --no-check-certificate &&
+    unzip instantclient-basic-linux.x64-21.7.0.0.0dbru.zip -d "$SEQ_WORKSPACE"/.oracle/ &&
+    rm instantclient-basic-linux.x64-21.7.0.0.0dbru.zip &&
+    mv "$SEQ_WORKSPACE"/.oracle/instantclient_21_7 "$SEQ_WORKSPACE"/.oracle/instantclient
 
     echo "Local Oracle instant client on Linux has been setup!"
   elif [[ $(uname) == 'Darwin' ]]
