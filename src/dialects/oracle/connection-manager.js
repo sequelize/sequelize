@@ -6,6 +6,7 @@ const AbstractConnectionManager = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('oracle');
 const { logger } = require('../../utils/logger');
+const semver = require('semver');
 const debug = logger.debugContext('connection:oracle');
 const DataTypes = require('../../data-types').oracle;
 const { promisify } = require('util');
@@ -133,7 +134,7 @@ export class OracleConnectionManager extends AbstractConnectionManager {
 
       const connection = await this.lib.getConnection(connectionConfig);
       // Setting the sequelize database version to Oracle DB server version to remove the roundtrip for DB version query
-      this.sequelize.options.databaseVersion = connection.oracleServerVersionString.split('.').slice(0, 3).join('.');
+      this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString).version;
 
       debug('connection acquired');
       connection.on('error', error => {
