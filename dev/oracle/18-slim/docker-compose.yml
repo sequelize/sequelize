@@ -3,7 +3,7 @@
 services:
   oraclexedb:
     container_name: oraclexedb
-    image: gvenzl/oracle-xe:18.4.0-slim
+    image: gvenzl/oracle-xe:18-slim
     environment:
       ORACLE_PASSWORD: password
     ports:
