@@ -11,10 +11,10 @@ docker-compose -p oraclexedb down --remove-orphans
 docker-compose -p oraclexedb up -d
 
 # Wait until Oracle DB is set up and docker state is healthy
-./wait-until-healthy.sh oraclexedb
+./../wait-until-healthy.sh oraclexedb
 
 # Moving privileges.sql to docker container
-docker cp privileges.sql oraclexedb:/opt/oracle/.
+docker cp ../privileges.sql oraclexedb:/opt/oracle/.
 
 # Granting all the needed privileges to sequelizetest user
 docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
