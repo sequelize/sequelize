@@ -1,7 +1,6 @@
-import cloneDeep from 'lodash/cloneDeep';
-import merge from 'lodash/merge';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import type { SupportableIntegerOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
 import * as BaseTypes from '../abstract/data-types.js';
 import { MySqlConnectionManager } from './connection-manager';
@@ -11,9 +10,13 @@ import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
 import { MySqlQueryInterface } from './query-interface';
 
+const integerOptions: SupportableIntegerOptions = {
+  zerofill: true,
+  unsigned: true,
+};
+
 export class MysqlDialect extends AbstractDialect {
-  static supports = merge(
-    cloneDeep(AbstractDialect.supports),
+  static supports = AbstractDialect.extendSupport(
     {
       'VALUES ()': true,
       'LIMIT ON UPDATE': true,
@@ -37,13 +40,18 @@ export class MysqlDialect extends AbstractDialect {
       },
       indexViaAlter: true,
       indexHints: true,
-      GEOMETRY: true,
-      JSON: true,
-      REGEXP: true,
       dataTypes: {
         CHAR: {
           BINARY: true,
         },
+        GEOMETRY: true,
+        JSON: true,
+        REGEXP: true,
+        TINYINT: integerOptions,
+        SMALLINT: integerOptions,
+        MEDIUMINT: integerOptions,
+        INTEGER: integerOptions,
+        BIGINT: integerOptions,
       },
       milliseconds: true,
     },

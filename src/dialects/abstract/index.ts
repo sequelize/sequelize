@@ -1,10 +1,18 @@
+import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
 import type { Dialect } from '../../sequelize.js';
+import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
 import { normalizeDataType } from './data-types-utils.js';
 import type { AbstractDataType, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
+
+export interface SupportableIntegerOptions {
+ unsigned: boolean;
+ zerofill: boolean;
+}
 
 export type DialectSupports = {
   'DEFAULT': boolean,
@@ -97,6 +105,18 @@ export type DialectSupports = {
        */
       BINARY: boolean,
     },
+    /** This dialect supports case-insensitive text */
+    CITEXT: boolean,
+    /** This dialect supports 1 byte long signed ints */
+    TINYINT: false | SupportableIntegerOptions,
+    /** This dialect supports 2 byte long signed ints */
+    SMALLINT: false | SupportableIntegerOptions,
+    /** This dialect supports 3 byte long signed ints */
+    MEDIUMINT: false | SupportableIntegerOptions,
+    /** This dialect supports 4 byte long signed ints */
+    INTEGER: false | SupportableIntegerOptions,
+    /** This dialect supports 8 byte long signed ints */
+    BIGINT: false | SupportableIntegerOptions,
     JSON: boolean,
     JSONB: boolean,
     ARRAY: boolean,
@@ -126,7 +146,7 @@ export type DialectSupports = {
    * This dialect supports marking a column's constraints as deferrable.
    * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
    */
-  deferrableConstraints: false,
+  deferrableConstraints: boolean,
 
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
@@ -216,6 +236,12 @@ export abstract class AbstractDialect {
       CHAR: {
         BINARY: false,
       },
+      CITEXT: false,
+      TINYINT: false,
+      SMALLINT: { unsigned: false, zerofill: false },
+      MEDIUMINT: false,
+      INTEGER: { unsigned: false, zerofill: false },
+      BIGINT: { unsigned: false, zerofill: false },
       JSON: false,
       JSONB: false,
       ARRAY: false,
@@ -240,6 +266,10 @@ export abstract class AbstractDialect {
     escapeStringConstants: false,
     milliseconds: false,
   };
+
+  protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
+    return merge(cloneDeep(this.supports), supportsOverwrite);
+  }
 
   abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;

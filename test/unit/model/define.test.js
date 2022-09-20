@@ -195,7 +195,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
     });
 
-    describe('datatype warnings', () => {
+    // TODO: once we have centralized logging, enable this again
+    //  right now this test does not work because the warning has already been logged by another test & this warning
+    //  is only logged once.
+    //  https://github.com/sequelize/sequelize/issues/11670
+    describe.skip('datatype warnings', () => {
       beforeEach(() => {
         sinon.spy(console, 'warn');
       });
@@ -207,13 +211,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('warn for unsupported INTEGER options', () => {
         current.define('A', {
           age: {
-            type: DataTypes.TINYINT.UNSIGNED,
+            type: DataTypes.INTEGER.UNSIGNED,
           },
         });
 
         if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
           expect(console.warn.calledOnce).to.eq(true);
-          expect(console.warn.args[0][0]).to.contain('does not support \'TINYINT\'');
+          expect(console.warn.args[0][0]).to.contain(`does not support 'INTEGER' with LENGTH, UNSIGNED or ZEROFILL. Plain 'INTEGER' will be used instead.`);
         } else {
           expect(console.warn.calledOnce).to.equal(false);
         }

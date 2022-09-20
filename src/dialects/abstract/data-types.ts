@@ -94,6 +94,11 @@ export abstract class AbstractDataType<
     return this[kDataTypeIdentifier];
   }
 
+  getDataTypeId(): string {
+    // @ts-expect-error untyped constructor
+    return this.constructor.getDataTypeId();
+  }
+
   /**
    * Where this DataType is being used.
    */
@@ -655,6 +660,17 @@ export class INTEGER extends NUMBER {
     return value;
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    const typeId = this.getDataTypeId();
+
+    if (
+      (typeId === 'SMALLINT' || typeId === 'TINYINT' || typeId === 'MEDIUMINT' || typeId === 'INTEGER' || typeId === 'BIGINT')
+      && !dialect.supports.dataTypes[typeId]
+    ) {
+      throw new Error(`${dialect.name} does not support the ${this.constructor.name} data type.`);
+    }
+  }
+
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
   }
@@ -923,13 +939,36 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   }
 }
 
+export interface TimeOptions {
+  /**
+   * The precision of the date.
+   */
+  precision?: string | number | undefined;
+}
+
 /**
  * A time column
  */
-export class TIME extends AbstractDataType<Date | string | number> {
+export class TIME extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'TIME';
+  readonly options: TimeOptions;
+
+  /**
+   * @param precisionOrOptions precision to allow storing milliseconds
+   */
+  constructor(precisionOrOptions?: number | TimeOptions) {
+    super();
+
+    this.options = {
+      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+    };
+  }
 
   toSql() {
+    if (this.options.precision != null) {
+      return `TIME(${this.options.precision})`;
+    }
+
     return 'TIME';
   }
 }
@@ -938,7 +977,7 @@ export interface DateOptions {
   /**
    * The precision of the date.
    */
-  length?: string | number | undefined;
+  precision?: string | number | undefined;
 }
 
 type RawDate = Date | string | number;
@@ -952,17 +991,21 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   readonly options: DateOptions;
 
   /**
-   * @param lengthOrOptions precision to allow storing milliseconds
+   * @param precisionOrOptions precision to allow storing milliseconds
    */
-  constructor(lengthOrOptions?: number | DateOptions) {
+  constructor(precisionOrOptions?: number | DateOptions) {
     super();
 
     this.options = {
-      length: typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions,
+      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
   }
 
   toSql() {
+    if (this.options.precision != null) {
+      return `DATETIME(${this.options.precision})`;
+    }
+
     return 'DATETIME';
   }
 

@@ -26,7 +26,6 @@ enum TestEnum {
   'D,E' = 'D,E',
 }
 
-// !TODO: add UNIT test to ensure validation is run on all model methods (including create, update, where)
 // !TODO: add tests for each type to check what the raw value is when the DataType is not provided (ie. only parse() is called, not sanitize())
 
 describe('DataTypes', () => {
@@ -176,7 +175,6 @@ describe('DataTypes', () => {
     });
   });
 
-  // !TODO: throw if not supported in this dialect
   describe(`DataTypes.TEXT(<size>)`, () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -212,6 +210,9 @@ describe('DataTypes', () => {
       const user = await vars.User.findOne({ rejectOnEmpty: true });
       expect(user.get()).to.deep.eq(data);
     });
+
+    // TODO: once we have centralized logging, check a warning message has been emitted when length is not supported:
+    //  https://github.com/sequelize/sequelize/issues/11670
   });
 
   describe('CHAR(<length>)', () => {
@@ -302,33 +303,42 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     }
   });
 
-  // !TODO: throw if not supported in this dialect
   describe('CITEXT', () => {
-    const vars = beforeEach2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare ciTextAttr: string;
-      }
+    if (!dialect.supports.dataTypes.CITEXT) {
+      it('throws, as it is not supported', async () => {
+        expect(() => {
+          sequelize.define('User', {
+            ciTextAttr: DataTypes.CITEXT,
+          });
+        }).to.throwWithCause(`CITEXT is not supported in ${dialect.name}.`);
+      });
+    } else {
+      const vars = beforeEach2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare ciTextAttr: string;
+        }
 
-      User.init({
-        ciTextAttr: {
-          type: DataTypes.CITEXT,
-          allowNull: false,
-        },
-      }, { sequelize });
+        User.init({
+          ciTextAttr: {
+            type: DataTypes.CITEXT,
+            allowNull: false,
+          },
+        }, { sequelize });
 
-      await User.sync();
+        await User.sync();
 
-      return { User };
-    });
-
-    it('serialize/deserializes strings', async () => {
-      await vars.User.create({
-        ciTextAttr: 'ABCdef',
+        return { User };
       });
 
-      const user = await vars.User.findOne({ rejectOnEmpty: true, where: { ciTextAttr: 'abcDEF' } });
-      expect(user.ciTextAttr).to.eq('ABCdef');
-    });
+      it('serialize/deserializes strings', async () => {
+        await vars.User.create({
+          ciTextAttr: 'ABCdef',
+        });
+
+        const user = await vars.User.findOne({ rejectOnEmpty: true, where: { ciTextAttr: 'abcDEF' } });
+        expect(user.ciTextAttr).to.eq('ABCdef');
+      });
+    }
   });
 
   describe('TSVECTOR', () => {
@@ -414,87 +424,85 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // !TODO (mariaDB, mysql): TINYINT
+  const maxIntValueSigned = {
+    TINYINT: 127,
+    SMALLINT: 32_767,
+    MEDIUMINT: 8_388_607,
+    INTEGER: 2_147_483_647,
+  };
+
+  const minIntValueSigned = {
+    TINYINT: -128,
+    SMALLINT: -32_768,
+    MEDIUMINT: -8_388_608,
+    INTEGER: -2_147_483_648,
+  };
+
+  // const maxIntValueUnsigned = {
+  //   TINYINT: 255,
+  //   SMALLINT: 65_535,
+  //   MEDIUMINT: 16_777_215,
+  //   INTEGER: 4_294_967_295,
+  // };
 
   // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
-  describe('SMALLINT', () => {
-    const vars = beforeEach2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare smallIntAttr: number | bigint | string;
+  for (const intTypeName of ['TINYINT', 'SMALLINT', 'MEDIUMINT', 'INTEGER'] as const) {
+    describe(intTypeName, () => {
+      if (!dialect.supports.dataTypes[intTypeName]) {
+        it('throws, as it is not supported', async () => {
+          expect(() => {
+            sequelize.define('User', {
+              attr: DataTypes[intTypeName],
+            });
+          }).to.throwWithCause(`${dialect.name} does not support the ${intTypeName} data type.`);
+        });
+      } else {
+        const vars = beforeEach2(async () => {
+          class User extends Model<InferAttributes<User>> {
+            declare intAttr: number | bigint | string;
+          }
+
+          User.init({
+            intAttr: {
+              type: DataTypes[intTypeName],
+              allowNull: false,
+            },
+          }, { sequelize });
+
+          await User.sync();
+
+          return { User };
+        });
+
+        it('accepts numbers, bigints, strings', async () => {
+          await testSimpleInOut(vars.User, 'intAttr', 123, 123);
+          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+          await testSimpleInOut(vars.User, 'intAttr', '123', 123);
+
+          await testSimpleInOut(vars.User, 'intAttr', maxIntValueSigned[intTypeName], maxIntValueSigned[intTypeName]);
+          await testSimpleInOut(vars.User, 'intAttr', minIntValueSigned[intTypeName], minIntValueSigned[intTypeName]);
+        });
+
+        it('rejects out-of-range numbers', async () => {
+          await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
+        });
+
+        it('rejects non-integer numbers', async () => {
+          await expect(vars.User.create({ intAttr: 123.4 })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: Number.NaN })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
+        });
+
+        it('rejects non-integer strings', async () => {
+          await expect(vars.User.create({ intAttr: '' })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: 'abc' })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: '123.4' })).to.be.rejected;
+        });
       }
-
-      User.init({
-        smallIntAttr: {
-          type: DataTypes.SMALLINT,
-          allowNull: false,
-        },
-      }, { sequelize });
-
-      await User.sync();
-
-      return { User };
     });
-
-    it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'smallIntAttr', 123, 123);
-      await testSimpleInOut(vars.User, 'smallIntAttr', 123n, 123);
-      await testSimpleInOut(vars.User, 'smallIntAttr', '123', 123);
-    });
-
-    it('rejects non-integer numbers', async () => {
-      await expect(vars.User.create({ smallIntAttr: 123.4 })).to.be.rejected;
-      await expect(vars.User.create({ smallIntAttr: Number.NaN })).to.be.rejected;
-      await expect(vars.User.create({ smallIntAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
-      await expect(vars.User.create({ smallIntAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
-    });
-
-    it('rejects non-integer strings', async () => {
-      await expect(vars.User.create({ smallIntAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ smallIntAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ smallIntAttr: '123.4' })).to.be.rejected;
-    });
-  });
-
-  // !TODO (mariaDB, mysql): MEDIUMINT
-
-  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
-  describe('INTEGER', () => {
-    const vars = beforeEach2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare intAttr: number | bigint | string;
-      }
-
-      User.init({
-        intAttr: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-        },
-      }, { sequelize });
-
-      await User.sync();
-
-      return { User };
-    });
-
-    it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'intAttr', 123, 123);
-      await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
-      await testSimpleInOut(vars.User, 'intAttr', '123', 123);
-    });
-
-    it('rejects non-integer numbers', async () => {
-      await expect(vars.User.create({ intAttr: 123.4 })).to.be.rejected;
-      await expect(vars.User.create({ intAttr: Number.NaN })).to.be.rejected;
-      await expect(vars.User.create({ intAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
-      await expect(vars.User.create({ intAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
-    });
-
-    it('rejects non-integer strings', async () => {
-      await expect(vars.User.create({ intAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ intAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ intAttr: '123.4' })).to.be.rejected;
-    });
-  });
+  }
 
   // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('BIGINT', () => {
@@ -646,8 +654,6 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // !TODO: DATE(precision)
-  // !TODO: test precision
   describe('DATE', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -695,6 +701,44 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
+  describe('DATE(precision)', () => {
+    const vars = beforeEach2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare dateMinPrecisionAttr: Date | string | null;
+        declare dateTwoPrecisionAttr: Date | string | null;
+        declare dateMaxPrecisionAttr: Date | string | null;
+      }
+
+      User.init({
+        dateMinPrecisionAttr: {
+          type: DataTypes.DATE(0),
+          allowNull: true,
+        },
+        dateTwoPrecisionAttr: {
+          type: DataTypes.DATE(2),
+          allowNull: true,
+        },
+        dateMaxPrecisionAttr: {
+          type: DataTypes.DATE(6),
+          allowNull: true,
+        },
+      }, { sequelize });
+
+      await User.sync();
+
+      return { User };
+    });
+
+    it('clamps to specified precision', async () => {
+      await testSimpleInOut(vars.User, 'dateMinPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.000Z'));
+      await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
+
+      // The Date object doesn't go further than milliseconds.
+      // !TODO: test raw
+      await testSimpleInOut(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', new Date('2022-01-01T12:13:14.123Z'));
+    });
+  });
+
   describe('DATEONLY', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -738,7 +782,6 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // !TODO: test precision
   describe('TIME', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -759,6 +802,33 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
 
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'timeAttr', '04:05:06', '04:05:06');
+      await testSimpleInOut(vars.User, 'timeAttr', '04:05:06.1234567', '04:05:06.123457' /* rounded to nearest */);
+    });
+  });
+
+  describe('TIME(precision)', () => {
+    const vars = beforeEach2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare timeMinPrecisionAttr: string | null;
+        declare timeTwoPrecisionAttr: string | null;
+        declare timeMaxPrecisionAttr: string | null;
+      }
+
+      User.init({
+        timeMinPrecisionAttr: DataTypes.TIME(0),
+        timeTwoPrecisionAttr: DataTypes.TIME(2),
+        timeMaxPrecisionAttr: DataTypes.TIME(6),
+      }, { sequelize });
+
+      await User.sync();
+
+      return { User };
+    });
+
+    it('accepts strings', async () => {
+      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456', '04:05:06');
+      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456', '04:05:06.12');
+      await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', '04:05:06.123456');
     });
   });
 

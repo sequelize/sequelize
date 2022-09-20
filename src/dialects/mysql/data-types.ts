@@ -29,10 +29,6 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 }
 
 export class DATE extends BaseTypes.DATE {
-  toSql() {
-    return this.options.length ? `DATETIME(${this.options.length})` : 'DATETIME';
-  }
-
   toBindableValue(date: AcceptedDate, options: StringifyOptions) {
     date = this._applyTimezone(date, options);
 

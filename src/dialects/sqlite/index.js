@@ -38,6 +38,8 @@ export class SqliteDialect extends AbstractDialect {
       CHAR: {
         BINARY: true,
       },
+      SMALLINT: false,
+      BIGINT: false,
       JSON: true,
     },
     milliseconds: true,

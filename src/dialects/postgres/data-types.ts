@@ -142,6 +142,10 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
+    if (this.options.precision != null) {
+      return `TIMESTAMP(${this.options.precision}) WITH TIME ZONE`;
+    }
+
     return 'TIMESTAMP WITH TIME ZONE';
   }
 
@@ -200,12 +204,6 @@ export class DATE extends BaseTypes.DATE {
   parse(value: unknown): unknown {
     // return dates as string, not Date objects. Different implementations could be used instead (such as Temporal, dayjs)
     return value;
-  }
-}
-
-export class TINYINT extends BaseTypes.TINYINT {
-  protected _checkOptionSupport() {
-    removeUnsupportedIntegerOptions(this);
   }
 }
 

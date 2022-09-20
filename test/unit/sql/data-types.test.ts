@@ -258,7 +258,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testsql('DATE(6)', DataTypes.DATE(6), {
         ibmi: 'TIMESTAMP',
-        postgres: 'TIMESTAMP WITH TIME ZONE',
+        postgres: 'TIMESTAMP(6) WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
@@ -499,128 +499,125 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => type.validate('12345')).not.to.throw();
           expect(() => type.validate(12_345)).not.to.throw();
+          expect(() => type.validate(12_345n)).not.to.throw();
         });
       });
     });
 
     describe('TINYINT', () => {
+      const noSupportError = new Error(`${dialect.name} does not support the TINYINT data type.`);
+      const noUnsignedSupportError = new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED`);
+
       const cases = [
         {
           title: 'TINYINT',
           dataType: DataTypes.TINYINT,
           expect: {
-            default: 'TINYINT',
+            default: noSupportError,
+            mssql: noUnsignedSupportError,
+            'mysql mariadb snowflake': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2)',
           dataType: DataTypes.TINYINT(2),
           expect: {
-            default: 'TINYINT(2)',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
+            default: noSupportError,
+            mssql: noUnsignedSupportError,
+            'mysql mariadb snowflake': 'TINYINT(2)',
           },
         },
         {
           title: 'TINYINT({ length: 2 })',
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
-            default: 'TINYINT(2)',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
+            default: noSupportError,
+            mssql: noUnsignedSupportError,
+            'mysql mariadb snowflake': 'TINYINT(2)',
           },
         },
         {
           title: 'TINYINT.UNSIGNED',
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
-            default: 'TINYINT UNSIGNED',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT UNSIGNED',
+            // snowflake does not support unsigned tinyint, but mssql's TINYINT is unsigned by default.
+            'snowflake mssql': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).UNSIGNED',
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
-            default: 'TINYINT(2) UNSIGNED',
-            db2: 'TINYINT',
-            sqlite: 'TINYINT(2)',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT(2) UNSIGNED',
+            snowflake: 'TINYINT(2)',
             mssql: 'TINYINT',
-            postgres: 'TINYINT',
           },
         },
         {
           title: 'TINYINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: 'TINYINT UNSIGNED ZEROFILL',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT UNSIGNED ZEROFILL',
+            // snowflake does not support unsigned tinyint, but mssql's TINYINT is unsigned by default.
+            // neither support zerofill
+            'snowflake mssql': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
-            default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            db2: 'TINYINT',
-            sqlite: 'TINYINT(2)',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT(2) UNSIGNED ZEROFILL',
+            snowflake: 'TINYINT(2)',
             mssql: 'TINYINT',
-            postgres: 'TINYINT',
           },
         },
         {
           title: 'TINYINT.ZEROFILL',
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
-            default: 'TINYINT ZEROFILL',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT',
+            default: noSupportError,
+            mssql: noUnsignedSupportError,
+            'mysql mariadb': 'TINYINT ZEROFILL',
+            snowflake: 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).ZEROFILL',
           dataType: DataTypes.TINYINT(2).ZEROFILL,
           expect: {
-            default: 'TINYINT(2) ZEROFILL',
-            db2: 'TINYINT',
-            sqlite: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
+            default: noSupportError,
+            mssql: noUnsignedSupportError,
+            'mysql mariadb': 'TINYINT(2) ZEROFILL',
+            snowflake: 'TINYINT(2)',
           },
         },
         {
           title: 'TINYINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: 'TINYINT UNSIGNED ZEROFILL',
-            db2: 'TINYINT',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT UNSIGNED ZEROFILL',
+            'snowflake mssql': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
           expect: {
-            default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            db2: 'TINYINT',
-            sqlite: 'TINYINT(2)',
+            default: noSupportError,
+            'mysql mariadb': 'TINYINT(2) UNSIGNED ZEROFILL',
+            snowflake: 'TINYINT(2)',
             mssql: 'TINYINT',
-            postgres: 'TINYINT',
           },
         },
       ];
+
       for (const row of cases) {
         testsql(row.title, row.dataType, row.expect);
       }
@@ -802,93 +799,99 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('MEDIUMINT', () => {
+      const noSupportError = new Error(`${dialect.name} does not support the MEDIUMINT data type.`);
+
       const cases = [
         {
           title: 'MEDIUMINT',
           dataType: DataTypes.MEDIUMINT,
           expect: {
-            default: 'MEDIUMINT',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT',
           },
         },
         {
-          title: 'MEDIUMINT(6)',
-          dataType: DataTypes.MEDIUMINT(6),
+          title: 'MEDIUMINT(2)',
+          dataType: DataTypes.MEDIUMINT(2),
           expect: {
-            default: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2)',
           },
         },
         {
-          title: 'MEDIUMINT({ length: 6 })',
-          dataType: DataTypes.MEDIUMINT({ length: 6 }),
+          title: 'MEDIUMINT({ length: 2 })',
+          dataType: DataTypes.MEDIUMINT({ length: 2 }),
           expect: {
-            default: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2)',
           },
         },
         {
           title: 'MEDIUMINT.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT UNSIGNED',
-            sqlite: 'MEDIUMINT',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT UNSIGNED',
           },
         },
         {
-          title: 'MEDIUMINT(6).UNSIGNED',
-          dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
+          title: 'MEDIUMINT(2).UNSIGNED',
+          dataType: DataTypes.MEDIUMINT(2).UNSIGNED,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED',
-            sqlite: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2) UNSIGNED',
           },
         },
         {
           title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT UNSIGNED ZEROFILL',
           },
         },
         {
-          title: 'MEDIUMINT(6).UNSIGNED.ZEROFILL',
-          dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
+          title: 'MEDIUMINT(2).UNSIGNED.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT(2).UNSIGNED.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2) UNSIGNED ZEROFILL',
           },
         },
         {
           title: 'MEDIUMINT.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT ZEROFILL',
-            sqlite: 'MEDIUMINT',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT ZEROFILL',
           },
         },
         {
-          title: 'MEDIUMINT(6).ZEROFILL',
-          dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
+          title: 'MEDIUMINT(2).ZEROFILL',
+          dataType: DataTypes.MEDIUMINT(2).ZEROFILL,
           expect: {
-            default: 'MEDIUMINT(6) ZEROFILL',
-            sqlite: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2) ZEROFILL',
           },
         },
         {
           title: 'MEDIUMINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT UNSIGNED ZEROFILL',
           },
         },
         {
-          title: 'MEDIUMINT(6).ZEROFILL.UNSIGNED',
-          dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
+          title: 'MEDIUMINT(2).ZEROFILL.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT(2).ZEROFILL.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT(6)',
+            default: noSupportError,
+            'mariadb mysql': 'MEDIUMINT(2) UNSIGNED ZEROFILL',
           },
         },
       ];
+
       for (const row of cases) {
         testsql(row.title, row.dataType, row.expect);
       }

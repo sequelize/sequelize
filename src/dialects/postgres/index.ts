@@ -1,5 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
-import merge from 'lodash/merge';
 import type { Sequelize } from '../../sequelize.js';
 import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
@@ -11,7 +9,7 @@ import { PostgresQueryGenerator } from './query-generator';
 import { PostgresQueryInterface } from './query-interface';
 
 export class PostgresDialect extends AbstractDialect {
-  static readonly supports = merge(cloneDeep(AbstractDialect.supports), {
+  static readonly supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
@@ -50,6 +48,7 @@ export class PostgresDialect extends AbstractDialect {
       JSONB: true,
       HSTORE: true,
       TSVECTOR: true,
+      CITEXT: true,
       DATETIME: {
         infinity: true,
       },
