@@ -1,18 +1,19 @@
 import { Blob } from 'node:buffer';
 import type {
   CreationAttributes,
+  CreationOptional,
   InferAttributes,
+  InferCreationAttributes,
   ModelStatic,
-  CreationOptional, InferCreationAttributes,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, ValidationError } from '@sequelize/core';
+import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
 import { expect } from 'chai';
 import dayjs from 'dayjs';
 import DayjsTimezone from 'dayjs/plugin/timezone';
 import moment from 'moment';
 import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
-import { beforeEach2, sequelize } from '../support';
+import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
 
 dayjs.extend(DayjsTimezone);
 
@@ -26,11 +27,11 @@ enum TestEnum {
   'D,E' = 'D,E',
 }
 
-// !TODO: add tests for each type to check what the raw value is when the DataType is not provided (ie. only parse() is called, not sanitize())
-
 describe('DataTypes', () => {
+  disableDatabaseResetForSuite();
+
   describe('STRING(<length>)', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare stringAttr: string;
       }
@@ -42,7 +43,7 @@ describe('DataTypes', () => {
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -63,10 +64,14 @@ describe('DataTypes', () => {
         stringAttr: 12,
       })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
     });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'stringAttr', '1235', '1235');
+    });
   });
 
   describe('STRING.BINARY', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare binaryStringAttr: ArrayBuffer | string | Blob;
       }
@@ -78,13 +83,17 @@ describe('DataTypes', () => {
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
 
     it('serialize/deserializes buffers', async () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', Buffer.from('abc'), Buffer.from([97, 98, 99]));
+    });
+
+    it('is deserialized as a buffer when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', Buffer.from([97, 98, 99]));
     });
 
     it('accepts ArrayBuffers & Uint8Arrays', async () => {
@@ -125,7 +134,7 @@ describe('DataTypes', () => {
         });
       });
     } else {
-      const vars = beforeEach2(async () => {
+      const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare binaryStringAttr: string;
         }
@@ -137,7 +146,7 @@ describe('DataTypes', () => {
           },
         }, { sequelize });
 
-        await User.sync();
+        await User.sync({ force: true });
 
         return { User };
       });
@@ -153,7 +162,7 @@ describe('DataTypes', () => {
   });
 
   describe('TEXT', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare textAttr: string;
       }
@@ -165,7 +174,7 @@ describe('DataTypes', () => {
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -173,10 +182,14 @@ describe('DataTypes', () => {
     it('serialize/deserializes strings', async () => {
       await testSimpleInOut(vars.User, 'textAttr', '123456', '123456');
     });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
+    });
   });
 
-  describe(`DataTypes.TEXT(<size>)`, () => {
-    const vars = beforeEach2(async () => {
+  describe(`TEXT(<size>)`, () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare tinyText: string;
         declare mediumText: string;
@@ -198,7 +211,7 @@ describe('DataTypes', () => {
         },
       }, { sequelize, timestamps: false, noPrimaryKey: true });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -216,7 +229,7 @@ describe('DataTypes', () => {
   });
 
   describe('CHAR(<length>)', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare charAttr: string;
       }
@@ -228,7 +241,7 @@ describe('DataTypes', () => {
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -242,11 +255,15 @@ describe('DataTypes', () => {
         charAttr: '1'.repeat(21),
       })).to.be.rejected;
     });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'charAttr', 'abc', 'abc'.padEnd(20, ' '));
+    });
   });
 
   describe('CHAR(<length>).BINARY', () => {
     if (dialect.supports.dataTypes.CHAR.BINARY) {
-      const vars = beforeEach2(async () => {
+      const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
         }
@@ -258,13 +275,17 @@ describe('DataTypes', () => {
           },
         }, { sequelize });
 
-        await User.sync();
+        await User.sync({ force: true });
 
         return { User };
       });
 
       it('serialize/deserializes buffers with padding if the length is insufficient', async () => {
         await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
+      });
+
+      it('is deserialized as a buffer when DataType is not specified', async () => {
+        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
       });
 
       it('accepts ArrayBuffers & Uint8Arrays', async () => {
@@ -313,7 +334,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         }).to.throwWithCause(`CITEXT is not supported in ${dialect.name}.`);
       });
     } else {
-      const vars = beforeEach2(async () => {
+      const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare ciTextAttr: string;
         }
@@ -325,7 +346,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
           },
         }, { sequelize });
 
-        await User.sync();
+        await User.sync({ force: true });
 
         return { User };
       });
@@ -338,11 +359,15 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         const user = await vars.User.findOne({ rejectOnEmpty: true, where: { ciTextAttr: 'abcDEF' } });
         expect(user.ciTextAttr).to.eq('ABCdef');
       });
+
+      it('is deserialized as a string when DataType is not specified', async () => {
+        await testSimpleInOutRaw(vars.User, 'ciTextAttr', 'abcDEF', 'abcDEF');
+      });
     }
   });
 
   describe('TSVECTOR', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare tsvectorAttr: string;
       }
@@ -354,7 +379,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -373,10 +398,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         `'fat':2 'rat':3`,
       );
     });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'tsvectorAttr', 'a:1A fat:2B,4C cat:5D', `'a':1A 'cat':5 'fat':2B,4C`);
+    });
   });
 
   describe('BOOLEAN', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare booleanAttr: boolean | string | number | bigint | Buffer;
       }
@@ -388,7 +417,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -421,6 +450,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     it('rejects buffers', async () => {
       await expect(vars.User.create({ booleanAttr: Buffer.from([1]) })).to.be.rejected;
       await expect(vars.User.create({ booleanAttr: Buffer.from([0]) })).to.be.rejected;
+    });
+
+    it('is deserialized as a boolean when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'booleanAttr', true, true);
+      await testSimpleInOutRaw(vars.User, 'booleanAttr', false, false);
     });
   });
 
@@ -457,7 +491,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
           }).to.throwWithCause(`${dialect.name} does not support the ${intTypeName} data type.`);
         });
       } else {
-        const vars = beforeEach2(async () => {
+        const vars = beforeAll2(async () => {
           class User extends Model<InferAttributes<User>> {
             declare intAttr: number | bigint | string;
           }
@@ -469,7 +503,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
             },
           }, { sequelize });
 
-          await User.sync();
+          await User.sync({ force: true });
 
           return { User };
         });
@@ -500,13 +534,17 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
           await expect(vars.User.create({ intAttr: 'abc' })).to.be.rejected;
           await expect(vars.User.create({ intAttr: '123.4' })).to.be.rejected;
         });
+
+        it('is deserialized as a JS number when DataType is not specified', async () => {
+          await testSimpleInOutRaw(vars.User, 'intAttr', 123, 123);
+        });
       }
     });
   }
 
   // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('BIGINT', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare bigintAttr: number | bigint | string;
       }
@@ -518,7 +556,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -546,11 +584,15 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await expect(vars.User.create({ bigintAttr: 'abc' })).to.be.rejected;
       await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
     });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+    });
   });
 
   // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('REAL, DataTypes.DOUBLE, DataTypes.FLOAT', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare realAttr: number | bigint | string | null;
         declare doubleAttr: number | bigint | string | null;
@@ -572,51 +614,38 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
 
-    it('REAL accepts numbers, bigints, strings, NaN, +-Infinity', async () => {
-      await testSimpleInOut(vars.User, 'realAttr', 123.4, 123.4);
-      await testSimpleInOut(vars.User, 'realAttr', 123n, 123);
-      await testSimpleInOut(vars.User, 'realAttr', '123.4', 123.4);
-      await testSimpleInOut(vars.User, 'realAttr', Number.NaN, Number.NaN);
-      await testSimpleInOut(vars.User, 'realAttr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-      await testSimpleInOut(vars.User, 'realAttr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
-    });
+    for (const [attrType, attrName] of [['REAL', 'realAttr'], ['DOUBLE', 'doubleAttr'], ['FLOAT', 'floatAttr']] as const) {
+      it(`${attrType} accepts numbers, bigints, strings, NaN, +-Infinity`, async () => {
+        await testSimpleInOut(vars.User, attrName, 123.4, 123.4);
+        await testSimpleInOut(vars.User, attrName, 123n, 123);
+        await testSimpleInOut(vars.User, attrName, '123.4', 123.4);
+        await testSimpleInOut(vars.User, attrName, Number.NaN, Number.NaN);
+        await testSimpleInOut(vars.User, attrName, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        await testSimpleInOut(vars.User, attrName, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+      });
 
-    it('DOUBLE accepts numbers, bigints, strings, NaN, +-Infinity', async () => {
-      await testSimpleInOut(vars.User, 'doubleAttr', 123.4, 123.4);
-      await testSimpleInOut(vars.User, 'doubleAttr', 123n, 123);
-      await testSimpleInOut(vars.User, 'doubleAttr', '123.4', 123.4);
-      await testSimpleInOut(vars.User, 'doubleAttr', Number.NaN, Number.NaN);
-      await testSimpleInOut(vars.User, 'doubleAttr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-      await testSimpleInOut(vars.User, 'doubleAttr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
-    });
+      it(`${attrType}  rejects non-number strings`, async () => {
+        await expect(vars.User.create({ [attrName]: '' })).to.be.rejected;
+        await expect(vars.User.create({ [attrName]: 'abc' })).to.be.rejected;
+      });
 
-    it('FLOAT accepts numbers, bigints, strings, NaN, +-Infinity', async () => {
-      await testSimpleInOut(vars.User, 'floatAttr', 123.4, 123.4);
-      await testSimpleInOut(vars.User, 'floatAttr', 123n, 123);
-      await testSimpleInOut(vars.User, 'floatAttr', '123.4', 123.4);
-      await testSimpleInOut(vars.User, 'floatAttr', Number.NaN, Number.NaN);
-      await testSimpleInOut(vars.User, 'floatAttr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-      await testSimpleInOut(vars.User, 'floatAttr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
-    });
-
-    it('rejects non-number strings', async () => {
-      await expect(vars.User.create({ realAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ realAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ doubleAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ doubleAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ floatAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ floatAttr: 'abc' })).to.be.rejected;
-    });
+      it(`${attrType} is deserialized as a JS number when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, attrName, 123n, 123);
+        await testSimpleInOutRaw(vars.User, attrName, Number.NaN, Number.NaN);
+        await testSimpleInOutRaw(vars.User, attrName, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        await testSimpleInOutRaw(vars.User, attrName, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+      });
+    }
   });
 
   // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('DECIMAL', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare decimalAttr: number | bigint | string;
       }
@@ -628,7 +657,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -652,10 +681,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await expect(vars.User.create({ decimalAttr: '' })).to.be.rejected;
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, '123');
+    });
   });
 
   describe('DATE', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare dateAttr: Date | string | number | Moment | dayjs.Dayjs;
       }
@@ -667,7 +700,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -699,10 +732,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         new Date('2014-06-01T16:00:00.000Z'),
       );
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01T00:00:00Z', '2022-01-01 00:00:00+00');
+    });
   });
 
   describe('DATE(precision)', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare dateMinPrecisionAttr: Date | string | null;
         declare dateTwoPrecisionAttr: Date | string | null;
@@ -724,7 +761,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -734,13 +771,15 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
 
       // The Date object doesn't go further than milliseconds.
-      // !TODO: test raw
       await testSimpleInOut(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', new Date('2022-01-01T12:13:14.123Z'));
+
+      // Date is also used for inserting, so we also lose precision during insert.
+      await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');
     });
   });
 
   describe('DATEONLY', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
         declare dateAttr: string | null;
         declare id: CreationOptional<number>;
@@ -755,7 +794,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         dateAttr: DataTypes.DATEONLY,
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -780,10 +819,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       const record = await record0.reload();
       expect(record.dateAttr).to.be.eql(null);
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+    });
   });
 
   describe('TIME', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare timeAttr: string;
       }
@@ -795,7 +838,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -804,10 +847,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'timeAttr', '04:05:06', '04:05:06');
       await testSimpleInOut(vars.User, 'timeAttr', '04:05:06.1234567', '04:05:06.123457' /* rounded to nearest */);
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'timeAttr', '04:05:06.123456', '04:05:06.123456');
+    });
   });
 
   describe('TIME(precision)', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare timeMinPrecisionAttr: string | null;
         declare timeTwoPrecisionAttr: string | null;
@@ -820,7 +867,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         timeMaxPrecisionAttr: DataTypes.TIME(6),
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -833,7 +880,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
   });
 
   describe('UUID', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: string;
       }
@@ -845,26 +892,31 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
 
+    const uuidV1 = '4b39e726-d455-11ec-9d64-0242ac120002';
+    const uuidV4 = '48fbbb25-b00c-4711-add4-fae864a09d8d';
+
     it('accepts UUID strings', async () => {
-      const uuidV1 = '4b39e726-d455-11ec-9d64-0242ac120002';
       await testSimpleInOut(vars.User, 'attr', uuidV1, uuidV1);
-      const uuidV4 = '48fbbb25-b00c-4711-add4-fae864a09d8d';
       await testSimpleInOut(vars.User, 'attr', uuidV4, uuidV4);
     });
 
     it('rejects non-UUID strings', async () => {
       await expect(vars.User.create({ attr: 'not-a-uuid-at-all' })).to.be.rejected;
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', uuidV4, uuidV4);
+    });
   });
 
   // !TODO: (mariadb, mysql): TINYBLOB, MEDIUMBLOB
   describe('BLOB', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: ArrayBuffer | string | Blob;
       }
@@ -876,7 +928,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -908,10 +960,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', 'abc', Buffer.from([97, 98, 99]));
     });
+
+    it(`is deserialized as a Buffer when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]), Buffer.from([49, 50, 51, 52]));
+    });
   });
 
   describe('ENUM', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: TestEnum;
       }
@@ -923,7 +979,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -936,17 +992,22 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       // @ts-expect-error -- 'fail' is not a valid value for this enum.
       await expect(vars.User.create({ attr: 'fail' })).to.be.rejected;
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', TestEnum.A, TestEnum.A);
+    });
   });
 
   for (const JsonType of [DataTypes.JSON, DataTypes.JSONB]) {
     describe(`DataTypes.${JsonType.name}`, () => {
-      const vars = beforeEach2(async () => {
+      const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare jsonStr: string;
           declare jsonBoolean: boolean;
           declare jsonNumber: number;
-          declare jsonArray: string[];
+          declare jsonArray: any[];
           declare jsonObject: object;
+          declare jsonNull: any;
         }
 
         User.init({
@@ -976,9 +1037,13 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
             allowNull: false,
             defaultValue: { key: 'abc' },
           },
+          jsonNull: {
+            type: JsonType,
+            allowNull: true,
+          },
         }, { sequelize, timestamps: false });
 
-        await User.sync();
+        await User.sync({ force: true });
 
         return { User };
       });
@@ -989,6 +1054,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
           jsonStr: 'abc',
           jsonBoolean: true,
           jsonNumber: 1,
+          jsonNull: null,
           jsonArray: ['a', 'b'],
           jsonObject: { key: 'abc' },
           id: 1,
@@ -996,13 +1062,29 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       });
 
       it('properly serializes values', async () => {
+        await testSimpleInOut(vars.User, 'jsonStr', 'abc', 'abc');
+        await testSimpleInOut(vars.User, 'jsonBoolean', true, true);
+        await testSimpleInOut(vars.User, 'jsonBoolean', false, false);
+        await testSimpleInOut(vars.User, 'jsonNumber', 123.4, 123.4);
+        await testSimpleInOut(vars.User, 'jsonArray', [1, 2], [1, 2]);
         await testSimpleInOut(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+        await testSimpleInOut(vars.User, 'jsonNull', null, null);
+      });
+
+      it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', 'abc');
+        await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, true);
+        await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, false);
+        await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, 123.4);
+        await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], [1, 2]);
+        await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+        await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
       });
     });
   }
 
   describe('HSTORE', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: Record<string, string> | string;
       }
@@ -1014,15 +1096,19 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
 
-    it('serialize/deserializes buffers', async () => {
-      const hash = { key1: 'value1', key2: 'value2' };
+    const hash = { key1: 'value1', key2: 'value2' };
 
+    it('serialize/deserializes buffers', async () => {
       await testSimpleInOut(vars.User, 'attr', hash, hash);
+    });
+
+    it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', hash, hash);
     });
 
     it('rejects hstores that contain non-string values', async () => {
@@ -1034,7 +1120,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
   });
 
   describe('ARRAY', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare enumArray: TestEnum[] | null;
         declare intArray: Array<string | number | bigint> | null;
@@ -1055,7 +1141,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)),
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -1070,6 +1156,16 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
     });
 
+    it(`is deserialized as a parsed array when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
+      await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
+      await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+      await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
+      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
+      await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
+      await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+    });
+
     it('rejects non-array values', async () => {
       await expect(vars.User.create({
         // @ts-expect-error -- we're voluntarily going against the typing to test that it fails.
@@ -1079,7 +1175,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
   });
 
   describe('CIDR', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: string;
       }
@@ -1091,7 +1187,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -1099,10 +1195,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', '10.1.2.3/32', '10.1.2.3/32');
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', '10.1.2.3/32', '10.1.2.3/32');
+    });
   });
 
   describe('INET', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: string;
       }
@@ -1114,7 +1214,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
@@ -1122,10 +1222,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', '127.0.0.1', '127.0.0.1');
     });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', '127.0.0.1', '127.0.0.1');
+    });
   });
 
   describe('MACADDR', () => {
-    const vars = beforeEach2(async () => {
+    const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare attr: string;
       }
@@ -1137,13 +1241,17 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
         },
       }, { sequelize });
 
-      await User.sync();
+      await User.sync({ force: true });
 
       return { User };
     });
 
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', '01:23:45:67:89:ab', '01:23:45:67:89:ab');
+    });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab', '01:23:45:67:89:ab');
     });
   });
 });
@@ -1166,4 +1274,26 @@ export async function testSimpleInOut<M extends Model, Key extends keyof Creatio
     },
   });
   expect(fetchedUser[attributeName]).to.deep.eq(outVal, message);
+}
+
+export async function testSimpleInOutRaw<M extends Model, Key extends keyof CreationAttributes<M>>(
+  model: ModelStatic<M>,
+  attributeName: Key,
+  inVal: CreationAttributes<M>[Key],
+  outVal: CreationAttributes<M>[Key],
+  message?: string,
+): Promise<void> {
+  // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
+  const createdUser = await model.create({ [attributeName]: inVal });
+
+  const quotedTableName = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier(model.tableName);
+  const fetchedUser = await model.sequelize!.query<any>(`SELECT * FROM ${quotedTableName} WHERE "id" = :id`, {
+    type: QueryTypes.SELECT,
+    replacements: {
+      // @ts-expect-error -- it's not worth it to type .id for these internal tests.
+      id: createdUser.id,
+    },
+  });
+
+  expect(fetchedUser[0][attributeName]).to.deep.eq(outVal, message);
 }

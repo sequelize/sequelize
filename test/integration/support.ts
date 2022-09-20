@@ -23,12 +23,30 @@ before(() => {
   });
 });
 
+let databaseResetDisabled = false;
+export function disableDatabaseResetForSuite() {
+  before(() => {
+    databaseResetDisabled = true;
+  });
+
+  after(() => {
+    databaseResetDisabled = false;
+  });
+}
+
 beforeEach(async () => {
+  if (databaseResetDisabled) {
+    return;
+  }
+
   await Support.clearDatabase(Support.sequelize);
 });
 
 afterEach(async function checkRunningQueries() {
   // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
+  if (databaseResetDisabled) {
+    return;
+  }
 
   let runningQueriesProblem;
 
