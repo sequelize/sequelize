@@ -3397,7 +3397,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param options.plain If set to true, included instances will be returned as plain objects
    * @param options.raw  If set to true, field and virtual setters will be ignored
-   * @param options.clone Only evaluated when key==undefined. If set to true, all objects including child-objects will be copies and not reference the original dataValues-object. (default: false)
+   * @param options.clone Only evaluated when key===undefined. If set to true, all objects including child-objects will be copies and not reference the original dataValues-object. (default: false)
    */
   get(options?: { plain?: boolean, clone?: boolean, raw?: boolean }): TModelAttributes;
   get<K extends keyof this>(key: K, options?: { plain?: boolean, clone?: boolean, raw?: boolean }): this[K];
