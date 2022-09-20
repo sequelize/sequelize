@@ -25,6 +25,8 @@ type Lib = typeof import('pg');
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type ArrayParserLib = typeof import('postgres-array');
 
+type TypeParser = (source: string) => unknown;
+
 interface TypeOids {
   oid: number;
   typeName: string;
@@ -50,6 +52,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   readonly #arrayParserLib: ArrayParserLib;
 
   #oidMap = new Map<number, TypeOids>();
+  #oidParserCache = new Map<number, TypeParser>();
 
   constructor(dialect: PostgresDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
@@ -332,24 +335,45 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     };
   }
 
-  getTypeParser(oid: TypeId, format?: TypeFormat): (source: string) => unknown {
-    const typeData = this.#oidMap.get(oid);
+  getTypeParser(oid: TypeId, format?: TypeFormat): TypeParser {
+    const cachedParser = this.#oidParserCache.get(oid);
 
-    if (typeData) {
-      if (typeData.type === 'array' || typeData.type === 'range-array') {
-        // !TODO: cache
-        return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, format));
-      }
+    if (cachedParser) {
+      return cachedParser;
+    }
 
-      // !TODO: cache
-      const defaultDataType = this.dialect.getParserForDatabaseDataType(typeData.typeName);
+    const customParser = this.#getCustomTypeParser(oid, format);
+    if (customParser) {
+      this.#oidParserCache.set(oid, customParser);
 
-      if (defaultDataType) {
-        return (value: unknown) => defaultDataType.parse(value);
-      }
+      return customParser;
     }
 
     return this.lib.types.getTypeParser(oid, format);
+  }
+
+  #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser | null {
+    const typeData = this.#oidMap.get(oid);
+
+    if (!typeData) {
+      return null;
+    }
+
+    if (typeData.type === 'range-array') {
+      return this.#buildArrayParser(this.getTypeParser(typeData.rangeOid!, format));
+    }
+
+    if (typeData.type === 'array') {
+      return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, format));
+    }
+
+    const defaultDataType = this.dialect.getParserForDatabaseDataType(typeData.typeName);
+
+    if (defaultDataType) {
+      return (value: unknown) => defaultDataType.parse(value);
+    }
+
+    return null;
   }
 
   /**

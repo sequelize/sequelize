@@ -331,24 +331,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             name: 12,
           })).not.to.be.rejected;
         });
-
-        it('should allow 0/1 as a boolean', async () => {
-          await expect(User.create({
-            awesome: 1,
-          })).not.to.be.rejected;
-        });
-
-        it('should allow 0/1 string as a boolean', async () => {
-          await expect(User.create({
-            awesome: '1',
-          })).not.to.be.rejected;
-        });
-
-        it('should allow true/false string as a boolean', async () => {
-          await expect(User.create({
-            awesome: 'true',
-          })).not.to.be.rejected;
-        });
       });
 
       describe('findAll', () => {

@@ -350,7 +350,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
+        expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
       });
 
       describe('ARRAY(ENUM)', () => {

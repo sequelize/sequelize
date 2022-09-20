@@ -39,7 +39,7 @@ if (dialect !== 'sqlite' && dialect !== 'ibmi') {
       ]);
 
       const elapsedQueryTime = Date.now() - startQueryTime + 1001;
-      expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
+      expect(new Date(now1[0].now).getTime()).to.be.closeTo(new Date(now2[0].now).getTime(), elapsedQueryTime);
     });
 
     if (['mysql', 'mariadb'].includes(dialect)) {

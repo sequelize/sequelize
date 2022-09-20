@@ -4,8 +4,6 @@ import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
 import { testSimpleInOut } from './data-types.test';
 
-// !TODO: add raw query range tests
-
 describe('DataTypes.RANGE', () => {
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {
@@ -131,5 +129,42 @@ describe('DataTypes.RANGE', () => {
     });
 
     expect(user).to.exist;
+  });
+});
+
+describe('DataTypes.ARRAY(DataTypes.RANGE)', () => {
+  const vars = beforeEach2(async () => {
+    class User extends Model<InferAttributes<User>> {
+      declare intRangeArray: Array<Rangable<number>> | null;
+      declare zonedDatetimeRangeArray: Array<Rangable<Date | string>> | null;
+    }
+
+    User.init({
+      intRangeArray: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.INTEGER)),
+      zonedDatetimeRangeArray: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.DATE)),
+    }, { sequelize });
+
+    await User.sync();
+
+    return { User };
+  });
+
+  it('serialize/deserializes range arrays', async () => {
+    await testSimpleInOut(
+      vars.User,
+      'intRangeArray',
+      [[1, 2], [3, 4]],
+      [
+        [{ inclusive: true, value: 1 }, { inclusive: false, value: 2 }],
+        [{ inclusive: true, value: 3 }, { inclusive: false, value: 4 }],
+      ],
+    );
+
+    await testSimpleInOut(
+      vars.User,
+      'zonedDatetimeRangeArray',
+      [['2022-01-01T00:00:00Z', new Date('2022-01-02T00:00:00Z')]],
+      [[{ inclusive: true, value: new Date('2022-01-01T00:00:00Z') }, { inclusive: false, value: new Date('2022-01-02T00:00:00Z') }]],
+    );
   });
 });

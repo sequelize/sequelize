@@ -3810,12 +3810,15 @@ Instead of specifying a Model, either:
       }
 
       // If there's a data type sanitizer
+      const attributeType = this.rawAttributes[key]?.type;
       if (
         value != null
         && !(value instanceof Utils.SequelizeMethod)
-        && this.rawAttributes[key]?.type
+        && attributeType
+        // "type" can be a string
+        && attributeType instanceof AbstractDataType
       ) {
-        value = this.rawAttributes[key].type.sanitize(value, options);
+        value = attributeType.sanitize(value, options);
       }
 
       // Set when the value has changed and not raw

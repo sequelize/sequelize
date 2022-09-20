@@ -236,10 +236,10 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => type.validate(true)).not.to.throw();
           expect(() => type.validate(false)).not.to.throw();
-          expect(() => type.validate('1')).not.to.throw();
-          expect(() => type.validate('0')).not.to.throw();
-          expect(() => type.validate('true')).not.to.throw();
-          expect(() => type.validate('false')).not.to.throw();
+          expect(() => type.validate('1')).to.throw();
+          expect(() => type.validate('0')).to.throw();
+          expect(() => type.validate('true')).to.throw();
+          expect(() => type.validate('false')).to.throw();
         });
       });
     });
@@ -1458,7 +1458,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationError, `'foobar' is not a valid choice in [ 'foo' ]`);
+          }).to.throw(ValidationError, `'foobar' is not a valid choice for enum [ 'foo' ]`);
         });
 
         it('should not throw if `value` is a valid choice', () => {
