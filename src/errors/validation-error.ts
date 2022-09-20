@@ -8,10 +8,9 @@ import BaseError from './base-error';
  * our new `origin` values.
  */
 export enum ValidationErrorItemType {
-  'notnull violation' = 'CORE',
-  'string violation' = 'CORE',
+  'notNull violation' = 'CORE',
   'unique violation' = 'DB',
-  'validation error' = 'FUNCTION',
+  'Validation error' = 'FUNCTION',
 }
 
 /**
@@ -67,7 +66,7 @@ export class ValidationErrorItem extends Error {
   /**
    * The value that generated the error
    */
-  value: string | null;
+  value: unknown;
 
   readonly origin: keyof typeof ValidationErrorItemOrigin | null;
 
@@ -79,7 +78,7 @@ export class ValidationErrorItem extends Error {
   /**
    * A validation "key", used for identification
    */
-  readonly validatorKey: string | null;
+  validatorKey: string | null;
 
   /**
    * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
@@ -94,7 +93,7 @@ export class ValidationErrorItem extends Error {
   static throwDataTypeValidationError(
     message: string,
   ) {
-    throw new ValidationErrorItem(message, ValidationErrorItemOrigin.DATATYPE);
+    throw new ValidationErrorItem(message, 'Validation error', ValidationErrorItemOrigin.DATATYPE);
   }
 
   /**
@@ -126,7 +125,7 @@ export class ValidationErrorItem extends Error {
     this.type = null;
     this.path = path || null;
 
-    this.value = value !== undefined ? value : null;
+    this.value = value ?? null;
 
     this.origin = null;
 
@@ -142,8 +141,7 @@ export class ValidationErrorItem extends Error {
       if (this.isValidationErrorItemOrigin(type)) {
         this.origin = type;
       } else {
-        const lowercaseType = this.normalizeString(type);
-        const realType = ValidationErrorItemType[lowercaseType];
+        const realType = ValidationErrorItemType[type];
 
         if (realType && ValidationErrorItemOrigin[realType]) {
           this.origin = realType;
@@ -165,10 +163,6 @@ export class ValidationErrorItem extends Error {
         origin as keyof typeof ValidationErrorItemOrigin
       ] !== undefined
     );
-  }
-
-  private normalizeString<T extends string>(str: T): T {
-    return str.toLowerCase().trim() as T;
   }
 
   /**
@@ -233,7 +227,7 @@ class ValidationError extends BaseError {
     } else if (this.errors.length > 0 && this.errors[0].message) {
       this.message = this.errors
         .map(
-          (err: ValidationErrorItem) => `${err.type || err.origin} ${err.validatorName || err.validatorKey}: ${err.message}`,
+          (err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`,
         )
         .join(',\n');
     }

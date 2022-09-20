@@ -1,4 +1,6 @@
 import NodeUtils from 'util';
+import { ValidationErrorItem } from '../../errors/index.js';
+import type { Model } from '../../model.js';
 import { logger } from '../../utils/logger.js';
 import type { DataType, DataTypeClass, DataTypeInstance } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
@@ -49,4 +51,32 @@ export function normalizeDataType(Type: DataType | string, dialect: AbstractDial
     : Type;
 
   return type.toDialectDataType(dialect);
+}
+
+export function validateDataType(
+  type: AbstractDataType<any>,
+  attributeName: string,
+  modelInstance: Model<any> | null,
+  value: unknown,
+): ValidationErrorItem | null {
+  try {
+    type.validate(value);
+
+    return null;
+  } catch (error) {
+    if (!(error instanceof ValidationErrorItem)) {
+      // eslint-disable-next-line unicorn/prefer-type-error
+      throw new Error(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must thrown an instance of ValidationErrorItem instead)`, {
+        cause: error,
+      });
+    }
+
+    error.path = attributeName;
+    error.value = value;
+    error.instance = modelInstance;
+    // @ts-expect-error -- untyped constructor
+    error.validatorKey = `${type.constructor.getDataTypeId()} validator`;
+
+    return error;
+  }
 }

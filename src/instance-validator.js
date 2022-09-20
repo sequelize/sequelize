@@ -1,12 +1,11 @@
 'use strict';
 
 import { AbstractDataType } from './dialects/abstract/data-types';
-import { ValidationError, ValidationErrorItem } from './errors';
+import { validateDataType } from './dialects/abstract/data-types-utils';
 
 const _ = require('lodash');
 const Utils = require('./utils');
 const sequelizeError = require('./errors');
-const DataTypes = require('./data-types');
 const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('util');
@@ -362,7 +361,7 @@ export class InstanceValidator {
 
         this.errors.push(new sequelizeError.ValidationErrorItem(
           errMsg,
-          'notNull Violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
+          'notNull violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
           field,
           value,
           this.modelInstance,
@@ -373,21 +372,8 @@ export class InstanceValidator {
 
     const type = rawAttribute.type;
     if (value != null && !(value instanceof Utils.SequelizeMethod) && type instanceof AbstractDataType) {
-      try {
-        type.validate(value);
-      } catch (error) {
-        if (!(error instanceof ValidationErrorItem)) {
-          // eslint-disable-next-line unicorn/prefer-type-error
-          throw new Error(`Validation encountered an unexpected error while validating attribute ${field}. (Note: If this error is intended, ${type.constructor.name}#validate must thrown an instance of ValidationErrorItem instead)`, {
-            cause: error,
-          });
-        }
-
-        error.path = field;
-        error.value = value;
-        error.instance = this.modelInstance;
-        error.validatorName = type.constructor.getDataTypeId();
-
+      const error = validateDataType(type, field, this.modelInstance, value);
+      if (error) {
         this.errors.push(error);
       }
     }

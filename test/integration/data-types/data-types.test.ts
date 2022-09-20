@@ -62,7 +62,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({
         // @ts-expect-error
         stringAttr: 12,
-      })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
+      })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
     });
   });
 
@@ -100,11 +100,11 @@ describe('DataTypes', () => {
       it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
         await expect(vars.User.create({
           binaryStringAttr: new Blob(['abc']),
-        })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+        })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
 
         await expect(vars.User.create({
           binaryStringAttr: new Uint16Array([97, 98, 99]),
-        })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Uint16Array(3) [ 97, 98, 99 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+        })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(3) [ 97, 98, 99 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
       });
     }
 
@@ -278,11 +278,11 @@ describe('DataTypes', () => {
         it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
           await expect(vars.User.create({
             binaryCharAttr: new Blob(['abcd']),
-          })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+          })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
 
           await expect(vars.User.create({
             binaryCharAttr: new Uint16Array([49, 50, 51, 52]),
-          })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid value for binary strings: Only strings, numbers, Buffer, Uint8Array and ArrayBuffer are supported.');
+          })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid value for binary strings: Only strings, numbers, Buffer, Uint8Array and ArrayBuffer are supported.');
         });
       }
 
@@ -827,11 +827,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
         await expect(vars.User.create({
           attr: new Blob(['abcd']),
-        })).to.be.rejectedWith(ValidationError, 'DATATYPE BLOB: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+        })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
 
         await expect(vars.User.create({
           attr: new Uint16Array([49, 50, 51, 52]),
-        })).to.be.rejectedWith(ValidationError, 'DATATYPE BLOB: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+        })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
       });
     }
 

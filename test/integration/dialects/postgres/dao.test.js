@@ -402,7 +402,7 @@ if (dialect.startsWith('postgres')) {
           await User.sync();
           const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
           expect(enums).to.have.length(1);
-          expect(enums[0].enum_value).to.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
+          expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
         });
 
         it('should be able to insert new record', async function () {

@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         pass: '9.2',
       },
       isNull: {
-        fail: 0,
+        fail: '0',
         pass: null,
       },
       notEmpty: {
@@ -325,12 +325,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             number: '2321312301230128391820f219',
           })).to.be.rejected]);
         });
-
-        it('should allow string as a number', async () => {
-          await expect(User.create({
-            name: 12,
-          })).not.to.be.rejected;
-        });
       });
 
       describe('findAll', () => {
@@ -358,14 +352,15 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
     });
 
-    describe('should throw validationerror', () => {
+    describe('should throw validationError', () => {
 
       describe('create', () => {
         it('should throw when passing string', async () => {
-          await expect(User.create({
+          const error = await expect(User.create({
             age: 'jan',
-          })).to.be.rejectedWith(Sequelize.ValidationError)
-            .which.eventually.have.property('errors')
+          })).to.be.rejectedWith(Sequelize.ValidationError, 'jan is not a valid integer');
+
+          expect(error).to.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
@@ -374,7 +369,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -392,7 +386,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -412,7 +405,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -430,7 +422,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });

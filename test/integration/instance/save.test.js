@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, ValidationError } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await expect(user0.set({
           name: 'B',
-        }).save()).to.be.rejectedWith(Sequelize.ValidationError);
+        }).save()).to.be.rejectedWith(ValidationError);
 
         const user = await User.findOne({});
         expect(user.get('email')).to.equal('valid.email@gmail.com');
@@ -250,7 +250,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await expect(user0.set({
           name: 'B',
           email: 'still.valid.email@gmail.com',
-        }).save()).to.be.rejectedWith(Sequelize.ValidationError);
+        }).save()).to.be.rejectedWith(ValidationError);
 
         const user = await User.findOne({});
         expect(user.get('email')).to.equal('valid.email@gmail.com');
@@ -469,11 +469,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       try {
         await this.User.create({ aNumber: 0, validateTest: 'hello' });
       } catch (error) {
+        console.log(error);
         expect(error).to.exist;
-        expect(error).to.be.instanceof(Object);
+        expect(error).to.be.instanceof(ValidationError);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -484,8 +485,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.exist;
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -512,8 +513,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.exist;
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 

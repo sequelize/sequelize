@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       const error = new Sequelize.Error();
       const errorMessage = 'error message';
       const validationError = new ValidationError(errorMessage, [
-        new ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
+        new ValidationErrorItem('<field name> cannot be null', 'notNull violation', '<field name>', null),
         new ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null),
       ]);
       const optimisticLockError = new OptimisticLockError();
@@ -73,13 +73,13 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
       const errorItems = [
-        new ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
-        new ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null),
+        new ValidationErrorItem('<field name> cannot be null', 'notNull violation', '<field name>', null),
+        new ValidationErrorItem('<field name> cannot be an array or an object', 'Validation error', '<field name>', null),
       ];
       const validationError = new ValidationError(null, errorItems);
 
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
-      expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+      expect(validationError.message).to.match(/notNull violation: <field name> cannot be null,\nValidation error: <field name> cannot be an array or an object/);
     });
 
     it('SequelizeValidationErrorItem does not require instance & validator constructor parameters', () => {
@@ -145,8 +145,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationErrorItem should map deprecated "type" values to new "origin" values', () => {
       const data  = {
-        'notNull Violation': 'CORE',
-        'string violation': 'CORE',
+        'notNull violation': 'CORE',
         'unique violation': 'DB',
         'Validation error': 'FUNCTION',
       };

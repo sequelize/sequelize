@@ -1125,9 +1125,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const smth1 = error.get('smth')[0] || {};
 
         expect(smth1.path).to.equal('smth');
-        expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
+        expect(smth1.type || smth1.origin).to.match(/notNull violation/);
       }
     });
+
     it('raises an error if created object breaks definition constraints', async function () {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: DataTypes.STRING, unique: true },

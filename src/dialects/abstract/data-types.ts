@@ -5,7 +5,7 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
 import wkx from 'wkx';
-import { ValidationError, ValidationErrorItem } from '../../errors';
+import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
@@ -337,8 +337,6 @@ export class STRING extends AbstractDataType<string | Buffer> {
         binary: binary ?? false,
       };
     }
-
-    Object.freeze(this.options);
   }
 
   toSql(_options: ToSqlOptions): string {
@@ -417,7 +415,7 @@ export class CHAR extends STRING {
 
   toSql() {
     return joinSQLFragments([
-      `CHAR(${this.options.length})`,
+      `CHAR(${this.options.length ?? 255})`,
       this.options.binary && 'BINARY',
     ]);
   }
@@ -634,11 +632,11 @@ export class INTEGER extends NUMBER {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid integer`, value));
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid integer`);
     }
 
     if (!Validator.isInt(String(value))) {
-      ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid integer`, value));
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid integer`);
     }
   }
 
@@ -1853,7 +1851,7 @@ export class TSVECTOR extends AbstractDataType<string> {
 
   validate(value: any) {
     if (typeof value !== 'string') {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid string', value),
       );
     }

@@ -4,6 +4,7 @@ import { getTextDataTypeForDialect } from '../../sql-string';
 import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
+import { validateDataType } from './data-types-utils';
 
 const util = require('util');
 const _ = require('lodash');
@@ -1147,20 +1148,8 @@ export class AbstractQueryGenerator {
       return;
     }
 
-    try {
-      field.type.validate(value);
-    } catch (error) {
-      if (error instanceof sequelizeError.ValidationError) {
-        error.errors.push(new sequelizeError.ValidationErrorItem(
-          error.message,
-          'Validation error',
-          field.fieldName,
-          value,
-          null,
-          `${field.type.constructor.name} validator`,
-        ));
-      }
-
+    const error = validateDataType(field.type, field.fieldName, null, value);
+    if (error) {
       throw error;
     }
   }
