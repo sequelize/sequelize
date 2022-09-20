@@ -1,5 +1,8 @@
 'use strict';
 
+import { AbstractDataType } from './dialects/abstract/data-types';
+import { ValidationError, ValidationErrorItem } from './errors';
+
 const _ = require('lodash');
 const Utils = require('./utils');
 const sequelizeError = require('./errors');
@@ -368,16 +371,25 @@ export class InstanceValidator {
       }
     }
 
-    if ((rawAttribute.type instanceof DataTypes.STRING || rawAttribute.type instanceof DataTypes.TEXT || rawAttribute.type instanceof DataTypes.CITEXT)
-      && (Array.isArray(value) || _.isObject(value) && !(value instanceof Utils.SequelizeMethod) && !Buffer.isBuffer(value))) {
-      this.errors.push(new sequelizeError.ValidationErrorItem(
-        `${field} cannot be an array or an object`,
-        'string violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
-        field,
-        value,
-        this.modelInstance,
-        'not_a_string',
-      ));
+    const type = rawAttribute.type;
+    if (value != null && !(value instanceof Utils.SequelizeMethod) && type instanceof AbstractDataType) {
+      try {
+        type.validate(value);
+      } catch (error) {
+        if (!(error instanceof ValidationErrorItem)) {
+          // eslint-disable-next-line unicorn/prefer-type-error
+          throw new Error(`Validation encountered an unexpected error while validating attribute ${field}. (Note: If this error is intended, ${type.constructor.name}#validate must thrown an instance of ValidationErrorItem instead)`, {
+            cause: error,
+          });
+        }
+
+        error.path = field;
+        error.value = value;
+        error.instance = this.modelInstance;
+        error.validatorName = type.constructor.getDataTypeId();
+
+        this.errors.push(error);
+      }
     }
   }
 

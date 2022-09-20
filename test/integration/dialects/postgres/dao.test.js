@@ -161,7 +161,7 @@ if (dialect.startsWith('postgres')) {
         expect(table.document.type).to.equal('HSTORE');
       });
 
-      // TODO: move to unit tests!
+      // TODO: move to select QueryGenerator unit tests
       it('should NOT stringify hstore with insert', async function () {
         await this.User.create({
           username: 'bob',
@@ -175,7 +175,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
-      // TODO: move to unit test
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename hstore fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -201,7 +201,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
-      // TODO: move to unit test
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename json fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -226,7 +226,6 @@ if (dialect.startsWith('postgres')) {
           },
         });
       });
-
     });
 
     describe('range', () => {
@@ -235,7 +234,6 @@ if (dialect.startsWith('postgres')) {
         expect(table.course_period.type).to.equal('TSTZRANGE');
         expect(table.available_amount.type).to.equal('INT4RANGE');
       });
-
     });
 
     describe('enums', () => {

@@ -10,6 +10,7 @@ import type {
   BindParamOptions, ToSqlOptions,
 } from '../abstract/data-types';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
+import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
@@ -102,6 +103,16 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 }
 
 export class STRING extends BaseTypes.STRING {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (this.options.length && this.options.binary) {
+      warn(
+        `${dialect.name} does not support specifying a length on binary strings. Use a length validator instead.`,
+      );
+
+      this.options.length = undefined;
+    }
+  }
+
   toSql(options: ToSqlOptions) {
     if (this.options.binary) {
       return 'BYTEA';
@@ -112,10 +123,10 @@ export class STRING extends BaseTypes.STRING {
 }
 
 export class TEXT extends BaseTypes.TEXT {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
     if (this.options.length) {
       warn(
-        'PostgreSQL does not support TEXT with options. Plain `TEXT` will be used instead.',
+        `${dialect.name} does not support TEXT with options. Plain \`TEXT\` will be used instead.`,
       );
 
       this.options.length = undefined;

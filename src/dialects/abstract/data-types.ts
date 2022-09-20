@@ -1,13 +1,15 @@
+import { Blob } from 'node:buffer';
 import util from 'util';
 import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
 import wkx from 'wkx';
-import { ValidationError } from '../../errors';
+import { ValidationError, ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -201,7 +203,6 @@ export abstract class AbstractDataType<
    * @param value
    * @param _options
    */
-  // TODO stringify is a misnomer. It's 'produce a value that can be used by the dialect in a bind parameter'.
   toBindableValue(value: AcceptedType, _options: StringifyOptions): unknown {
     return String(value);
   }
@@ -233,7 +234,6 @@ export abstract class AbstractDataType<
    * @protected
    * @internal
    */
-  // TODO: make this a Symbol property
   protected _checkOptionSupport(_dialect: AbstractDialect) {}
 
   /**
@@ -328,12 +328,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
 
     if (isObject(lengthOrOptions)) {
       this.options = {
-        length: lengthOrOptions.length ?? 255,
+        length: lengthOrOptions.length,
         binary: lengthOrOptions.binary ?? false,
       };
     } else {
       this.options = {
-        length: lengthOrOptions ?? 255,
+        length: lengthOrOptions,
         binary: binary ?? false,
       };
     }
@@ -342,8 +342,9 @@ export class STRING extends AbstractDataType<string | Buffer> {
   }
 
   toSql(_options: ToSqlOptions): string {
+    // TODO: STRING should use an unlimited length type by default - https://github.com/sequelize/sequelize/issues/14259
     return joinSQLFragments([
-      `VARCHAR(${this.options.length})`,
+      `VARCHAR(${this.options.length ?? 255})`,
       this.options.binary && 'BINARY',
     ]);
   }
@@ -353,16 +354,24 @@ export class STRING extends AbstractDataType<string | Buffer> {
       return;
     }
 
-    if (
-      (this.options.binary && Buffer.isBuffer(value))
-        || typeof value === 'number'
-    ) {
+    if (!this.options.binary) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        `${util.inspect(value)} is not a valid string. Only the string type is accepted for non-binary strings.`,
+      );
+    }
+
+    rejectBlobs(value);
+
+    if (Buffer.isBuffer(value)) {
       return;
     }
 
-    throw new ValidationError(
-      util.format('%s is not a valid string', value),
-      [],
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return;
+    }
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
     );
   }
 
@@ -383,6 +392,14 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
 
     return options.dialect.escapeString(value);
+  }
+
+  sanitize(value: unknown): unknown {
+    if (this.options.binary && (value instanceof Uint8Array || value instanceof ArrayBuffer)) {
+      return makeBufferFromTypedArray(value);
+    }
+
+    return value;
   }
 }
 
@@ -452,9 +469,8 @@ export class TEXT extends AbstractDataType<string> {
 
   validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%s is not a valid string', value),
-        [],
       );
     }
   }
@@ -474,16 +490,14 @@ export class CITEXT extends AbstractDataType<string> {
 
   validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%s is not a valid string', value),
-        [],
       );
     }
   }
 }
 
 export interface NumberOptions {
-  // TODO: it's not length + decimals if only 1 parameter is provided
   /**
    * length of type, like `INT(4)`
    */
@@ -561,29 +575,21 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
 
   validate(value: any): asserts value is number {
     if (typeof value === 'number' && Number.isInteger(value) && !Number.isSafeInteger(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format(`${this.constructor.name} received an integer % that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
-        [],
       );
     }
 
     if (!Validator.isFloat(String(value))) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format(
           `%s is not a valid ${
             super.toString()
               .toLowerCase()}`,
           value,
         ),
-        [],
       );
     }
-  }
-
-  sanitize(value: unknown): unknown {
-    this.validate(value);
-
-    return value;
   }
 
   escape(value: AcceptedNumber, options: StringifyOptions): string {
@@ -628,11 +634,11 @@ export class INTEGER extends NUMBER {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      throw new ValidationError(util.format(`%O is not a valid integer`, value));
+      ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid integer`, value));
     }
 
     if (!Validator.isInt(String(value))) {
-      throw new ValidationError(util.format(`%O is not a valid integer`, value));
+      ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid integer`, value));
     }
   }
 
@@ -750,9 +756,8 @@ export class FLOAT extends NUMBER {
     }
 
     if (!Validator.isFloat(String(value))) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid float', value),
-        [],
       );
     }
   }
@@ -859,9 +864,8 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
 
   validate(value: any): asserts value is boolean {
     if (typeof value !== 'boolean') {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid boolean', value),
-        [],
       );
     }
   }
@@ -966,9 +970,8 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 
   validate(value: any) {
     if (!Validator.isDate(String(value))) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid date', value),
-        [],
       );
     }
   }
@@ -1077,12 +1080,12 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 
   validate(value: any) {
     if (!isPlainObject(value)) {
-      throw new ValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
+      ValidationErrorItem.throwDataTypeValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
     }
 
     for (const key of Object.keys(value)) {
       if (!isString(value[key])) {
-        throw new ValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, value, value[key]));
+        ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, value, value[key]));
       }
     }
   }
@@ -1121,7 +1124,7 @@ export class JSONB extends JSON {
 /**
  * A default value of the current timestamp.  Not a valid type.
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware.
+// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class NOW extends AbstractDataType<never> {
   static readonly [kDataTypeIdentifier]: string = 'NOW';
 
@@ -1173,9 +1176,23 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
   }
 
   validate(value: any) {
-    if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
-      throw new ValidationError(`${value} is not a valid blob`);
+    if (Buffer.isBuffer(value) || typeof value === 'string' || value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return;
     }
+
+    rejectBlobs(value);
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+    );
+  }
+
+  sanitize(value: unknown): unknown {
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return makeBufferFromTypedArray(value);
+    }
+
+    return value;
   }
 
   escape(value: string | Buffer, options: StringifyOptions) {
@@ -1267,7 +1284,7 @@ export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends Abstrac
 
   validate(value: any) {
     if (!Array.isArray(value) || (value.length !== 2 && value.length !== 0)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         'A range must either be an array with two elements, or an empty array for the empty range.',
       );
     }
@@ -1287,7 +1304,7 @@ export class UUID extends AbstractDataType<string> {
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isUUID(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid uuid', value),
       );
     }
@@ -1301,13 +1318,14 @@ export class UUID extends AbstractDataType<string> {
 /**
  * A default unique universal identifier generated following the UUID v1 standard
  */
+// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV1 extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
 
   validate(value: any) {
     // @ts-expect-error -- the typings for isUUID are missing '1' as a valid uuid version, but its implementation does accept it
     if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid uuidv1', value),
       );
     }
@@ -1321,13 +1339,13 @@ export class UUIDV1 extends AbstractDataType<string> {
 /**
  * A default unique universal identifier generated following the UUID v4 standard
  */
-// TODO: this should not be a DataType, but a simple function.
+// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV4 extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
 
   validate(value: unknown) {
     if (typeof value !== 'string' || !Validator.isUUID(value, 4)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid uuidv4', value),
       );
     }
@@ -1504,7 +1522,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
 
   validate(value: any): asserts value is Member {
     if (!this.options.values.includes(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid choice for enum %O', value, this.options.values),
       );
     }
@@ -1556,7 +1574,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 
   validate(value: any) {
     if (!Array.isArray(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid array', value),
       );
     }
@@ -1773,7 +1791,7 @@ export class CIDR extends AbstractDataType<string> {
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid CIDR', value),
       );
     }
@@ -1793,7 +1811,7 @@ export class INET extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'INET';
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid INET', value),
       );
     }
@@ -1814,7 +1832,7 @@ export class MACADDR extends AbstractDataType<string> {
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
-      throw new ValidationError(
+      ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid MACADDR', value),
       );
     }
@@ -1843,5 +1861,13 @@ export class TSVECTOR extends AbstractDataType<string> {
 
   toSql(): string {
     return 'TSVECTOR';
+  }
+}
+
+function rejectBlobs(value: unknown) {
+  // We have a DataType called BLOB. People might try to use the built-in Blob type with it, which they cannot.
+  // To clarify why it doesn't work, we have a dedicated message for it.
+  if (Blob && value instanceof Blob) {
+    ValidationErrorItem.throwDataTypeValidationError('Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
   }
 }

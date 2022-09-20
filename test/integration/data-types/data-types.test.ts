@@ -1,10 +1,11 @@
+import { Blob } from 'node:buffer';
 import type {
   CreationAttributes,
   InferAttributes,
   ModelStatic,
   CreationOptional, InferCreationAttributes,
 } from '@sequelize/core';
-import { DataTypes, fn, Model } from '@sequelize/core';
+import { DataTypes, fn, Model, ValidationError } from '@sequelize/core';
 import { expect } from 'chai';
 import dayjs from 'dayjs';
 import DayjsTimezone from 'dayjs/plugin/timezone';
@@ -25,8 +26,8 @@ enum TestEnum {
   'D,E' = 'D,E',
 }
 
-// TODO: add UNIT test to ensure validation is run on all model methods (including create, update, where)
-// TODO: add tests for each type to check what the raw value is when the DataType is not provided (ie. only parse() is called, not sanitize())
+// !TODO: add UNIT test to ensure validation is run on all model methods (including create, update, where)
+// !TODO: add tests for each type to check what the raw value is when the DataType is not provided (ie. only parse() is called, not sanitize())
 
 describe('DataTypes', () => {
   describe('STRING(<length>)', () => {
@@ -47,11 +48,8 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    it('serialize/deserializes strings and numbers', async () => {
+    it('serialize/deserializes strings', async () => {
       await testSimpleInOut(vars.User, 'stringAttr', '1235', '1235');
-
-      // @ts-expect-error -- we don't allow it in TypeScript, but we can stringify some values automatically for legacy reasons
-      await testSimpleInOut(vars.User, 'stringAttr', 12, '12');
     });
 
     it('throws if the string is too long', async () => {
@@ -59,12 +57,19 @@ describe('DataTypes', () => {
         stringAttr: '123456',
       })).to.be.rejected;
     });
+
+    it('rejects non-string values', async () => {
+      await expect(vars.User.create({
+        // @ts-expect-error
+        stringAttr: 12,
+      })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
+    });
   });
 
   describe('STRING.BINARY', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
-        declare binaryStringAttr: Buffer | string;
+        declare binaryStringAttr: ArrayBuffer | string | Blob;
       }
 
       User.init({
@@ -83,47 +88,69 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', Buffer.from('abc'), Buffer.from([97, 98, 99]));
     });
 
-    // TODO: support native ArrayBuffers.
-    // it('accepts ArrayBuffers', async () => {
-    //   await testSimpleInOut(vars.User, 'binaryStringAttr', new Uint8Array([97, 98, 99]), Buffer.from([97, 98, 99]));
-    // });
+    it('accepts ArrayBuffers & Uint8Arrays', async () => {
+      // Uint8Arrays
+      await testSimpleInOut(vars.User, 'binaryStringAttr', new Uint8Array([97, 98, 99]), Buffer.from([97, 98, 99]));
+      // ArrayBuffer
+      await testSimpleInOut(vars.User, 'binaryStringAttr', new Uint8Array([97, 98, 99]).buffer, Buffer.from([97, 98, 99]));
+    });
 
-    // TODO: support native Blobs.
-    // it('accepts Blobs', async () => {
-    //   await testSimpleInOut(vars.User, 'binaryStringAttr', new Blob(['abc']), Buffer.from([97, 98, 99]));
-    // });
+    // Node 14 doesn't support Blob
+    if (Blob) {
+      it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
+        await expect(vars.User.create({
+          binaryStringAttr: new Blob(['abc']),
+        })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+
+        await expect(vars.User.create({
+          binaryStringAttr: new Uint16Array([97, 98, 99]),
+        })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Uint16Array(3) [ 97, 98, 99 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+      });
+    }
 
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', Buffer.from([97, 98, 99]));
     });
   });
 
-  // TODO: throw if binary + limit is not supported in this dialect (postgres)
   describe('STRING(100).BINARY', () => {
-    const vars = beforeEach2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare binaryStringAttr: string;
-      }
+    if (dialect.name === 'postgres') {
+      // TODO: once we have centralized logging, check a warning message has been emitted:
+      //  https://github.com/sequelize/sequelize/issues/11670
+      it.skip('throws, because postgres does not support setting a limit on binary strings', async () => {
+        sequelize.define('User', {
+          binaryStringAttr: {
+            type: DataTypes.STRING(5).BINARY,
+            allowNull: false,
+          },
+        });
+      });
+    } else {
+      const vars = beforeEach2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare binaryStringAttr: string;
+        }
 
-      User.init({
-        binaryStringAttr: {
-          type: DataTypes.STRING(5).BINARY,
-          allowNull: false,
-        },
-      }, { sequelize });
+        User.init({
+          binaryStringAttr: {
+            type: DataTypes.STRING(5).BINARY,
+            allowNull: false,
+          },
+        }, { sequelize });
 
-      await User.sync();
+        await User.sync();
 
-      return { User };
-    });
+        return { User };
+      });
 
-    // We want to have this, but is 'length' the number of bytes or the number of characters?
-    // More research needed.
-    it.skip('throws if the string is too long', async () => {
-      await expect(vars.User.create({
-        binaryStringAttr: '123456',
-      })).to.be.rejected;
-    });
+      // We want to have this, but is 'length' the number of bytes or the number of characters?
+      // More research needed.
+      it.skip('throws if the string is too long', async () => {
+        await expect(vars.User.create({
+          binaryStringAttr: '123456',
+        })).to.be.rejected;
+      });
+    }
   });
 
   describe('TEXT', () => {
@@ -149,7 +176,7 @@ describe('DataTypes', () => {
     });
   });
 
-  // TODO: throw if not supported in this dialect
+  // !TODO: throw if not supported in this dialect
   describe(`DataTypes.TEXT(<size>)`, () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -220,7 +247,7 @@ describe('DataTypes', () => {
     if (dialect.supports.dataTypes.CHAR.BINARY) {
       const vars = beforeEach2(async () => {
         class User extends Model<InferAttributes<User>> {
-          declare binaryCharAttr: string | Buffer;
+          declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
         }
 
         User.init({
@@ -239,15 +266,25 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
       });
 
-      // TODO: support native ArrayBuffers.
-      // it('accepts ArrayBuffers', async () => {
-      //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]), Buffer.from([32, 49, 50, 51, 52]));
-      // });
+      it('accepts ArrayBuffers & Uint8Arrays', async () => {
+        // Uint8Arrays
+        await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]), Buffer.from([32, 49, 50, 51, 52]));
+        // ArrayBuffer
+        await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]).buffer, Buffer.from([32, 49, 50, 51, 52]));
+      });
 
-      // TODO: support native Blobs.
-      // it('accepts Blobs', async () => {
-      //   await testSimpleInOut(vars.User, 'binaryCharAttr', new Blob(['1234']), Buffer.from([32, 49, 50, 51, 52]));
-      // });
+      // Node 14 doesn't support Blob
+      if (Blob) {
+        it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
+          await expect(vars.User.create({
+            binaryCharAttr: new Blob(['abcd']),
+          })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+
+          await expect(vars.User.create({
+            binaryCharAttr: new Uint16Array([49, 50, 51, 52]),
+          })).to.be.rejectedWith(ValidationError, 'DATATYPE STRING: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid value for binary strings: Only strings, numbers, Buffer, Uint8Array and ArrayBuffer are supported.');
+        });
+      }
 
       it('accepts strings', async () => {
         await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', Buffer.from([32, 49, 50, 51, 52]));
@@ -265,7 +302,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     }
   });
 
-  // TODO: throw if not supported in this dialect
+  // !TODO: throw if not supported in this dialect
   describe('CITEXT', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -377,9 +414,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO (mariaDB, mysql): TINYINT
+  // !TODO (mariaDB, mysql): TINYINT
 
-  // TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('SMALLINT', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -418,9 +455,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO (mariaDB, mysql): MEDIUMINT
+  // !TODO (mariaDB, mysql): MEDIUMINT
 
-  // TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('INTEGER', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -459,7 +496,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('BIGINT', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -503,7 +540,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('REAL, DataTypes.DOUBLE, DataTypes.FLOAT', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -569,7 +606,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('DECIMAL', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -609,8 +646,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO: DATE(precision)
-  // TODO: test precision
+  // !TODO: DATE(precision)
+  // !TODO: test precision
   describe('DATE', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -701,7 +738,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO: test precision
+  // !TODO: test precision
   describe('TIME', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -755,11 +792,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
     });
   });
 
-  // TODO: (mariadb, mysql): TINYBLOB, MEDIUMBLOB
+  // !TODO: (mariadb, mysql): TINYBLOB, MEDIUMBLOB
   describe('BLOB', () => {
     const vars = beforeEach2(async () => {
       class User extends Model<InferAttributes<User>> {
-        declare attr: ArrayBuffer | string;
+        declare attr: ArrayBuffer | string | Blob;
       }
 
       User.init({
@@ -778,15 +815,25 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a l
       await testSimpleInOut(vars.User, 'attr', Buffer.from('abc'), Buffer.from([97, 98, 99]));
     });
 
-    // TODO: support native ArrayBuffers
-    // it('accepts ArrayBuffers', async () => {
-    //   await testSimpleInOut(vars.User, 'attr', new Uint8Array([97, 98, 99]), Buffer.from([97, 98, 99]));
-    // });
+    it('accepts ArrayBuffers & Uint8Arrays', async () => {
+      // Uint8Arrays
+      await testSimpleInOut(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]), Buffer.from([49, 50, 51, 52]));
+      // ArrayBuffer
+      await testSimpleInOut(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]).buffer, Buffer.from([49, 50, 51, 52]));
+    });
 
-    // TODO: support native Blobs.
-    // it('accepts Blobs', async () => {
-    //   await testSimpleInOut(vars.User, 'attr', new Blob(['abc']), Buffer.from([97, 98, 99]));
-    // });
+    // Node 14 doesn't support Blob
+    if (Blob) {
+      it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
+        await expect(vars.User.create({
+          attr: new Blob(['abcd']),
+        })).to.be.rejectedWith(ValidationError, 'DATATYPE BLOB: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+
+        await expect(vars.User.create({
+          attr: new Uint16Array([49, 50, 51, 52]),
+        })).to.be.rejectedWith(ValidationError, 'DATATYPE BLOB: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+      });
+    }
 
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', 'abc', Buffer.from([97, 98, 99]));

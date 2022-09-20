@@ -32,13 +32,18 @@ export enum ValidationErrorItemOrigin {
    * specifies validation errors that originate from validator functions (both built-in and custom) defined for a given attribute
    */
   FUNCTION = 'FUNCTION',
+
+  /**
+   * specifies validation errors that originate from {@link AbstractDataType#validate} constraint validation.
+   */
+  DATATYPE = 'DATATYPE',
 }
 
 /**
  * Validation Error Item
  * Instances of this class are included in the `ValidationError.errors` property.
  */
-export class ValidationErrorItem {
+export class ValidationErrorItem extends Error {
   /**
    * @deprecated Will be removed in v7
    */
@@ -50,11 +55,6 @@ export class ValidationErrorItem {
   static Origins = ValidationErrorItemOrigin;
 
   /**
-   * An error message
-   */
-  readonly message: string;
-
-  /**
    * The type/origin of the validation error
    */
   readonly type: keyof typeof ValidationErrorItemType | null;
@@ -62,19 +62,19 @@ export class ValidationErrorItem {
   /**
    * The field that triggered the validation error
    */
-  readonly path: string | null;
+  path: string | null;
 
   /**
    * The value that generated the error
    */
-  readonly value: string | null;
+  value: string | null;
 
   readonly origin: keyof typeof ValidationErrorItemOrigin | null;
 
   /**
    * The DAO instance that caused the validation error
    */
-  readonly instance: Model | null;
+  instance: Model | null;
 
   /**
    * A validation "key", used for identification
@@ -84,12 +84,18 @@ export class ValidationErrorItem {
   /**
    * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
    */
-  readonly validatorName: string | null;
+  validatorName: string | null;
 
   /**
    * Parameters used with the BUILT-IN validator function, if applicable
    */
   readonly validatorArgs: unknown[];
+
+  static throwDataTypeValidationError(
+    message: string,
+  ) {
+    throw new ValidationErrorItem(message, ValidationErrorItemOrigin.DATATYPE);
+  }
 
   /**
    * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
@@ -108,14 +114,15 @@ export class ValidationErrorItem {
     type:
       | keyof typeof ValidationErrorItemType
       | keyof typeof ValidationErrorItemOrigin,
-    path: string,
-    value: string,
-    instance: Model,
-    validatorKey: string,
-    fnName: string,
-    fnArgs: unknown[],
+    path?: string,
+    value?: string,
+    instance?: Model,
+    validatorKey?: string,
+    fnName?: string,
+    fnArgs?: unknown[],
   ) {
-    this.message = message || '';
+    super(message);
+
     this.type = null;
     this.path = path || null;
 
@@ -226,7 +233,7 @@ class ValidationError extends BaseError {
     } else if (this.errors.length > 0 && this.errors[0].message) {
       this.message = this.errors
         .map(
-          (err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`,
+          (err: ValidationErrorItem) => `${err.type || err.origin} ${err.validatorName || err.validatorKey}: ${err.message}`,
         )
         .join(',\n');
     }

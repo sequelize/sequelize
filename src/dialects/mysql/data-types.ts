@@ -83,8 +83,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     // Empty buffer, MySQL doesn't support POINT EMPTY
     // check, https://dev.mysql.com/worklog/task/?id=2381
     if (sanitizedValue.length === 0) {
-      // TODO: throw
-      return null;
+      return value;
     }
 
     if (Buffer.isBuffer(sanitizedValue)) {
