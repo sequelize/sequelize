@@ -158,7 +158,7 @@ export abstract class AbstractDataType<
    * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
    * If you don't need this, implementing {@link sanitize} is sufficient.
    *
-   * @param value The value to parse
+   * @param value The value to parse. This value is dialect specific.
    */
   parse(value: unknown): unknown {
     return value;
@@ -235,11 +235,14 @@ export abstract class AbstractDataType<
    * Override this method to emit an error or a warning if the Data Type, as it is configured, is not compatible
    * with the current dialect.
    *
-   * @param _dialect The dialect using this data type.
+   * @param dialect The dialect using this data type.
    * @protected
    * @internal
    */
-  protected _checkOptionSupport(_dialect: AbstractDialect) {}
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    // use "dialect.supports" to determine base support for this DataType.
+    assertDataTypeSupported(dialect, this);
+  }
 
   /**
    * Returns this DataType, using its dialect-specific subclass.
@@ -398,8 +401,14 @@ export class STRING extends AbstractDataType<string | Buffer> {
   }
 
   sanitize(value: unknown): unknown {
-    if (this.options.binary && (value instanceof Uint8Array || value instanceof ArrayBuffer)) {
-      return makeBufferFromTypedArray(value);
+    if (this.options.binary) {
+      if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+        return makeBufferFromTypedArray(value);
+      }
+
+      if (typeof value === 'string') {
+        return Buffer.from(value);
+      }
     }
 
     return value;
@@ -413,8 +422,10 @@ export class CHAR extends STRING {
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
     if (!dialect.supports.dataTypes.CHAR.BINARY && this.options.binary) {
-      throw new Error(`${dialect.name} does not support the CHAR.BINARY DataType.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.`);
+      throwUnsupportedDataType(dialect, 'CHAR.BINARY');
     }
   }
 
@@ -660,17 +671,6 @@ export class INTEGER extends NUMBER {
     return value;
   }
 
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    const typeId = this.getDataTypeId();
-
-    if (
-      (typeId === 'SMALLINT' || typeId === 'TINYINT' || typeId === 'MEDIUMINT' || typeId === 'INTEGER' || typeId === 'BIGINT')
-      && !dialect.supports.dataTypes[typeId]
-    ) {
-      throw new Error(`${dialect.name} does not support the ${this.constructor.name} data type.`);
-    }
-  }
-
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
   }
@@ -832,7 +832,7 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
    * @param precision defines precision
    * @param scale defines scale
    */
-  constructor(precision: number, scale?: number);
+  constructor(precision: number, scale: number);
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
@@ -843,6 +843,7 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
     | [precision: number, scale: number]
     | [options: DecimalOptions]
   );
+
   constructor(precisionOrOptions?: number | DecimalOptions, scale?: number) {
     if (isObject(precisionOrOptions)) {
       super(precisionOrOptions);
@@ -852,16 +853,34 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
       this.options.precision = precisionOrOptions;
       this.options.scale = scale;
     }
+
+    if (this.options.scale != null && this.options.precision == null) {
+      throw new Error('The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.');
+    }
+
+    if (this.options.scale == null && this.options.precision != null) {
+      throw new Error('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
+    }
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.isUnconstrained() && !dialect.supports.dataTypes.DECIMAL.unconstrained) {
+      throw new Error(`${dialect.name} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`);
+    }
+  }
+
+  isUnconstrained() {
+    return this.options.scale == null && this.options.precision == null;
   }
 
   toSql(_options?: ToSqlOptions): string {
-    if (this.options.precision || this.options.scale) {
-      return `DECIMAL(${[this.options.precision, this.options.scale]
-        .filter(num => num != null)
-        .join(',')})`;
+    if (this.isUnconstrained()) {
+      return 'DECIMAL';
     }
 
-    return 'DECIMAL';
+    return `DECIMAL(${this.options.precision}, ${this.options.scale})`;
   }
 }
 
@@ -873,7 +892,7 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
 
   toSql() {
     // Note: This may vary depending on the dialect.
-    return 'TINYINT(1)';
+    return 'BOOLEAN';
   }
 
   validate(value: any): asserts value is boolean {
@@ -882,6 +901,26 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
         util.format('%O is not a valid boolean', value),
       );
     }
+  }
+
+  sanitize(value: unknown): unknown {
+    // Because MySQL doesn't have a real boolean type, we can't call "parse" on it.
+    // As a result, we're forced to accept 1 & 0 as valid values that will be converted to true & false.
+    // TODO: Add a "sanitizeDatabaseValue" method that is only called on values that come from the Database, and a
+    //       "sanitizeUserValue" method that is only called on values that come from the user.
+    //       This requires reworking how Model#set works, as it currently calls sanitize on all values, regardless of
+    //       where they came from.
+    if (typeof value === 'number') {
+      if (value === 1) {
+        return true;
+      }
+
+      if (value === 0) {
+        return false;
+      }
+    }
+
+    return value;
   }
 
   // this type is not sanitized: Only true & false are allowed as user inputs
@@ -909,14 +948,6 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
       }
 
       // Only take action on valid boolean integers.
-    } else if (typeof value === 'number') {
-      if (value === 1) {
-        return true;
-      }
-
-      if (value === 0) {
-        return false;
-      }
     } else if (typeof value === 'bigint') {
       if (value === 1n) {
         return true;
@@ -960,7 +991,7 @@ export class TIME extends AbstractDataType<string> {
     super();
 
     this.options = {
-      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+      precision: (typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions) ?? 0,
     };
   }
 
@@ -1900,6 +1931,13 @@ export class TSVECTOR extends AbstractDataType<string> {
     }
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.TSVECTOR) {
+      throw new Error(`${dialect.name} does not support the TSVECTOR DataType.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported String DataTypes.`);
+    }
+  }
+
   toSql(): string {
     return 'TSVECTOR';
   }
@@ -1911,4 +1949,21 @@ function rejectBlobs(value: unknown) {
   if (Blob && value instanceof Blob) {
     ValidationErrorItem.throwDataTypeValidationError('Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
   }
+}
+
+function assertDataTypeSupported(dialect: AbstractDialect, dataType: AbstractDataType<any>) {
+  const typeId = dataType.getDataTypeId();
+
+  if (
+    typeId in dialect.supports.dataTypes
+    // @ts-expect-error
+    && !dialect.supports.dataTypes[typeId]
+  ) {
+    throwUnsupportedDataType(dialect, typeId);
+  }
+}
+
+function throwUnsupportedDataType(dialect: AbstractDialect, typeName: string): never {
+  throw new Error(`${dialect.name} does not support the ${typeName} data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 }

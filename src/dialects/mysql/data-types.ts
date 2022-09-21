@@ -1,9 +1,11 @@
+import NodeUtil from 'node:util';
 import dayjs from 'dayjs';
 import wkx from 'wkx';
 import { isValidTimeZone } from '../../utils/dayjs';
 import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate, StringifyOptions, ToSqlOptions, GeometryType } from '../abstract/data-types.js';
+import type { MySqlTypeCastValue } from './connection-manager.js';
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
 
@@ -28,6 +30,30 @@ export class DOUBLE extends BaseTypes.DOUBLE {
   }
 }
 
+export class BIGINT extends BaseTypes.BIGINT {
+  parse(value: MySqlTypeCastValue): unknown {
+    return value.string();
+  }
+}
+
+export class BOOLEAN extends BaseTypes.BOOLEAN {
+  toSql() {
+    return 'TINYINT(1)';
+  }
+
+  toBindableValue(value: unknown): string {
+    if (value === true) {
+      return '1';
+    }
+
+    if (value === false) {
+      return '0';
+    }
+
+    throw new Error(`Unsupported value for BOOLEAN: ${NodeUtil.inspect(value)}`);
+  }
+}
+
 export class DATE extends BaseTypes.DATE {
   toBindableValue(date: AcceptedDate, options: StringifyOptions) {
     date = this._applyTimezone(date, options);
@@ -45,6 +71,20 @@ export class DATE extends BaseTypes.DATE {
     }
 
     return super.sanitize(value);
+  }
+
+  parse(value: MySqlTypeCastValue): unknown {
+    // mysql returns a UTC date string that looks like the following:
+    // 2022-01-01 00:00:00
+    // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.
+    // Adding +00 fixes this.
+    return `${value.string()}+00`;
+  }
+}
+
+export class DATEONLY extends BaseTypes.DATEONLY {
+  parse(value: MySqlTypeCastValue): unknown {
+    return value.string();
   }
 }
 

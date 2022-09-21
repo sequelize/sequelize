@@ -66,6 +66,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   async connect(config: ConnectionOptions): Promise<PgConnection> {
     const port = Number(config.port ?? this.dialect.getDefaultPort());
 
+    // @ts-expect-error -- "dialectOptions.options" must be a string in PG, but a Record in MSSQL. We'll fix the typings when we split the dialects into their own modules.
     const connectionConfig: ClientConfig = {
       ...(config.dialectOptions && pick(config.dialectOptions, [
         // see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]

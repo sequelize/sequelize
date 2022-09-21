@@ -89,23 +89,8 @@ export class MysqlDialect extends AbstractDialect {
      * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
      */
     this.registerDataTypeParser(BaseTypes.DATE, ['DATETIME']);
-    this.registerDataTypeParser(BaseTypes.STRING, ['VAR_STRING']);
-    this.registerDataTypeParser(BaseTypes.CHAR, ['STRING']);
-    this.registerDataTypeParser(BaseTypes.TEXT, ['BLOB']);
-    this.registerDataTypeParser(BaseTypes.TINYINT, ['TINY']);
-    this.registerDataTypeParser(BaseTypes.SMALLINT, ['SHORT']);
-    this.registerDataTypeParser(BaseTypes.MEDIUMINT, ['INT24']);
-    this.registerDataTypeParser(BaseTypes.INTEGER, ['LONG']);
-    this.registerDataTypeParser(BaseTypes.BIGINT, ['LONGLONG']);
-    this.registerDataTypeParser(BaseTypes.FLOAT, ['FLOAT']);
-    this.registerDataTypeParser(BaseTypes.TIME, ['TIME']);
     this.registerDataTypeParser(BaseTypes.DATEONLY, ['DATE']);
-    this.registerDataTypeParser(BaseTypes.BOOLEAN, ['TINY']);
-    this.registerDataTypeParser(BaseTypes.BLOB, ['TINYBLOB', 'BLOB', 'LONGBLOB']);
-    this.registerDataTypeParser(BaseTypes.DECIMAL, ['NEWDECIMAL']);
-    this.registerDataTypeParser(BaseTypes.DOUBLE, ['DOUBLE']);
-    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['GEOMETRY']);
-    this.registerDataTypeParser(BaseTypes.JSON, ['JSON']);
+    this.registerDataTypeParser(BaseTypes.BIGINT, ['LONGLONG']);
   }
 
   createBindCollector() {

@@ -10,8 +10,24 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
 export interface SupportableIntegerOptions {
- unsigned: boolean;
- zerofill: boolean;
+  unsigned: boolean;
+  zerofill: boolean;
+}
+
+export interface SupportableIeee754Options {
+  /** Whether NaN can be inserted in a column that uses this DataType. */
+  NaN: boolean;
+  /** Whether Infinity/-Infinity can be inserted in a column that uses this DataType. */
+  infinity: boolean;
+}
+
+export interface SupportableDecimalOptions extends SupportableIeee754Options {
+  /**
+   * Whether this dialect supports unconstrained numeric/decimal columns. i.e. columns where numeric values of any length can be stored.
+   * The SQL standard requires that "NUMERIC" with no option be equal to "NUMERIC(0,0)", but some dialects (postgres)
+   * interpret it as an unconstrained numeric.
+   */
+  unconstrained: boolean;
 }
 
 export type DialectSupports = {
@@ -117,6 +133,10 @@ export type DialectSupports = {
     INTEGER: false | SupportableIntegerOptions,
     /** This dialect supports 8 byte long signed ints */
     BIGINT: false | SupportableIntegerOptions,
+    REAL: SupportableIeee754Options,
+    FLOAT: SupportableIeee754Options,
+    DOUBLE: SupportableIeee754Options,
+    DECIMAL: SupportableDecimalOptions,
     JSON: boolean,
     JSONB: boolean,
     ARRAY: boolean,
@@ -130,6 +150,9 @@ export type DialectSupports = {
     IREGEXP: boolean,
     HSTORE: boolean,
     TSVECTOR: boolean,
+    CIDR: boolean,
+    INET: boolean,
+    MACADDR: boolean,
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
       infinity: boolean,
@@ -242,6 +265,13 @@ export abstract class AbstractDialect {
       MEDIUMINT: false,
       INTEGER: { unsigned: false, zerofill: false },
       BIGINT: { unsigned: false, zerofill: false },
+      FLOAT: { NaN: false, infinity: false },
+      REAL: { NaN: false, infinity: false },
+      DOUBLE: { NaN: false, infinity: false },
+      DECIMAL: { unconstrained: false, NaN: false, infinity: false },
+      CIDR: false,
+      MACADDR: false,
+      INET: false,
       JSON: false,
       JSONB: false,
       ARRAY: false,

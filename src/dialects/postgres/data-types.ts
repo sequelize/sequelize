@@ -93,8 +93,9 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   }
 
   validate(value: any) {
-    // postgres supports NaN
-    if (Number.isNaN(value)) {
+    // postgres supports NaN, +Infinity, -Infinity
+    // postgres 14 supports Infinity / -Infinity in unconstrained decimals.
+    if (Number.isNaN(value) || !Number.isFinite(value)) {
       return;
     }
 
@@ -104,6 +105,8 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 
 export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
     if (this.options.length && this.options.binary) {
       warn(
         `${dialect.name} does not support specifying a length on binary strings. Use a length validator instead.`,
@@ -124,6 +127,8 @@ export class STRING extends BaseTypes.STRING {
 
 export class TEXT extends BaseTypes.TEXT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
     if (this.options.length) {
       warn(
         `${dialect.name} does not support TEXT with options. Plain \`TEXT\` will be used instead.`,
@@ -131,12 +136,6 @@ export class TEXT extends BaseTypes.TEXT {
 
       this.options.length = undefined;
     }
-  }
-}
-
-export class BOOLEAN extends BaseTypes.BOOLEAN {
-  toSql() {
-    return 'BOOLEAN';
   }
 }
 
@@ -208,31 +207,36 @@ export class DATE extends BaseTypes.DATE {
 }
 
 export class SMALLINT extends BaseTypes.SMALLINT {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class REAL extends BaseTypes.REAL {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this);
   }
 
@@ -242,7 +246,9 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
     // POSTGRES does only support lengths as parameter.
     // Values between 1-24 result in REAL
     // Values between 25-53 result in DOUBLE PRECISION
@@ -272,7 +278,9 @@ export class FLOAT extends BaseTypes.FLOAT {
 }
 
 export class BLOB extends BaseTypes.BLOB {
-  protected _checkOptionSupport() {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
     if (this.options.length) {
       warn(
         'PostgreSQL does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.',

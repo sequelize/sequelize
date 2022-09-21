@@ -27,6 +27,17 @@ type Lib = {
 
 export type MySqlConnection = Connection & AbstractConnection;
 
+export interface MySqlTypeCastValue {
+  type: string;
+  length: number;
+  db: string;
+  table: string;
+  name: string;
+  string(): string;
+  buffer(): Buffer;
+  geometry(): unknown;
+}
+
 /**
  * MySQL Connection Manager
  *
@@ -44,11 +55,15 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 
-  #typecast(field: any, next: () => void): void {
-    // TODO
-    // if (parserStore.get(field.type)) {
-    //   return parserStore.get(field.type)(field, this.sequelize.options, next);
-    // }
+  #typecast(field: MySqlTypeCastValue, next: () => void): unknown {
+    const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
+    if (dataParser) {
+      const value = dataParser.parse(field);
+
+      if (value !== undefined) {
+        return value;
+      }
+    }
 
     return next();
   }
