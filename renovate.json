@@ -5,5 +5,5 @@
     ":semanticCommitTypeAll(meta)",
     ":semanticCommitScopeDisabled"
   ],
-  "ignorePaths": "dev/**/oldest/docker-compose.yml"
+  "ignorePaths": [ "dev/**/oldest/docker-compose.yml" ]
 }
