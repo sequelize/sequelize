@@ -71,10 +71,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Install Local Oracle DB
-        if: matrix.oracle-version == '18'
-        run: yarn start-oracle-oldest
-        if: matrix.oracle-version == '21'
-        run: yarn start-oracle-latest
+        - if: matrix.oracle-version == '18'
+          run: yarn start-oracle-oldest
+        - if: matrix.oracle-version == '21'
+          run: yarn start-oracle-latest
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
