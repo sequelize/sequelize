@@ -54,7 +54,7 @@
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
-    "type-fest": "^2.18.1",
+    "type-fest": "^3.0.0",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",
     "wkx": "^0.5.0"
