@@ -478,7 +478,7 @@ describe('DataTypes', () => {
     });
 
     it('accepts 0 & 1', async () => {
-      // This is necessary for MySQL (for now), because MySQL doesn't have a native BOOLEAN type
+      // This is necessary for MySQL (for now), because MySQL doesn't have a native BOOLEAN type, TINYINT can be used instead
       // so our only way is to convert 1/0 to true/false in AbstractDataType#sanitize,
       // which is called on both user input and database output.
       await testSimpleInOut(vars.User, 'booleanAttr', 1, true);
@@ -505,9 +505,18 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: 0n })).to.be.rejected;
     });
 
-    it('rejects buffers', async () => {
-      await expect(vars.User.create({ booleanAttr: Buffer.from([1]) })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: Buffer.from([0]) })).to.be.rejected;
+    it('accepts 1 byte buffers containing 0 or 1', async () => {
+      // This is necessary for MySQL (for now), because MySQL doesn't have a native BOOLEAN type, BIT can be used instead
+      // so our only way is to convert 1/0 to true/false in AbstractDataType#sanitize,
+      // which is called on both user input and database output.
+      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([1]), true);
+      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([0]), false);
+    });
+
+    it('rejects all other buffers', async () => {
+      await expect(vars.User.create({ booleanAttr: Buffer.from([2]) })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: Buffer.from([-1]) })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
     if (dialect.name === 'mysql') {
