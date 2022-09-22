@@ -202,6 +202,13 @@ describe('model', () => {
       });
 
       it('should be able to store strings', async function() {
+        if (dialect === 'oracle') {
+          const dbVersion = this.sequelize.options.databaseVersion;
+          // Oracle DB below 21c doesn't recognize a string as a valid json
+          if (dbVersion.localeCompare('21.0.0.0') === -1) {
+            this.skip();
+          }
+        }
         await this.User.create({ username: 'swen', emergency_contact: 'joe' });
         const user = await this.User.findOne({ where: { username: 'swen' } });
         expect(user.emergency_contact).to.equal('joe');
