@@ -4,7 +4,13 @@ import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
 import { testSimpleInOut } from './data-types.test';
 
+const dialect = sequelize.dialect;
+
 describe('DataTypes.RANGE', () => {
+  if (!dialect.supports.dataTypes.RANGE) {
+    return;
+  }
+
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {
       declare intRange: Rangable<number> | null;
@@ -133,6 +139,10 @@ describe('DataTypes.RANGE', () => {
 });
 
 describe('DataTypes.ARRAY(DataTypes.RANGE)', () => {
+  if (!dialect.supports.dataTypes.ARRAY) {
+    return;
+  }
+
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {
       declare intRangeArray: Array<Rangable<number>> | null;

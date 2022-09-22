@@ -416,7 +416,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ dialect: this._dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {

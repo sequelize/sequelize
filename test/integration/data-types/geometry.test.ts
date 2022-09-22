@@ -1,12 +1,20 @@
-import type { GeoJson, InferAttributes, GeoJsonPoint, CreationOptional, InferCreationAttributes, GeometryType, GeoJsonLineString, GeoJsonPolygon } from '@sequelize/core';
-import { DataTypes, Model } from '@sequelize/core';
+import type {
+  CreationOptional,
+  GeoJson,
+  GeoJsonLineString,
+  GeoJsonPoint,
+  GeoJsonPolygon,
+  InferAttributes,
+  InferCreationAttributes,
+} from '@sequelize/core';
+import { DataTypes, GeoJsonType, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import semver from 'semver/preload.js';
-import { getTestDialectTeaser, sequelize, beforeEach2 } from '../support';
+import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 const dialect = sequelize.dialect;
 
-async function createUserModelWithGeometry(type?: GeometryType) {
+async function createUserModelWithGeometry(type?: GeoJsonType) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<number>;
     declare geometry: GeoJson | null;
@@ -25,6 +33,10 @@ async function createUserModelWithGeometry(type?: GeometryType) {
 
   return User;
 }
+
+// !TODO: add bind value test
+// !TODO: add test for MultiX types
+// !TODO: add SQL injection test to each type
 
 describe(getTestDialectTeaser('Model'), () => {
   if (!sequelize.dialect.supports.dataTypes.GEOMETRY) {
@@ -74,8 +86,9 @@ describe(getTestDialectTeaser('Model'), () => {
     });
 
     it('correctly parses an empty GEOMETRY field', async () => {
-      const runTests = dialect.name !== 'postgres'
-        ? true
+      // mysql does not support empty points
+      const runTests = dialect.name === 'mysql' ? false
+        : dialect.name !== 'postgres' ? true
         : await (
           sequelize.query('SELECT PostGIS_Lib_Version();')
             .then(result => {
@@ -98,6 +111,7 @@ describe(getTestDialectTeaser('Model'), () => {
         // insert a empty GEOMETRY type
         geometry: point,
       });
+
       const user = await User.findOne({ rejectOnEmpty: true });
       if (['mysql', 'mariadb'].includes(dialect.name)) {
         // MySQL will return NULL, because they lack EMPTY geometry data support.
@@ -110,37 +124,32 @@ describe(getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('should properly escape the single quotes', async () => {
+    it('is not a vector for SQL injection', async () => {
+      // Should work and be properly escaped
       await vars.User.create({
         geometry: {
           type: 'Point',
           properties: {
             exploit: '\'); DELETE YOLO INJECTIONS; -- ',
           },
-          coordinates: [39.807_222, -76.984_722],
+          coordinates: [0, 0],
         },
       });
-    });
 
-    it('should properly escape the single quotes in coordinates', async () => {
-      const point: GeoJsonPoint = {
-        type: 'Point',
-        properties: {
-          exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+      await expect(vars.User.create({
+        geometry: {
+          // @ts-expect-error
+          type: 'Point',
+          // @ts-expect-error
+          coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
         },
-        // @ts-expect-error
-        coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-      };
-
-      await vars.User.create({
-        geometry: point,
-      });
+      })).to.be.rejectedWith('has an invalid or missing "coordinates" property');
     });
   });
 
   describe('GEOMETRY(POINT)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeometry('Point') };
+      return { User: await createUserModelWithGeometry(GeoJsonType.Point) };
     });
 
     it('should create a geometry object', async () => {
@@ -171,7 +180,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOMETRY(LINESTRING)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeometry('LineString') };
+      return { User: await createUserModelWithGeometry(GeoJsonType.LineString) };
     });
 
     it('should create a geometry object', async () => {
@@ -213,7 +222,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOMETRY(POLYGON)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeometry('Polygon') };
+      return { User: await createUserModelWithGeometry(GeoJsonType.Polygon) };
     });
 
     it('should create a geometry object', async () => {

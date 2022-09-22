@@ -58,7 +58,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
   #typecast(field: MySqlTypeCastValue, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
-      const value = dataParser.parse(field);
+      const value = dataParser.parse(field, { dialect: this.dialect });
 
       if (value !== undefined) {
         return value;

@@ -1,6 +1,7 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -610,7 +611,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       return template;
     }
 
-    template = attribute.type.toString();
+    template = attributeTypeToSql(attribute.type, { dialect: this._dialect });
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';

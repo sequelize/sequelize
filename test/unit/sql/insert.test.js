@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
             sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             db2: { sequelize_1: '2015-01-20 01:00:00' },
-            mysql: { sequelize_1: '2015-01-20 01:00:00' },
+            mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
             snowflake: { sequelize_1: '2015-01-20 01:00:00' },
             mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
             default: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },

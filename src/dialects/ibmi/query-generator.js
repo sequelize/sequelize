@@ -2,6 +2,7 @@
 
 import { removeTrailingSemicolon } from '../../utils';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -639,7 +640,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this._dialect });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
@@ -653,7 +654,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attribute.type.toString(options);
+      template = attributeTypeToSql(attribute.type, { dialect: this._dialect });
     }
 
     if (attribute.allowNull === false) {

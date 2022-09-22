@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
-import type { Dialect } from '../../sequelize.js';
+import type { Dialect, Sequelize } from '../../sequelize.js';
 import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
 import { normalizeDataType } from './data-types-utils.js';
@@ -301,6 +301,8 @@ export abstract class AbstractDialect {
     return merge(cloneDeep(this.supports), supportsOverwrite);
   }
 
+  readonly sequelize: Sequelize;
+
   abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;
   abstract readonly name: Dialect;
@@ -346,6 +348,10 @@ export abstract class AbstractDialect {
     const Dialect = this.constructor as typeof AbstractDialect;
 
     return Dialect.supports;
+  }
+
+  constructor(sequelize: Sequelize) {
+    this.sequelize = sequelize;
   }
 
   abstract createBindCollector(): BindCollector;

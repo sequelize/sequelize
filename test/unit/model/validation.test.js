@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       age: DataTypes.INTEGER,
       name: DataTypes.STRING,
       awesome: DataTypes.BOOLEAN,
-      number: DataTypes.DECIMAL,
+      number: DataTypes.DECIMAL(10, 2),
       uid: DataTypes.UUID,
       date: DataTypes.DATE,
     });
@@ -317,13 +317,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should allow decimal as scientific notation', async () => {
-          await Promise.all([expect(User.create({
-            number: '2321312301230128391820e219',
-          })).not.to.be.rejected, expect(User.create({
-            number: '2321312301230128391820e+219',
-          })).not.to.be.rejected, expect(User.create({
-            number: '2321312301230128391820f219',
-          })).to.be.rejected]);
+          await Promise.all([
+            expect(User.create({
+              number: '2321312301230128391820e219',
+            })).not.to.be.rejected,
+            expect(User.create({
+              number: '2321312301230128391820e+219',
+            })).not.to.be.rejected,
+          ]);
         });
       });
 

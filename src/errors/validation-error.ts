@@ -92,7 +92,7 @@ export class ValidationErrorItem extends Error {
 
   static throwDataTypeValidationError(
     message: string,
-  ) {
+  ): never {
     throw new ValidationErrorItem(message, 'Validation error', ValidationErrorItemOrigin.DATATYPE);
   }
 

@@ -7,6 +7,7 @@ const Support   = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
+const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
@@ -88,18 +89,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('number2')).to.equal(2);
     });
 
-    it('should clone the default values', () => {
-      const Model = current.define('Model', {
-        data: {
-          type: DataTypes.JSONB,
-          defaultValue: { foo: 'bar' },
-        },
-      });
-      const instance = Model.build();
-      instance.data.foo = 'biz';
+    if (dialect.supports.dataTypes.JSONB) {
+      it('should clone the default values', () => {
+        const Model = current.define('Model', {
+          data: {
+            type: DataTypes.JSONB,
+            defaultValue: { foo: 'bar' },
+          },
+        });
+        const instance = Model.build();
+        instance.data.foo = 'biz';
 
-      expect(instance.get('data')).to.eql({ foo: 'biz' });
-      expect(Model.build().get('data')).to.eql({ foo: 'bar' });
-    });
+        expect(instance.get('data')).to.eql({ foo: 'biz' });
+        expect(Model.build().get('data')).to.eql({ foo: 'bar' });
+      });
+    }
   });
 });

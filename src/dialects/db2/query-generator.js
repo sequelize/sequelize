@@ -2,6 +2,7 @@
 
 import { removeTrailingSemicolon } from '../../utils';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -615,7 +616,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attribute.type.toString();
+      template = attributeTypeToSql(attribute.type, { dialect: this._dialect });
     }
 
     if (options && options.context === 'changeColumn' && attribute.type) {

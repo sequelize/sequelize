@@ -15,3 +15,4 @@ const { Sequelize } = require('./sequelize');
 module.exports = Sequelize;
 module.exports.Sequelize = Sequelize;
 module.exports.default = Sequelize;
+module.exports.GeoJsonType = require('./dialects/abstract/data-types').GeoJsonType;

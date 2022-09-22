@@ -32,6 +32,7 @@ type Expectations = {
 
 const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
+const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -59,14 +60,17 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
+// @ts-expect-error - we only init a subset of datatypes based on feature support
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
   nullableIntAttr: DataTypes.INTEGER,
 
-  intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
-  intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
-  dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
+  ...(dialectSupportsArray() && {
+    intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
+    intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
+    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
+  }),
 
   stringAttr: DataTypes.STRING,
   stringBinaryAttr: DataTypes.STRING.BINARY,
@@ -75,11 +79,14 @@ TestModel.init({
   bigIntAttr: DataTypes.BIGINT,
 
   jsonAttr: { type: DataTypes.JSON },
-  jsonbAttr: { type: DataTypes.JSONB },
 
   aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
   aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
-  aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+
+  ...(dialectSupportsJsonB() && {
+    jsonbAttr: { type: DataTypes.JSONB },
+    aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+  }),
 }, { sequelize });
 
 describe(getTestDialectTeaser('SQL'), () => {
@@ -342,8 +349,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         dateAttr: 1_356_998_400_000,
       }, {
         default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
-        mariadb: `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
-        mysql: `\`dateAttr\` = '2013-01-01 00:00:00'`,
+        'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
         db2: `"dateAttr" = '2013-01-01 00:00:00'`,
         snowflake: `"dateAttr" = '2013-01-01 00:00:00'`,
@@ -445,8 +451,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
         default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
-        mariadb: `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-        mysql: `\`dateAttr\` = '2021-01-01 00:00:00'`,
+        'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
         snowflake: `"dateAttr" = '2021-01-01 00:00:00'`,
         db2: `"dateAttr" = '2021-01-01 00:00:00'`,
         ibmi: `"dateAttr" = '2021-01-01 00:00:00.000'`,

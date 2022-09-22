@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
-import wkx from 'wkx';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
@@ -67,6 +66,10 @@ export interface StringifyOptions {
 
 export interface BindParamOptions extends StringifyOptions {
   bindParam(value: unknown): string;
+}
+
+export interface ParseOptions {
+  dialect: AbstractDialect;
 }
 
 export type DataTypeUseContext =
@@ -159,8 +162,9 @@ export abstract class AbstractDataType<
    * If you don't need this, implementing {@link sanitize} is sufficient.
    *
    * @param value The value to parse. This value is dialect specific.
+   * @param _options Options.
    */
-  parse(value: unknown): unknown {
+  parse(value: unknown, _options: ParseOptions): unknown {
     return value;
   }
 
@@ -920,6 +924,18 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
       }
     }
 
+    // MySQL also accepts BIT(1) for booleans, which produces a Buffer. For the same reasons as above, we must
+    // transform it here.
+    if (Buffer.isBuffer(value) && value.length === 1) {
+      if (value[0] === 1) {
+        return true;
+      }
+
+      if (value[0] === 0) {
+        return false;
+      }
+    }
+
     return value;
   }
 
@@ -962,10 +978,10 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
   }
 
   escape(value: boolean | Falsy): string {
-    return this.toBindableValue(value);
+    return value ? 'true' : 'false';
   }
 
-  toBindableValue(value: boolean | Falsy): string {
+  toBindableValue(value: boolean | Falsy): unknown {
     return value ? 'true' : 'false';
   }
 }
@@ -1695,10 +1711,20 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   }
 }
 
-export type GeometryType = 'Point' | 'LineString' | 'Polygon' | 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection';
+export enum GeoJsonType {
+  Point = 'Point',
+  LineString = 'LineString',
+  Polygon = 'Polygon',
+  MultiPoint = 'MultiPoint',
+  MultiLineString = 'MultiLineString',
+  MultiPolygon = 'MultiPolygon',
+  GeometryCollection = 'GeometryCollection',
+}
+
+const geoJsonTypeArray = Object.keys(GeoJsonType);
 
 interface BaseGeoJson {
-  properties?: object;
+  properties?: Record<string, unknown>;
 
   crs?: {
     type: 'name',
@@ -1730,7 +1756,7 @@ export type GeoJson =
   | { type: 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection' };
 
 export interface GeometryOptions {
-  type?: GeometryType | undefined;
+  type?: GeoJsonType | undefined;
   srid?: number | undefined;
 }
 
@@ -1788,18 +1814,18 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
    * @param {string} [type] Type of geometry data
    * @param {string} [srid] SRID of type
    */
-  constructor(type: GeometryType, srid?: number);
+  constructor(type: GeoJsonType, srid?: number);
   constructor(options: GeometryOptions);
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @internal */
   constructor(...args:
-    | [type: GeometryType, srid?: number]
+    | [type: GeoJsonType, srid?: number]
     | [options: GeometryOptions]
   );
 
-  constructor(typeOrOptions: GeometryType | GeometryOptions, srid?: number) {
+  constructor(typeOrOptions: GeoJsonType | GeometryOptions, srid?: number) {
     super();
 
     this.options = isObject(typeOrOptions)
@@ -1807,16 +1833,30 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
       : { type: typeOrOptions, srid };
   }
 
-  toBindableValue(value: GeoJson, options: StringifyOptions) {
-    return `STGeomFromText(${options.escape(
-      wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )})`;
-  }
+  validate(value: unknown): asserts value is GeoJson {
+    if (!isPlainObject(value)) {
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid GeoJSON object: it must be a plain object.`);
+    }
 
-  bindParam(value: GeoJson, options: BindParamOptions) {
-    return `STGeomFromText(${options.bindParam(
-      wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )})`;
+    if (!geoJsonTypeArray.includes(value.type)) {
+      ValidationErrorItem.throwDataTypeValidationError(`GeoJSON object ${util.inspect(value)} has an invalid or missing "type" property. Expected one of ${geoJsonTypeArray.join(', ')}`);
+    }
+
+    if (value.type === 'Point') {
+      const coordinates = value.coordinates;
+      if (!Array.isArray(coordinates)) {
+        ValidationErrorItem.throwDataTypeValidationError(`GeoJSON Point object ${util.inspect(value)} has an invalid or missing "coordinates" property. Expected an array of numeric values (as either the number, bigint, or string types).`);
+      }
+
+      // Prevent a SQL injection attack, as coordinates are inlined in the query without escaping.
+      for (const coordinate of coordinates) {
+        if (!Validator.isNumeric(String(coordinate))) {
+          ValidationErrorItem.throwDataTypeValidationError(`GeoJSON Point object ${util.inspect(value)} has an invalid or missing "coordinates" property: It includes a non-numeric value ${util.inspect(coordinate)}.`);
+        }
+      }
+    }
+
+    return super.validate(value);
   }
 
   toSql(): string {

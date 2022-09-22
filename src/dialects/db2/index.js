@@ -36,8 +36,7 @@ export class Db2Dialect extends AbstractDialect {
   });
 
   constructor(sequelize) {
-    super();
-    this.sequelize = sequelize;
+    super(sequelize);
     this.connectionManager = new Db2ConnectionManager(this, sequelize);
     this.queryGenerator = new Db2QueryGenerator({
       dialect: this,

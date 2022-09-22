@@ -2,7 +2,7 @@ import NodeUtils from 'util';
 import { ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
 import { logger } from '../../utils/logger.js';
-import type { DataType, DataTypeClass, DataTypeInstance } from './data-types.js';
+import type { DataType, DataTypeClass, DataTypeInstance, ToSqlOptions } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 
@@ -66,7 +66,7 @@ export function validateDataType(
   } catch (error) {
     if (!(error instanceof ValidationErrorItem)) {
       // eslint-disable-next-line unicorn/prefer-type-error
-      throw new Error(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must thrown an instance of ValidationErrorItem instead)`, {
+      throw new Error(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must throw an instance of ValidationErrorItem instead)`, {
         cause: error,
       });
     }
@@ -79,4 +79,12 @@ export function validateDataType(
 
     return error;
   }
+}
+
+export function attributeTypeToSql(type: AbstractDataType<any> | string, options: ToSqlOptions): string {
+  if (typeof type === 'string') {
+    return type;
+  }
+
+  return type.toSql(options);
 }

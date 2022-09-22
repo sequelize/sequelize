@@ -57,7 +57,6 @@ export class MysqlDialect extends AbstractDialect {
     },
   );
 
-  readonly sequelize: Sequelize;
   readonly connectionManager: MySqlConnectionManager;
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
@@ -72,8 +71,7 @@ export class MysqlDialect extends AbstractDialect {
   readonly TICK_CHAR_RIGHT = '`';
 
   constructor(sequelize: Sequelize) {
-    super();
-    this.sequelize = sequelize;
+    super(sequelize);
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
       dialect: this,
@@ -91,6 +89,7 @@ export class MysqlDialect extends AbstractDialect {
     this.registerDataTypeParser(BaseTypes.DATE, ['DATETIME']);
     this.registerDataTypeParser(BaseTypes.DATEONLY, ['DATE']);
     this.registerDataTypeParser(BaseTypes.BIGINT, ['LONGLONG']);
+    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['GEOMETRY']);
   }
 
   createBindCollector() {

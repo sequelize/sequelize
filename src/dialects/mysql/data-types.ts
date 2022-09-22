@@ -1,10 +1,16 @@
-import NodeUtil from 'node:util';
 import dayjs from 'dayjs';
 import wkx from 'wkx';
+import type { Falsy } from '../../generic/falsy.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate, StringifyOptions, ToSqlOptions, GeometryType } from '../abstract/data-types.js';
+import type {
+  AcceptedDate,
+  StringifyOptions,
+  ToSqlOptions,
+  GeoJson,
+  BindParamOptions, ParseOptions,
+} from '../abstract/data-types.js';
 import type { MySqlTypeCastValue } from './connection-manager.js';
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
@@ -41,16 +47,14 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     return 'TINYINT(1)';
   }
 
-  toBindableValue(value: unknown): string {
-    if (value === true) {
-      return '1';
-    }
+  escape(value: boolean | Falsy): string {
+    // must be 'true' & 'false' when inlining so the values are compatible with the 'IS' operator
+    return value ? 'true' : 'false';
+  }
 
-    if (value === false) {
-      return '0';
-    }
-
-    throw new Error(`Unsupported value for BOOLEAN: ${NodeUtil.inspect(value)}`);
+  toBindableValue(value: boolean | Falsy): unknown {
+    // when binding, must be an integer
+    return value ? 1 : 0;
   }
 }
 
@@ -73,12 +77,29 @@ export class DATE extends BaseTypes.DATE {
     return super.sanitize(value);
   }
 
-  parse(value: MySqlTypeCastValue): unknown {
-    // mysql returns a UTC date string that looks like the following:
-    // 2022-01-01 00:00:00
-    // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.
-    // Adding +00 fixes this.
-    return `${value.string()}+00`;
+  parse(value: MySqlTypeCastValue, options: ParseOptions): unknown {
+    const valueStr = value.string();
+    if (valueStr === null) {
+      return null;
+    }
+
+    const timeZone = options.dialect.sequelize.options.timezone;
+    if (timeZone === '+00:00') { // default value
+      // mysql returns a UTC date string that looks like the following:
+      // 2022-01-01 00:00:00
+      // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.
+      // Adding +00 fixes this.
+      return `${valueStr}+00`;
+    }
+
+    if (isValidTimeZone(timeZone)) {
+      return dayjs.tz(valueStr, timeZone).toISOString();
+    }
+
+    // offset format, we can just append.
+    // "2022-09-22 20:03:06" with timeZone "-04:00"
+    // becomes "2022-09-22 20:03:06-04:00"
+    return valueStr + timeZone;
   }
 }
 
@@ -94,44 +115,35 @@ export class UUID extends BaseTypes.UUID {
   }
 }
 
-const SUPPORTED_GEOMETRY_TYPES = ['POINT', 'LINESTRING', 'POLYGON'];
-
 export class GEOMETRY extends BaseTypes.GEOMETRY {
-  constructor(type: GeometryType, srid?: number) {
-    super(type, srid);
-
-    if (this.options.type && !SUPPORTED_GEOMETRY_TYPES.includes(this.options.type)) {
-      throw new Error(`Supported geometry types are: ${SUPPORTED_GEOMETRY_TYPES.join(', ')}`);
-    }
+  toBindableValue(value: GeoJson, options: StringifyOptions) {
+    return `ST_GeomFromText(${options.escape(
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
+    )})`;
   }
 
-  sanitize(value: unknown): unknown {
-    if (!value) {
+  bindParam(value: GeoJson, options: BindParamOptions) {
+    return `ST_GeomFromText(${options.bindParam(
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
+    )})`;
+  }
+
+  parse(value: MySqlTypeCastValue): unknown {
+    let buffer = value.buffer();
+    // Empty buffer, MySQL doesn't support POINT EMPTY
+    // check, https://dev.mysql.com/worklog/task/?id=2381
+    if (!buffer || buffer.length === 0) {
       return null;
     }
 
-    if (!isString(value) && !Buffer.isBuffer(value)) {
-      throw new Error('Invalid value for GEOMETRY type. Expected string or buffer.');
-    }
+    // For some reason, discard the first 4 bytes
+    buffer = buffer.slice(4);
 
-    let sanitizedValue: string | Buffer = value;
-
-    // Empty buffer, MySQL doesn't support POINT EMPTY
-    // check, https://dev.mysql.com/worklog/task/?id=2381
-    if (sanitizedValue.length === 0) {
-      return value;
-    }
-
-    if (Buffer.isBuffer(sanitizedValue)) {
-      // For some reason, discard the first 4 bytes
-      sanitizedValue = sanitizedValue.subarray(4);
-    }
-
-    return wkx.Geometry.parse(sanitizedValue).toGeoJSON({ shortCrs: true });
+    return wkx.Geometry.parse(buffer).toGeoJSON({ shortCrs: true });
   }
 
   toSql() {
-    return this.options.type || 'GEOMETRY';
+    return this.options.type?.toUpperCase() || 'GEOMETRY';
   }
 }
 

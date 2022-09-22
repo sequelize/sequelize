@@ -73,6 +73,7 @@ export const Op = Pkg.Op;
 export const TableHints = Pkg.TableHints;
 export const IndexHints = Pkg.IndexHints;
 export const DataTypes = Pkg.DataTypes;
+export const GeoJsonType = Pkg.GeoJsonType;
 export const Deferrable = Pkg.Deferrable;
 
 // export { Validator as validator } from './lib/utils/validator-extras';

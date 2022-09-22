@@ -1,6 +1,7 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -372,7 +373,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this._dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {

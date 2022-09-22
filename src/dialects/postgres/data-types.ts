@@ -7,7 +7,7 @@ import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
   StringifyOptions,
-  BindParamOptions, ToSqlOptions,
+  BindParamOptions, ToSqlOptions, ParseOptions,
 } from '../abstract/data-types';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
@@ -372,7 +372,7 @@ export class HSTORE extends BaseTypes.HSTORE {
 }
 
 export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
-  #parseSubType = (val: string) => this.options.subtype.parse(val);
+  #parseSubType = (val: string, options: ParseOptions) => this.options.subtype.parse(val, options);
 
   toBindableValue(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
     if (!Array.isArray(values)) {
@@ -440,12 +440,12 @@ export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> exten
     },
   };
 
-  parse(value: unknown): Range<unknown> {
+  parse(value: unknown, options: ParseOptions): Range<unknown> {
     if (typeof value !== 'string') {
       throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
     }
 
-    return RangeParser.parse(value, this.#parseSubType);
+    return RangeParser.parse(value, subValue => this.#parseSubType(subValue, options));
   }
 }
 

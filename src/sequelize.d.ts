@@ -423,7 +423,7 @@ export interface Options extends Logging {
   schema?: string;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone'> {
   readonly replication: NormalizedReplicationOptions;
 }
 

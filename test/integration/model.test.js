@@ -571,7 +571,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         default: {
-        // And finally mysql returns the primary first, and then the rest in the order they were defined
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
           primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
@@ -583,7 +583,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            { attribute: 'fieldA', length: 5, order: 'ASC' },
+            // length is a bigint
+            { attribute: 'fieldA', length: '5', order: 'ASC' },
           ]);
 
           expect(idx2.fields).to.deep.equal([

@@ -3828,8 +3828,8 @@ Instead of specifying a Model, either:
           // True when sequelize method
           value instanceof Utils.SequelizeMethod
           // Otherwise, check for data type type comparators
-          || (value != null && !(value instanceof Utils.SequelizeMethod) && !this.constructor.rawAttributes[key]?.type.areValuesEqual(value, originalValue, options))
-          || (value == null || !this.constructor.rawAttributes[key]) && !_.isEqual(value, originalValue)
+          || ((value != null && attributeType && attributeType instanceof AbstractDataType) && !attributeType.areValuesEqual(value, originalValue, options))
+          || ((value == null || !attributeType || !(attributeType instanceof AbstractDataType)) && !_.isEqual(value, originalValue))
         )
       ) {
         this._previousDataValues[key] = originalValue;

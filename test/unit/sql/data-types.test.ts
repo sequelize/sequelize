@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import util from 'util';
 import type { DataTypeClassOrInstance, DataTypeInstance } from '@sequelize/core';
-import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { DataTypes, GeoJsonType, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import { v1 as uuidV1, v4 as uuidV4 } from 'uuid';
 import { expectsql, sequelize, getTestDialect, getTestDialectTeaser, createTester } from '../../support';
@@ -136,7 +136,8 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('CITEXT', () => {
       testsql('CITEXT', DataTypes.CITEXT, {
-        default: 'CITEXT', // TODO: dialects that don't support CITEXT should throw
+        default: new Error(`${dialectName} does not support the CITEXT data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
         postgres: 'CITEXT',
         sqlite: 'TEXT COLLATE NOCASE',
       });
@@ -160,7 +161,9 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('TSVECTOR', () => {
       testsql('TSVECTOR', DataTypes.TSVECTOR, {
-        default: 'TSVECTOR', // TODO: dialects that don't support TSVECTOR should throw
+        default: new Error(`${dialectName} does not support the TSVECTOR DataType.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported String DataTypes.`),
+        postgres: 'TSVECTOR',
       });
 
       describe('validate', () => {
@@ -181,6 +184,9 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('CHAR', () => {
+      const binaryNotSupportedError = new Error(`${dialectName} does not support the CHAR.BINARY data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('CHAR', DataTypes.CHAR, {
         default: 'CHAR(255)',
       });
@@ -197,16 +203,14 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: 'CHAR(12) BINARY',
         ibmi: 'CLOB(12)',
         sqlite: 'CHAR BINARY(12)',
-        postgres: new Error('postgres does not support the CHAR.BINARY DataType.\n'
-          + 'See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.'),
+        postgres: binaryNotSupportedError,
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         ibmi: 'CLOB(255)',
         sqlite: 'CHAR BINARY(255)',
-        postgres: new Error('postgres does not support the CHAR.BINARY DataType.\n'
-          + 'See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported DataTypes.'),
+        postgres: binaryNotSupportedError,
       });
     });
 
@@ -292,7 +296,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('TIME', () => {
       testsql('TIME', DataTypes.TIME, {
-        default: 'TIME',
+        default: 'TIME(0)',
       });
     });
 
@@ -505,7 +509,8 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('TINYINT', () => {
-      const noSupportError = new Error(`${dialect.name} does not support the TINYINT data type.`);
+      const noSupportError = new Error(`${dialect.name} does not support the TINYINT data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
       const noUnsignedSupportError = new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED`);
 
       const cases = [
@@ -799,7 +804,8 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('MEDIUMINT', () => {
-      const noSupportError = new Error(`${dialect.name} does not support the MEDIUMINT data type.`);
+      const noSupportError = new Error(`${dialect.name} does not support the MEDIUMINT data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
       const cases = [
         {
@@ -1363,62 +1369,58 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {
-        default: 'DECIMAL',
+        default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
+        postgres: 'DECIMAL',
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
-        default: 'DECIMAL(10,2)',
+        default: 'DECIMAL(10, 2)',
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
-        default: 'DECIMAL(10,2)',
+        default: 'DECIMAL(10, 2)',
       });
 
-      testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
-        default: 'DECIMAL(10)',
+      testsql('DECIMAL(10, 2).UNSIGNED', DataTypes.DECIMAL(10, 2).UNSIGNED, {
+        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
+        default: 'DECIMAL(10, 2)',
       });
 
-      testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
-        default: 'DECIMAL(10)',
-      });
-
-      testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
-        mariadb: 'DECIMAL UNSIGNED',
-        mysql: 'DECIMAL UNSIGNED',
-        default: 'DECIMAL',
-      });
-
-      testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
-        mariadb: 'DECIMAL UNSIGNED ZEROFILL',
-        mysql: 'DECIMAL UNSIGNED ZEROFILL',
-        default: 'DECIMAL',
+      testsql('DECIMAL(10, 2).UNSIGNED.ZEROFILL', DataTypes.DECIMAL(10, 2).UNSIGNED.ZEROFILL, {
+        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED ZEROFILL',
+        default: 'DECIMAL(10, 2)',
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
-        mariadb: 'DECIMAL(10,2) UNSIGNED',
-        mysql: 'DECIMAL(10,2) UNSIGNED',
-        default: 'DECIMAL(10,2)',
+        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
+        default: 'DECIMAL(10, 2)',
+      });
+
+      it('requires both scale & precision to be specified', () => {
+        expect(() => DataTypes.DECIMAL(10)).to.throw('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.DECIMAL({ precision: 10 })).to.throw('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.DECIMAL({ scale: 2 })).to.throw('The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.');
       });
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: DataTypeInstance = DataTypes.DECIMAL(10);
+          const type: DataTypeInstance = DataTypes.DECIMAL(10, 2);
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, 'foobar is not a valid decimal(10)');
+          }).to.throw(ValidationErrorItem, 'foobar is not a valid decimal(10, 2)');
 
           expect(() => {
             type.validate('0.1a');
-          }).to.throw(ValidationErrorItem, '0.1a is not a valid decimal(10)');
+          }).to.throw(ValidationErrorItem, '0.1a is not a valid decimal(10, 2)');
 
           expect(() => {
             type.validate(Number.NaN);
-          }).to.throw(ValidationErrorItem, 'NaN is not a valid decimal(10)');
+          }).to.throw(ValidationErrorItem, 'NaN is not a valid decimal(10, 2)');
         });
 
         it('should not throw if `value` is a decimal', () => {
-          const type = DataTypes.DECIMAL(10);
+          const type = DataTypes.DECIMAL(10, 2);
 
           expect(() => type.validate(123)).not.to.throw();
           expect(() => type.validate(1.2)).not.to.throw();
@@ -1566,9 +1568,9 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('JSONB', () => {
-      // TODO: types that don't support JSONB should throw an error.
       testsql('JSONB', DataTypes.JSONB, {
-        default: 'JSONB',
+        default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+        postgres: 'JSONB',
       });
     });
 
@@ -1606,16 +1608,14 @@ describe(getTestDialectTeaser('SQL'), () => {
           postgres: 'BOOLEAN[]',
         });
 
-        testsql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
-          postgres: 'DECIMAL[]',
-        });
+        if (dialect.supports.dataTypes.DECIMAL.unconstrained) {
+          testsql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
+            postgres: 'DECIMAL[]',
+          });
+        }
 
-        testsql('ARRAY(DECIMAL(6))', DataTypes.ARRAY(DataTypes.DECIMAL(6)), {
-          postgres: 'DECIMAL(6)[]',
-        });
-
-        testsql('ARRAY(DECIMAL(6,4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
-          postgres: 'DECIMAL(6,4)[]',
+        testsql('ARRAY(DECIMAL(6, 4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
+          postgres: 'DECIMAL(6, 4)[]',
         });
 
         testsql('ARRAY(DOUBLE)', DataTypes.ARRAY(DataTypes.DOUBLE), {
@@ -1626,19 +1626,19 @@ describe(getTestDialectTeaser('SQL'), () => {
           postgres: 'REAL[]',
         });
 
-        if (sequelize.dialect.supports.dataTypes.JSON) {
+        if (dialect.supports.dataTypes.JSON) {
           testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
             postgres: 'JSON[]',
           });
         }
 
-        if (sequelize.dialect.supports.dataTypes.JSONB) {
+        if (dialect.supports.dataTypes.JSONB) {
           testsql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {
             postgres: 'JSONB[]',
           });
         }
 
-        if (dialectName === 'postgres') {
+        if (dialect.supports.dataTypes.CITEXT) {
           testsql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
             postgres: 'CITEXT[]',
           });
@@ -1676,25 +1676,25 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: 'GEOMETRY',
         });
 
-        testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('Point'), {
+        testsql(`GEOMETRY('POINT')`, DataTypes.GEOMETRY(GeoJsonType.Point), {
           postgres: 'GEOMETRY(POINT)',
           mariadb: 'POINT',
           mysql: 'POINT',
         });
 
-        testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LineString'), {
+        testsql(`GEOMETRY('LINESTRING')`, DataTypes.GEOMETRY(GeoJsonType.LineString), {
           postgres: 'GEOMETRY(LINESTRING)',
           mariadb: 'LINESTRING',
           mysql: 'LINESTRING',
         });
 
-        testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('Polygon'), {
+        testsql(`GEOMETRY('POLYGON')`, DataTypes.GEOMETRY(GeoJsonType.Polygon), {
           postgres: 'GEOMETRY(POLYGON)',
           mariadb: 'POLYGON',
           mysql: 'POLYGON',
         });
 
-        testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('Point', 4326), {
+        testsql(`GEOMETRY('POINT',4326)`, DataTypes.GEOMETRY(GeoJsonType.Point, 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
           mariadb: 'POINT',
           mysql: 'POINT',
@@ -1704,13 +1704,15 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('GEOGRAPHY', () => {
       testsql('GEOGRAPHY', DataTypes.GEOGRAPHY, {
-        default: 'GEOGRAPHY',
+        default: new Error(`${dialectName} does not support the GEOGRAPHY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+        postgres: 'GEOGRAPHY',
       });
     });
 
     describe('HSTORE', () => {
       testsql('HSTORE', DataTypes.HSTORE, {
-        default: 'HSTORE',
+        default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+        postgres: 'HSTORE',
       });
     });
   });

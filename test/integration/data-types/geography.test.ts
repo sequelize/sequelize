@@ -4,14 +4,18 @@ import type {
   GeoJsonPoint,
   InferAttributes,
   InferCreationAttributes,
-  GeometryType,
-  GeoJsonLineString, GeoJsonPolygon,
+  GeoJsonLineString,
+  GeoJsonPolygon,
 } from '@sequelize/core';
-import { DataTypes, Model } from '@sequelize/core';
+import { DataTypes, Model, GeoJsonType } from '@sequelize/core';
 import { expect } from 'chai';
 import { sequelize, getTestDialectTeaser, beforeEach2 } from '../support';
 
-async function createUserModelWithGeography(type?: GeometryType, srid?: number) {
+// !TODO: add bind value test
+// !TODO: add test for MultiX types
+// !TODO: add SQL injection test to each type
+
+async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<number>;
     declare geography: GeoJson | null;
@@ -104,7 +108,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOGRAPHY(POINT)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeography('Point') };
+      return { User: await createUserModelWithGeography(GeoJsonType.Point) };
     });
 
     it('should create a geography object', async () => {
@@ -158,7 +162,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOGRAPHY(LINESTRING)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeography('LineString') };
+      return { User: await createUserModelWithGeography(GeoJsonType.LineString) };
     });
 
     it('should create a geography object', async () => {
@@ -210,7 +214,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('GEOGRAPHY(POLYGON)', () => {
     const vars = beforeEach2(async () => {
-      return { User: await createUserModelWithGeography('Polygon') };
+      return { User: await createUserModelWithGeography(GeoJsonType.Polygon) };
     });
 
     it('should create a geography object', async () => {
@@ -269,7 +273,7 @@ describe(getTestDialectTeaser('Model'), () => {
   if (sequelize.dialect.name === 'postgres') {
     describe('GEOGRAPHY(POLYGON, SRID)', () => {
       const vars = beforeEach2(async () => {
-        return { User: await createUserModelWithGeography('Polygon', 4326) };
+        return { User: await createUserModelWithGeography(GeoJsonType.Polygon, 4326) };
       });
 
       it('should create a geography object', async () => {

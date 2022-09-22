@@ -4,7 +4,8 @@ import { getTextDataTypeForDialect } from '../../sql-string';
 import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
-import { validateDataType } from './data-types-utils';
+import { AbstractDataType } from './data-types';
+import { attributeTypeToSql, validateDataType } from './data-types-utils';
 
 const util = require('util');
 const _ = require('lodash');
@@ -1148,7 +1149,9 @@ export class AbstractQueryGenerator {
       return;
     }
 
-    const error = validateDataType(field.type, field.fieldName, null, value);
+    const error = field.type instanceof AbstractDataType
+      ? validateDataType(field.type, field.fieldName, null, value)
+      : null;
     if (error) {
       throw error;
     }
@@ -1882,7 +1885,9 @@ export class AbstractQueryGenerator {
 
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this._dialect.supports.tmpTableTrigger) {
-        const tmpColumns = returnFields.map((field, i) => `${field} ${returnTypes[i].toSql()}`);
+        const tmpColumns = returnFields.map((field, i) => {
+          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this._dialect })}`;
+        });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
         outputFragment += ' INTO @tmp';

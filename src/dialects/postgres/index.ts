@@ -65,7 +65,6 @@ export class PostgresDialect extends AbstractDialect {
     milliseconds: true,
   });
 
-  readonly sequelize: Sequelize;
   readonly connectionManager: PostgresConnectionManager;
   readonly queryGenerator: PostgresQueryGenerator;
   readonly queryInterface: PostgresQueryInterface;
@@ -80,8 +79,7 @@ export class PostgresDialect extends AbstractDialect {
   readonly TICK_CHAR_RIGHT = '"';
 
   constructor(sequelize: Sequelize) {
-    super();
-    this.sequelize = sequelize;
+    super(sequelize);
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
     this.queryGenerator = new PostgresQueryGenerator({
       dialect: this,

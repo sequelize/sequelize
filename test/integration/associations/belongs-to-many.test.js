@@ -1379,7 +1379,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL,
+          type: DataTypes.DECIMAL(10, 2),
           validate: {
             min: 0,
             max: 1,
@@ -1426,7 +1426,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL,
+          type: DataTypes.DECIMAL(10, 2),
           validate: {
             min: 0,
             max: 1,

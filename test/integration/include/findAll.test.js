@@ -2128,14 +2128,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should allow through model to be paranoid', async function () {
-      const User = this.sequelize.define('user', { name: DataTypes.STRING }, { timestamps: false });
-      const Customer = this.sequelize.define('customer', { name: DataTypes.STRING }, { timestamps: false });
+      const User = this.sequelize.define('User', { name: DataTypes.STRING }, { timestamps: false });
+      const Customer = this.sequelize.define('Customer', { name: DataTypes.STRING }, { timestamps: false });
       const UserCustomer = this.sequelize.define(
-        'user_customer',
+        'UserCustomer',
         {},
         { paranoid: true, createdAt: false, updatedAt: false },
       );
-      User.belongsToMany(Customer, { through: UserCustomer });
+
+      User.belongsToMany(Customer, { through: UserCustomer, as: 'customers', inverse: { as: 'users' } });
 
       await this.sequelize.sync({ force: true });
 
@@ -2144,10 +2145,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         Customer.create({ name: 'Customer 1' }),
         Customer.create({ name: 'Customer 2' }),
       ]);
-      await user.setCustomers([customer1]);
-      await user.setCustomers([customer2]);
 
-      const users = await User.findAll({ include: Customer });
+      await user.setCustomers([customer1]);
+      await user.setCustomers([customer2], { logging: console.log });
+      const users = await User.findAll({ include: Customer, logging: console.log });
 
       expect(users).to.be.an('array');
       expect(users).to.be.lengthOf(1);
@@ -2156,9 +2157,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(customers).to.be.an('array');
       expect(customers).to.be.lengthOf(1);
 
-      const user_customer = customers[0].user_customer;
-
-      expect(user_customer.deletedAt).not.to.exist;
+      expect(customers[0].UserCustomer.deletedAt).not.to.exist;
 
       const userCustomers = await UserCustomer.findAll({
         paranoid: false,
