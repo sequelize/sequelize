@@ -2772,11 +2772,12 @@ Specify a different name for either index to resolve this issue.`);
                 upsertKeys.push(...firstUniqueKey.fields);
               }
 
-              options.upsertKeys
-                = upsertKeys.length > 0
-                  ? upsertKeys
-                  : Object.values(model.primaryKeys).map(x => x.field);
             }
+
+            options.upsertKeys
+              = upsertKeys.length > 0
+                ? upsertKeys
+                : Object.values(model.primaryKeys).map(x => x.field);
           }
         }
 
