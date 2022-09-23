@@ -12,6 +12,7 @@ const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 
+/* istanbul ignore next */
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }

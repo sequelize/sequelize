@@ -51,26 +51,22 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = [
-      `'MYSQL'`,
-      `'INFORMATION_SCHEMA'`,
-      `'PERFORMANCE_SCHEMA'`,
-      `'mysql'`,
-      `'information_schema'`,
-      `'performance_schema'`,
-    ];
+  // TODO: typescript - protected
+  _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
+  }
 
-    if (Array.isArray(options?.skip) && options.skip.length > 0) {
-      for (const schemaName of options.skip) {
-        schemasToSkip.push(this.escape(schemaName));
-      }
+  listSchemasQuery(options) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
     }
 
     return Utils.joinSQLFragments([
       'SELECT SCHEMA_NAME as schema_name',
       'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.join(', ')})`,
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
       ';',
     ]);
   }
@@ -177,7 +173,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     if (schemaName) {
       query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
     } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\')';
+      const technicalSchemas = this._getTechnicalSchemaNames();
+
+      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
     }
 
     return `${query};`;

@@ -57,7 +57,7 @@ export class AbstractQueryGenerator {
   }
 
   createDatabaseQuery() {
-    if (this._dialect.supports.databases) {
+    if (this._dialect.supports.multiDatabases) {
       throw new Error(`${this.dialect} declares supporting databases but createDatabaseQuery is not implemented.`);
     }
 
@@ -65,7 +65,7 @@ export class AbstractQueryGenerator {
   }
 
   dropDatabaseQuery() {
-    if (this._dialect.supports.databases) {
+    if (this._dialect.supports.multiDatabases) {
       throw new Error(`${this.dialect} declares supporting databases but dropDatabaseQuery is not implemented.`);
     }
 
@@ -73,7 +73,7 @@ export class AbstractQueryGenerator {
   }
 
   listDatabasesQuery() {
-    if (this._dialect.supports.databases) {
+    if (this._dialect.supports.multiDatabases) {
       throw new Error(`${this.dialect} declares supporting databases but listDatabasesQuery is not implemented.`);
     }
 

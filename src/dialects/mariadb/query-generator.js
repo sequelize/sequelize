@@ -5,6 +5,10 @@ const _ = require('lodash');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
 
+  _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
+  }
+
   /**
    * Generates an SQL query that extract JSON property of given path.
    *
