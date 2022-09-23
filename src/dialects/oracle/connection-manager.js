@@ -58,32 +58,19 @@ export class OracleConnectionManager extends AbstractConnectionManager {
    * @returns {Promise<Connection>}
    * @private
    */
-  checkConfigObject(config) {
-    // A connectString should be defined
-    if (config.database.length === 0) {
-      let errorToThrow =
-        'The database cannot be blank, you must specify the database name (which correspond to the service name';
-      errorToThrow += '\n from tnsnames.ora : (HOST = mymachine.example.com)(PORT = 1521)(SERVICE_NAME = orcl)';
-      throw new Error(errorToThrow);
+  buildConnectString(config) {
+    if (!config.host || config.host.length === 0)
+      return config.database;
+    let connectString = config.host;
+    if (config.port && config.port > 0) {
+      connectString += `:${config.port}`;
+    } else {
+      connectString += ':1521';
     }
-
-    if (!config.host || config.host.length === 0) {
-      throw new Error('You have to specify the host');
-    }
-
-    // The connectString has a special format, we check it
-    // ConnectString format is : host:[port]/service_name
-    if (config.database.indexOf('/') === -1) {
-      let connectString = config.host;
-
-      if (config.port && config.port !== 0) {
-        connectString += `:${config.port}`;
-      } else {
-        connectString += ':1521'; //Default port number
-      }
+    if (config.database && config.database.length > 0) {
       connectString += `/${config.database}`;
-      config.database = connectString;
     }
+    return connectString;
   }
 
   // Expose this as a method so that the parsing may be updated when the user has added additional, custom types
@@ -107,30 +94,14 @@ export class OracleConnectionManager extends AbstractConnectionManager {
   async connect(config) {
     const connectionConfig = {
       user: config.username,
-      host: config.host,
-      port: config.port,
-      database: config.database,
       password: config.password,
       externalAuth: config.externalAuth,
       stmtCacheSize: 0,
-      connectString: config.database,
+      connectString: this.buildConnectString(config),
       ...config.dialectOptions
     };
 
     try {
-      // Check the config object
-      this.checkConfigObject(connectionConfig);
-
-      // We assume that the database has been correctly formed
-      connectionConfig.connectString = connectionConfig.database;
-
-      // We check if there are dialect options
-      if (config.dialectOptions) {
-        Object.keys(config.dialectOptions).forEach(key => {
-          connectionConfig[key] = config.dialectOptions[key];
-        });
-      }
-
       const connection = await this.lib.getConnection(connectionConfig);
 
       debug('connection acquired');
