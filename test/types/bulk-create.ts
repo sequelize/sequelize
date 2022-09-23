@@ -1,17 +1,8 @@
-import type {
-  InferAttributes,
-  CreationAttributes,
-  InferCreationAttributes,
-} from '@sequelize/core';
-import {
-  Model,
-} from '@sequelize/core';
+import type { CreationAttributes } from '@sequelize/core';
+import { Model } from '@sequelize/core';
 import { sequelize } from './connection';
 
-class TestModel extends Model<
-  InferAttributes<TestModel>,
-  CreationAttributes<TestModel>
-> {
+class TestModel extends Model {
   declare id: number;
   declare testString: string | null;
   declare testEnum: 'd' | 'e' | 'f' | null;
