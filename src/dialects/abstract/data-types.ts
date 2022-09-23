@@ -600,12 +600,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
 
     if (!Validator.isFloat(String(value))) {
       ValidationErrorItem.throwDataTypeValidationError(
-        util.format(
-          `%s is not a valid ${
-            super.toString()
-              .toLowerCase()}`,
-          value,
-        ),
+        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
       );
     }
   }
@@ -614,11 +609,21 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     return this.toBindableValue(value, options);
   }
 
-  toBindableValue(number: AcceptedNumber, _options: StringifyOptions): string {
+  toBindableValue(num: AcceptedNumber, _options: StringifyOptions): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
-    this.validate(number);
+    this.validate(num);
 
-    return String(number);
+    if (Number.isNaN(num)) {
+      return 'NaN';
+    }
+
+    if (num === Number.NEGATIVE_INFINITY || num === Number.POSITIVE_INFINITY) {
+      const sign = num < 0 ? '-' : '';
+
+      return `${sign}Infinity`;
+    }
+
+    return String(num);
   }
 
   bindParam(value: AcceptedNumber, options: BindParamOptions): string {
@@ -779,34 +784,45 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
   }
 
-  validate(value: any): asserts value is AcceptedNumber {
-    // Float is IEEE 754 floating point number, which supports NaN, Infinity, and -Infinity.
-    // If your dialect does not accept these types, override this method to reject them.
-    if (Number.isNaN(value) || value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
-      return;
+  #getSequelizeOrThrow(): Sequelize {
+    const sequelize = this.usageContext?.sequelize;
+    if (sequelize == null) {
+      throw new Error('Attach the usageContext before calling validate');
     }
 
-    if (!Validator.isFloat(String(value))) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid float', value),
-      );
-    }
+    return sequelize;
   }
 
-  toBindableValue(value: AcceptedNumber) {
-    const num = typeof value === 'number' ? value : Number(String(value));
+  validate(value: any): asserts value is AcceptedNumber {
+    const typeId = this.getDataTypeId();
 
-    if (Number.isNaN(num)) {
-      return 'NaN';
+    // Float is IEEE 754 floating point number, which supports NaN, Infinity, and -Infinity.
+    // If your dialect does not accept these types, override this method to reject them.
+    if (Number.isNaN(value)) {
+      // TODO: pass dialect through ValidateOptions
+      const dialect = this.#getSequelizeOrThrow().dialect;
+
+      // @ts-expect-error
+      if (dialect.supports.dataTypes[typeId]?.NaN) {
+        return;
+      }
+
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${typeId}`);
     }
 
-    if (!Number.isFinite(num)) {
-      const sign = num < 0 ? '-' : '';
+    if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
+      // TODO: pass dialect through ValidateOptions
+      const dialect = this.#getSequelizeOrThrow().dialect;
 
-      return `${sign}Infinity`;
+      // @ts-expect-error
+      if (dialect.supports.dataTypes[typeId]?.infinity) {
+        return;
+      }
+
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${typeId}`);
     }
 
-    return num.toString();
+    super.validate(value);
   }
 
   isUnconstrained() {

@@ -44,9 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       if (['postgres', 'postgres-native'].includes(dialect)) {
-        expect(table.currency.type).to.equal('DOUBLE PRECISION');
-      } else if (dialect === 'db2') {
-        expect(table.currency.type).to.equal('DOUBLE');
+        expect(table.currency.type).to.equal('REAL');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -79,9 +77,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       if (['postgres', 'postgres-native'].includes(dialect)) {
-        expect(table.currency.type).to.equal('DOUBLE PRECISION');
-      } else if (dialect === 'db2') {
-        expect(table.currency.type).to.equal('DOUBLE');
+        expect(table.currency.type).to.equal('REAL');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }

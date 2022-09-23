@@ -15,21 +15,6 @@ import type { MySqlTypeCastValue } from './connection-manager.js';
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
 
-export class DECIMAL extends BaseTypes.DECIMAL {
-  toSql(options: ToSqlOptions) {
-    let definition = super.toSql(options);
-    if (this.options.unsigned) {
-      definition += ' UNSIGNED';
-    }
-
-    if (this.options.zerofill) {
-      definition += ' ZEROFILL';
-    }
-
-    return definition;
-  }
-}
-
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
     return 'FLOAT';

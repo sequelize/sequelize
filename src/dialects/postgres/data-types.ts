@@ -103,16 +103,6 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 
     return value;
   }
-
-  validate(value: any) {
-    // postgres supports NaN, +Infinity, -Infinity
-    // postgres 14 supports Infinity / -Infinity in unconstrained decimals.
-    if (Number.isNaN(value) || !Number.isFinite(value)) {
-      return;
-    }
-
-    super.validate(value);
-  }
 }
 
 export class STRING extends BaseTypes.STRING {
