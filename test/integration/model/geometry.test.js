@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Pub.sync({ force: true });
         const pub = await Pub.create({ location: point });
         expect(pub).not.to.be.null;
-        expect(pub.location).to.be.deep.eql(point);
+        expect(pub.location).to.be.deep.include(point);
       });
 
       it('should create a geometry object', async function () {
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const newUser = await User.create({ username: 'username', geometry: point });
         expect(newUser).not.to.be.null;
-        expect(newUser.geometry).to.be.deep.eql(point);
+        expect(newUser.geometry).to.be.deep.include(point);
       });
 
       it('should update a geometry object', async function () {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create(props);
         await User.update({ geometry: point2 }, { where: { username: props.username } });
         const user = await User.findOne({ where: { username: props.username } });
-        expect(user.geometry).to.be.deep.eql(point2);
+        expect(user.geometry).to.be.deep.include(point2);
       });
 
       it('works with crs field', async function () {
@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const newUser = await User.create({ username: 'username', geometry: point });
         expect(newUser).not.to.be.null;
-        expect(newUser.geometry).to.be.deep.eql(point);
+        expect(newUser.geometry).to.be.deep.include(point);
       });
 
       it('should update a geometry object', async function () {
@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create(props);
         await User.update({ geometry: point2 }, { where: { username: props.username } });
         const user = await User.findOne({ where: { username: props.username } });
-        expect(user.geometry).to.be.deep.eql(point2);
+        expect(user.geometry).to.be.deep.include(point2);
       });
 
       it('works with crs field', async function () {
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const newUser = await User.create({ username: 'username', geometry: point });
         expect(newUser).not.to.be.null;
-        expect(newUser.geometry).to.be.deep.eql(point);
+        expect(newUser.geometry).to.be.deep.include(point);
       });
 
       it('should update a geometry object', async function () {
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create(props);
         await User.update({ geometry: point2 }, { where: { username: props.username } });
         const user = await User.findOne({ where: { username: props.username } });
-        expect(user.geometry).to.be.deep.eql(point2);
+        expect(user.geometry).to.be.deep.include(point2);
       });
 
       it('works with crs field', async function () {
@@ -197,7 +197,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const newUser = await User.create({ username: 'username', geometry: point });
         expect(newUser).not.to.be.null;
-        expect(newUser.geometry).to.be.deep.eql(point);
+        expect(newUser.geometry).to.be.deep.include(point);
       });
 
       it('works with crs field', async function () {
@@ -237,7 +237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create(props);
         await User.update({ geometry: polygon2 }, { where: { username: props.username } });
         const user = await User.findOne({ where: { username: props.username } });
-        expect(user.geometry).to.be.deep.eql(polygon2);
+        expect(user.geometry).to.be.deep.include(polygon2);
       });
     });
 

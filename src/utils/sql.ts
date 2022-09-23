@@ -242,6 +242,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const escapedReplacement = escapeSqlValue(replacementValue as any, undefined, dialect.name, true);
 
       // add everything before the bind parameter name

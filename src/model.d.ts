@@ -3598,7 +3598,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   isSoftDeleted(): boolean;
 }
 
-export type ModelDefined<S, T> = ModelStatic<Model<S, T>>;
+export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new(): M };
