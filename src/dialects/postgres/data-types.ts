@@ -28,19 +28,31 @@ function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType) 
     dataType.options.unsigned
     || dataType.options.zerofill
   ) {
-    warn(`PostgresSQL does not support '${dataType.constructor.name}' with LENGTH, UNSIGNED or ZEROFILL. These options are ignored.`);
+    warn(`PostgresSQL does not support '${dataType.constructor.name}' with UNSIGNED or ZEROFILL. These options are ignored.`);
 
     delete dataType.options.unsigned;
     delete dataType.options.zerofill;
   }
 }
 
-function removeUnsupportedDecimalNumberOptions(dataType: BaseTypes.BaseDecimalNumberDataType) {
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.INTEGER) {
   removeUnsupportedNumberOptions(dataType);
 
   if (
-    dataType.options.scale
-    || dataType.options.precision
+    dataType.options.length != null
+  ) {
+    warn(`PostgresSQL does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
+
+    delete dataType.options.length;
+  }
+}
+
+function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType) {
+  removeUnsupportedNumberOptions(dataType);
+
+  if (
+    dataType.options.scale != null
+    || dataType.options.precision != null
   ) {
     warn(`PostgresSQL does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
 
@@ -102,6 +114,11 @@ export class DECIMAL extends BaseTypes.DECIMAL {
     }
 
     return value;
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedNumberOptions(this);
   }
 }
 
@@ -211,21 +228,21 @@ export class DATE extends BaseTypes.DATE {
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this);
+    removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this);
+    removeUnsupportedIntegerOptions(this);
   }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this);
+    removeUnsupportedIntegerOptions(this);
   }
 }
 
@@ -235,21 +252,21 @@ export class BIGINT extends BaseTypes.BIGINT {
 export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this);
+    removeUnsupportedFloatOptions(this);
   }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this);
+    removeUnsupportedFloatOptions(this);
   }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this);
+    removeUnsupportedFloatOptions(this);
   }
 
   protected getNumberSqlTypeName(): string {

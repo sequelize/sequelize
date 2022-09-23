@@ -487,7 +487,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `foobar is not a valid integer`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid integer`);
 
           expect(() => {
             type.validate('123.45');
@@ -633,11 +633,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `foobar is not a valid tinyint`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid tinyint`);
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationErrorItem, '123.45 is not a valid integer');
+          }).to.throw(ValidationErrorItem, '123.45 is not a valid tinyint');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -787,11 +787,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `foobar is not a valid smallint`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid smallint`);
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationErrorItem, '123.45 is not a valid integer');
+          }).to.throw(ValidationErrorItem, '123.45 is not a valid smallint');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -908,11 +908,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `foobar is not a valid mediumint`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid mediumint`);
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationErrorItem, '123.45 is not a valid integer');
+          }).to.throw(ValidationErrorItem, '123.45 is not a valid mediumint');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -991,25 +991,21 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
-        default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        ibmi: 'BIGINT',
-        sqlite: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+        default: 'BIGINT',
       });
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type = DataTypes.BIGINT();
+          const type = DataTypes.BIGINT().toDialectDataType(dialect);
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `foobar is not a valid bigint`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid bigint`);
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationErrorItem, '123.45 is not a valid integer');
+          }).to.throw(ValidationErrorItem, '123.45 is not a valid bigint');
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -1033,60 +1029,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'REAL',
       });
 
-      testsql('REAL(11)', DataTypes.REAL(11), {
-        default: 'REAL(11)',
-        ibmi: 'REAL',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
-      testsql('REAL({ length: 11 })', DataTypes.REAL({ length: 11 }), {
-        default: 'REAL(11)',
-        ibmi: 'REAL',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
-      testsql('REAL(11).UNSIGNED', DataTypes.REAL(11).UNSIGNED, {
-        default: 'REAL(11) UNSIGNED',
-        ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED(11)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
-      testsql('REAL(11).UNSIGNED.ZEROFILL', DataTypes.REAL(11).UNSIGNED.ZEROFILL, {
-        default: 'REAL(11) UNSIGNED ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
-      testsql('REAL(11).ZEROFILL', DataTypes.REAL(11).ZEROFILL, {
-        default: 'REAL(11) ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL ZEROFILL(11)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
-      testsql('REAL(11).ZEROFILL.UNSIGNED', DataTypes.REAL(11).ZEROFILL.UNSIGNED, {
-        default: 'REAL(11) UNSIGNED ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
-      });
-
       testsql('REAL(11, 12)', DataTypes.REAL(11, 12), {
-        default: 'REAL(11,12)',
+        default: 'REAL(11, 12)',
         ibmi: 'REAL',
         postgres: 'REAL',
         db2: 'REAL',
@@ -1094,45 +1038,45 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
-        default: 'REAL(11,12) UNSIGNED',
+        default: 'REAL(11, 12) UNSIGNED',
         ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED(11,12)',
+        sqlite: 'REAL',
         postgres: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
 
-      testsql('REAL({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.REAL({ length: 11, decimals: 12 }).UNSIGNED, {
-        default: 'REAL(11,12) UNSIGNED',
+      testsql('REAL({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
+        default: 'REAL(11, 12) UNSIGNED',
         ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED(11,12)',
+        sqlite: 'REAL',
         postgres: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
 
       testsql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
-        default: 'REAL(11,12) UNSIGNED ZEROFILL',
+        default: 'REAL(11, 12) UNSIGNED ZEROFILL',
         ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
+        sqlite: 'REAL UNSIGNED ZEROFILL(11, 12)',
         postgres: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
 
       testsql('REAL(11, 12).ZEROFILL', DataTypes.REAL(11, 12).ZEROFILL, {
-        default: 'REAL(11,12) ZEROFILL',
+        default: 'REAL(11, 12) ZEROFILL',
         ibmi: 'REAL',
-        sqlite: 'REAL ZEROFILL(11,12)',
+        sqlite: 'REAL ZEROFILL(11, 12)',
         postgres: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
       });
 
       testsql('REAL(11, 12).ZEROFILL.UNSIGNED', DataTypes.REAL(11, 12).ZEROFILL.UNSIGNED, {
-        default: 'REAL(11,12) UNSIGNED ZEROFILL',
+        default: 'REAL(11, 12) UNSIGNED ZEROFILL',
         ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
+        sqlite: 'REAL UNSIGNED ZEROFILL(11, 12)',
         postgres: 'REAL',
         db2: 'REAL',
         mssql: 'REAL',
@@ -1151,199 +1095,103 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         postgres: 'DOUBLE PRECISION',
       });
 
-      testsql('DOUBLE(11)', DataTypes.DOUBLE(11), {
-        default: 'DOUBLE PRECISION(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
-      testsql('DOUBLE(11).UNSIGNED', DataTypes.DOUBLE(11).UNSIGNED, {
-        default: 'DOUBLE PRECISION(11) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
-      testsql('DOUBLE({ length: 11 }).UNSIGNED', DataTypes.DOUBLE({ length: 11 }).UNSIGNED, {
-        default: 'DOUBLE PRECISION(11) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
-      testsql('DOUBLE(11).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11).UNSIGNED.ZEROFILL, {
-        default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
-      testsql('DOUBLE(11).ZEROFILL', DataTypes.DOUBLE(11).ZEROFILL, {
-        default: 'DOUBLE PRECISION(11) ZEROFILL',
-        sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
-      testsql('DOUBLE(11).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11).ZEROFILL.UNSIGNED, {
-        default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
-      });
-
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
-        default: 'DOUBLE PRECISION(11,12)',
+        default: 'DOUBLE PRECISION(11, 12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
-        default: 'DOUBLE PRECISION(11,12) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
+        default: 'DOUBLE PRECISION(11, 12) UNSIGNED',
+        sqlite: 'DOUBLE PRECISION UNSIGNED(11, 12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
-        default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
+        default: 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
+        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11, 12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
-        default: 'DOUBLE PRECISION(11,12) ZEROFILL',
-        sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
+        default: 'DOUBLE PRECISION(11, 12) ZEROFILL',
+        sqlite: 'DOUBLE PRECISION ZEROFILL(11, 12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
-        default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
+        default: 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
+        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11, 12)',
         db2: 'DOUBLE',
         postgres: 'DOUBLE PRECISION',
+      });
+
+      it('requires both scale & precision to be specified', () => {
+        expect(() => DataTypes.DOUBLE(10)).to.throw('The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.DOUBLE({ precision: 10 })).to.throw('The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.DOUBLE({ scale: 2 })).to.throw('The DOUBLE DataType requires that the "precision" option be specified if the "scale" option is specified.');
       });
     });
 
     describe('FLOAT', () => {
+      // Must be a single-precision floating point if available,
+      // or a double-precision fallback if not.
       testsql('FLOAT', DataTypes.FLOAT, {
-        default: 'FLOAT',
-        postgres: 'FLOAT',
+        // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
+        'mysql mariadb ibmi db2 snowflake': 'FLOAT',
+        // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
-        default: 'FLOAT UNSIGNED',
-        ibmi: 'FLOAT',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
-      });
-
-      testsql('FLOAT(11)', DataTypes.FLOAT(11), {
-        default: 'FLOAT(11)',
-        postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
-        db2: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
-        mssql: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
-      });
-
-      testsql('FLOAT(11).UNSIGNED', DataTypes.FLOAT(11).UNSIGNED, {
-        default: 'FLOAT(11) UNSIGNED',
-        ibmi: 'FLOAT(11)',
-        sqlite: 'FLOAT UNSIGNED(11)',
-        postgres: 'FLOAT(11)',
-        db2: 'FLOAT(11)',
-        mssql: 'FLOAT(11)',
-      });
-
-      testsql('FLOAT(11).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11).UNSIGNED.ZEROFILL, {
-        default: 'FLOAT(11) UNSIGNED ZEROFILL',
-        ibmi: 'FLOAT(11)',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        db2: 'FLOAT(11)',
-        mssql: 'FLOAT(11)',
-      });
-
-      testsql('FLOAT(11).ZEROFILL', DataTypes.FLOAT(11).ZEROFILL, {
-        default: 'FLOAT(11) ZEROFILL',
-        ibmi: 'FLOAT(11)',
-        sqlite: 'FLOAT ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        db2: 'FLOAT(11)',
-        mssql: 'FLOAT(11)',
-      });
-
-      testsql('FLOAT({ length: 11 }).ZEROFILL', DataTypes.FLOAT({ length: 11 }).ZEROFILL, {
-        default: 'FLOAT(11) ZEROFILL',
-        ibmi: 'FLOAT(11)',
-        sqlite: 'FLOAT ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        db2: 'FLOAT(11)',
-        mssql: 'FLOAT(11)',
-      });
-
-      testsql('FLOAT(11).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11).ZEROFILL.UNSIGNED, {
-        default: 'FLOAT(11) UNSIGNED ZEROFILL',
-        ibmi: 'FLOAT(11)',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        db2: 'FLOAT(11)',
-        mssql: 'FLOAT(11)',
+        'mysql mariadb': 'FLOAT UNSIGNED',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
-        default: 'FLOAT(11,12)',
-        ibmi: 'FLOAT',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+        'mysql mariadb': 'FLOAT(11, 12)',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
-        default: 'FLOAT(11,12) UNSIGNED',
-        ibmi: 'FLOAT',
-        sqlite: 'FLOAT UNSIGNED(11,12)',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+        'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
-      testsql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ length: 11, decimals: 12 }).UNSIGNED, {
-        default: 'FLOAT(11,12) UNSIGNED',
-        ibmi: 'FLOAT',
-        sqlite: 'FLOAT UNSIGNED(11,12)',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+      testsql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED, {
+        'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
-        default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
-        ibmi: 'FLOAT',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+        'mysql mariadb': 'FLOAT(11, 12) UNSIGNED ZEROFILL',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).ZEROFILL', DataTypes.FLOAT(11, 12).ZEROFILL, {
-        default: 'FLOAT(11,12) ZEROFILL',
-        ibmi: 'FLOAT',
-        sqlite: 'FLOAT ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+        'mysql mariadb': 'FLOAT(11, 12) ZEROFILL',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11, 12).ZEROFILL.UNSIGNED, {
-        default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
-        ibmi: 'FLOAT',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        db2: 'FLOAT',
-        mssql: 'FLOAT',
+        'mysql mariadb': 'FLOAT(11, 12) UNSIGNED ZEROFILL',
+        'ibmi db2 snowflake': 'FLOAT',
+        'postgres mssql sqlite': 'REAL',
+      });
+
+      it('requires both scale & precision to be specified', () => {
+        expect(() => DataTypes.FLOAT(10)).to.throw('The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.FLOAT({ precision: 10 })).to.throw('The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.');
+        expect(() => DataTypes.FLOAT({ scale: 2 })).to.throw('The FLOAT DataType requires that the "precision" option be specified if the "scale" option is specified.');
       });
 
       describe('validate', () => {
@@ -1404,19 +1252,25 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
-          const type: DataTypeInstance = DataTypes.DECIMAL(10, 2);
+          const type: DataTypeInstance = DataTypes.DECIMAL(10, 2).toDialectDataType(dialect);
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, 'foobar is not a valid decimal(10, 2)');
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid decimal(10, 2)`);
 
           expect(() => {
             type.validate('0.1a');
-          }).to.throw(ValidationErrorItem, '0.1a is not a valid decimal(10, 2)');
+          }).to.throw(ValidationErrorItem, `'0.1a' is not a valid decimal(10, 2)`);
 
-          expect(() => {
-            type.validate(Number.NaN);
-          }).to.throw(ValidationErrorItem, 'NaN is not a valid decimal(10, 2)');
+          if (!dialect.supports.dataTypes.DECIMAL.NaN) {
+            expect(() => {
+              type.validate(Number.NaN);
+            }).to.throw(ValidationErrorItem, 'NaN is not a valid decimal(10, 2)');
+          } else {
+            expect(() => {
+              type.validate(Number.NaN);
+            }).not.to.throw();
+          }
         });
 
         it('should not throw if `value` is a decimal', () => {

@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       })), {
         mariadb: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
         mysql: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
-        postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" FLOAT NOT NULL;',
+        postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" REAL NOT NULL;',
         sqlite: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
         mssql: 'ALTER TABLE [Users] ADD [level_id] FLOAT NOT NULL;',
         db2: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',

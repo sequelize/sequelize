@@ -401,7 +401,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       testSql({ intAttr1: ['not-an-int'] }, {
-        default: new Error(`not-an-int is not a valid integer`),
+        default: new Error(`'not-an-int' is not a valid integer`),
       });
 
       testSql.skip({ 'stringAttr::integer': 1 }, {

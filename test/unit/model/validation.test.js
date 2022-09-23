@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', async () => {
           const error = await expect(User.create({
             age: 'jan',
-          })).to.be.rejectedWith(Sequelize.ValidationError, 'jan is not a valid integer');
+          })).to.be.rejectedWith(Sequelize.ValidationError, `'jan' is not a valid integer`);
 
           expect(error).to.have.property('errors')
             .that.is.an('array')
