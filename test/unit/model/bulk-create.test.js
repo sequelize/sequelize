@@ -28,9 +28,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       { timestamps: false },
     );
 
-    const stub = sinon
-      .stub(current.getQueryInterface(), 'bulkInsert')
-      .resolves([]);
+    let stub;
+
+    before(() => {
+      stub = sinon.stub(current.getQueryInterface(), 'bulkInsert').resolves([]);
+    });
 
     afterEach(() => {
       stub.resetHistory();
