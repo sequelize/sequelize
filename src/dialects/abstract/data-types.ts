@@ -109,6 +109,15 @@ export abstract class AbstractDataType<
    * Where this DataType is being used.
    */
   usageContext: DataTypeUseContext | undefined;
+  #dialect: AbstractDialect | undefined;
+
+  protected _getDialect(): AbstractDialect {
+    if (!this.#dialect) {
+      throw new Error('toDialectDataType has not yet been called on this DataType');
+    }
+
+    return this.#dialect;
+  }
 
   static get escape() {
     throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
@@ -258,22 +267,21 @@ export abstract class AbstractDataType<
    */
   toDialectDataType(dialect: AbstractDialect): this {
     const DataTypeClass = this.constructor as typeof AbstractDataType;
+    // get dialect-specific implementation
     const subClass = dialect.dataTypeOverrides.get(DataTypeClass.getDataTypeId()) as unknown as typeof AbstractDataType;
 
-    if (!subClass || subClass === DataTypeClass) {
-      this._checkOptionSupport(dialect);
+    const replacement: this = (!subClass || subClass === DataTypeClass)
+      ? this.clone()
+      // @ts-expect-error
+      : new subClass(this.options) as this;
 
-      return this;
-    }
-
-    // @ts-expect-error
-    const replacement = new subClass(this.options);
+    replacement.#dialect = dialect;
     replacement._checkOptionSupport(dialect);
     if (this.usageContext) {
       replacement.attachUsageContext(this.usageContext);
     }
 
-    return replacement as this;
+    return replacement;
   }
 
   /**
@@ -585,9 +593,6 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
 
   toSql(_options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
-    if (!result) {
-      throw new Error('toSql called on a NUMBER DataType that did not declare its key property.');
-    }
 
     if (this.options.unsigned) {
       result += ' UNSIGNED';
@@ -674,11 +679,11 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid integer`);
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     if (!Validator.isInt(String(value))) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid integer`);
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
   }
 
@@ -699,6 +704,23 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
 
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
+  }
+
+  toSql(_options: ToSqlOptions): string {
+    let result: string = this.getNumberSqlTypeName();
+    if (this.options.length != null) {
+      result += `(${this.options.length})`;
+    }
+
+    if (this.options.unsigned) {
+      result += ' UNSIGNED';
+    }
+
+    if (this.options.zerofill) {
+      result += ' ZEROFILL';
+    }
+
+    return result;
   }
 
   parse(value: unknown) {
@@ -801,42 +823,29 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
   }
 
-  #getSequelizeOrThrow(): Sequelize {
-    const sequelize = this.usageContext?.sequelize;
-    if (sequelize == null) {
-      throw new Error('Attach the usageContext before calling validate');
-    }
-
-    return sequelize;
-  }
-
   validate(value: any): asserts value is AcceptedNumber {
-    const typeId = this.getDataTypeId();
-
-    // Float is IEEE 754 floating point number, which supports NaN, Infinity, and -Infinity.
-    // If your dialect does not accept these types, override this method to reject them.
     if (Number.isNaN(value)) {
-      // TODO: pass dialect through ValidateOptions
-      const dialect = this.#getSequelizeOrThrow().dialect;
+      const typeId = this.getDataTypeId();
+      const dialect = this._getDialect();
 
       // @ts-expect-error
       if (dialect.supports.dataTypes[typeId]?.NaN) {
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${typeId}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
-      // TODO: pass dialect through ValidateOptions
-      const dialect = this.#getSequelizeOrThrow().dialect;
+      const typeId = this.getDataTypeId();
+      const dialect = this._getDialect();
 
       // @ts-expect-error
       if (dialect.supports.dataTypes[typeId]?.infinity) {
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${typeId}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     super.validate(value);
