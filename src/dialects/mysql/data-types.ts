@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import wkx from 'wkx';
 import type { Falsy } from '../../generic/falsy.js';
+import type { GeoJson } from '../../geo-json.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
@@ -8,7 +9,6 @@ import type {
   AcceptedDate,
   StringifyOptions,
   ToSqlOptions,
-  GeoJson,
   BindParamOptions, ParseOptions,
 } from '../abstract/data-types.js';
 import type { MySqlTypeCastValue } from './connection-manager.js';

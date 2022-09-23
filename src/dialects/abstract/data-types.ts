@@ -6,6 +6,8 @@ import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
+import type { GeoJson, GeoJsonType } from '../../geo-json.js';
+import { assertIsGeoJson } from '../../geo-json.js';
 import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
@@ -1711,50 +1713,6 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   }
 }
 
-export enum GeoJsonType {
-  Point = 'Point',
-  LineString = 'LineString',
-  Polygon = 'Polygon',
-  MultiPoint = 'MultiPoint',
-  MultiLineString = 'MultiLineString',
-  MultiPolygon = 'MultiPolygon',
-  GeometryCollection = 'GeometryCollection',
-}
-
-const geoJsonTypeArray = Object.keys(GeoJsonType);
-
-interface BaseGeoJson {
-  properties?: Record<string, unknown>;
-
-  crs?: {
-    type: 'name',
-    properties: {
-      name: string,
-    },
-  };
-}
-
-export interface GeoJsonPoint extends BaseGeoJson {
-  type: 'Point';
-  coordinates: [x: number, y: number] | [];
-}
-
-export interface GeoJsonLineString extends BaseGeoJson {
-  type: 'LineString';
-  coordinates: Array<[x: number, y: number]>;
-}
-
-export interface GeoJsonPolygon extends BaseGeoJson {
-  type: 'Polygon';
-  coordinates: Array<Array<[x: number, y: number]>>;
-}
-
-export type GeoJson =
-  | GeoJsonPoint
-  | GeoJsonLineString
-  | GeoJsonPolygon
-  | { type: 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | 'GeometryCollection' };
-
 export interface GeometryOptions {
   type?: GeoJsonType | undefined;
   srid?: number | undefined;
@@ -1834,26 +1792,15 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
   }
 
   validate(value: unknown): asserts value is GeoJson {
-    if (!isPlainObject(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid GeoJSON object: it must be a plain object.`);
-    }
-
-    if (!geoJsonTypeArray.includes(value.type)) {
-      ValidationErrorItem.throwDataTypeValidationError(`GeoJSON object ${util.inspect(value)} has an invalid or missing "type" property. Expected one of ${geoJsonTypeArray.join(', ')}`);
-    }
-
-    if (value.type === 'Point') {
-      const coordinates = value.coordinates;
-      if (!Array.isArray(coordinates)) {
-        ValidationErrorItem.throwDataTypeValidationError(`GeoJSON Point object ${util.inspect(value)} has an invalid or missing "coordinates" property. Expected an array of numeric values (as either the number, bigint, or string types).`);
+    try {
+      assertIsGeoJson(value);
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
       }
 
-      // Prevent a SQL injection attack, as coordinates are inlined in the query without escaping.
-      for (const coordinate of coordinates) {
-        if (!Validator.isNumeric(String(coordinate))) {
-          ValidationErrorItem.throwDataTypeValidationError(`GeoJSON Point object ${util.inspect(value)} has an invalid or missing "coordinates" property: It includes a non-numeric value ${util.inspect(coordinate)}.`);
-        }
-      }
+      // TODO: add 'cause'
+      ValidationErrorItem.throwDataTypeValidationError(error.message);
     }
 
     return super.validate(value);

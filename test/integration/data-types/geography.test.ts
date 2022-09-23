@@ -35,7 +35,7 @@ async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   return User;
 }
 
-describe(getTestDialectTeaser('Model'), () => {
+describe(getTestDialectTeaser('DataTypes'), () => {
   if (!sequelize.dialect.supports.dataTypes.GEOGRAPHY) {
     return;
   }
