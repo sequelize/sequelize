@@ -520,14 +520,27 @@ export class CITEXT extends AbstractDataType<string> {
 
 export interface NumberOptions {
   /**
-   * Is zero filled?
+   * Pad the value with zeros to the specified length.
+   *
+   * Currently useless for types that are returned as JS BigInts or JS Numbers.
    */
+  // TODO: When a number is 0-filled, return it as a string instead of number or bigint
   zerofill?: boolean | undefined;
 
   /**
    * Is unsigned?
    */
   unsigned?: boolean | undefined;
+}
+
+export interface IntegerOptions extends NumberOptions {
+  /**
+   * In MariaDB: When specified, and {@link zerofill} is set, the returned value will be padded with zeros to the specified length.
+   * In MySQL: This option is ignored.
+   * This option is supported in no other dialect.
+   * Currently useless for types that are returned as JS BigInts or JS Numbers.
+   */
+  length?: number;
 }
 
 export interface DecimalNumberOptions extends NumberOptions {
@@ -559,15 +572,11 @@ type AcceptedNumber =
 export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
   readonly options: Options;
 
-  constructor(optionsOrLength?: number | Readonly<Options>) {
+  constructor(options?: Options) {
     super();
 
-    if (isObject(optionsOrLength)) {
-      this.options = { ...optionsOrLength };
-    } else {
-      // @ts-expect-error
-      this.options = { length: optionsOrLength };
-    }
+    // @ts-expect-error -- "options" is always optional, but we can't tell TypeScript that all properties of the object must be optional
+    this.options = { ...options };
   }
 
   protected getNumberSqlTypeName(): string {
@@ -650,8 +659,16 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
 /**
  * A 32 bit integer
  */
-export class INTEGER extends BaseNumberDataType {
+export class INTEGER extends BaseNumberDataType<IntegerOptions> {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
+
+  constructor(optionsOrLength?: number | Readonly<IntegerOptions>) {
+    if (typeof optionsOrLength === 'number') {
+      super({ length: optionsOrLength });
+    } else {
+      super(optionsOrLength ?? {});
+    }
+  }
 
   validate(value: unknown) {
     super.validate(value);
@@ -769,7 +786,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     if (isObject(precisionOrOptions)) {
       super(precisionOrOptions);
     } else {
-      super();
+      super({});
 
       this.options.precision = precisionOrOptions;
       this.options.scale = scale;
