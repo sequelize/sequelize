@@ -1,4 +1,5 @@
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
@@ -56,6 +57,31 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       default: buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
       snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4';`,
       'sqlite db2 ibmi mysql mariadb': notSupportedError,
+    });
+  });
+
+  it('supports combining all options', () => {
+    const optionSupport = {
+      collate: ['postgres', 'snowflake', 'mssql'],
+      encoding: ['postgres'],
+      ctype: ['postgres'],
+      template: ['postgres'],
+      charset: ['snowflake'],
+    };
+
+    const config = removeUndefined({
+      collate: optionSupport.collate.includes(dialectName) ? 'en_US.UTF-8' : undefined,
+      encoding: optionSupport.encoding.includes(dialectName) ? 'UTF8' : undefined,
+      ctype: optionSupport.ctype.includes(dialectName) ? 'zh_TW.UTF-8' : undefined,
+      template: optionSupport.template.includes(dialectName) ? 'template0' : undefined,
+      charset: optionSupport.charset.includes(dialectName) ? 'utf8mb4' : undefined,
+    });
+
+    expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', config), {
+      'sqlite db2 ibmi mysql mariadb': notSupportedError,
+      postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'zh_TW.UTF-8' TEMPLATE = 'template0';`,
+      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8';`,
+      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase') BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
     });
   });
 });

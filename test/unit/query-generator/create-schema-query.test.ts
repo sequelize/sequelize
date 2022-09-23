@@ -33,4 +33,12 @@ describe('QueryGenerator#createSchemaQuery', () => {
       sqlite: notSupportedError,
     });
   });
+
+  it('supports specifying all possible combinations', () => {
+    expectsql(() => queryGenerator.createSchemaQuery('myDatabase', { charset: 'utf8mb4', collate: 'en_US.UTF-8' }), {
+      default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate']),
+      'mysql mariadb': `CREATE SCHEMA IF NOT EXISTS \`myDatabase\` DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8';`,
+      sqlite: notSupportedError,
+    });
+  });
 });
