@@ -3,6 +3,10 @@
 const dayjs = require('dayjs');
 
 module.exports = BaseTypes => {
+
+  // TODO: FLOAT - return REAL
+  // TODO: Double - return DOUBLE
+
   const warn = BaseTypes.ABSTRACT.warn.bind(undefined,
     'https://www.ibm.com/support/knowledgecenter/SSEPGG_11.1.0/'
     + 'com.ibm.db2.luw.sql.ref.doc/doc/r0008478.html');

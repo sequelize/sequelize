@@ -13,6 +13,7 @@ import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
+import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
@@ -519,16 +520,6 @@ export class CITEXT extends AbstractDataType<string> {
 
 export interface NumberOptions {
   /**
-   * length of type, like `INT(4)`
-   */
-  length?: number | undefined;
-
-  /**
-   * number of decimal points, used with length `FLOAT(5, 4)`
-   */
-  decimals?: number | undefined;
-
-  /**
    * Is zero filled?
    */
   zerofill?: boolean | undefined;
@@ -537,6 +528,22 @@ export interface NumberOptions {
    * Is unsigned?
    */
   unsigned?: boolean | undefined;
+}
+
+export interface DecimalNumberOptions extends NumberOptions {
+  /**
+   * Total number of digits.
+   *
+   * {@link NumberOptions#scale} must be specified if precision is specified.
+   */
+  precision?: number | undefined;
+
+  /**
+   * Count of decimal digits in the fractional part.
+   *
+   * {@link NumberOptions#precision} must be specified if scale is specified.
+   */
+  scale?: number | undefined;
 }
 
 type AcceptedNumber =
@@ -549,7 +556,7 @@ type AcceptedNumber =
 /**
  * Base number type which is used to build other types
  */
-export class NUMBER<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
+export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
   readonly options: Options;
 
   constructor(optionsOrLength?: number | Readonly<Options>) {
@@ -571,15 +578,6 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
     let result: string = this.getNumberSqlTypeName();
     if (!result) {
       throw new Error('toSql called on a NUMBER DataType that did not declare its key property.');
-    }
-
-    if (this.options.length) {
-      result += `(${this.options.length}`;
-      if (typeof this.options.decimals === 'number') {
-        result += `,${this.options.decimals}`;
-      }
-
-      result += ')';
     }
 
     if (this.options.unsigned) {
@@ -628,11 +626,11 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
   }
 
   get UNSIGNED(): this {
-    return this._construct<typeof NUMBER>({ ...this.options, unsigned: true });
+    return this._construct<typeof BaseNumberDataType>({ ...this.options, unsigned: true });
   }
 
   get ZEROFILL(): this {
-    return this._construct<typeof NUMBER>({ ...this.options, zerofill: true });
+    return this._construct<typeof BaseNumberDataType>({ ...this.options, zerofill: true });
   }
 
   static get UNSIGNED() {
@@ -647,7 +645,7 @@ export class NUMBER<Options extends NumberOptions = NumberOptions> extends Abstr
 /**
  * A 32 bit integer
  */
-export class INTEGER extends NUMBER {
+export class INTEGER extends BaseNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
 
   validate(value: unknown) {
@@ -744,28 +742,41 @@ export class BIGINT extends INTEGER {
   }
 }
 
-/**
- * Floating point number (4-byte precision).
- */
-export class FLOAT extends NUMBER {
-  static readonly [kDataTypeIdentifier]: string = 'FLOAT';
-
-  constructor(options?: NumberOptions);
-
-  // TODO: the description of length is not accurate
-  //  mysql/mariadb: float(M,D) M is the total number of digits and D is the number of digits following the decimal point.
-  //  postgres/mssql: float(P) is the precision
+export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberOptions> {
+  constructor(options?: DecimalNumberOptions);
   /**
-   * @param length length of type, like `FLOAT(4)`
-   * @param decimals number of decimal points, used with length `FLOAT(5, 4)`
+   * @param precision defines precision
+   * @param scale defines scale
    */
-  constructor(length: number, decimals?: number);
+  constructor(precision: number, scale: number);
+
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @internal */
-  constructor(...args: [length: number, decimals?: number] | [options?: NumberOptions]);
-  constructor(length?: number | NumberOptions, decimals?: number) {
-    super(typeof length === 'object' ? length : { length, decimals });
+  constructor(...args:
+    | []
+    | [precision: number]
+    | [precision: number, scale: number]
+    | [options: DecimalNumberOptions]
+  );
+
+  constructor(precisionOrOptions?: number | DecimalNumberOptions, scale?: number) {
+    if (isObject(precisionOrOptions)) {
+      super(precisionOrOptions);
+    } else {
+      super();
+
+      this.options.precision = precisionOrOptions;
+      this.options.scale = scale;
+    }
+
+    if (this.options.scale != null && this.options.precision == null) {
+      throw new Error(`The ${this.getDataTypeId()} DataType requires that the "precision" option be specified if the "scale" option is specified.`);
+    }
+
+    if (this.options.scale == null && this.options.precision != null) {
+      throw new Error(`The ${this.getDataTypeId()} DataType requires that the "scale" option be specified if the "precision" option is specified.`);
+    }
   }
 
   validate(value: any): asserts value is AcceptedNumber {
@@ -798,13 +809,56 @@ export class FLOAT extends NUMBER {
     return num.toString();
   }
 
-  protected getNumberSqlTypeName(): string {
-    return 'FLOAT';
+  isUnconstrained() {
+    return this.options.scale == null && this.options.precision == null;
+  }
+
+  toSql(_options?: ToSqlOptions): string {
+    let sql = this.getNumberSqlTypeName();
+    if (!this.isUnconstrained()) {
+      sql += `(${this.options.precision}, ${this.options.scale})`;
+    }
+
+    if (this.options.unsigned) {
+      sql += ' UNSIGNED';
+    }
+
+    if (this.options.zerofill) {
+      sql += ' ZEROFILL';
+    }
+
+    return sql;
   }
 }
 
+/**
+ * A single-floating point number with a 4-byte precision.
+ * If single-precision floating-point format is not supported, a double-precision floating-point number may be used instead.
+ */
+export class FLOAT extends BaseDecimalNumberDataType {
+  static readonly [kDataTypeIdentifier]: string = 'FLOAT';
+
+  protected getNumberSqlTypeName(): string {
+    throw new Error(`getNumberSqlTypeName is not implemented by default in the FLOAT DataType because 'float' has very different meanings in different dialects.
+In Sequelize, DataTypes.FLOAT must be a single-precision floating point, and DataTypes.DOUBLE must be a double-precision floating point.
+Please override this method in your dialect, and provide the best available type for single-precision floating points.
+If single-precision floating points are not available in your dialect, you may return a double-precision floating point type instead, as long as you print a warning.
+If neither single precision nor double precision IEEE 754 floating point numbers are available in your dialect, you must throw an error in the _checkOptionSupport method.`);
+  }
+}
+
+/**
+ * @deprecated Use {@link FLOAT} instead.
+ */
+// TODO (v8): remove this
 export class REAL extends FLOAT {
   static readonly [kDataTypeIdentifier]: string = 'REAL';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    doNotUseRealDataType();
+  }
 
   protected getNumberSqlTypeName(): string {
     return 'REAL';
@@ -813,61 +867,21 @@ export class REAL extends FLOAT {
 
 /**
  * Floating point number (8-byte precision).
+ * Throws an error when unsupported, instead of silently falling back to a lower precision.
  */
 export class DOUBLE extends FLOAT {
   static readonly [kDataTypeIdentifier]: string = 'DOUBLE';
 
   protected getNumberSqlTypeName(): string {
-    return 'DOUBLE';
+    return 'DOUBLE PRECISION';
   }
-}
-
-export interface DecimalOptions extends NumberOptions {
-  scale?: number | undefined;
-  precision?: number | undefined;
 }
 
 /**
- * Decimal type, variable precision, take length as specified by user
+ * Arbitrary/exact precision decimal number.
  */
-export class DECIMAL extends NUMBER<DecimalOptions> {
+export class DECIMAL extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'DECIMAL';
-
-  constructor(options?: DecimalOptions);
-  /**
-   * @param precision defines precision
-   * @param scale defines scale
-   */
-  constructor(precision: number, scale: number);
-
-  // we have to define the constructor overloads using tuples due to a TypeScript limitation
-  //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
-  constructor(...args:
-    | []
-    | [precision: number]
-    | [precision: number, scale: number]
-    | [options: DecimalOptions]
-  );
-
-  constructor(precisionOrOptions?: number | DecimalOptions, scale?: number) {
-    if (isObject(precisionOrOptions)) {
-      super(precisionOrOptions);
-    } else {
-      super();
-
-      this.options.precision = precisionOrOptions;
-      this.options.scale = scale;
-    }
-
-    if (this.options.scale != null && this.options.precision == null) {
-      throw new Error('The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.');
-    }
-
-    if (this.options.scale == null && this.options.precision != null) {
-      throw new Error('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    }
-  }
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -877,16 +891,8 @@ export class DECIMAL extends NUMBER<DecimalOptions> {
     }
   }
 
-  isUnconstrained() {
-    return this.options.scale == null && this.options.precision == null;
-  }
-
-  toSql(_options?: ToSqlOptions): string {
-    if (this.isUnconstrained()) {
-      return 'DECIMAL';
-    }
-
-    return `DECIMAL(${this.options.precision}, ${this.options.scale})`;
+  protected getNumberSqlTypeName(): string {
+    return 'DECIMAL';
   }
 }
 
@@ -1304,7 +1310,7 @@ export interface RangeOptions {
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  */
-export class RANGE<T extends NUMBER | DATE | DATEONLY = INTEGER> extends AbstractDataType<
+export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> extends AbstractDataType<
   Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>
 > {
   static readonly [kDataTypeIdentifier]: string = 'RANGE';

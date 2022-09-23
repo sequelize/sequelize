@@ -30,6 +30,12 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   }
 }
 
+export class FLOAT extends BaseTypes.FLOAT {
+  protected getNumberSqlTypeName(): string {
+    return 'FLOAT';
+  }
+}
+
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected getNumberSqlTypeName(): string {
     return 'DOUBLE PRECISION';

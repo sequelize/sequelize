@@ -205,6 +205,10 @@ module.exports = BaseTypes => {
         this._zerofill = undefined;
       }
     }
+
+    // protected getNumberSqlTypeName(): string {
+    //   return 'REAL';
+    // }
   }
 
   class ENUM extends BaseTypes.ENUM {

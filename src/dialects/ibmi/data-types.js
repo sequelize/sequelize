@@ -217,6 +217,9 @@ module.exports = BaseTypes => {
     }
   }
 
+  // TODO: FLOAT - return REAL
+  // TODO: Double - return DOUBLE
+
   class FLOAT extends BaseTypes.FLOAT {
     constructor(length, decimals) {
       super(length, decimals);

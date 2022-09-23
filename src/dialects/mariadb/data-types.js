@@ -1,5 +1,7 @@
 'use strict';
 
+import * as BaseTypes from '../abstract/data-types';
+
 const wkx = require('wkx');
 const _ = require('lodash');
 const dayjs = require('dayjs');
@@ -128,6 +130,12 @@ module.exports = BaseTypes => {
         : JSON.stringify(value);
     }
   }
+
+  // class FLOAT extends BaseTypes.FLOAT {
+  //   protected getNumberSqlTypeName(): string {
+  //     return 'FLOAT';
+  //   }
+  // }
 
   return {
     ENUM,

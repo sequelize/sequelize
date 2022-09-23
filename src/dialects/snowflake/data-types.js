@@ -96,6 +96,9 @@ module.exports = BaseTypes => {
     }
   }
 
+  // TODO: FLOAT: return "FLOAT" & warn about lack of support for single precision floats
+  // TODO: DOUBLE: return "FLOAT"
+
   return {
     TEXT,
     DATE,

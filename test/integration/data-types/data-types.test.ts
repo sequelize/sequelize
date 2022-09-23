@@ -547,17 +547,18 @@ describe('DataTypes', () => {
     INTEGER: -2_147_483_648,
   };
 
-  // const maxIntValueUnsigned = {
-  //   TINYINT: 255,
-  //   SMALLINT: 65_535,
-  //   MEDIUMINT: 16_777_215,
-  //   INTEGER: 4_294_967_295,
-  // };
+  const maxIntValueUnsigned = {
+    TINYINT: 255,
+    SMALLINT: 65_535,
+    MEDIUMINT: 16_777_215,
+    INTEGER: 4_294_967_295,
+  };
 
-  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   for (const intTypeName of ['TINYINT', 'SMALLINT', 'MEDIUMINT', 'INTEGER'] as const) {
+    const typeSupport = dialect.supports.dataTypes[intTypeName];
+
     describe(intTypeName, () => {
-      if (!dialect.supports.dataTypes[intTypeName]) {
+      if (!typeSupport) {
         it('throws, as it is not supported', async () => {
           expect(() => {
             sequelize.define('User', {
@@ -615,10 +616,46 @@ describe('DataTypes', () => {
         });
       }
     });
+
+    if (typeSupport && typeSupport.unsigned) {
+      describe(`${intTypeName}.UNSIGNED`, () => {
+        const vars = beforeAll2(async () => {
+          class User extends Model<InferAttributes<User>> {
+            declare intAttr: number | bigint | string;
+          }
+
+          User.init({
+            intAttr: {
+              type: DataTypes[intTypeName].UNSIGNED,
+              allowNull: false,
+            },
+          }, { sequelize });
+
+          await User.sync({ force: true });
+
+          return { User };
+        });
+
+        it('accepts numbers, bigints, strings', async () => {
+          await testSimpleInOut(vars.User, 'intAttr', 123, 123);
+          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+          await testSimpleInOut(vars.User, 'intAttr', '123', 123);
+
+          await testSimpleInOut(vars.User, 'intAttr', maxIntValueUnsigned[intTypeName], maxIntValueUnsigned[intTypeName]);
+          await testSimpleInOut(vars.User, 'intAttr', 0, 0);
+        });
+
+        it('rejects out-of-range numbers', async () => {
+          await expect(vars.User.create({ intAttr: maxIntValueUnsigned[intTypeName] + 1 })).to.be.rejected;
+          await expect(vars.User.create({ intAttr: -1 })).to.be.rejected;
+        });
+      });
+    }
   }
 
-  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
   describe('BIGINT', () => {
+    const typeSupport = dialect.supports.dataTypes.BIGINT;
+
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare bigintAttr: number | bigint | string;
@@ -663,9 +700,35 @@ describe('DataTypes', () => {
     it('is deserialized as a string when DataType is not specified', async () => {
       await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
     });
+
+    if (typeSupport && typeSupport.unsigned) {
+      describe(`BIGINT.UNSIGNED`, () => {
+        const vars2 = beforeAll2(async () => {
+          class User extends Model<InferAttributes<User>> {
+            declare intAttr: number | bigint | string;
+          }
+
+          User.init({
+            intAttr: {
+              type: DataTypes.BIGINT.UNSIGNED,
+              allowNull: false,
+            },
+          }, { sequelize });
+
+          await User.sync({ force: true });
+
+          return { User };
+        });
+
+        it('rejects out-of-range numbers', async () => {
+          await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be.rejected;
+          await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
+        });
+      });
+    }
   });
 
-  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): UNSIGNED, precision
   describe('REAL, DataTypes.DOUBLE, DataTypes.FLOAT', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -800,7 +863,7 @@ describe('DataTypes', () => {
     });
   });
 
-  // !TODO (mariaDB, mysql): length, UNSIGNED, ZEROFILL
+  // !TODO (mariaDB, mysql): UNSIGNED
   describe('DECIMAL (constrained)', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {

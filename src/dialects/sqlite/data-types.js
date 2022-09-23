@@ -172,9 +172,13 @@ module.exports = BaseTypes => {
     }
   }
 
-  class FLOAT extends BaseTypes.FLOAT {}
+  class FLOAT extends BaseTypes.FLOAT {
+    // TODO: return "REAL" & warn about lack of support for single precision floats
+  }
 
-  class DOUBLE extends BaseTypes.DOUBLE {}
+  class DOUBLE extends BaseTypes.DOUBLE {
+    // TODO: return "REAL"
+  }
 
   class REAL extends BaseTypes.REAL {}
 

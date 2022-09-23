@@ -23,17 +23,29 @@ const warn = createDataTypesWarn('https://www.postgresql.org/docs/current/dataty
  * @param dataType The base integer data type.
  * @private
  */
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.NUMBER) {
+function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType) {
   if (
-    dataType.options.length
-    || dataType.options.unsigned
+    dataType.options.unsigned
     || dataType.options.zerofill
   ) {
-    warn(`PostgresSQL does not support '${dataType.constructor.name}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.constructor.name}' will be used instead.`);
+    warn(`PostgresSQL does not support '${dataType.constructor.name}' with LENGTH, UNSIGNED or ZEROFILL. These options are ignored.`);
 
-    delete dataType.options.length;
     delete dataType.options.unsigned;
     delete dataType.options.zerofill;
+  }
+}
+
+function removeUnsupportedDecimalNumberOptions(dataType: BaseTypes.BaseDecimalNumberDataType) {
+  removeUnsupportedNumberOptions(dataType);
+
+  if (
+    dataType.options.scale
+    || dataType.options.precision
+  ) {
+    warn(`PostgresSQL does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
+
+    delete dataType.options.scale;
+    delete dataType.options.precision;
   }
 }
 
@@ -209,71 +221,50 @@ export class DATE extends BaseTypes.DATE {
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedNumberOptions(this);
   }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedNumberOptions(this);
   }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedNumberOptions(this);
   }
 }
 
+/**
+ * @deprecated Use {@link FLOAT} instead.
+ */
 export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedDecimalNumberOptions(this);
   }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
-  }
-
-  protected getNumberSqlTypeName(): string {
-    return 'DOUBLE PRECISION';
+    removeUnsupportedDecimalNumberOptions(this);
   }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+    removeUnsupportedDecimalNumberOptions(this);
+  }
 
-    // POSTGRES does only support lengths as parameter.
-    // Values between 1-24 result in REAL
-    // Values between 25-53 result in DOUBLE PRECISION
-    // If decimals are provided remove these and print a warning
-    if (this.options.decimals) {
-      warn(
-        'PostgreSQL does not support FLOAT with decimals. Plain `FLOAT` will be used instead.',
-      );
-      this.options.length = undefined;
-      this.options.decimals = undefined;
-    }
-
-    if (this.options.unsigned) {
-      warn(
-        'PostgreSQL does not support FLOAT unsigned. `UNSIGNED` was removed.',
-      );
-      this.options.unsigned = undefined;
-    }
-
-    if (this.options.zerofill) {
-      warn(
-        'PostgreSQL does not support FLOAT zerofill. `ZEROFILL` was removed.',
-      );
-      this.options.zerofill = undefined;
-    }
+  protected getNumberSqlTypeName(): string {
+    // REAL is postgres' single precision float. FLOAT(p) is an alias for either REAL of DOUBLE PRECISION based on (p).
+    return 'REAL';
   }
 }
 
@@ -371,7 +362,7 @@ export class HSTORE extends BaseTypes.HSTORE {
   }
 }
 
-export class RANGE<T extends BaseTypes.NUMBER | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
+export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
   #parseSubType = (val: string, options: ParseOptions) => this.options.subtype.parse(val, options);
 
   toBindableValue(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {

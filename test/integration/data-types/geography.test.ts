@@ -11,10 +11,6 @@ import { DataTypes, Model, GeoJsonType } from '@sequelize/core';
 import { expect } from 'chai';
 import { sequelize, getTestDialectTeaser, beforeEach2 } from '../support';
 
-// !TODO: add bind value test
-// !TODO: add test for MultiX types
-// !TODO: add SQL injection test to each type
-
 async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<number>;
