@@ -47,19 +47,19 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
-        ibmi: 'BINARY(1234)',
+        ibmi: 'VARBINARY(1234)',
         db2: 'VARCHAR(1234) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(1234)',
-        mssql: 'BINARY(1234)',
+        mssql: 'VARBINARY(1234)',
         postgres: 'BYTEA',
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
-        ibmi: 'BINARY(255)',
+        ibmi: 'VARBINARY(255)',
         db2: 'VARCHAR(255) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(255)',
-        mssql: 'BINARY(255)',
+        mssql: 'VARBINARY(255)',
         postgres: 'BYTEA',
       });
 
@@ -322,13 +322,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('UUID', () => {
       testsql('UUID', DataTypes.UUID, {
-        postgres: 'UUID',
+        'postgres sqlite': 'UUID',
         ibmi: 'CHAR(36)',
         db2: 'CHAR(36) FOR BIT DATA',
-        mssql: 'CHAR(36)',
-        mariadb: 'CHAR(36) BINARY',
-        mysql: 'CHAR(36) BINARY',
-        sqlite: 'UUID',
+        mssql: 'UNIQUEIDENTIFIER',
+        'mariadb mysql': 'CHAR(36) BINARY',
         snowflake: 'VARCHAR(36)',
       });
 
@@ -511,7 +509,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('TINYINT', () => {
       const noSupportError = new Error(`${dialect.name} does not support the TINYINT data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
-      const noUnsignedSupportError = new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED`);
+      const noUnsignedSupportError = new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED.`);
 
       const cases = [
         {
@@ -1300,6 +1298,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expectsql(enumType.toSql({ dialect }), {
           postgres: '"public"."enum_Users_anEnum"',
           mysql: `ENUM('value 1', 'value 2')`,
+          // SQL Server does not support enums, we use text + a check constraint instead
+          mssql: `NVARCHAR(MAX)`,
         });
       });
 
@@ -1414,10 +1414,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('JSON', () => {
-      // TODO: types that don't support JSON should use an equivalent to DataTypes.TEXT
-      //  and add a CHECK(ISJSON) when possible.
       testsql('JSON', DataTypes.JSON, {
-        default: 'JSON',
+        default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+        'mariadb mysql postgres': 'JSON',
+        // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
+        mssql: 'NVARCHAR(MAX)',
       });
     });
 
