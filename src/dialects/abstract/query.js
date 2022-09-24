@@ -1,13 +1,12 @@
-import NodeUtil from 'node:util';
-
 'use strict';
+
+import NodeUtil from 'node:util';
 
 const _ = require('lodash');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
 const uuid = require('uuid').v4;
-const { safeStringifyJson } = require('../../utils');
 
 export class AbstractQuery {
 
