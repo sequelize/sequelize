@@ -47,7 +47,6 @@ export class MysqlDialect extends AbstractDialect {
         },
         GEOMETRY: true,
         JSON: true,
-        REGEXP: true,
         TINYINT: integerOptions,
         SMALLINT: integerOptions,
         MEDIUMINT: integerOptions,
@@ -58,6 +57,7 @@ export class MysqlDialect extends AbstractDialect {
         DOUBLE: integerOptions,
         DECIMAL: integerOptions,
       },
+      REGEXP: true,
       milliseconds: true,
     },
   );

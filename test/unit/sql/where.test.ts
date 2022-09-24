@@ -1997,12 +1997,12 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.dataTypes.REGEXP) {
+    if (sequelize.dialect.supports.REGEXP) {
       describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
       describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
     }
 
-    if (sequelize.dialect.supports.dataTypes.IREGEXP) {
+    if (sequelize.dialect.supports.IREGEXP) {
       describeRegexpSuite(Op.iRegexp, '~*');
       describeRegexpSuite(Op.notIRegexp, '!~*');
     }

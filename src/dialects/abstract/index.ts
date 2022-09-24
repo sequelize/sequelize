@@ -159,11 +159,6 @@ export type DialectSupports = {
     RANGE: boolean,
     GEOMETRY: boolean,
     GEOGRAPHY: boolean,
-    REGEXP: boolean,
-    /**
-     * Case-insensitive regexp operator support ('~*' in postgres).
-     */
-    IREGEXP: boolean,
     HSTORE: boolean,
     TSVECTOR: boolean,
     CIDR: boolean,
@@ -178,6 +173,11 @@ export type DialectSupports = {
       infinity: boolean,
     },
   },
+  REGEXP: boolean,
+  /**
+   * Case-insensitive regexp operator support ('~*' in postgres).
+   */
+  IREGEXP: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -294,8 +294,6 @@ export abstract class AbstractDialect {
       ARRAY: false,
       RANGE: false,
       GEOMETRY: false,
-      REGEXP: false,
-      IREGEXP: false,
       GEOGRAPHY: false,
       HSTORE: false,
       TSVECTOR: false,
@@ -306,6 +304,8 @@ export abstract class AbstractDialect {
         infinity: false,
       },
     },
+    REGEXP: false,
+    IREGEXP: false,
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
