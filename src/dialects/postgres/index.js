@@ -21,6 +21,7 @@ export class PostgresDialect extends AbstractDialect {
     },
     bulkDefault: true,
     schemas: true,
+    databases: true,
     lock: true,
     lockOf: true,
     lockKey: true,

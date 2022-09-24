@@ -42,7 +42,19 @@ export type DialectSupports = {
   },
   /* Do we need to say DEFAULT for bulk insert */
   bulkDefault: boolean,
+  /**
+   * Whether this dialect has native support for schemas.
+   * For the purposes of Sequelize, a Schema is considered to be a grouping of tables.
+   * For instance, in MySQL, "CREATE DATABASE" creates what we consider to be a schema.
+   */
   schemas: boolean,
+  /**
+   * Whether this dialect has native support for having multiple databases per instance (in the postgres or mssql sense).
+   * For the purposes of Sequelize, a database is considered to be a grouping of schemas.
+   * For instance, in MySQL, "CREATE DATABASE" creates what we consider to be a schema,
+   * so we do not consider that MySQL supports this option.
+   */
+  multiDatabases: boolean,
   transactions: boolean,
   settingIsolationLevelDuringTransaction: boolean,
   transactionOptions: {
@@ -148,6 +160,7 @@ export abstract class AbstractDialect {
     },
     bulkDefault: false,
     schemas: false,
+    multiDatabases: false,
     transactions: true,
     settingIsolationLevelDuringTransaction: true,
     transactionOptions: {

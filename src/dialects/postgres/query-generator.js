@@ -1,5 +1,11 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
@@ -15,49 +21,67 @@ const _ = require('lodash');
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set([]);
+
 export class PostgresQueryGenerator extends AbstractQueryGenerator {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      encoding: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
-    const values = {
-      database: this.quoteTable(databaseName),
-      encoding: options.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '',
-      collation: options.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '',
-      ctype: options.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '',
-      template: options.template ? ` TEMPLATE = ${this.escape(options.template)}` : '',
-    };
+    const quotedDatabaseName = this.quoteIdentifier(databaseName);
+    const encoding = options?.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '';
+    const collation = options?.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '';
+    const ctype = options?.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '';
+    const template = options?.template ? ` TEMPLATE = ${this.escape(options.template)}` : '';
 
-    return `CREATE DATABASE ${values.database}${values.encoding}${values.collation}${values.ctype}${values.template};`;
+    return `CREATE DATABASE ${quotedDatabaseName}${encoding}${collation}${ctype}${template};`;
   }
 
   dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteTable(databaseName)};`;
+    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema(schema) {
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
+  listDatabasesQuery() {
+    return `SELECT datname AS name FROM pg_database;`;
+  }
 
-    if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
   }
 
-  dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  showSchemasQuery() {
-    return 'SELECT schema_name FROM information_schema.schemata WHERE schema_name <> \'information_schema\' AND schema_name != \'public\' AND schema_name !~ E\'^pg_\';';
+  listSchemasQuery(options) {
+    const schemasToSkip = ['information_schema', 'public'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   versionQuery() {
