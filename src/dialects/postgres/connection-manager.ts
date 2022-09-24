@@ -38,12 +38,13 @@ interface TypeOids {
 }
 
 interface PgConnection extends Connection, Client {
-  /** custom property we attach to the client */
+  // custom property we attach to the client
+  // TODO: replace with Symbols.
   _invalid?: boolean;
   standard_conforming_strings?: boolean;
 
+  // Private property of pg-client
   // TODO: ask pg to expose a stable, readonly, property we can use
-  /** Private property of pg-client */
   _ending?: boolean;
 }
 

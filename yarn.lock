@@ -1226,6 +1226,13 @@
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
   integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
 
+"@types/tedious@^4.0.9":
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/@types/tedious/-/tedious-4.0.9.tgz#baa3892e45c63d7aac54d7bf5b01385d210ff19e"
+  integrity sha512-ipwFvfy9b2m0gjHsIX0D6NAAwGCKokzf5zJqUZHUGt+7uWVlBIy6n2eyMgiKQ8ChLFVxic/zwQUhjLYNzbHDRA==
+  dependencies:
+    "@types/node" "*"
+
 "@types/tunnel@^0.0.3":
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@types/tunnel/-/tunnel-0.0.3.tgz#f109e730b072b3136347561fc558c9358bb8c6e9"
@@ -6261,7 +6268,6 @@ npm@^8.3.0:
     "@npmcli/fs" "^2.1.0"
     "@npmcli/map-workspaces" "^2.0.3"
     "@npmcli/package-json" "^2.0.0"
-    "@npmcli/promise-spawn" "^3.0.0"
     "@npmcli/run-script" "^4.2.1"
     abbrev "~1.1.1"
     archy "~1.0.0"
@@ -6272,7 +6278,6 @@ npm@^8.3.0:
     cli-table3 "^0.6.2"
     columnify "^1.6.0"
     fastest-levenshtein "^1.0.12"
-    fs-minipass "^2.1.0"
     glob "^8.0.1"
     graceful-fs "^4.2.10"
     hosted-git-info "^5.1.0"
@@ -6292,7 +6297,6 @@ npm@^8.3.0:
     libnpmteam "^4.0.4"
     libnpmversion "^3.0.7"
     make-fetch-happen "^10.2.0"
-    minimatch "^5.1.0"
     minipass "^3.1.6"
     minipass-pipeline "^1.2.4"
     mkdirp "^1.0.4"

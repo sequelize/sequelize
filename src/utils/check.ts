@@ -8,8 +8,32 @@ export function isNodeError(val: unknown): val is NodeJS.ErrnoException {
   return val instanceof Error && 'code' in val;
 }
 
+/**
+ * Some dialects emit an Error with a string code, that are not ErrnoException.
+ * This serves as a more generic check for those cases.
+ *
+ * @param val The value to check
+ */
+export function isErrorWithStringCode(val: unknown): val is Error & { code: string } {
+  return val instanceof Error
+    // @ts-expect-error
+    && typeof val.code === 'string';
+}
+
+export function assertIsErrorWithStringCode(val: unknown): asserts val is Error & { code: string } {
+  if (!isErrorWithStringCode(val)) {
+    throw new Error('Expected Error with string "code" property');
+  }
+}
+
 export function isError(val: unknown): val is Error {
   return val instanceof Error;
+}
+
+export function assertCaughtError(val: unknown): asserts val is Error {
+  if (!isError(val)) {
+    throw new Error('A non-error value was thrown', { cause: val });
+  }
 }
 
 export function isString(val: unknown): val is string {

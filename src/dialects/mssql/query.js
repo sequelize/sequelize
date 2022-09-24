@@ -2,7 +2,6 @@
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-// const parserStore = require('../parser-store')('mssql');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
@@ -134,15 +133,16 @@ export class MsSqlQuery extends AbstractQuery {
     complete();
 
     if (Array.isArray(rows)) {
+      const dialect = this.sequelize.dialect;
+      const parseOptions = { dialect };
       rows = rows.map(columns => {
         const row = {};
         for (const column of columns) {
-          const typeid = column.metadata.type.id;
-          const parse = parserStore.get(typeid);
+          const parser = dialect.getParserForDatabaseDataType(column.metadata.type.name);
           let value = column.value;
 
-          if (value !== null & Boolean(parse)) {
-            value = parse(value);
+          if (value != null && parser) {
+            value = parser.parse(value, parseOptions);
           }
 
           row[column.metadata.colName] = value;

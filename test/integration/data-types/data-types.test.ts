@@ -1157,7 +1157,6 @@ describe('DataTypes', () => {
     });
   });
 
-  // !TODO: (mariadb, mysql): TINYBLOB, MEDIUMBLOB
   describe('BLOB', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {

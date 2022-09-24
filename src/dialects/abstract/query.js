@@ -1,7 +1,8 @@
+import NodeUtil from 'node:util';
+
 'use strict';
 
 const _ = require('lodash');
-const SqlString = require('../../sql-string');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
@@ -279,14 +280,8 @@ export class AbstractQuery {
 
     if (logQueryParameters && parameters) {
       const delimiter = sql.endsWith(';') ? '' : ';';
-      let paramStr;
-      if (Array.isArray(parameters)) {
-        paramStr = parameters.map(p => safeStringifyJson(p)).join(', ');
-      } else {
-        paramStr = safeStringifyJson(parameters);
-      }
 
-      logParameter = `${delimiter} ${paramStr}`;
+      logParameter = `${delimiter} with parameters ${NodeUtil.inspect(parameters)}`;
     }
 
     const fmt = `(${connection.uuid || 'default'}): ${sql}${logParameter}`;

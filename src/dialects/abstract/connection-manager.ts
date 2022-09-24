@@ -29,6 +29,8 @@ export interface GetConnectionOptions {
 }
 
 export interface Connection {
+  /** custom property we attach to different dialect connections */
+  // TODO: replace with Symbols.
   uuid?: string | undefined;
 }
 

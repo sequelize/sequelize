@@ -33,6 +33,7 @@ export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDat
 }
 
 function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
+  // TODO: cache simple types
   switch (typeof val) {
     case 'bigint':
       return new DataTypes.BIGINT().toDialectDataType(dialect);

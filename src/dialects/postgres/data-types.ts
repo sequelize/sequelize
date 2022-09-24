@@ -18,7 +18,7 @@ import * as RangeParser from './range';
 const warn = createDataTypesWarn('https://www.postgresql.org/docs/current/datatype.html');
 
 /**
- * Removes unsupported Postgres options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
+ * Removes unsupported Postgres options, UNSIGNED and ZEROFILL, for the integer data types.
  *
  * @param dataType The base integer data type.
  * @private
