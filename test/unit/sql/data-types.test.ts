@@ -203,14 +203,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         default: 'CHAR(12) BINARY',
         ibmi: 'CLOB(12)',
         sqlite: 'CHAR BINARY(12)',
-        postgres: binaryNotSupportedError,
+        'postgres mssql': binaryNotSupportedError,
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         ibmi: 'CLOB(255)',
         sqlite: 'CHAR BINARY(255)',
-        postgres: binaryNotSupportedError,
+        'postgres mssql': binaryNotSupportedError,
       });
     });
 
@@ -251,10 +251,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('DATE', () => {
       testsql('DATE', DataTypes.DATE, {
         ibmi: 'TIMESTAMP',
-        postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIMEOFFSET',
+        postgres: 'TIMESTAMP(0) WITH TIME ZONE',
+        mssql: 'DATETIMEOFFSET(0)',
         mariadb: 'DATETIME',
-        mysql: 'DATETIME',
+        mysql: 'DATETIME(0)',
         db2: 'TIMESTAMP',
         sqlite: 'DATETIME',
         snowflake: 'TIMESTAMP',
@@ -263,7 +263,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       testsql('DATE(6)', DataTypes.DATE(6), {
         ibmi: 'TIMESTAMP',
         postgres: 'TIMESTAMP(6) WITH TIME ZONE',
-        mssql: 'DATETIMEOFFSET',
+        mssql: 'DATETIMEOFFSET(6)',
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
         db2: 'TIMESTAMP(6)',
@@ -1456,7 +1456,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         });
 
         testsql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
-          postgres: 'TIMESTAMP WITH TIME ZONE[]',
+          postgres: 'TIMESTAMP(0) WITH TIME ZONE[]',
         });
 
         testsql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {
