@@ -78,9 +78,9 @@ TestModel.init({
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
 
-  jsonAttr: { type: DataTypes.JSON },
-
   aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
+
+  jsonAttr: { type: DataTypes.JSON },
   aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
 
   ...(dialectSupportsJsonB() && {
@@ -2135,8 +2135,8 @@ describe(getTestDialectTeaser('SQL'), () => {
     describeAdjacentRangeSuite(Op.noExtendLeft, '&>');
     describeAdjacentRangeSuite(Op.noExtendRight, '&<');
 
-    if (sequelize.dialect.supports.dataTypes.JSON) {
-      describe('JSON', () => {
+    if (sequelize.dialect.supports.jsonOperations) {
+      describe('JSON Operations', () => {
         {
           // @ts-expect-error -- attribute 'doesNotExist' does not exist.
           const ignore: TestModelWhere = { 'doesNotExist.nested': 'value' };
@@ -2255,7 +2255,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.dataTypes.JSONB) {
+    if (dialectSupportsJsonB()) {
       describe('JSONB', () => {
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated

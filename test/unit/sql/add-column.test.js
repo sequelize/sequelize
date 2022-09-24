@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
         postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" REAL NOT NULL;',
         sqlite: 'ALTER TABLE `Users` ADD `level_id` FLOAT NOT NULL;',
-        mssql: 'ALTER TABLE [Users] ADD [level_id] FLOAT NOT NULL;',
+        mssql: 'ALTER TABLE [Users] ADD [level_id] REAL NOT NULL;',
         db2: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
         snowflake: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL;',
         ibmi: 'ALTER TABLE "Users" ADD "level_id" FLOAT NOT NULL',

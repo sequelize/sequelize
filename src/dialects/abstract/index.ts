@@ -153,7 +153,7 @@ export type DialectSupports = {
     DOUBLE: SupportableDecimalNumberOptions,
     /** This dialect supports arbitrary precision numbers */
     DECIMAL: SupportableExactDecimalOptions,
-    JSON: boolean,
+    // there is JSON type, because JSON will be replaced by a unlimited string type when unsupported.
     JSONB: boolean,
     ARRAY: boolean,
     RANGE: boolean,
@@ -178,6 +178,8 @@ export type DialectSupports = {
    * Case-insensitive regexp operator support ('~*' in postgres).
    */
   IREGEXP: boolean,
+  /** Whether this dialect supports SQL JSON functions */
+  jsonOperations: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -289,7 +291,6 @@ export abstract class AbstractDialect {
       CIDR: false,
       MACADDR: false,
       INET: false,
-      JSON: false,
       JSONB: false,
       ARRAY: false,
       RANGE: false,
@@ -304,6 +305,7 @@ export abstract class AbstractDialect {
         infinity: false,
       },
     },
+    jsonOperations: false,
     REGEXP: false,
     IREGEXP: false,
     deferrableConstraints: false,

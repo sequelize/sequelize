@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import type { Falsy } from '../../generic/falsy.js';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
@@ -100,6 +101,14 @@ export class TEXT extends BaseTypes.TEXT {
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
+  escape(value: boolean | Falsy): string {
+    return value ? '1' : '0';
+  }
+
+  toBindableValue(value: boolean | Falsy): unknown {
+    return value ? 1 : 0;
+  }
+
   toSql() {
     return 'BIT';
   }

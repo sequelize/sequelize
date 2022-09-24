@@ -38,14 +38,14 @@ export class MariaDbDialect extends AbstractDialect {
       },
       indexViaAlter: true,
       indexHints: true,
-      GEOMETRY: true,
-      JSON: true,
-      REGEXP: true,
       dataTypes: {
         CHAR: {
           BINARY: true,
         },
+        GEOMETRY: true,
+        REGEXP: true,
       },
+      jsonOperations: true,
       milliseconds: true,
     },
   );

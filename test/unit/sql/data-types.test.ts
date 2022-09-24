@@ -1415,7 +1415,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('JSON', () => {
       testsql('JSON', DataTypes.JSON, {
-        default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+        // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
         'mariadb mysql postgres': 'JSON',
         // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
         mssql: 'NVARCHAR(MAX)',
@@ -1481,11 +1481,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           postgres: 'REAL[]',
         });
 
-        if (dialect.supports.dataTypes.JSON) {
-          testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
-            postgres: 'JSON[]',
-          });
-        }
+        testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
+          postgres: 'JSON[]',
+        });
 
         if (dialect.supports.dataTypes.JSONB) {
           testsql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {

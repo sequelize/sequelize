@@ -41,13 +41,14 @@ export class MssqlDialect extends AbstractDialect {
         BINARY: true,
       },
       TINYINT: { unsigned: true, zerofill: false },
-      JSON: true,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
-      // GEOGRAPHY: true,
+      GEOGRAPHY: false,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
-      // GEOMETRY: true,
+      GEOMETRY: false,
     },
     milliseconds: true,
+    // TODO: add support for JSON queries https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
+    jsonOperations: false,
   });
 
   readonly connectionManager: MsSqlConnectionManager;
@@ -84,6 +85,12 @@ export class MssqlDialect extends AbstractDialect {
 
   createBindCollector() {
     return createNamedParamBindCollector('@');
+  }
+
+  escapeBuffer(buffer: Buffer): string {
+    const hex = buffer.toString('hex');
+
+    return `0x${hex}`;
   }
 
   escapeString(value: string): string {
