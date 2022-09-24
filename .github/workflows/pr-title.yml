@@ -25,6 +25,7 @@ jobs:
             mariadb
             mssql
             mysql
+            oracle
             postgres
             snowflake
             sqlite
