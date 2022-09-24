@@ -157,13 +157,25 @@ if (dialect.startsWith('postgres')) {
       await Foo.create({ name: 'record1' });
       await Foo.create({ name: 'record2' });
 
-      const thisWorks = (await Foo.findAll({
+      const baseTest = (await Foo.findAll({
         subQuery: false,
         order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
       })).map(f => f.name);
-      expect(thisWorks[0]).to.equal('record1');
+      expect(baseTest[0]).to.equal('record1');
 
-      const thisShouldAlsoWork = (await Foo.findAll({
+      const orderByAscSubquery = (await Foo.findAll({
+        attributes: {
+          include: [
+            [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
+          ],
+        },
+        subQuery: true,
+        order: [['customAttribute']],
+        limit: 1,
+      })).map(f => f.name);
+      expect(orderByAscSubquery[0]).to.equal('record1');
+
+      const orderByDescSubquery = (await Foo.findAll({
         attributes: {
           include: [
             [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
@@ -173,7 +185,7 @@ if (dialect.startsWith('postgres')) {
         order: [['customAttribute', 'DESC']],
         limit: 1,
       })).map(f => f.name);
-      expect(thisShouldAlsoWork[0]).to.equal('record2');
+      expect(orderByDescSubquery[0]).to.equal('record2');
     });
 
     it('returns the minified aliased attributes', async () => {
