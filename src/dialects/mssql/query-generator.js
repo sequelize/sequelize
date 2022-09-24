@@ -661,7 +661,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
     }
 
     if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
