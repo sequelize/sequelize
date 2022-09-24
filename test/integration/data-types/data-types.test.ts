@@ -10,6 +10,7 @@ import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/co
 import { expect } from 'chai';
 import dayjs from 'dayjs';
 import DayjsTimezone from 'dayjs/plugin/timezone';
+import pick from 'lodash/pick';
 import moment from 'moment';
 import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
@@ -63,6 +64,11 @@ describe('DataTypes', () => {
         // @ts-expect-error
         stringAttr: 12,
       })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
+
+      await expect(vars.User.create({
+        // @ts-expect-error
+        stringAttr: Buffer.from('abc'),
+      })).to.be.rejectedWith(ValidationError, 'Validation error: <Buffer 61 62 63> is not a valid string. Only the string type is accepted for non-binary strings.');
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
@@ -217,7 +223,7 @@ describe('DataTypes', () => {
           type: DataTypes.TEXT('long'),
           allowNull: false,
         },
-      }, { sequelize, timestamps: false, noPrimaryKey: true });
+      }, { sequelize, timestamps: false });
 
       await User.sync({ force: true });
 
@@ -229,7 +235,7 @@ describe('DataTypes', () => {
 
       await vars.User.create(data);
       const user = await vars.User.findOne({ rejectOnEmpty: true });
-      expect(user.get()).to.deep.eq(data);
+      expect(pick(user.get(), ['tinyText', 'mediumText', 'longText'])).to.deep.eq(data);
     });
 
     // TODO: once we have centralized logging, check a warning message has been emitted when length is not supported:
@@ -557,14 +563,15 @@ describe('DataTypes', () => {
   for (const intTypeName of ['TINYINT', 'SMALLINT', 'MEDIUMINT', 'INTEGER'] as const) {
     const typeSupport = dialect.supports.dataTypes[intTypeName];
 
-    describe(intTypeName, () => {
-      if (!typeSupport) {
+    describe(`${intTypeName} (signed)`, () => {
+      // @ts-expect-error 'signed' prop is only available on TINYINT
+      if (!typeSupport || typeSupport.signed === false) {
         it('throws, as it is not supported', async () => {
           expect(() => {
             sequelize.define('User', {
               attr: DataTypes[intTypeName],
             });
-          }).to.throwWithCause(`${dialect.name} does not support the ${intTypeName} data type.`);
+          }).to.throwWithCause(`${dialect.name} does not support the ${intTypeName} data type`);
         });
       } else {
         const vars = beforeAll2(async () => {
@@ -681,6 +688,13 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_992n, '9007199254740992');
     });
 
+    it('does not lose precision', async () => {
+      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_993n, '9007199254740993');
+      await testSimpleInOut(vars.User, 'bigintAttr', -9_007_199_254_740_993n, '-9007199254740993');
+      await testSimpleInOut(vars.User, 'bigintAttr', '9007199254740993', '9007199254740993');
+      await testSimpleInOut(vars.User, 'bigintAttr', '-9007199254740993', '-9007199254740993');
+    });
+
     it('rejects unsafe integers', async () => {
       await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
       await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
@@ -748,9 +762,9 @@ describe('DataTypes', () => {
       });
 
       it(`${attrType} accepts numbers, bigints, strings, +-Infinity`, async () => {
-        await testSimpleInOut(vars.User, 'attr', 123.4, 123.4);
+        await testSimpleInOut(vars.User, 'attr', 100.5, 100.5);
         await testSimpleInOut(vars.User, 'attr', 123n, 123);
-        await testSimpleInOut(vars.User, 'attr', '123.4', 123.4);
+        await testSimpleInOut(vars.User, 'attr', '100.5', 100.5);
       });
 
       if (dialect.supports.dataTypes[attrType].NaN) {
@@ -781,6 +795,7 @@ describe('DataTypes', () => {
       });
 
       it(`${attrType} is deserialized as a JS number when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'attr', 100.5, 100.5);
         await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
 
         if (dialect.supports.dataTypes[attrType].NaN) {
@@ -886,7 +901,7 @@ describe('DataTypes', () => {
 
       User.init({
         decimalAttr: {
-          type: DataTypes.DECIMAL(10, 2),
+          type: DataTypes.DECIMAL(18, 2),
           allowNull: false,
         },
       }, { sequelize });
@@ -897,9 +912,9 @@ describe('DataTypes', () => {
     });
 
     it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'decimalAttr', 123.4, '123.40');
-      await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123.00');
-      await testSimpleInOut(vars.User, 'decimalAttr', '123.4', '123.40');
+      await testSimpleInOut(vars.User, 'decimalAttr', 123.4, dialect.name === 'mssql' ? '123.4' : '123.40');
+      await testSimpleInOut(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
+      await testSimpleInOut(vars.User, 'decimalAttr', '123.4', dialect.name === 'mssql' ? '123.4' : '123.40');
     });
 
     if (dialect.supports.dataTypes.DECIMAL.NaN) {
@@ -911,6 +926,19 @@ describe('DataTypes', () => {
         await expect(vars.User.create({ decimalAttr: Number.NaN })).to.be.rejected;
       });
     }
+
+    it('does not lose precision', async () => {
+      // FIXME: Tedious parses Decimal as a JS number, which loses precision.
+      //  https://github.com/tediousjs/tedious/issues/678
+      if (dialect.name === 'mssql') {
+        return;
+      }
+
+      await testSimpleInOut(vars.User, 'decimalAttr', 9_007_199_254_740_993n, '9007199254740993');
+      await testSimpleInOut(vars.User, 'decimalAttr', -9_007_199_254_740_993n, '-9007199254740993');
+      await testSimpleInOut(vars.User, 'decimalAttr', '9007199254740993.12', '9007199254740993.12');
+      await testSimpleInOut(vars.User, 'decimalAttr', '-9007199254740993.12', '-9007199254740993.12');
+    });
 
     it('rejects unsafe integers', async () => {
       await expect(vars.User.create({ decimalAttr: 9_007_199_254_740_992 })).to.be.rejected;
@@ -925,7 +953,7 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, '123.00');
+      await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
     });
   });
 
@@ -1001,7 +1029,12 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01T00:00:00Z', '2022-01-01 00:00:00+00');
+      await testSimpleInOutRaw(
+        vars.User,
+        'dateAttr',
+        '2022-01-01T00:00:00Z',
+       dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00' : '2022-01-01 00:00:00+00',
+      );
     });
   });
 
@@ -1116,9 +1149,11 @@ describe('DataTypes', () => {
     });
 
     it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456', '04:05:06');
-      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456', '04:05:06.12');
-      await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', '04:05:06.123456');
+      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.000' : '04:05:06');
+      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.120' : '04:05:06.12');
+      // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
+      //  https://github.com/tediousjs/tedious/issues/678
+      await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456');
     });
   });
 
@@ -1243,7 +1278,7 @@ describe('DataTypes', () => {
   for (const jsonTypeName of ['JSON', 'JSONB'] as const) {
     const JsonType = DataTypes[jsonTypeName];
     describe(`DataTypes.${jsonTypeName}`, () => {
-      if (!dialect.supports.dataTypes[jsonTypeName]) {
+      if (jsonTypeName === 'JSONB' && !dialect.supports.dataTypes.JSONB) {
         it('throws, as it is not supported', async () => {
           expect(() => {
             sequelize.define('User', {

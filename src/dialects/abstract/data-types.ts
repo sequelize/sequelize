@@ -176,6 +176,7 @@ export abstract class AbstractDataType<
    * @param value The value to parse. This value is dialect specific.
    * @param _options Options.
    */
+  // !TODO: drop this method
   parse(value: unknown, _options: ParseOptions): unknown {
     return value;
   }
@@ -198,6 +199,13 @@ export abstract class AbstractDataType<
    */
   validate(value: any): asserts value is AcceptedType {}
 
+  /**
+   * Escapes a value for the purposes of inlining it in a SQL query.
+   * The resulting value will be inlined as-is with no further escaping.
+   *
+   * @param value The value to escape.
+   * @param options Options.
+   */
   escape(value: AcceptedType, options: StringifyOptions): string {
     const asBindValue = this.toBindableValue(value, options);
 
@@ -209,20 +217,32 @@ export abstract class AbstractDataType<
   }
 
   /**
-   * Transforms a value before adding it to the list of bind parameters of a query.
+   * This method is called when {@link AbstractQueryGenerator} needs to add a bind parameter to a query it is building.
+   * This method allows for customizing both the SQL to add to the query, and convert the bind parameter value to a DB-compatible value.
    *
-   * @param value
-   * @param options
+   * If you only need to prepare the bind param value, implement {@link toBindableValue} instead.
+   *
+   * This method must return the SQL to add to the query. You can obtain a bind parameter ID by calling {@link BindParamOptions#bindParam}
+   * with the value associated to that bind parameter.
+   *
+   * An example of a data type that requires customizing the SQL is the {@link GEOMETRY} data type.
+   *
+   * @param value The value to bind.
+   * @param options Options.
    */
+  // TODO: rename to "getBindParamSql"?
   bindParam(value: AcceptedType, options: BindParamOptions): string {
+    // TODO: rename "options.bindParam" to "options.collectBindParam"
     return options.bindParam(this.toBindableValue(value, options));
   }
 
   /**
-   * Converts a JS value to a SQL value, compatible with the SQL data type
+   * Converts a JS value to a value compatible with the connector library for this Data Type.
+   * Unlike {@link escape}, this value does not need to be escaped. It is passed separately to the database, which
+   * will handle escaping.
    *
-   * @param value
-   * @param _options
+   * @param value The value to convert.
+   * @param _options Options.
    */
   toBindableValue(value: AcceptedType, _options: StringifyOptions): unknown {
     return String(value);
@@ -427,6 +447,10 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
 
     return value;
+  }
+
+  toBindableValue(value: string | Buffer): unknown {
+    return this.sanitize(value);
   }
 }
 
@@ -933,6 +957,24 @@ export class DECIMAL extends BaseDecimalNumberDataType {
     }
   }
 
+  sanitize(value: unknown): unknown {
+    if (typeof value === 'number') {
+      // Some dialects support NaN
+      if (Number.isNaN(value)) {
+        return value;
+      }
+
+      // catch loss of precision issues
+      if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
+        // eslint-disable-next-line unicorn/prefer-type-error
+        throw new Error(`${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
+      }
+    }
+
+    // Decimal is arbitrary precision, and *must* be represented as strings, as the JS number type does not support arbitrary precision.
+    return String(value);
+  }
+
   protected getNumberSqlTypeName(): string {
     return 'DECIMAL';
   }
@@ -1094,7 +1136,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     super();
 
     this.options = {
-      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+      precision: (typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions) ?? 0,
     };
   }
 
@@ -1281,8 +1323,9 @@ export interface BlobOptions {
 }
 
 /**
- * Binary storage
+ * Binary storage. BLOB is the "TEXT" of binary data: it allows data of arbitrary size.
  */
+// TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   static readonly [kDataTypeIdentifier]: string = 'BLOB';
   readonly options: BlobOptions;
@@ -1328,6 +1371,10 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
   sanitize(value: unknown): unknown {
     if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
       return makeBufferFromTypedArray(value);
+    }
+
+    if (typeof value === 'string') {
+      return Buffer.from(value);
     }
 
     return value;

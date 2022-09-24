@@ -38,9 +38,9 @@ export class MssqlDialect extends AbstractDialect {
     tmpTableTrigger: true,
     dataTypes: {
       CHAR: {
-        BINARY: true,
+        BINARY: false,
       },
-      TINYINT: { unsigned: true, zerofill: false },
+      TINYINT: { signed: false, unsigned: true, zerofill: false },
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
       GEOGRAPHY: false,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
@@ -81,6 +81,12 @@ export class MssqlDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+
+    this.registerDataTypeParser(DataTypes.UUID, ['GUIDN']);
+    this.registerDataTypeParser(DataTypes.TIME, ['TIMEN']);
+    this.registerDataTypeParser(DataTypes.DATE, ['DATETIMEOFFSETN']);
+    this.registerDataTypeParser(DataTypes.DATEONLY, ['DATEN']);
+    this.registerDataTypeParser(new DataTypes.DECIMAL(1, 1), ['DECIMAL', 'DECIMALN']);
   }
 
   createBindCollector() {

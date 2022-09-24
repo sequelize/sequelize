@@ -46,7 +46,7 @@ export class MysqlDialect extends AbstractDialect {
           BINARY: true,
         },
         GEOMETRY: true,
-        TINYINT: integerOptions,
+        TINYINT: { ...integerOptions, signed: true },
         SMALLINT: integerOptions,
         MEDIUMINT: integerOptions,
         INTEGER: integerOptions,

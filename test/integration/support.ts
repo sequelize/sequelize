@@ -25,8 +25,10 @@ before(() => {
 
 let databaseResetDisabled = false;
 export function disableDatabaseResetForSuite() {
-  before(() => {
+  before(async () => {
     databaseResetDisabled = true;
+    // Reset the DB a single time for the whole suite
+    await Support.clearDatabase(Support.sequelize);
   });
 
   after(() => {

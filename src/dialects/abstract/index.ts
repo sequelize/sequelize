@@ -129,14 +129,15 @@ export type DialectSupports = {
     CHAR: {
       /**
        * Whether this dialect provides a valid substitute for CHAR BINARY.
-       * CHAR BINARY *must* be blank padded.
+       * CHAR BINARY *must* be blank padded with whitespace.
+       * This is not the same as a BINARY type that would be padded with null (0x0) bytes.
        */
       BINARY: boolean,
     },
     /** This dialect supports case-insensitive text */
     CITEXT: boolean,
     /** This dialect supports 1 byte long signed ints */
-    TINYINT: false | SupportableNumericOptions,
+    TINYINT: false | (SupportableNumericOptions & { signed: boolean }),
     /** This dialect supports 2 byte long signed ints */
     SMALLINT: false | SupportableNumericOptions,
     /** This dialect supports 3 byte long signed ints */

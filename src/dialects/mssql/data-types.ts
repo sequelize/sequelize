@@ -118,6 +118,15 @@ export class UUID extends BaseTypes.UUID {
   toSql() {
     return 'UNIQUEIDENTIFIER';
   }
+
+  parse(value: unknown): unknown {
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    // unify with other dialects by forcing lowercase on UUID strings.
+    return value.toLowerCase();
+  }
 }
 
 export class NOW extends BaseTypes.NOW {
@@ -126,18 +135,50 @@ export class NOW extends BaseTypes.NOW {
   }
 }
 
-export class DATE extends BaseTypes.DATE {
-  toSql() {
-    return 'DATETIMEOFFSET';
+export class DATEONLY extends BaseTypes.DATEONLY {
+  parse(value: unknown): unknown {
+    if (value instanceof Date) {
+      return dayjs.utc(value).format('YYYY-MM-DD');
+    }
+
+    return value;
   }
 }
 
-// export class DATEONLY extends BaseTypes.DATEONLY {
-//   parse(value) {
-//     // TODO
-//     return dayjs(value).format('YYYY-MM-DD');
-//   }
-// }
+export class TIME extends BaseTypes.TIME {
+  parse(value: unknown): unknown {
+    if (value instanceof Date) {
+      // We lose precision past the millisecond because Tedious pre-parses the value.
+      // This could be fixed by https://github.com/tediousjs/tedious/issues/678
+      return dayjs.utc(value).format('HH:mm:ss.SSS');
+    }
+
+    return value;
+  }
+}
+
+export class DATE extends BaseTypes.DATE {
+  toSql() {
+    if (this.options.precision != null) {
+      return `DATETIMEOFFSET(${this.options.precision})`;
+    }
+
+    return 'DATETIMEOFFSET';
+  }
+
+  parse(value: unknown): unknown {
+    if (value instanceof Date) {
+      // Tedious pre-parses the value as a Date, but we want
+      // to provide a string in raw queries and let the user decide on which date library to use.
+      // As a result, Tedious parses the date, then we serialize it, then our Date data type parses it again.
+      // This is inefficient but could be fixed by https://github.com/tediousjs/tedious/issues/678
+      // We also lose precision past the millisecond because Tedious pre-parses the value.
+      return dayjs.utc(value).format('YYYY-MM-DD HH:mm:ss.SSS+00');
+    }
+
+    return value;
+  }
+}
 
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -205,6 +246,11 @@ export class DECIMAL extends BaseTypes.DECIMAL {
     super._checkOptionSupport(dialect);
 
     removeUnsupportedNumberOptions(this);
+  }
+
+  parse(value: unknown): unknown {
+    // Tedious returns DECIMAL as a JS number, which is not an appropriate type for a decimal.
+    return String(value);
   }
 }
 

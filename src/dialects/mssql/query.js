@@ -138,7 +138,7 @@ export class MsSqlQuery extends AbstractQuery {
       rows = rows.map(columns => {
         const row = {};
         for (const column of columns) {
-          const parser = dialect.getParserForDatabaseDataType(column.metadata.type.name);
+          const parser = dialect.getParserForDatabaseDataType(column.metadata.type.type);
           let value = column.value;
 
           if (value != null && parser) {
