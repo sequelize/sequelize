@@ -1,6 +1,6 @@
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import type { SupportableIntegerOptions } from '../abstract';
+import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
 import * as BaseTypes from '../abstract/data-types.js';
 import { MySqlConnectionManager } from './connection-manager';
@@ -10,7 +10,7 @@ import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
 import { MySqlQueryInterface } from './query-interface';
 
-const integerOptions: SupportableIntegerOptions = {
+const integerOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
@@ -52,6 +52,10 @@ export class MysqlDialect extends AbstractDialect {
         MEDIUMINT: integerOptions,
         INTEGER: integerOptions,
         BIGINT: integerOptions,
+        FLOAT: integerOptions,
+        REAL: integerOptions,
+        DOUBLE: integerOptions,
+        DECIMAL: integerOptions,
       },
       milliseconds: true,
     },

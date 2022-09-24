@@ -728,83 +728,98 @@ describe('DataTypes', () => {
     }
   });
 
-  // !TODO (mariaDB, mysql): UNSIGNED, precision
-  describe('REAL, DataTypes.DOUBLE, DataTypes.FLOAT', () => {
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare realAttr: number | bigint | string | null;
-        declare doubleAttr: number | bigint | string | null;
-        declare floatAttr: number | bigint | string | null;
-      }
+  for (const attrType of ['REAL', 'DOUBLE', 'FLOAT'] as const) {
+    describe(`${attrType}`, () => {
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare attr: number | bigint | string;
+        }
 
-      User.init({
-        realAttr: {
-          type: DataTypes.REAL,
-          allowNull: true,
-        },
-        doubleAttr: {
-          type: DataTypes.DOUBLE,
-          allowNull: true,
-        },
-        floatAttr: {
-          type: DataTypes.FLOAT,
-          allowNull: true,
-        },
-      }, { sequelize });
+        User.init({
+          attr: {
+            type: DataTypes[attrType],
+            allowNull: false,
+          },
+        }, { sequelize });
 
-      await User.sync({ force: true });
+        await User.sync({ force: true });
 
-      return { User };
-    });
+        return { User };
+      });
 
-    for (const [attrType, attrName] of [['REAL', 'realAttr'], ['DOUBLE', 'doubleAttr'], ['FLOAT', 'floatAttr']] as const) {
       it(`${attrType} accepts numbers, bigints, strings, +-Infinity`, async () => {
-        await testSimpleInOut(vars.User, attrName, 123.4, 123.4);
-        await testSimpleInOut(vars.User, attrName, 123n, 123);
-        await testSimpleInOut(vars.User, attrName, '123.4', 123.4);
+        await testSimpleInOut(vars.User, 'attr', 123.4, 123.4);
+        await testSimpleInOut(vars.User, 'attr', 123n, 123);
+        await testSimpleInOut(vars.User, 'attr', '123.4', 123.4);
       });
 
       if (dialect.supports.dataTypes[attrType].NaN) {
         it(`${attrType} accepts NaN`, async () => {
-          await testSimpleInOut(vars.User, attrName, Number.NaN, Number.NaN);
+          await testSimpleInOut(vars.User, 'attr', Number.NaN, Number.NaN);
         });
       } else {
         it(`${attrType} rejects NaN`, async () => {
-          await expect(vars.User.create({ [attrName]: Number.NaN })).to.be.rejected;
+          await expect(vars.User.create({ attr: Number.NaN })).to.be.rejected;
         });
       }
 
       if (dialect.supports.dataTypes[attrType].infinity) {
         it(`${attrType} accepts +-Infinity`, async () => {
-          await testSimpleInOut(vars.User, attrName, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-          await testSimpleInOut(vars.User, attrName, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+          await testSimpleInOut(vars.User, 'attr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+          await testSimpleInOut(vars.User, 'attr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
         });
       } else {
         it(`${attrType} rejects +-Infinity`, async () => {
-          await expect(vars.User.create({ [attrName]: Number.POSITIVE_INFINITY })).to.be.rejected;
-          await expect(vars.User.create({ [attrName]: Number.NEGATIVE_INFINITY })).to.be.rejected;
+          await expect(vars.User.create({ attr: Number.POSITIVE_INFINITY })).to.be.rejected;
+          await expect(vars.User.create({ attr: Number.NEGATIVE_INFINITY })).to.be.rejected;
         });
       }
 
       it(`${attrType} rejects non-number strings`, async () => {
-        await expect(vars.User.create({ [attrName]: '' })).to.be.rejected;
-        await expect(vars.User.create({ [attrName]: 'abc' })).to.be.rejected;
+        await expect(vars.User.create({ attr: '' })).to.be.rejected;
+        await expect(vars.User.create({ attr: 'abc' })).to.be.rejected;
       });
 
       it(`${attrType} is deserialized as a JS number when DataType is not specified`, async () => {
-        await testSimpleInOutRaw(vars.User, attrName, 123n, 123);
+        await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
 
         if (dialect.supports.dataTypes[attrType].NaN) {
-          await testSimpleInOutRaw(vars.User, attrName, Number.NaN, Number.NaN);
+          await testSimpleInOutRaw(vars.User, 'attr', Number.NaN, Number.NaN);
         }
 
         if (dialect.supports.dataTypes[attrType].infinity) {
-          await testSimpleInOutRaw(vars.User, attrName, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-          await testSimpleInOutRaw(vars.User, attrName, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+          await testSimpleInOutRaw(vars.User, 'attr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+          await testSimpleInOutRaw(vars.User, 'attr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
         }
       });
+    });
+
+    const supports = dialect.supports.dataTypes[attrType];
+    if (supports && supports.unsigned) {
+      describe(`${attrType}.UNSIGNED`, () => {
+        const vars = beforeAll2(async () => {
+          class User extends Model<InferAttributes<User>> {
+            declare attr: number | bigint | string;
+          }
+
+          User.init({
+            attr: {
+              type: DataTypes[attrType].UNSIGNED,
+              allowNull: false,
+            },
+          }, { sequelize });
+
+          await User.sync({ force: true });
+
+          return { User };
+        });
+
+        it(`${attrType}.UNSIGNED rejects negative numbers`, async () => {
+          await expect(vars.User.create({ attr: -1 })).to.be.rejected;
+        });
+      });
     }
-  });
+  }
 
   describe('DECIMAL (unconstrained)', () => {
     if (!dialect.supports.dataTypes.DECIMAL.unconstrained) {
@@ -863,7 +878,6 @@ describe('DataTypes', () => {
     });
   });
 
-  // !TODO (mariaDB, mysql): UNSIGNED
   describe('DECIMAL (constrained)', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -914,6 +928,31 @@ describe('DataTypes', () => {
       await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, '123.00');
     });
   });
+
+  if (dialect.supports.dataTypes.DECIMAL.unsigned) {
+    describe('DECIMAL.UNSIGNED', () => {
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare decimalAttr: number | bigint | string;
+        }
+
+        User.init({
+          decimalAttr: {
+            type: DataTypes.DECIMAL(10, 2).UNSIGNED,
+            allowNull: false,
+          },
+        }, { sequelize });
+
+        await User.sync({ force: true });
+
+        return { User };
+      });
+
+      it('rejects negative numbers', async () => {
+        await expect(vars.User.create({ decimalAttr: -1 })).to.be.rejected;
+      });
+    });
+  }
 
   describe('DATE', () => {
     const vars = beforeAll2(async () => {

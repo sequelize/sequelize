@@ -9,19 +9,19 @@ import type { AbstractDataType, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
-export interface SupportableIntegerOptions {
+export interface SupportableNumericOptions {
   unsigned: boolean;
   zerofill: boolean;
 }
 
-export interface SupportableIeee754Options {
+export interface SupportableDecimalNumberOptions extends SupportableNumericOptions {
   /** Whether NaN can be inserted in a column that uses this DataType. */
   NaN: boolean;
   /** Whether Infinity/-Infinity can be inserted in a column that uses this DataType. */
   infinity: boolean;
 }
 
-export interface SupportableDecimalOptions extends SupportableIeee754Options {
+export interface SupportableExactDecimalOptions extends SupportableDecimalNumberOptions {
   /**
    * Whether this dialect supports unconstrained numeric/decimal columns. i.e. columns where numeric values of any length can be stored.
    * The SQL standard requires that "NUMERIC" with no option be equal to "NUMERIC(0,0)", but some dialects (postgres)
@@ -124,19 +124,23 @@ export type DialectSupports = {
     /** This dialect supports case-insensitive text */
     CITEXT: boolean,
     /** This dialect supports 1 byte long signed ints */
-    TINYINT: false | SupportableIntegerOptions,
+    TINYINT: false | SupportableNumericOptions,
     /** This dialect supports 2 byte long signed ints */
-    SMALLINT: false | SupportableIntegerOptions,
+    SMALLINT: false | SupportableNumericOptions,
     /** This dialect supports 3 byte long signed ints */
-    MEDIUMINT: false | SupportableIntegerOptions,
+    MEDIUMINT: false | SupportableNumericOptions,
     /** This dialect supports 4 byte long signed ints */
-    INTEGER: false | SupportableIntegerOptions,
+    INTEGER: false | SupportableNumericOptions,
     /** This dialect supports 8 byte long signed ints */
-    BIGINT: false | SupportableIntegerOptions,
-    REAL: SupportableIeee754Options,
-    FLOAT: SupportableIeee754Options,
-    DOUBLE: SupportableIeee754Options,
-    DECIMAL: SupportableDecimalOptions,
+    BIGINT: false | SupportableNumericOptions,
+    /** @deprecated */
+    REAL: SupportableDecimalNumberOptions,
+    /** This dialect supports 4 byte long floating point numbers */
+    FLOAT: SupportableDecimalNumberOptions,
+    /** This dialect supports 8 byte long floating point numbers */
+    DOUBLE: SupportableDecimalNumberOptions,
+    /** This dialect supports arbitrary precision numbers */
+    DECIMAL: SupportableExactDecimalOptions,
     JSON: boolean,
     JSONB: boolean,
     ARRAY: boolean,
@@ -265,10 +269,10 @@ export abstract class AbstractDialect {
       MEDIUMINT: false,
       INTEGER: { unsigned: false, zerofill: false },
       BIGINT: { unsigned: false, zerofill: false },
-      FLOAT: { NaN: false, infinity: false },
-      REAL: { NaN: false, infinity: false },
-      DOUBLE: { NaN: false, infinity: false },
-      DECIMAL: { unconstrained: false, NaN: false, infinity: false },
+      FLOAT: { NaN: false, infinity: false, unsigned: false, zerofill: false },
+      REAL: { NaN: false, infinity: false, unsigned: false, zerofill: false },
+      DOUBLE: { NaN: false, infinity: false, unsigned: false, zerofill: false },
+      DECIMAL: { unconstrained: false, NaN: false, infinity: false, unsigned: false, zerofill: false },
       CIDR: false,
       MACADDR: false,
       INET: false,
