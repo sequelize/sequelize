@@ -103,62 +103,64 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user).to.be.null;
     });
 
-    it('supports schemas', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
+    if (current.dialect.supports.schemas) {
+      it('supports schemas', async function () {
+        const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
+        const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
 
-      Task.belongsTo(User);
+        Task.belongsTo(User);
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('archive');
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('archive');
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
 
-      const [user0, task] = await Promise.all([
-        User.create({ username: 'foo', gender: 'male' }),
-        Task.create({ title: 'task', status: 'inactive' }),
-      ]);
+        const [user0, task] = await Promise.all([
+          User.create({ username: 'foo', gender: 'male' }),
+          Task.create({ title: 'task', status: 'inactive' }),
+        ]);
 
-      await task.setUserXYZ(user0);
-      const user = await task.getUserXYZ();
-      expect(user).to.be.ok;
-      await this.sequelize.dropSchema('archive');
-      const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-        expect(schemas).to.not.have.property('archive');
-      }
-    });
+        await task.setUserXYZ(user0);
+        const user = await task.getUserXYZ();
+        expect(user).to.be.ok;
+        await this.sequelize.dropSchema('archive');
+        const schemas = await this.sequelize.showAllSchemas();
+        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+          expect(schemas).to.not.have.property('archive');
+        }
+      });
 
-    it('supports schemas when defining custom foreign key attribute #9029', async function () {
-      const User = this.sequelize.define('UserXYZ', {
-        uid: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          allowNull: false,
-        },
-      }).schema('archive');
-      const Task = this.sequelize.define('TaskXYZ', {
-        user_id: {
-          type: DataTypes.INTEGER,
-          references: { model: User, key: 'uid' },
-        },
-      }).schema('archive');
+      it('supports schemas when defining custom foreign key attribute #9029', async function () {
+        const User = this.sequelize.define('UserXYZ', {
+          uid: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false,
+          },
+        }).schema('archive');
+        const Task = this.sequelize.define('TaskXYZ', {
+          user_id: {
+            type: DataTypes.INTEGER,
+            references: { model: User, key: 'uid' },
+          },
+        }).schema('archive');
 
-      Task.belongsTo(User, { foreignKey: 'user_id' });
+        Task.belongsTo(User, { foreignKey: 'user_id' });
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('archive');
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-      const user0 = await User.create({});
-      const task = await Task.create({});
-      await task.setUserXYZ(user0);
-      const user = await task.getUserXYZ();
-      expect(user).to.be.ok;
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('archive');
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
+        const user0 = await User.create({});
+        const task = await Task.create({});
+        await task.setUserXYZ(user0);
+        const user = await task.getUserXYZ();
+        expect(user).to.be.ok;
 
-      await this.sequelize.dropSchema('archive');
-    });
+        await this.sequelize.dropSchema('archive');
+      });
+    }
   });
 
   describe('setAssociation', () => {

@@ -17,12 +17,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('createDatabaseQuery', function () {
-      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase'), {
-        mssql: 'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN CREATE DATABASE [myDatabase] ; END;',
-      });
-    });
-
     it('upsertQuery with falsey values', function () {
       const testTable = this.sequelize.define(
         'test_table',
@@ -70,18 +64,6 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable), {
         mssql:
           'MERGE INTO [test_table] WITH(HOLDLOCK) AS [test_table_target] USING (VALUES(24)) AS [test_table_source]([Age]) ON [test_table_target].[Name] = [test_table_source].[Name] AND [test_table_target].[IsOnline] = [test_table_source].[IsOnline] WHEN MATCHED THEN UPDATE SET [test_table_target].[Name] = N\'Charlie\', [test_table_target].[Age] = 24, [test_table_target].[IsOnline] = 0 WHEN NOT MATCHED THEN INSERT ([Age]) VALUES(24) OUTPUT $action, INSERTED.*;',
-      });
-    });
-
-    it('createDatabaseQuery with collate', function () {
-      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase', { collate: 'Latin1_General_CS_AS_KS_WS' }), {
-        mssql: 'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N\'Latin1_General_CS_AS_KS_WS\'; END;',
-      });
-    });
-
-    it('dropDatabaseQuery', function () {
-      expectsql(this.queryGenerator.dropDatabaseQuery('myDatabase'), {
-        mssql: 'IF EXISTS (SELECT * FROM sys.databases WHERE name = \'myDatabase\' ) BEGIN DROP DATABASE [myDatabase] ; END;',
       });
     });
 
@@ -242,24 +224,6 @@ if (current.dialect.name === 'mssql') {
     it('getPrimaryKeyConstraintQuery', function () {
       expectsql(this.queryGenerator.getPrimaryKeyConstraintQuery('myTable', 'myColumnName'), {
         mssql: 'SELECT K.TABLE_NAME AS tableName, K.COLUMN_NAME AS columnName, K.CONSTRAINT_NAME AS constraintName FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON C.TABLE_NAME = K.TABLE_NAME AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\' AND K.COLUMN_NAME = \'myColumnName\' AND K.TABLE_NAME = \'myTable\';',
-      });
-    });
-
-    it('createSchema', function () {
-      expectsql(this.queryGenerator.createSchema('mySchema'), {
-        mssql: 'IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN EXEC sp_executesql N\'CREATE SCHEMA [mySchema] ;\' END;',
-      });
-    });
-
-    it('dropSchema', function () {
-      expectsql(this.queryGenerator.dropSchema('mySchema'), {
-        mssql: 'IF EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN DECLARE @id INT, @ms_sql NVARCHAR(2000); DECLARE @cascade TABLE ( id INT NOT NULL IDENTITY PRIMARY KEY, ms_sql NVARCHAR(2000) NOT NULL ); INSERT INTO @cascade ( ms_sql ) SELECT CASE WHEN o.type IN (\'F\',\'PK\') THEN N\'ALTER TABLE [\'+ s.name + N\'].[\' + p.name + N\'] DROP CONSTRAINT [\' + o.name + N\']\' ELSE N\'DROP TABLE [\'+ s.name + N\'].[\' + o.name + N\']\' END FROM sys.objects o JOIN sys.schemas s on o.schema_id = s.schema_id LEFT OUTER JOIN sys.objects p on o.parent_object_id = p.object_id WHERE o.type IN (\'F\', \'PK\', \'U\') AND s.name =  \'mySchema\' ORDER BY o.type ASC; SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id; WHILE @id IS NOT NULL BEGIN BEGIN TRY EXEC sp_executesql @ms_sql; END TRY BEGIN CATCH BREAK; THROW; END CATCH; DELETE FROM @cascade WHERE id = @id; SELECT @id = NULL, @ms_sql = NULL; SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id; END EXEC sp_executesql N\'DROP SCHEMA [mySchema] ;\' END;',
-      });
-    });
-
-    it('showSchemasQuery', function () {
-      expectsql(this.queryGenerator.showSchemasQuery(), {
-        mssql: 'SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN ( \'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\' ) AND "s"."name" NOT LIKE \'db_%\'',
       });
     });
 

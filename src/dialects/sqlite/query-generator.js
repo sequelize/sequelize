@@ -9,12 +9,16 @@ const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
-  createSchema() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+  createSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
-  showSchemasQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+  dropSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  listSchemasQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
   versionQuery() {

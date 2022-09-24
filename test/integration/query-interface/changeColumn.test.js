@@ -16,39 +16,41 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('changeColumn', () => {
-    it('should support schemas', async function () {
-      await this.sequelize.createSchema('archive');
+    if (Support.sequelize.dialect.supports.schemas) {
+      it('should support schemas', async function () {
+        await this.sequelize.createSchema('archive');
 
-      await this.queryInterface.createTable({
-        tableName: 'users',
-        schema: 'archive',
-      }, {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        currency: DataTypes.INTEGER,
+        await this.queryInterface.createTable({
+          tableName: 'users',
+          schema: 'archive',
+        }, {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          currency: DataTypes.INTEGER,
+        });
+
+        await this.queryInterface.changeColumn({
+          tableName: 'users',
+          schema: 'archive',
+        }, 'currency', {
+          type: DataTypes.FLOAT,
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'users',
+          schema: 'archive',
+        });
+
+        if (['postgres', 'postgres-native'].includes(dialect)) {
+          expect(table.currency.type).to.equal('REAL');
+        } else {
+          expect(table.currency.type).to.equal('FLOAT');
+        }
       });
-
-      await this.queryInterface.changeColumn({
-        tableName: 'users',
-        schema: 'archive',
-      }, 'currency', {
-        type: DataTypes.FLOAT,
-      });
-
-      const table = await this.queryInterface.describeTable({
-        tableName: 'users',
-        schema: 'archive',
-      });
-
-      if (['postgres', 'postgres-native'].includes(dialect)) {
-        expect(table.currency.type).to.equal('REAL');
-      } else {
-        expect(table.currency.type).to.equal('FLOAT');
-      }
-    });
+    }
 
     it('should change columns', async function () {
       await this.queryInterface.createTable({
@@ -110,23 +112,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
 
-      it('should work with enums with schemas', async function () {
-        await this.sequelize.createSchema('archive');
+      if (Support.sequelize.dialect.supports.schemas) {
+        it('should work with enums with schemas', async function () {
+          await this.sequelize.createSchema('archive');
 
-        await this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive',
-        }, {
-          firstName: DataTypes.STRING,
-        });
+          await this.queryInterface.createTable({
+            tableName: 'users',
+            schema: 'archive',
+          }, {
+            firstName: DataTypes.STRING,
+          });
 
-        await this.queryInterface.changeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'firstName', {
-          type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+          await this.queryInterface.changeColumn({
+            tableName: 'users',
+            schema: 'archive',
+          }, 'firstName', {
+            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+          });
         });
-      });
+      }
     }
 
     describe('should support foreign keys', () => {

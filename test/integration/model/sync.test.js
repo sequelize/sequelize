@@ -472,6 +472,18 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       expect(userIndexes[0].name).to.eq('test_slug_idx');
       expect(taskIndexes[0].name).to.eq('test_slug_idx');
     });
+
+    it('supports creating two identically named tables in different schemas', async () => {
+      await sequelize.queryInterface.createSchema('custom_schema');
+
+      const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
+      const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
+
+      await sequelize.sync({ force: true });
+
+      await Model1.create({ id: 1 });
+      await Model2.create({ id: 2 });
+    });
   }
 
   // TODO: this should work with MSSQL / MariaDB too
@@ -536,18 +548,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(bFks[0].referencedTableName).to.eq('As');
     expect(bFks[0].referencedColumnName).to.eq('id');
     expect(bFks[0].columnName).to.eq('AId');
-  });
-
-  it('supports creating two identically named tables in different schemas', async () => {
-    await sequelize.queryInterface.createSchema('custom_schema');
-
-    const Model1 = sequelize.define('A1', {}, { schema: 'custom_schema', tableName: 'a', timestamps: false });
-    const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
-
-    await sequelize.sync({ force: true });
-
-    await Model1.create({ id: 1 });
-    await Model2.create({ id: 2 });
   });
 
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column

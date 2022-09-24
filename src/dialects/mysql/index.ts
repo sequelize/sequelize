@@ -23,6 +23,7 @@ export class MysqlDialect extends AbstractDialect {
       lock: true,
       forShare: 'LOCK IN SHARE MODE',
       settingIsolationLevelDuringTransaction: false,
+      schemas: true,
       inserts: {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',

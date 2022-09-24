@@ -78,6 +78,27 @@ interface QueryGeneratorOptions {
   dialect: AbstractDialect;
 }
 
+// keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
+export interface CreateDatabaseQueryOptions {
+  collate?: string;
+  charset?: string;
+  encoding?: string;
+  ctype?: string;
+  template?: string;
+}
+
+// keep CREATE_SCHEMA_QUERY_OPTION_NAMES updated when modifying this
+export interface CreateSchemaQueryOptions {
+  collate?: string;
+  charset?: string;
+}
+
+// keep LIST_SCHEMAS_QUERY_OPTION_NAMES updated when modifying this
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
+
 export class AbstractQueryGenerator {
   _dialect: AbstractDialect;
 
@@ -139,7 +160,13 @@ export class AbstractQueryGenerator {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  dropSchema(tableName: TableName): string | { query: string, bind?: unknown[] };
+  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
+  dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
+  listSchemasQuery(options?: ListSchemasQueryOptions): string;
+
+  createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
+  dropDatabaseQuery(databaseName: string): string;
+  listDatabasesQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

@@ -16,6 +16,7 @@ export class MssqlDialect extends AbstractDialect {
       output: true,
     },
     schemas: true,
+    multiDatabases: true,
     autoIncrement: {
       identityInsert: true,
       defaultValue: false,

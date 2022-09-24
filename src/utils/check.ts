@@ -79,3 +79,33 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
   return arr.some(arg => isPlainObject(arg) || arg instanceof Where);
 }
 
+/**
+ * For use in per-dialect implementation of methods to warn the user when they use an option that TypeScript declares as valid,
+ * but that the dialect they use does not support.
+ *
+ * @param methodName The name of the method that received the options
+ * @param dialectName The name of the dialect to which the implementation belongs
+ * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
+ * @param supportedOptions The subset of options that this dialect *actually does* support.
+ * @param receivedOptions The user provided options that were passed to the method.
+ */
+export function rejectInvalidOptions(
+  methodName: string,
+  dialectName: string,
+  allSupportableOptions: Set<string>,
+  supportedOptions: Set<string>,
+  receivedOptions: Record<string, unknown>,
+): void {
+  const receivedOptionNames = Object.keys(receivedOptions);
+  const unsupportedOptions = receivedOptionNames.filter(optionName => {
+    return allSupportableOptions.has(optionName) && !supportedOptions.has(optionName);
+  });
+
+  if (unsupportedOptions.length > 0) {
+    throw buildInvalidOptionReceivedError(methodName, dialectName, unsupportedOptions);
+  }
+}
+
+export function buildInvalidOptionReceivedError(methodName: string, dialectName: string, invalidOptions: string[]): Error {
+  return new Error(`The following options are not supported by ${methodName} in ${dialectName}: ${invalidOptions.join(', ')}`);
+}
