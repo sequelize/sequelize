@@ -1,5 +1,11 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
@@ -14,11 +20,22 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
-    options = { collate: null, ...options };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
-    const collation = options.collate ? `COLLATE ${this.escape(options.collate)}` : '';
+    const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
       'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
@@ -38,7 +55,21 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  createSchema(schema) {
+  listDatabasesQuery() {
+    return `SELECT name FROM sys.databases;`;
+  }
+
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return [
       'IF NOT EXISTS (SELECT schema_name',
       'FROM information_schema.schemata',
@@ -51,7 +82,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     // Mimics Postgres CASCADE, will drop objects belonging to the schema
     const quotedSchema = wrapSingleQuote(schema);
 
@@ -87,12 +118,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  showSchemasQuery() {
+  listSchemasQuery(options) {
+    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
     return [
       'SELECT "name" as "schema_name" FROM sys.schemas as s',
       'WHERE "s"."name" NOT IN (',
-      '\'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\'',
-      ')', 'AND', '"s"."name" NOT LIKE', '\'db_%\'',
+      schemasToSkip.map(schema => this.escape(schema)).join(', '),
+      `) AND "s"."name" NOT LIKE 'db_%'`,
     ].join(' ');
   }
 
