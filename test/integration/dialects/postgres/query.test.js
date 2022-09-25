@@ -174,5 +174,39 @@ if (dialect.startsWith('postgres')) {
       })).map(f => f.name);
       expect(thisShouldAlsoWork[0]).to.equal('record1');
     });
+
+    it('returns the minified aliased attributes', async () => {
+      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+        logQueryParameters: true,
+        benchmark: true,
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      const Foo = sequelizeMinifyAliases.define(
+        'Foo',
+        {
+          name: {
+            field: 'my_name',
+            type: DataTypes.TEXT,
+          },
+        },
+        { timestamps: false },
+      );
+
+      await sequelizeMinifyAliases.sync({ force: true });
+
+      await Foo.findAll({
+        subQuery: false,
+        attributes: {
+          include: [
+            [sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0'],
+          ],
+        },
+        order: [['order_0', 'DESC']],
+      });
+    });
   });
 }

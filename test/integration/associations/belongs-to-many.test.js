@@ -164,47 +164,49 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(john.Tasks).to.have.length(2);
     });
 
-    it('should support schemas', async function () {
-      const AcmeUser = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-      }).schema('acme', '_');
-      const AcmeProject = this.sequelize.define('Project', {
-        title: DataTypes.STRING,
-        active: DataTypes.BOOLEAN,
-      }).schema('acme', '_');
-      const AcmeProjectUsers = this.sequelize.define('ProjectUsers', {
-        status: DataTypes.STRING,
-        data: DataTypes.INTEGER,
-      }).schema('acme', '_');
+    if (current.dialect.supports.schemas) {
+      it('should support schemas', async function () {
+        const AcmeUser = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+        }).schema('acme', '_');
+        const AcmeProject = this.sequelize.define('Project', {
+          title: DataTypes.STRING,
+          active: DataTypes.BOOLEAN,
+        }).schema('acme', '_');
+        const AcmeProjectUsers = this.sequelize.define('ProjectUsers', {
+          status: DataTypes.STRING,
+          data: DataTypes.INTEGER,
+        }).schema('acme', '_');
 
-      AcmeUser.belongsToMany(AcmeProject, { through: AcmeProjectUsers });
-      AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });
+        AcmeUser.belongsToMany(AcmeProject, { through: AcmeProjectUsers });
+        AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('acme');
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('acme');
 
-      await Promise.all([
-        AcmeUser.sync({ force: true }),
-        AcmeProject.sync({ force: true }),
-      ]);
+        await Promise.all([
+          AcmeUser.sync({ force: true }),
+          AcmeProject.sync({ force: true }),
+        ]);
 
-      await AcmeProjectUsers.sync({ force: true });
-      const u = await AcmeUser.create();
-      const p = await AcmeProject.create();
-      await u.addProject(p, { through: { status: 'active', data: 42 } });
-      const projects = await u.getProjects();
-      expect(projects).to.have.length(1);
-      const project = projects[0];
+        await AcmeProjectUsers.sync({ force: true });
+        const u = await AcmeUser.create();
+        const p = await AcmeProject.create();
+        await u.addProject(p, { through: { status: 'active', data: 42 } });
+        const projects = await u.getProjects();
+        expect(projects).to.have.length(1);
+        const project = projects[0];
 
-      expect(project.UserProject).to.be.ok;
-      expect(project.status).not.to.exist;
-      expect(project.UserProject.status).to.equal('active');
-      await this.sequelize.dropSchema('acme');
-      const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
-        expect(schemas).to.not.have.property('acme');
-      }
-    });
+        expect(project.UserProject).to.be.ok;
+        expect(project.status).not.to.exist;
+        expect(project.UserProject.status).to.equal('active');
+        await this.sequelize.dropSchema('acme');
+        const schemas = await this.sequelize.showAllSchemas();
+        if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
+          expect(schemas).to.not.have.property('acme');
+        }
+      });
+    }
 
     it('supports custom primary keys and foreign keys', async function () {
       const User = this.sequelize.define('User', {
@@ -3086,7 +3088,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 
@@ -3103,7 +3105,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
         result = result.map(v => v.tableName);
       }
 
@@ -3251,7 +3253,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       it('can cascade and restrict deletes', async function () {
         this.User.belongsToMany(this.Task, {
           through: 'tasksusers',
-          foreignKey: {  onDelete: 'RESTRICT' },
+          foreignKey: { onDelete: 'RESTRICT' },
           otherKey: { onDelete: 'CASCADE' },
         });
 
@@ -3536,6 +3538,99 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(hat.name).to.equal('Baz');
       expect(hat.hatwornbys.length).to.equal(1);
       expect(hat.hatwornbys[0].name).to.equal('Foo Bar');
+    });
+  });
+
+  describe('Disabling default unique constraint', () => {
+    beforeEach(function () {
+      this.Order = this.sequelize.define('order', {});
+      this.Good = this.sequelize.define('good', {
+        name: DataTypes.STRING,
+      });
+      this.OrderItem = this.sequelize.define('orderitem', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        isUpsell: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        },
+      });
+
+      this.Order.belongsToMany(this.Good, {
+        through: {
+          model: this.OrderItem,
+          unique: false,
+        },
+      });
+      this.Good.belongsToMany(this.Order, {
+        through: {
+          model: this.OrderItem,
+          unique: false,
+        },
+      });
+    });
+
+    it('should create new relations in parallel', async function () {
+      await this.sequelize.sync({ force: true });
+
+      const { Order, Good } = this;
+
+      const order = await Order.create();
+      const good = await Good.create({ name: 'Drink' });
+
+      await Promise.all([
+        order.addGood(good, {
+          through: {
+            isUpsell: false,
+          },
+        }),
+        order.addGood(good, {
+          through: {
+            isUpsell: true,
+          },
+        }),
+      ]);
+
+      const orderGoods = await order.getGoods();
+
+      const [firstGood, secondGood] = orderGoods;
+
+      expect(orderGoods.length).to.equal(2);
+      expect(firstGood.orderGood.isUpsell)
+        .to.be.not
+        .equal(secondGood.orderGood.isUpsell);
+    });
+
+    it('should create new relations sequentialy', async function () {
+      await this.sequelize.sync({ force: true });
+
+      const { Order, Good } = this;
+
+      const order = await Order.create();
+      const good = await Good.create({ name: 'Drink' });
+
+      await order.addGood(good, {
+        through: {
+          isUpsell: false,
+        },
+      });
+      await order.addGood(good, {
+        through: {
+          isUpsell: true,
+        },
+      });
+
+      const orderGoods = await order.getGoods();
+
+      const [firstGood, secondGood] = orderGoods;
+
+      expect(orderGoods.length).to.equal(2);
+      expect(firstGood.orderGood.isUpsell)
+        .to.be.not
+        .equal(secondGood.orderGood.isUpsell);
     });
   });
 });

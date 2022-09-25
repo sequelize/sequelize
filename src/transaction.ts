@@ -74,6 +74,11 @@ export class Transaction {
 
     try {
       await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      for (const hook of this._afterCommitHooks) {
+        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
+        await Reflect.apply(hook, this, [this]);
+      }
+
       this.cleanup();
     } catch (error) {
       console.warn(`Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
@@ -82,10 +87,6 @@ export class Transaction {
       throw error;
     } finally {
       this.finished = 'commit';
-      for (const hook of this._afterCommitHooks) {
-        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
-        await Reflect.apply(hook, this, [this]);
-      }
     }
   }
 

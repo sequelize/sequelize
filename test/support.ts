@@ -58,7 +58,7 @@ function inlineErrorCause(error: Error) {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
   // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
-  if (cause) {
+  if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
   }
 
@@ -388,16 +388,18 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
+type MaybeLazy<T> = T | (() => T);
+
 export function expectsql(
-  query: { query: string, bind: unknown } | Error,
+  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
   assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
 ): void;
 export function expectsql(
-  query: string | Error,
+  query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: string | Error | { query: string, bind: unknown },
+  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -438,6 +440,18 @@ export function expectsql(
       }
     } else {
       throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+    }
+  }
+
+  if (typeof query === 'function') {
+    try {
+      query = query();
+    } catch (error: unknown) {
+      if (!(error instanceof Error)) {
+        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+      }
+
+      query = error;
     }
   }
 
