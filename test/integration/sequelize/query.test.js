@@ -217,43 +217,34 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          // these dialects only support positional bind parameters
-          if (dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql') {
-            expect(createSql).to.match(/; "john", "john@gmail.com"$/);
-            expect(updateSql).to.match(/; "li", 1$/);
-          } else if (dialectName === 'db2') {
-            // TODO: db2 should be unified with the other positional parameter dialects
-            expect(createSql).to.match(/; \[ 'john', 'john@gmail.com' ]$/);
-            expect(updateSql).to.match(/; \[ 'li', 1 ]$/);
+          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql')  {
+            // these dialects use positional bind parameters
+            expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(createSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           } else {
-            expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
-            expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
+            console.log(updateSql);
+            // these dialects use named bind parameters
+            expect(createSql.endsWith(` with parameters { sequelize_1: 'john', sequelize_2: 'john@gmail.com' }`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(updateSql.endsWith(` with parameters { sequelize_1: 'li', sequelize_2: 1 }`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           }
         });
 
-        if (dialectName !== 'ibmi') {
-          it('add parameters in log sql when use bind value', async function () {
-            let logSql;
-            let typeCast = dialectName === 'postgres' ? '::text' : '';
-            if (['db2'].includes(dialectName)) {
-              typeCast = '::VARCHAR';
-            }
+        it('add parameters in log sql when use bind value', async function () {
+          let logSql;
+          let typeCast = dialectName === 'postgres' ? '::text' : '';
+          if (['db2'].includes(dialectName)) {
+            typeCast = '::VARCHAR';
+          }
 
-            await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
-              bind: ['foo', 'bar'],
-              logging: s => {
-                logSql = s;
-              },
-            });
-
-            if (dialectName === 'db2') {
-              // TODO: db2 should be unified with the other positional parameter dialects
-              expect(logSql).to.match(/; \[ 'foo', 'bar' ]$/);
-            } else {
-              expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
-            }
+          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+            bind: ['foo', 'bar'],
+            logging: s => {
+              logSql = s;
+            },
           });
-        }
+
+          expect(logSql.endsWith(` with parameters [ 'foo', 'bar' ]`)).to.eq(true, 'bind parameters incorrectly logged.');
+        });
       });
     });
 

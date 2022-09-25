@@ -59,15 +59,16 @@ describe('model', () => {
 
     it('should insert json using a custom field name', async function () {
       this.UserFields = this.sequelize.define('UserFields', {
-        emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' },
+        emergencyContact: { type: DataTypes.JSON, field: 'emergency_contact' },
       });
+
       await this.UserFields.sync({ force: true });
 
       const user = await this.UserFields.create({
         emergencyContact: { name: 'joe', phones: [1337, 42] },
       });
 
-      expect(user.emergencyContact.name).to.equal('joe');
+      expect(user.emergencyContact).to.deep.equal({ name: 'joe', phones: [1337, 42] });
     });
 
     it('should update json using a custom field name', async function () {

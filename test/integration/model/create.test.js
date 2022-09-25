@@ -738,12 +738,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         email: DataTypes.STRING,
         password: DataTypes.STRING,
         created_time: {
-          type: DataTypes.DATE,
+          type: DataTypes.DATE(3),
           allowNull: true,
           defaultValue: DataTypes.NOW,
         },
         updated_time: {
-          type: DataTypes.DATE,
+          type: DataTypes.DATE(3),
           allowNull: true,
           defaultValue: DataTypes.NOW,
         },
@@ -771,25 +771,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // Timestamps should have milliseconds. However, there is a small chance that
       // it really is 0 for one of them, by coincidence. So we check twice with two
       // users created almost at the same time.
-      if (dialect === 'db2') {
-        expect([
-          user1.created_time.getMilliseconds(),
-          user2.created_time.getMilliseconds(),
-        ]).not.to.equal([0, 0]);
-        expect([
-          user1.updated_time.getMilliseconds(),
-          user2.updated_time.getMilliseconds(),
-        ]).not.to.equal([0, 0]);
-      } else {
-        expect([
-          user1.created_time.getMilliseconds(),
-          user2.created_time.getMilliseconds(),
-        ]).not.to.deep.equal([0, 0]);
-        expect([
-          user1.updated_time.getMilliseconds(),
-          user2.updated_time.getMilliseconds(),
-        ]).not.to.deep.equal([0, 0]);
-      }
+      expect([
+        user1.created_time.getMilliseconds(),
+        user2.created_time.getMilliseconds(),
+      ]).not.to.deep.equal([0, 0]);
+
+      expect([
+        user1.updated_time.getMilliseconds(),
+        user2.updated_time.getMilliseconds(),
+      ]).not.to.deep.equal([0, 0]);
     });
 
     it('works with custom timestamps and underscored', async function () {
