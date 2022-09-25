@@ -1,5 +1,6 @@
 'use strict';
 
+import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -129,7 +130,7 @@ export class Model {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    this._options = options;
+    this._options = omit(options, ['comesFromDatabase']);
 
     /**
      * Returns true if this instance has not yet been persisted to the database
@@ -3812,7 +3813,8 @@ Instead of specifying a Model, either:
       // If there's a data type sanitizer
       const attributeType = this.rawAttributes[key]?.type;
       if (
-        value != null
+        !options.comesFromDatabase
+        && value != null
         && !(value instanceof Utils.SequelizeMethod)
         && attributeType
         // "type" can be a string
@@ -3937,6 +3939,7 @@ Instead of specifying a Model, either:
       includeValidated: true,
       raw: options.raw,
       attributes: include.originalAttributes,
+      comesFromDatabase: options.comesFromDatabase,
     };
     let isEmpty;
 

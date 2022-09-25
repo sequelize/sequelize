@@ -1,9 +1,9 @@
 import type { Sequelize } from '../../sequelize.js';
 import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
-import * as BaseTypes from '../abstract/data-types.js';
 import { PostgresConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types';
+import { registerPostgresDbDataTypeParsers } from './data-types-db.js';
+import * as DataTypes from './data-types.js';
 import { PostgresQuery } from './query';
 import { PostgresQueryGenerator } from './query-generator';
 import { PostgresQueryInterface } from './query-interface';
@@ -70,17 +70,15 @@ export class PostgresDialect extends AbstractDialect {
   readonly queryGenerator: PostgresQueryGenerator;
   readonly queryInterface: PostgresQueryInterface;
   readonly Query = PostgresQuery;
-  readonly DataTypes = DataTypes;
 
   // minimum supported version
   readonly defaultVersion = '9.5.0';
-  readonly name = 'postgres';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 
   constructor(sequelize: Sequelize) {
-    super(sequelize);
+    super(sequelize, DataTypes, 'postgres');
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
     this.queryGenerator = new PostgresQueryGenerator({
       dialect: this,
@@ -91,21 +89,7 @@ export class PostgresDialect extends AbstractDialect {
       this.queryGenerator,
     );
 
-    // types & OIDs listed here https://github.com/lib/pq/blob/master/oid/types.go
-    // range & enum are also supported, but use a special path as they are custom types
-    this.registerDataTypeParser(BaseTypes.DATEONLY, ['date']);
-    this.registerDataTypeParser(BaseTypes.DATE, ['timestamptz', 'timestamp']);
-    this.registerDataTypeParser(BaseTypes.DECIMAL, ['numeric']);
-    this.registerDataTypeParser(BaseTypes.BOOLEAN, ['bool']);
-    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['geometry']);
-    this.registerDataTypeParser(BaseTypes.GEOGRAPHY, ['geography']);
-    this.registerDataTypeParser(BaseTypes.HSTORE, ['hstore']);
-    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.INTEGER), ['int4range']);
-    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.BIGINT), ['int8range']);
-    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DECIMAL), ['numrange']);
-    // TODO: tsrange (without timezone) -- https://github.com/sequelize/sequelize/issues/14295
-    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DATE), ['tstzrange']);
-    this.registerDataTypeParser(new BaseTypes.RANGE(BaseTypes.DATEONLY), ['daterange']);
+    registerPostgresDbDataTypeParsers(this);
   }
 
   createBindCollector() {

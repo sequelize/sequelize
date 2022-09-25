@@ -4,8 +4,8 @@ import type { Class } from 'type-fest';
 import type { Dialect, Sequelize } from '../../sequelize.js';
 import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
-import { normalizeDataType } from './data-types-utils.js';
-import type { AbstractDataType, DataType } from './data-types.js';
+import type { AbstractDataType } from './data-types.js';
+import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
@@ -202,6 +202,8 @@ export type DialectSupports = {
   milliseconds: boolean,
 };
 
+type TypeParser = (...params: any[]) => unknown;
+
 export abstract class AbstractDialect {
   /**
    * List of features this dialect supports.
@@ -325,45 +327,21 @@ export abstract class AbstractDialect {
 
   abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;
-  abstract readonly name: Dialect;
   /** @deprecated use {@link TICK_CHAR_RIGHT} & {@link TICK_CHAR_LEFT} */
   abstract readonly TICK_CHAR: string;
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
-  abstract readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
-  #dataTypeOverridesCache: Map<string, Class<AbstractDataType<any>>> | undefined;
-  #dataTypeParsers = new Map<unknown, AbstractDataType<any>>();
+  readonly name: Dialect;
+  readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
-  /**
-   * A map that lists the dialect-specific data-type extensions.
-   *
-   * e.g. in
-   */
-  get dataTypeOverrides(): Map<string, Class<AbstractDataType<any>>> {
-    if (this.#dataTypeOverridesCache) {
-      return this.#dataTypeOverridesCache;
-    }
-
-    const dataTypes = this.DataTypes;
-
-    const overrides = new Map();
-    for (const dataType of Object.values(dataTypes)) {
-      const replacedDataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
-
-      if (overrides.has(replacedDataTypeId)) {
-        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ID ${replacedDataTypeId}.`);
-      }
-
-      overrides.set(replacedDataTypeId, dataType);
-    }
-
-    this.#dataTypeOverridesCache = overrides;
-
-    return overrides;
-  }
+  /** dialect-specific implementation of shared data types */
+  #dataTypeOverrides: Map<string, Class<AbstractDataType<any>>>;
+  /** base implementations of shared data types */
+  #baseDataTypes: Map<string, Class<AbstractDataType<any>>>;
+  #dataTypeParsers = new Map<unknown, TypeParser>();
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
@@ -371,8 +349,58 @@ export abstract class AbstractDialect {
     return Dialect.supports;
   }
 
-  constructor(sequelize: Sequelize) {
+  constructor(sequelize: Sequelize, dialectDataTypes: Record<string, Class<AbstractDataType<any>>>, dialectName: Dialect) {
     this.sequelize = sequelize;
+    this.DataTypes = dialectDataTypes;
+    this.name = dialectName;
+
+    const baseDataTypes = new Map<string, Class<AbstractDataType<any>>>();
+    for (const dataType of Object.values(BaseDataTypes) as Array<Class<AbstractDataType<any>>>) {
+      const dataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
+
+      // intermediary data type
+      if (!dataTypeId) {
+        continue;
+      }
+
+      if (baseDataTypes.has(dataTypeId)) {
+        throw new Error(`Internal Error: Sequelize declares more than one base implementation for DataType ID ${dataTypeId}.`);
+      }
+
+      baseDataTypes.set(dataTypeId, dataType);
+    }
+
+    const dataTypeOverrides = new Map<string, Class<AbstractDataType<any>>>();
+    for (const dataType of Object.values(this.DataTypes)) {
+      const replacedDataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
+
+      if (dataTypeOverrides.has(replacedDataTypeId)) {
+        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ID ${replacedDataTypeId}.`);
+      }
+
+      dataTypeOverrides.set(replacedDataTypeId, dataType);
+    }
+
+    this.#dataTypeOverrides = dataTypeOverrides;
+    this.#baseDataTypes = baseDataTypes;
+  }
+
+  /**
+   * Returns the dialect-specific implementation of a shared data type, or null if no such implementation exists
+   * (in which case you need to use the base implementation).
+   *
+   * @param dataType The shared data type.
+   */
+  getDataTypeForDialect(dataType: Class<AbstractDataType<any>>): Class<AbstractDataType<any>> | null {
+    const typeId = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
+    const baseType = this.#baseDataTypes.get(typeId);
+
+    // this is not one of our types. May be a custom type by a user. We don't replace it.
+    if (baseType != null && baseType !== dataType) {
+      return null;
+    }
+
+    return this.#dataTypeOverrides.get(typeId) ?? null;
   }
 
   abstract createBindCollector(): BindCollector;
@@ -421,24 +449,34 @@ export abstract class AbstractDialect {
 
   /**
    * Used to register a base parser for a Database type.
-   * See {@link AbstractDataType#parse} for more information.
+   * Parsers are based on the Database Type, not the JS type.
+   * Only one parser can be assigned as the parser for a Database Type.
+   * For this reason, prefer neutral implementations.
    *
-   * @param dataType The DataType whose {@link AbstractDataType#parse} method will be used to parse this Database data type value.
-   * @param databaseDataTypes Dialect-specific DB data type identifiers that will use this dataType's {@link AbstractDataType#parse} method as their parser.
+   * For instance, when implementing "parse" for a Date type,
+   * prefer returning a String rather than a Date object.
+   *
+   * The {@link AbstractDataType#parseDatabaseValue} method will then be called on the DataType instance defined by the user,
+   * which can decide on a more specific JS type (e.g. parse the date string & return a Date instance or a Temporal instance).
+   *
+   * You typically do not need to implement this method. This is used to provide default parsers when no DataType
+   * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
+   * For a custom Data Type, implementing {@link AbstractDataType#parseDatabaseValue} is typically what you want.
+   *
+   * @param databaseDataTypes Dialect-specific DB data type identifiers that will use this parser.
+   * @param parser The parser function to call when parsing the data type. Parameters are dialect-specific.
    */
-  registerDataTypeParser(dataType: DataType, databaseDataTypes: unknown[]) {
-    dataType = normalizeDataType(dataType, this);
-
+  registerDataTypeParser(databaseDataTypes: unknown[], parser: TypeParser) {
     for (const databaseDataType of databaseDataTypes) {
       if (this.#dataTypeParsers.has(databaseDataType)) {
         throw new Error(`Sequelize DataType for DB DataType ${databaseDataType} already registered for dialect ${this.name}`);
       }
 
-      this.#dataTypeParsers.set(databaseDataType, dataType);
+      this.#dataTypeParsers.set(databaseDataType, parser);
     }
   }
 
-  getParserForDatabaseDataType(databaseDataType: unknown): AbstractDataType<any> | undefined {
+  getParserForDatabaseDataType(databaseDataType: unknown): TypeParser | undefined {
     return this.#dataTypeParsers.get(databaseDataType);
   }
 

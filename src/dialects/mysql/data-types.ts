@@ -9,9 +9,8 @@ import type {
   AcceptedDate,
   StringifyOptions,
   ToSqlOptions,
-  BindParamOptions, ParseOptions,
+  BindParamOptions,
 } from '../abstract/data-types.js';
-import type { MySqlTypeCastValue } from './connection-manager.js';
 
 // const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
 
@@ -24,12 +23,6 @@ export class FLOAT extends BaseTypes.FLOAT {
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected getNumberSqlTypeName(): string {
     return 'DOUBLE PRECISION';
-  }
-}
-
-export class BIGINT extends BaseTypes.BIGINT {
-  parse(value: MySqlTypeCastValue): unknown {
-    return value.string();
   }
 }
 
@@ -67,37 +60,6 @@ export class DATE extends BaseTypes.DATE {
 
     return super.sanitize(value);
   }
-
-  parse(value: MySqlTypeCastValue, options: ParseOptions): unknown {
-    const valueStr = value.string();
-    if (valueStr === null) {
-      return null;
-    }
-
-    const timeZone = options.dialect.sequelize.options.timezone;
-    if (timeZone === '+00:00') { // default value
-      // mysql returns a UTC date string that looks like the following:
-      // 2022-01-01 00:00:00
-      // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.
-      // Adding +00 fixes this.
-      return `${valueStr}+00`;
-    }
-
-    if (isValidTimeZone(timeZone)) {
-      return dayjs.tz(valueStr, timeZone).toISOString();
-    }
-
-    // offset format, we can just append.
-    // "2022-09-22 20:03:06" with timeZone "-04:00"
-    // becomes "2022-09-22 20:03:06-04:00"
-    return valueStr + timeZone;
-  }
-}
-
-export class DATEONLY extends BaseTypes.DATEONLY {
-  parse(value: MySqlTypeCastValue): unknown {
-    return value.string();
-  }
 }
 
 export class UUID extends BaseTypes.UUID {
@@ -117,20 +79,6 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return `ST_GeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
-  }
-
-  parse(value: MySqlTypeCastValue): unknown {
-    let buffer = value.buffer();
-    // Empty buffer, MySQL doesn't support POINT EMPTY
-    // check, https://dev.mysql.com/worklog/task/?id=2381
-    if (!buffer || buffer.length === 0) {
-      return null;
-    }
-
-    // For some reason, discard the first 4 bytes
-    buffer = buffer.slice(4);
-
-    return wkx.Geometry.parse(buffer).toGeoJSON({ shortCrs: true });
   }
 
   toSql() {

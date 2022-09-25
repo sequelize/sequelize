@@ -1,6 +1,7 @@
 'use strict';
 
 import NodeUtil from 'node:util';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 const { QueryTypes } = require('../../query-types');
@@ -224,7 +225,7 @@ export class AbstractQuery {
         checkExisting: this.options.hasMultiAssociation,
       });
 
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this.#parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         include: this.options.include,
         includeNames: this.options.includeNames,
@@ -232,12 +233,14 @@ export class AbstractQuery {
         includeValidated: true,
         attributes: this.options.originalAttributes || this.options.attributes,
         raw: true,
+        comesFromDatabase: true,
       });
     // Regular queries
     } else {
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this.#parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         raw: true,
+        comesFromDatabase: true,
         attributes: this.options.originalAttributes || this.options.attributes,
       });
     }
@@ -248,6 +251,45 @@ export class AbstractQuery {
     }
 
     return result;
+  }
+
+  /**
+   * Calls {@link AbstractDataType#parseDatabaseValue} on all attributes returned by the database, if a model is specified.
+   *
+   * This method mutates valueArrays.
+   *
+   * @param {Array} valueArrays The values to parse
+   * @param {Model} model The model these values belong to
+   * @param {object} includeMap The list of included associations
+   */
+  #parseDataArrayByType(valueArrays, model, includeMap) {
+    for (const values of valueArrays) {
+      this.#parseDataByType(values, model, includeMap);
+    }
+
+    return valueArrays;
+  }
+
+  #parseDataByType(values, model, includeMap) {
+    for (const key of Object.keys(values)) {
+      // parse association values
+      if (includeMap?.[key]) {
+        if (Array.isArray(values[key])) {
+          values[key] = this.#parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        } else {
+          values[key] = this.#parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        }
+
+        continue;
+      }
+
+      const attribute = model?.rawAttributes[key];
+      if (values[key] != null && attribute?.type instanceof AbstractDataType) {
+        values[key] = attribute.type.parseDatabaseValue(values[key]);
+      }
+    }
+
+    return values;
   }
 
   isShowOrDescribeQuery() {

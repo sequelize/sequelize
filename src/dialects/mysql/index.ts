@@ -2,9 +2,9 @@ import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import * as BaseTypes from '../abstract/data-types.js';
 import { MySqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerMySqlDbDataTypeParsers } from './data-types.db.js';
 import { escapeMysqlString } from './mysql-utils';
 import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
@@ -66,17 +66,15 @@ export class MysqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
-  readonly DataTypes = DataTypes;
 
   // minimum supported version
   readonly defaultVersion = '5.7.0';
-  readonly name = 'mysql';
   readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
 
   constructor(sequelize: Sequelize) {
-    super(sequelize);
+    super(sequelize, DataTypes, 'mysql');
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
       dialect: this,
@@ -87,14 +85,7 @@ export class MysqlDialect extends AbstractDialect {
       this.queryGenerator,
     );
 
-    /*
-     * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
-     * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
-     */
-    this.registerDataTypeParser(BaseTypes.DATE, ['DATETIME']);
-    this.registerDataTypeParser(BaseTypes.DATEONLY, ['DATE']);
-    this.registerDataTypeParser(BaseTypes.BIGINT, ['LONGLONG']);
-    this.registerDataTypeParser(BaseTypes.GEOMETRY, ['GEOMETRY']);
+    registerMySqlDbDataTypeParsers(this);
   }
 
   createBindCollector() {

@@ -2,7 +2,8 @@ import NodeUtils from 'util';
 import { ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
 import { logger } from '../../utils/logger.js';
-import type { DataType, DataTypeClass, DataTypeInstance, ToSqlOptions } from './data-types.js';
+import type { PostgresDialect } from '../postgres/index.js';
+import type { DataType, DataTypeClass, DataTypeInstance, ToSqlOptions, DataTypeClassOrInstance } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 
@@ -35,9 +36,12 @@ export function cloneDataType(value: DataTypeInstance | string): DataTypeInstanc
   return value.clone();
 }
 
-export function normalizeDataType(Type: DataType, dialect: AbstractDialect): AbstractDataType<unknown>;
+export function normalizeDataType(Type: DataTypeClassOrInstance, dialect: AbstractDialect): AbstractDataType<unknown>;
 export function normalizeDataType(Type: string, dialect: AbstractDialect): string;
-export function normalizeDataType(Type: DataType | string, dialect: AbstractDialect): AbstractDataType<unknown> | string {
+export function normalizeDataType(
+  Type: DataTypeClassOrInstance | string,
+  dialect: AbstractDialect,
+): AbstractDataType<unknown> | string {
   if (typeof Type === 'string') {
     return Type;
   }
@@ -87,4 +91,12 @@ export function attributeTypeToSql(type: AbstractDataType<any> | string, options
   }
 
   return type.toSql(options);
+}
+
+export function getDataTypeParser(dialect: PostgresDialect, dataType: DataTypeClassOrInstance): (value: unknown) => unknown {
+  const type = normalizeDataType(dataType, dialect);
+
+  return (value: unknown) => {
+    return type.parseDatabaseValue(value);
+  };
 }

@@ -483,17 +483,9 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'booleanAttr', false, false);
     });
 
-    it('accepts 0 & 1', async () => {
-      // This is necessary for MySQL (for now), because MySQL doesn't have a native BOOLEAN type, TINYINT can be used instead
-      // so our only way is to convert 1/0 to true/false in AbstractDataType#sanitize,
-      // which is called on both user input and database output.
-      await testSimpleInOut(vars.User, 'booleanAttr', 1, true);
-      await testSimpleInOut(vars.User, 'booleanAttr', 0, false);
-    });
-
-    it('rejects numbers other than 0 & 1', async () => {
-      await expect(vars.User.create({ booleanAttr: 2 })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: -1 })).to.be.rejected;
+    it('rejects numbers', async () => {
+      await expect(vars.User.create({ booleanAttr: 0 })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: 1 })).to.be.rejected;
     });
 
     // these values are allowed when parsed from the Database, but not when inputted by the user.
@@ -511,17 +503,11 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: 0n })).to.be.rejected;
     });
 
-    it('accepts 1 byte buffers containing 0 or 1', async () => {
-      // This is necessary for MySQL (for now), because MySQL doesn't have a native BOOLEAN type, BIT can be used instead
-      // so our only way is to convert 1/0 to true/false in AbstractDataType#sanitize,
-      // which is called on both user input and database output.
-      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([1]), true);
-      await testSimpleInOut(vars.User, 'booleanAttr', Buffer.from([0]), false);
-    });
-
-    it('rejects all other buffers', async () => {
-      await expect(vars.User.create({ booleanAttr: Buffer.from([2]) })).to.be.rejected;
-      await expect(vars.User.create({ booleanAttr: Buffer.from([-1]) })).to.be.rejected;
+    it('rejects buffers', async () => {
+      // Some dialects use BIT for their boolean. The DB can return a buffer (which we convert to boolean),
+      // but the user cannot input a buffer.
+      await expect(vars.User.create({ booleanAttr: Buffer.from([0]) })).to.be.rejected;
+      await expect(vars.User.create({ booleanAttr: Buffer.from([1]) })).to.be.rejected;
       await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
@@ -934,8 +920,10 @@ describe('DataTypes', () => {
         return;
       }
 
-      await testSimpleInOut(vars.User, 'decimalAttr', 9_007_199_254_740_993n, '9007199254740993');
-      await testSimpleInOut(vars.User, 'decimalAttr', -9_007_199_254_740_993n, '-9007199254740993');
+      // This ensures the value is not accidentally parsed as a JS number.
+      // 9007199254740993 is not representable as a JS number, and gets rounded to 9007199254740992
+      await testSimpleInOut(vars.User, 'decimalAttr', 9_007_199_254_740_993n, '9007199254740993.00');
+      await testSimpleInOut(vars.User, 'decimalAttr', -9_007_199_254_740_993n, '-9007199254740993.00');
       await testSimpleInOut(vars.User, 'decimalAttr', '9007199254740993.12', '9007199254740993.12');
       await testSimpleInOut(vars.User, 'decimalAttr', '-9007199254740993.12', '-9007199254740993.12');
     });

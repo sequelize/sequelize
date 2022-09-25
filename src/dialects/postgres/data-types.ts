@@ -1,13 +1,14 @@
 import assert from 'assert';
-import NodeUtil from 'util';
 import wkx from 'wkx';
-import type { Rangable, Range } from '../../model.js';
+import type { Rangable } from '../../model.js';
 import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
   StringifyOptions,
-  BindParamOptions, ToSqlOptions, ParseOptions,
+  BindParamOptions,
+  ToSqlOptions,
+  AcceptedDate,
 } from '../abstract/data-types';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
@@ -94,28 +95,9 @@ export class DATEONLY extends BaseTypes.DATEONLY {
     return super.sanitize(value);
   }
 
-  parse(value: unknown) {
-    if (value === 'infinity') {
-      return Number.POSITIVE_INFINITY;
-    }
-
-    if (value === '-infinity') {
-      return Number.NEGATIVE_INFINITY;
-    }
-
-    return value;
-  }
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
-  parse(value: unknown) {
-    if (value === 'NaN') {
-      return Number.NaN;
-    }
-
-    return value;
-  }
-
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedNumberOptions(this);
@@ -178,7 +160,7 @@ export class DATE extends BaseTypes.DATE {
   }
 
   toBindableValue(
-    value: AcceptableTypeOf<BaseTypes.DATE>,
+    value: AcceptedDate,
     options: StringifyOptions,
   ): string {
     if (value === Number.POSITIVE_INFINITY) {
@@ -217,11 +199,6 @@ export class DATE extends BaseTypes.DATE {
     }
 
     return super.sanitize(value);
-  }
-
-  parse(value: unknown): unknown {
-    // return dates as string, not Date objects. Different implementations could be used instead (such as Temporal, dayjs)
-    return value;
   }
 }
 
@@ -337,12 +314,6 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return result;
   }
 
-  parse(value: string) {
-    const b = Buffer.from(value, 'hex');
-
-    return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
-  }
-
   toBindableValue(
     value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>,
     options: StringifyOptions,
@@ -363,15 +334,9 @@ export class HSTORE extends BaseTypes.HSTORE {
 
     return Hstore.stringify(value);
   }
-
-  parse(value: string) {
-    return Hstore.parse(value);
-  }
 }
 
 export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
-  #parseSubType = (val: string, options: ParseOptions) => this.options.subtype.parse(val, options);
-
   toBindableValue(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
     if (!Array.isArray(values)) {
       return this.options.subtype.toBindableValue(values, options);
@@ -437,14 +402,6 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
       bigint: 'int8',
     },
   };
-
-  parse(value: unknown, options: ParseOptions): Range<unknown> {
-    if (typeof value !== 'string') {
-      throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
-    }
-
-    return RangeParser.parse(value, subValue => this.#parseSubType(subValue, options));
-  }
 }
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {

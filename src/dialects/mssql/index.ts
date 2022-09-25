@@ -3,6 +3,7 @@ import { createNamedParamBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
 import { MsSqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerMsSqlDbDataTypeParsers } from './data-types.db.js';
 import { MsSqlQueryGenerator } from './query-generator';
 import { MsSqlQueryInterface } from './query-interface';
 import { MsSqlQuery } from './query.js';
@@ -55,7 +56,6 @@ export class MssqlDialect extends AbstractDialect {
   readonly queryGenerator: MsSqlQueryGenerator;
   readonly queryInterface: MsSqlQueryInterface;
   readonly Query = MsSqlQuery;
-  readonly DataTypes = DataTypes;
 
   // SQL Server 2017 Express (version 14), minimum supported version, all the way
   // up to the most recent version. When increasing this version, remember to
@@ -65,13 +65,12 @@ export class MssqlDialect extends AbstractDialect {
   //   .github/workflows/ci.yml
   // minimum supported version
   readonly defaultVersion = '14.0.1000';
-  readonly name = 'mssql';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '[';
   readonly TICK_CHAR_RIGHT = ']';
 
   constructor(sequelize: Sequelize) {
-    super(sequelize);
+    super(sequelize, DataTypes, 'mssql');
     this.connectionManager = new MsSqlConnectionManager(this, sequelize);
     this.queryGenerator = new MsSqlQueryGenerator({
       dialect: this,
@@ -82,11 +81,7 @@ export class MssqlDialect extends AbstractDialect {
       this.queryGenerator,
     );
 
-    this.registerDataTypeParser(DataTypes.UUID, ['GUIDN']);
-    this.registerDataTypeParser(DataTypes.TIME, ['TIMEN']);
-    this.registerDataTypeParser(DataTypes.DATE, ['DATETIMEOFFSETN']);
-    this.registerDataTypeParser(DataTypes.DATEONLY, ['DATEN']);
-    this.registerDataTypeParser(new DataTypes.DECIMAL(1, 1), ['DECIMAL', 'DECIMALN']);
+    registerMsSqlDbDataTypeParsers(this);
   }
 
   createBindCollector() {

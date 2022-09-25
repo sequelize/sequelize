@@ -71,10 +71,6 @@ export interface BindParamOptions extends StringifyOptions {
   bindParam(value: unknown): string;
 }
 
-export interface ParseOptions {
-  dialect: AbstractDialect;
-}
-
 export type DataTypeUseContext =
   | { model: ModelStatic, attributeName: string, sequelize: Sequelize }
   | { tableName: TableNameWithSchema, columnName: string, sequelize: Sequelize };
@@ -157,33 +153,22 @@ export abstract class AbstractDataType<
   }
 
   /**
-   * Used to parse a value when retrieved from the Database.
-   * Parsers are based on the Database Type, not the JS type.
-   * Only one JS DataType can be assigned as the parser for a Database Type.
-   * For this reason, prefer neutral implementations.
+   * Called when a value is retrieved from the Database, and its DataType is specified.
+   * Used to normalize values from the database.
    *
-   * For instance, when implementing "parse" for a Date type,
-   * prefer returning a String rather than a Date object.
-   * The {@link sanitize} method will then be called on the DataType instance defined by the user,
-   * which can decide on a more specific JS type (e.g. parse the date string & return a Date instance or a Temporal instance).
+   * Note: It is also possible to do an initial parsing of a Database value using {@link AbstractDialect#registerDataTypeParser}.
+   * That normalization uses the type ID from the database instead of a Sequelize Data Type to determine which parser to use,
+   * and is called before this method.
    *
-   * If this method is implemented, you also need to register it with your dialect's {@link AbstractDialect#registerDataTypeParser} method.
-   *
-   * You typically do not need to implement this method. This is mainly used to provide default parsers when no DataType
-   * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
-   * If you don't need this, implementing {@link sanitize} is sufficient.
-   *
-   * @param value The value to parse. This value is dialect specific.
-   * @param _options Options.
+   * @param value The value to parse.
    */
-  // !TODO: drop this method
-  parse(value: unknown, _options: ParseOptions): unknown {
-    return value;
+  parseDatabaseValue(value: unknown): unknown {
+    return value as AcceptedType;
   }
 
   /**
    * Used to normalize a value when {@link Model#set} is called.
-   * Typically, when populating a model instance from a database query.
+   * That is, when a user sets a value on a Model instance.
    *
    * @param value
    */
@@ -230,7 +215,7 @@ export abstract class AbstractDataType<
    * @param value The value to bind.
    * @param options Options.
    */
-  // TODO: rename to "getBindParamSql"?
+  // !TODO: rename to "getBindParamSql"?
   bindParam(value: AcceptedType, options: BindParamOptions): string {
     // TODO: rename "options.bindParam" to "options.collectBindParam"
     return options.bindParam(this.toBindableValue(value, options));
@@ -286,9 +271,11 @@ export abstract class AbstractDataType<
    * @param dialect
    */
   toDialectDataType(dialect: AbstractDialect): this {
-    const DataTypeClass = this.constructor as typeof AbstractDataType;
+    const DataTypeClass = this.constructor as Class<AbstractDataType<any>>;
     // get dialect-specific implementation
-    const subClass = dialect.dataTypeOverrides.get(DataTypeClass.getDataTypeId()) as unknown as typeof AbstractDataType;
+    const subClass = dialect.getDataTypeForDialect(DataTypeClass);
+
+    // !TODO: add flag to prevent re-wrapping if already wrapped
 
     const replacement: this = (!subClass || subClass === DataTypeClass)
       ? this.clone()
@@ -726,6 +713,10 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
     return value;
   }
 
+  parseDatabaseValue(value: unknown): unknown {
+    return this.sanitize(value);
+  }
+
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
   }
@@ -745,10 +736,6 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
     }
 
     return result;
-  }
-
-  parse(value: unknown) {
-    return this.sanitize(value);
   }
 }
 
@@ -795,7 +782,7 @@ export class BIGINT extends INTEGER {
     return 'BIGINT';
   }
 
-  sanitize(value: unknown): unknown {
+  sanitize(value: AcceptedNumber): AcceptedNumber {
     if (typeof value === 'bigint') {
       return value;
     }
@@ -957,7 +944,7 @@ export class DECIMAL extends BaseDecimalNumberDataType {
     }
   }
 
-  sanitize(value: unknown): unknown {
+  sanitize(value: AcceptedNumber): AcceptedNumber {
     if (typeof value === 'number') {
       // Some dialects support NaN
       if (Number.isNaN(value)) {
@@ -999,25 +986,21 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
     }
   }
 
-  sanitize(value: unknown): unknown {
-    // Because MySQL doesn't have a real boolean type, we can't call "parse" on it.
-    // As a result, we're forced to accept 1 & 0 as valid values that will be converted to true & false.
-    // TODO: Add a "sanitizeDatabaseValue" method that is only called on values that come from the Database, and a
-    //       "sanitizeUserValue" method that is only called on values that come from the user.
-    //       This requires reworking how Model#set works, as it currently calls sanitize on all values, regardless of
-    //       where they came from.
-    if (typeof value === 'number') {
-      if (value === 1) {
-        return true;
-      }
-
-      if (value === 0) {
-        return false;
-      }
+  parseDatabaseValue(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+      return value;
     }
 
-    // MySQL also accepts BIT(1) for booleans, which produces a Buffer. For the same reasons as above, we must
-    // transform it here.
+    // Some dialects do not have a dedicated boolean type. We receive integers instead.
+    if (value === 1) {
+      return true;
+    }
+
+    if (value === 0) {
+      return false;
+    }
+
+    // Some dialects also use BIT for booleans, which produces a Buffer.
     if (Buffer.isBuffer(value) && value.length === 1) {
       if (value[0] === 1) {
         return true;
@@ -1028,45 +1011,7 @@ export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
       }
     }
 
-    return value;
-  }
-
-  // this type is not sanitized: Only true & false are allowed as user inputs
-  // it is parsed: DBs represent booleans in a variety of ways.
-
-  parse(value: unknown): unknown {
-    if (Buffer.isBuffer(value) && value.length === 1) {
-      // Bit fields are returned as buffers
-      value = value[0];
-    }
-
-    const type = typeof value;
-    if (type === 'boolean') {
-      return value;
-    }
-
-    if (type === 'string') {
-      // Only take action on valid boolean strings.
-      if (value === 'true' || value === '1' || value === 't') {
-        return true;
-      }
-
-      if (value === 'false' || value === '0' || value === 'f') {
-        return false;
-      }
-
-      // Only take action on valid boolean integers.
-    } else if (typeof value === 'bigint') {
-      if (value === 1n) {
-        return true;
-      }
-
-      if (value === 0n) {
-        return false;
-      }
-    }
-
-    throw new Error(`Cannot parse ${util.inspect(value)} as a boolean`);
+    throw new Error(`Received invalid boolean value from DB: ${util.inspect(value)}`);
   }
 
   escape(value: boolean | Falsy): string {
@@ -1166,6 +1111,10 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     }
 
     throw new TypeError(`${util.inspect(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`);
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    return this.sanitize(value);
   }
 
   areValuesEqual(
@@ -1435,6 +1384,20 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     replacement.options.subtype = replacement.options.subtype.toDialectDataType(dialect);
 
     return replacement;
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    if (!Array.isArray(value)) {
+      // eslint-disable-next-line unicorn/prefer-type-error
+      throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
+    }
+
+    return value.map(part => {
+      return {
+        ...part,
+        value: this.options.subtype.parseDatabaseValue(part.value),
+      };
+    });
   }
 
   sanitize(value: unknown): unknown {
@@ -1775,6 +1738,15 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     }
 
     return value.map(item => this.options.type.sanitize(item));
+  }
+
+  parseDatabaseValue(value: unknown[]): unknown {
+    if (!Array.isArray(value)) {
+      // eslint-disable-next-line unicorn/prefer-type-error
+      throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
+    }
+
+    return value.map(item => this.options.type.parseDatabaseValue(item));
   }
 
   toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): string {

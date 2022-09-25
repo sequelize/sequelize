@@ -369,13 +369,9 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, format));
     }
 
-    const defaultDataType = this.dialect.getParserForDatabaseDataType(typeData.typeName);
+    const parser = this.dialect.getParserForDatabaseDataType(typeData.typeName);
 
-    if (defaultDataType) {
-      return (value: unknown) => defaultDataType.parse(value, { dialect: this.dialect });
-    }
-
-    return null;
+    return parser ?? null;
   }
 
   /**

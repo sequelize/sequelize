@@ -134,7 +134,6 @@ export class MsSqlQuery extends AbstractQuery {
 
     if (Array.isArray(rows)) {
       const dialect = this.sequelize.dialect;
-      const parseOptions = { dialect };
       rows = rows.map(columns => {
         const row = {};
         for (const column of columns) {
@@ -142,7 +141,7 @@ export class MsSqlQuery extends AbstractQuery {
           let value = column.value;
 
           if (value != null && parser) {
-            value = parser.parse(value, parseOptions);
+            value = parser(value);
           }
 
           row[column.metadata.colName] = value;
