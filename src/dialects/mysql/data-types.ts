@@ -12,8 +12,6 @@ import type {
   BindParamOptions,
 } from '../abstract/data-types.js';
 
-// const warn = createDataTypesWarn('https://dev.mysql.com/doc/refman/5.7/en/data-types.html');
-
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
     return 'FLOAT';

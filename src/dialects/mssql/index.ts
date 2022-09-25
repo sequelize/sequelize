@@ -56,6 +56,7 @@ export class MssqlDialect extends AbstractDialect {
   readonly queryGenerator: MsSqlQueryGenerator;
   readonly queryInterface: MsSqlQueryInterface;
   readonly Query = MsSqlQuery;
+  readonly dataTypesDocumentationUrl = 'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx';
 
   // SQL Server 2017 Express (version 14), minimum supported version, all the way
   // up to the most recent version. When increasing this version, remember to

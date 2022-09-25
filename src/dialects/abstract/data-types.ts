@@ -450,6 +450,10 @@ export class CHAR extends STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
+    if (!dialect.supports.dataTypes.CHAR) {
+      throwUnsupportedDataType(dialect, 'CHAR');
+    }
+
     if (!dialect.supports.dataTypes.CHAR.BINARY && this.options.binary) {
       throwUnsupportedDataType(dialect, 'CHAR.BINARY');
     }
@@ -942,6 +946,12 @@ export class DECIMAL extends BaseDecimalNumberDataType {
     if (this.isUnconstrained() && !dialect.supports.dataTypes.DECIMAL.unconstrained) {
       throw new Error(`${dialect.name} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`);
     }
+
+    if (!this.isUnconstrained() && !dialect.supports.dataTypes.DECIMAL.constrained) {
+      dialect.warnDataTypeIssue(`${dialect.name} does not support constrained DECIMAL types. The "precision" and "scale" options will be ignored.`);
+      this.options.scale = undefined;
+      this.options.precision = undefined;
+    }
   }
 
   sanitize(value: AcceptedNumber): AcceptedNumber {
@@ -970,7 +980,7 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 /**
  * A boolean / tinyint column, depending on dialect
  */
-export class BOOLEAN extends AbstractDataType<boolean | Falsy> {
+export class BOOLEAN extends AbstractDataType<boolean> {
   static readonly [kDataTypeIdentifier]: string = 'BOOLEAN';
 
   toSql() {

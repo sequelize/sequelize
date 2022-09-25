@@ -66,6 +66,7 @@ export class MysqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
+  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
 
   // minimum supported version
   readonly defaultVersion = '5.7.0';

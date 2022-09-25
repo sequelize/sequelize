@@ -1,23 +1,25 @@
 import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
-import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
-
-const warn = createDataTypesWarn('https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx');
 
 /**
  * Removes unsupported MSSQL options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
  *
  * @param dataType The base integer data type.
+ * @param dialect
  * @param opts
  * @param opts.allowUnsigned
  * @private
  */
-function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, opts?: { allowUnsigned?: boolean }) {
+function removeUnsupportedNumberOptions(
+  dataType: BaseTypes.BaseNumberDataType,
+  dialect: AbstractDialect,
+  opts?: { allowUnsigned?: boolean },
+) {
   if (!opts?.allowUnsigned && dataType.options.unsigned) {
-    warn(`MSSQL does not support '${dataType.constructor.name}' with UNSIGNED. This option is ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with UNSIGNED. This option is ignored.`);
 
     delete dataType.options.unsigned;
   }
@@ -25,32 +27,36 @@ function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, 
   if (
     dataType.options.zerofill
   ) {
-    warn(`MSSQL does not support '${dataType.constructor.name}' with ZEROFILL. This options is ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with ZEROFILL. This options is ignored.`);
 
     delete dataType.options.zerofill;
   }
 }
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.INTEGER, opts?: { allowUnsigned?: boolean }) {
-  removeUnsupportedNumberOptions(dataType, opts);
+function removeUnsupportedIntegerOptions(
+  dataType: BaseTypes.INTEGER,
+  dialect: AbstractDialect,
+  opts?: { allowUnsigned?: boolean },
+) {
+  removeUnsupportedNumberOptions(dataType, dialect, opts);
 
   if (
     dataType.options.length != null
   ) {
-    warn(`MSSQL does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
 
     delete dataType.options.length;
   }
 }
 
-function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType) {
-  removeUnsupportedNumberOptions(dataType);
+function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
+  removeUnsupportedNumberOptions(dataType, dialect);
 
   if (
     dataType.options.scale != null
       || dataType.options.precision != null
   ) {
-    warn(`MSSQL does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
 
     delete dataType.options.scale;
     delete dataType.options.precision;
@@ -58,15 +64,23 @@ function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberData
 }
 
 export class BLOB extends BaseTypes.BLOB {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    // tiny = 2^8
+    // regular = 2^16
+    // medium = 2^24
+    // long = 2^32
+    // in mssql, anything above 8000 bytes must be MAX
+
+    if (this.options.length != null && this.options.length.toLowerCase() !== 'tiny') {
+      dialect.warnDataTypeIssue(`${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`);
+    }
+  }
+
   toSql() {
-    if (this.options.length) {
-      if (this.options.length.toLowerCase() === 'tiny') { // tiny = 2^8
-        warn('MSSQL does not support BLOB with the `length` = `tiny` option. `VARBINARY(256)` will be used instead.');
-
-        return 'VARBINARY(256)';
-      }
-
-      warn('MSSQL does not support BLOB with the `length` option. `VARBINARY(MAX)` will be used instead.');
+    if (this.options.length && this.options.length.toLowerCase() === 'tiny') {
+      return 'VARBINARY(256)';
     }
 
     return 'VARBINARY(MAX)';
@@ -84,17 +98,23 @@ export class STRING extends BaseTypes.STRING {
 }
 
 export class TEXT extends BaseTypes.TEXT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    // tiny = 2^8
+    // regular = 2^16
+    // medium = 2^24
+    // long = 2^32
+    // in mssql, anything above 8000 bytes must be MAX
+
+    if (this.options.length != null && this.options.length.toLowerCase() !== 'tiny') {
+      dialect.warnDataTypeIssue(`${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`);
+    }
+  }
+
   toSql() {
-    // TEXT is deprecated in mssql and it would normally be saved as a non-unicode string.
-    // Using unicode is just future proof
-    if (this.options.length) {
-      if (this.options.length.toLowerCase() === 'tiny') { // tiny = 2^8
-        warn('MSSQL does not support TEXT with the `length` = `tiny` option. `NVARCHAR(256)` will be used instead.');
-
-        return 'NVARCHAR(256)';
-      }
-
-      warn('MSSQL does not support TEXT with the `length` option. `NVARCHAR(MAX)` will be used instead.');
+    if (this.options.length && this.options.length.toLowerCase() === 'tiny') {
+      return 'NVARCHAR(256)';
     }
 
     return 'NVARCHAR(MAX)';
@@ -141,7 +161,7 @@ export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
@@ -153,7 +173,7 @@ export class TINYINT extends BaseTypes.TINYINT {
       throw new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED.`);
     }
 
-    removeUnsupportedIntegerOptions(this, { allowUnsigned: true });
+    removeUnsupportedIntegerOptions(this, dialect, { allowUnsigned: true });
   }
 
   toSql() {
@@ -166,7 +186,7 @@ export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
@@ -174,7 +194,7 @@ export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
@@ -182,7 +202,7 @@ export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedFloatOptions(this);
+    removeUnsupportedFloatOptions(this, dialect);
   }
 }
 
@@ -190,7 +210,7 @@ export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedFloatOptions(this);
+    removeUnsupportedFloatOptions(this, dialect);
   }
 
   protected getNumberSqlTypeName(): string {
@@ -202,7 +222,7 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    removeUnsupportedNumberOptions(this);
+    removeUnsupportedNumberOptions(this, dialect);
   }
 }
 
@@ -210,10 +230,6 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 export class JSON extends BaseTypes.JSON {
   // TODO: add constraint
   //  https://learn.microsoft.com/en-us/sql/t-sql/functions/isjson-transact-sql?view=sql-server-ver16
-
-  sanitize(value: unknown): unknown {
-    return super.sanitize(value);
-  }
 
   toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
@@ -225,7 +241,11 @@ export class JSON extends BaseTypes.JSON {
       throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
     }
 
-    return globalThis.JSON.parse(value);
+    try {
+      return globalThis.JSON.parse(value);
+    } catch (error) {
+      throw new Error(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+    }
   }
 
   toSql() {

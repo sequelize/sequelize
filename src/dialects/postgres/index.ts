@@ -70,6 +70,7 @@ export class PostgresDialect extends AbstractDialect {
   readonly queryGenerator: PostgresQueryGenerator;
   readonly queryInterface: PostgresQueryInterface;
   readonly Query = PostgresQuery;
+  readonly dataTypesDocumentationUrl = 'https://www.postgresql.org/docs/current/datatype.html';
 
   // minimum supported version
   readonly defaultVersion = '9.5.0';

@@ -2,6 +2,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
 import type { Dialect, Sequelize } from '../../sequelize.js';
+import { logger } from '../../utils/logger.js';
 import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
@@ -333,6 +334,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
+  abstract readonly dataTypesDocumentationUrl: string;
 
   readonly name: Dialect;
   readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
@@ -401,6 +403,17 @@ export abstract class AbstractDialect {
     }
 
     return this.#dataTypeOverrides.get(typeId) ?? null;
+  }
+
+  #printedWarnings = new Set<string>();
+  warnDataTypeIssue(text: string): void {
+    // TODO: log this to sequelize's log option instead (requires a logger with multiple log levels first)
+    if (this.#printedWarnings.has(text)) {
+      return;
+    }
+
+    this.#printedWarnings.add(text);
+    logger.warn(`${text} \n>> Check: ${this.dataTypesDocumentationUrl}`);
   }
 
   abstract createBindCollector(): BindCollector;

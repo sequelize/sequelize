@@ -10,52 +10,50 @@ import type {
   ToSqlOptions,
   AcceptedDate,
 } from '../abstract/data-types';
-import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
 
-const warn = createDataTypesWarn('https://www.postgresql.org/docs/current/datatype.html');
-
 /**
  * Removes unsupported Postgres options, UNSIGNED and ZEROFILL, for the integer data types.
  *
  * @param dataType The base integer data type.
+ * @param dialect
  * @private
  */
-function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType) {
+function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
   if (
     dataType.options.unsigned
     || dataType.options.zerofill
   ) {
-    warn(`PostgresSQL does not support '${dataType.constructor.name}' with UNSIGNED or ZEROFILL. These options are ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with UNSIGNED or ZEROFILL. These options are ignored.`);
 
     delete dataType.options.unsigned;
     delete dataType.options.zerofill;
   }
 }
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.INTEGER) {
-  removeUnsupportedNumberOptions(dataType);
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.INTEGER, dialect: AbstractDialect) {
+  removeUnsupportedNumberOptions(dataType, dialect);
 
   if (
     dataType.options.length != null
   ) {
-    warn(`PostgresSQL does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
 
     delete dataType.options.length;
   }
 }
 
-function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType) {
-  removeUnsupportedNumberOptions(dataType);
+function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
+  removeUnsupportedNumberOptions(dataType, dialect);
 
   if (
     dataType.options.scale != null
     || dataType.options.precision != null
   ) {
-    warn(`PostgresSQL does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with scale or precision specified. These options are ignored.`);
 
     delete dataType.options.scale;
     delete dataType.options.precision;
@@ -100,7 +98,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 export class DECIMAL extends BaseTypes.DECIMAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this);
+    removeUnsupportedNumberOptions(this, dialect);
   }
 }
 
@@ -109,7 +107,7 @@ export class STRING extends BaseTypes.STRING {
     super._checkOptionSupport(dialect);
 
     if (this.options.length && this.options.binary) {
-      warn(
+      dialect.warnDataTypeIssue(
         `${dialect.name} does not support specifying a length on binary strings. Use a length validator instead.`,
       );
 
@@ -131,8 +129,8 @@ export class TEXT extends BaseTypes.TEXT {
     super._checkOptionSupport(dialect);
 
     if (this.options.length) {
-      warn(
-        `${dialect.name} does not support TEXT with options. Plain \`TEXT\` will be used instead.`,
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support TEXT with options. Plain TEXT will be used instead.`,
       );
 
       this.options.length = undefined;
@@ -205,21 +203,21 @@ export class DATE extends BaseTypes.DATE {
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this);
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
@@ -229,21 +227,21 @@ export class BIGINT extends BaseTypes.BIGINT {
 export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this);
+    removeUnsupportedFloatOptions(this, dialect);
   }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this);
+    removeUnsupportedFloatOptions(this, dialect);
   }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this);
+    removeUnsupportedFloatOptions(this, dialect);
   }
 
   protected getNumberSqlTypeName(): string {
@@ -257,8 +255,8 @@ export class BLOB extends BaseTypes.BLOB {
     super._checkOptionSupport(dialect);
 
     if (this.options.length) {
-      warn(
-        'PostgreSQL does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.',
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support BLOB (BYTEA) with options. Plain BYTEA will be used instead.`,
       );
       this.options.length = undefined;
     }
