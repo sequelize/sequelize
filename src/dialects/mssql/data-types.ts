@@ -1,4 +1,5 @@
 import NodeUtil from 'node:util';
+import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
@@ -236,6 +237,11 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   // TODO: add constraint
 
   toSql() {
-    return 'NVARCHAR(MAX)';
+    const minLength = maxBy(this.options.values, value => value.length)?.length ?? 0;
+
+    // mssql does not have an ENUM type, we use NVARCHAR instead.
+    // It is not possible to create an index on NVARCHAR(MAX), so we use 255 which should be plenty for everyone
+    // but just in case, we also increase the length if the longest value is longer than 255 characters
+    return `NVARCHAR(${Math.max(minLength, 255)})`;
   }
 }
