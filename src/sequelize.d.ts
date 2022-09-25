@@ -421,6 +421,15 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+
+  /**
+   * SQLite only. If set to false, foreign keys will not be enforced by SQLite.
+   *
+   * @default true
+   */
+  // TODO: move to dialectOptions, rename to noForeignKeyEnforcement, and add integration tests with
+  //  query-interface methods that temporarily disable foreign keys.
+  foreignKeys?: boolean;
 }
 
 export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone'> {

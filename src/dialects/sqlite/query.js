@@ -7,7 +7,6 @@ const Utils = require('../../utils');
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
-// const parserStore = require('../parser-store')('sqlite');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
@@ -129,9 +128,7 @@ export class SqliteQuery extends AbstractQuery {
             });
           }
 
-          return Object.prototype.hasOwnProperty.call(tableTypes, name)
-            ? this.applyParsers(tableTypes[name], value)
-            : value;
+          return value;
         });
       });
 
@@ -228,9 +225,14 @@ export class SqliteQuery extends AbstractQuery {
 
     return new Promise((resolve, reject) => {
       conn.serialize(async () => {
+        // TODO: remove sql type based parsing for SQLite.
+        //  It is extremely inefficient (requires a series of DESCRIBE TABLE query, which slows down all queries).
+        //  and is very unreliable.
+        //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
         const columnTypes = {};
         const errForStack = new Error();
         const executeSql = () => {
+          // TODO: remove this check. A query could start with a comment:
           if (sql.startsWith('-- ')) {
             return resolve();
           }
@@ -244,8 +246,6 @@ export class SqliteQuery extends AbstractQuery {
               // `this` is passed from sqlite, we have no control over this.
 
               resolve(query._handleQueryResponse(this, columnTypes, executionError, results, errForStack.stack));
-
-              return;
             } catch (error) {
               reject(error);
             }
@@ -356,23 +356,6 @@ export class SqliteQuery extends AbstractQuery {
     });
 
     return constraints;
-  }
-
-  applyParsers(type, value) {
-    if (type.includes('(')) {
-      // Remove the length part
-      type = type.slice(0, Math.max(0, type.indexOf('(')));
-    }
-
-    type = type.replace('UNSIGNED', '').replace('ZEROFILL', '');
-    type = type.trim().toUpperCase();
-    const parse = parserStore.get(type);
-
-    if (value !== null && parse) {
-      return parse(value, { timezone: this.sequelize.options.timezone });
-    }
-
-    return value;
   }
 
   formatError(err, errStack) {

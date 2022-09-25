@@ -29,6 +29,11 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
    * interpret it as an unconstrained numeric.
    */
   unconstrained: boolean;
+
+  /**
+   * Whether this dialect supports constrained numeric/decimal columns. i.e. columns where numeric values of any length can be stored.
+   */
+  constrained: boolean;
 }
 
 export type DialectSupports = {
@@ -127,7 +132,7 @@ export type DialectSupports = {
     unique: boolean,
   },
   dataTypes: {
-    CHAR: {
+    CHAR: false | {
       /**
        * Whether this dialect provides a valid substitute for CHAR BINARY.
        * CHAR BINARY *must* be blank padded with whitespace.
@@ -291,7 +296,7 @@ export abstract class AbstractDialect {
       FLOAT: { NaN: false, infinity: false, unsigned: false, zerofill: false },
       REAL: { NaN: false, infinity: false, unsigned: false, zerofill: false },
       DOUBLE: { NaN: false, infinity: false, unsigned: false, zerofill: false },
-      DECIMAL: { unconstrained: false, NaN: false, infinity: false, unsigned: false, zerofill: false },
+      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, unsigned: false, zerofill: false },
       CIDR: false,
       MACADDR: false,
       INET: false,

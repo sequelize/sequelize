@@ -31,6 +31,7 @@ enum TestEnum {
 describe('DataTypes', () => {
   disableDatabaseResetForSuite();
 
+  // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
   describe('STRING(<length>)', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -53,11 +54,14 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'stringAttr', '1235', '1235');
     });
 
-    it('throws if the string is too long', async () => {
-      await expect(vars.User.create({
-        stringAttr: '123456',
-      })).to.be.rejected;
-    });
+    // TODO: add length check constraint in sqlite
+    if (dialect.name !== 'sqlite') {
+      it('throws if the string is too long', async () => {
+        await expect(vars.User.create({
+          stringAttr: '123456',
+        })).to.be.rejected;
+      });
+    }
 
     it('rejects non-string values', async () => {
       await expect(vars.User.create({
@@ -165,13 +169,14 @@ describe('DataTypes', () => {
         return { User };
       });
 
-      // We want to have this, but is 'length' the number of bytes or the number of characters?
-      // More research needed.
-      it('throws if the string is too long', async () => {
-        await expect(vars.User.create({
-          binaryStringAttr: '123456',
-        })).to.be.rejected;
-      });
+      // TODO: add length check constraint in sqlite
+      if (dialect.name !== 'sqlite') {
+        it('throws if the string is too long', async () => {
+          await expect(vars.User.create({
+            binaryStringAttr: '123456',
+          })).to.be.rejected;
+        });
+      }
     }
   });
 
@@ -243,6 +248,18 @@ describe('DataTypes', () => {
   });
 
   describe('CHAR(<length>)', () => {
+    if (!dialect.supports.dataTypes.CHAR) {
+      it('throws, because this dialect does not support CHAR', async () => {
+        expect(() => {
+          sequelize.define('CrashedModel', {
+            attr: DataTypes.CHAR,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
+      });
+
+      return;
+    }
+
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare charAttr: string;
@@ -288,6 +305,18 @@ describe('DataTypes', () => {
   });
 
   describe('CHAR(<length>).BINARY', () => {
+    if (!dialect.supports.dataTypes.CHAR) {
+      it('throws, because this dialect does not support CHAR', async () => {
+        expect(() => {
+          sequelize.define('CrashedModel', {
+            attr: DataTypes.CHAR,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
+      });
+
+      return;
+    }
+
     if (!dialect.supports.dataTypes.CHAR.BINARY) {
       it('throws if CHAR.BINARY is used', () => {
         expect(() => {
@@ -471,7 +500,7 @@ describe('DataTypes', () => {
           type: DataTypes.BOOLEAN,
           allowNull: false,
         },
-      }, { sequelize });
+      }, { sequelize, underscored: true });
 
       await User.sync({ force: true });
 
@@ -511,8 +540,9 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
-    if (dialect.name === 'mysql') {
+    if (dialect.name === 'mysql' || dialect.name === 'sqlite') {
       // MySQL uses TINYINT(1). We can't know if the value is a boolean if the DataType is not specified.
+      // SQLite: sqlite3 does not tell us which type a column is, so we can't know if the value is a boolean.
       it('is deserialized as a number when DataType is not specified', async () => {
         await testSimpleInOutRaw(vars.User, 'booleanAttr', true, 1);
         await testSimpleInOutRaw(vars.User, 'booleanAttr', false, 0);
@@ -586,10 +616,13 @@ describe('DataTypes', () => {
           await testSimpleInOut(vars.User, 'intAttr', minIntValueSigned[intTypeName], minIntValueSigned[intTypeName]);
         });
 
-        it('rejects out-of-range numbers', async () => {
-          await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
-          await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
-        });
+        // in sqlite3, all numeric types are bigints
+        if (dialect.name !== 'sqlite') {
+          it('rejects out-of-range numbers', async () => {
+            await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
+            await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
+          });
+        }
 
         it('rejects non-integer numbers', async () => {
           await expect(vars.User.create({ intAttr: 123.4 })).to.be.rejected;
@@ -674,12 +707,17 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_992n, '9007199254740992');
     });
 
-    it('does not lose precision', async () => {
-      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_993n, '9007199254740993');
-      await testSimpleInOut(vars.User, 'bigintAttr', -9_007_199_254_740_993n, '-9007199254740993');
-      await testSimpleInOut(vars.User, 'bigintAttr', '9007199254740993', '9007199254740993');
-      await testSimpleInOut(vars.User, 'bigintAttr', '-9007199254740993', '-9007199254740993');
-    });
+    // sqlite3 loses precision for bigints because it parses them as JS numbers.
+    // issue: https://github.com/TryGhost/node-sqlite3/issues/922
+    // better-sqlite3 supports it: https://github.com/sequelize/sequelize/issues/11400
+    if (dialect.name !== 'sqlite') {
+      it('does not lose precision', async () => {
+        await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_993n, '9007199254740993');
+        await testSimpleInOut(vars.User, 'bigintAttr', -9_007_199_254_740_993n, '-9007199254740993');
+        await testSimpleInOut(vars.User, 'bigintAttr', '9007199254740993', '9007199254740993');
+        await testSimpleInOut(vars.User, 'bigintAttr', '-9007199254740993', '-9007199254740993');
+      });
+    }
 
     it('rejects unsafe integers', async () => {
       await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
@@ -901,6 +939,7 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'decimalAttr', 123.4, dialect.name === 'mssql' ? '123.4' : '123.40');
       await testSimpleInOut(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', dialect.name === 'mssql' ? '123.4' : '123.40');
+      await testSimpleInOut(vars.User, 'decimalAttr', '123.451', '123.45');
     });
 
     if (dialect.supports.dataTypes.DECIMAL.NaN) {
@@ -1137,8 +1176,18 @@ describe('DataTypes', () => {
     });
 
     it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.000' : '04:05:06');
-      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.120' : '04:05:06.12');
+      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456',
+        dialect.name === 'mssql' ? '04:05:06.000'
+          // sqlite3 does not support restricting the precision of TIME
+          : dialect.name === 'sqlite' ? '04:05:06.123456'
+          : '04:05:06');
+
+      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
+        dialect.name === 'mssql' ? '04:05:06.120'
+          // sqlite3 does not support restricting the precision of TIME
+          : dialect.name === 'sqlite' ? '04:05:06.123456'
+          : '04:05:06.12');
+
       // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
       //  https://github.com/tediousjs/tedious/issues/678
       await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456');
@@ -1350,13 +1399,15 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'jsonNull', null, null);
       });
 
-      // These dialects do not have a JSON type, so we can't parse it if our DataType is not specified.
-      if (dialect.name === 'mssql') {
+      if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
+        // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
+        // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
         it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
           await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
           await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');
           await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, 'false');
-          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
+          // node-sqlite3 quirk: it returns this value as a JS number for some reason.
+          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, dialect.name === 'sqlite' ? 123.4 : '123.4');
           await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
           await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
           // this isn't the JSON null value, but a SQL null value
