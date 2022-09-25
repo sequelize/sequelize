@@ -1350,15 +1350,29 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'jsonNull', null, null);
       });
 
-      it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
-        await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', 'abc');
-        await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, true);
-        await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, false);
-        await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, 123.4);
-        await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], [1, 2]);
-        await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
-        await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
-      });
+      // These dialects do not have a JSON type, so we can't parse it if our DataType is not specified.
+      if (dialect.name === 'mssql') {
+        it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
+          await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
+          await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');
+          await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, 'false');
+          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
+          await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
+          await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
+          // this isn't the JSON null value, but a SQL null value
+          await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+        });
+      } else {
+        it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
+          await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', 'abc');
+          await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, true);
+          await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, false);
+          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, 123.4);
+          await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], [1, 2]);
+          await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+          await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+        });
+      }
     });
   }
 
@@ -1398,7 +1412,7 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'attr', hash, hash);
     });
 
-    it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
+    it(`is deserialized as a parsed record when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'attr', hash, hash);
     });
 
@@ -1618,7 +1632,7 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
   model: ModelStatic<M>,
   attributeName: Key,
   inVal: CreationAttributes<M>[Key],
-  outVal: CreationAttributes<M>[Key],
+  outVal: unknown,
   message?: string,
 ): Promise<void> {
   // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
