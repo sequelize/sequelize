@@ -225,7 +225,7 @@ export class AbstractQuery {
         checkExisting: this.options.hasMultiAssociation,
       });
 
-      result = this.model.bulkBuild(this.#parseDataArrayByType(results, this.model, this.options.includeMap), {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         include: this.options.include,
         includeNames: this.options.includeNames,
@@ -237,7 +237,7 @@ export class AbstractQuery {
       });
     // Regular queries
     } else {
-      result = this.model.bulkBuild(this.#parseDataArrayByType(results, this.model, this.options.includeMap), {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         raw: true,
         comesFromDatabase: true,
@@ -262,22 +262,22 @@ export class AbstractQuery {
    * @param {Model} model The model these values belong to
    * @param {object} includeMap The list of included associations
    */
-  #parseDataArrayByType(valueArrays, model, includeMap) {
+  _parseDataArrayByType(valueArrays, model, includeMap) {
     for (const values of valueArrays) {
-      this.#parseDataByType(values, model, includeMap);
+      this._parseDataByType(values, model, includeMap);
     }
 
     return valueArrays;
   }
 
-  #parseDataByType(values, model, includeMap) {
+  _parseDataByType(values, model, includeMap) {
     for (const key of Object.keys(values)) {
       // parse association values
       if (includeMap?.[key]) {
         if (Array.isArray(values[key])) {
-          values[key] = this.#parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+          values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
         } else {
-          values[key] = this.#parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+          values[key] = this._parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
         }
 
         continue;

@@ -455,36 +455,35 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   handleInsertQuery(results, metaData) {
-    if (this.instance) {
-      // add the inserted row id to the instance
-      const autoIncrementAttribute = this.model.autoIncrementAttribute;
-      let id = null;
-      let autoIncrementAttributeAlias = null;
+    if (!this.instance) {
+      return;
+    }
 
-      if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
-        && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
-        autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
-      }
+    results = this._parseDataArrayByType(results, this.model, this.options.includeMap);
 
-      id = id || results && results[0][this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementAttribute];
-      id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
+    const autoIncrementAttribute = this.model.autoIncrementAttribute;
+    let id = null;
+    let autoIncrementAttributeAlias = null;
+    if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
+      && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
+      autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
+    }
 
-      this.instance[autoIncrementAttribute] = id;
+    id = id || results && results[0][this.getInsertIdField()];
+    id = id || metaData && metaData[this.getInsertIdField()];
+    id = id || results && results[0][autoIncrementAttribute];
+    id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
+    this.instance[autoIncrementAttribute] = id;
+    if (this.instance.dataValues) {
+      for (const key in results[0]) {
+        if (Object.prototype.hasOwnProperty.call(results[0], key)) {
+          const record = results[0][key];
 
-      if (this.instance.dataValues) {
-        for (const key in results[0]) {
-          if (Object.prototype.hasOwnProperty.call(results[0], key)) {
-            const record = results[0][key];
+          const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
-
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
-          }
+          this.instance.dataValues[attr && attr.fieldName || key] = record;
         }
       }
-
     }
   }
 }

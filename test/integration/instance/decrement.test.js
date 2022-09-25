@@ -167,10 +167,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await User.sync({ force: true });
       const user = await User.create({ aNumber: 1 });
       const oldDate = user.updatedAt;
+      expect(oldDate).to.be.instanceOf(Date);
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1 });
 
-      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      const reloadedUser = await User.findByPk(1);
+      expect(reloadedUser.updatedAt).to.be.instanceOf(Date);
+      await expect(reloadedUser.updatedAt).to.be.afterTime(oldDate);
     });
 
     it('with timestamps set to true and options.silent set to true', async function () {
