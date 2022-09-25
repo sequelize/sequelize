@@ -27,9 +27,13 @@ describe('model', () => {
 
     it('should tell me that a column is json', async function () {
       const table = await this.sequelize.queryInterface.describeTable('Users');
-      // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-      if (dialectName !== 'mariadb') {
-        expect(table.emergency_contact.type).to.equal('JSON');
+      switch (dialectName) {
+        case 'mssql':
+          expect(table.emergency_contact.type).to.equal('NVARCHAR(MAX)');
+          break;
+        default:
+          expect(table.emergency_contact.type).to.equal('JSON');
+          // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
       }
     });
 
@@ -44,6 +48,8 @@ describe('model', () => {
             expect(sql).to.include('?');
           } else if (dialectName === 'sqlite') {
             expect(sql).to.include('$sequelize_1');
+          } else if (dialectName === 'mssql') {
+            expect(sql).to.include('@sequelize_1');
           } else {
             expect(sql).to.include('$1');
           }
@@ -83,9 +89,10 @@ describe('model', () => {
       const emergencyContact = { name: 'kate', phone: 1337 };
 
       const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
-      expect(user0.emergency_contact).to.eql(emergencyContact);
-      const user = await this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
-      expect(user.emergency_contact).to.eql(emergencyContact);
+      expect(user0.emergency_contact).to.deep.eq(emergencyContact);
+
+      const user1 = await this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+      expect(user1.emergency_contact).to.deep.eq(emergencyContact);
     });
 
     // TODO: enable on all dialects
