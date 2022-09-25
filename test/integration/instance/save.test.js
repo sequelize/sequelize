@@ -469,7 +469,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       try {
         await this.User.create({ aNumber: 0, validateTest: 'hello' });
       } catch (error) {
-        console.log(error);
         expect(error).to.exist;
         expect(error).to.be.instanceof(ValidationError);
         expect(error.get('validateTest')).to.be.instanceof(Array);

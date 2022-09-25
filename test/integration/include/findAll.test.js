@@ -2147,8 +2147,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await user.setCustomers([customer1]);
-      await user.setCustomers([customer2], { logging: console.log });
-      const users = await User.findAll({ include: Customer, logging: console.log });
+      await user.setCustomers([customer2]);
+      const users = await User.findAll({ include: Customer });
 
       expect(users).to.be.an('array');
       expect(users).to.be.lengthOf(1);

@@ -379,7 +379,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               model: this.EmployeeOne,
               as: 'employees',
             }],
-            logging: console.log,
           });
 
           expect(obj0).to.not.be.null;
