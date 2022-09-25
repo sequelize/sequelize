@@ -251,3 +251,7 @@ export function getColumnName(attribute: BuiltModelAttributeColumOptions): strin
   // if no alias is set, fieldName (the JS name) will be used instead.
   return attribute.field || attribute.fieldName;
 }
+
+export function getAttributeName(model: ModelStatic, columnName: string): string | null {
+  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
+}

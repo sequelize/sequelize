@@ -1,5 +1,7 @@
 'use strict';
 
+import { getAttributeName } from '../../utils';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -454,36 +456,37 @@ export class MsSqlQuery extends AbstractQuery {
     }));
   }
 
-  handleInsertQuery(results, metaData) {
-    if (!this.instance) {
+  handleInsertQuery(insertedRows, metaData) {
+    if (!this.instance?.dataValues) {
       return;
     }
 
-    results = this._parseDataArrayByType(results, this.model, this.options.includeMap);
+    // map column names to attribute names
+    insertedRows = insertedRows.map(row => {
+      const attributes = Object.create(null);
 
-    const autoIncrementAttribute = this.model.autoIncrementAttribute;
-    let id = null;
-    let autoIncrementAttributeAlias = null;
-    if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
-      && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
-      autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
-    }
+      for (const columnName of Object.keys(row)) {
+        const attributeName = getAttributeName(this.model, columnName) ?? columnName;
 
-    id = id || results && results[0][this.getInsertIdField()];
-    id = id || metaData && metaData[this.getInsertIdField()];
-    id = id || results && results[0][autoIncrementAttribute];
-    id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
-    this.instance[autoIncrementAttribute] = id;
-    if (this.instance.dataValues) {
-      for (const key in results[0]) {
-        if (Object.prototype.hasOwnProperty.call(results[0], key)) {
-          const record = results[0][key];
-
-          const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
-
-          this.instance.dataValues[attr && attr.fieldName || key] = record;
-        }
+        attributes[attributeName] = row[columnName];
       }
+
+      return attributes;
+    });
+
+    insertedRows = this._parseDataArrayByType(insertedRows, this.model, this.options.includeMap);
+
+    const autoIncrementAttributeName = this.model.autoIncrementAttribute;
+    let id = null;
+
+    id = id || insertedRows && insertedRows[0][this.getInsertIdField()];
+    id = id || metaData && metaData[this.getInsertIdField()];
+    id = id || insertedRows && insertedRows[0][autoIncrementAttributeName];
+
+    // assign values to existing instance
+    this.instance[autoIncrementAttributeName] = id;
+    for (const attributeName of Object.keys(insertedRows[0])) {
+      this.instance.dataValues[attributeName] = insertedRows[0][attributeName];
     }
   }
 }
