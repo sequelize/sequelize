@@ -1,3 +1,4 @@
+import NodeUtil from 'node:util';
 import type { Falsy } from '../../generic/falsy.js';
 import { createDataTypesWarn } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
@@ -215,6 +216,15 @@ export class JSON extends BaseTypes.JSON {
 
   toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    if (typeof value !== 'string') {
+      // eslint-disable-next-line unicorn/prefer-type-error
+      throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+    }
+
+    return globalThis.JSON.parse(value);
   }
 
   toSql() {
