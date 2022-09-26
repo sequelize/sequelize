@@ -306,10 +306,6 @@ describe(getTestDialectTeaser('SQL'), () => {
         })),
       }), {
         default: '[yolo].[User].[id] = 1',
-
-        // TODO: mysql, sqlite - this does not sound right.
-        //  this should be '`yolo`.`User`.`id` = 1'
-        mysql: '`yolo.User`.`id` = 1',
         sqlite: '`yolo.User`.`id` = 1',
       });
     });

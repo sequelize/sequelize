@@ -22,6 +22,15 @@ const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
 /**
+ * List of possible options listed in {@link CreateDatabaseQueryOptions}.
+ * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
+ * as not all of them are supported by all dialects.
+ */
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
+export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
+
+/**
  * Abstract Query Generator
  *
  * @private
@@ -45,6 +54,30 @@ export class AbstractQueryGenerator {
 
     // wrap quoteIdentifier with common logic
     this._initQuoteIdentifier();
+  }
+
+  createDatabaseQuery() {
+    if (this._dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect} declares supporting databases but createDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
+  }
+
+  dropDatabaseQuery() {
+    if (this._dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect} declares supporting databases but dropDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
+  }
+
+  listDatabasesQuery() {
+    if (this._dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect} declares supporting databases but listDatabasesQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect}.`);
   }
 
   extractTableDetails(tableName, options) {
@@ -78,8 +111,28 @@ export class AbstractQueryGenerator {
     };
   }
 
-  dropSchema(tableName, options) {
-    return this.dropTableQuery(tableName, options);
+  createSchemaQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but createSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  dropSchemaQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but dropSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+  }
+
+  listSchemasQuery() {
+    if (this._dialect.supports.schemas) {
+      throw new Error(`${this.dialect} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect}.`);
   }
 
   describeTableQuery(tableName, schema, schemaDelimiter) {
@@ -2153,7 +2206,21 @@ export class AbstractQueryGenerator {
           const field = model.rawAttributes[order[0]]?.field || order[0];
           const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
 
-          subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->', options));
+          let parent = null;
+          let orderToQuote = [];
+
+          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+          if (subQueryAlias === null) {
+            orderToQuote = order;
+            parent = model;
+          } else {
+            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+            parent = null;
+          }
+
+          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
         }
 
         // Handle case where renamed attributes are used to order by,
