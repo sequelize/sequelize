@@ -106,10 +106,10 @@ export class MySqlQuery extends AbstractQuery {
           && this.model.autoIncrementAttribute === this.model.primaryKeyAttribute
           && this.model.rawAttributes[this.model.primaryKeyAttribute]
         ) {
-          const startId = data[this.getInsertIdField()];
+          const startId = BigInt(data[this.getInsertIdField()]);
           result = [];
-          for (let i = startId; i < startId + data.affectedRows; i++) {
-            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i });
+          for (let i = startId; i < startId + BigInt(data.affectedRows); i = i + 1) {
+            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i > Number.MAX_SAFE_INTEGER ? i.toString() : Number(i) });
           }
         } else {
           result = data[this.getInsertIdField()];
