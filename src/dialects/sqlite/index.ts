@@ -33,9 +33,10 @@ export class SqliteDialect extends AbstractDialect {
     groupedLimit: false,
     dataTypes: {
       CHAR: false,
+      CITEXT: true,
       TINYINT: { unsigned: false, zerofill: false, signed: true },
       MEDIUMINT: { unsigned: false, zerofill: false },
-      DECIMAL: { constrained: false, unconstrained: true },
+      DECIMAL: { constrained: false, unconstrained: true, NaN: false },
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
     jsonOperations: false,
@@ -45,8 +46,8 @@ export class SqliteDialect extends AbstractDialect {
   readonly defaultVersion = '3.8.0';
   readonly Query = SqliteQuery;
   readonly TICK_CHAR = '`';
-  readonly TICK_CHAR_LEFT = SqliteDialect.prototype.TICK_CHAR;
-  readonly TICK_CHAR_RIGHT = SqliteDialect.prototype.TICK_CHAR;
+  readonly TICK_CHAR_LEFT = '`';
+  readonly TICK_CHAR_RIGHT = '`';
   readonly connectionManager: SqliteConnectionManager;
   readonly queryGenerator: SqliteQueryGenerator;
   readonly queryInterface: SqliteQueryInterface;

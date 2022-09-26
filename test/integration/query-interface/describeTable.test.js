@@ -81,6 +81,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'sqlite':
+          assertVal = 'TEXT';
+          break;
         case 'ibmi':
         case 'db2':
           assertVal = 'VARCHAR';
@@ -108,6 +111,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       switch (dialect) {
         case 'postgres':
         case 'db2':
+        case 'sqlite':
           assertVal = 'BOOLEAN';
           break;
         case 'mssql':

@@ -371,7 +371,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true,
           },
           name: {
-            type: DataTypes.CHAR,
+            type: DataTypes.STRING,
             allowNull: false,
           },
         });
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         await this.queryInterface.changeColumn('users', 'name', {
-          type: DataTypes.CHAR,
+          type: DataTypes.STRING,
           allowNull: false,
         });
 
@@ -432,7 +432,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true,
           },
           name: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: true,
           },
           level_id: {
@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true,
           },
           name: {
-            type: DataTypes.CHAR,
+            type: DataTypes.STRING,
             allowNull: false,
           },
         });

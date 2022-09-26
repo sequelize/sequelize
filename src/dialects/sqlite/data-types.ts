@@ -18,6 +18,10 @@ function removeUnsupportedIntegerOptions(dataType: BaseNumberDataType, dialect: 
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
+  // Note: the BOOLEAN type is SQLite maps to NUMERIC, but we still use BOOLEAN because introspecting the table
+  // still indicates that the column is a BOOLEAN column - which we may be able to exploit in the future to parse the value
+  // in raw queries where the DataType is not available.
+
   toBindableValue(value: boolean): unknown {
     return value ? '1' : '0';
   }
@@ -84,6 +88,13 @@ export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
+  }
+}
+
+export class DECIMAL extends BaseTypes.DECIMAL {
+  parseDatabaseValue(value: unknown): unknown {
+    // sqlite returns DECIMAL as a JS number (yes that means we lose precision)
+    return String(value);
   }
 }
 

@@ -500,7 +500,7 @@ describe('DataTypes', () => {
           type: DataTypes.BOOLEAN,
           allowNull: false,
         },
-      }, { sequelize, underscored: true });
+      }, { sequelize });
 
       await User.sync({ force: true });
 
@@ -704,7 +704,7 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'bigintAttr', 123n, '123');
       await testSimpleInOut(vars.User, 'bigintAttr', '123', '123');
 
-      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_992n, '9007199254740992');
+      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_991n, '9007199254740991');
     });
 
     // sqlite3 loses precision for bigints because it parses them as JS numbers.
@@ -735,9 +735,18 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
     });
 
-    it('is deserialized as a string when DataType is not specified', async () => {
-      await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
-    });
+    if (dialect.name === 'sqlite') {
+      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
+      // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
+      it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
+        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
+      });
+    } else {
+      // This is the desired behavior
+      it('is deserialized as a string when DataType is not specified', async () => {
+        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+      });
+    }
 
     if (typeSupport && typeSupport.unsigned) {
       describe(`BIGINT.UNSIGNED`, () => {
@@ -896,9 +905,15 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', '123.4');
     });
 
-    it('accepts NaN', async () => {
-      await testSimpleInOut(vars.User, 'decimalAttr', Number.NaN, Number.NaN);
-    });
+    if (dialect.supports.dataTypes.DECIMAL.NaN) {
+      it('accepts NaN', async () => {
+        await testSimpleInOut(vars.User, 'decimalAttr', Number.NaN, Number.NaN);
+      });
+    } else {
+      it('rejects NaN', async () => {
+        await expect(vars.User.create({ decimalAttr: Number.NaN })).to.be.rejected;
+      });
+    }
 
     it('rejects unsafe integers', async () => {
       await expect(vars.User.create({ decimalAttr: 9_007_199_254_740_992 })).to.be.rejected;
@@ -912,12 +927,25 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, '123');
-    });
+    if (dialect.name === 'sqlite') {
+      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
+      // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
+      it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
+        await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, 123);
+      });
+    } else {
+      it(`is deserialized as a string when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, '123');
+      });
+    }
   });
 
   describe('DECIMAL (constrained)', () => {
+    // constrained decimals fallback to unconstrained when unsupported
+    if (!dialect.supports.dataTypes.DECIMAL.constrained) {
+      return;
+    }
+
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare decimalAttr: number | bigint | string;
@@ -1060,7 +1088,10 @@ describe('DataTypes', () => {
         vars.User,
         'dateAttr',
         '2022-01-01T00:00:00Z',
-       dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00' : '2022-01-01 00:00:00+00',
+        dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
+          // sqlite decided to have a weird format that is not ISO 8601 compliant
+          : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
+          : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1094,18 +1125,21 @@ describe('DataTypes', () => {
     });
 
     it('clamps to specified precision', async () => {
-      await testSimpleInOut(vars.User, 'dateMinPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.000Z'));
-      await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
+      // sqlite does not support restricting the precision
+      if (dialect.name !== 'sqlite') {
+        await testSimpleInOut(vars.User, 'dateMinPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.000Z'));
+        await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
+
+        // Date is also used for inserting, so we also lose precision during insert.
+        if (dialect.name === 'mysql') {
+          await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123000+00');
+        } else {
+          await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');
+        }
+      }
 
       // The Date object doesn't go further than milliseconds.
       await testSimpleInOut(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', new Date('2022-01-01T12:13:14.123Z'));
-
-      // Date is also used for inserting, so we also lose precision during insert.
-      if (dialect.name === 'mysql') {
-        await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123000+00');
-      } else {
-        await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');
-      }
     });
   });
 

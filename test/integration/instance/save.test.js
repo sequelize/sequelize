@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User2 = this.sequelize.define('User2',
         {
           id: {
-            type: DataTypes.INTEGER.UNSIGNED,
+            type: DataTypes.INTEGER,
             autoIncrement: false,
             primaryKey: true,
           },

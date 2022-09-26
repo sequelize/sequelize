@@ -54,9 +54,9 @@ describe(getTestDialectTeaser('fn()'), () => {
 
       // These values are returned as strings
       // See https://github.com/sequelize/sequelize/issues/10533#issuecomment-1254141892 for more details
-      expect(airplane.get('count')).to.equal('3');
-      expect(airplane.get('count-engines')).to.equal('1');
-      expect(airplane.get('count-engines-wings')).to.equal('2');
+      expect(airplane.get('count')).to.equal(dialectName === 'sqlite' ? 3 : '3');
+      expect(airplane.get('count-engines')).to.equal(dialectName === 'sqlite' ? 1 : '1');
+      expect(airplane.get('count-engines-wings')).to.equal(dialectName === 'sqlite' ? 2 : '2');
     });
   }
 
@@ -81,9 +81,10 @@ describe(getTestDialectTeaser('fn()'), () => {
 
       // These values are returned as strings
       // See https://github.com/sequelize/sequelize/issues/10533#issuecomment-1254141892 for more details
-      expect(airplane.get('count')).to.equal('3');
-      expect(airplane.get('count-engines')).to.equal('1');
-      expect(airplane.get('count-engines-wings')).to.equal('2');
+      // Except for SQLite, which returns them as JS numbers, which the above issue will unify
+      expect(airplane.get('count')).to.equal(dialectName === 'sqlite' ? 3 : '3');
+      expect(airplane.get('count-engines')).to.equal(dialectName === 'sqlite' ? 1 : '1');
+      expect(airplane.get('count-engines-wings')).to.equal(dialectName === 'sqlite' ? 2 : '2');
     });
   }
 });
