@@ -13,6 +13,8 @@ import { disableDatabaseResetForSuite, beforeAll2, beforeEach2, sequelize } from
 
 // This test suite ensures DataType methods are called at the appropriate time
 
+const dialect = sequelize.dialect;
+
 describe('DataType Methods', () => {
   disableDatabaseResetForSuite();
 
@@ -134,17 +136,22 @@ describe('DataType Methods', () => {
     expect(spies.validate.called).to.eq(false, 'validate should not have been called');
   });
 
-  it(`inserting a model calls 'parseDatabaseValue' on returned values`, async () => {
-    // 'name' attr has a different name in the database
-    const out = await models.User.create({ name: 'foo' });
+  if (dialect.supports.returnValues) {
+    it(`inserting a model calls 'parseDatabaseValue' on returned values`, async () => {
+      // 'name' attr has a different name in the database
+      const out = await models.User.create({ name: 'foo' });
 
-    expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
+      expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
 
-    // sanitize is called when the user input is added to the model
-    expect(spies.sanitize.called).to.eq(true, 'sanitize should have been called');
-    // validate is called before persisting the model
-    expect(spies.validate.called).to.eq(true, 'validate should have been called');
-  });
+      // sanitize is called when the user input is added to the model
+      expect(spies.sanitize.called).to.eq(true, 'sanitize should have been called');
+      // validate is called before persisting the model
+      expect(spies.validate.called).to.eq(true, 'validate should have been called');
+    });
+
+    // !TODO: add upsert test
+    // !TODO: add update test
+  }
 
   it(`does not call 'parseDatabaseValue' on null values`, async () => {
     const user = await models.User.create({ name: null });
