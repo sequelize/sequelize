@@ -2843,5 +2843,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const users1 = await user.findAll();
       expect(users1[0].username).to.equal('jon');
     });
+
+    it('should correctly set identifiers in a column with autoIncrement with bigint values', async function () {
+      const user = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.BIGINT,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        username: DataTypes.STRING,
+      });
+
+      await this.sequelize.sync({ force: true });
+      await user.create({ id: '3415718944570971483', username: 'u1' });
+      const createdUsers = await user.bulkCreate([{ username: 'u2', id: '3415718944570971484' }]);
+      expect(createdUsers[0].id.toString()).to.equal('3415718944570971484');
+      const users1 = await user.findAll({ order: [['id', 'ASC']] });
+      expect(users1[0].username).to.equal('u1');
+      expect(users1[1].username).to.equal('u2');
+      expect(users1[1].id.toString()).to.equal('3415718944570971484');
+    });
   });
 });
