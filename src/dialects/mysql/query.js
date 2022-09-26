@@ -108,7 +108,7 @@ export class MySqlQuery extends AbstractQuery {
         ) {
           const startId = BigInt(data[this.getInsertIdField()]);
           result = [];
-          for (let i = startId; i < startId + BigInt(data.affectedRows); i = i + 1) {
+          for (let i = startId; i < startId + BigInt(data.affectedRows); i = i + 1n) {
             result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i > Number.MAX_SAFE_INTEGER ? i.toString() : Number(i) });
           }
         } else {
