@@ -82,7 +82,7 @@ If you are curious about how Sequelize fundamentally works, we will give you a q
 
 First, navigate to a project with a `package.json` file available.
 
-Next, install the dependencies needed, since we will using SQLite, so we will install `sequelize` and `[sqlite3](https://github.com/TryGhost/node-sqlite3)`.
+Next, install the dependencies needed, since we will using SQLite, so we will install `sequelize` and [sqlite3](https://github.com/TryGhost/node-sqlite3).
 
 ```sh
 npm install sequelize sqlite3
