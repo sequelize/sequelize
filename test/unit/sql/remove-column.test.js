@@ -7,7 +7,7 @@ const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
 
 const customSequelize = Support.createSequelizeInstance({
-  schema: 'custom',
+  schema: 'custom'
 });
 const customSql = customSequelize.dialect.queryGenerator;
 
@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('schema', () => {
         expectsql(sql.removeColumnQuery({
           schema: 'archive',
-          tableName: 'user',
+          tableName: 'user'
         }, 'email'), {
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           db2: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('defaults the schema to the one set in the Sequelize options', () => {
       expectsql(customSql.removeColumnQuery({
-        tableName: 'user',
+        tableName: 'user'
       }, 'email'), {
         mssql: 'ALTER TABLE [user] DROP COLUMN [email];',
         db2: 'ALTER TABLE "user" DROP COLUMN "email";',
