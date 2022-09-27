@@ -113,7 +113,7 @@ In this configuration, we already create a simple configuration. As an example, 
 
 Next, create a new typescript file named `main.js` to test the connection of the database with the configuration made on the configuration file you already created before.
 
-```
+```typescript
 // main.js
 import sequelize from "./database/config.js";
 
@@ -172,7 +172,7 @@ In this model, we set up some attributes with their options, you can also see th
 
 Back to `main.js` and modify your script like below:
 
-```
+```typescript
 // main.js
 import sequelize from "./database/config.js";
 import Todo from "./models/Todo.js";
