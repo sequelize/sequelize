@@ -103,7 +103,7 @@ import { Sequelize } from "sequelize";
 const sequelize = new Sequelize("app", "", "", { // for quick start purpose, we left the username, and password empty.
   storage: "./database.sqlite", // location of the sqlite .sql file.
   dialect: "sqlite", // we will using the sqlite dialect, with the sqlite3 dependency installed.
-  logging: false, // we will keep this false, you can other choose other logging options
+  logging: false, // we will keep this false, you can choose other logging options
 });
 
 export default sequelize;
