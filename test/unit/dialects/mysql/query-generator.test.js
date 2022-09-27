@@ -14,30 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase`;',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS `myDatabase`;',
-        },
-      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
@@ -704,16 +680,15 @@ if (dialect === 'mysql') {
         },
         {
           arguments: [{ tableName: 'User', schema: 'schema' }],
-          // FIXME: this is not the right way to handle schemas in MySQL, it should be `schema`.`User` like MariaDB
-          expectation: 'SHOW INDEX FROM `schema.User`',
+          expectation: 'SHOW INDEX FROM `schema`.`User`',
         },
-        // FIXME: enable this test once fixed
+        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
         // {
         //   sequelizeOptions: {
         //     schema: 'schema',
         //   },
         //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema.User`',
+        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
         // },
         {
           arguments: ['User', { database: 'sequelize' }],

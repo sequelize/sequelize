@@ -1,5 +1,11 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION, LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -34,6 +40,10 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
+
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
@@ -46,17 +56,21 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset, undefined, options)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate, undefined, options)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
@@ -65,12 +79,40 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema() {
-    return 'SHOW TABLES';
+  listDatabasesQuery() {
+    return `SHOW DATABASES;`;
   }
 
-  showSchemasQuery() {
-    return 'SHOW TABLES';
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
+  }
+
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+  }
+
+  listSchemasQuery(options) {
+    if (options) {
+      rejectInvalidOptions(
+        'listSchemasQuery',
+        this.dialect,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+        LIST_SCHEMAS_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `SHOW SCHEMAS;`;
   }
 
   versionQuery() {
@@ -169,6 +211,18 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return Utils.joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
       database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      ';',
+    ]);
+  }
+
+  tableExistsQuery(table) {
+    const tableName = table.tableName ?? table;
+    const schema = table.schema;
+
+    return Utils.joinSQLFragments([
+      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
+      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
+      `AND TABLE_NAME = ${this.escape(tableName)}`,
       ';',
     ]);
   }
