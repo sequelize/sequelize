@@ -2209,7 +2209,21 @@ export class AbstractQueryGenerator {
           const field = model.rawAttributes[order[0]]?.field || order[0];
           const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
 
-          subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->', options));
+          let parent = null;
+          let orderToQuote = [];
+
+          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+          if (subQueryAlias === null) {
+            orderToQuote = order;
+            parent = model;
+          } else {
+            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+            parent = null;
+          }
+
+          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
         }
 
         // Handle case where renamed attributes are used to order by,
