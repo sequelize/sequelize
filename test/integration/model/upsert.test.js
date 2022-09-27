@@ -704,6 +704,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               type: 'UNIQUE',
               fields: ['user_id', 'group_id'],
             });
+
+            // a bug in sqlite prevents model.sync from adding this unique constraint
+            if (current.dialect.name === 'sqlite') {
+              await current.queryInterface.addConstraint('memberships', {
+                type: 'UNIQUE',
+                fields: ['other_id'],
+              });
+            }
           });
 
           it('should insert with no other rows', async () => {
