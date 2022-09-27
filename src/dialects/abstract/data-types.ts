@@ -336,7 +336,13 @@ export interface StringTypeOptions {
 }
 
 /**
- * STRING A variable length string
+ * STRING A variable length string.
+ *
+ * Fallback policy:
+ * - If the 'length' option is not supported by the dialect, a CHECK constraint will be added to ensure
+ * the value remains within the specified length.
+ * - If the 'binary' option is not supported by the dialect, a suitable binary type will be used instead.
+ *   If none is available, an error will be raised instead.
  */
 export class STRING extends AbstractDataType<string | Buffer> {
   static readonly [kDataTypeIdentifier]: string = 'STRING';
@@ -443,6 +449,9 @@ export class STRING extends AbstractDataType<string | Buffer> {
 
 /**
  * CHAR A fixed length string
+ *
+ * Fallback policy:
+ * - If this DataType is not supported, an error will be raised.
  */
 export class CHAR extends STRING {
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
@@ -524,6 +533,9 @@ export class TEXT extends AbstractDataType<string> {
  * An unlimited length case-insensitive text column.
  * Original case is preserved but acts case-insensitive when comparing values (such as when finding or unique constraints).
  * Only available in Postgres and SQLite.
+ *
+ * Fallback policy:
+ * - If this DataType is not supported, and no case-insensitive text alternative exists, an error will be raised.
  */
 export class CITEXT extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'CITEXT';
@@ -677,7 +689,13 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
 }
 
 /**
- * A 32 bit integer
+ * A 32-bit integer.
+ *
+ * Fallback policy:
+ * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
+ *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
  */
 export class INTEGER extends BaseNumberDataType<IntegerOptions> {
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
@@ -744,7 +762,13 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
 }
 
 /**
- * A 8 bit integer
+ * An 8-bit integer.
+ *
+ * Fallback policy:
+ * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a SMALLINT or greater,
+ *   with a CHECK constraint to ensure the value is withing the bounds of an 8-bit integer.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
  */
 export class TINYINT extends INTEGER {
   static readonly [kDataTypeIdentifier]: string = 'TINYINT';
@@ -755,7 +779,13 @@ export class TINYINT extends INTEGER {
 }
 
 /**
- * A 16 bit integer
+ * A 16-bit integer.
+ *
+ * Fallback policy:
+ * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a MEDIUMINT or greater,
+ *   with a CHECK constraint to ensure the value is withing the bounds of an 16-bit integer.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
  */
 export class SMALLINT extends INTEGER {
   static readonly [kDataTypeIdentifier]: string = 'SMALLINT';
@@ -766,7 +796,13 @@ export class SMALLINT extends INTEGER {
 }
 
 /**
- * A 24 bit integer
+ * A 24-bit integer.
+ *
+ * Fallback policy:
+ * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a INTEGER (32 bits) or greater,
+ *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
  */
 export class MEDIUMINT extends INTEGER {
   static readonly [kDataTypeIdentifier]: string = 'MEDIUMINT';
@@ -777,7 +813,12 @@ export class MEDIUMINT extends INTEGER {
 }
 
 /**
- * A 64 bit integer
+ * A 64-bit integer.
+ *
+ * Fallback policy:
+ * - If this type or its unsigned option is unsupported by the dialect, an error will be raised.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
  */
 export class BIGINT extends INTEGER {
   static readonly [kDataTypeIdentifier]: string = 'BIGINT';
@@ -891,6 +932,11 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
 /**
  * A single-floating point number with a 4-byte precision.
  * If single-precision floating-point format is not supported, a double-precision floating-point number may be used instead.
+ *
+ * Fallback Policy:
+ * - If the precision or scale options are unsupported by the dialect, an error will be raised.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
  */
 export class FLOAT extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'FLOAT';
@@ -908,7 +954,7 @@ If neither single precision nor double precision IEEE 754 floating point numbers
  * @deprecated Use {@link FLOAT} instead.
  */
 // TODO (v8): remove this
-export class REAL extends FLOAT {
+export class REAL extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'REAL';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -925,8 +971,13 @@ export class REAL extends FLOAT {
 /**
  * Floating point number (8-byte precision).
  * Throws an error when unsupported, instead of silently falling back to a lower precision.
+ *
+ * Fallback Policy:
+ * - If the precision or scale options are unsupported by the dialect, they will be discarded.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
  */
-export class DOUBLE extends FLOAT {
+export class DOUBLE extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'DOUBLE';
 
   protected getNumberSqlTypeName(): string {
@@ -936,6 +987,12 @@ export class DOUBLE extends FLOAT {
 
 /**
  * Arbitrary/exact precision decimal number.
+ *
+ * Fallback Policy:
+ * - If the precision or scale options are unsupported by the dialect, they will be discarded.
+ * - If the precision or scale options are not specified, and the dialect does not support unconstrained decimals, an error will be raised.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
  */
 export class DECIMAL extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'DECIMAL';
@@ -979,6 +1036,9 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
 /**
  * A boolean / tinyint column, depending on dialect
+ *
+ * Fallback Policy:
+ * - If a native boolean type is not available, a dialect-specific numeric replacement (bit, tinyint) will be used instead.
  */
 export class BOOLEAN extends AbstractDataType<boolean> {
   static readonly [kDataTypeIdentifier]: string = 'BOOLEAN';
@@ -1041,7 +1101,11 @@ export interface TimeOptions {
 }
 
 /**
- * A time column
+ * A time column.
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, it will be replaced by a string type,
+ * and a CHECK constraint to enforce a valid ISO 8601 time format.
  */
 export class TIME extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'TIME';
@@ -1079,6 +1143,10 @@ export type AcceptedDate = RawDate | dayjs.Dayjs | number;
 
 /**
  * A date and time.
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, it will be replaced by a string type,
+ * and a CHECK constraint to enforce a valid ISO 8601 date-only format.
  */
 export class DATE extends AbstractDataType<AcceptedDate> {
   static readonly [kDataTypeIdentifier]: string = 'DATE';
@@ -1173,6 +1241,10 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 
 /**
  * A date only column (no timestamp)
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, it will be replaced by a string type,
+ * and a CHECK constraint to enforce a valid ISO 8601 datetime format.
  */
 export class DATEONLY extends AbstractDataType<AcceptedDate> {
   static readonly [kDataTypeIdentifier]: string = 'DATEONLY';
@@ -1213,6 +1285,9 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 
 /**
  * A key / value store column. Only available in Postgres.
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, an error will be raised.
  */
 export class HSTORE extends AbstractDataType<HstoreRecord> {
   static readonly [kDataTypeIdentifier]: string = 'HSTORE';
@@ -1236,6 +1311,11 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 
 /**
  * A JSON string column.
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, but supports verifying a string as is valid JSON through CHECK constraints,
+ * that will be used instead.
+ * If neither are available, an error will be raised.
  */
 export class JSON extends AbstractDataType<any> {
   static readonly [kDataTypeIdentifier]: string = 'JSON';
@@ -1251,6 +1331,9 @@ export class JSON extends AbstractDataType<any> {
 
 /**
  * A binary storage JSON column. Only available in Postgres.
+ *
+ * Fallback Policy:
+ * If the dialect does not support this type natively, the JSON type will be used instead, following that type's fallback policy.
  */
 export class JSONB extends JSON {
   static readonly [kDataTypeIdentifier]: string = 'JSONB';
@@ -1283,6 +1366,9 @@ export interface BlobOptions {
 
 /**
  * Binary storage. BLOB is the "TEXT" of binary data: it allows data of arbitrary size.
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
 export class BLOB extends AbstractDataType<AcceptedBlob> {
@@ -1357,6 +1443,9 @@ export interface RangeOptions {
 /**
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> extends AbstractDataType<
   Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>
@@ -1456,6 +1545,9 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
 /**
  * A column storing a unique universal identifier.
  * Use with `UUIDV1` or `UUIDV4` for default values.
+ *
+ * Fallback policy:
+ * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
  */
 export class UUID extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'UUID';
@@ -1625,6 +1717,9 @@ export interface EnumOptions<Member extends string> {
  * DataTypes.ENUM({
  *   values: ['value', 'another value']
  * });
+ *
+ * Fallback policy:
+ * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a list of values.
  */
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   static readonly [kDataTypeIdentifier]: string = 'ENUM';
@@ -1701,6 +1796,9 @@ interface NormalizedArrayOptions {
 
 /**
  * An array of `type`. Only available in Postgres.
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  *
  * @example
  * DataTypes.ARRAY(DataTypes.DECIMAL)
@@ -1806,6 +1904,9 @@ export interface GeometryOptions {
  *
  * Therefore, one can just follow the [GeoJSON spec](https://tools.ietf.org/html/rfc7946) for handling geometry objects.  See the following examples:
  *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
+ *
  * @example <caption>Defining a Geometry type attribute</caption>
  * DataTypes.GEOMETRY
  * DataTypes.GEOMETRY('POINT')
@@ -1904,6 +2005,9 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
  * Although the new geography data type can cover the globe, the geometry type is far from obsolete.
  * The geometry type has a much richer set of functions than geography, relationship checks are generally faster, and it has wider support currently across desktop and web-mapping tools
  *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
+ *
  * @example <caption>Defining a Geography type attribute</caption>
  * DataTypes.GEOGRAPHY
  * DataTypes.GEOGRAPHY('POINT')
@@ -1921,6 +2025,9 @@ export class GEOGRAPHY extends GEOMETRY {
  * The cidr type holds an IPv4 or IPv6 network specification. Takes 7 or 19 bytes.
  *
  * Only available for Postgres
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 export class CIDR extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'CIDR';
@@ -1942,6 +2049,9 @@ export class CIDR extends AbstractDataType<string> {
  * The INET type holds an IPv4 or IPv6 host address, and optionally its subnet. Takes 7 or 19 bytes
  *
  * Only available for Postgres
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 export class INET extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'INET';
@@ -1962,6 +2072,9 @@ export class INET extends AbstractDataType<string> {
  * The MACADDR type stores MAC addresses. Takes 6 bytes
  *
  * Only available for Postgres
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 export class MACADDR extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'MACADDR';
@@ -1983,6 +2096,9 @@ export class MACADDR extends AbstractDataType<string> {
  * The TSVECTOR type stores text search vectors.
  *
  * Only available for Postgres
+ *
+ * Fallback policy:
+ * If this type is not supported, an error will be raised.
  */
 export class TSVECTOR extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'TSVECTOR';
