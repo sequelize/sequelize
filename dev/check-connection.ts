@@ -1,6 +1,6 @@
-import { createSequelizeInstance } from '../test/support';
+import Support from '../test/support';
 
-const sequelize = createSequelizeInstance();
+const sequelize = Support.createSequelizeInstance();
 
 (async () => {
   await sequelize.authenticate();
