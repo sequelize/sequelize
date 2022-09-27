@@ -353,6 +353,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - uses: actions/download-artifact@v3
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-oracle-${{ matrix.postgres-version }}
