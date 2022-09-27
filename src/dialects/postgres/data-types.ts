@@ -2,7 +2,6 @@ import assert from 'assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isString } from '../../utils/index.js';
-import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
   StringifyOptions,
@@ -10,6 +9,8 @@ import type {
   ToSqlOptions,
   AcceptedDate,
 } from '../abstract/data-types';
+import * as BaseTypes from '../abstract/data-types';
+import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
@@ -23,23 +24,16 @@ import * as RangeParser from './range';
  * @private
  */
 function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
-  if (
-    dataType.options.unsigned
-    || dataType.options.zerofill
-  ) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with UNSIGNED or ZEROFILL. These options are ignored.`);
-
-    delete dataType.options.unsigned;
-    delete dataType.options.zerofill;
+  if (dataType.options.zerofill) {
+    throw new Error(`${dialect.name} does not support ${dataType.getDataTypeId()} with ZEROFILL.`);
   }
 }
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.INTEGER, dialect: AbstractDialect) {
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
   removeUnsupportedNumberOptions(dataType, dialect);
 
-  if (
-    dataType.options.length != null
-  ) {
+  if (dataType.options.length != null) {
+    // this option only makes sense for zerofill
     dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
 
     delete dataType.options.length;
@@ -100,6 +94,8 @@ export class DECIMAL extends BaseTypes.DECIMAL {
     super._checkOptionSupport(dialect);
     removeUnsupportedNumberOptions(this, dialect);
   }
+
+  // TODO: add check constraint >= 0 if unsigned is true
 }
 
 export class STRING extends BaseTypes.STRING {
@@ -200,10 +196,34 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class TINYINT extends BaseTypes.TINYINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO: add >= 0 =< 2^8-1 check when the unsigned option is true
+  // TODO: add >= -2^7 =< 2^7-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'SMALLINT';
+  }
+}
+
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO: add >= 0 =< 2^16-1 check when the unsigned option is true
+
+  toSql(): string {
+    if (this.options.unsigned) {
+      return 'INTEGER';
+    }
+
+    return 'SMALLINT';
   }
 }
 
@@ -212,11 +232,26 @@ export class INTEGER extends BaseTypes.INTEGER {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
+
+  // TODO: add >= 0 =< 2^32-1 check when the unsigned option is true
+
+  toSql(): string {
+    if (this.options.unsigned) {
+      return 'BIGINT';
+    }
+
+    return 'INTEGER';
+  }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+
+    if (this.options.unsigned) {
+      throwUnsupportedDataType(dialect, 'BIGINT.UNSIGNED');
+    }
+
     removeUnsupportedIntegerOptions(this, dialect);
   }
 }
@@ -236,6 +271,8 @@ export class DOUBLE extends BaseTypes.DOUBLE {
     super._checkOptionSupport(dialect);
     removeUnsupportedFloatOptions(this, dialect);
   }
+
+  // TODO: add check constraint >= 0 if unsigned is true
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
@@ -243,6 +280,8 @@ export class FLOAT extends BaseTypes.FLOAT {
     super._checkOptionSupport(dialect);
     removeUnsupportedFloatOptions(this, dialect);
   }
+
+  // TODO: add check constraint >= 0 if unsigned is true
 
   protected getNumberSqlTypeName(): string {
     // REAL is postgres' single precision float. FLOAT(p) is an alias for either REAL of DOUBLE PRECISION based on (p).

@@ -2,7 +2,7 @@ import NodeUtils from 'util';
 import { ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
 import type { PostgresDialect } from '../postgres/index.js';
-import type { DataType, DataTypeClass, DataTypeInstance, ToSqlOptions, DataTypeClassOrInstance } from './data-types.js';
+import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance, ToSqlOptions } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 
@@ -85,4 +85,9 @@ export function getDataTypeParser(dialect: PostgresDialect, dataType: DataTypeCl
   return (value: unknown) => {
     return type.parseDatabaseValue(value);
   };
+}
+
+export function throwUnsupportedDataType(dialect: AbstractDialect, typeName: string): never {
+  throw new Error(`${dialect.name} does not support the ${typeName} data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 }

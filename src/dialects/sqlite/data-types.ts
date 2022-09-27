@@ -1,6 +1,6 @@
 import NodeUtil from 'node:util';
+import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { BaseNumberDataType } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 /**
@@ -9,11 +9,28 @@ import type { AbstractDialect } from '../abstract/index.js';
  * @param dataType The base integer data type.
  * @param dialect
  */
-function removeUnsupportedIntegerOptions(dataType: BaseNumberDataType, dialect: AbstractDialect) {
-  if (dataType.options.zerofill || dataType.options.unsigned) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.key}' with UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`);
-    dataType.options.zerofill = undefined;
-    dataType.options.unsigned = undefined;
+function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
+  if (dataType.options.zerofill) {
+    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
+  }
+}
+
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+  removeUnsupportedNumberOptions(dataType, dialect);
+
+  if (dataType.options.length != null) {
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with length. This option will be ignored.`);
+    delete dataType.options.length;
+  }
+}
+
+function removeUnsupportedDecimalNumberOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
+  removeUnsupportedNumberOptions(dataType, dialect);
+
+  if (dataType.options.scale != null || dataType.options.precision != null) {
+    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with "scale" or "precision" specified. These options will be ignored.`);
+    dataType.options.scale = undefined;
+    dataType.options.precision = undefined;
   }
 }
 
@@ -21,6 +38,10 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
   // Note: the BOOLEAN type is SQLite maps to NUMERIC, but we still use BOOLEAN because introspecting the table
   // still indicates that the column is a BOOLEAN column - which we may be able to exploit in the future to parse the value
   // in raw queries where the DataType is not available.
+
+  escape(value: boolean): string {
+    return value ? '1' : '0';
+  }
 
   toBindableValue(value: boolean): unknown {
     return value ? '1' : '0';
@@ -61,6 +82,9 @@ export class TINYINT extends BaseTypes.TINYINT {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
+
+  // TODO: add >= 0 =< 2^8-1 check when the unsigned option is true
+  // TODO: add >= -2^7 =< 2^7-1 check when the unsigned option is false
 }
 
 export class SMALLINT extends BaseTypes.SMALLINT {
@@ -68,6 +92,9 @@ export class SMALLINT extends BaseTypes.SMALLINT {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
+
+  // TODO: add >= 0 =< 2^16-1 check when the unsigned option is true
+  // TODO: add >= -2^15 =< 2^15-1 check when the unsigned option is false
 }
 
 export class MEDIUMINT extends BaseTypes.MEDIUMINT {
@@ -75,6 +102,9 @@ export class MEDIUMINT extends BaseTypes.MEDIUMINT {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
+
+  // TODO: add >= 0 =< 2^24-1 check when the unsigned option is true
+  // TODO: add >= -2^23 =< 2^23-1 check when the unsigned option is false
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
@@ -82,20 +112,93 @@ export class INTEGER extends BaseTypes.INTEGER {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
+
+  // TODO: add >= 0 =< 2^32-1 check when the unsigned option is true
+  // TODO: add >= -2^31 =< 2^31-1 check when the unsigned option is false
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+
+    if (this.options.unsigned) {
+      throwUnsupportedDataType(dialect, 'BIGINT.UNSIGNED');
+    }
+
     removeUnsupportedIntegerOptions(this, dialect);
   }
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedNumberOptions(this, dialect);
+  }
+
+  // TODO: add check constraint >= 0 if unsigned is true
+
   parseDatabaseValue(value: unknown): unknown {
     // sqlite returns DECIMAL as a JS number (yes that means we lose precision)
     return String(value);
   }
+}
+
+export class FLOAT extends BaseTypes.FLOAT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedDecimalNumberOptions(this, dialect);
+    dialect.warnDataTypeIssue(`${dialect.name} does not support single-precision floating point numbers. SQLite's REAL type will be used instead, which in SQLite is a double-precision floating point type.`);
+  }
+
+  // TODO: add check constraint >= 0 if unsigned is true
+
+  protected getNumberSqlTypeName(): string {
+    return 'REAL';
+  }
+}
+
+export class DOUBLE extends BaseTypes.DOUBLE {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedDecimalNumberOptions(this, dialect);
+  }
+
+  // TODO: add check constraint >= 0 if unsigned is true
+
+  protected getNumberSqlTypeName(): string {
+    // in SQLite, REAL is 8 bytes, not 4.
+    return 'REAL';
+  }
+}
+
+/**
+ * @deprecated use FLOAT.
+ */
+export class REAL extends BaseTypes.REAL {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedDecimalNumberOptions(this, dialect);
+  }
+
+  protected getNumberSqlTypeName(): string {
+    // in SQLite, REAL is 8 bytes, not 4.
+    return 'REAL';
+  }
+}
+
+export class TIME extends BaseTypes.TIME {
+  // TODO: add CHECK constraint
+  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+}
+
+export class DATE extends BaseTypes.DATE {
+  // TODO: add CHECK constraint
+  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+}
+
+export class DATEONLY extends BaseTypes.DATEONLY {
+  // TODO: add CHECK constraint
+  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
 }
 
 export class JSON extends BaseTypes.JSON {
@@ -125,7 +228,15 @@ export class JSON extends BaseTypes.JSON {
   }
 }
 
+export class UUID extends BaseTypes.UUID {
+  // TODO: add check constraint to enforce GUID format
+  toSql() {
+    return 'TEXT';
+  }
+}
+
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
+  // TODO: add check constraint to enforce list of accepted values
   toSql() {
     return 'TEXT';
   }

@@ -18,7 +18,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
-import { isDataType, isDataTypeClass } from './data-types-utils.js';
+import { isDataType, isDataTypeClass, throwUnsupportedDataType } from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
@@ -544,6 +544,12 @@ export class CITEXT extends AbstractDataType<string> {
     return 'CITEXT';
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.CITEXT) {
+      throwUnsupportedDataType(dialect, 'case-insensitive text (CITEXT)');
+    }
+  }
+
   validate(value: any): asserts value is string {
     if (typeof value !== 'string') {
       ValidationErrorItem.throwDataTypeValidationError(
@@ -688,18 +694,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
   }
 }
 
-/**
- * A 32-bit integer.
- *
- * Fallback policy:
- * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
- *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
- * - If the zerofill option is unsupported by the dialect, an error will be raised.
- * - If the length option is unsupported by the dialect, it will be discarded.
- */
-export class INTEGER extends BaseNumberDataType<IntegerOptions> {
-  static readonly [kDataTypeIdentifier]: string = 'INTEGER';
-
+export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
   constructor(optionsOrLength?: number | Readonly<IntegerOptions>) {
     if (typeof optionsOrLength === 'number') {
       super({ length: optionsOrLength });
@@ -739,10 +734,6 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
     return this.sanitize(value);
   }
 
-  protected getNumberSqlTypeName(): string {
-    return 'INTEGER';
-  }
-
   toSql(_options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
     if (this.options.length != null) {
@@ -770,7 +761,7 @@ export class INTEGER extends BaseNumberDataType<IntegerOptions> {
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  */
-export class TINYINT extends INTEGER {
+export class TINYINT extends BaseIntegerDataType {
   static readonly [kDataTypeIdentifier]: string = 'TINYINT';
 
   protected getNumberSqlTypeName(): string {
@@ -787,7 +778,7 @@ export class TINYINT extends INTEGER {
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  */
-export class SMALLINT extends INTEGER {
+export class SMALLINT extends BaseIntegerDataType {
   static readonly [kDataTypeIdentifier]: string = 'SMALLINT';
 
   protected getNumberSqlTypeName(): string {
@@ -804,11 +795,28 @@ export class SMALLINT extends INTEGER {
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  */
-export class MEDIUMINT extends INTEGER {
+export class MEDIUMINT extends BaseIntegerDataType {
   static readonly [kDataTypeIdentifier]: string = 'MEDIUMINT';
 
   protected getNumberSqlTypeName(): string {
     return 'MEDIUMINT';
+  }
+}
+
+/**
+ * A 32-bit integer.
+ *
+ * Fallback policy:
+ * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
+ *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
+ * - If the zerofill option is unsupported by the dialect, an error will be raised.
+ * - If the length option is unsupported by the dialect, it will be discarded.
+ */
+export class INTEGER extends BaseIntegerDataType {
+  static readonly [kDataTypeIdentifier]: string = 'INTEGER';
+
+  protected getNumberSqlTypeName(): string {
+    return 'INTEGER';
   }
 }
 
@@ -820,7 +828,7 @@ export class MEDIUMINT extends INTEGER {
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  */
-export class BIGINT extends INTEGER {
+export class BIGINT extends BaseIntegerDataType {
   static readonly [kDataTypeIdentifier]: string = 'BIGINT';
 
   protected getNumberSqlTypeName(): string {
@@ -934,7 +942,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
  * If single-precision floating-point format is not supported, a double-precision floating-point number may be used instead.
  *
  * Fallback Policy:
- * - If the precision or scale options are unsupported by the dialect, an error will be raised.
+ * - If the precision or scale options are unsupported by the dialect, they will be discarded.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
  */
@@ -989,7 +997,7 @@ export class DOUBLE extends BaseDecimalNumberDataType {
  * Arbitrary/exact precision decimal number.
  *
  * Fallback Policy:
- * - If the precision or scale options are unsupported by the dialect, they will be discarded.
+ * - If the precision or scale options are unsupported by the dialect, they will be ignored.
  * - If the precision or scale options are not specified, and the dialect does not support unconstrained decimals, an error will be raised.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
@@ -1292,6 +1300,13 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 export class HSTORE extends AbstractDataType<HstoreRecord> {
   static readonly [kDataTypeIdentifier]: string = 'HSTORE';
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    if (!dialect.supports.dataTypes.HSTORE) {
+      throwUnsupportedDataType(dialect, 'HSTORE');
+    }
+  }
+
   validate(value: any) {
     if (!isPlainObject(value)) {
       ValidationErrorItem.throwDataTypeValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
@@ -1320,6 +1335,13 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 export class JSON extends AbstractDataType<any> {
   static readonly [kDataTypeIdentifier]: string = 'JSON';
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    if (!dialect.supports.dataTypes.JSON) {
+      throwUnsupportedDataType(dialect, 'JSON');
+    }
+  }
+
   toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
   }
@@ -1333,10 +1355,17 @@ export class JSON extends AbstractDataType<any> {
  * A binary storage JSON column. Only available in Postgres.
  *
  * Fallback Policy:
- * If the dialect does not support this type natively, the JSON type will be used instead, following that type's fallback policy.
+ * If the dialect does not support this type natively, an error will be raised.
  */
 export class JSONB extends JSON {
   static readonly [kDataTypeIdentifier]: string = 'JSONB';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    if (!dialect.supports.dataTypes.JSONB) {
+      throwUnsupportedDataType(dialect, 'JSONB');
+    }
+  }
 
   toSql(): string {
     return 'JSONB';
@@ -1471,6 +1500,14 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     this.options = {
       subtype,
     };
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (!dialect.supports.dataTypes.RANGE) {
+      throwUnsupportedDataType(dialect, 'RANGE');
+    }
   }
 
   toDialectDataType(dialect: AbstractDialect): this {
@@ -1862,6 +1899,14 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     return value.map(val => this.options.type.toBindableValue(val, _options));
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (!dialect.supports.dataTypes.ARRAY) {
+      throwUnsupportedDataType(dialect, 'ARRAY');
+    }
+  }
+
   toDialectDataType(dialect: AbstractDialect): this {
     let replacement = super.toDialectDataType(dialect);
 
@@ -1969,6 +2014,14 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
       : { type: typeOrOptions, srid };
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (!dialect.supports.dataTypes.GEOMETRY) {
+      throwUnsupportedDataType(dialect, 'GEOMETRY');
+    }
+  }
+
   validate(value: unknown): asserts value is GeoJson {
     try {
       assertIsGeoJson(value);
@@ -2016,6 +2069,12 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
 export class GEOGRAPHY extends GEOMETRY {
   static readonly [kDataTypeIdentifier]: string = 'GEOGRAPHY';
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.GEOGRAPHY) {
+      throwUnsupportedDataType(dialect, 'GEOGRAPHY');
+    }
+  }
+
   toSql(): string {
     return 'GEOGRAPHY';
   }
@@ -2031,6 +2090,12 @@ export class GEOGRAPHY extends GEOMETRY {
  */
 export class CIDR extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'CIDR';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.CIDR) {
+      throwUnsupportedDataType(dialect, 'CIDR');
+    }
+  }
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
@@ -2055,6 +2120,13 @@ export class CIDR extends AbstractDataType<string> {
  */
 export class INET extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'INET';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.INET) {
+      throwUnsupportedDataType(dialect, 'INET');
+    }
+  }
+
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
       ValidationErrorItem.throwDataTypeValidationError(
@@ -2078,6 +2150,12 @@ export class INET extends AbstractDataType<string> {
  */
 export class MACADDR extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'MACADDR';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.MACADDR) {
+      throwUnsupportedDataType(dialect, 'MACADDR');
+    }
+  }
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
@@ -2113,8 +2191,7 @@ export class TSVECTOR extends AbstractDataType<string> {
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.TSVECTOR) {
-      throw new Error(`${dialect.name} does not support the TSVECTOR DataType.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported String DataTypes.`);
+      throwUnsupportedDataType(dialect, 'TSVECTOR');
     }
   }
 
@@ -2143,7 +2220,3 @@ function assertDataTypeSupported(dialect: AbstractDialect, dataType: AbstractDat
   }
 }
 
-function throwUnsupportedDataType(dialect: AbstractDialect, typeName: string): never {
-  throw new Error(`${dialect.name} does not support the ${typeName} data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
-}

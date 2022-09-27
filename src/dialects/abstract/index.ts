@@ -160,7 +160,12 @@ export type DialectSupports = {
     DOUBLE: SupportableDecimalNumberOptions,
     /** This dialect supports arbitrary precision numbers */
     DECIMAL: SupportableExactDecimalOptions,
-    // there is JSON type, because JSON will be replaced by a unlimited string type when unsupported.
+    /**
+     * The dialect is considered to support JSON if it provides either:
+     * - A JSON data type.
+     * - An SQL function that can be used as a CHECK constraint on a text column, to ensure its contents are valid JSON.
+     */
+    JSON: boolean,
     JSONB: boolean,
     ARRAY: boolean,
     RANGE: boolean,
@@ -300,6 +305,7 @@ export abstract class AbstractDialect {
       CIDR: false,
       MACADDR: false,
       INET: false,
+      JSON: false,
       JSONB: false,
       ARRAY: false,
       RANGE: false,

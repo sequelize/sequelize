@@ -61,6 +61,7 @@ export class DATE extends BaseTypes.DATE {
 }
 
 export class UUID extends BaseTypes.UUID {
+  // TODO: add check constraint to enforce GUID format
   toSql() {
     return 'CHAR(36) BINARY';
   }

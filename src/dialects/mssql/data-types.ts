@@ -1,6 +1,7 @@
 import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
+import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
@@ -9,40 +10,24 @@ import type { AbstractDialect } from '../abstract/index.js';
  *
  * @param dataType The base integer data type.
  * @param dialect
- * @param opts
- * @param opts.allowUnsigned
  * @private
  */
 function removeUnsupportedNumberOptions(
   dataType: BaseTypes.BaseNumberDataType,
   dialect: AbstractDialect,
-  opts?: { allowUnsigned?: boolean },
 ) {
-  if (!opts?.allowUnsigned && dataType.options.unsigned) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with UNSIGNED. This option is ignored.`);
-
-    delete dataType.options.unsigned;
-  }
-
-  if (
-    dataType.options.zerofill
-  ) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with ZEROFILL. This options is ignored.`);
-
-    delete dataType.options.zerofill;
+  if (dataType.options.zerofill) {
+    throw new Error(`${dialect.name} does not support '${dataType.constructor.name}' with ZEROFILL.`);
   }
 }
 
 function removeUnsupportedIntegerOptions(
-  dataType: BaseTypes.INTEGER,
+  dataType: BaseTypes.BaseIntegerDataType,
   dialect: AbstractDialect,
-  opts?: { allowUnsigned?: boolean },
 ) {
-  removeUnsupportedNumberOptions(dataType, dialect, opts);
+  removeUnsupportedNumberOptions(dataType, dialect);
 
-  if (
-    dataType.options.length != null
-  ) {
+  if (dataType.options.length != null) {
     dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
 
     delete dataType.options.length;
@@ -54,7 +39,7 @@ function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberData
 
   if (
     dataType.options.scale != null
-      || dataType.options.precision != null
+    || dataType.options.precision != null
   ) {
     dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
 
@@ -157,26 +142,19 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
-export class INTEGER extends BaseTypes.INTEGER {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    removeUnsupportedIntegerOptions(this, dialect);
-  }
-}
-
 export class TINYINT extends BaseTypes.TINYINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-
-    if (!this.options.unsigned) {
-      throw new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED.`);
-    }
-
-    removeUnsupportedIntegerOptions(this, dialect, { allowUnsigned: true });
+    removeUnsupportedIntegerOptions(this, dialect);
   }
 
+  // TODO: add check constraint between -128 & 127 inclusive when the unsigned option is false
+
   toSql() {
+    if (!this.options.unsigned) {
+      return 'SMALLINT';
+    }
+
     // tinyint is always unsigned in mssql
     return 'TINYINT';
   }
@@ -185,14 +163,44 @@ export class TINYINT extends BaseTypes.TINYINT {
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-
     removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO: add check constraint between 0 & 65535 inclusive when the unsigned option is true
+
+  toSql() {
+    if (this.options.unsigned) {
+      return 'INT';
+    }
+
+    return 'SMALLINT';
+  }
+}
+
+export class INTEGER extends BaseTypes.INTEGER {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO:add check constraint between 0 & 4294967295 inclusive when the unsigned option is true
+
+  toSql() {
+    if (this.options.unsigned) {
+      return 'BIGINT';
+    }
+
+    return 'INTEGER';
   }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+
+    if (this.options.unsigned) {
+      throwUnsupportedDataType(dialect, 'BIGINT.UNSIGNED');
+    }
 
     removeUnsupportedIntegerOptions(this, dialect);
   }
@@ -213,9 +221,21 @@ export class FLOAT extends BaseTypes.FLOAT {
     removeUnsupportedFloatOptions(this, dialect);
   }
 
+  // TODO: add check constraint >= 0 if unsigned is true
+
   protected getNumberSqlTypeName(): string {
     return 'REAL';
   }
+}
+
+export class DOUBLE extends BaseTypes.DOUBLE {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    removeUnsupportedFloatOptions(this, dialect);
+  }
+
+  // TODO: add check constraint >= 0 if unsigned is true
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
@@ -224,6 +244,8 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 
     removeUnsupportedNumberOptions(this, dialect);
   }
+
+  // TODO: add check constraint >= 0 if unsigned is true
 }
 
 // https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
