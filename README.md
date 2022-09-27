@@ -166,7 +166,7 @@ Todo.init(
 export default Todo;
 ```
 
-In this model, we set up some attributes with their options, you can also see that Sequelize provides [a lot of built-in data types](https://sequelize.org/docs/v6/core-concepts/model-basics/#data-types) in the `DataTypes` object that we import. See also [other data types for dialects-specific data types](https://sequelize.org/docs/v6/other-topics/other-data-types/)
+In this model, we set up some attributes with their options, you can also see that Sequelize provides [a lot of built-in data types](https://sequelize.org/docs/v6/core-concepts/model-basics/#data-types) in the `DataTypes` object that we import. See also [other data types for dialects-specific data types](https://sequelize.org/docs/v6/other-topics/other-data-types/).
 
 ### 4. Lets Query!
 
