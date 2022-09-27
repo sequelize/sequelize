@@ -359,7 +359,7 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - run: yarn start-oracle-${{ matrix.postgres-version }}
+      - run: yarn start-oracle-${{ matrix.oracle-version }}
       - name: Integration Tests
         run: yarn test-integration
   release:
