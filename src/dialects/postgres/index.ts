@@ -43,6 +43,7 @@ export class PostgresDialect extends AbstractDialect {
       RANGE: true,
       GEOMETRY: true,
       GEOGRAPHY: true,
+      JSON: true,
       JSONB: true,
       HSTORE: true,
       TSVECTOR: true,

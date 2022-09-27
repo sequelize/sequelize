@@ -41,7 +41,7 @@ export class MssqlDialect extends AbstractDialect {
       CHAR: {
         BINARY: false,
       },
-      TINYINT: { signed: false, unsigned: true, zerofill: false },
+      JSON: true,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
       GEOGRAPHY: false,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16

@@ -34,9 +34,8 @@ export class SqliteDialect extends AbstractDialect {
     dataTypes: {
       CHAR: false,
       CITEXT: true,
-      TINYINT: { unsigned: false, zerofill: false, signed: true },
-      MEDIUMINT: { unsigned: false, zerofill: false },
       DECIMAL: { constrained: false, unconstrained: true, NaN: false },
+      JSON: true,
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
     jsonOperations: false,

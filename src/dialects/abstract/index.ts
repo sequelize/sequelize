@@ -11,7 +11,6 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
 
 export interface SupportableNumericOptions {
-  unsigned: boolean;
   zerofill: boolean;
 }
 
@@ -142,16 +141,8 @@ export type DialectSupports = {
     },
     /** This dialect supports case-insensitive text */
     CITEXT: boolean,
-    /** This dialect supports 1 byte long signed ints */
-    TINYINT: false | (SupportableNumericOptions & { signed: boolean }),
-    /** This dialect supports 2 byte long signed ints */
-    SMALLINT: false | SupportableNumericOptions,
-    /** This dialect supports 3 byte long signed ints */
-    MEDIUMINT: false | SupportableNumericOptions,
-    /** This dialect supports 4 byte long signed ints */
-    INTEGER: false | SupportableNumericOptions,
-    /** This dialect supports 8 byte long signed ints */
-    BIGINT: false | SupportableNumericOptions,
+    /** Options supportable by all int types (from tinyint to bigint) */
+    INTS: SupportableNumericOptions,
     /** @deprecated */
     REAL: SupportableDecimalNumberOptions,
     /** This dialect supports 4 byte long floating point numbers */
@@ -293,15 +284,11 @@ export abstract class AbstractDialect {
         BINARY: false,
       },
       CITEXT: false,
-      TINYINT: false,
-      SMALLINT: { unsigned: false, zerofill: false },
-      MEDIUMINT: false,
-      INTEGER: { unsigned: false, zerofill: false },
-      BIGINT: { unsigned: false, zerofill: false },
-      FLOAT: { NaN: false, infinity: false, unsigned: false, zerofill: false },
-      REAL: { NaN: false, infinity: false, unsigned: false, zerofill: false },
-      DOUBLE: { NaN: false, infinity: false, unsigned: false, zerofill: false },
-      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, unsigned: false, zerofill: false },
+      INTS: { zerofill: false },
+      FLOAT: { NaN: false, infinity: false, zerofill: false },
+      REAL: { NaN: false, infinity: false, zerofill: false },
+      DOUBLE: { NaN: false, infinity: false, zerofill: false },
+      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false },
       CIDR: false,
       MACADDR: false,
       INET: false,

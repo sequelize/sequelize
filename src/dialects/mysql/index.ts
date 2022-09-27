@@ -12,7 +12,6 @@ import { MySqlQueryInterface } from './query-interface';
 
 const integerOptions: SupportableNumericOptions = {
   zerofill: true,
-  unsigned: true,
 };
 
 export class MysqlDialect extends AbstractDialect {
@@ -46,15 +45,12 @@ export class MysqlDialect extends AbstractDialect {
           BINARY: true,
         },
         GEOMETRY: true,
-        TINYINT: { ...integerOptions, signed: true },
-        SMALLINT: integerOptions,
-        MEDIUMINT: integerOptions,
-        INTEGER: integerOptions,
-        BIGINT: integerOptions,
+        INTS: integerOptions,
         FLOAT: integerOptions,
         REAL: integerOptions,
         DOUBLE: integerOptions,
         DECIMAL: integerOptions,
+        JSON: true,
       },
       jsonOperations: true,
       REGEXP: true,
