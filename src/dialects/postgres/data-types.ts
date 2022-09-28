@@ -25,7 +25,7 @@ import * as RangeParser from './range';
  */
 function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
   if (dataType.options.zerofill) {
-    throw new Error(`${dialect.name} does not support ${dataType.getDataTypeId()} with ZEROFILL.`);
+    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
   }
 }
 
@@ -224,6 +224,20 @@ export class SMALLINT extends BaseTypes.SMALLINT {
     }
 
     return 'SMALLINT';
+  }
+}
+
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO: add >= 0 =< 2^24-1 check when the unsigned option is true
+  // TODO: add >= -2^23 =< 2^23-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'INTEGER';
   }
 }
 

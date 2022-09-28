@@ -16,11 +16,48 @@ export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
     return 'FLOAT';
   }
+
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+
+  protected _supportsNativeZerofill(): boolean {
+    return true;
+  }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected getNumberSqlTypeName(): string {
     return 'DOUBLE PRECISION';
+  }
+
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+
+  protected _supportsNativeZerofill(): boolean {
+    return true;
+  }
+}
+
+/** @deprecated */
+export class REAL extends BaseTypes.REAL {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+
+  protected _supportsNativeZerofill(): boolean {
+    return true;
+  }
+}
+
+export class DECIMAL extends BaseTypes.DECIMAL {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+
+  protected _supportsNativeZerofill(): boolean {
+    return true;
   }
 }
 

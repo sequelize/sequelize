@@ -17,7 +17,7 @@ function removeUnsupportedNumberOptions(
   dialect: AbstractDialect,
 ) {
   if (dataType.options.zerofill) {
-    throw new Error(`${dialect.name} does not support '${dataType.constructor.name}' with ZEROFILL.`);
+    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
   }
 }
 
@@ -174,6 +174,20 @@ export class SMALLINT extends BaseTypes.SMALLINT {
     }
 
     return 'SMALLINT';
+  }
+}
+
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  // TODO: unsigned: add check constraint between 0 & 16777215 inclusive
+  // TODO: signed: add check constraint between -8388608 & 8388607 inclusive
+
+  toSql() {
+    return 'INTEGER';
   }
 }
 

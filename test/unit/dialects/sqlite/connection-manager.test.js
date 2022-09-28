@@ -24,7 +24,7 @@ if (dialect === 'sqlite') {
             return {};
           },
         });
-        sinon.stub(sequelize.connectionManager, 'connections').value({ default: { run: () => {} } });
+        sinon.stub(sequelize.connectionManager, 'connections').value(new Map([['default', () => {}]]));
 
         const options = {};
         sequelize.dialect.connectionManager.getConnection(options);

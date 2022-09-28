@@ -919,17 +919,25 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     return this.options.scale == null && this.options.precision == null;
   }
 
+  protected _supportsNativeUnsigned() {
+    return false;
+  }
+
+  protected _supportsNativeZerofill() {
+    return false;
+  }
+
   toSql(_options?: ToSqlOptions): string {
     let sql = this.getNumberSqlTypeName();
     if (!this.isUnconstrained()) {
       sql += `(${this.options.precision}, ${this.options.scale})`;
     }
 
-    if (this.options.unsigned) {
+    if (this.options.unsigned && this._supportsNativeUnsigned()) {
       sql += ' UNSIGNED';
     }
 
-    if (this.options.zerofill) {
+    if (this.options.zerofill && this._supportsNativeZerofill()) {
       sql += ' ZEROFILL';
     }
 

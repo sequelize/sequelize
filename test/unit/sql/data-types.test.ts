@@ -136,7 +136,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     describe('CITEXT', () => {
       testsql('CITEXT', DataTypes.CITEXT, {
-        default: new Error(`${dialectName} does not support the CITEXT data type.
+        default: new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
         postgres: 'CITEXT',
         sqlite: 'TEXT COLLATE NOCASE',
@@ -161,8 +161,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('TSVECTOR', () => {
       testsql('TSVECTOR', DataTypes.TSVECTOR, {
-        default: new Error(`${dialectName} does not support the TSVECTOR DataType.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/#strings for a list of supported String DataTypes.`),
+        default: new Error(`${dialectName} does not support the TSVECTOR data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
         postgres: 'TSVECTOR',
       });
 
@@ -222,7 +222,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)',
+        // This is really DECIMAL, but we use the name BOOLEAN for table introspection, as it maps to DECIMAL.
+        sqlite: 'BOOLEAN',
         snowflake: 'BOOLEAN',
       });
 
@@ -405,78 +406,51 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('INTEGER', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the INTEGER.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('INTEGER', DataTypes.INTEGER, {
         default: 'INTEGER',
       });
 
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
-        default: 'INTEGER UNSIGNED',
-        ibmi: 'INTEGER',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
-        sqlite: 'INTEGER',
+        'mysql mariadb': 'INTEGER UNSIGNED',
+        'ibmi sqlite postgres db2 mssql': 'BIGINT',
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
-        default: 'INTEGER UNSIGNED ZEROFILL',
-        ibmi: 'INTEGER',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
-        sqlite: 'INTEGER',
+        default: zeroFillUnsupportedError,
+        'mariadb mysql': 'INTEGER UNSIGNED ZEROFILL',
       });
 
       testsql('INTEGER(11)', DataTypes.INTEGER(11), {
-        default: 'INTEGER(11)',
-        ibmi: 'INTEGER',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        default: 'INTEGER',
+        'mysql mariadb': 'INTEGER(11)',
       });
 
       testsql('INTEGER({ length: 11 })', DataTypes.INTEGER({ length: 11 }), {
-        default: 'INTEGER(11)',
-        ibmi: 'INTEGER',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        default: 'INTEGER',
+        'mysql mariadb': 'INTEGER(11)',
       });
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
-        default: 'INTEGER(11) UNSIGNED',
-        ibmi: 'INTEGER',
-        sqlite: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        'mysql mariadb': 'INTEGER(11) UNSIGNED',
+        'ibmi sqlite postgres db2 mssql': 'BIGINT',
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
-        default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        ibmi: 'INTEGER',
-        sqlite: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'INTEGER(11) UNSIGNED ZEROFILL',
       });
 
       testsql('INTEGER(11).ZEROFILL', DataTypes.INTEGER(11).ZEROFILL, {
-        default: 'INTEGER(11) ZEROFILL',
-        ibmi: 'INTEGER',
-        sqlite: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'INTEGER(11) ZEROFILL',
       });
 
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
-        default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        ibmi: 'INTEGER',
-        sqlite: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        db2: 'INTEGER',
-        mssql: 'INTEGER',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'INTEGER(11) UNSIGNED ZEROFILL',
       });
 
       describe('validate', () => {
@@ -507,55 +481,55 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('TINYINT', () => {
-      const noSupportError = new Error(`${dialect.name} does not support the TINYINT data type.
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the TINYINT.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
-      const noUnsignedSupportError = new Error(`${dialect.name} does not support the TINYINT data type (which is signed), but does support TINYINT.UNSIGNED.`);
 
       const cases = [
         {
           title: 'TINYINT',
           dataType: DataTypes.TINYINT,
           expect: {
-            default: noSupportError,
-            mssql: noUnsignedSupportError,
-            'mysql mariadb snowflake': 'TINYINT',
+            // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
+            'mssql postgres': 'SMALLINT',
+            'mysql mariadb snowflake sqlite': 'TINYINT',
           },
         },
         {
+          // This option (length) is ignored when unavailable.
           title: 'TINYINT(2)',
           dataType: DataTypes.TINYINT(2),
           expect: {
-            default: noSupportError,
-            mssql: noUnsignedSupportError,
+            'mssql postgres': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
+            sqlite: 'TINYINT',
           },
         },
         {
           title: 'TINYINT({ length: 2 })',
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
-            default: noSupportError,
-            mssql: noUnsignedSupportError,
+            'mssql postgres': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
+            sqlite: 'TINYINT',
           },
         },
         {
           title: 'TINYINT.UNSIGNED',
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
-            default: noSupportError,
+            // Fallback to bigger type + check constraint
+            'postgres sqlite snowflake': 'SMALLINT',
             'mysql mariadb': 'TINYINT UNSIGNED',
-            // snowflake does not support unsigned tinyint, but mssql's TINYINT is unsigned by default.
-            'snowflake mssql': 'TINYINT',
+            // TINYINT is unsigned in mssql
+            mssql: 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).UNSIGNED',
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
-            default: noSupportError,
+            'postgres sqlite snowflake': 'SMALLINT',
             'mysql mariadb': 'TINYINT(2) UNSIGNED',
-            snowflake: 'TINYINT(2)',
             mssql: 'TINYINT',
           },
         },
@@ -563,60 +537,48 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'TINYINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT UNSIGNED ZEROFILL',
-            // snowflake does not support unsigned tinyint, but mssql's TINYINT is unsigned by default.
-            // neither support zerofill
-            'snowflake mssql': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT(2) UNSIGNED ZEROFILL',
-            snowflake: 'TINYINT(2)',
-            mssql: 'TINYINT',
           },
         },
         {
           title: 'TINYINT.ZEROFILL',
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
-            default: noSupportError,
-            mssql: noUnsignedSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT ZEROFILL',
-            snowflake: 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).ZEROFILL',
           dataType: DataTypes.TINYINT(2).ZEROFILL,
           expect: {
-            default: noSupportError,
-            mssql: noUnsignedSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT(2) ZEROFILL',
-            snowflake: 'TINYINT(2)',
           },
         },
         {
           title: 'TINYINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT UNSIGNED ZEROFILL',
-            'snowflake mssql': 'TINYINT',
           },
         },
         {
           title: 'TINYINT(2).ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mysql mariadb': 'TINYINT(2) UNSIGNED ZEROFILL',
-            snowflake: 'TINYINT(2)',
-            mssql: 'TINYINT',
           },
         },
       ];
@@ -648,6 +610,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('SMALLINT', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the SMALLINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       const cases = [
         {
           title: 'SMALLINT',
@@ -660,118 +625,85 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'SMALLINT(4)',
           dataType: DataTypes.SMALLINT(4),
           expect: {
-            default: 'SMALLINT(4)',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            default: 'SMALLINT',
+            'mysql mariadb': 'SMALLINT(4)',
           },
         },
         {
           title: 'SMALLINT({ length: 4 })',
           dataType: DataTypes.SMALLINT({ length: 4 }),
           expect: {
-            default: 'SMALLINT(4)',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            default: 'SMALLINT',
+            'mysql mariadb': 'SMALLINT(4)',
           },
         },
         {
           title: 'SMALLINT.UNSIGNED',
           dataType: DataTypes.SMALLINT.UNSIGNED,
           expect: {
-            default: 'SMALLINT UNSIGNED',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            'mysql mariadb': 'SMALLINT UNSIGNED',
+            // sqlite doesn't care, all ints are bigints
             sqlite: 'SMALLINT',
+            'postgres db2 ibmi': 'INTEGER',
+            mssql: 'INT',
           },
         },
         {
           title: 'SMALLINT(4).UNSIGNED',
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
-            default: 'SMALLINT(4) UNSIGNED',
-            ibmi: 'SMALLINT',
-            sqlite: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            'mysql mariadb': 'SMALLINT(4) UNSIGNED',
+            sqlite: 'SMALLINT',
+            'postgres db2 ibmi': 'INTEGER',
+            mssql: 'INT',
           },
         },
         {
           title: 'SMALLINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: 'SMALLINT UNSIGNED ZEROFILL',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT UNSIGNED ZEROFILL',
           },
         },
         {
           title: 'SMALLINT(4).UNSIGNED.ZEROFILL',
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
-            default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            ibmi: 'SMALLINT',
-            sqlite: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT(4) UNSIGNED ZEROFILL',
           },
         },
         {
           title: 'SMALLINT.ZEROFILL',
           dataType: DataTypes.SMALLINT.ZEROFILL,
           expect: {
-            default: 'SMALLINT ZEROFILL',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT ZEROFILL',
           },
         },
         {
           title: 'SMALLINT(4).ZEROFILL',
           dataType: DataTypes.SMALLINT(4).ZEROFILL,
           expect: {
-            default: 'SMALLINT(4) ZEROFILL',
-            ibmi: 'SMALLINT',
-            sqlite: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT(4) ZEROFILL',
           },
         },
         {
           title: 'SMALLINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: 'SMALLINT UNSIGNED ZEROFILL',
-            ibmi: 'SMALLINT',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT UNSIGNED ZEROFILL',
           },
         },
         {
           title: 'SMALLINT(4).ZEROFILL.UNSIGNED',
           dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
           expect: {
-            default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            ibmi: 'SMALLINT',
-            sqlite: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            db2: 'SMALLINT',
-            mssql: 'SMALLINT',
+            default: zeroFillUnsupportedError,
+            'mysql mariadb': 'SMALLINT(4) UNSIGNED ZEROFILL',
           },
         },
       ];
@@ -802,7 +734,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('MEDIUMINT', () => {
-      const noSupportError = new Error(`${dialect.name} does not support the MEDIUMINT data type.
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the MEDIUMINT.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
       const cases = [
@@ -810,47 +742,53 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT',
           dataType: DataTypes.MEDIUMINT,
           expect: {
-            default: noSupportError,
-            'mariadb mysql': 'MEDIUMINT',
+            'mariadb mysql sqlite': 'MEDIUMINT',
+            // falls back to larger type + CHECK constraint
+            'db2 ibmi mssql postgres snowflake': 'INTEGER',
           },
         },
         {
           title: 'MEDIUMINT(2)',
           dataType: DataTypes.MEDIUMINT(2),
           expect: {
-            default: noSupportError,
             'mariadb mysql': 'MEDIUMINT(2)',
+            // length is discarded when unavailable
+            sqlite: 'MEDIUMINT',
+            'db2 ibmi mssql postgres snowflake': 'INTEGER',
           },
         },
         {
           title: 'MEDIUMINT({ length: 2 })',
           dataType: DataTypes.MEDIUMINT({ length: 2 }),
           expect: {
-            default: noSupportError,
             'mariadb mysql': 'MEDIUMINT(2)',
+            sqlite: 'MEDIUMINT',
+            'db2 ibmi mssql postgres snowflake': 'INTEGER',
           },
         },
         {
           title: 'MEDIUMINT.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
-            default: noSupportError,
             'mariadb mysql': 'MEDIUMINT UNSIGNED',
+            sqlite: 'MEDIUMINT',
+            'db2 ibmi mssql postgres snowflake': 'INTEGER',
           },
         },
         {
           title: 'MEDIUMINT(2).UNSIGNED',
           dataType: DataTypes.MEDIUMINT(2).UNSIGNED,
           expect: {
-            default: noSupportError,
             'mariadb mysql': 'MEDIUMINT(2) UNSIGNED',
+            sqlite: 'MEDIUMINT',
+            'db2 ibmi mssql postgres snowflake': 'INTEGER',
           },
         },
         {
           title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT UNSIGNED ZEROFILL',
           },
         },
@@ -858,7 +796,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT(2).UNSIGNED.ZEROFILL',
           dataType: DataTypes.MEDIUMINT(2).UNSIGNED.ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT(2) UNSIGNED ZEROFILL',
           },
         },
@@ -866,7 +804,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT ZEROFILL',
           },
         },
@@ -874,7 +812,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT(2).ZEROFILL',
           dataType: DataTypes.MEDIUMINT(2).ZEROFILL,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT(2) ZEROFILL',
           },
         },
@@ -882,7 +820,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT UNSIGNED ZEROFILL',
           },
         },
@@ -890,7 +828,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT(2).ZEROFILL.UNSIGNED',
           dataType: DataTypes.MEDIUMINT(2).ZEROFILL.UNSIGNED,
           expect: {
-            default: noSupportError,
+            default: zeroFillUnsupportedError,
             'mariadb mysql': 'MEDIUMINT(2) UNSIGNED ZEROFILL',
           },
         },
@@ -923,74 +861,54 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('BIGINT', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+      const unsignedUnsupportedError = new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('BIGINT', DataTypes.BIGINT, {
         default: 'BIGINT',
       });
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
-        default: 'BIGINT UNSIGNED',
-        ibmi: 'BIGINT',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
-        sqlite: 'BIGINT',
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED',
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
-        default: 'BIGINT UNSIGNED ZEROFILL',
-        ibmi: 'BIGINT',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
-        sqlite: 'BIGINT',
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
-        default: 'BIGINT(11)',
-        ibmi: 'BIGINT',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        default: 'BIGINT',
+        'mysql mariadb': 'BIGINT(11)',
       });
 
       testsql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
-        default: 'BIGINT(11)',
-        ibmi: 'BIGINT',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        default: 'BIGINT',
+        'mysql mariadb': 'BIGINT(11)',
       });
 
       testsql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
-        default: 'BIGINT(11) UNSIGNED',
-        ibmi: 'BIGINT',
-        sqlite: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        // There is no type big enough to hold values between 0 & 2^32-1
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED',
       });
 
       testsql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
-        default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        ibmi: 'BIGINT',
-        sqlite: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
       });
 
       testsql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
-        default: 'BIGINT(11) ZEROFILL',
-        ibmi: 'BIGINT',
-        sqlite: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        db2: 'BIGINT',
-        mssql: 'BIGINT',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) ZEROFILL',
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
+        default: unsignedUnsupportedError,
         'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
-        default: 'BIGINT',
       });
 
       describe('validate', () => {
@@ -1015,12 +933,16 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('REAL', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('REAL', DataTypes.REAL, {
         default: 'REAL',
       });
 
       testsql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
         default: 'REAL UNSIGNED',
+        sqlite: 'REAL',
         ibmi: 'REAL',
         postgres: 'REAL',
         db2: 'REAL',
@@ -1029,6 +951,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       testsql('REAL(11, 12)', DataTypes.REAL(11, 12), {
         default: 'REAL(11, 12)',
+        sqlite: 'REAL',
         ibmi: 'REAL',
         postgres: 'REAL',
         db2: 'REAL',
@@ -1054,77 +977,65 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
-        default: 'REAL(11, 12) UNSIGNED ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11, 12)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'REAL(11, 12) UNSIGNED ZEROFILL',
       });
 
       testsql('REAL(11, 12).ZEROFILL', DataTypes.REAL(11, 12).ZEROFILL, {
-        default: 'REAL(11, 12) ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL ZEROFILL(11, 12)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'REAL(11, 12) ZEROFILL',
       });
 
       testsql('REAL(11, 12).ZEROFILL.UNSIGNED', DataTypes.REAL(11, 12).ZEROFILL.UNSIGNED, {
-        default: 'REAL(11, 12) UNSIGNED ZEROFILL',
-        ibmi: 'REAL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11, 12)',
-        postgres: 'REAL',
-        db2: 'REAL',
-        mssql: 'REAL',
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'REAL(11, 12) UNSIGNED ZEROFILL',
       });
     });
 
     describe('DOUBLE PRECISION', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DOUBLE.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('DOUBLE', DataTypes.DOUBLE, {
-        db2: 'DOUBLE',
         default: 'DOUBLE PRECISION',
+        db2: 'DOUBLE',
+        sqlite: 'REAL',
       });
 
       testsql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
-        default: 'DOUBLE PRECISION UNSIGNED',
+        'mysql mariadb': 'DOUBLE PRECISION UNSIGNED',
+        sqlite: 'REAL',
         db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        'postgres mssql': 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
-        default: 'DOUBLE PRECISION(11, 12)',
+        'mysql mariadb': 'DOUBLE PRECISION(11, 12)',
+        sqlite: 'REAL',
         db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        'postgres mssql': 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
-        default: 'DOUBLE PRECISION(11, 12) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11, 12)',
+        'mysql mariadb': 'DOUBLE PRECISION(11, 12) UNSIGNED',
+        sqlite: 'REAL',
         db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        'postgres mssql': 'DOUBLE PRECISION',
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
-        default: 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11, 12)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        default: zeroFillUnsupportedError,
+        'mariadb mysql': 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
-        default: 'DOUBLE PRECISION(11, 12) ZEROFILL',
-        sqlite: 'DOUBLE PRECISION ZEROFILL(11, 12)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        default: zeroFillUnsupportedError,
+        'mariadb mysql': 'DOUBLE PRECISION(11, 12) ZEROFILL',
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
-        default: 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11, 12)',
-        db2: 'DOUBLE',
-        postgres: 'DOUBLE PRECISION',
+        default: zeroFillUnsupportedError,
+        'mariadb mysql': 'DOUBLE PRECISION(11, 12) UNSIGNED ZEROFILL',
       });
 
       it('requires both scale & precision to be specified', () => {
@@ -1135,6 +1046,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('FLOAT', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the FLOAT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       // Must be a single-precision floating point if available,
       // or a double-precision fallback if not.
       testsql('FLOAT', DataTypes.FLOAT, {
@@ -1169,21 +1083,18 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'FLOAT(11, 12) UNSIGNED ZEROFILL',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).ZEROFILL', DataTypes.FLOAT(11, 12).ZEROFILL, {
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'FLOAT(11, 12) ZEROFILL',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
       });
 
       testsql('FLOAT(11, 12).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11, 12).ZEROFILL.UNSIGNED, {
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'FLOAT(11, 12) UNSIGNED ZEROFILL',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
       });
 
       it('requires both scale & precision to be specified', () => {
@@ -1214,32 +1125,39 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('DECIMAL', () => {
+      const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DECIMAL.ZEROFILL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('DECIMAL', DataTypes.DECIMAL, {
         default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
-        postgres: 'DECIMAL',
+        'postgres sqlite': 'DECIMAL',
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
         default: 'DECIMAL(10, 2)',
+        sqlite: 'DECIMAL',
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
         default: 'DECIMAL(10, 2)',
+        sqlite: 'DECIMAL',
       });
 
       testsql('DECIMAL(10, 2).UNSIGNED', DataTypes.DECIMAL(10, 2).UNSIGNED, {
-        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
         default: 'DECIMAL(10, 2)',
+        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
+        sqlite: 'DECIMAL',
       });
 
       testsql('DECIMAL(10, 2).UNSIGNED.ZEROFILL', DataTypes.DECIMAL(10, 2).UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED ZEROFILL',
-        default: 'DECIMAL(10, 2)',
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
-        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
         default: 'DECIMAL(10, 2)',
+        'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
+        sqlite: 'DECIMAL',
       });
 
       it('requires both scale & precision to be specified', () => {
@@ -1251,19 +1169,20 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type: DataTypeInstance = DataTypes.DECIMAL(10, 2).toDialectDataType(dialect);
+          const typeName = dialect.supports.dataTypes.DECIMAL.constrained ? 'decimal(10, 2)' : 'decimal';
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `'foobar' is not a valid decimal(10, 2)`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${typeName}`);
 
           expect(() => {
             type.validate('0.1a');
-          }).to.throw(ValidationErrorItem, `'0.1a' is not a valid decimal(10, 2)`);
+          }).to.throw(ValidationErrorItem, `'0.1a' is not a valid ${typeName}`);
 
           if (!dialect.supports.dataTypes.DECIMAL.NaN) {
             expect(() => {
               type.validate(Number.NaN);
-            }).to.throw(ValidationErrorItem, 'NaN is not a valid decimal(10, 2)');
+            }).to.throw(ValidationErrorItem, `NaN is not a valid ${typeName}`);
           } else {
             expect(() => {
               type.validate(Number.NaN);
@@ -1299,7 +1218,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           postgres: '"public"."enum_Users_anEnum"',
           mysql: `ENUM('value 1', 'value 2')`,
           // SQL Server does not support enums, we use text + a check constraint instead
-          mssql: `NVARCHAR(MAX)`,
+          mssql: `NVARCHAR(255)`,
+          sqlite: 'TEXT',
         });
       });
 
@@ -1416,7 +1336,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('JSON', () => {
       testsql('JSON', DataTypes.JSON, {
         // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
-        'mariadb mysql postgres': 'JSON',
+        'mariadb mysql postgres sqlite': 'JSON',
         // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
         mssql: 'NVARCHAR(MAX)',
       });
