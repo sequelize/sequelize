@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const count2 = await Account.count();
       expect(count2).to.be.equal(1);
       const result = await Account.destroy({ where: { ownerId: 12 } });
-      expect(result).to.be.a('number');
+      expect(result).to.be.a('number').equal(1);
       const count1 = await Account.count();
       expect(count1).to.be.equal(0);
       const count0 = await Account.count({ paranoid: false });
