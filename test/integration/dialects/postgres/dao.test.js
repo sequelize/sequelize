@@ -965,7 +965,7 @@ if (dialect.startsWith('postgres')) {
     it('should save geometry correctly', async function () {
       const point = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
       const newUser = await this.User.create({ username: 'user', email: ['foo@bar.com'], location: point });
-      expect(newUser.location).to.deep.eql(point);
+      expect(newUser.location).to.deep.include(point);
     });
 
     it('should update geometry correctly', async function () {
@@ -974,7 +974,7 @@ if (dialect.startsWith('postgres')) {
       const point2 = { type: 'Point', coordinates: [39.828_333, -77.232_222] };
       const oldUser = await User.create({ username: 'user', email: ['foo@bar.com'], location: point1 });
       const [, updatedUsers] = await User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true });
-      expect(updatedUsers[0].location).to.deep.eql(point2);
+      expect(updatedUsers[0].location).to.deep.include(point2);
     });
 
     it('should read geometry correctly', async function () {
@@ -983,7 +983,7 @@ if (dialect.startsWith('postgres')) {
 
       const user0 = await User.create({ username: 'user', email: ['foo@bar.com'], location: point });
       const user = await User.findOne({ where: { username: user0.username } });
-      expect(user.location).to.deep.eql(point);
+      expect(user.location).to.deep.include(point);
     });
 
     describe('[POSTGRES] Unquoted identifiers', () => {

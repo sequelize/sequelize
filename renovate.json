@@ -1,8 +1,10 @@
 {
   "extends": [
     "config:base",
-    ":maintainLockFilesWeekly"
+    ":maintainLockFilesWeekly",
+    ":semanticCommitTypeAll(meta)",
+    ":semanticCommitScopeDisabled"
   ],
   "semanticCommitType": "meta",
-  "semanticCommitScope": null
+  "ignorePaths": [ "dev/**/oldest/docker-compose.yml" ]
 }

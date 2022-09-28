@@ -5,4 +5,4 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 
 docker-compose -p sequelize-mssql-oldest down --remove-orphans
 
-echo "Local MSSQL-oldest instance stopped (if it was running)."
+echo "Local oldest supported MSSQL instance stopped (if it was running)."
