@@ -46,6 +46,7 @@ export class MysqlDialect extends AbstractDialect {
         },
         GEOMETRY: true,
         INTS: integerOptions,
+        BIGINT: { unsigned: true },
         FLOAT: integerOptions,
         REAL: integerOptions,
         DOUBLE: integerOptions,

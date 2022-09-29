@@ -23,7 +23,9 @@ export function getComplexSize(obj: object | any[]): number {
   return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
 
-export type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
+export type DeepWriteable<T> = {
+  -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>
+};
 
 export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 

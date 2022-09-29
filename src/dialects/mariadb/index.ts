@@ -1,19 +1,21 @@
-'use strict';
-
+import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
+import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
+import { MySqlQueryInterface } from '../mysql/query-interface';
+import { MariaDbConnectionManager } from './connection-manager';
+import * as DataTypes from './data-types';
+import { MariaDbQuery } from './query';
+import { MariaDbQueryGenerator } from './query-generator';
 
-const _ = require('lodash');
-const { MariaDbConnectionManager } = require('./connection-manager');
-const { MariaDbQuery } = require('./query');
-const { MariaDbQueryGenerator } = require('./query-generator');
-const { MySqlQueryInterface } = require('../mysql/query-interface');
-const DataTypes = require('../../data-types').mariadb;
+const integerOptions: SupportableNumericOptions = {
+  zerofill: true,
+};
 
 export class MariaDbDialect extends AbstractDialect {
-  static supports = _.merge(
-    _.cloneDeep(AbstractDialect.supports),
+  static supports = AbstractDialect.extendSupport(
     {
       'VALUES ()': true,
       'LIMIT ON UPDATE': true,
@@ -43,15 +45,34 @@ export class MariaDbDialect extends AbstractDialect {
           BINARY: true,
         },
         GEOMETRY: true,
-        REGEXP: true,
+        INTS: integerOptions,
+        BIGINT: { unsigned: true },
+        FLOAT: integerOptions,
+        REAL: integerOptions,
+        DOUBLE: integerOptions,
+        DECIMAL: integerOptions,
+        JSON: true,
       },
+      REGEXP: true,
       jsonOperations: true,
       milliseconds: true,
     },
   );
 
-  constructor(sequelize) {
-    super(sequelize);
+  readonly TICK_CHAR = '`';
+  readonly TICK_CHAR_LEFT = '`';
+  readonly TICK_CHAR_RIGHT = '`';
+  readonly defaultVersion = '10.1.44'; // minimum supported version
+  readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
+
+  readonly queryGenerator: MariaDbQueryGenerator;
+  readonly connectionManager: MariaDbConnectionManager;
+  readonly queryInterface: MySqlQueryInterface;
+
+  readonly Query = MariaDbQuery;
+
+  constructor(sequelize: Sequelize) {
+    super(sequelize, DataTypes, 'mariadb');
     this.connectionManager = new MariaDbConnectionManager(this, sequelize);
     this.queryGenerator = new MariaDbQueryGenerator({
       dialect: this,
@@ -61,13 +82,15 @@ export class MariaDbDialect extends AbstractDialect {
       sequelize,
       this.queryGenerator,
     );
+
+    registerMySqlDbDataTypeParsers(this);
   }
 
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
 
-  escapeString(value) {
+  escapeString(value: string) {
     return escapeMysqlString(value);
   }
 
@@ -79,12 +102,3 @@ export class MariaDbDialect extends AbstractDialect {
     return 3306;
   }
 }
-
-MariaDbDialect.prototype.defaultVersion = '10.1.44'; // minimum supported version
-MariaDbDialect.prototype.Query = MariaDbQuery;
-MariaDbDialect.prototype.QueryGenerator = MariaDbQueryGenerator;
-MariaDbDialect.prototype.DataTypes = DataTypes;
-MariaDbDialect.prototype.name = 'mariadb';
-MariaDbDialect.prototype.TICK_CHAR = '`';
-MariaDbDialect.prototype.TICK_CHAR_LEFT = MariaDbDialect.prototype.TICK_CHAR;
-MariaDbDialect.prototype.TICK_CHAR_RIGHT = MariaDbDialect.prototype.TICK_CHAR;
