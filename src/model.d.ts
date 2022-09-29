@@ -765,6 +765,12 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    * Use sub queries. This should only be used if you know for sure the query does not result in a cartesian product.
    */
   subQuery?: boolean;
+}
+
+export type BulkCreateIncludeable = ModelStatic | Association | BulkCreateIncludeOptions | { all: true, nested?: true }
+  | string;
+
+export interface BulkCreateIncludeOptions extends IncludeOptions {
 
   /**
    * Fields to update if row key already exists (on duplicate key update)? These fields apply to the model being `include`d (only supported by MySQL,
@@ -1146,9 +1152,9 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * Include options. See `find` for details
+   * Include options. See BulkCreateIncludeable for details.
    */
-  include?: AllowArray<Includeable>;
+  include?: AllowArray<BulkCreateIncludeable>;
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
