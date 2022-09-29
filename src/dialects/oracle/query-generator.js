@@ -119,7 +119,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   }
 
   versionQuery() {
-    return "SELECT VERSION FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
+    return "SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -342,7 +342,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
         ? `WHERE (atc.OWNER = ${this.escape(schema)}) `
         : 'WHERE atc.OWNER = USER ',
       `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
-      'ORDER BY atc.COLUMN_NAME'
+      'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC'
     ].join('');
   }
 

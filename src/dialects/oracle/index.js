@@ -54,7 +54,7 @@ OracleDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
   GEOMETRY: false
 });
 
-OracleDialect.prototype.defaultVersion = '18.4.0';
+OracleDialect.prototype.defaultVersion = '18.0.0';
 OracleDialect.prototype.Query = OracleQuery;
 OracleDialect.prototype.queryGenerator = OracleQueryGenerator;
 OracleDialect.prototype.DataTypes = DataTypes;
