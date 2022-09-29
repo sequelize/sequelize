@@ -1333,6 +1333,8 @@ Sequelize.IndexHints = IndexHints;
  */
 Sequelize.Transaction = Transaction;
 
+Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
+
 /**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
  *
