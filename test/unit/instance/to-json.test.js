@@ -7,7 +7,6 @@ const Support   = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
-const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {

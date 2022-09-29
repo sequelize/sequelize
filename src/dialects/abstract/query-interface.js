@@ -13,6 +13,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
+// TODO: rename to AbstractQueryInterface
 export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;

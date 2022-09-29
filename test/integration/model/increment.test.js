@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, silent: true, where: {} });
 
-        const updatedUser = await User.findByPk(1, { logging: true });
+        const updatedUser = await User.findByPk(1);
 
         await expect(updatedUser.updatedAt).to.equalTime(oldDate);
       });

@@ -142,7 +142,7 @@ describe('DataTypes', () => {
   describe('STRING(100).BINARY', () => {
     if (dialect.name === 'postgres') {
       // TODO: once we have centralized logging, check a warning message has been emitted:
-      //  https://github.com/sequelize/sequelize/issues/11670
+      //  https://github.com/sequelize/sequelize/issues/11832
       it.skip('throws, because postgres does not support setting a limit on binary strings', async () => {
         sequelize.define('User', {
           binaryStringAttr: {
@@ -244,7 +244,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: once we have centralized logging, check a warning message has been emitted when length is not supported:
-    //  https://github.com/sequelize/sequelize/issues/11670
+    //  https://github.com/sequelize/sequelize/issues/11832
   });
 
   describe('CHAR(<length>)', () => {

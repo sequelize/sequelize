@@ -115,22 +115,27 @@ export abstract class AbstractDataType<
     return this.#dialect;
   }
 
+  // TODO: Remove in v8
   static get escape() {
     throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
   }
 
+  // TODO: Remove in v8
   static get types() {
     throw new Error('The "types" static property has been removed. Use getDataTypeDialectMeta.');
   }
 
+  // TODO: Remove in v8
   static get key() {
     throw new Error('The "key" static property has been removed.');
   }
 
+  // TODO: Remove in v8
   get types() {
     throw new Error('The "types" instance property has been removed.');
   }
 
+  // TODO: Remove in v8
   get key() {
     throw new Error('The "key" instance property has been removed.');
   }

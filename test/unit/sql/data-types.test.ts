@@ -261,8 +261,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         ibmi: 'TIMESTAMP',
         postgres: 'TIMESTAMP(0) WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET(0)',
-        mariadb: 'DATETIME',
-        mysql: 'DATETIME(0)',
+        'mariadb mysql': 'DATETIME(0)',
         db2: 'TIMESTAMP',
         sqlite: 'TEXT',
         snowflake: 'TIMESTAMP',
@@ -1240,7 +1239,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
         expectsql(enumType.toSql({ dialect }), {
           postgres: '"public"."enum_Users_anEnum"',
-          mysql: `ENUM('value 1', 'value 2')`,
+          'mysql mariadb': `ENUM('value 1', 'value 2')`,
           // SQL Server does not support enums, we use text + a check constraint instead
           mssql: `NVARCHAR(255)`,
           sqlite: 'TEXT',

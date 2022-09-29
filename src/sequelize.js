@@ -405,15 +405,6 @@ export class Sequelize {
   }
 
   /**
-   * Refresh data types and parsers.
-   *
-   * @private
-   */
-  refreshTypes() {
-    this.connectionManager.refreshTypeParser(DataTypes);
-  }
-
-  /**
    * Returns the specified dialect.
    *
    * @returns {string} The specified dialect.

@@ -21,23 +21,6 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager {
   constructor(dialect, sequelize) {
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('snowflake-sdk');
-    this.refreshTypeParser(DataTypes);
-  }
-
-  _refreshTypeParser(dataType) {
-    parserStore.refresh(dataType);
-  }
-
-  _clearTypeParser() {
-    parserStore.clear();
-  }
-
-  static _typecast(field, next) {
-    if (parserStore.get(field.type)) {
-      return parserStore.get(field.type)(field, this.sequelize.options, next);
-    }
-
-    return next();
   }
 
   /**

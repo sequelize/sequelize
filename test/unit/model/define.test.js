@@ -198,7 +198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     // TODO: once we have centralized logging, enable this again
     //  right now this test does not work because the warning has already been logged by another test & this warning
     //  is only logged once.
-    //  https://github.com/sequelize/sequelize/issues/11670
+    //  https://github.com/sequelize/sequelize/issues/11832
     describe.skip('datatype warnings', () => {
       beforeEach(() => {
         sinon.spy(console, 'warn');

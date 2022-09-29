@@ -56,8 +56,7 @@ afterEach(async function checkRunningQueries() {
     runningQueriesProblem = `Expected 0 queries running after this test, but there are still ${
       runningQueries.size
     } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
-      // prettier-ignore
-      [...runningQueries].map(query => `       ${query.uuid}: ${query.sql}`).join('\n')
+      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
     }`;
   }
 
