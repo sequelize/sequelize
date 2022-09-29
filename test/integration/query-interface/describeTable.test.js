@@ -111,8 +111,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       switch (dialect) {
         case 'postgres':
         case 'db2':
-        case 'sqlite':
           assertVal = 'BOOLEAN';
+          break;
+        case 'sqlite':
+          assertVal = 'INTEGER';
           break;
         case 'mssql':
           assertVal = 'BIT';

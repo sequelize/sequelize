@@ -28,8 +28,12 @@ describe('model', () => {
     it('should tell me that a column is json', async function () {
       const table = await this.sequelize.queryInterface.describeTable('Users');
       switch (dialectName) {
+        // mssql & sqlite use text columns with CHECK constraints
         case 'mssql':
           expect(table.emergency_contact.type).to.equal('NVARCHAR(MAX)');
+          break;
+        case 'sqlite':
+          expect(table.emergency_contact.type).to.equal('TEXT');
           break;
         default:
           expect(table.emergency_contact.type).to.equal('JSON');

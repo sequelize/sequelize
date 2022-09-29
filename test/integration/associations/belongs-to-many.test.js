@@ -1381,7 +1381,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL(10, 2),
+          type: DataTypes.FLOAT,
           validate: {
             min: 0,
             max: 1,
@@ -1428,13 +1428,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL(10, 2),
+          type: DataTypes.FLOAT,
           validate: {
             min: 0,
             max: 1,
           },
         },
       });
+
       this.Article.belongsToMany(this.Label, { through: { model: this.ArticleLabel, unique: false } });
       this.Label.belongsToMany(this.Article, { through: { model: this.ArticleLabel, unique: false } });
 

@@ -11,13 +11,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
     beforeEach(function () {
       this.A = this.sequelize.define('A', {
         id: {
-          type: DataTypes.CHAR(20),
+          type: DataTypes.STRING(20),
           primaryKey: true,
         },
       });
       this.B = this.sequelize.define('B', {
         id: {
-          type: DataTypes.CHAR(20),
+          type: DataTypes.STRING(20),
           primaryKey: true,
         },
       });

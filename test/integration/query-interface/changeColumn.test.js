@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'users',
       });
 
-      if (['postgres', 'postgres-native', 'mssql'].includes(dialect)) {
+      if (['postgres', 'postgres-native', 'mssql', 'sqlite'].includes(dialect)) {
         expect(table.currency.type).to.equal('REAL');
       } else {
         expect(table.currency.type).to.equal('FLOAT');

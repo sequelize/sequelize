@@ -33,23 +33,26 @@ describe(getTestDialectTeaser('SQL'), () => {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
         mssql: 'NVARCHAR(255)',
+        sqlite: 'TEXT',
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
         mssql: 'NVARCHAR(1234)',
+        sqlite: 'TEXT',
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
         default: 'VARCHAR(1234)',
         mssql: 'NVARCHAR(1234)',
+        sqlite: 'TEXT',
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
         ibmi: 'VARBINARY(1234)',
         db2: 'VARCHAR(1234) FOR BIT DATA',
-        sqlite: 'VARCHAR BINARY(1234)',
+        sqlite: 'TEXT COLLATE BINARY',
         mssql: 'VARBINARY(1234)',
         postgres: 'BYTEA',
       });
@@ -58,7 +61,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: 'VARCHAR(255) BINARY',
         ibmi: 'VARBINARY(255)',
         db2: 'VARCHAR(255) FOR BIT DATA',
-        sqlite: 'VARCHAR BINARY(255)',
+        sqlite: 'TEXT COLLATE BINARY',
         mssql: 'VARBINARY(255)',
         postgres: 'BYTEA',
       });
@@ -186,30 +189,35 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('CHAR', () => {
       const binaryNotSupportedError = new Error(`${dialectName} does not support the CHAR.BINARY data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+      const charNotSupportedError = new Error(`${dialectName} does not support the CHAR data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
       testsql('CHAR', DataTypes.CHAR, {
         default: 'CHAR(255)',
+        sqlite: charNotSupportedError,
       });
 
       testsql('CHAR(12)', DataTypes.CHAR(12), {
         default: 'CHAR(12)',
+        sqlite: charNotSupportedError,
       });
 
       testsql('CHAR({ length: 12 })', DataTypes.CHAR({ length: 12 }), {
         default: 'CHAR(12)',
+        sqlite: charNotSupportedError,
       });
 
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
         ibmi: 'CLOB(12)',
-        sqlite: 'CHAR BINARY(12)',
+        sqlite: charNotSupportedError,
         'postgres mssql': binaryNotSupportedError,
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         ibmi: 'CLOB(255)',
-        sqlite: 'CHAR BINARY(255)',
+        sqlite: charNotSupportedError,
         'postgres mssql': binaryNotSupportedError,
       });
     });
@@ -222,8 +230,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
-        // This is really DECIMAL, but we use the name BOOLEAN for table introspection, as it maps to DECIMAL.
-        sqlite: 'BOOLEAN',
+        sqlite: 'INTEGER',
         snowflake: 'BOOLEAN',
       });
 
@@ -257,7 +264,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mariadb: 'DATETIME',
         mysql: 'DATETIME(0)',
         db2: 'TIMESTAMP',
-        sqlite: 'DATETIME',
+        sqlite: 'TEXT',
         snowflake: 'TIMESTAMP',
       });
 
@@ -268,7 +275,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
         db2: 'TIMESTAMP(6)',
-        sqlite: 'DATETIME',
+        sqlite: 'TEXT',
         snowflake: 'TIMESTAMP',
       });
 
@@ -292,12 +299,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('DATEONLY', () => {
       testsql('DATEONLY', DataTypes.DATEONLY, {
         default: 'DATE',
+        sqlite: 'TEXT',
       });
     });
 
     describe('TIME', () => {
       testsql('TIME', DataTypes.TIME, {
         default: 'TIME(0)',
+        sqlite: 'TEXT',
       });
     });
 
@@ -323,12 +332,13 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('UUID', () => {
       testsql('UUID', DataTypes.UUID, {
-        'postgres sqlite': 'UUID',
+        postgres: 'UUID',
         ibmi: 'CHAR(36)',
         db2: 'CHAR(36) FOR BIT DATA',
         mssql: 'UNIQUEIDENTIFIER',
         'mariadb mysql': 'CHAR(36) BINARY',
         snowflake: 'VARCHAR(36)',
+        sqlite: 'TEXT',
       });
 
       describe('validate', () => {
@@ -414,8 +424,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
+        sqlite: 'INTEGER',
         'mysql mariadb': 'INTEGER UNSIGNED',
-        'ibmi sqlite postgres db2 mssql': 'BIGINT',
+        'ibmi postgres db2 mssql': 'BIGINT',
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
@@ -435,7 +446,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
         'mysql mariadb': 'INTEGER(11) UNSIGNED',
-        'ibmi sqlite postgres db2 mssql': 'BIGINT',
+        sqlite: 'INTEGER',
+        'ibmi postgres db2 mssql': 'BIGINT',
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
@@ -491,7 +503,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           expect: {
             // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
             'mssql postgres': 'SMALLINT',
-            'mysql mariadb snowflake sqlite': 'TINYINT',
+            'mysql mariadb snowflake': 'TINYINT',
+            sqlite: 'INTEGER',
           },
         },
         {
@@ -501,7 +514,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           expect: {
             'mssql postgres': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
-            sqlite: 'TINYINT',
+            sqlite: 'INTEGER',
           },
         },
         {
@@ -510,7 +523,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           expect: {
             'mssql postgres': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
-            sqlite: 'TINYINT',
+            sqlite: 'INTEGER',
           },
         },
         {
@@ -518,8 +531,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
             // Fallback to bigger type + check constraint
-            'postgres sqlite snowflake': 'SMALLINT',
+            'postgres snowflake': 'SMALLINT',
             'mysql mariadb': 'TINYINT UNSIGNED',
+            // sqlite only supports INTEGER as a column type
+            sqlite: 'INTEGER',
             // TINYINT is unsigned in mssql
             mssql: 'TINYINT',
           },
@@ -528,8 +543,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'TINYINT(2).UNSIGNED',
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
-            'postgres sqlite snowflake': 'SMALLINT',
+            'postgres snowflake': 'SMALLINT',
             'mysql mariadb': 'TINYINT(2) UNSIGNED',
+            sqlite: 'INTEGER',
             mssql: 'TINYINT',
           },
         },
@@ -619,6 +635,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.SMALLINT,
           expect: {
             default: 'SMALLINT',
+            sqlite: 'INTEGER',
           },
         },
         {
@@ -626,6 +643,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.SMALLINT(4),
           expect: {
             default: 'SMALLINT',
+            sqlite: 'INTEGER',
             'mysql mariadb': 'SMALLINT(4)',
           },
         },
@@ -634,6 +652,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.SMALLINT({ length: 4 }),
           expect: {
             default: 'SMALLINT',
+            sqlite: 'INTEGER',
             'mysql mariadb': 'SMALLINT(4)',
           },
         },
@@ -642,8 +661,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.SMALLINT.UNSIGNED,
           expect: {
             'mysql mariadb': 'SMALLINT UNSIGNED',
-            // sqlite doesn't care, all ints are bigints
-            sqlite: 'SMALLINT',
+            // sqlite only supports INTEGER as a column type
+            sqlite: 'INTEGER',
             'postgres db2 ibmi': 'INTEGER',
             mssql: 'INT',
           },
@@ -653,7 +672,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             'mysql mariadb': 'SMALLINT(4) UNSIGNED',
-            sqlite: 'SMALLINT',
+            sqlite: 'INTEGER',
             'postgres db2 ibmi': 'INTEGER',
             mssql: 'INT',
           },
@@ -742,9 +761,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'MEDIUMINT',
           dataType: DataTypes.MEDIUMINT,
           expect: {
-            'mariadb mysql sqlite': 'MEDIUMINT',
+            'mariadb mysql': 'MEDIUMINT',
             // falls back to larger type + CHECK constraint
-            'db2 ibmi mssql postgres snowflake': 'INTEGER',
+            'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
           },
         },
         {
@@ -752,9 +771,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.MEDIUMINT(2),
           expect: {
             'mariadb mysql': 'MEDIUMINT(2)',
-            // length is discarded when unavailable
-            sqlite: 'MEDIUMINT',
-            'db2 ibmi mssql postgres snowflake': 'INTEGER',
+            'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
           },
         },
         {
@@ -762,8 +779,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.MEDIUMINT({ length: 2 }),
           expect: {
             'mariadb mysql': 'MEDIUMINT(2)',
-            sqlite: 'MEDIUMINT',
-            'db2 ibmi mssql postgres snowflake': 'INTEGER',
+            'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
           },
         },
         {
@@ -771,8 +787,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
             'mariadb mysql': 'MEDIUMINT UNSIGNED',
-            sqlite: 'MEDIUMINT',
-            'db2 ibmi mssql postgres snowflake': 'INTEGER',
+            'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
           },
         },
         {
@@ -780,8 +795,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.MEDIUMINT(2).UNSIGNED,
           expect: {
             'mariadb mysql': 'MEDIUMINT(2) UNSIGNED',
-            sqlite: 'MEDIUMINT',
-            'db2 ibmi mssql postgres snowflake': 'INTEGER',
+            'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
           },
         },
         {
@@ -868,6 +882,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       testsql('BIGINT', DataTypes.BIGINT, {
         default: 'BIGINT',
+        sqlite: 'INTEGER',
       });
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
@@ -882,11 +897,13 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
         default: 'BIGINT',
+        sqlite: 'INTEGER',
         'mysql mariadb': 'BIGINT(11)',
       });
 
       testsql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
         default: 'BIGINT',
+        sqlite: 'INTEGER',
         'mysql mariadb': 'BIGINT(11)',
       });
 
@@ -917,11 +934,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `'foobar' is not a valid bigint`);
+          }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${type.toString().toLowerCase()}`);
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(ValidationErrorItem, '123.45 is not a valid bigint');
+          }).to.throw(ValidationErrorItem, `123.45 is not a valid ${type.toString().toLowerCase()}`);
         });
 
         it('should not throw if `value` is an integer', () => {
@@ -1127,37 +1144,41 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('DECIMAL', () => {
       const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DECIMAL.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+      const unsupportedError = new Error(`${dialectName} does not support the DECIMAL data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
       testsql('DECIMAL', DataTypes.DECIMAL, {
         default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
-        'postgres sqlite': 'DECIMAL',
+        sqlite: unsupportedError,
+        postgres: 'DECIMAL',
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
         default: 'DECIMAL(10, 2)',
-        sqlite: 'DECIMAL',
+        sqlite: unsupportedError,
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
         default: 'DECIMAL(10, 2)',
-        sqlite: 'DECIMAL',
+        sqlite: unsupportedError,
       });
 
       testsql('DECIMAL(10, 2).UNSIGNED', DataTypes.DECIMAL(10, 2).UNSIGNED, {
         default: 'DECIMAL(10, 2)',
         'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
-        sqlite: 'DECIMAL',
+        sqlite: unsupportedError,
       });
 
       testsql('DECIMAL(10, 2).UNSIGNED.ZEROFILL', DataTypes.DECIMAL(10, 2).UNSIGNED.ZEROFILL, {
         default: zeroFillUnsupportedError,
+        sqlite: unsupportedError,
         'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED ZEROFILL',
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
         default: 'DECIMAL(10, 2)',
         'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
-        sqlite: 'DECIMAL',
+        sqlite: unsupportedError,
       });
 
       it('requires both scale & precision to be specified', () => {
@@ -1166,43 +1187,46 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect(() => DataTypes.DECIMAL({ scale: 2 })).to.throw('The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.');
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
-          const type: DataTypeInstance = DataTypes.DECIMAL(10, 2).toDialectDataType(dialect);
-          const typeName = dialect.supports.dataTypes.DECIMAL.constrained ? 'decimal(10, 2)' : 'decimal';
+      const supportsDecimal = dialect.supports.dataTypes.DECIMAL;
+      if (supportsDecimal) {
+        describe('validate', () => {
+          it('should throw an error if `value` is invalid', () => {
+            const type: DataTypeInstance = DataTypes.DECIMAL(10, 2).toDialectDataType(dialect);
+            const typeName = supportsDecimal.constrained ? 'decimal(10, 2)' : 'decimal';
 
-          expect(() => {
-            type.validate('foobar');
-          }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${typeName}`);
-
-          expect(() => {
-            type.validate('0.1a');
-          }).to.throw(ValidationErrorItem, `'0.1a' is not a valid ${typeName}`);
-
-          if (!dialect.supports.dataTypes.DECIMAL.NaN) {
             expect(() => {
-              type.validate(Number.NaN);
-            }).to.throw(ValidationErrorItem, `NaN is not a valid ${typeName}`);
-          } else {
+              type.validate('foobar');
+            }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${typeName}`);
+
             expect(() => {
-              type.validate(Number.NaN);
-            }).not.to.throw();
-          }
-        });
+              type.validate('0.1a');
+            }).to.throw(ValidationErrorItem, `'0.1a' is not a valid ${typeName}`);
 
-        it('should not throw if `value` is a decimal', () => {
-          const type = DataTypes.DECIMAL(10, 2);
+            if (!supportsDecimal.NaN) {
+              expect(() => {
+                type.validate(Number.NaN);
+              }).to.throw(ValidationErrorItem, `NaN is not a valid ${typeName}`);
+            } else {
+              expect(() => {
+                type.validate(Number.NaN);
+              }).not.to.throw();
+            }
+          });
 
-          expect(() => type.validate(123)).not.to.throw();
-          expect(() => type.validate(1.2)).not.to.throw();
-          expect(() => type.validate(-0.25)).not.to.throw();
-          expect(() => type.validate(0.000_000_000_000_1)).not.to.throw();
-          expect(() => type.validate('123')).not.to.throw();
-          expect(() => type.validate('1.2')).not.to.throw();
-          expect(() => type.validate('-0.25')).not.to.throw();
-          expect(() => type.validate('0.0000000000001')).not.to.throw();
+          it('should not throw if `value` is a decimal', () => {
+            const type = DataTypes.DECIMAL(10, 2);
+
+            expect(() => type.validate(123)).not.to.throw();
+            expect(() => type.validate(1.2)).not.to.throw();
+            expect(() => type.validate(-0.25)).not.to.throw();
+            expect(() => type.validate(0.000_000_000_000_1)).not.to.throw();
+            expect(() => type.validate('123')).not.to.throw();
+            expect(() => type.validate('1.2')).not.to.throw();
+            expect(() => type.validate('-0.25')).not.to.throw();
+            expect(() => type.validate('0.0000000000001')).not.to.throw();
+          });
         });
-      });
+      }
     });
 
     describe('ENUM', () => {
@@ -1263,6 +1287,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'VARBINARY(256)',
         db2: 'BLOB(255)',
         postgres: 'BYTEA',
+        sqlite: 'BLOB',
       });
 
       testsql('BLOB("medium")', DataTypes.BLOB('medium'), {
@@ -1271,6 +1296,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA',
+        sqlite: 'BLOB',
       });
 
       testsql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
@@ -1279,6 +1305,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA',
+        sqlite: 'BLOB',
       });
 
       testsql('BLOB("long")', DataTypes.BLOB('long'), {
@@ -1287,6 +1314,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(2G)',
         postgres: 'BYTEA',
+        sqlite: 'BLOB',
       });
 
       describe('validate', () => {
@@ -1336,9 +1364,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('JSON', () => {
       testsql('JSON', DataTypes.JSON, {
         // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
-        'mariadb mysql postgres sqlite': 'JSON',
+        'mariadb mysql postgres': 'JSON',
         // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
         mssql: 'NVARCHAR(MAX)',
+        sqlite: 'TEXT',
       });
     });
 
@@ -1383,7 +1412,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           postgres: 'BOOLEAN[]',
         });
 
-        if (dialect.supports.dataTypes.DECIMAL.unconstrained) {
+        const decimalSupport = dialect.supports.dataTypes.DECIMAL;
+        if (decimalSupport && decimalSupport.unconstrained) {
           testsql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
             postgres: 'DECIMAL[]',
           });

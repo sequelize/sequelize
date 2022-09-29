@@ -1968,12 +1968,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           order: DataTypes.INTEGER,
         });
 
-        this.UserWithDec = this.sequelize.define('UserWithDec', {
-          value: DataTypes.DECIMAL(10, 3),
-        });
-
         await this.UserWithAge.sync({ force: true });
-        await this.UserWithDec.sync({ force: true });
       });
 
       if (current.dialect.supports.transactions) {
@@ -2009,10 +2004,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(test).to.be.true;
       });
 
-      it('should allow decimals', async function () {
-        await this.UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
-        expect(await this.UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
-      });
+      if (dialect.supports.dataTypes.DECIMAL) {
+        it('should allow decimals', async function () {
+          const UserWithDec = this.sequelize.define('UserWithDec', {
+            value: DataTypes.DECIMAL(10, 3),
+          });
+
+          await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
+          expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
+        });
+      }
 
       it('should allow strings', async function () {
         await this.User.bulkCreate([{ username: 'bbb' }, { username: 'yyy' }]);
@@ -2044,10 +2045,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         gender: DataTypes.ENUM('male', 'female'),
       });
 
-      this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: DataTypes.DECIMAL(10, 3),
-      });
-
       this.UserWithFields = this.sequelize.define('UserWithFields', {
         age: {
           type: DataTypes.INTEGER,
@@ -2062,7 +2059,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Promise.all([
         this.UserWithAge.sync({ force: true }),
-        this.UserWithDec.sync({ force: true }),
         this.UserWithFields.sync({ force: true }),
       ]);
     });
@@ -2077,10 +2073,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await this.UserWithAge.sum('order')).to.equal(8);
     });
 
-    it('should allow decimals in sum', async function () {
-      await this.UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
-      expect(await this.UserWithDec.sum('value')).to.equal(8.75);
-    });
+    if (dialect.supports.dataTypes.DECIMAL) {
+      it('should allow decimals in sum', async function () {
+        const UserWithDec = this.sequelize.define('UserWithDec', {
+          value: DataTypes.DECIMAL(10, 3),
+        });
+
+        await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
+        expect(await UserWithDec.sum('value')).to.equal(8.75);
+      });
+    }
 
     it('should accept a where clause', async function () {
       const options = { where: { gender: 'male' } };
