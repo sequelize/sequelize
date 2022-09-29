@@ -44,7 +44,11 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
   }
 
   toBindableValue(value: boolean): unknown {
-    return value ? '1' : '0';
+    return value ? 1 : 0;
+  }
+
+  toSql(): string {
+    return 'INTEGER';
   }
 }
 
@@ -85,6 +89,10 @@ export class TINYINT extends BaseTypes.TINYINT {
 
   // TODO: add >= 0 =< 2^8-1 check when the unsigned option is true
   // TODO: add >= -2^7 =< 2^7-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'INTEGER';
+  }
 }
 
 export class SMALLINT extends BaseTypes.SMALLINT {
@@ -95,6 +103,10 @@ export class SMALLINT extends BaseTypes.SMALLINT {
 
   // TODO: add >= 0 =< 2^16-1 check when the unsigned option is true
   // TODO: add >= -2^15 =< 2^15-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'INTEGER';
+  }
 }
 
 export class MEDIUMINT extends BaseTypes.MEDIUMINT {
@@ -105,6 +117,10 @@ export class MEDIUMINT extends BaseTypes.MEDIUMINT {
 
   // TODO: add >= 0 =< 2^24-1 check when the unsigned option is true
   // TODO: add >= -2^23 =< 2^23-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'INTEGER';
+  }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
@@ -115,6 +131,10 @@ export class INTEGER extends BaseTypes.INTEGER {
 
   // TODO: add >= 0 =< 2^32-1 check when the unsigned option is true
   // TODO: add >= -2^31 =< 2^31-1 check when the unsigned option is false
+
+  toSql(): string {
+    return 'INTEGER';
+  }
 }
 
 export class BIGINT extends BaseTypes.BIGINT {
@@ -127,19 +147,9 @@ export class BIGINT extends BaseTypes.BIGINT {
 
     removeUnsupportedIntegerOptions(this, dialect);
   }
-}
 
-export class DECIMAL extends BaseTypes.DECIMAL {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this, dialect);
-  }
-
-  // TODO: add check constraint >= 0 if unsigned is true
-
-  parseDatabaseValue(value: unknown): unknown {
-    // sqlite returns DECIMAL as a JS number (yes that means we lose precision)
-    return String(value);
+  toSql(): string {
+    return 'INTEGER';
   }
 }
 
@@ -189,22 +199,46 @@ export class REAL extends BaseTypes.REAL {
 export class TIME extends BaseTypes.TIME {
   // TODO: add CHECK constraint
   //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+
+  toSql(): string {
+    return 'TEXT';
+  }
 }
 
 export class DATE extends BaseTypes.DATE {
   // TODO: add CHECK constraint
   //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+
+  toSql(): string {
+    return 'TEXT';
+  }
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
   // TODO: add CHECK constraint
   //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+
+  toSql(): string {
+    return 'TEXT';
+  }
+}
+
+export class BLOB extends BaseTypes.BLOB {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.length) {
+      dialect.warnDataTypeIssue(`${dialect.name} does not support '${this.getDataTypeId()}' with length. This option will be ignored.`);
+      delete this.options.length;
+    }
+  }
+
+  toSql() {
+    return 'BLOB';
+  }
 }
 
 export class JSON extends BaseTypes.JSON {
-  // TODO: add check constraint
-  //  https://www.sqlite.org/json1.html#jvalid
-
   toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
   }
@@ -225,6 +259,12 @@ export class JSON extends BaseTypes.JSON {
     } catch (error) {
       throw new Error(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
     }
+  }
+
+  // TODO: add check constraint
+  //  https://www.sqlite.org/json1.html#jvalid
+  toSql(): string {
+    return 'TEXT';
   }
 }
 

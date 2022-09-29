@@ -17,8 +17,7 @@ const debug = logger.debugContext('connection:sqlite');
 type Lib = typeof import('sqlite3');
 
 interface SqliteConnection extends Connection, Database {
-  // Value added by us
-  // TODO: make this a symbol instead
+  // Not declared by sqlite3's typings
   filename: string;
 }
 

@@ -1016,11 +1016,17 @@ export class DECIMAL extends BaseDecimalNumberDataType {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    if (this.isUnconstrained() && !dialect.supports.dataTypes.DECIMAL.unconstrained) {
+    const decimalSupport = dialect.supports.dataTypes.DECIMAL;
+
+    if (!decimalSupport) {
+      throwUnsupportedDataType(dialect, 'DECIMAL');
+    }
+
+    if (this.isUnconstrained() && !decimalSupport.unconstrained) {
       throw new Error(`${dialect.name} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`);
     }
 
-    if (!this.isUnconstrained() && !dialect.supports.dataTypes.DECIMAL.constrained) {
+    if (!this.isUnconstrained() && !decimalSupport.constrained) {
       dialect.warnDataTypeIssue(`${dialect.name} does not support constrained DECIMAL types. The "precision" and "scale" options will be ignored.`);
       this.options.scale = undefined;
       this.options.precision = undefined;

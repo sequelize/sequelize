@@ -143,6 +143,7 @@ export type DialectSupports = {
     CITEXT: boolean,
     /** Options supportable by all int types (from tinyint to bigint) */
     INTS: SupportableNumericOptions,
+    BIGINT: { unsigned: boolean },
     /** @deprecated */
     REAL: SupportableDecimalNumberOptions,
     /** This dialect supports 4 byte long floating point numbers */
@@ -150,7 +151,7 @@ export type DialectSupports = {
     /** This dialect supports 8 byte long floating point numbers */
     DOUBLE: SupportableDecimalNumberOptions,
     /** This dialect supports arbitrary precision numbers */
-    DECIMAL: SupportableExactDecimalOptions,
+    DECIMAL: false | SupportableExactDecimalOptions,
     /**
      * The dialect is considered to support JSON if it provides either:
      * - A JSON data type.
@@ -285,6 +286,7 @@ export abstract class AbstractDialect {
       },
       CITEXT: false,
       INTS: { zerofill: false },
+      BIGINT: { unsigned: false },
       FLOAT: { NaN: false, infinity: false, zerofill: false },
       REAL: { NaN: false, infinity: false, zerofill: false },
       DOUBLE: { NaN: false, infinity: false, zerofill: false },
