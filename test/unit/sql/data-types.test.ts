@@ -224,14 +224,12 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('BOOLEAN', () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
+        default: 'BOOLEAN',
         ibmi: 'SMALLINT',
-        postgres: 'BOOLEAN',
-        db2: 'BOOLEAN',
         mssql: 'BIT',
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
         sqlite: 'INTEGER',
-        snowflake: 'BOOLEAN',
       });
 
       describe('validate', () => {
@@ -362,6 +360,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('UUIDV1', () => {
+      testsql('UUIDV1', DataTypes.UUIDV1, {
+        default: new Error('toSQL should not be called on DataTypes.UUIDV1'),
+      });
+
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV1();
@@ -384,6 +386,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     });
 
     describe('UUIDV4', () => {
+      testsql('UUIDV4', DataTypes.UUIDV4, {
+        default: new Error('toSQL should not be called on DataTypes.UUIDV4'),
+      });
+
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV4();
@@ -983,7 +989,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         mssql: 'REAL',
       });
 
-      testsql('REAL({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
+      testsql('REAL({ precision: 11, scale: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
         default: 'REAL(11, 12) UNSIGNED',
         ibmi: 'REAL',
         sqlite: 'REAL',

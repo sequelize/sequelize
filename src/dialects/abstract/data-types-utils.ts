@@ -1,7 +1,6 @@
 import NodeUtils from 'util';
 import { ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
-import type { PostgresDialect } from '../postgres/index.js';
 import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance, ToSqlOptions } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
@@ -79,7 +78,7 @@ export function attributeTypeToSql(type: AbstractDataType<any> | string, options
   return type.toSql(options);
 }
 
-export function getDataTypeParser(dialect: PostgresDialect, dataType: DataTypeClassOrInstance): (value: unknown) => unknown {
+export function getDataTypeParser(dialect: AbstractDialect, dataType: DataTypeClassOrInstance): (value: unknown) => unknown {
   const type = normalizeDataType(dataType, dialect);
 
   return (value: unknown) => {

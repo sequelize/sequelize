@@ -23,7 +23,7 @@ describe('DataTypes', () => {
       expect(() => dateType.validate(nowString)).not.to.throw();
     });
 
-    if (dialect.name === 'postgres') {
+    if (dialect.supports.dataTypes.DATETIME.infinity) {
       it('DATE should validate Infinity/-Infinity as true', () => {
         expect(() => dateType.validate(Number.POSITIVE_INFINITY)).not.to.throw();
         expect(() => dateType.validate(Number.NEGATIVE_INFINITY)).not.to.throw();
@@ -33,7 +33,9 @@ describe('DataTypes', () => {
         expect(dateType.toBindableValue(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
         expect(dateType.toBindableValue(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');
       });
+    }
 
+    if (dialect.supports.dataTypes.DATEONLY.infinity) {
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
         expect(dateOnlyType.toBindableValue(Number.POSITIVE_INFINITY, stringifyOptions)).to.equal('infinity');
         expect(dateOnlyType.toBindableValue(Number.NEGATIVE_INFINITY, stringifyOptions)).to.equal('-infinity');

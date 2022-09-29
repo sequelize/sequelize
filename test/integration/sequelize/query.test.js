@@ -220,9 +220,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql')  {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
-            expect(createSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
+            expect(updateSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           } else {
-            console.log(updateSql);
             // these dialects use named bind parameters
             expect(createSql.endsWith(` with parameters { sequelize_1: 'john', sequelize_2: 'john@gmail.com' }`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
             expect(updateSql.endsWith(` with parameters { sequelize_1: 'li', sequelize_2: 1 }`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');

@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const reloadedUser = await User.findByPk(1);
       expect(reloadedUser.updatedAt).to.be.instanceOf(Date);
-      await expect(reloadedUser.updatedAt).to.be.afterTime(oldDate);
+      expect(reloadedUser.updatedAt).to.be.afterTime(oldDate);
     });
 
     it('with timestamps set to true and options.silent set to true', async function () {
