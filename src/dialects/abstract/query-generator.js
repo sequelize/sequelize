@@ -91,7 +91,7 @@ class QueryGenerator {
   /**
    * Helper method for populating the returning into bind information
    * that is needed by some dialects (currently Oracle)
-   * 
+   *
    * @private
    */
   populateInsertQueryReturnIntoBinds() {
@@ -1352,8 +1352,8 @@ class QueryGenerator {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          
-          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
+
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.
           // So the top level ORDER BY is required
           if (!this._dialect.supports.topLevelOrderByRequired) {
             delete options.order;
@@ -1612,7 +1612,7 @@ class QueryGenerator {
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
         } else if (/json_value\(/.test(attr)) {
-          prefix = attr.replace(/json_value\(/i, `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`); 
+          prefix = attr.replace(/json_value\(/i, `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`);
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }
@@ -2135,7 +2135,21 @@ class QueryGenerator {
           const field = model.rawAttributes[order[0]] ? model.rawAttributes[order[0]].field : order[0];
           const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
 
-          subQueryOrder.push(this.quote(subQueryAlias === null ? order : subQueryAlias, model, '->'));
+          let parent = null;
+          let orderToQuote = [];
+
+          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+          if (subQueryAlias === null) {
+            orderToQuote = order;
+            parent = model;
+          } else {
+            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+            parent = null;
+          }
+
+          subQueryOrder.push(this.quote(orderToQuote, parent, '->'));
         }
 
         // Handle case where renamed attributes are used to order by,
