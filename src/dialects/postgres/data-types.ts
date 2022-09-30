@@ -98,28 +98,6 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   // TODO: add check constraint >= 0 if unsigned is true
 }
 
-export class STRING extends BaseTypes.STRING {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    if (this.options.length && this.options.binary) {
-      dialect.warnDataTypeIssue(
-        `${dialect.name} does not support specifying a length on binary strings. Use a length validator instead.`,
-      );
-
-      this.options.length = undefined;
-    }
-  }
-
-  toSql(options: ToSqlOptions) {
-    if (this.options.binary) {
-      return 'BYTEA';
-    }
-
-    return super.toSql(options);
-  }
-}
-
 export class TEXT extends BaseTypes.TEXT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);

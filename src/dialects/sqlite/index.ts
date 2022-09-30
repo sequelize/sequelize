@@ -33,6 +33,7 @@ export class SqliteDialect extends AbstractDialect {
     groupedLimit: false,
     dataTypes: {
       CHAR: false,
+      COLLATE_BINARY: true,
       CITEXT: true,
       DECIMAL: false,
       JSON: true,

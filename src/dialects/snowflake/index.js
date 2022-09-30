@@ -39,9 +39,7 @@ export class SnowflakeDialect extends AbstractDialect {
     schemas: true,
     multiDatabases: true,
     dataTypes: {
-      CHAR: {
-        BINARY: true,
-      },
+      COLLATE_BINARY: true,
       REGEXP: true,
     },
   });

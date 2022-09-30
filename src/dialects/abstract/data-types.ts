@@ -364,6 +364,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     | [length: number, binary: boolean]
     | [options: StringTypeOptions]
   );
+
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
     super();
 
@@ -377,6 +378,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
         length: lengthOrOptions,
         binary: binary ?? false,
       };
+    }
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.COLLATE_BINARY && this.options.binary) {
+      throwUnsupportedDataType(dialect, 'STRING.BINARY');
     }
   }
 
@@ -433,20 +440,6 @@ export class STRING extends AbstractDataType<string | Buffer> {
     return options.dialect.escapeString(value);
   }
 
-  sanitize(value: unknown): unknown {
-    if (this.options.binary) {
-      if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
-        return makeBufferFromTypedArray(value);
-      }
-
-      if (typeof value === 'string') {
-        return Buffer.from(value);
-      }
-    }
-
-    return value;
-  }
-
   toBindableValue(value: string | Buffer): unknown {
     return this.sanitize(value);
   }
@@ -462,13 +455,11 @@ export class CHAR extends STRING {
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
     if (!dialect.supports.dataTypes.CHAR) {
       throwUnsupportedDataType(dialect, 'CHAR');
     }
 
-    if (!dialect.supports.dataTypes.CHAR.BINARY && this.options.binary) {
+    if (!dialect.supports.dataTypes.COLLATE_BINARY && this.options.binary) {
       throwUnsupportedDataType(dialect, 'CHAR.BINARY');
     }
   }

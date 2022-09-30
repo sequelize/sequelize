@@ -45,7 +45,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare dateRangeAttr: Range<Date>;
 
   declare stringAttr: string;
-  declare stringBinaryAttr: Buffer;
+  declare binaryAttr: Buffer;
   declare dateAttr: Date;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
@@ -73,7 +73,7 @@ TestModel.init({
   }),
 
   stringAttr: DataTypes.STRING,
-  stringBinaryAttr: DataTypes.STRING.BINARY,
+  binaryAttr: DataTypes.BLOB,
   dateAttr: DataTypes.DATE,
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
@@ -353,26 +353,26 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       describe('Buffer', () => {
-        testSql({ stringBinaryAttr: Buffer.from('Sequelize') }, {
-          ibmi: `"stringBinaryAttr" = BLOB(X'53657175656c697a65')`,
-          postgres: '"stringBinaryAttr" = E\'\\\\x53657175656c697a65\'',
-          sqlite: '`stringBinaryAttr` = X\'53657175656c697a65\'',
-          mariadb: '`stringBinaryAttr` = X\'53657175656c697a65\'',
-          mysql: '`stringBinaryAttr` = X\'53657175656c697a65\'',
-          db2: '"stringBinaryAttr" = BLOB(\'Sequelize\')',
-          snowflake: '"stringBinaryAttr" = X\'53657175656c697a65\'',
-          mssql: '[stringBinaryAttr] = 0x53657175656c697a65',
+        testSql({ binaryAttr: Buffer.from('Sequelize') }, {
+          ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
+          postgres: '"binaryAttr" = E\'\\\\x53657175656c697a65\'',
+          sqlite: '`binaryAttr` = X\'53657175656c697a65\'',
+          mariadb: '`binaryAttr` = X\'53657175656c697a65\'',
+          mysql: '`binaryAttr` = X\'53657175656c697a65\'',
+          db2: '"binaryAttr" = BLOB(\'Sequelize\')',
+          snowflake: '"binaryAttr" = X\'53657175656c697a65\'',
+          mssql: '[binaryAttr] = 0x53657175656c697a65',
         });
 
-        testSql({ stringBinaryAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
-          ibmi: `"stringBinaryAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
-          postgres: '"stringBinaryAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
-          sqlite: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mariadb: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mysql: '`stringBinaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: `"stringBinaryAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
-          snowflake: `"stringBinaryAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
-          mssql: '[stringBinaryAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
+        testSql({ binaryAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
+          ibmi: `"binaryAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          postgres: '"binaryAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
+          sqlite: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mariadb: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          mysql: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
+          db2: `"binaryAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
+          snowflake: `"binaryAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
+          mssql: '[binaryAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
         });
       });
     });

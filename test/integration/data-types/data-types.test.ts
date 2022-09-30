@@ -81,6 +81,18 @@ describe('DataTypes', () => {
   });
 
   describe('STRING.BINARY', () => {
+    if (!dialect.supports.dataTypes.COLLATE_BINARY) {
+      it('throws if STRING.BINARY is used', () => {
+        expect(() => {
+          sequelize.define('CrashedModel', {
+            attr: DataTypes.STRING(5).BINARY,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the STRING.BINARY data type.`);
+      });
+
+      return;
+    }
+
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare binaryStringAttr: ArrayBuffer | string | Blob;
@@ -98,85 +110,45 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    it('serialize/deserializes buffers', async () => {
-      await testSimpleInOut(vars.User, 'binaryStringAttr', Buffer.from('abc'), Buffer.from([97, 98, 99]));
-    });
-
-    // unfortunately mysql2's typecast function does not let us know whether the string is binary or not.
-    // we cannot normalize this ourselves, it must remain a string.
-    if (dialect.name === 'mysql') {
-      it('is deserialized as a string when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
-      });
-    } else {
-      it('is deserialized as a buffer when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', Buffer.from([97, 98, 99]));
-      });
-    }
-
-    it('accepts ArrayBuffers & Uint8Arrays', async () => {
-      // Uint8Arrays
-      await testSimpleInOut(vars.User, 'binaryStringAttr', new Uint8Array([97, 98, 99]), Buffer.from([97, 98, 99]));
-      // ArrayBuffer
-      await testSimpleInOut(vars.User, 'binaryStringAttr', new Uint8Array([97, 98, 99]).buffer, Buffer.from([97, 98, 99]));
-    });
-
-    // Node 14 doesn't support Blob
-    if (Blob) {
-      it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
-        await expect(vars.User.create({
-          binaryStringAttr: new Blob(['abc']),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
-
-        await expect(vars.User.create({
-          binaryStringAttr: new Uint16Array([97, 98, 99]),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(3) [ 97, 98, 99 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
-      });
-    }
-
     it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', Buffer.from([97, 98, 99]));
+      await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
+    });
+
+    it('is deserialized as a string when DataType is not specified', async () => {
+      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
   });
 
   describe('STRING(100).BINARY', () => {
-    if (dialect.name === 'postgres') {
-      // TODO: once we have centralized logging, check a warning message has been emitted:
-      //  https://github.com/sequelize/sequelize/issues/11832
-      it.skip('throws, because postgres does not support setting a limit on binary strings', async () => {
-        sequelize.define('User', {
-          binaryStringAttr: {
-            type: DataTypes.STRING(5).BINARY,
-            allowNull: false,
-          },
-        });
-      });
-    } else {
-      const vars = beforeAll2(async () => {
-        class User extends Model<InferAttributes<User>> {
-          declare binaryStringAttr: string;
-        }
+    // previous test suite tests this error message
+    if (!dialect.supports.dataTypes.COLLATE_BINARY) {
+      return;
+    }
 
-        User.init({
-          binaryStringAttr: {
-            type: DataTypes.STRING(5).BINARY,
-            allowNull: false,
-          },
-        }, { sequelize });
-
-        await User.sync({ force: true });
-
-        return { User };
-      });
-
-      // TODO: add length check constraint in sqlite
-      if (dialect.name !== 'sqlite') {
-        it('throws if the string is too long', async () => {
-          await expect(vars.User.create({
-            binaryStringAttr: '123456',
-          })).to.be.rejected;
-        });
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare binaryStringAttr: string;
       }
+
+      User.init({
+        binaryStringAttr: {
+          type: DataTypes.STRING(5).BINARY,
+          allowNull: false,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    // TODO: add length check constraint in sqlite
+    if (dialect.name !== 'sqlite') {
+      it('throws if the string is too long', async () => {
+        await expect(vars.User.create({
+          binaryStringAttr: '123456',
+        })).to.be.rejected;
+      });
     }
   });
 
@@ -278,7 +250,7 @@ describe('DataTypes', () => {
     });
 
     it('serialize/deserializes strings', async () => {
-      if (dialect.name === 'mysql') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345');
@@ -294,7 +266,7 @@ describe('DataTypes', () => {
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      if (dialect.name === 'mysql') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOutRaw(vars.User, 'charAttr', '12345 ', '12345');
@@ -309,7 +281,7 @@ describe('DataTypes', () => {
       it('throws, because this dialect does not support CHAR', async () => {
         expect(() => {
           sequelize.define('CrashedModel', {
-            attr: DataTypes.CHAR,
+            attr: DataTypes.CHAR(5),
           });
         }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
       });
@@ -317,11 +289,11 @@ describe('DataTypes', () => {
       return;
     }
 
-    if (!dialect.supports.dataTypes.CHAR.BINARY) {
+    if (!dialect.supports.dataTypes.COLLATE_BINARY) {
       it('throws if CHAR.BINARY is used', () => {
         expect(() => {
           sequelize.define('CrashedModel', {
-            attr: DataTypes.CHAR.BINARY,
+            attr: DataTypes.CHAR(5).BINARY,
           });
         }).to.throwWithCause(`${dialect.name} does not support the CHAR.BINARY data type.`);
       });
@@ -346,56 +318,14 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    it('serialize/deserializes buffers with padding if the length is insufficient', async () => {
-      if (dialect.name === 'mysql') {
-        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-        // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
-        await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from(' 234'), Buffer.from([32, 50, 51, 52]));
-      } else {
-        await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
-      }
+    it('is serialized/deserialized as strings', async () => {
+      await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
     });
 
-    // unfortunately mysql2's typecast function does not let us know whether the string is binary or not.
-    // we cannot normalize this ourselves, it must remain a string.
-    if (dialect.name === 'mysql') {
-      it('is deserialized as a string when DataType is not specified', async () => {
-        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-        // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
-      });
-    } else {
-      it('is deserialized as a buffer when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from('1234'), Buffer.from([32, 49, 50, 51, 52]));
-      });
-    }
-
-    it('accepts ArrayBuffers & Uint8Arrays', async () => {
-      const result = dialect.name === 'mysql' ? Buffer.from([49, 50, 51, 52]) : Buffer.from([32, 49, 50, 51, 52]);
-
-      // Uint8Arrays
-      await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]), result);
-      // ArrayBuffer
-      await testSimpleInOut(vars.User, 'binaryCharAttr', new Uint8Array([49, 50, 51, 52]).buffer, result);
-    });
-
-    // Node 14 doesn't support Blob
-    if (Blob) {
-      it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
-        await expect(vars.User.create({
-          binaryCharAttr: new Blob(['abcd']),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
-
-        await expect(vars.User.create({
-          binaryCharAttr: new Uint16Array([49, 50, 51, 52]),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
-      });
-    }
-
-    it('accepts strings', async () => {
-      const result = dialect.name === 'mysql' ? Buffer.from([49, 50, 51, 52]) : Buffer.from([32, 49, 50, 51, 52]);
-
-      await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', Buffer.from(result));
+    it('is deserialized as a string when DataType is not specified', async () => {
+      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+      // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
+      await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
     });
   });
 
@@ -406,7 +336,7 @@ describe('DataTypes', () => {
           sequelize.define('User', {
             ciTextAttr: DataTypes.CITEXT,
           });
-        }).to.throwWithCause(`${dialect.name} does not support the CITEXT data type.`);
+        }).to.throwWithCause(`${dialect.name} does not support the case-insensitive text (CITEXT) data type.`);
       });
     } else {
       const vars = beforeAll2(async () => {
@@ -540,7 +470,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
-    if (dialect.name === 'mysql' || dialect.name === 'sqlite') {
+    if (dialect.name === 'mysql' || dialect.name === 'sqlite' || dialect.name === 'mariadb') {
       // MySQL uses TINYINT(1). We can't know if the value is a boolean if the DataType is not specified.
       // SQLite: sqlite3 does not tell us which type a column is, so we can't know if the value is a boolean.
       it('is deserialized as a number when DataType is not specified', async () => {
@@ -604,13 +534,11 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'intAttr', minIntValueSigned[intTypeName], minIntValueSigned[intTypeName]);
       });
 
-      // in sqlite3, all numeric types are bigints
-      if (dialect.name !== 'sqlite') {
-        it('rejects out-of-range numbers', async () => {
-          await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
-          await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
-        });
-      }
+      // TODO: add check constraints on types that overflow
+      it.skip('rejects out-of-range numbers', async () => {
+        await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
+        await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
+      });
 
       it('rejects non-integer numbers', async () => {
         await expect(vars.User.create({ intAttr: 123.4 })).to.be.rejected;
@@ -1128,7 +1056,7 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
 
         // Date is also used for inserting, so we also lose precision during insert.
-        if (dialect.name === 'mysql') {
+        if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
           await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123000+00');
         } else {
           await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');

@@ -30,6 +30,9 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('STRING', () => {
+      const binaryCollationUnsupportedError = new Error(`${dialectName} does not support the STRING.BINARY data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
         mssql: 'NVARCHAR(255)',
@@ -50,20 +53,20 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
-        ibmi: 'VARBINARY(1234)',
+        ibmi: binaryCollationUnsupportedError,
         db2: 'VARCHAR(1234) FOR BIT DATA',
         sqlite: 'TEXT COLLATE BINARY',
-        mssql: 'VARBINARY(1234)',
-        postgres: 'BYTEA',
+        mssql: binaryCollationUnsupportedError,
+        postgres: binaryCollationUnsupportedError,
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
-        ibmi: 'VARBINARY(255)',
+        ibmi: binaryCollationUnsupportedError,
         db2: 'VARCHAR(255) FOR BIT DATA',
         sqlite: 'TEXT COLLATE BINARY',
-        mssql: 'VARBINARY(255)',
-        postgres: 'BYTEA',
+        mssql: binaryCollationUnsupportedError,
+        postgres: binaryCollationUnsupportedError,
       });
 
       describe('validate', () => {

@@ -38,9 +38,6 @@ export class MssqlDialect extends AbstractDialect {
     },
     tmpTableTrigger: true,
     dataTypes: {
-      CHAR: {
-        BINARY: false,
-      },
       JSON: true,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
       GEOGRAPHY: false,

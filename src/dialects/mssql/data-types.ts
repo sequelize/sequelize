@@ -3,6 +3,7 @@ import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
 import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
+import type { ToSqlOptions } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 /**
@@ -74,11 +75,7 @@ export class BLOB extends BaseTypes.BLOB {
 
 export class STRING extends BaseTypes.STRING {
   toSql() {
-    if (!this.options.binary) {
-      return `NVARCHAR(${this.options.length ?? 255})`;
-    }
-
-    return `VARBINARY(${this.options.length ?? 255})`;
+    return `NVARCHAR(${this.options.length ?? 255})`;
   }
 }
 

@@ -131,14 +131,11 @@ export type DialectSupports = {
     unique: boolean,
   },
   dataTypes: {
-    CHAR: false | {
-      /**
-       * Whether this dialect provides a valid substitute for CHAR BINARY.
-       * CHAR BINARY *must* be blank padded with whitespace.
-       * This is not the same as a BINARY type that would be padded with null (0x0) bytes.
-       */
-      BINARY: boolean,
-    },
+    CHAR: boolean,
+    /**
+     * Whether this dialect provides a binary collation on text, varchar & char columns.
+     */
+    COLLATE_BINARY: boolean,
     /** This dialect supports case-insensitive text */
     CITEXT: boolean,
     /** Options supportable by all int types (from tinyint to bigint) */
@@ -281,9 +278,8 @@ export abstract class AbstractDialect {
       unique: true,
     },
     dataTypes: {
-      CHAR: {
-        BINARY: false,
-      },
+      CHAR: true,
+      COLLATE_BINARY: false,
       CITEXT: false,
       INTS: { zerofill: false },
       BIGINT: { unsigned: false },
