@@ -2845,6 +2845,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should correctly set identifiers in a column with autoIncrement with bigint values', async function () {
+      // sqlite returns bigints as numbers https://github.com/sequelize/sequelize/issues/11400
       if (dialectName === 'sqlite') {
         return;
       }
