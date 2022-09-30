@@ -149,8 +149,25 @@ describe('DataType Methods', () => {
       expect(spies.validate.called).to.eq(true, 'validate should have been called');
     });
 
-    // !TODO: add upsert test
-    // !TODO: add update test
+    it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
+      // 'name' attr has a different name in the database
+      const [out] = await models.User.upsert({ name: 'foo' });
+
+      expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
+
+      // sanitize is called when the user input is added to the model
+      expect(spies.sanitize.called).to.eq(true, 'sanitize should have been called');
+      // validate is called before persisting the model
+      expect(spies.validate.called).to.eq(true, 'validate should have been called');
+    });
+
+    it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
+      const user = await models.User.create({ name: 'foo' });
+      user.name = 'bob';
+      await user.save();
+
+      expect(user.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
+    });
   }
 
   it(`does not call 'parseDatabaseValue' on null values`, async () => {
