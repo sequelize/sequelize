@@ -57,6 +57,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { account_id: 42, id: null, name: 'a' },
         ]);
       });
+
+      it('should not skips setters if the raw option is false', async function () {
+        await this.Model.bulkCreate([
+          { accountId: 42, name: 'a' },
+        ], { raw: false });
+
+        expect(this.stub.getCall(0).args[1]).to.deep.equal([
+          { account_id: 42, id: null, name: 'A' },
+        ]);
+      });
     });
   });
 });
