@@ -1124,7 +1124,7 @@ describe('DataTypes', () => {
       }
 
       User.init({
-        timeMinPrecisionAttr: DataTypes.TIME, // defaults to 0
+        timeMinPrecisionAttr: DataTypes.TIME(0),
         timeTwoPrecisionAttr: DataTypes.TIME(2),
         timeMaxPrecisionAttr: DataTypes.TIME(6),
       }, { sequelize });
