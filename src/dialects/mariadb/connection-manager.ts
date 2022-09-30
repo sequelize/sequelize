@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import type { TypeCastResult, Connection as LibConnection, ConnectionConfig as MariaDbConnectionConfig, FieldInfo, TypeCastNextFunction } from 'mariadb';
-import { SqlError } from 'mariadb';
 import semver from 'semver';
 import {
   AccessDeniedError, ConnectionError,
@@ -10,7 +9,7 @@ import {
   InvalidConnectionError,
 } from '../../errors/index.js';
 import type { Sequelize, ConnectionOptions } from '../../sequelize.js';
-import { removeUndefined } from '../../utils/index.js';
+import { isErrorWithStringCode, removeUndefined } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
@@ -45,6 +44,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
 
   #typeCast(field: FieldInfo, next: TypeCastNextFunction): TypeCastResult {
     const parser = this.dialect.getParserForDatabaseDataType(field.type);
+
     if (parser) {
       return parser(field) as TypeCastResult;
     }
@@ -115,8 +115,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
 
       return connection;
     } catch (error: unknown) {
-      if (!(error instanceof SqlError)) {
-        // unexpected error
+      if (!isErrorWithStringCode(error)) {
         throw error;
       }
 

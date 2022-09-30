@@ -35,9 +35,12 @@ describe('model', () => {
         case 'sqlite':
           expect(table.emergency_contact.type).to.equal('TEXT');
           break;
+        case 'mariadb':
+          // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+          expect(table.emergency_contact.type).to.equal('LONGTEXT');
+          break;
         default:
           expect(table.emergency_contact.type).to.equal('JSON');
-          // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
       }
     });
 

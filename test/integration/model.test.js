@@ -2010,6 +2010,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             value: DataTypes.DECIMAL(10, 3),
           });
 
+          await UserWithDec.sync({ force: true });
+
           await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
           expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
         });
@@ -2078,6 +2080,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const UserWithDec = this.sequelize.define('UserWithDec', {
           value: DataTypes.DECIMAL(10, 3),
         });
+
+        await UserWithDec.sync({ force: true });
 
         await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
         expect(await UserWithDec.sum('value')).to.equal(8.75);
