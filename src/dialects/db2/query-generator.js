@@ -656,7 +656,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

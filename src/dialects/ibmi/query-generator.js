@@ -382,7 +382,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
       result += this.quoteIdentifier(field.name);
 
-      if (this._dialect.supports.index.length && field.length) {
+      if (this.dialect.supports.index.length && field.length) {
         result += `(${field.length})`;
       }
 
@@ -401,7 +401,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     options = Model._conformIndex(options);
 
-    if (!this._dialect.supports.index.type) {
+    if (!this.dialect.supports.index.type) {
       delete options.type;
     }
 

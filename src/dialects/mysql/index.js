@@ -49,7 +49,7 @@ export class MysqlDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MySqlQueryInterface(
