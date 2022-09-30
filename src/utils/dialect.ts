@@ -1,31 +1,22 @@
 import isPlainObject from 'lodash/isPlainObject';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+/* eslint-disable import/order -- caused by temporarily mixing require with import */
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+
+import type { AbstractDialect } from '../dialects/abstract';
+/* eslint-enable import/order */
 
 const DataTypes = require('../data-types');
 
-const dialectsSupportingMilliseconds = new Set([
-  'mariadb',
-  'mysql',
-  'postgres',
-  'sqlite',
-  'mssql',
-  'db2',
-  'ibmi',
-]);
-
-// TODO: instead of receiving a dialect *name* here, require the actual AbstractDialect subclass
-//  and add a flag on AbstractDialect.supports to determine if the date should include milliseconds.
-export function now(dialect: string): Date {
+export function now(dialect: AbstractDialect): Date {
   const d = new Date();
-  if (!dialectsSupportingMilliseconds.has(dialect)) {
+  if (!dialect.supports.milliseconds) {
     d.setMilliseconds(0);
   }
 
   return d;
 }
 
-export function toDefaultValue(value: unknown, dialect: string): unknown {
+export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknown {
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.ABSTRACT) {
