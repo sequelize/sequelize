@@ -200,6 +200,12 @@ describe('model', () => {
         expect(user.username).to.equal('anna');
       });
 
+      it('should be able to store strings', async function () {
+        await this.User.create({ username: 'swen', emergency_contact: 'joe' });
+        const user = await this.User.findOne({ where: { username: 'swen' } });
+        expect(user.emergency_contact).to.equal('joe');
+      });
+
       it('should be able to store values that require JSON escaping', async function () {
         const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
