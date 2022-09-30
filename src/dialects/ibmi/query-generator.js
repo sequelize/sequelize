@@ -1,6 +1,7 @@
 'use strict';
 
-import { removeTrailingSemicolon } from '../../utils';
+import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
+import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -11,6 +12,7 @@ const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -20,19 +22,29 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   // Schema queries
-  createSchema(schema) {
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `CREATE SCHEMA "${schema}"`;
   }
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
   }
 
-  showSchemasQuery(options) {
+  listSchemasQuery(options) {
     let skippedSchemas = '';
-    if (options.skip) {
+    if (options?.skip) {
       for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != '${options.skip[i]}'`;
+        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
       }
     }
 
