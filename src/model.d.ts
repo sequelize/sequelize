@@ -752,7 +752,9 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   through?: IncludeThroughOptions;
 
   /**
-   * Load further nested related models
+   * A list of associations to eagerly load using a left join (a single association is also supported).
+   *
+   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
   include?: AllowArray<Includeable>;
 
@@ -944,7 +946,9 @@ export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFin
 export interface CountOptions<TAttributes = any>
   extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
   /**
-   * Include options. See `find` for details
+   * A list of associations to eagerly load using a left join (a single association is also supported).
+   *
+   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
   include?: AllowArray<Includeable>;
 
@@ -996,7 +1000,9 @@ export interface BuildOptions {
   isNewRecord?: boolean;
 
   /**
-   * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
+   * A list of associations to eagerly load using a left join (a single association is also supported).
+   *
+   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
   include?: AllowArray<Includeable>;
 }
@@ -1029,6 +1035,23 @@ export interface CreateOptions<TAttributes = any>
    * Return the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes>;
+
+  /**
+   * A list of associations to eagerly load using a left join (a single association is also supported).
+   *
+   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
+   */
+  include?: AllowArray<Includeable>;
+
+  /**
+   * If set to true, field and virtual setters will be ignored
+   */
+  raw?: boolean;
+
+  /**
+   * If true, the updatedAt timestamp will not be updated.
+   */
+  silent?: boolean;
 
   /**
    * If false, validations won't be run.
@@ -1140,9 +1163,21 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * Include options. See `find` for details
+   * A list of associations to eagerly load using a left join (a single association is also supported).
+   *
+   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
   include?: AllowArray<Includeable>;
+
+  /**
+   * If set to true, field and virtual setters will be ignored
+   */
+  raw?: boolean;
+
+  /**
+   * If true, the updatedAt timestamp will not be updated.
+   */
+  silent?: boolean;
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
