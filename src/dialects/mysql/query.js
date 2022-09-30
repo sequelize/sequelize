@@ -108,8 +108,8 @@ export class MySqlQuery extends AbstractQuery {
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
-          for (let i = startId; i < startId + data.affectedRows; i++) {
-            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i });
+          for (let i = BigInt(startId); i < BigInt(startId) + BigInt(data.affectedRows); i = i + 1n) {
+            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: typeof startId === 'string' ? i.toString() : Number(i) });
           }
         } else {
           result = data[this.getInsertIdField()];
