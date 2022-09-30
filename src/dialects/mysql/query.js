@@ -272,6 +272,13 @@ export class MySqlQuery extends AbstractQuery {
     }
   }
 
+  handleShowTablesQuery(results) {
+    return results.map(resultSet => ({
+      tableName: resultSet.TABLE_NAME,
+      schema: resultSet.TABLE_SCHEMA,
+    }));
+  }
+
   handleShowIndexesQuery(data) {
     // Group by index name, and collect all fields
     data = data.reduce((acc, item) => {

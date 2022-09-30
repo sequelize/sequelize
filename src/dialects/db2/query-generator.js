@@ -1,6 +1,7 @@
 'use strict';
 
-import { removeTrailingSemicolon } from '../../utils';
+import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
+import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -8,6 +9,8 @@ const DataTypes = require('../../data-types');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
+
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -25,17 +28,23 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     this.autoGenValue = 1;
   }
 
-  createSchema(schema) {
-    return [
-      'CREATE SCHEMA',
-      this.quoteIdentifier(schema),
-      ';',
-    ].join(' ');
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   _errorTableCount = 0;
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
@@ -54,9 +63,13 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  showSchemasQuery() {
-    return 'SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE '
-      + '(SCHEMANAME NOT LIKE \'SYS%\') AND SCHEMANAME NOT IN (\'NULLID\', \'SQLJ\', \'ERRORSCHEMA\')';
+  listSchemasQuery(options) {
+    const schemasToSkip = ['NULLID', 'SQLJ', 'ERRORSCHEMA'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   versionQuery() {
