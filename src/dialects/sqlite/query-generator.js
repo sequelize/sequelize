@@ -8,15 +8,15 @@ const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   dropSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   listSchemasQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect}.`);
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   versionQuery() {

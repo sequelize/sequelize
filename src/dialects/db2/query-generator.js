@@ -32,7 +32,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
