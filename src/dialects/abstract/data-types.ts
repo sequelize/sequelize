@@ -276,14 +276,18 @@ export abstract class AbstractDataType<
    * @param dialect
    */
   toDialectDataType(dialect: AbstractDialect): this {
+    // This DataType has already been converted to a dialect-specific DataType.
+    if (this.#dialect === dialect) {
+      return this;
+    }
+
     const DataTypeClass = this.constructor as Class<AbstractDataType<any>>;
     // get dialect-specific implementation
     const subClass = dialect.getDataTypeForDialect(DataTypeClass);
 
-    // !TODO: add flag to prevent re-wrapping if already wrapped
-
     const replacement: this = (!subClass || subClass === DataTypeClass)
-      ? this.clone()
+      // optimisation: re-use instance if it doesn't belong to any dialect yet.
+      ? this.#dialect == null ? this : this.clone()
       // @ts-expect-error
       : new subClass(this.options) as this;
 
