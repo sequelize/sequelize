@@ -2046,21 +2046,21 @@ export interface AddScopeOptions {
 export interface ModelGetOptions {
   /**
    * Only evaluated when "key === undefined". If set to true, all objects including child-objects will be copies and will not reference the original dataValues-object.
-   * 
+   *
    * @default false
-   */ 
+   */
   clone?: boolean;
-    
-  /** 
+  
+  /**
    * If set to true, included instances will be returned as plain objects
-   * 
+   *
    * @default false
    */
   plain?: boolean;
 
   /**
    * If set to true, field and virtual setters will be ignored.
-   * 
+   *
    * @default false
    */
   raw?: boolean;
@@ -3411,8 +3411,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param value The new value for that attribute.
    */
   setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
-
-
 
   /**
    * If no key is given, returns all values of the instance, also invoking virtual getters. If an object has child objects or if options.clone===true, the object will be a copy. Otherwise, it will reference instance.dataValues.
