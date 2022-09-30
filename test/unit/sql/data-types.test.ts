@@ -260,9 +260,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('DATE', () => {
       testsql('DATE', DataTypes.DATE, {
         ibmi: 'TIMESTAMP',
-        postgres: 'TIMESTAMP(0) WITH TIME ZONE',
-        mssql: 'DATETIMEOFFSET(0)',
-        'mariadb mysql': 'DATETIME(0)',
+        postgres: 'TIMESTAMP WITH TIME ZONE',
+        mssql: 'DATETIMEOFFSET',
+        'mariadb mysql': 'DATETIME',
         db2: 'TIMESTAMP',
         sqlite: 'TEXT',
         snowflake: 'TIMESTAMP',
@@ -305,7 +305,12 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('TIME', () => {
       testsql('TIME', DataTypes.TIME, {
-        default: 'TIME(0)',
+        default: 'TIME',
+        sqlite: 'TEXT',
+      });
+
+      testsql('TIME(6)', DataTypes.TIME(6), {
+        default: 'TIME(6)',
         sqlite: 'TEXT',
       });
     });
@@ -1413,7 +1418,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         });
 
         testsql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
-          postgres: 'TIMESTAMP(0) WITH TIME ZONE[]',
+          postgres: 'TIMESTAMP WITH TIME ZONE[]',
         });
 
         testsql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {

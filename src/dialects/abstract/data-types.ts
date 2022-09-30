@@ -1136,7 +1136,7 @@ export class TIME extends AbstractDataType<string> {
     super();
 
     this.options = {
-      precision: (typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions) ?? 0,
+      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
   }
 
@@ -1177,7 +1177,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     super();
 
     this.options = {
-      precision: (typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions) ?? 0,
+      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
   }
 
