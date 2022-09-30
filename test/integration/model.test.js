@@ -2850,7 +2850,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return;
       }
 
-      const user = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.BIGINT,
           primaryKey: true,
@@ -2860,10 +2860,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await user.create({ id: '3415718944570971483', username: 'u1' });
-      const createdUsers = await user.bulkCreate([{ username: 'u2', id: '3415718944570971484' }]);
+      await User.create({ id: '3415718944570971483', username: 'u1' });
+      const createdUsers = await User.bulkCreate([{ username: 'u2', id: '3415718944570971484' }]);
       expect(createdUsers[0].id.toString()).to.equal('3415718944570971484');
-      const users1 = await user.findAll({ order: [['id', 'ASC']] });
+      const users1 = await User.findAll({ order: [['id', 'ASC']] });
       expect(users1[0].username).to.equal('u1');
       expect(users1[1].username).to.equal('u2');
       expect(users1[1].id.toString()).to.equal('3415718944570971484');
