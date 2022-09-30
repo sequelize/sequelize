@@ -4,9 +4,10 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
+const dialectName = Support.getTestDialect();
+const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -157,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         style: 'ipa',
       }], {
         logging(sql) {
-          switch (dialect) {
+          switch (dialectName) {
             case 'postgres':
             case 'ibmi': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
@@ -395,24 +396,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(workers[1].id).to.equal(10);
     });
 
-    it('should support schemas', async function () {
-      const Dummy = this.sequelize.define('Dummy', {
-        foo: DataTypes.STRING,
-        bar: DataTypes.STRING,
-      }, {
-        schema: 'space1',
-        tableName: 'Dummy',
+    if (dialect.supports.schemas) {
+      it('should support schemas', async function () {
+        const Dummy = this.sequelize.define('Dummy', {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING,
+        }, {
+          schema: 'space1',
+          tableName: 'Dummy',
+        });
+
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('space1');
+        await Dummy.sync({ force: true });
+
+        await Dummy.bulkCreate([
+          { foo: 'a', bar: 'b' },
+          { foo: 'c', bar: 'd' },
+        ]);
       });
-
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('space1');
-      await Dummy.sync({ force: true });
-
-      await Dummy.bulkCreate([
-        { foo: 'a', bar: 'b' },
-        { foo: 'c', bar: 'd' },
-      ]);
-    });
+    }
 
     if (current.dialect.supports.inserts.ignoreDuplicates
         || current.dialect.supports.inserts.onConflictDoNothing) {
@@ -448,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         } catch (error) {
-          expect(error.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
+          expect(error.message).to.equal(`${dialectName} does not support the ignoreDuplicates option.`);
         }
       });
     }
