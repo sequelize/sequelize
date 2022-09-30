@@ -1185,7 +1185,7 @@ export class AbstractQueryGenerator {
         this.validate(value, field, options);
 
         if (field.type.bindParam) {
-          return field.type.bindParam(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam, dialect: this._dialect });
+          return field.type.getBindParamSql(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam, dialect: this._dialect });
         }
       }
     }

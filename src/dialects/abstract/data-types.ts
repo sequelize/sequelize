@@ -220,8 +220,7 @@ export abstract class AbstractDataType<
    * @param value The value to bind.
    * @param options Options.
    */
-  // !TODO: rename to "getBindParamSql"?
-  bindParam(value: AcceptedType, options: BindParamOptions): string {
+  getBindParamSql(value: AcceptedType, options: BindParamOptions): string {
     // TODO: rename "options.bindParam" to "options.collectBindParam"
     return options.bindParam(this.toBindableValue(value, options));
   }
@@ -673,7 +672,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     return String(num);
   }
 
-  bindParam(value: AcceptedNumber, options: BindParamOptions): string {
+  getBindParamSql(value: AcceptedNumber, options: BindParamOptions): string {
     return options.bindParam(value);
   }
 
@@ -1474,7 +1473,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return options.dialect.escapeBuffer(buf);
   }
 
-  bindParam(value: AcceptedBlob, options: BindParamOptions) {
+  getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
     return options.bindParam(value);
   }
 }

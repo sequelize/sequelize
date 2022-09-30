@@ -111,7 +111,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     )})`;
   }
 
-  bindParam(value: GeoJson, options: BindParamOptions) {
+  getBindParamSql(value: GeoJson, options: BindParamOptions) {
     return `ST_GeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;

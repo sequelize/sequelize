@@ -6,7 +6,6 @@ import type {
   AcceptableTypeOf,
   StringifyOptions,
   BindParamOptions,
-  ToSqlOptions,
   AcceptedDate,
 } from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
@@ -323,7 +322,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
   }
 
-  bindParam(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
+  getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
   }
 }
@@ -350,7 +349,7 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
   }
 
-  bindParam(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
+  getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
   }
 }
@@ -391,7 +390,7 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     return `'${value}'`;
   }
 
-  bindParam(
+  getBindParamSql(
     values: Rangable<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ): string {
@@ -445,7 +444,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     }).join(',')}]::${type.toSql(options)}[]`;
   }
 
-  bindParam(
+  getBindParamSql(
     values: Array<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ) {
