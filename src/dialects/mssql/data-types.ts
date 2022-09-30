@@ -3,7 +3,6 @@ import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
 import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { ToSqlOptions } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 /**
