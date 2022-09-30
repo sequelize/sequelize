@@ -2050,7 +2050,7 @@ export interface ModelGetOptions {
    * @default false
    */
   clone?: boolean;
-  
+
   /**
    * If set to true, included instances will be returned as plain objects
    *
