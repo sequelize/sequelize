@@ -662,12 +662,12 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this._dialect });
+    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql({ dialect: this._dialect });
+      template = attribute.type.toSql({ dialect: this.dialect });
       if (options && options.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
@@ -676,7 +676,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this._dialect });
+      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
     }
 
     if (attribute.allowNull === false) {

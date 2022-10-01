@@ -51,7 +51,6 @@ export class AbstractQueryGenerator {
 
     this.sequelize = options.sequelize;
     this.options = options.sequelize.options;
-
     this.dialect = options.dialect;
 
     // wrap quoteIdentifier with common logic

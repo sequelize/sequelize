@@ -638,7 +638,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql({ dialect: this._dialect });
+      template = attribute.type.toSql({ dialect: this.dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, options);
       }).join(', ')}))`;
@@ -646,7 +646,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       return template;
     }
 
-    template = attributeTypeToSql(attribute.type, { dialect: this._dialect });
+    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
