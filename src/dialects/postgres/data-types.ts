@@ -113,11 +113,11 @@ export class DATE extends BaseTypes.DATE {
     options: StringifyOptions,
   ): string {
     if (value === Number.POSITIVE_INFINITY) {
-      return options.dialect.escapeString('infinity');
+      return 'infinity';
     }
 
     if (value === Number.NEGATIVE_INFINITY) {
-      return options.dialect.escapeString('-infinity');
+      return '-infinity';
     }
 
     return super.toBindableValue(value, options);
