@@ -13,7 +13,7 @@ if (current.dialect.name === 'mssql') {
     before(function () {
       this.queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        dialect: this.sequelize.dialect,
       });
     });
 
@@ -117,7 +117,7 @@ if (current.dialect.name === 'mssql') {
     it('selectFromTableFragment', function () {
       const modifiedGen = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        dialect: this.sequelize.dialect,
       });
       // Test newer versions first
       // Should be all the same since handling is done in addLimitAndOffset
