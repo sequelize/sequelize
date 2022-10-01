@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
             sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            db2: { sequelize_1: '2015-01-20 01:00:00' },
+            db2: { sequelize_1: '2015-01-20 01:00:00.000' },
             mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
             snowflake: { sequelize_1: '2015-01-20 01:00:00' },
             mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },

@@ -932,6 +932,10 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
+    if (!this.options.zerofill) {
+      return;
+    }
+
     const typeId = this.getDataTypeId();
     if (typeId !== 'FLOAT' && typeId !== 'DOUBLE' && typeId !== 'DECIMAL' && typeId !== 'REAL') {
       return;
@@ -1200,7 +1204,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
       precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
 
-    if (this.options.precision != null && (this.options.precision < 0 || Number.isInteger(this.options.precision))) {
+    if (this.options.precision != null && (this.options.precision < 0 || !Number.isInteger(this.options.precision))) {
       throw new TypeError('Option "precision" must be a positive integer');
     }
   }

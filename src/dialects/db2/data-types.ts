@@ -1,7 +1,7 @@
 import maxBy from 'lodash/maxBy.js';
 import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { ToSqlOptions } from '../abstract/data-types.js';
+import type { AcceptedDate, StringifyOptions, ToSqlOptions } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
@@ -67,6 +67,16 @@ export class STRING extends BaseTypes.STRING {
   }
 }
 
+export class CHAR extends BaseTypes.CHAR {
+  toSql() {
+    if (this.options.binary) {
+      return `CHAR(${this.options.length ?? 255}) FOR BIT DATA`;
+    }
+
+    return super.toSql();
+  }
+}
+
 export class TEXT extends BaseTypes.TEXT {
   toSql() {
     // default value for CLOB
@@ -123,6 +133,12 @@ export class DATE extends BaseTypes.DATE {
 
   toSql() {
     return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
+  }
+
+  toBindableValue(date: AcceptedDate, options: StringifyOptions) {
+    date = this._applyTimezone(date, options);
+
+    return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
 }
 

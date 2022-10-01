@@ -274,7 +274,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   if (dialect.supports.dataTypes.DECIMAL) {
     describe('DECIMAL validator', () => {
       const User = current.define('user', {
-        decimal: DataTypes.FLOAT(10, 2),
+        decimal: DataTypes.DECIMAL(10, 2),
       });
 
       before(function () {

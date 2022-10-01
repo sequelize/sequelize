@@ -82,43 +82,38 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     describe('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
-        db2: 'VARCHAR(32672)',
-        ibmi: 'VARCHAR(8192)',
+        'ibmi db2': 'CLOB(2147483647)',
         mssql: 'NVARCHAR(MAX)', // in mssql text is actually representing a non unicode text field
       });
 
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
-        ibmi: 'VARCHAR(256)',
+        'ibmi db2': 'VARCHAR(256)',
         mssql: 'NVARCHAR(256)',
-        db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT',
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
-        ibmi: 'VARCHAR(256)',
+        'ibmi db2': 'VARCHAR(256)',
         mssql: 'NVARCHAR(256)',
-        db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT',
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
-        ibmi: 'VARCHAR(8192)',
+        'ibmi db2': 'CLOB(16777216)',
         mssql: 'NVARCHAR(MAX)',
-        db2: 'VARCHAR(8192)',
         mariadb: 'MEDIUMTEXT',
         mysql: 'MEDIUMTEXT',
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
-        ibmi: 'CLOB(65536)',
+        'ibmi db2': 'CLOB(4294967296)',
         mssql: 'NVARCHAR(MAX)',
-        db2: 'CLOB(65536)',
         mariadb: 'LONGTEXT',
         mysql: 'LONGTEXT',
       });
@@ -212,14 +207,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
-        ibmi: 'CLOB(12)',
+        'db2 ibmi': 'CHAR(12) FOR BIT DATA',
         sqlite: charNotSupportedError,
         'postgres mssql': binaryNotSupportedError,
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
-        ibmi: 'CLOB(255)',
+        'db2 ibmi': 'CHAR(255) FOR BIT DATA',
         sqlite: charNotSupportedError,
         'postgres mssql': binaryNotSupportedError,
       });
@@ -525,7 +520,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.TINYINT,
           expect: {
             // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
-            'mssql postgres': 'SMALLINT',
+            'mssql postgres db2 ibmi': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT',
             sqlite: 'INTEGER',
           },
@@ -535,7 +530,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'TINYINT(2)',
           dataType: DataTypes.TINYINT(2),
           expect: {
-            'mssql postgres': 'SMALLINT',
+            'mssql postgres db2 ibmi': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
             sqlite: 'INTEGER',
           },
@@ -544,7 +539,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'TINYINT({ length: 2 })',
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
-            'mssql postgres': 'SMALLINT',
+            'mssql postgres db2 ibmi': 'SMALLINT',
             'mysql mariadb snowflake': 'TINYINT(2)',
             sqlite: 'INTEGER',
           },
@@ -554,7 +549,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
             // Fallback to bigger type + check constraint
-            'postgres snowflake': 'SMALLINT',
+            'postgres snowflake db2 ibmi': 'SMALLINT',
             'mysql mariadb': 'TINYINT UNSIGNED',
             // sqlite only supports INTEGER as a column type
             sqlite: 'INTEGER',
@@ -566,7 +561,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           title: 'TINYINT(2).UNSIGNED',
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
-            'postgres snowflake': 'SMALLINT',
+            'postgres snowflake db2 ibmi': 'SMALLINT',
             'mysql mariadb': 'TINYINT(2) UNSIGNED',
             sqlite: 'INTEGER',
             mssql: 'TINYINT',
@@ -914,7 +909,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
-        default: unsignedUnsupportedError,
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
       });
 
@@ -937,7 +932,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
-        default: unsignedUnsupportedError,
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
       });
 
@@ -947,7 +942,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
-        default: unsignedUnsupportedError,
+        default: zeroFillUnsupportedError,
         'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
       });
 
@@ -1093,33 +1088,33 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       // or a double-precision fallback if not.
       testsql('FLOAT', DataTypes.FLOAT, {
         // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
-        'mysql mariadb ibmi db2 snowflake': 'FLOAT',
+        'mysql mariadb snowflake': 'FLOAT',
         // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
-        'postgres mssql sqlite': 'REAL',
+        'postgres mssql sqlite db2 ibmi': 'REAL',
       });
 
       testsql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
         'mysql mariadb': 'FLOAT UNSIGNED',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
+        snowflake: 'FLOAT',
+        'postgres mssql sqlite db2 ibmi': 'REAL',
       });
 
       testsql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
         'mysql mariadb': 'FLOAT(11, 12)',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
+        snowflake: 'FLOAT',
+        'postgres mssql sqlite db2 ibmi': 'REAL',
       });
 
       testsql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
         'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
+        snowflake: 'FLOAT',
+        'postgres mssql sqlite db2 ibmi': 'REAL',
       });
 
       testsql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED, {
         'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-        'ibmi db2 snowflake': 'FLOAT',
-        'postgres mssql sqlite': 'REAL',
+        snowflake: 'FLOAT',
+        'postgres mssql sqlite db2 ibmi': 'REAL',
       });
 
       testsql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
@@ -1267,6 +1262,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           // SQL Server does not support enums, we use text + a check constraint instead
           mssql: `NVARCHAR(255)`,
           sqlite: 'TEXT',
+          'db2 ibmi': 'VARCHAR(255)',
         });
       });
 
@@ -1386,6 +1382,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     describe('JSON', () => {
       testsql('JSON', DataTypes.JSON, {
+        default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+
         // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
         'mariadb mysql postgres': 'JSON',
         // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.

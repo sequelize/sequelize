@@ -3437,6 +3437,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options.raw If set to true, field and virtual setters will be ignored
    * @param options.reset Clear all previously set data values
    */
+  // TODO: 'key' accepts nested paths for JSON values (json.property)
   set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
   set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 

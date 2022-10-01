@@ -25,7 +25,7 @@ export class Db2Dialect extends AbstractDialect {
     },
     tmpTableTrigger: true,
     dataTypes: {
-      CHAR: true,
+      COLLATE_BINARY: true,
     },
     milliseconds: true,
   });

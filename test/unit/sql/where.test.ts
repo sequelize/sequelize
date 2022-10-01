@@ -33,6 +33,7 @@ type Expectations = {
 const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
+const dialectSupportsJson = () => sequelize.dialect.supports.dataTypes.JSON;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -80,8 +81,10 @@ TestModel.init({
 
   aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
 
-  jsonAttr: { type: DataTypes.JSON },
-  aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
+  ...(dialectSupportsJson() && {
+    jsonAttr: { type: DataTypes.JSON },
+    aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
+  }),
 
   ...(dialectSupportsJsonB() && {
     jsonbAttr: { type: DataTypes.JSONB },
@@ -347,7 +350,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-        db2: `"dateAttr" = '2013-01-01 00:00:00'`,
+        db2: `"dateAttr" = '2013-01-01 00:00:00.000'`,
         snowflake: `"dateAttr" = '2013-01-01 00:00:00'`,
         ibmi: `"dateAttr" = '2013-01-01 00:00:00.000'`,
       });
@@ -446,8 +449,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
         snowflake: `"dateAttr" = '2021-01-01 00:00:00'`,
-        db2: `"dateAttr" = '2021-01-01 00:00:00'`,
-        ibmi: `"dateAttr" = '2021-01-01 00:00:00.000'`,
+        'db2 ibmi': `"dateAttr" = '2021-01-01 00:00:00.000'`,
       });
 
       testSql({ intAttr1: { [Op.col]: 'intAttr2' } }, {
