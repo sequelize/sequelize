@@ -87,8 +87,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           await bitUser.bulkCreate([
-            { bool: 0 },
-            { bool: 1 },
+            { bool: false },
+            { bool: true },
           ]);
 
           const bitUsers = await bitUser.findAll();

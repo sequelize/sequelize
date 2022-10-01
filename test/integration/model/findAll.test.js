@@ -268,9 +268,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(theTruePassport[0].isActive).to.be.true;
       });
 
-      // On IBM i, can't have a primaryKey that is a *LOB data type
+      // On IBM i, can't have a primaryKey that is a CLOB or BLOB data type
       if (dialectName !== 'ibmi') {
-        it('should be able to handle binary values through associations as well...', async function () {
+        // TODO: re-enable once we have DataTypes.BINARY: https://github.com/sequelize/sequelize/issues/14259
+        it.skip('should be able to handle binary values through associations as well', async function () {
           const User = this.User;
           const Binary = this.sequelize.define('Binary', {
             id: {
