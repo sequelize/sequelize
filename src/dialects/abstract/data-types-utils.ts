@@ -1,5 +1,5 @@
 import NodeUtils from 'util';
-import { ValidationErrorItem } from '../../errors/index.js';
+import { BaseError, ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
 import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance, ToSqlOptions } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
@@ -35,11 +35,18 @@ export function normalizeDataType(
     throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
   }
 
-  const type = typeof Type === 'function'
-    ? new Type()
-    : Type;
+  const type = dataTypeClassOrInstanceToInstance(Type);
 
   return type.toDialectDataType(dialect);
+}
+
+export function dataTypeClassOrInstanceToInstance(Type: DataTypeClassOrInstance): DataTypeInstance {
+  return typeof Type === 'function'
+    // TODO [2022-12-01]: Remove this eslint-disable once we drop support for TypeScript 4.5
+    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- typescript 4.5 narrows Class to "never" here, but typescript 4.6 handles it correctly
+    // @ts-ignore
+    ? new Type()
+    : Type;
 }
 
 export function validateDataType(
@@ -54,8 +61,7 @@ export function validateDataType(
     return null;
   } catch (error) {
     if (!(error instanceof ValidationErrorItem)) {
-      // eslint-disable-next-line unicorn/prefer-type-error
-      throw new Error(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must throw an instance of ValidationErrorItem instead)`, {
+      throw new BaseError(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must throw an instance of ValidationErrorItem instead)`, {
         cause: error,
       });
     }

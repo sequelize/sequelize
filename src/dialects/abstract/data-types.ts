@@ -18,7 +18,12 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
-import { isDataType, isDataTypeClass, throwUnsupportedDataType } from './data-types-utils.js';
+import {
+  dataTypeClassOrInstanceToInstance,
+  isDataType,
+  isDataTypeClass,
+  throwUnsupportedDataType,
+} from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
@@ -1789,7 +1794,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
       : returnTypeOrOptions.returnType;
 
     this.options = {
-      returnType: typeof returnType === 'function' ? new returnType() : returnType,
+      returnType: returnType ? dataTypeClassOrInstanceToInstance(returnType) : undefined,
       attributeDependencies: (isDataType(returnTypeOrOptions)
         ? attributeDependencies
         : returnTypeOrOptions?.attributeDependencies) ?? [],
@@ -1925,7 +1930,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     }
 
     this.options = {
-      type: typeof rawType === 'function' ? new rawType() : rawType,
+      type: dataTypeClassOrInstanceToInstance(rawType),
     };
   }
 
