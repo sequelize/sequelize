@@ -100,7 +100,7 @@ export interface ListSchemasQueryOptions {
 }
 
 export class AbstractQueryGenerator {
-  _dialect: AbstractDialect;
+  dialect: AbstractDialect;
 
   constructor(options: QueryGeneratorOptions);
 

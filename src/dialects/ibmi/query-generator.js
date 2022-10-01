@@ -28,7 +28,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -296,27 +296,37 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   escape(value, field, options) {
-    options = options || {};
-
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, options);
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.toBindableValue) {
-          value = field.type.escape(value, { escape: this.simpleEscape, field, timezone: this.options.timezone, operation: options.operation, dialect: this._dialect });
-
-          return value;
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    const format = (value === null && options.where);
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      const format = (value === null && options.where);
 
-    return SqlString.escape(value, this.options.timezone, this._dialect, format);
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this.dialect, format);
+    }
+
+    field.type = field.type.toDialectDataType(this.dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
+    }
+
+    this.validate(value, field);
+
+    return field.type.escape(value, {
+      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
+      escape: this.simpleEscape,
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this.dialect,
+    });
   }
 
   /*
@@ -374,7 +384,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
       result += this.quoteIdentifier(field.name);
 
-      if (this._dialect.supports.index.length && field.length) {
+      if (this.dialect.supports.index.length && field.length) {
         result += `(${field.length})`;
       }
 
@@ -393,7 +403,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     options = Model._conformIndex(options);
 
-    if (!this._dialect.supports.index.type) {
+    if (!this.dialect.supports.index.type) {
       delete options.type;
     }
 

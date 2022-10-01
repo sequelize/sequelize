@@ -60,7 +60,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
         CREATE_DATABASE_SUPPORTED_OPTIONS,
         options,
@@ -88,7 +88,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -106,7 +106,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'listSchemasQuery',
-        this.dialect,
+        this.dialect.name,
         LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
         LIST_SCHEMAS_SUPPORTED_OPTIONS,
         options,

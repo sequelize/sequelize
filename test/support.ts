@@ -214,7 +214,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 export async function dropTestSchemas(sequelize: Sequelize) {
   const queryInterface = sequelize.getQueryInterface();
 
-  if (!queryInterface.queryGenerator._dialect.supports.schemas) {
+  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
