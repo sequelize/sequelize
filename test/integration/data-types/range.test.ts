@@ -1,4 +1,4 @@
-import type { InferAttributes, Rangable } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, Rangable } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
@@ -12,7 +12,8 @@ describe('DataTypes.RANGE', () => {
   }
 
   const vars = beforeEach2(async () => {
-    class User extends Model<InferAttributes<User>> {
+    class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare id: CreationOptional<number>;
       declare intRange: Rangable<number> | null;
       declare bigintRange: Rangable<bigint | string> | null;
       declare decimalRange: Rangable<string> | null;
@@ -22,6 +23,11 @@ describe('DataTypes.RANGE', () => {
     }
 
     User.init({
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
       intRange: DataTypes.RANGE(DataTypes.INTEGER),
       bigintRange: DataTypes.RANGE(DataTypes.BIGINT),
       decimalRange: DataTypes.RANGE(DataTypes.DECIMAL),
@@ -135,6 +141,17 @@ describe('DataTypes.RANGE', () => {
     });
 
     expect(user).to.exist;
+  });
+
+  it('does not fail when used in Model.findOrCreate', async () => {
+    // node-postgres has a weird bug where, when using findOrCreate (which is a temporary SQL function in postgres),
+    // node-postgres' type-based parser will not be called. As a result, the range is improperly parsed in raw queries.
+    // This test ensures the range is properly parsed by the Sequelize DataType (as a workaround).
+    // TODO: add this test to the other Data Types
+    await vars.User.findOrCreate({
+      where: { id: 13_456 },
+      defaults: { decimalRange: [0.65, 1] },
+    });
   });
 });
 

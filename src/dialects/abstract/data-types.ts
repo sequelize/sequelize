@@ -1,6 +1,7 @@
 import { Blob } from 'node:buffer';
 import util from 'util';
 import dayjs from 'dayjs';
+import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
@@ -18,6 +19,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
+import { buildRangeParser } from '../postgres/range.js';
 import {
   dataTypeClassOrInstanceToInstance,
   isDataType,
@@ -1542,6 +1544,8 @@ export interface RangeOptions {
   subtype?: DataTypeClassOrInstance;
 }
 
+const defaultRangeParser = buildRangeParser(identity);
+
 /**
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
@@ -1596,6 +1600,11 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   }
 
   parseDatabaseValue(value: unknown): unknown {
+    // node-postgres workaround: The SQL Type-based parser is not called by node-postgres for values returned by Model.findOrCreate.
+    if (typeof value === 'string') {
+      value = defaultRangeParser(value);
+    }
+
     if (!Array.isArray(value)) {
       // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
@@ -1642,7 +1651,7 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   validate(value: any) {
     if (!Array.isArray(value) || (value.length !== 2 && value.length !== 0)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        'A range must either be an array with two elements, or an empty array for the empty range.',
+        `A range must either be an array with two elements, or an empty array for the empty range. Got ${util.inspect(value)}.`,
       );
     }
   }

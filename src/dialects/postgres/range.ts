@@ -1,3 +1,4 @@
+import NodeUtil from 'util';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Rangable, RangePart, Range, InputRangePart } from '../../model.js';
 
@@ -93,4 +94,14 @@ export function parse<T>(value: string, parser: ParseValue<T>): Range<T> {
 
 export function isInputRangePart<T>(val: unknown): val is InputRangePart<T> {
   return isPlainObject(val) && Object.prototype.hasOwnProperty.call(val, 'value');
+}
+
+export function buildRangeParser(subTypeParser: (value: unknown) => unknown): (value: unknown) => unknown {
+  return (value: unknown) => {
+    if (typeof value !== 'string') {
+      throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
+    }
+
+    return parse(value, subTypeParser);
+  };
 }

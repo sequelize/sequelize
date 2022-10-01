@@ -1,11 +1,10 @@
 import assert from 'assert';
-import NodeUtil from 'util';
 import identity from 'lodash/identity';
 import wkx from 'wkx';
 import { getDataTypeParser } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import * as Hstore from './hstore.js';
-import * as RangeParser from './range.js';
+import { buildRangeParser } from './range.js';
 import type { PostgresDialect } from './index.js';
 
 /**
@@ -86,14 +85,4 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
   // - dateonly
   // The Sequelize DataType specified by the user will do further parsing of the arrays of strings (like convert values to Date objects).
   dialect.registerDataTypeParser(['tstzrange', 'tsrange', 'daterange'], buildRangeParser(identity));
-}
-
-function buildRangeParser(subTypeParser: (value: unknown) => unknown): (value: unknown) => unknown {
-  return (value: unknown) => {
-    if (typeof value !== 'string') {
-      throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
-    }
-
-    return RangeParser.parse(value, subTypeParser);
-  };
 }
