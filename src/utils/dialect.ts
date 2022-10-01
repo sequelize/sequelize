@@ -1,5 +1,6 @@
+import { randomUUID } from 'crypto';
 import isPlainObject from 'lodash/isPlainObject';
-import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+import { v1 as uuidv1 } from 'uuid';
 import type { AbstractDialect } from '../dialects/abstract';
 import * as DataTypes from '../dialects/abstract/data-types.js';
 
@@ -27,7 +28,7 @@ export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknow
   }
 
   if (value instanceof DataTypes.UUIDV4) {
-    return uuidv4();
+    return randomUUID();
   }
 
   if (value instanceof DataTypes.NOW) {

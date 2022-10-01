@@ -9,7 +9,7 @@ import { attributeTypeToSql, validateDataType } from './data-types-utils';
 
 const util = require('util');
 const _ = require('lodash');
-const uuidv4 = require('uuid').v4;
+const crypto = require('crypto');
 
 const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
@@ -303,7 +303,7 @@ export class AbstractQueryGenerator {
         returningModelAttributes.push('*');
       }
 
-      const delimiter = `$func_${uuidv4().replace(/-/g, '')}$`;
+      const delimiter = `$func_${crypto.randomUUID().replace(/-/g, '')}$`;
       const selectQuery = `SELECT (testfunc.response).${returningModelAttributes.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`;
 
       options.exception = 'WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;';
