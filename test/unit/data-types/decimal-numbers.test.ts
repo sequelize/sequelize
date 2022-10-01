@@ -17,38 +17,22 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
   testDataTypeSql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
     default: 'REAL UNSIGNED',
-    sqlite: 'REAL',
-    ibmi: 'REAL',
-    postgres: 'REAL',
-    db2: 'REAL',
-    mssql: 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12)', DataTypes.REAL(11, 12), {
     default: 'REAL(11, 12)',
-    sqlite: 'REAL',
-    ibmi: 'REAL',
-    postgres: 'REAL',
-    db2: 'REAL',
-    mssql: 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    ibmi: 'REAL',
-    sqlite: 'REAL',
-    postgres: 'REAL',
-    db2: 'REAL',
-    mssql: 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
   });
 
   testDataTypeSql('REAL({ precision: 11, scale: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    ibmi: 'REAL',
-    sqlite: 'REAL',
-    postgres: 'REAL',
-    db2: 'REAL',
-    mssql: 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {

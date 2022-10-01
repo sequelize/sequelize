@@ -428,7 +428,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     testDataTypeSql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
       'mysql mariadb': 'INTEGER(11) UNSIGNED',
-      sqlite: 'INTEGER',
+      'sqlite snowflake': 'INTEGER',
       'ibmi postgres db2 mssql': 'BIGINT',
     });
 

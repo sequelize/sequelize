@@ -1,6 +1,7 @@
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate, StringifyOptions } from '../abstract/data-types.js';
+import type { AbstractDialect } from '../abstract/index.js';
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
@@ -42,17 +43,61 @@ export class JSON extends BaseTypes.JSON {
   }
 }
 
+/** @deprecated */
+export class REAL extends BaseTypes.REAL {
+  toSql(): string {
+    return 'REAL';
+  }
+}
+
 export class FLOAT extends BaseTypes.FLOAT {
   // TODO: warn that FLOAT is not supported in Snowflake, only DOUBLE is
 
-  protected getNumberSqlTypeName(): string {
+  toSql(): string {
     return 'FLOAT';
   }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
-  protected getNumberSqlTypeName(): string {
+  toSql(): string {
     // FLOAT is a double-precision floating point in Snowflake
     return 'FLOAT';
+  }
+}
+
+// Snowflake only has one int type: Integer, which is -99999999999999999999999999999999999999 to 99999999999999999999999999999999999999
+export class TINYINT extends BaseTypes.TINYINT {
+  toSql() {
+    return 'INTEGER';
+  }
+}
+
+export class SMALLINT extends BaseTypes.SMALLINT {
+  toSql() {
+    return 'INTEGER';
+  }
+}
+
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  toSql() {
+    return 'INTEGER';
+  }
+}
+
+export class INTEGER extends BaseTypes.INTEGER {
+  toSql() {
+    return 'INTEGER';
+  }
+}
+
+export class BIGINT extends BaseTypes.BIGINT {
+  // not really true, but snowflake allows INT values up to 99999999999999999999999999999999999999,
+  // which is more than enough to cover a 64-bit unsigned integer (0 - 18446744073709551615)
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    return true;
+  }
+
+  toSql() {
+    return 'INTEGER';
   }
 }
