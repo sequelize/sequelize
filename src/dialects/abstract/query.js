@@ -5,13 +5,13 @@ const SqlString = require('../../sql-string');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
-const uuid = require('uuid').v4;
+const crypto = require('crypto');
 const { safeStringifyJson } = require('../../utils');
 
 export class AbstractQuery {
 
   constructor(connection, sequelize, options) {
-    this.uuid = uuid();
+    this.uuid = crypto.randomUUID();
     this.connection = connection;
     this.instance = options.instance;
     this.model = options.model;
