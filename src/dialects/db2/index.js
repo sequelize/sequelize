@@ -37,6 +37,9 @@ export class Db2Dialect extends AbstractDialect {
     this.queryGenerator = new Db2QueryGenerator({
       dialect: this,
       sequelize,
+      options: {
+        name: 'Db2',
+      },
     });
     this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);
   }
