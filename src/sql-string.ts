@@ -109,6 +109,5 @@ export function escape(
   return dataType.escape(val, {
     dialect,
     timezone: timeZone,
-    escape: (escVal: string) => escape(escVal, timeZone, dialect, format),
   });
 }

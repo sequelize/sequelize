@@ -113,11 +113,11 @@ export class DATE extends BaseTypes.DATE {
     options: StringifyOptions,
   ): string {
     if (value === Number.POSITIVE_INFINITY) {
-      return options.escape('infinity');
+      return options.dialect.escapeString('infinity');
     }
 
     if (value === Number.NEGATIVE_INFINITY) {
-      return options.escape('-infinity');
+      return options.dialect.escapeString('-infinity');
     }
 
     return super.toBindableValue(value, options);
@@ -297,7 +297,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
   }
 
   toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: StringifyOptions): string {
-    return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
+    return `ST_GeomFromGeoJSON(${options.dialect.escapeString(JSON.stringify(value))})`;
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
@@ -324,7 +324,7 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>,
     options: StringifyOptions,
   ) {
-    return `ST_GeomFromGeoJSON(${options.escape(JSON.stringify(value))})`;
+    return `ST_GeomFromGeoJSON(${options.dialect.escapeString(JSON.stringify(value))})`;
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {

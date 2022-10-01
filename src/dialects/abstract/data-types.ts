@@ -61,7 +61,6 @@ export interface ToSqlOptions {
 
 export interface StringifyOptions {
   dialect: AbstractDialect;
-  escape(value: unknown): string;
   operation?: string;
   timezone?: string | undefined;
   field?: BuiltModelAttributeColumOptions;

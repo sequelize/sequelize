@@ -1142,17 +1142,12 @@ export class AbstractQueryGenerator {
     this.validate(value, field, options);
 
     return field.type.escape(value, {
-      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-      escape: this.simpleEscape,
       field,
       timezone: this.options.timezone,
       operation: options.operation,
       dialect: this.dialect,
     });
   }
-
-  // this is meant to be a property! Let's only create this function once.
-  simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
 
   bindParam(bind) {
     let i = 0;
@@ -1173,21 +1168,23 @@ export class AbstractQueryGenerator {
   format(value, field, options, bindParam) {
     options = options || {};
 
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.bindParam) {
-          return field.type.getBindParamSql(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam, dialect: this.dialect });
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
     }
 
-    return bindParam(value);
+    if (value == null || !field?.type || typeof field.type === 'string') {
+      return bindParam(value);
+    }
+
+    this.validate(value, field, options);
+
+    return field.type.getBindParamSql(value, {
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      bindParam,
+      dialect: this.dialect,
+    });
   }
 
   /*

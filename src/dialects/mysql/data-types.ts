@@ -90,7 +90,7 @@ export class UUID extends BaseTypes.UUID {
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
   toBindableValue(value: GeoJson, options: StringifyOptions) {
-    return `ST_GeomFromText(${options.escape(
+    return `ST_GeomFromText(${options.dialect.escapeString(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }

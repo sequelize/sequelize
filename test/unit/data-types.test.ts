@@ -1,14 +1,12 @@
 import { DataTypes } from '@sequelize/core';
 import type { StringifyOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import { expect } from 'chai';
-import identity from 'lodash/identity';
 import { sequelize } from '../support';
 
 const dialect = sequelize.dialect;
 
 const stringifyOptions: StringifyOptions = {
   dialect,
-  escape: identity,
 };
 
 describe('DataTypes', () => {
