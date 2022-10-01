@@ -264,15 +264,20 @@ export class PostgresQuery extends AbstractQuery {
           throw new sequelizeErrors.EmptyResultError();
         }
 
-        for (const attributeOrColumnName of Object.keys(rows[0])) {
-          const attribute = _.find(this.model.rawAttributes, attribute => {
-            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
-            return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
-          });
+        if (rows[0]) {
+          for (const attributeOrColumnName of Object.keys(rows[0])) {
+            const attribute = _.find(this.model.rawAttributes, attribute => {
+              // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+              return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
+            });
 
-          const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
+            const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
 
-          this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, { raw: true, comesFromDatabase: true });
+            this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
+          }
         }
       }
 
