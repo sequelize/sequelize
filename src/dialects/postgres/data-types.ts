@@ -9,7 +9,6 @@ import type {
   AcceptedDate,
 } from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
-import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
@@ -216,11 +215,6 @@ export class INTEGER extends BaseTypes.INTEGER {
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-
-    if (this.options.unsigned) {
-      throwUnsupportedDataType(dialect, 'BIGINT.UNSIGNED');
-    }
-
     removeUnsupportedIntegerOptions(this, dialect);
   }
 }

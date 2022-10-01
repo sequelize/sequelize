@@ -55,7 +55,7 @@ describe('DataTypes.ENUM', () => {
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
       sqlite: 'TEXT',
-      'db2 ibmi': 'VARCHAR(255)',
+      'db2 ibmi snowflake': 'VARCHAR(255)',
     });
   });
 

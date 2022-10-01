@@ -12,34 +12,28 @@ const nowDateOnly = nowString.slice(0, 10);
 describe('DataTypes.DATE', () => {
   describe('toSql', () => {
     testDataTypeSql('DATE', DataTypes.DATE, {
-      ibmi: 'TIMESTAMP',
+      'db2 ibmi snowflake': 'TIMESTAMP',
       postgres: 'TIMESTAMP WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
-      db2: 'TIMESTAMP',
       sqlite: 'TEXT',
-      snowflake: 'TIMESTAMP',
     });
 
     testDataTypeSql('DATE(0)', DataTypes.DATE(0), {
-      ibmi: 'TIMESTAMP(0)',
       postgres: 'TIMESTAMP(0) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(0)',
       'mariadb mysql': 'DATETIME(0)',
-      db2: 'TIMESTAMP(0)',
+      'db2 ibmi snowflake': 'TIMESTAMP(0)',
       sqlite: 'TEXT',
-      snowflake: 'TIMESTAMP',
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
-      ibmi: 'TIMESTAMP(6)',
+      'db2 ibmi snowflake': 'TIMESTAMP(6)',
       postgres: 'TIMESTAMP(6) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(6)',
       mariadb: 'DATETIME(6)',
       mysql: 'DATETIME(6)',
-      db2: 'TIMESTAMP(6)',
       sqlite: 'TEXT',
-      snowflake: 'TIMESTAMP',
     });
   });
 

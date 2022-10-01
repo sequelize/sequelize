@@ -10,8 +10,9 @@ import * as DataTypes from './data-types';
 import { MariaDbQuery } from './query';
 import { MariaDbQueryGenerator } from './query-generator';
 
-const integerOptions: SupportableNumericOptions = {
+const numericOptions: SupportableNumericOptions = {
   zerofill: true,
+  unsigned: true,
 };
 
 export class MariaDbDialect extends AbstractDialect {
@@ -43,12 +44,11 @@ export class MariaDbDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
         GEOMETRY: true,
-        INTS: integerOptions,
-        BIGINT: { unsigned: true },
-        FLOAT: integerOptions,
-        REAL: integerOptions,
-        DOUBLE: integerOptions,
-        DECIMAL: integerOptions,
+        INTS: numericOptions,
+        FLOAT: numericOptions,
+        REAL: numericOptions,
+        DOUBLE: numericOptions,
+        DECIMAL: numericOptions,
         JSON: true,
       },
       REGEXP: true,

@@ -25,7 +25,7 @@ type Lib = {
   Connection: Connection,
 };
 
-export type MySqlConnection = Connection & AbstractConnection;
+export interface MySqlConnection extends Connection, AbstractConnection {}
 
 export interface MySqlTypeCastValue {
   type: string;

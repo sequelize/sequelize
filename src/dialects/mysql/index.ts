@@ -10,8 +10,9 @@ import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
 import { MySqlQueryInterface } from './query-interface';
 
-const integerOptions: SupportableNumericOptions = {
+const numericOptions: SupportableNumericOptions = {
   zerofill: true,
+  unsigned: true,
 };
 
 export class MysqlDialect extends AbstractDialect {
@@ -43,12 +44,11 @@ export class MysqlDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
         GEOMETRY: true,
-        INTS: integerOptions,
-        BIGINT: { unsigned: true },
-        FLOAT: integerOptions,
-        REAL: integerOptions,
-        DOUBLE: integerOptions,
-        DECIMAL: integerOptions,
+        INTS: numericOptions,
+        FLOAT: numericOptions,
+        REAL: numericOptions,
+        DOUBLE: numericOptions,
+        DECIMAL: numericOptions,
         JSON: true,
       },
       jsonOperations: true,

@@ -8,7 +8,7 @@ import type { IBMiDialect } from './index.js';
 
 const debug = logger.debugContext('connection:ibmi');
 
-interface IBMiConnection extends Connection, OdbcConnection {
+export interface IBMiConnection extends Connection, OdbcConnection {
   // properties of ObdcConnection, but not declared in their typings
   isConnected: boolean;
 }

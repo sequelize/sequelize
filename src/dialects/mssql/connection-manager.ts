@@ -25,7 +25,7 @@ interface TediousConnectionState {
   name: string;
 }
 
-interface MsSqlConnection extends Connection, TediousConnection {
+export interface MsSqlConnection extends Connection, TediousConnection {
   // custom properties we attach to the connection
   // TODO: replace with Symbols.
   queue: AsyncQueue;

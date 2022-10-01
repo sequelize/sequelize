@@ -1,17 +1,14 @@
-'use strict';
-
+import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-
-const _ = require('lodash');
-const { AbstractDialect } = require('../abstract');
-const { SnowflakeConnectionManager } = require('./connection-manager');
-const { SnowflakeQuery } = require('./query');
-const { SnowflakeQueryGenerator } = require('./query-generator');
-const DataTypes = require('../../data-types').snowflake;
-const { SnowflakeQueryInterface } = require('./query-interface');
+import { AbstractDialect } from '../abstract';
+import { SnowflakeConnectionManager } from './connection-manager';
+import * as DataTypes from './data-types.js';
+import { SnowflakeQuery } from './query';
+import { SnowflakeQueryGenerator } from './query-generator';
+import { SnowflakeQueryInterface } from './query-interface';
 
 export class SnowflakeDialect extends AbstractDialect {
-  static supports = _.merge(_.cloneDeep(AbstractDialect.supports), {
+  static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,
@@ -40,13 +37,23 @@ export class SnowflakeDialect extends AbstractDialect {
     multiDatabases: true,
     dataTypes: {
       COLLATE_BINARY: true,
-      REGEXP: true,
     },
-    milliseconds: false,
+    REGEXP: true,
+    milliseconds: true,
   });
 
-  constructor(sequelize) {
-    super(sequelize);
+  readonly dataTypesDocumentationUrl = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
+  readonly defaultVersion = '5.7.0';
+  readonly Query = SnowflakeQuery;
+  readonly TICK_CHAR = '"';
+  readonly TICK_CHAR_LEFT = '"';
+  readonly TICK_CHAR_RIGHT = '"';
+  readonly connectionManager: SnowflakeConnectionManager;
+  readonly queryGenerator: SnowflakeQueryGenerator;
+  readonly queryInterface: SnowflakeQueryInterface;
+
+  constructor(sequelize: Sequelize) {
+    super(sequelize, DataTypes, 'snowflake');
     this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
     this.queryGenerator = new SnowflakeQueryGenerator({
       dialect: this,
@@ -63,12 +70,3 @@ export class SnowflakeDialect extends AbstractDialect {
     return 3306;
   }
 }
-
-SnowflakeDialect.prototype.defaultVersion = '5.7.0';
-SnowflakeDialect.prototype.Query = SnowflakeQuery;
-SnowflakeDialect.prototype.QueryGenerator = SnowflakeQueryGenerator;
-SnowflakeDialect.prototype.DataTypes = DataTypes;
-SnowflakeDialect.prototype.name = 'snowflake';
-SnowflakeDialect.prototype.TICK_CHAR = '"';
-SnowflakeDialect.prototype.TICK_CHAR_LEFT = SnowflakeDialect.prototype.TICK_CHAR;
-SnowflakeDialect.prototype.TICK_CHAR_RIGHT = SnowflakeDialect.prototype.TICK_CHAR;

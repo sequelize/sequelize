@@ -625,7 +625,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
   toSql(_options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
 
-    if (this.options.unsigned) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(_options.dialect)) {
       result += ' UNSIGNED';
     }
 
@@ -634,6 +634,10 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     }
 
     return result;
+  }
+
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect) {
+    return false;
   }
 
   validate(value: any): asserts value is number {
@@ -740,13 +744,17 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     }
   }
 
-  toSql(_options: ToSqlOptions): string {
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    return _dialect.supports.dataTypes.INTS.unsigned;
+  }
+
+  toSql(options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
     if (this.options.length != null) {
       result += `(${this.options.length})`;
     }
 
-    if (this.options.unsigned) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
       result += ' UNSIGNED';
     }
 
@@ -841,6 +849,14 @@ export class BIGINT extends BaseIntegerDataType {
     return 'BIGINT';
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.unsigned && !this._supportsNativeUnsigned(dialect)) {
+      throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.UNSIGNED`);
+    }
+  }
+
   sanitize(value: AcceptedNumber): AcceptedNumber {
     if (typeof value === 'bigint') {
       return value;
@@ -925,10 +941,6 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     return this.options.scale == null && this.options.precision == null;
   }
 
-  protected _supportsNativeUnsigned() {
-    return false;
-  }
-
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
@@ -947,13 +959,13 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
   }
 
-  toSql(_options?: ToSqlOptions): string {
+  toSql(options: ToSqlOptions): string {
     let sql = this.getNumberSqlTypeName();
     if (!this.isUnconstrained()) {
       sql += `(${this.options.precision}, ${this.options.scale})`;
     }
 
-    if (this.options.unsigned && this._supportsNativeUnsigned()) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
       sql += ' UNSIGNED';
     }
 
@@ -984,6 +996,10 @@ Please override this method in your dialect, and provide the best available type
 If single-precision floating points are not available in your dialect, you may return a double-precision floating point type instead, as long as you print a warning.
 If neither single precision nor double precision IEEE 754 floating point numbers are available in your dialect, you must throw an error in the _checkOptionSupport method.`);
   }
+
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    return _dialect.supports.dataTypes.FLOAT.unsigned;
+  }
 }
 
 /**
@@ -997,6 +1013,10 @@ export class REAL extends BaseDecimalNumberDataType {
     super._checkOptionSupport(dialect);
 
     doNotUseRealDataType();
+  }
+
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    return _dialect.supports.dataTypes.REAL.unsigned;
   }
 
   protected getNumberSqlTypeName(): string {
@@ -1015,6 +1035,10 @@ export class REAL extends BaseDecimalNumberDataType {
  */
 export class DOUBLE extends BaseDecimalNumberDataType {
   static readonly [kDataTypeIdentifier]: string = 'DOUBLE';
+
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    return _dialect.supports.dataTypes.DOUBLE.unsigned;
+  }
 
   protected getNumberSqlTypeName(): string {
     return 'DOUBLE PRECISION';
@@ -1069,6 +1093,12 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
     // Decimal is arbitrary precision, and *must* be represented as strings, as the JS number type does not support arbitrary precision.
     return String(value);
+  }
+
+  protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
+    const decimalSupport = _dialect.supports.dataTypes.DECIMAL;
+
+    return decimalSupport && decimalSupport.unsigned;
   }
 
   protected getNumberSqlTypeName(): string {

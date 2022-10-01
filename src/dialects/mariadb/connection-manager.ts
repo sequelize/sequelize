@@ -17,9 +17,7 @@ import type { MariaDbDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mariadb');
 
-export interface MariaDbConnection extends Connection, LibConnection {
-
-}
+export interface MariaDbConnection extends Connection, LibConnection {}
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports

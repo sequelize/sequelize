@@ -594,8 +594,6 @@ describe('DataTypes', () => {
   }
 
   describe('BIGINT', () => {
-    const typeSupport = dialect.supports.dataTypes.BIGINT;
-
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare bigintAttr: number | bigint | string;
@@ -662,7 +660,7 @@ describe('DataTypes', () => {
       });
     }
 
-    if (typeSupport && typeSupport.unsigned) {
+    if (dialect.supports.dataTypes.INTS.unsigned) {
       describe(`BIGINT.UNSIGNED`, () => {
         const vars2 = beforeAll2(async () => {
           class User extends Model<InferAttributes<User>> {

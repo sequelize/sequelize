@@ -75,6 +75,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     default: 'DOUBLE PRECISION',
     'db2 ibmi': 'DOUBLE',
     sqlite: 'REAL',
+    snowflake: 'FLOAT',
   });
 
   testDataTypeSql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
@@ -82,6 +83,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
+    snowflake: 'FLOAT',
   });
 
   testDataTypeSql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
@@ -89,6 +91,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
+    snowflake: 'FLOAT',
   });
 
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
@@ -96,6 +99,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
+    snowflake: 'FLOAT',
   });
 
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {

@@ -12,6 +12,8 @@ import type { AbstractQuery } from './query.js';
 
 export interface SupportableNumericOptions {
   zerofill: boolean;
+  /** Whether this dialect supports the unsigned option natively */
+  unsigned: boolean;
 }
 
 export interface SupportableDecimalNumberOptions extends SupportableNumericOptions {
@@ -140,7 +142,6 @@ export type DialectSupports = {
     CITEXT: boolean,
     /** Options supportable by all int types (from tinyint to bigint) */
     INTS: SupportableNumericOptions,
-    BIGINT: { unsigned: boolean },
     /** @deprecated */
     REAL: SupportableDecimalNumberOptions,
     /** This dialect supports 4 byte long floating point numbers */
@@ -281,12 +282,11 @@ export abstract class AbstractDialect {
       CHAR: true,
       COLLATE_BINARY: false,
       CITEXT: false,
-      INTS: { zerofill: false },
-      BIGINT: { unsigned: false },
-      FLOAT: { NaN: false, infinity: false, zerofill: false },
-      REAL: { NaN: false, infinity: false, zerofill: false },
-      DOUBLE: { NaN: false, infinity: false, zerofill: false },
-      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false },
+      INTS: { zerofill: false, unsigned: false },
+      FLOAT: { NaN: false, infinity: false, zerofill: false, unsigned: false },
+      REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false },
+      DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false },
+      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
       CIDR: false,
       MACADDR: false,
       INET: false,

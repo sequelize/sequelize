@@ -37,7 +37,7 @@ interface TypeOids {
   rangeOid?: number;
 }
 
-interface PgConnection extends Connection, Client {
+export interface PgConnection extends Connection, Client {
   // custom property we attach to the client
   // TODO: replace with Symbols.
   _invalid?: boolean;

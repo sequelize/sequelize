@@ -1112,6 +1112,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/generic-pool@*":
+  version "3.1.11"
+  resolved "https://registry.yarnpkg.com/@types/generic-pool/-/generic-pool-3.1.11.tgz#853f7c6f939fd7d782452999cafac791f70c1cf1"
+  integrity sha512-3mcD3ewmaKPbiAZglGj8We4ohlSMfw/xS+bbYUhTv/ALgqrrtJjyL4Ju9IgapXooBCTFEew5LAKQqzZV6/43xg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/geojson@^7946.0.8":
   version "7946.0.10"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.10.tgz#6dfbf5ea17142f7f9a043809f1cd4c448cb68249"
@@ -1228,6 +1235,14 @@
   version "8.1.2"
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
   integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
+
+"@types/snowflake-sdk@^1.6.8":
+  version "1.6.8"
+  resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.8.tgz#de864a197c3c0c170b077d0a9923fef1150d442e"
+  integrity sha512-hf7YoxKjdk22VtKBR7/vCSYSv/YyHhbkTiZ+Dk/UnC83GMYOFaXbZktt0cIP98rmhk4V8nGpbpEivV4y6GUFNw==
+  dependencies:
+    "@types/generic-pool" "*"
+    "@types/node" "*"
 
 "@types/tedious@4.0.9":
   version "4.0.9"

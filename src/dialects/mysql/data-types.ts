@@ -45,6 +45,36 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   }
 }
 
+export class TINYINT extends BaseTypes.TINYINT {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+}
+
+export class SMALLINT extends BaseTypes.SMALLINT {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+}
+
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+}
+
+export class INTEGER extends BaseTypes.INTEGER {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+}
+
+export class BIGINT extends BaseTypes.BIGINT {
+  protected _supportsNativeUnsigned(): boolean {
+    return true;
+  }
+}
+
 export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql() {
     return 'TINYINT(1)';

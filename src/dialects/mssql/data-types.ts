@@ -1,7 +1,6 @@
 import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
 import type { Falsy } from '../../generic/falsy.js';
-import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
@@ -187,11 +186,6 @@ export class INTEGER extends BaseTypes.INTEGER {
 export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-
-    if (this.options.unsigned) {
-      throwUnsupportedDataType(dialect, 'BIGINT.UNSIGNED');
-    }
-
     removeUnsupportedIntegerOptions(this, dialect);
   }
 }
