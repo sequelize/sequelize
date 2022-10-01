@@ -5,7 +5,7 @@ import { testDataTypeSql } from './_utils';
 describe('DataTypes.BLOB', () => {
   testDataTypeSql('BLOB', DataTypes.BLOB, {
     default: 'BLOB',
-    ibmi: 'BLOB(1M)',
+    'ibmi db2': 'BLOB(1M)',
     mssql: 'VARBINARY(MAX)',
     postgres: 'BYTEA',
   });

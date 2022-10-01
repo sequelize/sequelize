@@ -32,8 +32,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     testDataTypeSql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
       default: 'VARCHAR(1234) BINARY',
-      ibmi: binaryCollationUnsupportedError,
-      db2: 'VARCHAR(1234) FOR BIT DATA',
+      'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
       mssql: binaryCollationUnsupportedError,
       postgres: binaryCollationUnsupportedError,
@@ -41,8 +40,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
-      ibmi: binaryCollationUnsupportedError,
-      db2: 'VARCHAR(255) FOR BIT DATA',
+      'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
       mssql: binaryCollationUnsupportedError,
       postgres: binaryCollationUnsupportedError,

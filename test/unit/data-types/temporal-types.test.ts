@@ -22,7 +22,7 @@ describe('DataTypes.DATE', () => {
     });
 
     testDataTypeSql('DATE(0)', DataTypes.DATE(0), {
-      ibmi: 'TIMESTAMP',
+      ibmi: 'TIMESTAMP(0)',
       postgres: 'TIMESTAMP(0) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(0)',
       'mariadb mysql': 'DATETIME(0)',
@@ -32,7 +32,7 @@ describe('DataTypes.DATE', () => {
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
-      ibmi: 'TIMESTAMP',
+      ibmi: 'TIMESTAMP(6)',
       postgres: 'TIMESTAMP(6) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(6)',
       mariadb: 'DATETIME(6)',

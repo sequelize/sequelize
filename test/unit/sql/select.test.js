@@ -688,7 +688,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           data: ['123'],
         },
       }, User), {
-        ibmi: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'))`,
+        ibmi: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB(X'313233'))`,
         db2: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'));`,
         postgres: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('\\x313233');`,
         snowflake: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X'313233');`,

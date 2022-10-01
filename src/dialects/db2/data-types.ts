@@ -43,7 +43,7 @@ export class BLOB extends BaseTypes.BLOB {
       return `BLOB(${this.options.length})`;
     }
 
-    return 'BLOB'; // 1MB
+    return 'BLOB(1M)';
   }
 }
 
@@ -257,9 +257,7 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
     const minLength = maxBy(this.options.values, value => value.length)?.length ?? 0;
 
-    // mssql does not have an ENUM type, we use NVARCHAR instead.
-    // It is not possible to create an index on NVARCHAR(MAX), so we use 255 which should be plenty for everyone
-    // but just in case, we also increase the length if the longest value is longer than 255 characters
+    // db2 does not have an ENUM type, we use VARCHAR instead.
     return `VARCHAR(${Math.max(minLength, 255)})`;
   }
 }

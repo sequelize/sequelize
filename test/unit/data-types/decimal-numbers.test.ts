@@ -7,7 +7,7 @@ import { testDataTypeSql } from './_utils';
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
-describe('REAL', () => {
+describe('DataTypes.REAL', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
@@ -67,34 +67,34 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   });
 });
 
-describe('DOUBLE PRECISION', () => {
+describe('DataTypes.DOUBLE', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DOUBLE.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 
   testDataTypeSql('DOUBLE', DataTypes.DOUBLE, {
     default: 'DOUBLE PRECISION',
-    db2: 'DOUBLE',
+    'db2 ibmi': 'DOUBLE',
     sqlite: 'REAL',
   });
 
   testDataTypeSql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION UNSIGNED',
     sqlite: 'REAL',
-    db2: 'DOUBLE',
+    'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
   });
 
   testDataTypeSql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12)',
     sqlite: 'REAL',
-    db2: 'DOUBLE',
+    'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
   });
 
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12) UNSIGNED',
     sqlite: 'REAL',
-    db2: 'DOUBLE',
+    'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
   });
 
@@ -120,7 +120,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   });
 });
 
-describe('FLOAT', () => {
+describe('DataTypes.FLOAT', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the FLOAT.ZEROFILL data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
 

@@ -367,11 +367,11 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
         testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
-          ibmi: `"binaryAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
           postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
           'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
           db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
-          snowflake: `"binaryAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
+          snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
           mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
         });
       });

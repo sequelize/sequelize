@@ -3,7 +3,6 @@
 const { AbstractConnectionManager } = require('../abstract/connection-manager');
 const SequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
-const DataTypes = require('../../data-types').snowflake;
 
 const debug = logger.debugContext('connection:snowflake');
 // const parserStore = require('../parser-store')('snowflake');
