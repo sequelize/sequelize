@@ -284,12 +284,22 @@ export class AbstractQuery {
       }
 
       const attribute = model?.rawAttributes[key];
-      if (values[key] != null && attribute?.type instanceof AbstractDataType) {
-        values[key] = attribute.type.parseDatabaseValue(values[key]);
-      }
+      values[key] = this._parseDatabaseValue(values[key], attribute?.type);
     }
 
     return values;
+  }
+
+  _parseDatabaseValue(value, attributeType) {
+    if (value == null) {
+      return value;
+    }
+
+    if (!attributeType || !(attributeType instanceof AbstractDataType)) {
+      return value;
+    }
+
+    return attributeType.parseDatabaseValue(value);
   }
 
   isShowOrDescribeQuery() {

@@ -139,7 +139,7 @@ describe('DataType Methods', () => {
   if (dialect.supports.returnValues) {
     it(`inserting a model calls 'parseDatabaseValue' on returned values`, async () => {
       // 'name' attr has a different name in the database
-      const out = await models.User.create({ name: 'foo' });
+      const out = await models.User.create({ name: 'foo' }, { returning: true });
 
       expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
 
@@ -151,7 +151,7 @@ describe('DataType Methods', () => {
 
     it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
       // 'name' attr has a different name in the database
-      const [out] = await models.User.upsert({ name: 'foo' });
+      const [out] = await models.User.upsert({ name: 'foo' }, { returning: true });
 
       expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
 
@@ -164,10 +164,12 @@ describe('DataType Methods', () => {
     it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
       const user = await models.User.create({ name: 'foo' });
       user.name = 'bob';
-      await user.save();
+      await user.save({ returning: true });
 
       expect(user.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
     });
+
+    // TODO: add test for 'returning' on DELETE queries once https://github.com/sequelize/sequelize/pull/14879 has been merged
   }
 
   it(`does not call 'parseDatabaseValue' on null values`, async () => {
