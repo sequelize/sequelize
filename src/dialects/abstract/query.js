@@ -273,7 +273,8 @@ export class AbstractQuery {
   _parseDataByType(values, model, includeMap) {
     for (const key of Object.keys(values)) {
       // parse association values
-      if (includeMap?.[key]) {
+      // hasOwnProperty is very important here. An include could be called "toString"
+      if (includeMap && Object.hasOwnProperty.call(includeMap, key)) {
         if (Array.isArray(values[key])) {
           values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
         } else {
