@@ -126,6 +126,11 @@ export type DialectSupports = {
    * enables the ability to use backslash escapes inside of the string.
    */
   escapeStringConstants: boolean,
+
+  /**
+   * Whether this dialect supports date & time values with a precision down to at least the millisecond.
+   */
+  milliseconds: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -217,6 +222,7 @@ export abstract class AbstractDialect {
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
+    milliseconds: true,
   };
 
   declare readonly defaultVersion: string;
