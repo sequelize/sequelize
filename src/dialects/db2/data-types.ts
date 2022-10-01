@@ -45,30 +45,6 @@ export class BLOB extends BaseTypes.BLOB {
 
     return 'BLOB'; // 1MB
   }
-
-  // escape(blob) {
-  //   return `BLOB('${blob.toString().replace(/'/g, '\'\'')}')`;
-  // }
-  //
-  // _stringify(value) {
-  //   if (Buffer.isBuffer(value)) {
-  //     return `BLOB('${value.toString().replace(/'/g, '\'\'')}')`;
-  //   }
-  //
-  //   if (Array.isArray(value)) {
-  //     value = Buffer.from(value);
-  //   } else {
-  //     value = Buffer.from(value.toString());
-  //   }
-  //
-  //   const hex = value.toString('hex');
-  //
-  //   return this._hexify(hex);
-  // }
-  //
-  // _hexify(hex) {
-  //   return `x'${hex}'`;
-  // }
 }
 
 export class STRING extends BaseTypes.STRING {
@@ -148,31 +124,6 @@ export class DATE extends BaseTypes.DATE {
   toSql() {
     return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
   }
-
-  // _stringify(date, options) {
-  //   date = this._applyTimezone(date, options);
-  //
-  //   if (this._length > 0) {
-  //     let msec = '.';
-  //     for (let i = 0; i < this._length && i < 6; i++) {
-  //       msec += 'S';
-  //     }
-  //
-  //     return date.format(`YYYY-MM-DD HH:mm:ss${msec}`);
-  //   }
-  //
-  //   return date.format('YYYY-MM-DD HH:mm:ss');
-  // }
-
-  // static parse(value) {
-  //   if (typeof value !== 'string') {
-  //     value = value.string();
-  //   }
-  //
-  //   value = new Date(dayjs.utc(value));
-  //
-  //   return value;
-  // }
 }
 
 export class TINYINT extends BaseTypes.TINYINT {
