@@ -20,10 +20,6 @@ export class FLOAT extends BaseTypes.FLOAT {
   protected _supportsNativeUnsigned(): boolean {
     return true;
   }
-
-  protected _supportsNativeZerofill(): boolean {
-    return true;
-  }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
@@ -34,10 +30,6 @@ export class DOUBLE extends BaseTypes.DOUBLE {
   protected _supportsNativeUnsigned(): boolean {
     return true;
   }
-
-  protected _supportsNativeZerofill(): boolean {
-    return true;
-  }
 }
 
 /** @deprecated */
@@ -45,18 +37,10 @@ export class REAL extends BaseTypes.REAL {
   protected _supportsNativeUnsigned(): boolean {
     return true;
   }
-
-  protected _supportsNativeZerofill(): boolean {
-    return true;
-  }
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
   protected _supportsNativeUnsigned(): boolean {
-    return true;
-  }
-
-  protected _supportsNativeZerofill(): boolean {
     return true;
   }
 }

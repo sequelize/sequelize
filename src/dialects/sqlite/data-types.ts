@@ -3,21 +3,7 @@ import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
-/**
- * Removes unsupported SQLite options, i.e., UNSIGNED and ZEROFILL, for the integer data types.
- *
- * @param dataType The base integer data type.
- * @param dialect
- */
-function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
-  if (dataType.options.zerofill) {
-    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
-  }
-}
-
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (dataType.options.length != null) {
     dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with length. This option will be ignored.`);
     delete dataType.options.length;
@@ -25,8 +11,6 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
 }
 
 function removeUnsupportedDecimalNumberOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (dataType.options.scale != null || dataType.options.precision != null) {
     dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with "scale" or "precision" specified. These options will be ignored.`);
     dataType.options.scale = undefined;

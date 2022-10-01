@@ -268,6 +268,16 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         snowflake: 'TIMESTAMP',
       });
 
+      testsql('DATE(0)', DataTypes.DATE(0), {
+        ibmi: 'TIMESTAMP',
+        postgres: 'TIMESTAMP(0) WITH TIME ZONE',
+        mssql: 'DATETIMEOFFSET(0)',
+        'mariadb mysql': 'DATETIME(0)',
+        db2: 'TIMESTAMP(0)',
+        sqlite: 'TEXT',
+        snowflake: 'TIMESTAMP',
+      });
+
       testsql('DATE(6)', DataTypes.DATE(6), {
         ibmi: 'TIMESTAMP',
         postgres: 'TIMESTAMP(6) WITH TIME ZONE',

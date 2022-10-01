@@ -5,28 +5,10 @@ import { throwUnsupportedDataType } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
-/**
- * Removes unsupported MSSQL options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
- *
- * @param dataType The base integer data type.
- * @param dialect
- * @private
- */
-function removeUnsupportedNumberOptions(
-  dataType: BaseTypes.BaseNumberDataType,
-  dialect: AbstractDialect,
-) {
-  if (dataType.options.zerofill) {
-    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
-  }
-}
-
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
   dialect: AbstractDialect,
 ) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (dataType.options.length != null) {
     dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
 
@@ -35,8 +17,6 @@ function removeUnsupportedIntegerOptions(
 }
 
 function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (
     dataType.options.scale != null
     || dataType.options.precision != null
@@ -249,12 +229,6 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    removeUnsupportedNumberOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 }
 

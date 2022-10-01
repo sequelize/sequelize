@@ -733,6 +733,14 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     return this.sanitize(value);
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.zerofill && !dialect.supports.dataTypes.INTS.zerofill) {
+      throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.ZEROFILL`);
+    }
+  }
+
   toSql(_options: ToSqlOptions): string {
     let result: string = this.getNumberSqlTypeName();
     if (this.options.length != null) {
@@ -922,8 +930,18 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     return false;
   }
 
-  protected _supportsNativeZerofill() {
-    return false;
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    const typeId = this.getDataTypeId();
+    if (typeId !== 'FLOAT' && typeId !== 'DOUBLE' && typeId !== 'DECIMAL' && typeId !== 'REAL') {
+      return;
+    }
+
+    const supportTable = dialect.supports.dataTypes[typeId];
+    if (supportTable && !supportTable.zerofill) {
+      throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.ZEROFILL`);
+    }
   }
 
   toSql(_options?: ToSqlOptions): string {
@@ -936,7 +954,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
       sql += ' UNSIGNED';
     }
 
-    if (this.options.zerofill && this._supportsNativeZerofill()) {
+    if (this.options.zerofill) {
       sql += ' ZEROFILL';
     }
 
@@ -1182,6 +1200,10 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     this.options = {
       precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
+
+    if (this.options.precision != null && (this.options.precision < 0 || Number.isInteger(this.options.precision))) {
+      throw new TypeError('Option "precision" must be a positive integer');
+    }
   }
 
   toSql() {

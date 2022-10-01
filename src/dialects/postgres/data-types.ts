@@ -15,22 +15,7 @@ import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
 
-/**
- * Removes unsupported Postgres options, UNSIGNED and ZEROFILL, for the integer data types.
- *
- * @param dataType The base integer data type.
- * @param dialect
- * @private
- */
-function removeUnsupportedNumberOptions(dataType: BaseTypes.BaseNumberDataType, dialect: AbstractDialect) {
-  if (dataType.options.zerofill) {
-    throwUnsupportedDataType(dialect, `${dataType.getDataTypeId()}.ZEROFILL`);
-  }
-}
-
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (dataType.options.length != null) {
     // this option only makes sense for zerofill
     dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
@@ -40,8 +25,6 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
 }
 
 function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
-  removeUnsupportedNumberOptions(dataType, dialect);
-
   if (
     dataType.options.scale != null
     || dataType.options.precision != null
@@ -89,11 +72,6 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedNumberOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 }
 
