@@ -1,7 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+import type { AbstractDialect } from '../dialects/abstract';
 import * as DataTypes from '../dialects/abstract/data-types.js';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
 
 export function now(dialect: AbstractDialect): Date {
   const d = new Date();

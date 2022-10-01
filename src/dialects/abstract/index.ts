@@ -313,7 +313,7 @@ export abstract class AbstractDialect {
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
-    milliseconds: false,
+    milliseconds: true,
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {

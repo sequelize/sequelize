@@ -910,6 +910,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
+          // TODO: refactor this to this.dialect when https://github.com/sequelize/sequelize/pull/15069 has been merged
           dataValues[key] = Utils.now(this._dialect);
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
