@@ -56,6 +56,10 @@ export class Db2Dialect extends AbstractDialect {
     return createUnspecifiedOrderedBindCollector();
   }
 
+  escapeBuffer(buffer: Buffer): string {
+    return `BLOB(${this.queryGenerator.escape(buffer.toString())})`;
+  }
+
   static getDefaultPort() {
     return 3306;
   }

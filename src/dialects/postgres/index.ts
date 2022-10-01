@@ -102,7 +102,7 @@ export class PostgresDialect extends AbstractDialect {
     const hex = buffer.toString('hex');
 
     // bytea hex format http://www.postgresql.org/docs/current/static/datatype-binary.html
-    return `E'\\\\x${hex}'`;
+    return `'\\x${hex}'`;
   }
 
   escapeString(value: string): string {

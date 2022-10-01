@@ -355,24 +355,21 @@ describe(getTestDialectTeaser('SQL'), () => {
       describe('Buffer', () => {
         testSql({ binaryAttr: Buffer.from('Sequelize') }, {
           ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
-          postgres: '"binaryAttr" = E\'\\\\x53657175656c697a65\'',
-          sqlite: '`binaryAttr` = X\'53657175656c697a65\'',
-          mariadb: '`binaryAttr` = X\'53657175656c697a65\'',
-          mysql: '`binaryAttr` = X\'53657175656c697a65\'',
-          db2: '"binaryAttr" = BLOB(\'Sequelize\')',
-          snowflake: '"binaryAttr" = X\'53657175656c697a65\'',
+          postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
+          'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
+          db2: `"binaryAttr" = BLOB('Sequelize')`,
+          snowflake: `"binaryAttr" = X'53657175656c697a65'`,
           mssql: '[binaryAttr] = 0x53657175656c697a65',
         });
 
-        testSql({ binaryAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
+        // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
+        testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
           ibmi: `"binaryAttr" IN (BLOB(X'53657175656c697a6531'), BLOB(X'53657175656c697a6532'))`,
-          postgres: '"binaryAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
-          sqlite: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mariadb: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mysql: '`binaryAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: `"binaryAttr" IN (BLOB('Sequelize1'), BLOB('Sequelize2'))`,
+          postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
+          'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
+          db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
           snowflake: `"binaryAttr" IN (X'53657175656c697a6531', X'53657175656c697a6532')`,
-          mssql: '[binaryAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
+          mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
         });
       });
     });
