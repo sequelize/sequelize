@@ -1,5 +1,7 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -313,7 +315,7 @@ export class MariaDbQuery extends AbstractQuery {
           fields: [],
           name: item.Key_name,
           tableName: item.Table,
-          unique: item.Non_unique !== 1,
+          unique: item.Non_unique !== '1',
           type: item.Index_type,
         };
         result.push(currItem);
@@ -322,7 +324,13 @@ export class MariaDbQuery extends AbstractQuery {
       currItem.fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+          // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
     }
 

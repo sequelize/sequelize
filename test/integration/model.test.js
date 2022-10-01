@@ -585,11 +585,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
             // length is a bigint
-            { attribute: 'fieldA', length: '5', order: 'ASC' },
+            { attribute: 'fieldA', length: '5', order: isMySQL8 ? 'ASC' : 'DESC' },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
+            { attribute: 'fieldC', length: undefined, order: null },
           ]);
         }
       }
