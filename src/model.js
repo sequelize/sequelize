@@ -2,6 +2,7 @@
 
 import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
+import { BaseError } from './errors';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 
@@ -942,7 +943,7 @@ Specify a different name for either index to resolve this issue.`);
       try {
         attribute = this.sequelize.normalizeAttribute(attribute);
       } catch (error) {
-        throw new Error(`An error occurred for attribute ${name} on model ${this.name}.`, { cause: error });
+        throw new BaseError(`An error occurred for attribute ${name} on model ${this.name}.`, { cause: error });
       }
 
       if (attribute.type instanceof AbstractDataType) {
@@ -1210,7 +1211,7 @@ Specify a different name for either index to resolve this issue.`);
           delete definition.index;
         }
       } catch (error) {
-        throw new TypeError(`An error occured while normalizing attribute ${this.name}#${name}.`, { cause: error });
+        throw new BaseError(`An error occured while normalizing attribute ${this.name}#${name}.`, { cause: error });
       }
     });
 

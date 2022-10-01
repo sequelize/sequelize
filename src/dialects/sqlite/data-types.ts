@@ -1,4 +1,5 @@
 import NodeUtil from 'node:util';
+import { BaseError } from '../../errors/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
@@ -235,7 +236,7 @@ export class JSON extends BaseTypes.JSON {
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new Error(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
     }
   }
 

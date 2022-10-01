@@ -1,3 +1,4 @@
+import { BaseError } from '../errors/index.js';
 import { Where } from './sequelize-method';
 
 export function isNullish(val: unknown): val is null | undefined {
@@ -32,7 +33,7 @@ export function isError(val: unknown): val is Error {
 
 export function assertCaughtError(val: unknown): asserts val is Error {
   if (!isError(val)) {
-    throw new Error('A non-error value was thrown', { cause: val });
+    throw new BaseError('A non-error value was thrown', { cause: val });
   }
 }
 

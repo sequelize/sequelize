@@ -1,6 +1,6 @@
 'use strict';
 
-import { AggregateError, DatabaseError } from '../../errors';
+import { AggregateError, DatabaseError, BaseError } from '../../errors';
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
@@ -124,7 +124,7 @@ export class Db2QueryInterface extends QueryInterface {
       } catch (dropError) {
         throw new AggregateError([
           wrappedError,
-          new Error(`An error occurred while cleaning up table ${errorSchema}.${errorTable}`, { cause: dropError }),
+          new BaseError(`An error occurred while cleaning up table ${errorSchema}.${errorTable}`, { cause: dropError }),
         ]);
       }
 

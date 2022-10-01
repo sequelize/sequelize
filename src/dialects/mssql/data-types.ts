@@ -1,5 +1,6 @@
 import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
+import { BaseError } from '../../errors/index.js';
 import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
@@ -237,14 +238,14 @@ export class JSON extends BaseTypes.JSON {
 
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {
-      // eslint-disable-next-line unicorn/prefer-type-error
-      throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+
+      throw new BaseError(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new Error(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
     }
   }
 

@@ -13,9 +13,9 @@ export interface CommonErrorProperties {
 // TODO [>=2023-04-30]:
 //  Remove me in Sequelize 8, where this is added natively by TypeScript (>= 4.6):
 //  This is a breaking change and must be done in a MAJOR release.
-export type ErrorOptions = {
-  cause?: Nullish<Error>,
-};
+export interface ErrorOptions {
+  cause?: unknown;
+}
 
 const supportsErrorCause = (() => {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- Supported in TS 4.6, not before
@@ -33,8 +33,8 @@ const supportsErrorCause = (() => {
  *
  * This means that errors can be accessed using `Sequelize.ValidationError`
  */
-abstract class BaseError extends Error {
-  declare cause?: Error;
+class BaseError extends Error {
+  declare cause?: unknown;
 
   get parent(): this['cause'] {
     useErrorCause();
