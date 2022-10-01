@@ -102,6 +102,10 @@ export class Sequelize {
    *   // - default: false
    *   native: true,
    *
+   *   // A flag that defines if connection should be over ssl or not
+   *   // - default: undefined
+   *   ssl: true,
+   *
    *   // Specify options, which are used when sequelize.define is called.
    *   // The following example:
    *   //   define: { timestamps: false }
@@ -163,6 +167,7 @@ export class Sequelize {
    * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
+   * @param {boolean}  [options.ssl=undefined] A flag that defines if connection should be over ssl or not
    * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
    * @param {number}   [options.pool.max=5] Maximum number of connection in pool
