@@ -1,3 +1,4 @@
+import type { FieldInfo } from 'mariadb';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
@@ -82,6 +83,10 @@ export class MariaDbDialect extends AbstractDialect {
     );
 
     registerMySqlDbDataTypeParsers(this);
+    // DECIMAL must be returned as a string, the JS number type is not precise enough.
+    this.registerDataTypeParser(['NEWDECIMAL'], (value: FieldInfo) => {
+      return value.string();
+    });
   }
 
   createBindCollector() {
