@@ -26,6 +26,9 @@ export class Db2Dialect extends AbstractDialect {
     tmpTableTrigger: true,
     dataTypes: {
       COLLATE_BINARY: true,
+      TIME: {
+        precision: false,
+      },
     },
     milliseconds: true,
   });
@@ -50,6 +53,15 @@ export class Db2Dialect extends AbstractDialect {
       sequelize,
     });
     this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);
+
+    this.registerDataTypeParser(['CHAR () FOR BIT DATA', 'VARCHAR () FOR BIT DATA'], value => {
+      return value.toString();
+    });
+
+    this.registerDataTypeParser(['TIMESTAMP'], value => {
+      // values are returned as UTC, but the UTC Offset is left unspecified.
+      return `${value}+00`;
+    });
   }
 
   createBindCollector() {

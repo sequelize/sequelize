@@ -1,6 +1,7 @@
+import dayjs from 'dayjs';
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate, StringifyOptions, ToSqlOptions } from '../abstract/data-types.js';
+import type { AcceptedDate, ToSqlOptions } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
@@ -91,9 +92,7 @@ export class TEXT extends BaseTypes.TEXT {
           len = 2 ** 24;
           break;
         case 'long':
-          len = 2 ** 32;
-          break;
-        case 'max':
+          // long would normally be 2 ** 32, but that's above the limit for DB2
           len = 2_147_483_647;
           break;
         default:
@@ -134,8 +133,8 @@ export class DATE extends BaseTypes.DATE {
     return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
   }
 
-  toBindableValue(date: AcceptedDate, options: StringifyOptions) {
-    date = this._applyTimezone(date, options);
+  toBindableValue(date: AcceptedDate) {
+    date = dayjs(date).utc(false);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }

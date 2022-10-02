@@ -174,6 +174,10 @@ export type DialectSupports = {
       /** Whether "infinity" is a valid value in this dialect's DATEONLY data type */
       infinity: boolean,
     },
+    TIME: {
+      /** Whether the dialect supports TIME(precision) */
+      precision: boolean,
+    },
   },
   REGEXP: boolean,
   /**
@@ -303,6 +307,9 @@ export abstract class AbstractDialect {
       },
       DATEONLY: {
         infinity: false,
+      },
+      TIME: {
+        precision: true,
       },
     },
     jsonOperations: false,

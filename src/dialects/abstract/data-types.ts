@@ -1201,6 +1201,14 @@ export class TIME extends AbstractDataType<string> {
     };
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.precision != null && !dialect.supports.dataTypes.TIME.precision) {
+      throwUnsupportedDataType(dialect, 'TIME(precision)');
+    }
+  }
+
   toSql() {
     if (this.options.precision != null) {
       return `TIME(${this.options.precision})`;
