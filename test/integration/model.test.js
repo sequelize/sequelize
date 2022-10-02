@@ -462,7 +462,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: dialectName === 'ibmi' ? '' : `${isMySQL8 ? 'ASC' : 'DESC'}`,
+            order: dialectName === 'ibmi' ? ''
+              // mysql doesn't support DESC indexes
+              : dialectName === 'mysql' ? 'ASC'
+              : `DESC`,
             length: 5,
           },
         ],
@@ -585,7 +588,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
             // length is a bigint
-            { attribute: 'fieldA', length: '5', order: isMySQL8 ? 'ASC' : 'DESC' },
+            {
+              attribute: 'fieldA',
+              length: '5',
+              order: dialectName === 'mysql' ? 'ASC' : 'DESC',
+            },
           ]);
 
           expect(idx2.fields).to.deep.equal([

@@ -305,13 +305,16 @@ export class MySqlQuery extends AbstractQuery {
       return acc;
     }, {});
 
-    return _.map(data, item => ({
-      primary: item.Key_name === 'PRIMARY',
-      fields: item.fields,
-      name: item.Key_name,
-      tableName: item.Table,
-      unique: item.Non_unique !== '1',
-      type: item.Index_type,
-    }));
+    return _.map(data, item => {
+      return ({
+        primary: item.Key_name === 'PRIMARY',
+        fields: item.fields,
+        name: item.Key_name,
+        tableName: item.Table,
+        // MySQL 8 returns this as a number (Integer), MySQL 5 returns it as a string (BigInt)
+        unique: item.Non_unique !== '1' && item.Non_unique !== 1,
+        type: item.Index_type,
+      });
+    });
   }
 }
