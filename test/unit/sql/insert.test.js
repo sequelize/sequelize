@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
             sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            db2: { sequelize_1: '2015-01-20 01:00:00.000' },
+            db2: { sequelize_1: '2015-01-20 00:00:00.000' },
             mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
             snowflake: { sequelize_1: '2015-01-20 01:00:00.000' },
             mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mariadb: { sequelize_1: '2015-01-20 02:02:03.089' },
             mysql: { sequelize_1: '2015-01-20 02:02:03.089' },
-            db2: { sequelize_1: '2015-01-20 02:02:03.089' },
+            db2: { sequelize_1: '2015-01-20 01:02:03.089' },
             snowflake: { sequelize_1: '2015-01-20 02:02:03.089' },
             default: { sequelize_1: '2015-01-20 02:02:03.089 +01:00' },
           },

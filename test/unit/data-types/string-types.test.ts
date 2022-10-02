@@ -91,7 +91,7 @@ describe('DataTypes.TEXT', () => {
 
     testDataTypeSql('TEXT("long")', DataTypes.TEXT('long'), {
       default: 'TEXT',
-      'ibmi db2': 'CLOB(4294967296)',
+      'ibmi db2': 'CLOB(2147483647)',
       mssql: 'NVARCHAR(MAX)',
       mariadb: 'LONGTEXT',
       mysql: 'LONGTEXT',

@@ -134,6 +134,8 @@ describe('DataTypes.TIME', () => {
 
     testDataTypeSql('TIME(6)', DataTypes.TIME(6), {
       default: 'TIME(6)',
+      db2: new Error(`db2 does not support the TIME(precision) data type.
+See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
       sqlite: 'TEXT',
     });
   });
