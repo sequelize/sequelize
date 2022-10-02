@@ -59,6 +59,17 @@ describe('DataTypes.ENUM', () => {
     });
   });
 
+  it('raises an error if the legacy "values" property is specified', () => {
+    expect(() => {
+      sequelize.define('omnomnom', {
+        bla: {
+          type: DataTypes.ENUM('a', 'b'),
+          values: ['a', 'b'],
+        },
+      });
+    }).to.throwWithCause(Error, 'The "values" property has been removed from column definitions.');
+  });
+
   it('raises an error if no values are defined', () => {
     expect(() => {
       sequelize.define('omnomnom', {

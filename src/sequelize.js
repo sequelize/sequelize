@@ -1248,7 +1248,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     if (attribute.values) {
       throw new TypeError(`
-DataTypes.ENUM: Specifying enum values like the following has been removed:
+The "values" property has been removed from column definitions. The following is no longer supported:
 
 sequelize.define('MyModel', {
   roles: {
@@ -1264,6 +1264,8 @@ sequelize.define('MyModel', {
     type: DataTypes.ENUM(['admin', 'user']),
   },
 });
+
+Remove the "values" property to resolve this issue.
         `.trim());
     }
 

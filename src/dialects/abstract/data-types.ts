@@ -1886,7 +1886,26 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     }
 
     if (values.length === 0) {
-      throw new TypeError('DataTypes.ENUM cannot be used without specifying its possible enum values.');
+      throw new TypeError(`
+DataTypes.ENUM cannot be used without specifying its possible enum values.
+
+Note that the "values" property has been removed from column definitions. The following is no longer supported:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+`.trim());
     }
 
     for (const value of values) {
