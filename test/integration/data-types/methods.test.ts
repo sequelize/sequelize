@@ -151,7 +151,7 @@ describe('DataType Methods', () => {
 
     it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
       // 'name' attr has a different name in the database
-      const [out] = await models.User.upsert({ name: 'foo' }, { returning: true });
+      const [out] = await models.User.upsert({ name: 'foo', id: 1234 }, { returning: true });
 
       expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
 
@@ -160,11 +160,13 @@ describe('DataType Methods', () => {
       // validate is called before persisting the model
       expect(spies.validate.called).to.eq(true, 'validate should have been called');
     });
+  }
 
+  if (dialect.supports.returnValues && dialect.supports.returnValues.returning) {
     it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
       const user = await models.User.create({ name: 'foo' });
       user.name = 'bob';
-      await user.save({ returning: true });
+      await user.save({ returning: true, logging: true });
 
       expect(user.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
     });
