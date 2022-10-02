@@ -12,6 +12,10 @@ const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('JSON', () => {
+    if (!dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
     beforeEach(async function () {
       this.Event = this.sequelize.define('Event', {
         data: {

@@ -319,13 +319,22 @@ describe('DataTypes', () => {
     });
 
     it('is serialized/deserialized as strings', async () => {
-      await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
+      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+      if (dialect.name === 'db2') {
+        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234 ');
+      } else {
+        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
+      }
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
       // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
       // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
-      await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
+      if (dialect.name === 'db2') {
+        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234 ');
+      } else {
+        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
+      }
     });
   });
 
@@ -1014,6 +1023,7 @@ describe('DataTypes', () => {
         dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
           // sqlite decided to have a weird format that is not ISO 8601 compliant
           : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
+          : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
           : '2022-01-01 00:00:00+00',
       );
     });
@@ -1054,7 +1064,7 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
 
         // Date is also used for inserting, so we also lose precision during insert.
-        if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
+        if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'db2') {
           await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123000+00');
         } else {
           await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');
@@ -1114,6 +1124,18 @@ describe('DataTypes', () => {
   });
 
   describe('TIME(precision)', () => {
+    if (!dialect.supports.dataTypes.TIME.precision) {
+      it('throws, as TIME(precision) is not supported', async () => {
+        expect(() => {
+          sequelize.define('User', {
+            attr: DataTypes.TIME(2),
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the TIME(precision) data type.`);
+      });
+
+      return;
+    }
+
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare timeMinPrecisionAttr: string | null;
@@ -1272,7 +1294,7 @@ describe('DataTypes', () => {
   for (const jsonTypeName of ['JSON', 'JSONB'] as const) {
     const JsonType = DataTypes[jsonTypeName];
     describe(`DataTypes.${jsonTypeName}`, () => {
-      if (jsonTypeName === 'JSONB' && !dialect.supports.dataTypes.JSONB) {
+      if (!dialect.supports.dataTypes[jsonTypeName]) {
         it('throws, as it is not supported', async () => {
           expect(() => {
             sequelize.define('User', {
@@ -1653,7 +1675,8 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
   const createdUser = await model.create({ [attributeName]: inVal });
 
   const quotedTableName = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier(model.tableName);
-  const fetchedUser = await model.sequelize!.query<any>(`SELECT * FROM ${quotedTableName} WHERE id = :id`, {
+  const quotedId = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier('id');
+  const fetchedUser = await model.sequelize!.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
     type: QueryTypes.SELECT,
     replacements: {
       // @ts-expect-error -- it's not worth it to type .id for these internal tests.

@@ -595,13 +595,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: '00:00' }];
-      await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as baz${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object using the same key twice', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: isBigInt ? '1' : 1 }];
-      await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as baz${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
@@ -619,7 +619,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
         let logSql;
-        const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+        const result = await this.sequelize.query(`select $1${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $2${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
             logSql = s;
           },
@@ -635,7 +635,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
         let logSql;
-        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+        const result = await this.sequelize.query(`select $one${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $two${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: { one: 1, two: 2 }, logging(s) {
             logSql = s;
           },

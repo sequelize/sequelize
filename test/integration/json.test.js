@@ -13,6 +13,10 @@ const dialectName = Support.getTestDialect();
 
 describe('model', () => {
   describe('json', () => {
+    if (!current.dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
@@ -293,40 +297,42 @@ describe('model', () => {
     }
   });
 
-  if (current.dialect.supports.dataTypes.JSONB) {
-    describe('jsonb', () => {
-      beforeEach(async function () {
-        this.User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-          emergency_contact: DataTypes.JSONB,
-        });
-        this.Order = this.sequelize.define('Order');
-        this.Order.belongsTo(this.User);
+  describe('jsonb', () => {
+    if (!current.dialect.supports.dataTypes.JSONB) {
+      return;
+    }
 
-        await this.sequelize.sync({ force: true });
+    beforeEach(async function () {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        emergency_contact: DataTypes.JSONB,
       });
+      this.Order = this.sequelize.define('Order');
+      this.Order.belongsTo(this.User);
 
-      it('should be able retrieve json value with nested include', async function () {
-        const user = await this.User.create({
-          emergency_contact: {
-            name: 'kate',
-          },
-        });
-
-        await this.Order.create({ UserId: user.id });
-
-        const orders = await this.Order.findAll({
-          attributes: ['id'],
-          include: [{
-            model: this.User,
-            attributes: [
-              [this.sequelize.json('emergency_contact.name'), 'katesName'],
-            ],
-          }],
-        });
-
-        expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
-      });
+      await this.sequelize.sync({ force: true });
     });
-  }
+
+    it('should be able retrieve json value with nested include', async function () {
+      const user = await this.User.create({
+        emergency_contact: {
+          name: 'kate',
+        },
+      });
+
+      await this.Order.create({ UserId: user.id });
+
+      const orders = await this.Order.findAll({
+        attributes: ['id'],
+        include: [{
+          model: this.User,
+          attributes: [
+            [this.sequelize.json('emergency_contact.name'), 'katesName'],
+          ],
+        }],
+      });
+
+      expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
+    });
+  });
 });
