@@ -33,14 +33,8 @@ export class Db2Query extends AbstractQuery {
     assert(typeof sql === 'string', `sql parameter must be a string`);
 
     this.sql = sql;
-    const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
-    const queryLabel = this.options.queryLabel ? `${this.options.queryLabel}\n` : '';
-    let queryBegin;
-    if (benchmark) {
-      queryBegin = Date.now();
-    } else {
-      this.sequelize.log(`${queryLabel}Executing (${this.connection.uuid || 'default'}): ${this.sql}`, this.options);
-    }
+
+    const complete = this._logQuery(sql, debug, parameters);
 
     const errStack = new Error().stack;
 
@@ -112,7 +106,7 @@ export class Db2Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
+            complete();
 
             // map the INOUT parameters to the name provided by the dev
             // this is an internal API, not yet ready for dev consumption, hence the _unsafe_ prefix.
@@ -123,10 +117,6 @@ export class Db2Query extends AbstractQuery {
 
                 this.options._unsafe_db2Outparams.set(paramName, paramValue);
               }
-            }
-
-            if (benchmark) {
-              this.sequelize.log(`${queryLabel}Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {
