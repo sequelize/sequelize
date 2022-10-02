@@ -723,7 +723,7 @@ describe('DataTypes', () => {
 
       it(`accepts number strings written using the scientific notation`, async () => {
         await testSimpleInOut(vars.User, 'attr', '1e2', 100);
-        await testSimpleInOut(vars.User, 'attr', '1e-2', 0.01);
+        await testSimpleInOut(vars.User, 'attr', '5e-1', 0.5);
         await testSimpleInOut(vars.User, 'attr', '1e+2', 100);
       });
 
