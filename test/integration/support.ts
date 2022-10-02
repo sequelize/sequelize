@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import pTimeout from 'p-timeout';
 import * as Support from '../support';
@@ -14,7 +15,31 @@ const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? 
 
 let runningQueries = new Set<AbstractQuery>();
 
-before(() => {
+before(async () => {
+  // Sometimes the SYSTOOLSPACE tablespace is not available when running tests on DB2. This creates it.
+  if (Support.getTestDialect() === 'db2') {
+    const res = await Support.sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
+      type: QueryTypes.SELECT,
+    });
+
+    const tableExists = res[0]?.TBSPACE === 'SYSTOOLSPACE';
+
+    if (!tableExists) {
+      // needed by dropSchema function
+      await Support.sequelize.query(`
+        CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
+        MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+        EXTENTSIZE 4;
+      `);
+
+      await Support.sequelize.query(`
+        CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
+        MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+        EXTENTSIZE 4
+      `);
+    }
+  }
+
   Support.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
