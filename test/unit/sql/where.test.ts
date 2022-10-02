@@ -32,6 +32,7 @@ type Expectations = {
 
 const dialectSupportsArray = () => sequelize.dialect.supports.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.RANGE;
+const dialectSupportsJsonB = () => sequelize.dialect.supports.JSONB;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -339,34 +340,28 @@ describe(getTestDialectTeaser('SQL'), () => {
         mariadb: `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mysql: `\`dateAttr\` = '2013-01-01 00:00:00'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-        db2: `"dateAttr" = '2013-01-01 00:00:00'`,
-        snowflake: `"dateAttr" = '2013-01-01 00:00:00'`,
+        'db2 snowflake': `"dateAttr" = '2013-01-01 00:00:00'`,
         ibmi: `"dateAttr" = '2013-01-01 00:00:00.000'`,
       });
 
       describe('Buffer', () => {
-        testSql({ stringAttr: Buffer.from('Sequelize') }, {
-          // TODO: (ibmi) - is this correct?
-          ibmi: `"stringAttr" = 'BLOB(X''53657175656c697a65'')'`,
-          postgres: '"stringAttr" = E\'\\\\x53657175656c697a65\'',
-          sqlite: '`stringAttr` = X\'53657175656c697a65\'',
-          mariadb: '`stringAttr` = X\'53657175656c697a65\'',
-          mysql: '`stringAttr` = X\'53657175656c697a65\'',
-          db2: '"stringAttr" = BLOB(\'Sequelize\')',
-          snowflake: '"stringAttr" = X\'53657175656c697a65\'',
-          mssql: '[stringAttr] = 0x53657175656c697a65',
+        testSql({ binaryAttr: Buffer.from('Sequelize') }, {
+          ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
+          postgres: `"binaryAttr" = E'\\\\x53657175656c697a65'`,
+          'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
+          db2: `"binaryAttr" = BLOB('Sequelize')`,
+          snowflake: `"binaryAttr" = X'53657175656c697a65'`,
+          mssql: '[binaryAttr] = 0x53657175656c697a65',
         });
 
-        testSql({ stringAttr: [Buffer.from('Sequelize1'), Buffer.from('Sequelize2')] }, {
-          // TODO: (ibmi) - is this correct?
-          ibmi: `"stringAttr" IN ('BLOB(X''53657175656c697a6531'')', 'BLOB(X''53657175656c697a6532'')')`,
-          postgres: '"stringAttr" IN (E\'\\\\x53657175656c697a6531\', E\'\\\\x53657175656c697a6532\')',
-          sqlite: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mariadb: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mysql: '`stringAttr` IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          db2: '"stringAttr" IN (BLOB(\'Sequelize1\'), BLOB(\'Sequelize2\'))',
-          snowflake: '"stringAttr" IN (X\'53657175656c697a6531\', X\'53657175656c697a6532\')',
-          mssql: '[stringAttr] IN (0x53657175656c697a6531, 0x53657175656c697a6532)',
+        // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
+        testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
+          ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          postgres: `"binaryAttr" IN (E'\\\\x5365717565276c697a6531', E'\\\\x53657175656c697a6532')`,
+          'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
+          db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
+          snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
+          mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
         });
       });
     });
@@ -376,18 +371,18 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = 1',
       });
 
-      testSql({ intAttr1: '1' }, {
-        default: `[intAttr1] = '1'`,
-        mssql: `[intAttr1] = N'1'`,
+      testSql({ stringAttr: '1' }, {
+        default: `[stringAttr] = '1'`,
+        mssql: `[stringAttr] = N'1'`,
       });
 
       testSql({ intAttr1: [1, 2] }, {
         default: '[intAttr1] IN (1, 2)',
       });
 
-      testSql({ intAttr1: ['1', '2'] }, {
-        default: `[intAttr1] IN ('1', '2')`,
-        mssql: `[intAttr1] IN (N'1', N'2')`,
+      testSql({ stringAttr: ['1', '2'] }, {
+        default: `[stringAttr] IN ('1', '2')`,
+        mssql: `[stringAttr] IN (N'1', N'2')`,
       });
 
       testSql.skip({ 'stringAttr::integer': 1 }, {
@@ -439,8 +434,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
         mariadb: `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
         mysql: `\`dateAttr\` = '2021-01-01 00:00:00'`,
-        snowflake: `"dateAttr" = '2021-01-01 00:00:00'`,
-        db2: `"dateAttr" = '2021-01-01 00:00:00'`,
+        'db2 snowflake': `"dateAttr" = '2021-01-01 00:00:00'`,
         ibmi: `"dateAttr" = '2021-01-01 00:00:00.000'`,
       });
 
@@ -2244,7 +2238,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (sequelize.dialect.supports.JSONB) {
+    if (dialectSupportsJsonB()) {
       describe('JSONB', () => {
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
