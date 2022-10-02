@@ -10,7 +10,7 @@ const _ = require('lodash');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Hooks'), () => {
+describe('Hooks', () => {
   beforeEach(function () {
     this.Model = current.define('m');
   });

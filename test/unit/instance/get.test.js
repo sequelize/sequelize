@@ -9,7 +9,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('get', () => {
     beforeEach(function () {
       this.getSpy = sinon.spy();

@@ -10,7 +10,7 @@ const { Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
-describe(Support.getTestDialectTeaser('Sequelize'), () => {
+describe('Sequelize', () => {
   describe('dialectModule options', () => {
     it('options.dialectModule', () => {
       const dialectModule = {

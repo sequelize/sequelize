@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('changed', () => {
     beforeEach(function () {
       this.User = current.define('User', {

@@ -1,9 +1,9 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { expectsql, sequelize } from '../../support';
+import { expectsql, getTestDialect, sequelize } from '../../support';
 
-const dialectName = sequelize.dialect.name;
+const dialectName = getTestDialect();
 
 describe('QueryInterface#upsert', () => {
   const User = sequelize.define('User', {

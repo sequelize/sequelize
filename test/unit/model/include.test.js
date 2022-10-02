@@ -9,7 +9,7 @@ const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-a
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('all', () => {
     const Referral = current.define('referral');
 

@@ -7,8 +7,12 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 
-describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
-  if (current.dialect.supports.schemas) {
+describe('Model', () => {
+  if (!current.dialect.supports.schemas) {
+    return;
+  }
+
+  describe('schema', () => {
     const Project = current.define('project');
     const Company = current.define('company', {}, {
       schema: 'default',
@@ -78,5 +82,5 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
         expect(schema2._schemaDelimiter).to.equal('#');
       });
     });
-  }
+  });
 });

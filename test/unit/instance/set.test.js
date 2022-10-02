@@ -9,7 +9,7 @@ const { DataTypes } = require('@sequelize/core');
 const current = Support.sequelize;
 const sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('set', () => {
     it('sets nested keys in JSON objects', () => {
       const User = current.define('User', {

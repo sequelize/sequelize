@@ -9,7 +9,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('method update', () => {
     before(function () {
       this.User = current.define('User', {

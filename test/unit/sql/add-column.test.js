@@ -12,7 +12,7 @@ const customSequelize = Support.createSequelizeInstance({
 });
 const customSql = customSequelize.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('addColumn', () => {
     const User = current.define('User', {
       id: {

@@ -8,7 +8,7 @@ const Support = require('../support');
 const current = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('indexes', () => {
     it('should automatically set a gin index for JSONB indexes', () => {
       const Model = current.define('event', {

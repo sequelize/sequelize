@@ -10,7 +10,7 @@ const sinon = require('sinon');
 const { DataTypes, QueryError } = require('@sequelize/core');
 const { Logger } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('_warnOnInvalidOptions', () => {
     beforeEach(function () {
       this.loggerSpy = sinon.spy(Logger.prototype, 'warn');

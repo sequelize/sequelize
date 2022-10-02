@@ -10,7 +10,7 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+describe('InstanceValidator', () => {
   describe('validations', () => {
     const checks = {
       is: {

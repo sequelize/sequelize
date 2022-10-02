@@ -9,7 +9,7 @@ const Support = require('../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('findCreateFind', () => {
     const Model = current.define('Model', {});
 

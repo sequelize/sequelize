@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('increment', () => {
     describe('options tests', () => {
       const Model = current.define('User', {

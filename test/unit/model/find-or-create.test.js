@@ -11,7 +11,7 @@ const sinon = require('sinon');
 
 const stub = sinon.stub;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('method findOrCreate', () => {
     before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));

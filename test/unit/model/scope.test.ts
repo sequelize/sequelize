@@ -9,7 +9,7 @@ const Support = require('../support');
 
 const sequelize = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   beforeEach(() => {
     resetSequelizeInstance();
   });

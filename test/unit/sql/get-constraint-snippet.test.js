@@ -8,7 +8,7 @@ const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
 const expect = require('chai').expect;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('getConstraintSnippet', () => {
     describe('unique', () => {
       it('naming', () => {

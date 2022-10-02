@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('build', () => {
     it('should populate NOW default values', async () => {
       const Model = current.define('Model', {

@@ -3,11 +3,11 @@
 import { Utils } from '@sequelize/core';
 import chai from 'chai';
 import type { AbstractQueryGenerator } from '../../../types/dialects/abstract/query-generator.js';
-import { getTestDialectTeaser, sequelize, getTestDialect } from '../../support';
+import { sequelize, getTestDialect } from '../../support';
 
 const expect = chai.expect;
 
-describe(getTestDialectTeaser('Utils'), () => {
+describe('Utils', () => {
   describe('underscore', () => {
     describe('underscoredIf', () => {
       it('is defined', () => {

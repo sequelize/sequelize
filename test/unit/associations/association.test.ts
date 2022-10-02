@@ -1,8 +1,8 @@
 import { AssociationError } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('belongsTo'), () => {
+describe('belongsTo', () => {
   it('should throw an AssociationError when two associations have the same alias', () => {
     const User = sequelize.define('User');
     const Task = sequelize.define('Task');

@@ -9,7 +9,7 @@ const current   = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
 const sinon     = require('sinon');
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('destroy', () => {
     describe('options tests', () => {
       let stub; let instance;

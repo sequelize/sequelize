@@ -12,7 +12,7 @@ function assertDataType(property, dataType) {
   expect(property.type.constructor.key).to.equal(dataType.key);
 }
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('getAttributes', () => {
     it('should return attributes with getAttributes()', () => {
       const Model = current.define(

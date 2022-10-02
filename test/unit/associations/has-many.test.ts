@@ -4,9 +4,9 @@ import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('hasMany'), () => {
+describe('hasMany', () => {
   it('throws when invalid model is passed', () => {
     const User = sequelize.define('User');
 

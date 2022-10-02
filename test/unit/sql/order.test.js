@@ -5,7 +5,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../support');
-const { DataTypes, Model } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const expectsql = Support.expectsql;
@@ -14,7 +14,7 @@ const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('order', () => {
     const testsql = (options, expectation) => {
       const model = options.model;

@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('previous', () => {
     it('should return correct previous value', () => {
       const Model = current.define('Model', {

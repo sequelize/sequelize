@@ -3,14 +3,15 @@
 const Support   = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
+const dialect = Support.getTestDialect();
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
 const expect    = require('chai').expect;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('enum', () => {
-    if (Support.getTestDialect() === 'postgres') {
+    if (dialect === 'postgres') {
       const FooUser = current.define('user', {
         mood: DataTypes.ENUM('happy', 'sad'),
       }, {

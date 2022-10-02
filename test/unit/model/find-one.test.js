@@ -9,7 +9,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('method findOne', () => {
     before(function () {
       this.oldFindAll = Sequelize.Model.findAll;

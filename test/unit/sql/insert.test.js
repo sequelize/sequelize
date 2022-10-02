@@ -10,7 +10,7 @@ const dialect   = Support.getTestDialect();
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('insert', () => {
     it('with temp table for trigger', () => {
       const User = Support.sequelize.define('user', {

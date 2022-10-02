@@ -8,9 +8,14 @@ const chai = require('chai');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
+const dialect = Support.getTestDialect();
 const expect = chai.expect;
 
 describe('[SNOWFLAKE Specific] Query', () => {
+  if (dialect !== 'snowflake') {
+    return;
+  }
+
   describe('logWarnings', () => {
     beforeEach(() => {
       sinon.spy(console, 'debug');

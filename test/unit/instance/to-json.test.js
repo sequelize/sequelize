@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('toJSON', () => {
     it('returns copy of json', () => {
       const User = current.define('User', {

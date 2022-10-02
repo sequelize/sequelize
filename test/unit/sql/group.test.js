@@ -8,7 +8,7 @@ const expectsql   = Support.expectsql;
 const current     = Support.sequelize;
 const sql         = current.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('group', () => {
     const testsql = function (options, expectation) {
       const model = options.model;

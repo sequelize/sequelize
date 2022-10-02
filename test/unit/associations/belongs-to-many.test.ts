@@ -10,9 +10,9 @@ import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { sequelize, getTestDialectTeaser, resetSequelizeInstance, createSequelizeInstance } from '../../support';
+import { sequelize, resetSequelizeInstance, createSequelizeInstance } from '../../support';
 
-describe(getTestDialectTeaser('belongsToMany'), () => {
+describe('belongsToMany', () => {
   beforeEach(() => {
     resetSequelizeInstance();
   });

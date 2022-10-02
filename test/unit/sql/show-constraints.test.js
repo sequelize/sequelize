@@ -6,7 +6,7 @@ const current   = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('showConstraint', () => {
     it('naming', () => {
       expectsql(sql.showConstraintsQuery('myTable'), {

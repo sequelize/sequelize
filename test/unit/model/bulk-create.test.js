@@ -9,7 +9,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('bulkCreate', () => {
     before(function () {
       this.Model = current.define('model', {

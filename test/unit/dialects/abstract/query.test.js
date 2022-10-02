@@ -11,7 +11,7 @@ const { stub, match } = require('sinon');
 const current = Support.sequelize;
 const expect = chai.expect;
 
-describe('[ABSTRACT]', () => {
+describe('Query', () => {
   describe('_groupJoinData', () => {
 
     it('should hash second nested set correctly, when has multiple primary keys and one is a Buffer', () => {

@@ -9,7 +9,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('method findByPk', () => {
     beforeEach(function () {
       this.stub = sinon.stub(Sequelize.Model, 'findAll').resolves();

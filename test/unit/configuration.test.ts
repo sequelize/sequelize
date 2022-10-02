@@ -5,6 +5,7 @@ import { expect } from 'chai';
 import { getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
+
 describe('Sequelize constructor', () => {
   it('throws when no dialect is supplied', () => {
     expect(() => {

@@ -10,7 +10,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const dayjs    = require('dayjs');
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('isSoftDeleted', () => {
     beforeEach(function () {
       const User = current.define('User', {

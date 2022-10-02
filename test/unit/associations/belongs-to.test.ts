@@ -3,9 +3,9 @@ import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('belongsTo'), () => {
+describe('belongsTo', () => {
   it('throws when invalid model is passed', () => {
     const User = sequelize.define('User');
 

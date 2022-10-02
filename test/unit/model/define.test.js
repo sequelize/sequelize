@@ -10,7 +10,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
       const User = current.define('User', {}, {

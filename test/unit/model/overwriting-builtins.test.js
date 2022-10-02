@@ -3,11 +3,9 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
-
+describe('Model', () => {
   describe('not breaking built-ins', () => {
     it('it should not break instance.set by defining a model set attribute', function () {
       const User = this.sequelize.define('OverWrittenKeys', {

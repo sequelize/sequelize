@@ -8,7 +8,7 @@ const { InstanceValidator } = require('@sequelize/core/_non-semver-use-at-your-o
 const sinon = require('sinon');
 const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+describe('InstanceValidator', () => {
   beforeEach(function () {
     this.User = Support.sequelize.define('user', {
       fails: {

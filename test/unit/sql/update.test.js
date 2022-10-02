@@ -9,7 +9,7 @@ const sql       = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('update', () => {
     it('supports returning false', () => {
       const User = Support.sequelize.define('user', {

@@ -9,7 +9,7 @@ const current   = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
 const sinon     = require('sinon');
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe('Instance', () => {
   describe('save', () => {
     it('should disallow saves if no primary key values is present', async () => {
       const Model = current.define('User', {});

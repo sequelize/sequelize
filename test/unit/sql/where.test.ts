@@ -12,7 +12,7 @@ import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
-import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
+import { createTester, sequelize, expectsql } from '../../support';
 
 const sql = sequelize.dialect.queryGenerator;
 
@@ -80,7 +80,7 @@ TestModel.init({
   aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
 }, { sequelize });
 
-describe(getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(

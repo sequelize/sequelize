@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('./support');
 const { DataTypes, Op, Utils } = require('@sequelize/core');
 
-describe(Support.getTestDialectTeaser('Utils'), () => {
+describe('Utils', () => {
   describe('merge', () => {
     it('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');

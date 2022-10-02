@@ -7,7 +7,7 @@ const Support = require('../support');
 
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('hasAlias', () => {
     beforeEach(function () {
       this.User = current.define('user');
