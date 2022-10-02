@@ -35,7 +35,7 @@ export class AbstractQuery {
 
   async logWarnings(results) {
     const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `${_.capitalize(this.sequelize.dialect.name)} Warnings (${this.connection.uuid || 'default'}): `;
+    const warningMessage = `${this.sequelize.dialect.name} Warnings (${this.connection.uuid || 'default'}): `;
     const messages = [];
     for (const _warningRow of warningResults) {
       if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
