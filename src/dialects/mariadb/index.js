@@ -52,9 +52,6 @@ export class MariaDbDialect extends AbstractDialect {
     this.queryGenerator = new MariaDbQueryGenerator({
       dialect: this,
       sequelize,
-      options: {
-        name: 'MariaDB',
-      },
     });
     this.queryInterface = new MySqlQueryInterface(
       sequelize,

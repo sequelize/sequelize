@@ -64,9 +64,6 @@ export class PostgresDialect extends AbstractDialect {
     this.queryGenerator = new PostgresQueryGenerator({
       dialect: this,
       sequelize,
-      options: {
-        name: 'Postgres',
-      },
     });
     this.queryInterface = new PostgresQueryInterface(
       sequelize,

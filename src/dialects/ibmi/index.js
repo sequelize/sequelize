@@ -43,9 +43,6 @@ export class IBMiDialect extends AbstractDialect {
     this.queryGenerator = new IBMiQueryGenerator({
       dialect: this,
       sequelize,
-      options: {
-        name: 'IBMi',
-      },
     });
     this.queryInterface = new IBMiQueryInterface(this.sequelize, this.queryGenerator);
   }
