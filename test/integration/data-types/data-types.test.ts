@@ -715,40 +715,46 @@ describe('DataTypes', () => {
         return { User };
       });
 
-      it(`${attrType} accepts numbers, bigints, strings, +-Infinity`, async () => {
+      it(`accepts numbers, bigints, strings, +-Infinity`, async () => {
         await testSimpleInOut(vars.User, 'attr', 100.5, 100.5);
         await testSimpleInOut(vars.User, 'attr', 123n, 123);
         await testSimpleInOut(vars.User, 'attr', '100.5', 100.5);
       });
 
+      it(`accepts number strings written using the scientific notation`, async () => {
+        await testSimpleInOut(vars.User, 'attr', '1e2', 100);
+        await testSimpleInOut(vars.User, 'attr', '1e-2', 0.01);
+        await testSimpleInOut(vars.User, 'attr', '1e+2', 100);
+      });
+
       if (dialect.supports.dataTypes[attrType].NaN) {
-        it(`${attrType} accepts NaN`, async () => {
+        it(`accepts NaN`, async () => {
           await testSimpleInOut(vars.User, 'attr', Number.NaN, Number.NaN);
         });
       } else {
-        it(`${attrType} rejects NaN`, async () => {
+        it(`rejects NaN`, async () => {
           await expect(vars.User.create({ attr: Number.NaN })).to.be.rejected;
         });
       }
 
       if (dialect.supports.dataTypes[attrType].infinity) {
-        it(`${attrType} accepts +-Infinity`, async () => {
+        it(`accepts +-Infinity`, async () => {
           await testSimpleInOut(vars.User, 'attr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
           await testSimpleInOut(vars.User, 'attr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
         });
       } else {
-        it(`${attrType} rejects +-Infinity`, async () => {
+        it(`rejects +-Infinity`, async () => {
           await expect(vars.User.create({ attr: Number.POSITIVE_INFINITY })).to.be.rejected;
           await expect(vars.User.create({ attr: Number.NEGATIVE_INFINITY })).to.be.rejected;
         });
       }
 
-      it(`${attrType} rejects non-number strings`, async () => {
+      it(`rejects non-number strings`, async () => {
         await expect(vars.User.create({ attr: '' })).to.be.rejected;
         await expect(vars.User.create({ attr: 'abc' })).to.be.rejected;
       });
 
-      it(`${attrType} is deserialized as a JS number when DataType is not specified`, async () => {
+      it(`is deserialized as a JS number when DataType is not specified`, async () => {
         await testSimpleInOutRaw(vars.User, 'attr', 100.5, 100.5);
         await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
 
