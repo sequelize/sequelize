@@ -26,7 +26,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -310,7 +310,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
             field.type.escape = false;
           }
 
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
+          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect.name);
 
           value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
 
@@ -324,7 +324,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     const format = (value === null && options.where);
 
-    return SqlString.escape(value, this.options.timezone, this.dialect, format);
+    return SqlString.escape(value, this.options.timezone, this.dialect.name, format);
   }
 
   /*
@@ -382,7 +382,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
       result += this.quoteIdentifier(field.name);
 
-      if (this._dialect.supports.index.length && field.length) {
+      if (this.dialect.supports.index.length && field.length) {
         result += `(${field.length})`;
       }
 
@@ -401,7 +401,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     options = Model._conformIndex(options);
 
-    if (!this._dialect.supports.index.type) {
+    if (!this.dialect.supports.index.type) {
       delete options.type;
     }
 

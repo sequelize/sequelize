@@ -5,7 +5,7 @@ const { QueryTypes } = require('../../query-types');
 const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
 const { cloneDeep } = require('../../utils');
 const _ = require('lodash');
-const uuid = require('uuid').v4;
+const crypto = require('crypto');
 
 /**
  * The interface that Sequelize uses to talk with SQLite database
@@ -317,7 +317,7 @@ export class SqliteQueryInterface extends QueryInterface {
    */
   getSavepointName(prefix = 'sequelize') {
     // sqlite does not support "-" (dashes) in transaction's name
-    const suffix = uuid().replace(/-/g, '_');
+    const suffix = crypto.randomUUID().replace(/-/g, '_');
 
     return `${prefix}_${suffix}`;
   }
