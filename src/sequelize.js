@@ -1023,6 +1023,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
   }

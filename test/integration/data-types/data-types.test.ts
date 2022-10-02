@@ -1356,30 +1356,36 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'jsonNull', null, null);
       });
 
-      if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
-        // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
-        // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
-        it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
-          await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
-          await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');
-          await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, 'false');
-          // node-sqlite3 quirk: it returns this value as a JS number for some reason.
-          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
-          await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
-          await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
-          // this isn't the JSON null value, but a SQL null value
-          await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
-        });
-      } else {
-        it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
-          await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', 'abc');
-          await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, true);
-          await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, false);
-          await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, 123.4);
-          await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], [1, 2]);
-          await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
-          await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
-        });
+      // MariaDB: supports a JSON type, but:
+      // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
+      // - MariaDB 10.3 says it's a string, so we can't parse it based on the type.
+      // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
+      if (dialect.name !== 'mariadb') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
+          // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
+          // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
+          it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
+            await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
+            await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');
+            await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, 'false');
+            // node-sqlite3 quirk: it returns this value as a JS number for some reason.
+            await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
+            await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
+            await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
+            // this isn't the JSON null value, but a SQL null value
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+          });
+        } else {
+          it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
+            await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', 'abc');
+            await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, true);
+            await testSimpleInOutRaw(vars.User, 'jsonBoolean', false, false);
+            await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, 123.4);
+            await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], [1, 2]);
+            await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+          });
+        }
       }
     });
   }

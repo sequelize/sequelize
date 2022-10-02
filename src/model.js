@@ -1417,6 +1417,7 @@ Specify a different name for either index to resolve this issue.`);
       });
 
     for (const index of missingIndexes) {
+      // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
       await this.queryInterface.addIndex(tableName, index, options);
     }
 

@@ -463,8 +463,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
             order: dialectName === 'ibmi' ? ''
-              // mysql doesn't support DESC indexes
-              : dialectName === 'mysql' ? 'ASC'
+              // mysql doesn't support DESC indexes (will throw)
+              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
               : `DESC`,
             length: 5,
           },
@@ -591,7 +592,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               attribute: 'fieldA',
               length: '5',
-              order: dialectName === 'mysql' ? 'ASC' : 'DESC',
+              // mysql & mariadb don't support DESC indexes
+              order: 'ASC',
             },
           ]);
 

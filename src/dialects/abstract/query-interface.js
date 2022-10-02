@@ -143,6 +143,7 @@ export class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
