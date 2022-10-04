@@ -109,7 +109,7 @@
     "semantic-release-fail-on-major-bump": "1.0.0",
     "sinon": "14.0.1",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.13",
+    "snowflake-sdk": "1.6.14",
     "source-map-support": "0.5.21",
     "sqlite3": "5.1.2",
     "tedious": "15.1.0",
