@@ -12,5 +12,3 @@ docker exec sequelize-mssql-latest \
   /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
 
 DIALECT=mssql ts-node ../../check-connection.ts
-
-echo "Local MSSQL-latest instance is ready for Sequelize tests."

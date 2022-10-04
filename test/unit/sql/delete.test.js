@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'TRUNCATE "custom_schema"."test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [custom_schema].[test_users]',
             mariadb: 'TRUNCATE `custom_schema`.`test_users`',
-            mysql: 'TRUNCATE `custom_schema.test_users`',
+            mysql: 'TRUNCATE `custom_schema`.`test_users`',
             db2: 'TRUNCATE TABLE "custom_schema"."test_users" IMMEDIATE',
             sqlite: 'DELETE FROM `custom_schema.test_users`',
             snowflake: 'TRUNCATE "custom_schema"."test_users"',
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'TRUNCATE "custom_schema"."test_users" RESTART IDENTITY CASCADE',
             mssql: 'TRUNCATE TABLE [custom_schema].[test_users]',
             mariadb: 'TRUNCATE `custom_schema`.`test_users`',
-            mysql: 'TRUNCATE `custom_schema.test_users`',
+            mysql: 'TRUNCATE `custom_schema`.`test_users`',
             db2: 'TRUNCATE TABLE "custom_schema"."test_users" IMMEDIATE',
             sqlite: 'DELETE FROM `custom_schema.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = \'custom_schema.test_users\';',
             snowflake: 'TRUNCATE "custom_schema"."test_users"',
@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
-            default: 'DELETE FROM [custom_schema.test_users] WHERE `name` = \'foo\'',
+            default: 'DELETE FROM [custom_schema].[test_users] WHERE [name] = \'foo\'',
             postgres: 'DELETE FROM "custom_schema"."test_users" WHERE "name" = \'foo\'',
             mariadb: 'DELETE FROM `custom_schema`.`test_users` WHERE `name` = \'foo\'',
             sqlite: 'DELETE FROM `custom_schema.test_users` WHERE `name` = \'foo\'',
@@ -122,14 +122,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
-            ibmi: 'DELETE FROM "custom_schema"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
+            ibmi: `DELETE FROM "custom_schema"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
             postgres: `DELETE FROM "custom_schema"."test_users" WHERE "id" IN (SELECT "id" FROM "custom_schema"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
-            mariadb: 'DELETE FROM `custom_schema`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
+            'mariadb mysql': 'DELETE FROM `custom_schema`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
             sqlite: 'DELETE FROM `custom_schema.test_users` WHERE rowid IN (SELECT rowid FROM `custom_schema.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
-            mssql: 'DELETE TOP(10) FROM [custom_schema].[test_users] WHERE [name] = N\'foo\'\';DROP TABLE mySchema.myTable;\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
-            db2: 'DELETE FROM "custom_schema"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
-            snowflake: 'DELETE FROM "custom_schema"."test_users" WHERE "id" IN (SELECT "id" FROM "custom_schema"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
-            default: 'DELETE FROM [custom_schema.test_users] WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
+            mssql: `DELETE TOP(10) FROM [custom_schema].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+            db2: `DELETE FROM "custom_schema"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
+            snowflake: `DELETE FROM "custom_schema"."test_users" WHERE "id" IN (SELECT "id" FROM "custom_schema"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
           },
         );
       });
@@ -160,12 +159,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query, {
             ibmi: 'DELETE FROM "custom_schema"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             postgres: new Error('Cannot LIMIT delete without a model.'),
-            mariadb: 'DELETE FROM `custom_schema`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
+            'mariadb mysql': 'DELETE FROM `custom_schema`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
             sqlite: 'DELETE FROM `custom_schema.test_users` WHERE rowid IN (SELECT rowid FROM `custom_schema.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mssql: 'DELETE TOP(10) FROM [custom_schema].[test_users] WHERE [name] = N\'foo\'\';DROP TABLE mySchema.myTable;\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             db2: 'DELETE FROM "custom_schema"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             snowflake: new Error('Cannot LIMIT delete without a model.'),
-            default: 'DELETE FROM [custom_schema.test_users] WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
           },
         );
       });

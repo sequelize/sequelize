@@ -19,6 +19,7 @@ export class MysqlDialect extends AbstractDialect {
       lock: true,
       forShare: 'LOCK IN SHARE MODE',
       settingIsolationLevelDuringTransaction: false,
+      schemas: true,
       inserts: {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
@@ -48,7 +49,7 @@ export class MysqlDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MySqlQueryInterface(

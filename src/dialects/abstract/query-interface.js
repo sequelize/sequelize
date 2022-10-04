@@ -47,10 +47,15 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropDatabase(database, options) {
-    options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async listDatabases(options) {
+    const sql = this.queryGenerator.listDatabasesQuery();
+
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -62,8 +67,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async createSchema(schema, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createSchema(schema);
+    const sql = this.queryGenerator.createSchemaQuery(schema);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -77,12 +81,11 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropSchema(schema, options) {
-    options = options || {};
-    const query = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql;
     if (typeof query === 'object') {
-      options.bind = query.bind;
+      options = { ...options, bind: query.bind };
       sql = query.query;
     } else {
       sql = query;
@@ -101,7 +104,7 @@ export class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -118,15 +121,13 @@ export class QueryInterface {
    * @returns {Promise<Array>}
    */
   async showAllSchemas(options) {
-    options = {
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
+
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
       ...options,
       raw: true,
       type: this.sequelize.QueryTypes.SELECT,
-    };
-
-    const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
+    });
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }

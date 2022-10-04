@@ -6,7 +6,8 @@ const expect = chai.expect;
 const Support = require('./support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
+const dialectName = Support.getTestDialect();
+const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
 const _ = require('lodash');
 
@@ -20,27 +21,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     await Support.dropTestSchemas(this.sequelize);
   });
 
-  describe('dropAllSchema', () => {
-    it('should drop all schema', async function () {
-      await this.queryInterface.dropAllSchemas({
-        skip: [this.sequelize.config.database],
-      });
-      const schemaNames = await this.queryInterface.showAllSchemas();
-      await this.queryInterface.createSchema('newSchema');
-      const newSchemaNames = await this.queryInterface.showAllSchemas();
-      if (!current.dialect.supports.schemas) {
-        return;
-      }
+  if (dialect.supports.schemas) {
+    describe('dropAllSchema', () => {
+      it('should drop all schema', async function () {
+        await this.queryInterface.dropAllSchemas({
+          skip: [this.sequelize.config.database],
+        });
+        const schemaNames = await this.queryInterface.showAllSchemas();
+        await this.queryInterface.createSchema('newSchema');
+        const newSchemaNames = await this.queryInterface.showAllSchemas();
+        if (!current.dialect.supports.schemas) {
+          return;
+        }
 
-      expect(newSchemaNames).to.have.length(schemaNames.length + 1);
-      await this.queryInterface.dropSchema('newSchema');
+        expect(newSchemaNames).to.have.length(schemaNames.length + 1);
+        await this.queryInterface.dropSchema('newSchema');
+      });
     });
-  });
+  }
 
   describe('showAllTables', () => {
     it('should not contain views', async function () {
       async function cleanup(sequelize) {
-        if (dialect === 'db2') {
+        if (dialectName === 'db2') {
           // DB2 does not support DROP VIEW IF EXISTS
           try {
             await sequelize.query('DROP VIEW V_Fail');
@@ -58,7 +61,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialect) ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
+      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
@@ -69,13 +72,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (!['sqlite', 'postgres', 'db2', 'ibmi'].includes(dialect)) {
+    if (!['sqlite', 'postgres', 'db2', 'ibmi'].includes(dialectName)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function () {
         await this.queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await this.sequelize.query('CREATE DATABASE my_test_db');
-        await this.sequelize.query(`CREATE TABLE my_test_db${dialect === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`);
+        await this.sequelize.query(`CREATE TABLE my_test_db${dialectName === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`);
         let tableNames = await this.queryInterface.showAllTables();
         await this.sequelize.query('DROP DATABASE my_test_db');
         if (tableNames[0] && tableNames[0].tableName) {
@@ -86,7 +89,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    if (['mysql', 'mariadb'].includes(dialect)) {
+    if (['mysql', 'mariadb'].includes(dialectName)) {
       it('should show all tables in all databases', async function () {
         await this.queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await this.sequelize.query('CREATE DATABASE my_test_db');
@@ -118,7 +121,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -162,7 +165,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -191,38 +194,40 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(indexColumns).to.be.empty;
     });
 
-    it('works with schemas', async function () {
-      await this.sequelize.createSchema('schema');
-      await this.queryInterface.createTable('table', {
-        name: {
-          type: DataTypes.STRING,
-        },
-        isAdmin: {
-          type: DataTypes.STRING,
-        },
-      }, {
-        schema: 'schema',
+    if (dialect.supports.schemas) {
+      it('works with schemas', async function () {
+        await this.sequelize.createSchema('schema');
+        await this.queryInterface.createTable('table', {
+          name: {
+            type: DataTypes.STRING,
+          },
+          isAdmin: {
+            type: DataTypes.STRING,
+          },
+        }, {
+          schema: 'schema',
+        });
+        await this.queryInterface.addIndex(
+          { schema: 'schema', tableName: 'table' },
+          ['name', 'isAdmin'],
+          null,
+          'schema_table',
+        );
+        const indexes = await this.queryInterface.showIndex({
+          schema: 'schema',
+          tableName: 'table',
+        });
+        expect(indexes.length).to.eq(1);
+        expect(indexes[0].name).to.eq('table_name_is_admin');
       });
-      await this.queryInterface.addIndex(
-        { schema: 'schema', tableName: 'table' },
-        ['name', 'isAdmin'],
-        null,
-        'schema_table',
-      );
-      const indexes = await this.queryInterface.showIndex({
-        schema: 'schema',
-        tableName: 'table',
-      });
-      expect(indexes.length).to.eq(1);
-      expect(indexes[0].name).to.eq('table_name_is_admin');
-    });
+    }
 
     it('does not fail on reserved keywords', async function () {
       await this.queryInterface.addIndex('Group', ['from']);
     });
   });
 
-  if (dialect !== 'ibmi') {
+  if (dialectName !== 'ibmi') {
     describe('renameColumn', () => {
       it('rename a simple column', async function () {
         const Users = this.sequelize.define('_Users', {
@@ -236,24 +241,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('username');
       });
 
-      it('works with schemas', async function () {
-        await this.sequelize.createSchema('archive');
-        const Users = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-        }, {
-          tableName: 'Users',
-          schema: 'archive',
+      if (dialect.supports.schemas) {
+        it('works with schemas', async function () {
+          await this.sequelize.createSchema('archive');
+          const Users = this.sequelize.define('User', {
+            username: DataTypes.STRING,
+          }, {
+            tableName: 'Users',
+            schema: 'archive',
+          });
+          await Users.sync({ force: true });
+          await this.queryInterface.renameColumn({
+            schema: 'archive',
+            tableName: 'Users',
+          }, 'username', 'pseudo');
+          const table = await this.queryInterface.describeTable({
+            schema: 'archive',
+            tableName: 'Users',
+          });
         });
-        await Users.sync({ force: true });
-        await this.queryInterface.renameColumn({
-          schema: 'archive',
-          tableName: 'Users',
-        }, 'username', 'pseudo');
-        const table = await this.queryInterface.describeTable({
-          schema: 'archive',
-          tableName: 'Users',
-        });
-      });
+      }
 
       it('rename a column non-null without default value', async function () {
         const Users = this.sequelize.define('_Users', {
@@ -286,7 +293,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('active');
       });
 
-      if (dialect !== 'db2') { // Db2 does not allow rename of a primary key column
+      if (dialectName !== 'db2') { // Db2 does not allow rename of a primary key column
         it('renames a column primary key autoIncrement column', async function () {
           const Fruits = this.sequelize.define('Fruit', {
             fruitId: {
@@ -320,7 +327,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('addColumn', () => {
     beforeEach(async function () {
-      await this.sequelize.createSchema('archive');
       await this.queryInterface.createTable('users', {
         id: {
           type: DataTypes.INTEGER,
@@ -368,30 +374,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await testArgs('users', null, {});
     });
 
-    it('should work with schemas', async function () {
-      await this.queryInterface.createTable(
-        { tableName: 'users', schema: 'archive' },
-        {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
+    if (dialect.supports.schemas) {
+      it('should work with schemas', async function () {
+        await this.sequelize.createSchema('archive');
+        await this.queryInterface.createTable(
+          { tableName: 'users', schema: 'archive' },
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
           },
-        },
-      );
-      await this.queryInterface.addColumn(
-        { tableName: 'users', schema: 'archive' },
-        'level_id',
-        { type: DataTypes.INTEGER },
-      );
-      const table = await this.queryInterface.describeTable({
-        tableName: 'users',
-        schema: 'archive',
+        );
+        await this.queryInterface.addColumn(
+          { tableName: 'users', schema: 'archive' },
+          'level_id',
+          { type: DataTypes.INTEGER },
+        );
+        const table = await this.queryInterface.describeTable({
+          tableName: 'users',
+          schema: 'archive',
+        });
+        expect(table).to.have.property('level_id');
       });
-      expect(table).to.have.property('level_id');
-    });
+    }
+
     // Db2 does not support enums in alter column
-    if (dialect !== 'db2') {
+    if (dialectName !== 'db2') {
       it('should work with enums (1)', async function () {
         await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
       });
@@ -404,7 +414,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    if (dialect === 'postgres') {
+    if (dialectName === 'postgres') {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
@@ -469,28 +479,28 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const foreignKeys = await this.sequelize.query(
         this.queryInterface.queryGenerator.getForeignKeysQuery(
           'hosts',
-          dialect === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
+          dialectName === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
         ),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialect === 'postgres') {
+      if (dialectName === 'postgres') {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (['sqlite', 'db2'].includes(dialect)) {
+      } else if (['sqlite', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialect === 'ibmi') {
+      } else if (dialectName === 'ibmi') {
         expect(Object.keys(foreignKeys[0])).to.have.length(9);
-      } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
+      } else if (['mysql', 'mariadb', 'mssql'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
-        throw new Error(`This test doesn't support ${dialect}`);
+        throw new Error(`This test doesn't support ${dialectName}`);
       }
 
-      if (dialect === 'mysql') {
+      if (dialectName === 'mysql') {
         const [foreignKeysViaDirectMySQLQuery] = await this.sequelize.query(
           this.queryInterface.queryGenerator.getForeignKeyQuery('hosts', 'admin'),
         );
@@ -505,7 +515,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(ref.tableName).to.equal('hosts');
         expect(ref.referencedColumnName).to.equal('id');
         expect(ref.referencedTableName).to.equal('users');
-        if (dialect === 'sqlite') {
+        if (dialectName === 'sqlite') {
           expect(ref).to.have.property('constraints');
         }
       }
@@ -520,8 +530,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       this.User = this.sequelize.define('users', {
         // Db2 does not allow unique constraint for a nullable column, Db2
         // throws SQL0542N error if we create constraint on nullable column.
-        username: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
-        email: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        username: dialectName === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        email: dialectName === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
         roles: DataTypes.STRING,
       });
 
@@ -630,7 +640,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
 
         // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
-        const expectedConstraintName = ['mysql', 'mariadb'].includes(dialect) ? 'PRIMARY' : 'users_username_pk';
+        const expectedConstraintName = ['mysql', 'mariadb'].includes(dialectName) ? 'PRIMARY' : 'users_username_pk';
 
         expect(constraints).to.include(expectedConstraintName);
         await this.queryInterface.removeConstraint('users', expectedConstraintName);
@@ -715,7 +725,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          if (dialect !== 'ibmi') {
+          if (dialectName !== 'ibmi') {
             expect(error.table).to.equal('users');
           }
 

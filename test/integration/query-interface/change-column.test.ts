@@ -1,8 +1,9 @@
 import { DataTypes, QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import { dropTestSchemas, getTestDialect, getTestDialectTeaser, sequelize } from '../support';
+import { dropTestSchemas, getTestDialectTeaser, sequelize } from '../support';
 
-const dialect = getTestDialect();
+const dialect = sequelize.dialect;
+const dialectName = dialect.name;
 const queryInterface = sequelize.getQueryInterface();
 
 describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
@@ -10,34 +11,36 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     await dropTestSchemas(sequelize);
   });
 
-  it('supports schemas', async () => {
-    await sequelize.createSchema('archive');
-    const table = {
-      tableName: 'users',
-      schema: 'archive',
-    };
+  if (dialect.supports.schemas) {
+    it('supports schemas', async () => {
+      await sequelize.createSchema('archive');
+      const table = {
+        tableName: 'users',
+        schema: 'archive',
+      };
 
-    await queryInterface.createTable(table, {
-      currency: DataTypes.INTEGER,
+      await queryInterface.createTable(table, {
+        currency: DataTypes.INTEGER,
+      });
+
+      await queryInterface.changeColumn(table, 'currency', {
+        type: DataTypes.FLOAT,
+      });
+
+      const tableDescription = await queryInterface.describeTable(table);
+
+      expect(tableDescription.currency).to.deep.equal({
+        type: dialectName === 'postgres' ? 'DOUBLE PRECISION'
+          : dialectName === 'db2' ? 'DOUBLE'
+            : 'FLOAT',
+        allowNull: true,
+        defaultValue: null,
+        primaryKey: false,
+        autoIncrement: false,
+        comment: null,
+      });
     });
-
-    await queryInterface.changeColumn(table, 'currency', {
-      type: DataTypes.FLOAT,
-    });
-
-    const tableDescription = await queryInterface.describeTable(table);
-
-    expect(tableDescription.currency).to.deep.equal({
-      type: dialect === 'postgres' ? 'DOUBLE PRECISION'
-          : dialect === 'db2' ? 'DOUBLE'
-          : 'FLOAT',
-      allowNull: true,
-      defaultValue: null,
-      primaryKey: false,
-      autoIncrement: false,
-      comment: null,
-    });
-  });
+  }
 
   it('should change columns', async () => {
     await queryInterface.createTable('users', {
@@ -56,8 +59,8 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const tableDescription = await queryInterface.describeTable('users');
 
     expect(tableDescription.currency).to.deep.equal({
-      type: dialect === 'postgres' ? 'DOUBLE PRECISION'
-        : dialect === 'db2' ? 'DOUBLE'
+      type: dialectName === 'postgres' ? 'DOUBLE PRECISION'
+        : dialectName === 'db2' ? 'DOUBLE'
           : 'FLOAT',
       allowNull: true,
       defaultValue: null,
@@ -235,7 +238,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
 
   // MSSQL doesn't support using a modified column in a check constraint.
   // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-  if (dialect !== 'mssql' && dialect !== 'db2') {
+  if (dialectName !== 'mssql' && dialectName !== 'db2') {
     it('should work with enums (case 1)', async () => {
       await queryInterface.createTable('users', {
         firstName: DataTypes.STRING,
@@ -247,34 +250,36 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
 
       const table = await queryInterface.describeTable('users');
 
-      if (dialect === 'mysql') {
+      if (dialectName === 'mysql') {
         expect(table.firstName.type).to.equal(`ENUM('value1','value2','value3')`);
-      } else if (dialect === 'postgres') {
+      } else if (dialectName === 'postgres') {
         expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
       }
     });
 
-    it('should work with enums with schemas', async () => {
-      await sequelize.createSchema('archive');
+    if (dialect.supports.schemas) {
+      it('should work with enums with schemas', async () => {
+        await sequelize.createSchema('archive');
 
-      const tableName = { tableName: 'users', schema: 'archive' };
+        const tableName = { tableName: 'users', schema: 'archive' };
 
-      await queryInterface.createTable(tableName, {
-        firstName: DataTypes.STRING,
+        await queryInterface.createTable(tableName, {
+          firstName: DataTypes.STRING,
+        });
+
+        await queryInterface.changeColumn(tableName, 'firstName', {
+          type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+        });
+
+        const table = await queryInterface.describeTable(tableName);
+
+        if (dialectName === 'mysql') {
+          expect(table.firstName.type).to.equal(`ENUM('value1','value2','value3')`);
+        } else if (dialectName === 'postgres') {
+          expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
+        }
       });
-
-      await queryInterface.changeColumn(tableName, 'firstName', {
-        type: DataTypes.ENUM(['value1', 'value2', 'value3']),
-      });
-
-      const table = await queryInterface.describeTable(tableName);
-
-      if (dialect === 'mysql') {
-        expect(table.firstName.type).to.equal(`ENUM('value1','value2','value3')`);
-      } else if (dialect === 'postgres') {
-        expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
-      }
-    });
+    }
 
     it('can replace an enum with a different enum', async () => {
       await queryInterface.createTable({ tableName: 'users' }, {
@@ -287,16 +292,16 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
 
       const table = await queryInterface.describeTable('users');
 
-      if (dialect === 'mysql') {
+      if (dialectName === 'mysql') {
         expect(table.firstName.type).to.equal(`ENUM('value1','value3','value4','value5')`);
-      } else if (dialect === 'postgres') {
+      } else if (dialectName === 'postgres') {
         expect(table.firstName.special).to.deep.eq(['value1', 'value3', 'value4', 'value5']);
       }
     });
   }
 
   // SQlite natively doesn't support ALTER Foreign key
-  if (dialect !== 'sqlite') {
+  if (dialectName !== 'sqlite') {
     // !TODO: mysql - add test that uses CHANGE COLUMN (specify type), and one that uses ADD FOREIGN KEY (only specify references)
 
     describe('should support foreign keys', () => {
@@ -387,7 +392,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         expect(describedTable.level_id.allowNull).to.be.equal(true);
       });
 
-      if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
+      if (!['db2', 'ibmi', 'sqlite'].includes(dialectName)) {
         it('should change the comment of column', async () => {
           const describedTable = await queryInterface.describeTable({
             tableName: 'users',
@@ -407,7 +412,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     });
   }
 
-  if (dialect === 'sqlite') {
+  if (dialectName === 'sqlite') {
     it('should not remove unique constraints when adding or modifying columns', async () => {
       await queryInterface.createTable({
         tableName: 'Foos',

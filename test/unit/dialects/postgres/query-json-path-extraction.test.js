@@ -14,7 +14,7 @@ if (dialect === 'postgres') {
     beforeEach(function () {
       queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        dialect: this.sequelize.dialect,
       });
     });
 

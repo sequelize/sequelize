@@ -42,7 +42,7 @@ export class SqliteDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new SqliteConnectionManager(this, sequelize);
     this.queryGenerator = new SqliteQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
 

@@ -5,7 +5,6 @@ import { inspect, isDeepStrictEqual } from 'util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
-import { isError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -59,7 +58,7 @@ function inlineErrorCause(error: Error) {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
   // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
-  if (cause) {
+  if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
   }
 
@@ -213,7 +212,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 export async function dropTestSchemas(sequelize: Sequelize) {
   const queryInterface = sequelize.getQueryInterface();
 
-  if (!queryInterface.queryGenerator._dialect.supports.schemas) {
+  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
@@ -255,7 +254,7 @@ export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
   }
 
   // @ts-expect-error
-  return new ModdedQueryGenerator({ sequelize, _dialect: sequelize.dialect });
+  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 
 export function getTestDialect(): Dialect {
@@ -389,16 +388,18 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
+type MaybeLazy<T> = T | (() => T);
+
 export function expectsql(
-  query: { query: string, bind: unknown } | Error | (() => { query: string, bind: unknown }),
+  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
   assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
 ): void;
 export function expectsql(
-  query: string | Error | (() => string),
+  query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: string | Error | { query: string, bind: unknown } | (() => string | { query: string, bind: unknown }),
+  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -445,8 +446,10 @@ export function expectsql(
   if (typeof query === 'function') {
     try {
       query = query();
-    } catch (error) {
-      assert(isError(error), `Function threw something other than an instance of Error: ${inspect(error)}`);
+    } catch (error: unknown) {
+      if (!(error instanceof Error)) {
+        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+      }
 
       query = error;
     }

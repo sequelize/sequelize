@@ -14,73 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase`;',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS `myDatabase`;',
-        },
-      ],
-      createSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema`;',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['mySchema', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'DROP SCHEMA IF EXISTS `mySchema`;',
-        },
-      ],
-      showSchemasQuery: [
-        {
-          arguments: [{}],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: [] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: ['test'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\');',
-        },
-        {
-          arguments: [{ skip: ['test', 'Te\'st2'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\', \'Te\\\'st2\');',
-        },
-
-      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
@@ -756,7 +689,7 @@ if (dialect === 'mariadb') {
           arguments: [{ tableName: 'User', schema: 'schema' }],
           expectation: 'SHOW INDEX FROM `schema`.`User`',
         },
-        // FIXME: enable this test once fixed
+        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
         // {
         //   sequelizeOptions: {
         //     schema: 'schema',
@@ -861,7 +794,7 @@ if (dialect === 'mariadb') {
 
             const queryGenerator = new QueryGenerator({
               sequelize,
-              _dialect: sequelize.dialect,
+              dialect: sequelize.dialect,
             });
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

@@ -255,6 +255,10 @@ export interface ForeignKeyReference {
   referencedColumnName: string;
 }
 
+export interface DatabaseDescription {
+  name: string;
+}
+
 /**
 * The interface that Sequelize uses to talk to all databases.
 *
@@ -691,4 +695,9 @@ export class QueryInterface {
    * Creates a database
    */
   dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
+
+  /**
+   * Lists all available databases
+   */
+  listDatabases(options?: QueryRawOptions): Promise<DatabaseDescription[]>;
 }
