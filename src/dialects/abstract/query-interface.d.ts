@@ -82,6 +82,10 @@ export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
   skip?: string[];
 }
 
+export interface QueryInterfaceShowAllTablesOptions extends QueryRawOptions {
+  schema?: string;
+}
+
 export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
@@ -344,7 +348,7 @@ export class QueryInterface {
   /**
    * Returns all tables
    */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
+  showAllTables(options?: QueryInterfaceShowAllTablesOptions): Promise<string[]>;
 
   /**
    * Returns a promise that resolves to true if the table exists in the database, false otherwise.

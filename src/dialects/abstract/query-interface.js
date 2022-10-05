@@ -353,7 +353,7 @@ export class QueryInterface {
       type: QueryTypes.SHOWTABLES,
     };
 
-    const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
+    const showTablesSql = this.queryGenerator.showTablesQuery(options.schema || this.sequelize.config.database);
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
