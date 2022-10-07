@@ -10,6 +10,7 @@ const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
 const _ = require('lodash');
+const { createSequelizeInstance } = require('../support');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
@@ -110,6 +111,114 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(tableNames).to.include('my_test_table1');
         expect(tableNames).to.include('my_test_table2');
+      });
+    }
+
+    if (dialect.supports.schemas) {
+      describe('schema support tests', () => {
+        const getSequelizeInstanceWithSchema = async () => {
+          const sequelize = createSequelizeInstance({ schema: 'schema_3' });
+          await sequelize.createSchema('schema_3');
+          await sequelize.queryInterface.createTable('schema_3_table_1', { name: DataTypes.STRING }, {
+            schema: 'schema_3',
+          });
+          await sequelize.queryInterface.createTable('schema_3_table_2', { name: DataTypes.STRING }, {
+            schema: 'schema_3',
+          });
+
+          await sequelize.createSchema('schema_4');
+          await sequelize.queryInterface.createTable('schema_4_table_1', { name: DataTypes.STRING }, {
+            schema: 'schema_4',
+          });
+          await sequelize.queryInterface.createTable('schema_4_table_2', { name: DataTypes.STRING }, {
+            schema: 'schema_4',
+          });
+
+          return { sequelize };
+        };
+
+        async function createTestTablesForSchema(schemaName) {
+          await this.queryInterface.createTable(`${schemaName}_table_1`, { name: DataTypes.STRING }, {
+            schema: schemaName,
+          });
+          await this.queryInterface.createTable(`${schemaName}_table_2`, { name: DataTypes.STRING }, {
+            schema: schemaName,
+          });
+        }
+
+        async function createSchemaAndTables(testSchemas = []) {
+          const baseTestSchemas = ['schema_1', 'schema_2', 'sequelize_test'].concat(testSchemas);
+
+          async function _createSchemaAndTables(schemaName) {
+            await this.sequelize.createSchema(schemaName);
+            await Reflect.apply(createTestTablesForSchema, this, [schemaName]);
+          }
+
+          await Promise.all(baseTestSchemas.map(_createSchemaAndTables.bind(this)));
+        }
+
+        const normalizeTableNames = (tableNames = []) => {
+          if (tableNames[0] && tableNames[0].tableName) {
+            return tableNames.map(v => v.tableName).sort();
+          }
+
+          return tableNames.sort();
+        };
+
+        it('shows all tables from the specified schema in the method options', async function () {
+          await createSchemaAndTables.apply(this);
+          const schemaOneTables = normalizeTableNames(await this.queryInterface.showAllTables({ schema: 'schema_1' }));
+          const schemaTwoTables = normalizeTableNames(await this.queryInterface.showAllTables({ schema: 'schema_2' }));
+
+          expect(schemaOneTables).to.include('schema_1_table_1');
+          expect(schemaOneTables).to.include('schema_1_table_2');
+
+          expect(schemaTwoTables).to.include('schema_2_table_1');
+          expect(schemaTwoTables).to.include('schema_2_table_2');
+        });
+
+        if (dialectName === 'postgres') {
+          it('uses the schema from init instead of method options', async () => {
+            const { sequelize } = await getSequelizeInstanceWithSchema();
+            const  schemaThreeTables = normalizeTableNames(await sequelize.queryInterface.showAllTables());
+            const schemaFourTables = normalizeTableNames(await sequelize.queryInterface.showAllTables({ schema: 'schema_4' }));
+
+            expect(schemaThreeTables).to.include('schema_3_table_1');
+            expect(schemaThreeTables).to.include('schema_3_table_2');
+
+            expect(schemaFourTables).to.include('schema_3_table_1');
+            expect(schemaFourTables).to.include('schema_3_table_2');
+          });
+
+          it('defaults to the database name as the schema if it is not specified in init and method options', async function () {
+            await createSchemaAndTables.apply(this);
+            const schemaOneTables = normalizeTableNames(await this.queryInterface.showAllTables());
+            const schemaTwoTables = normalizeTableNames(await this.queryInterface.showAllTables({ schema: 'schema_2' }));
+
+            expect(schemaOneTables).to.include('sequelize_test_table_1');
+            expect(schemaOneTables).to.include('sequelize_test_table_2');
+
+            expect(schemaTwoTables).to.include('schema_2_table_1');
+            expect(schemaTwoTables).to.include('schema_2_table_2');
+          });
+        }
+
+        if (['mariadb', 'mysql'].includes(dialectName)) {
+          it('should show tables from non technical schemas even if the schema is not specified in method options', async function () {
+            await createSchemaAndTables.apply(this);
+            const schemaOneTables = normalizeTableNames(await this.queryInterface.showAllTables());
+            const schemaTwoTables = normalizeTableNames(await this.queryInterface.showAllTables({ schema: 'schema_2' }));
+
+            expect(schemaOneTables).to.include('sequelize_test_table_1');
+            expect(schemaOneTables).to.include('sequelize_test_table_2');
+
+            expect(schemaOneTables).not.to.include('metrics');
+
+            expect(schemaTwoTables).to.include('schema_2_table_1');
+            expect(schemaTwoTables).to.include('schema_2_table_2');
+          });
+        }
+
       });
     }
   });
