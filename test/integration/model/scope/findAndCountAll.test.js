@@ -40,6 +40,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
+        this.Team = this.sequelize.define('Team', {
+          team_id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+
+        this.Player = this.sequelize.define('Player', {
+          player_id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+          team: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: this.Team,
+              key: 'team_id',
+            },
+          },
+        }, {
+          scopes: {
+            includeTeam: {
+              include: [{ model: this.Team }],
+            },
+          },
+        });
+
+        this.Team.hasMany(this.Player);
+        this.Player.belongsTo(this.Team);
+
         await this.sequelize.sync({ force: true });
         const records = [
           { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
@@ -48,6 +80,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 },
         ];
 
+        const teamRecords = [
+          { team_id: 1, name: 'Team Red' },
+          { team_id: 2, name: 'Team Blue' },
+        ];
+
+        const playerRecords = [
+          { player_id: 1, name: 'bubby', team: 1 },
+          { player_id: 2, name: 'lisa', team: 2 },
+          { player_id: 3, name: 'anna', team: 1 },
+          { player_id: 4, name: 'riko', team: 2 },
+        ];
+
+        await this.Team.bulkCreate(teamRecords);
+        await this.Player.bulkCreate(playerRecords);
         await this.ScopeMe.bulkCreate(records);
       });
 
@@ -90,6 +136,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should ignore the order option if it is found within the scope', async function () {
         const result = await this.ScopeMe.scope('withOrder').findAndCountAll();
+        expect(result.count).to.equal(4);
+      });
+
+      it('should include table that is defined as include within a scope', async function () {
+        const result = await this.Player.scope('includeTeam').findAndCountAll({ distinct: true });
         expect(result.count).to.equal(4);
       });
     });
