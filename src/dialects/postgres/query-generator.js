@@ -157,7 +157,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery(schemaName) {
-    const schema = this.options.schema || schemaName || 'public';
+    const schema = schemaName || this.options.schema || 'public';
 
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
   }

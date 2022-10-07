@@ -28,7 +28,7 @@ describe('QueryGenerator#showTablesQuery', () => {
 
   it('should use method arguments correctly', async () => {
     expectsql(queryGeneratorWithSchema.showTablesQuery('schema_not_at_init'), {
-      postgres: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'schema_at_init' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
+      postgres: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'schema_not_at_init' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
       mssql:
       'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';',
       ibmi: `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = 'schema_not_at_init'`,

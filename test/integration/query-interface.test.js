@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         if (dialectName === 'postgres') {
-          it('uses the schema from init instead of method options', async () => {
+          it('uses the schema from options instead of initialization options', async () => {
             const { sequelize } = await getSequelizeInstanceWithSchema();
             const  schemaThreeTables = normalizeTableNames(await sequelize.queryInterface.showAllTables());
             const schemaFourTables = normalizeTableNames(await sequelize.queryInterface.showAllTables({ schema: 'schema_4' }));
@@ -186,8 +186,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(schemaThreeTables).to.include('schema_3_table_1');
             expect(schemaThreeTables).to.include('schema_3_table_2');
 
-            expect(schemaFourTables).to.include('schema_3_table_1');
-            expect(schemaFourTables).to.include('schema_3_table_2');
+            expect(schemaFourTables).to.include('schema_4_table_1');
+            expect(schemaFourTables).to.include('schema_4_table_2');
           });
 
           it('defaults to the database name as the schema if it is not specified in init and method options', async function () {
