@@ -2262,22 +2262,6 @@ describe(getTestDialectTeaser('SQL'), () => {
           }, {
             default: `[jsonbAttr] ?& array["a","b"]`,
           });
-
-          testSql({
-            jsonbAttr: {
-              [Op.anyKeyExists]: [literal(`SELECT jsonb_array_elements_text('["a","b"]')`)],
-            },
-          }, {
-            default: `[jsonbAttr] ?| array(SELECT jsonb_array_elements_text('["a","b"]'))`,
-          });
-
-          testSql({
-            jsonbAttr: {
-              [Op.allKeysExist]: [literal(`SELECT jsonb_array_elements_text('["a","b"]')`)],
-            },
-          }, {
-            default: `[jsonbAttr] ?& array(SELECT jsonb_array_elements_text('["a","b"]'))`,
-          });
         }
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
