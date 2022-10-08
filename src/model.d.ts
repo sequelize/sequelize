@@ -816,7 +816,7 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
-export interface GroupedLimitOptions {
+export interface GroupedLimitOptions<S extends Model, SourceKey extends AttributeNames<S> = any> {
   /**
    * Limit for each group.
    */
@@ -828,7 +828,7 @@ export interface GroupedLimitOptions {
   /**
    * Values for the each group primary key.
    */
-  values?: string[];
+  values?: SourceKey[];
 }
 
 /**
@@ -928,7 +928,7 @@ export interface FindOptions<TAttributes = any>
    *
    * Note: Using this option is not recommended. See https://github.com/sequelize/sequelize/issues/6899#issuecomment-262550213.
    */
-  groupedLimit?: GroupedLimitOptions;
+   groupedLimit?: GroupedLimitOptions<Model, any>;
 
   /**
    * Skip the first n items of the results.
