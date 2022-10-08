@@ -820,7 +820,7 @@ export interface GroupedLimitOptions {
   /**
    * Limit for each group.
    */
-  limit?: number;
+  limit?: Nullish<number | Literal>;
   /**
    * The association you want to eagerly load.
    */
