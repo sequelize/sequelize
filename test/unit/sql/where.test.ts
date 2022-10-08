@@ -2246,6 +2246,23 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     if (sequelize.dialect.supports.JSONB) {
       describe('JSONB', () => {
+        if (dialectSupportsArray()) {
+          testSql.only({
+            jsonbAttr: {
+              [Op.anyKeyExists]: ['a', 'b'],
+            },
+          }, {
+            default: `[jsonbAttr] ?| '["a","b"]'`,
+          });
+
+          testSql.only({
+            jsonbAttr: {
+              [Op.allKeysExist]: ['a', 'b'],
+            },
+          }, {
+            default: `[jsonbAttr] ?& '["a","b"]'`,
+          });
+        }
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {
@@ -2443,7 +2460,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           sqlite: 'json_extract(`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         });
 
-        testSql({
+        testSql.only({
           jsonbAttr: {
             [Op.contains]: { company: 'Magnafone' },
           },
@@ -2805,24 +2822,6 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql(where(col('col'), { [Op.and]: [1, 2] }), {
           default: '([col] = 1 AND [col] = 2)',
         });
-
-        if (dialectSupportsArray()) {
-          testSql({
-            jsonbAttr: {
-              [Op.anyKeyExists]: ['a', 'b'],
-            },
-          }, {
-            default: '"jsonbAttr" ?| \'["a","b"]\'',
-          });
-
-          testSql({
-            jsonbAttr: {
-              [Op.allKeysExist]: ['a', 'b'],
-            },
-          }, {
-            default: '"jsonbAttr" ?& \'["a","b"]\'',
-          });
-        }
 
         // TODO: Either allow json.path.syntax here, or remove WhereAttributeHash from what this version of where() accepts.
         testSql.skip(where(col('col'), { jsonPath: 'value' }), {
