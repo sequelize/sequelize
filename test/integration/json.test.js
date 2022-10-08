@@ -359,7 +359,7 @@ describe('model', () => {
         const users = await this.User.findAll({
           where: {
             emergency_contact: {
-              [Op.anyKeyExists]: ['name', 'programmer', 'grade'],
+              [Op.allKeysExist]: ['name', 'programmer', 'grade'],
             },
           },
         });
@@ -387,7 +387,7 @@ describe('model', () => {
         const users = await this.User.findAll({
           where: {
             emergency_contact: {
-              [Op.anyKeyExists]: literal(`SELECT jsonb_array_elements_text('ARRAY["gamer","something"]')`),
+              [Op.anyKeyExists]: literal(`SELECT jsonb_array_elements_text('["gamer","something"]')`),
             },
           },
         });
