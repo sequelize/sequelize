@@ -2247,7 +2247,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     if (sequelize.dialect.supports.JSONB) {
       describe('JSONB', () => {
         if (dialectSupportsArray()) {
-          testSql.only({
+          testSql({
             jsonbAttr: {
               [Op.anyKeyExists]: ['a', 'b'],
             },
@@ -2255,7 +2255,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             default: `[jsonbAttr] ?| '["a","b"]'`,
           });
 
-          testSql.only({
+          testSql({
             jsonbAttr: {
               [Op.allKeysExist]: ['a', 'b'],
             },
@@ -2460,7 +2460,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           sqlite: 'json_extract(`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         });
 
-        testSql.only({
+        testSql({
           jsonbAttr: {
             [Op.contains]: { company: 'Magnafone' },
           },
