@@ -2806,6 +2806,24 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: '([col] = 1 AND [col] = 2)',
         });
 
+        if (dialectSupportsArray()) {
+          testSql({
+            jsonbAttr: {
+              [Op.anyKeyExists]: ['a', 'b'],
+            },
+          }, {
+            default: '"jsonbAttr" ?| \'["a","b"]\'',
+          });
+
+          testSql({
+            jsonbAttr: {
+              [Op.allKeysExist]: ['a', 'b'],
+            },
+          }, {
+            default: '"jsonbAttr" ?& \'["a","b"]\'',
+          });
+        }
+
         // TODO: Either allow json.path.syntax here, or remove WhereAttributeHash from what this version of where() accepts.
         testSql.skip(where(col('col'), { jsonPath: 'value' }), {
           default: new Error('Unexpected key "nested" found, expected an operator.'),
