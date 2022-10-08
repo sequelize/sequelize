@@ -245,6 +245,7 @@ export class Sequelize {
         max: 5,
         match: [
           'SQLITE_BUSY: database is locked',
+          /Deadlock/i,
         ],
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
