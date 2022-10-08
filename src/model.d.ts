@@ -816,6 +816,21 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
+export interface GroupedLimitOptions {
+  /**
+   * Limit for each group.
+   */
+  limit?: number;
+  /**
+   * The association you want to eagerly load.
+   */
+  on?: Association | string;
+  /**
+   * Values for the each group primary key.
+   */
+  values?: string[];
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
@@ -883,8 +898,37 @@ export interface FindOptions<TAttributes = any>
    */
   limit?: Nullish<number | Literal>;
 
-  // TODO: document this - this is an undocumented property but it exists and there are tests for it.
-  groupedLimit?: unknown;
+  /**
+   * groupedLimit allows you to do a limit for each key in groupedLimit.values, similar to what LATERAL JOIN / CROSS APPLY does. e.g:
+   * 
+   * ```js
+   * this.projects = this.Project.findAll();
+   * 
+   * this.User.findAll({
+   *    groupedLimit: {
+   *      limit: 3,
+   *      on: this.User.Projects,
+   *      values: this.projects.map(item => item.get('id'))
+   *    },
+   * });
+   * ```
+   * IN SQL
+   * ```sql
+   * SELECT * FROM (
+   *   UNION ALL
+   *    SELECT * FROM "user" WHERE project_id = 1 LIMIT 3,
+   *    SELECT * FROM "user" WHERE project_id = 2 LIMIT 3,
+   *    SELECT * FROM "user" WHERE project_id = 3 LIMIT 3
+   * );
+   * ```
+   * 
+   * Since not every dialect supports lateral joins, this is currently implemented as a union. 
+   * 
+   * Currently groupedLimit is used by include.separate for hasMany includes (where we first load the main table, getting matching project ids, and then fetch a limited amount of users for each).
+   * 
+   * Note: Using this option is not recommended. See https://github.com/sequelize/sequelize/issues/6899#issuecomment-262550213.
+   */
+  groupedLimit?: GroupedLimitOptions;
 
   /**
    * Skip the first n items of the results.
