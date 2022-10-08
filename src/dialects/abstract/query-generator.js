@@ -2863,9 +2863,9 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }
 
       case Op.anyKeyExists:
-        return this._joinKeyValue(key, `array[${value.map(item => this.escape(item, undefined, options).join(', '))}]`, comparator, options.prefix);
+        return this._joinKeyValue(key, `array[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
       case Op.allKeysExist:
-        return this._joinKeyValue(key, `array[${value.map(item => this.escape(item, undefined, options).join(', '))}]`, comparator, options.prefix);
+        return this._joinKeyValue(key, `array[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
     }
 
     const escapeOptions = {
