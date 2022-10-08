@@ -525,7 +525,7 @@ interface OpTypes {
    */
   readonly anyKeyExists: unique symbol;
   /**
-   * Operator ?|
+   * Operator ?&
    *
    * ```js
    * [Op.allKeysExist]: ['a', 'b']
