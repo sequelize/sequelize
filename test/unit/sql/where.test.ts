@@ -2252,7 +2252,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               [Op.anyKeyExists]: ['a', 'b'],
             },
           }, {
-            default: `[jsonbAttr] ?| ARRAY["a","b"]`,
+            default: `[jsonbAttr] ?| array["a","b"]`,
           });
 
           testSql({
@@ -2260,7 +2260,23 @@ describe(getTestDialectTeaser('SQL'), () => {
               [Op.allKeysExist]: ['a', 'b'],
             },
           }, {
-            default: `[jsonbAttr] ?& ARRAY["a","b"]`,
+            default: `[jsonbAttr] ?& array["a","b"]`,
+          });
+
+          testSql({
+            jsonbAttr: {
+              [Op.anyKeyExists]: [literal(`SELECT jsonb_array_elements_text('["a","b"]')`)],
+            },
+          }, {
+            default: `[jsonbAttr] ?| array(SELECT jsonb_array_elements_text('["a","b"]'))`,
+          });
+
+          testSql({
+            jsonbAttr: {
+              [Op.allKeysExist]: [literal(`SELECT jsonb_array_elements_text('["a","b"]')`)],
+            },
+          }, {
+            default: `[jsonbAttr] ?& array(SELECT jsonb_array_elements_text('["a","b"]'))`,
           });
         }
 
