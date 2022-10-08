@@ -2862,10 +2862,21 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         return this._joinKeyValue(key, this.escape(pattern, undefined, options), comparator, options.prefix);
       }
 
-      case Op.anyKeyExists:
+      case Op.anyKeyExists: {
+        if (value instanceof Utils.Literal) {
+          return this._joinKeyValue(key, `ARRAY(${value.val})`, comparator, options.prefix);
+        }
+
         return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
-      case Op.allKeysExist:
+      }
+
+      case Op.allKeysExist: {
+        if (value instanceof Utils.Literal) {
+          return this._joinKeyValue(key, `ARRAY(${value.val})`, comparator, options.prefix);
+        }
+
         return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
+      }
     }
 
     const escapeOptions = {

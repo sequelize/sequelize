@@ -585,7 +585,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/9.5/functions-json.html
    */
-  [Op.anyKeyExists]?: WhereOperators<StaticValues<NonNullable<string>>>;
+  [Op.anyKeyExists]?: WhereOperators<StaticValues<NonNullable<string>>> | Literal;
 
   /**
    * PG only
@@ -601,7 +601,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/9.5/functions-json.html
    */
-  [Op.allKeysExist]?: WhereOperators<StaticValues<NonNullable<string>>>;
+  [Op.allKeysExist]?: WhereOperators<AttributeType>[typeof Op.anyKeyExists];
 }
 
 /**
