@@ -895,7 +895,6 @@ Specify a different name for either index to resolve this issue.`);
       underscored: false,
       paranoid: false,
       rejectOnEmpty: false,
-      whereCollection: null,
       schema: '',
       schemaDelimiter: '',
       defaultScope: {},
@@ -1777,9 +1776,6 @@ Specify a different name for either index to resolve this issue.`);
       options.attributes = Object.keys(this.rawAttributes);
       options.originalAttributes = this._injectDependentVirtualAttributes(options.attributes);
     }
-
-    // whereCollection is used for non-primary key updates
-    this.options.whereCollection = options.where || null;
 
     Utils.mapFinderOptions(options, this);
 
@@ -3518,10 +3514,6 @@ Instead of specifying a Model, either:
 
       return result;
     }, {});
-
-    if (_.size(where) === 0) {
-      return this.constructor.options.whereCollection;
-    }
 
     const versionAttr = this.constructor._versionAttribute;
     if (checkVersion && versionAttr) {
