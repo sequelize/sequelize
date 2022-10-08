@@ -11,6 +11,13 @@ const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('increment', () => {
+    it('should disallow increment if no primary key values is present', async () => {
+      const Model = current.define('User', {});
+      const instance = Model.build({}, { isNewRecord: false });
+
+      await expect(instance.increment()).to.be.rejected;
+    });
+
     describe('options tests', () => {
       let stub; let instance;
       const Model = current.define('User', {

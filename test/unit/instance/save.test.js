@@ -18,6 +18,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await expect(instance.save()).to.be.rejected;
     });
 
+    it('should disallow updates if no primary key values is present', async () => {
+      const Model = current.define('User', {});
+      const instance = Model.build({}, { isNewRecord: false });
+
+      await expect(instance.update()).to.be.rejected;
+    });
+
     describe('options tests', () => {
       let stub;
       let instance;

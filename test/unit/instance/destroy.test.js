@@ -11,6 +11,13 @@ const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('destroy', () => {
+    it('should disallow destroy if no primary key values is present', async () => {
+      const Model = current.define('User', {});
+      const instance = Model.build({}, { isNewRecord: false });
+
+      await expect(instance.destroy()).to.be.rejected;
+    });
+
     describe('options tests', () => {
       let stub; let instance;
       const Model = current.define('User', {
