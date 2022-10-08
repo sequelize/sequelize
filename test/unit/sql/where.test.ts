@@ -2252,7 +2252,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               [Op.anyKeyExists]: ['a', 'b'],
             },
           }, {
-            default: `[jsonbAttr] ?| ARRAY["a","b"]`,
+            default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
           });
 
           testSql({
@@ -2260,7 +2260,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               [Op.allKeysExist]: ['a', 'b'],
             },
           }, {
-            default: `[jsonbAttr] ?& ARRAY["a","b"]`,
+            default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
           });
         }
 
