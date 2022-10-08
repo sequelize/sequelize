@@ -788,7 +788,7 @@ if (dialect === 'mysql') {
 
             const queryGenerator = new QueryGenerator({
               sequelize,
-              _dialect: sequelize.dialect,
+              dialect: sequelize.dialect,
             });
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

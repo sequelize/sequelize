@@ -1,6 +1,7 @@
 import isPlainObject from 'lodash/isPlainObject';
 /* eslint-disable import/order -- caused by temporarily mixing require with import */
-import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
+import { v1 as uuidv1 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import type { AbstractDialect } from '../dialects/abstract';
 /* eslint-enable import/order */
@@ -31,7 +32,7 @@ export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknow
   }
 
   if (value instanceof DataTypes.UUIDV4) {
-    return uuidv4();
+    return randomUUID();
   }
 
   if (value instanceof DataTypes.NOW) {

@@ -32,7 +32,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -656,7 +656,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 
@@ -912,8 +912,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
-          // TODO: refactor this to this.dialect when https://github.com/sequelize/sequelize/pull/15069 has been merged
-          dataValues[key] = Utils.now(this._dialect);
+          dataValues[key] = Utils.now(this.dialect);
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
         } else if (rawAttributes[key].type instanceof DataTypes.INTEGER) {
