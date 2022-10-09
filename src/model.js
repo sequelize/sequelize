@@ -1916,6 +1916,8 @@ Specify a different name for either index to resolve this issue.`);
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
+   * The attributes for this method's `options` can be found at {@link FindOptions}.
+   *
    * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
    * @param  {object}                           [options] find options
    * @returns {Promise<Model|null>}
