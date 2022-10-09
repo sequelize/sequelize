@@ -182,6 +182,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.validateSideEffect).not.to.be.ok;
     });
 
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.update()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+    });
+
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {

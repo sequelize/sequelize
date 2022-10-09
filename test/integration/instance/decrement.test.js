@@ -54,6 +54,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       },
     });
 
+    this.Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+
+    await this.Foo.sync({ force: true });
     await this.User.sync({ force: true });
   });
 
@@ -185,6 +188,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await user.decrement('aNumber', { by: 1, silent: true });
 
       await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+    });
+
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.decrement()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
     });
   });
 });

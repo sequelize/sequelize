@@ -118,6 +118,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user2.aNumber).to.be.equal(1);
     });
 
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.increment()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+    });
+
     it('should still work right with other concurrent updates', async function () {
       const user1 = await this.User.findByPk(1);
       // Select the user again (simulating a concurrent query)

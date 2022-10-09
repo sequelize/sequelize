@@ -107,6 +107,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(updatedUser.username).to.equal('Doe John');
     });
 
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.reload()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+    });
+
     it('should support updating a subset of attributes', async function () {
       const user1 = await this.User.create({
         aNumber: 1,
