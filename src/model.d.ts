@@ -585,7 +585,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/current/functions-json.html
    */
-  [Op.anyKeyExists]?: ReadonlyArray<StaticValues<NonNullable<string>>>;
+  [Op.anyKeyExists]?: ReadonlyArray<StaticValues<NonNullable<string>>> | Literal;
 
   /**
    * PG only

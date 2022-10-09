@@ -387,12 +387,22 @@ describe('model', () => {
         const users = await this.User.findAll({
           where: {
             emergency_contact: {
-              [Op.anyKeyExists]: literal(`SELECT jsonb_array_elements_text('["gamer","something"]')`),
+              [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('["gamer","something"]'))`),
             },
           },
         });
 
         expect(users.length).to.equal(1);
+
+        const users2 = await this.User.findAll({
+          where: {
+            emergency_contact: {
+              [Op.anyKeyExists]: [literal(`SELECT jsonb_array_elements_text('["gamer","something"]')`)],
+            },
+          },
+        });
+
+        expect(users2.length).to.equal(1);
       });
     });
   }
