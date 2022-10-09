@@ -2275,23 +2275,23 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: literal(`ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`),
           },
         }, {
-          default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))]`,
+          default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
         });
 
         testSql({
           jsonbAttr: {
-            [Op.anyKeyExists]: [literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`)],
+            [Op.anyKeyExists]: [literal(`"gamer"`)],
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[SELECT jsonb_array_elements_text('ARRAY["a","b"]')]`,
+          default: `[jsonbAttr] ?| ARRAY["gamer"]`,
         });
 
         testSql({
           jsonbAttr: {
-            [Op.allKeysExist]: [literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`)],
+            [Op.allKeysExist]: [literal(`"gamer"`)],
           },
         }, {
-          default: `[jsonbAttr] ?& ARRAY[SELECT jsonb_array_elements_text('ARRAY["a","b"]')]`,
+          default: `[jsonbAttr] ?& ARRAY["gamer"]`,
         });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
