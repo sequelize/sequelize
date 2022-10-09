@@ -11,11 +11,11 @@ const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('increment', () => {
-    it('should disallow increment if no primary key values is present', async () => {
-      const Model = current.define('User', {});
-      const instance = Model.build({}, { isNewRecord: false });
+    it('is not allowed if the instance does not have a primary key defined', async () => {
+      const User = current.define('User', {});
+      const instance = User.build({});
 
-      await expect(instance.increment()).to.be.rejected;
+      await expect(instance.increment()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
     });
 
     describe('options tests', () => {

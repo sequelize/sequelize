@@ -14,6 +14,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('method upsert', () => {
       before(function () {
         this.User = current.define('User', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+          },
           name: DataTypes.STRING,
           virtualValue: {
             type: DataTypes.VIRTUAL,
@@ -36,6 +41,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.UserNoTime = current.define('UserNoTime', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+          },
           name: DataTypes.STRING,
         }, {
           timestamps: false,
