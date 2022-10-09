@@ -583,9 +583,9 @@ export interface WhereOperators<AttributeType = any> {
    * // "jsonbAttribute" ?| ARRAY['a','b']
    * ```
    *
-   * https://www.postgresql.org/docs/9.5/functions-json.html
+   * https://www.postgresql.org/docs/current/functions-json.html
    */
-  [Op.anyKeyExists]?: WhereOperators<StaticValues<NonNullable<string>>> | Literal;
+  [Op.anyKeyExists]?: ReadonlyArray<StaticValues<NonNullable<string>>>;
 
   /**
    * PG only
@@ -599,7 +599,7 @@ export interface WhereOperators<AttributeType = any> {
    * // "jsonbAttribute" ?& ARRAY['a','b']
    * ```
    *
-   * https://www.postgresql.org/docs/9.5/functions-json.html
+   * https://www.postgresql.org/docs/current/functions-json.html
    */
   [Op.allKeysExist]?: WhereOperators<AttributeType>[typeof Op.anyKeyExists];
 }

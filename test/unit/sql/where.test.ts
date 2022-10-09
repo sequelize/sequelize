@@ -2246,39 +2246,37 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     if (sequelize.dialect.supports.JSONB) {
       describe('JSONB', () => {
-        if (dialectSupportsArray()) {
-          testSql({
-            jsonbAttr: {
-              [Op.anyKeyExists]: ['a', 'b'],
-            },
-          }, {
-            default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
-          });
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
+        });
 
-          testSql({
-            jsonbAttr: {
-              [Op.allKeysExist]: ['a', 'b'],
-            },
-          }, {
-            default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
-          });
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
+        });
 
-          testSql({
-            jsonbAttr: {
-              [Op.anyKeyExists]: literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`),
-            },
-          }, {
-            default: `[jsonbAttr] ?| ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
-          });
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: [literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[SELECT jsonb_array_elements_text('ARRAY["a","b"]')]`,
+        });
 
-          testSql({
-            jsonbAttr: {
-              [Op.allKeysExist]: literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`),
-            },
-          }, {
-            default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
-          });
-        }
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [literal(`SELECT jsonb_array_elements_text('ARRAY["a","b"]')`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY[SELECT jsonb_array_elements_text('ARRAY["a","b"]')]`,
+        });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {
