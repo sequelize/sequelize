@@ -2137,9 +2137,9 @@ Specify a different name for either index to resolve this issue.`);
       throw new Error('The argument passed to findAndCountAll must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    this._injectScope(options);
-
     const countOptions = Utils.cloneDeep(options);
+
+    this._injectScope(options);
 
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
