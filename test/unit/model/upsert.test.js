@@ -36,11 +36,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.UserNoTime = current.define('UserNoTime', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            allowNull: false,
-          },
           name: DataTypes.STRING,
         }, {
           timestamps: false,
