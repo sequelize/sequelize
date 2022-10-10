@@ -32,7 +32,7 @@ const FOREIGN_KEY_FIELDS = [
  * @private
  */
 const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,cast,check,column,connect,connections,constraint,create,cross,current,current_date,current_time,current_timestamp,current_user,database,delete,distinct,drop,else,exists,false,following,for,from,full,grant,group,gscluster,having,ilike,in,increment,inner,insert,intersect,into,is,issue,join,lateral,left,like,localtime,localtimestamp,minus,natural,not,null,of,on,or,order,organization,qualify,regexp,revoke,right,rlike,row,rows,sample,schema,select,set,some,start,table,tablesample,then,to,trigger,true,try_cast,union,unique,update,using,values,view,when,whenever,where,with'.split(',');
-  
+
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 class SnowflakeQueryGenerator extends AbstractQueryGenerator {
@@ -166,6 +166,18 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return Utils.joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
       database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      ';'
+    ]);
+  }
+
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    const schema = table.schema;
+
+    return Utils.joinSQLFragments([
+      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
+      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
+      `AND TABLE_NAME = ${this.escape(tableName)}`,
       ';'
     ]);
   }
