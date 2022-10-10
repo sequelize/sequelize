@@ -1919,7 +1919,7 @@ Specify a different name for either index to resolve this issue.`);
    * The attributes for this method's `options` can be found at {@link FindOptions}.
    *
    * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                           [options] find options
+   * @param  {FindOptions}                           [options] find options
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
