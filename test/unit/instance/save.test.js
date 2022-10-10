@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {});
       const instance = User.build({});
 
-      await expect(instance.increment()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+      await expect(instance.save()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
     });
 
     it('should disallow updates if no primary key values is present', async () => {
