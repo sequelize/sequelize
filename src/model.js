@@ -3513,15 +3513,15 @@ Instead of specifying a Model, either:
       throw new Error(
         `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition. Either add a primary key to this model, or use one of the following alternatives:
   
-      - instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
-      - instance method "reload": Use the static "findOne" method instead.
-      - instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
+- instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
+- instance method "reload": Use the static "findOne" method instead.
+- instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
         `.trim(),
       );
     }
 
     const where = this.constructor.primaryKeyAttributes.reduce((result, attribute) => {
-      if (_.isNil(attribute)) {
+      if (_.isNil(this.get(attribute, { raw: true }))) {
         throw new TypeError(`This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attribute}". Make sure that attribute was not excluded when retrieving the model from the database.`);
       }
 
