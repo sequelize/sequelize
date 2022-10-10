@@ -397,7 +397,7 @@ describe('model', () => {
         const users2 = await this.User.findAll({
           where: {
             emergency_contact: {
-              [Op.anyKeyExists]: [literal(`"gamer"`)],
+              [Op.anyKeyExists]: [literal(`'gamer'`)],
             },
           },
         });
