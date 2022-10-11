@@ -1916,10 +1916,39 @@ Specify a different name for either index to resolve this issue.`);
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
-   * The attributes for this method's `options` can be found at {@link FindOptions}.
+   * All named types can be found in types/model.d.ts.
    *
-   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                           [options] find options
+   * @param {number|bigint|string|Buffer} param The value of the desired instance's primary key.
+   * @param {FindAttributeOptions}                      [options={}] findByPk options
+   * @param {boolean}                      [options.attributes=false] If an array: a list of the attributes that you want to select. Attributes can also be raw SQL (literal), fn, and col. If include is used: selects all the attributes of the model, plus some additional ones. Useful for aggregations.
+   * @param {boolean}                      [options.benchmark=false] Pass query execute tion in milliseconds a second argument to logging function (options.logging).
+   * @param {BindOrReplacements}           [options.bind=null] Either an object of named parameter bindings in the format $param or an array of unnamed values to bind to $1, $2, etc in your SQL.
+   * @param {FieldMap}                     [options.fieldMap=null] Map returned fields to arbitrary names for SELECT query type if options.fieldMaps is present.
+   * @param {GroupOption}                  [options.group=null] GROUP BY in SQL.
+   * @param {unknown}                      [options.groupedLimit=null[]]
+   * @param {WhereOptions<any>}            [options.having=null] Select group rows after groups and aggregates are computed.
+   * @param {AllowArray<Includeable>}      [options.include=null] A list of associations to eagerly load using a left join (a single association is also supported)
+   * @param {IndexHint[]}                  [options.indexHints=null] MySQL only.
+   * @param {Model<any, any>}              [options.instance=null] A sequelize instance used to build the return instance.
+   * @param {number|Literal}               [options.limit=null] Limits how many items will be returned by the operation.
+   * @param {boolean|LOCK|{level: LOCK; of: ModelStatic<Model<any, any>>}}                 [options.lock=null] Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE. Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model locks with joins
+   * @param {boolean}                      [options.logging=false] A function that gets executed while running the query to log the sql.
+   * @param {boolean}                      [options.mapToModel=false] Map returned fields to model's fields if options.model or options.instance is present. Mapping will occur before building the model instance.
+   * @param {boolean}                      [options.nest=false] If true, transforms objects with . separated property names into nested objects using dottie.js. For example { 'user.username': 'john' } becomes { user: { username: 'john' }}. When nest is true, the query type is assumed to be 'SELECT', unless otherwise specified
+   * @param {number|Literal}               [options.offset=null] Skip the first `n` items of the results.
+   * @param {Order}                        [options.order=null] Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide several attributes / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction.
+   * @param {boolean}                      [options.paranoid=false] If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if paranoid is true for the model.
+   * @param {boolean}                      [options.plain=false] Sets the query type to `SELECT` and returns a single row.
+   * @param {boolean}                      [options.raw=false] Return raw result.
+   * @param {boolean|Error}                [options.rejectOnEmpty=false] Throws an error if the query returns 0 results.
+   * @param {BindOrReplacements}           [options.replacements=null] Either an object of named parameter replacements in the format :param or an array of unnamed replacements to replace ? in your SQL
+   * @param {RetryOptions}                 [options.retry=null]
+   * @param {string}                       [options.searchPath=null] An optional parameter to specify the schema search_path (Postgres only)
+   * @param {boolean}                      [options.skipLocked=false] Skip locked rows (Postgres only)
+   * @param {boolean}                      [options.subQuery=false] Use sub queries (internal). If unspecified, this will true by default if limit is specified, and false otherwise. See limit for more information.
+   * @param {Transaction}                  [options.transaction=null] The transaction in which this query must be run. If CLS is enabled and a transaction is running in the current CLS context, that transaction will be used, unless null or a Transaction is manually specified here.
+   * @param {string}                       [options.type=null] The type of query you are executing. The query type affects how results are formatted before they are passed back. The type is a string, but Sequelize.QueryTypes is provided as convenience shortcuts.
+   * @param {boolean}                      [options.useMaster=false] Force the query to use the write pool, regardless of the query type.
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
