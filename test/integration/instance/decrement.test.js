@@ -54,9 +54,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       },
     });
 
-    this.Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
-
-    await this.Foo.sync({ force: true });
     await this.User.sync({ force: true });
   });
 

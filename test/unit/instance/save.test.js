@@ -18,13 +18,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await expect(instance.save()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
     });
 
-    it('should disallow updates if no primary key values is present', async () => {
-      const User = current.define('User', {});
-      const instance = User.build({}, { isNewRecord: false });
-
-      await expect(instance.update()).to.be.rejected;
-    });
-
     describe('options tests', () => {
       let stub;
       let instance;
