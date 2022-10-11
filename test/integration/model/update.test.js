@@ -118,6 +118,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(account.ownerId).to.be.equal(ownerId);
     });
 
+    it('_previousDataValues should match previous data when returning = true', async function () {
+      const initialDataValues1 = { ownerId: 4, name: 'foo' };
+      const initialDataValues2 = { ownerId: 5, name: 'foo' };
+      await this.Account.bulkCreate([initialDataValues1, initialDataValues2]);
+
+      const [rowCount, [updatedAccount1, updatedAccount2]] = await this.Account.update({ name: 'bar' }, { where: { name: 'foo' }, returning: true });
+
+      expect(updatedAccount1._previousDataValues).to.deep.include({ ownerId: 4, name: 'foo' });
+      expect(updatedAccount2._previousDataValues).to.deep.include({ ownerId: 5, name: 'foo' });
+    });
+
+    it('_previousDataValues should match previous data when individualHooks = true', async function () {
+      const initialDataValues1 = { ownerId: 6, name: 'foo' };
+      const initialDataValues2 = { ownerId: 7, name: 'foo' };
+      await this.Account.bulkCreate([initialDataValues1, initialDataValues2]);
+
+      const [rowCount, [updatedAccount1, updatedAccount2]] = await this.Account.update({ name: 'bar' }, { where: { name: 'foo' }, individualHooks: true });
+
+      expect(updatedAccount1._previousDataValues).to.deep.include({ ownerId: 6, name: 'foo' });
+      expect(updatedAccount2._previousDataValues).to.deep.include({ ownerId: 7, name: 'foo' });
+    });
+
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
       it('should return the updated record', async function () {
         const account = await this.Account.create({ ownerId: 2 });
