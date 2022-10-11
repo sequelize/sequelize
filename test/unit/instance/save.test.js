@@ -13,9 +13,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     it('is not allowed if the instance does not have a primary key defined', async () => {
       const User = current.define('User', {});
-      const instance = User.build({});
+      const instance = User.build({}, { isNewRecord: false });
 
-      await expect(instance.save()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key, this is not allowed since it would result in a global update');
     });
 
     describe('options tests', () => {

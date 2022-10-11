@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
       await Foo.sync({ force: true });
 
-      const instance = await Foo.create({}, { isNewRecord: true });
+      const instance = await Foo.create({});
       await expect(instance.save()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
     });
 

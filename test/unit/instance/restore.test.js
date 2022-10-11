@@ -12,7 +12,7 @@ const sinon     = require('sinon');
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('restore', () => {
     it('is not allowed if the instance does not have a primary key defined', async () => {
-      const User = current.define('User', {});
+      const User = current.define('User', {}, { paranoid: true });
       const instance = User.build({});
 
       await expect(instance.restore()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
