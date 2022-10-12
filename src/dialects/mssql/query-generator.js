@@ -1,5 +1,6 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
@@ -652,7 +653,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
+    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
       template += ' NULL';
     }
 
@@ -662,7 +663,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && Utils.defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 

@@ -1,10 +1,11 @@
 'use strict';
 
 import { AggregateError, DatabaseError } from '../../errors';
+import { isWhereEmpty } from '../../utils/query-builder-utils';
+
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { Op } = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -37,7 +38,7 @@ export class Db2QueryInterface extends QueryInterface {
 
     options = _.clone(options);
 
-    if (!Utils.isWhereEmpty(where)) {
+    if (!isWhereEmpty(where)) {
       wheres.push(where);
     }
 

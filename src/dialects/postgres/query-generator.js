@@ -1,5 +1,6 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
@@ -533,7 +534,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    if (Utils.defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute)}`;
     }
 

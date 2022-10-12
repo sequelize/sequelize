@@ -1,12 +1,11 @@
 import { Sequelize, Utils } from '@sequelize/core';
+import { defaultValueSchemable, isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { expect } from 'chai';
 
 const {
   canTreatArrayAsAnd,
-  defaultValueSchemable,
   isColString,
   isPrimitive,
-  isWhereEmpty,
 } = Utils;
 
 describe('utils / check', () => {

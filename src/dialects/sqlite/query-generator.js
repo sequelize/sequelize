@@ -1,5 +1,7 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
@@ -297,7 +299,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
           sql += ' NOT NULL';
         }
 
-        if (Utils.defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(dataType.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
