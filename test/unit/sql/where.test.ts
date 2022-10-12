@@ -45,6 +45,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare dateRangeAttr: Range<Date>;
 
   declare stringAttr: string;
+  declare binaryAttr: Buffer;
   declare dateAttr: Date;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
@@ -69,6 +70,7 @@ TestModel.init({
   dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
 
   stringAttr: DataTypes.STRING,
+  binaryAttr: DataTypes.BLOB,
   dateAttr: DataTypes.DATE,
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
