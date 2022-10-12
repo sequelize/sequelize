@@ -591,7 +591,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             // length is a bigint
             {
               attribute: 'fieldA',
-              length: '5',
+              length: 5,
               // mysql & mariadb don't support DESC indexes
               order: 'ASC',
             },

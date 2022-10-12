@@ -32,7 +32,7 @@ describe('model', () => {
     it('should tell me that a column is json', async function () {
       const table = await this.sequelize.queryInterface.describeTable('Users');
       // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-      if (dialect !== 'mariadb') {
+      if (dialectName !== 'mariadb') {
         expect(table.emergency_contact.type).to.equal('JSON');
       }
     });

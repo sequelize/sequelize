@@ -32,7 +32,7 @@ describe(getTestDialectTeaser('fn()'), () => {
   });
 
   // some dialects return the result of arithmetic functions (SUM, COUNT) as integer & floats, others as bigints & decimals.
-  const arithmeticAsNumber = dialectName === 'sqlite' || dialectName === 'db2';
+  const arithmeticAsNumber = dialectName === 'sqlite' || dialectName === 'db2' || dialectName === 'mysql' || dialectName === 'mariadb';
   if (dialectName !== 'mssql' && dialectName !== 'ibmi') {
     it('accepts condition object (with cast)', async () => {
       const type = dialectName === 'mysql' ? 'unsigned' : 'int';
