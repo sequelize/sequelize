@@ -462,11 +462,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: dialectName === 'ibmi' ? ''
-              // MySQL doesn't support DESC indexes (will throw)
-              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
-              : `DESC`,
+            order: dialectName === 'ibmi' ? '' : `${isMySQL8 ? 'ASC' : 'DESC'}`,
             length: 5,
           },
         ],
