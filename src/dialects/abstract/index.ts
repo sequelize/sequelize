@@ -23,6 +23,12 @@ export type DialectSupports = {
   skipLocked: boolean,
   finalTable: boolean,
 
+  /**
+   * Does this dialect support checking `IF NOT EXISTS` before adding column
+   * For instance, in Postgres, "ADD COLUMN IF NOT EXISTS" only adds the column if it does not exist
+   */
+  ifNotExists: boolean,
+
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | {
     output: boolean,
@@ -157,6 +163,7 @@ export abstract class AbstractDialect {
     lockOuterJoinFailure: false,
     skipLocked: false,
     finalTable: false,
+    ifNotExists: false,
     returnValues: false,
     autoIncrement: {
       identityInsert: false,

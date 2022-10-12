@@ -301,8 +301,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
+    const checkColumnExists = attribute.checkColumnExists;
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${quotedKey} ${definition};`;
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${checkColumnExists && 'IF NOT EXISTS'} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;

@@ -1745,6 +1745,11 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   validate?: ModelValidateOptions;
 
   /**
+   * Checks if a column exists already before creating it.
+   */
+  checkColumnExists?: boolean;
+
+  /**
    * Usage in object notation
    *
    * ```js
