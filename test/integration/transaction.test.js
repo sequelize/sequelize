@@ -577,16 +577,10 @@ if (current.dialect.supports.transactions) {
           );
         });
 
-        it('should release the connection for a deadlocked transaction (2/2)', async function () {
-          // TODO [>=2022-06-01]: The following code is supposed to cause a deadlock in MariaDB,
-          //  but starting with MariaDB 10.5.15, this does not happen anymore.
-          //  We think it may be a bug in MariaDB, so we temporarily disable this test for that specific version
-          //  If this still happens on newer releases, update this check, or look into why this is not working.
-          //  See https://github.com/sequelize/sequelize/issues/14174
-          if (dialect === 'mariadb' && this.sequelize.options.databaseVersion === '10.5.15') {
-            return;
-          }
-
+        // The following code is supposed to cause a deadlock in MariaDB & MySQL
+        // but starting with MariaDB 10.5.15, this does not happen anymore.
+        // See https://github.com/sequelize/sequelize/issues/14174
+        it.skip('should release the connection for a deadlocked transaction (2/2)', async function () {
           const verifyDeadlock = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,
@@ -659,8 +653,8 @@ if (current.dialect.supports.transactions) {
               })(),
             ]);
 
-            expect(t1AttemptData.isFulfilled).to.be.true;
-            expect(t2AttemptData.isRejected).to.be.true;
+            expect(t1AttemptData.isFulfilled).to.eq(true, 'T1 is not fullfilled, but should have been');
+            expect(t2AttemptData.isRejected).to.eq(true, 'T2 is not rejected, but should have been');
             expect(t2AttemptData.reason.message).to.include('Deadlock found when trying to get lock; try restarting transaction');
             expect(t1.finished).to.equal('commit');
             expect(t2.finished).to.equal('rollback');
