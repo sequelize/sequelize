@@ -35,7 +35,7 @@ const supportsErrorCause = (() => {
  */
 class BaseError extends Error {
   // 'cause' is incorrectly typed as Error instead of unknown in TypeScript <= 4.7.
-  // TODO [20223-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
+  // TODO [2023-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
   declare cause?: any;
 
   get parent(): this['cause'] {
