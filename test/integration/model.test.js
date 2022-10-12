@@ -584,7 +584,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            // length is a bigint
             {
               attribute: 'fieldA',
               length: 5,
