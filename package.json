@@ -33,7 +33,10 @@
       "default": "./lib/errors/index.js",
       "types": "./types/errors/index.d.ts"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./types/*": {
+      "types": "./types/*.d.ts"
+    }
   },
   "engines": {
     "node": ">=10.0.0"
