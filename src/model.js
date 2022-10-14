@@ -4099,20 +4099,13 @@ Instead of specifying a Model, either:
       return this;
     }
 
-    if (!this.changed() && !this.isNewRecord) {
-      return this;
-    }
-
     const versionFieldName = _.get(this.constructor.rawAttributes[versionAttr], 'field') || versionAttr;
     const values = Utils.mapValueFieldNames(this.dataValues, options.fields, this.constructor);
     let query = null;
     let args = [];
     let where;
 
-    if (this.isNewRecord) {
-      query = 'insert';
-      args = [this, this.constructor.getTableName(options), values, options];
-    } else {
+    if (!this.isNewRecord) {
       where = this.where(true);
       if (versionAttr) {
         values[versionFieldName] = Number.parseInt(values[versionFieldName], 10) + 1;
@@ -4120,6 +4113,15 @@ Instead of specifying a Model, either:
 
       query = 'update';
       args = [this, this.constructor.getTableName(options), values, where, options];
+    }
+
+    if (!this.changed() && !this.isNewRecord) {
+      return this;
+    }
+
+    if (this.isNewRecord) {
+      query = 'insert';
+      args = [this, this.constructor.getTableName(options), values, options];
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);
@@ -4285,6 +4287,10 @@ Instead of specifying a Model, either:
     values = _.omitBy(values, value => value === undefined);
 
     const changedBefore = this.changed() || [];
+
+    if (this.isNewRecord) {
+      throw new Error('You attempted to update an instance that is not persisted.');
+    }
 
     options = options || {};
     if (Array.isArray(options)) {
