@@ -499,8 +499,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const Bar = this.sequelize.define(`Bar${Support.rand()}`, {
       field: {
-        type: DataTypes.ENUM,
-        values,
+        type: DataTypes.ENUM(values),
         validate: {
           isIn: [values],
         },
@@ -519,8 +518,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const Bar = this.sequelize.define(`Bar${Support.rand()}`, {
       field: {
-        type: DataTypes.ENUM,
-        values,
+        type: DataTypes.ENUM(values),
         validate: {
           isIn: [values],
         },
@@ -537,8 +535,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const Bar = this.sequelize.define(`Bar${Support.rand()}`, {
       field: {
-        type: DataTypes.ENUM,
-        values,
+        type: DataTypes.ENUM(values),
         validate: {
           isIn: [values],
         },

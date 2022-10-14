@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.Order = this.sequelize.define('Order', {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       sequence: DataTypes.INTEGER,
-      amount: DataTypes.DECIMAL,
+      amount: DataTypes.FLOAT,
       type: DataTypes.STRING,
     });
 
