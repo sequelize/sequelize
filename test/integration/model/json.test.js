@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('update', () => {
-      if (dialect.support.jsonOperations) {
+      if (dialect.supports.jsonOperations) {
         it('should update with JSON column (dot notation)', async function () {
           await this.Event.bulkCreate([{
             id: 1,
