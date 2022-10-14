@@ -13,9 +13,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('restore', () => {
     it('is not allowed if the instance does not have a primary key defined', async () => {
       const User = current.define('User', {}, { paranoid: true });
-      const instance = User.build({});
+      const instance = User.build({}, { isNewRecord: false });
 
-      await expect(instance.restore()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+      await expect(instance.restore()).to.be.rejectedWith('save an instance with no primary key, this is not allowed since it would');
     });
 
     describe('options tests', () => {

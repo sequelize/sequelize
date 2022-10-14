@@ -9,7 +9,7 @@ describe('Model#restore', () => {
     }, { noPrimaryKey: true, paranoid: true });
     await User.sync({ force: true });
 
-    const instance = await User.create({});
+    const instance = User.build({}, { isNewRecord: false });
     await expect(instance.restore()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
   });
 });

@@ -182,12 +182,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.validateSideEffect).not.to.be.ok;
     });
 
-    it('is disallowed if no primary key is present', async function () {
-      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+    it('fails if the update was made to a new record which is not persisted', async function () {
+      const Foo = this.sequelize.define('Foo', {
+        name: { type: DataTypes.STRING },
+      }, { noPrimaryKey: true });
       await Foo.sync({ force: true });
 
-      const instance = await Foo.create({});
-      await expect(instance.update()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+      const instance = Foo.build({ name: 'FooBar' }, { isNewRecord: true });
+      await expect(instance.update()).to.be.rejectedWith('You attempted to update an instance that is not persisted.');
     });
 
     describe('hooks', () => {

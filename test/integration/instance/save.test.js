@@ -130,11 +130,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('is disallowed if no primary key is present', async function () {
-      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      const Foo = this.sequelize.define('Foo', {});
       await Foo.sync({ force: true });
 
-      const instance = await Foo.create({});
-      await expect(instance.save()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+      const instance = await Foo.build({}, { isNewRecord: false });
+      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key');
     });
 
     describe('hooks', () => {
