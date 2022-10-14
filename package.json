@@ -1,7 +1,7 @@
 {
   "name": "dougs-sequelize",
   "description": "Sequelize Dougs Fork (it is not meant to replace sequelize)",
-  "version": "4.41.2-5",
+  "version": "4.41.2-6",
   "dependencies": {
     "bluebird": "^3.5.0",
     "cls-bluebird": "^2.1.0",
