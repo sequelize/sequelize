@@ -1,8 +1,5 @@
 import type { Class } from 'type-fest';
 import type {
-  AfterAssociateEventData,
-  AssociationOptions,
-  BeforeAssociateEventData,
   Association,
   BelongsTo,
   BelongsToMany,
@@ -16,10 +13,10 @@ import type {
 import type { DataType } from './data-types';
 import type { Deferrable } from './deferrable';
 import type { IndexOptions, TableName } from './dialects/abstract/query-interface';
-import type { HookReturn, ModelHooks } from './hooks';
-import { Hooks } from './hooks';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
+import type { ModelHooks } from './model-typescript.js';
+import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
   AllowArray,
@@ -2067,7 +2064,7 @@ export interface ModelGetOptions {
 }
 
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes> {
+  extends ModelTypeScript {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -2892,374 +2889,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
-   * A hook that is run before validation
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeValidate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-  static beforeValidate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after validation
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterValidate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-  static afterValidate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with attributes, options
-   */
-  static beforeCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with attributes, options
-   */
-  static afterCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before destroying a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-  static beforeDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after destroying a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-  static afterDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before updating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeSave<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeSave<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterSave<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterSave<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating instances in bulk
-   *
-   * @param name
-   * @param fn A callback function that is called with instances, options
-   */
-  static beforeBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating instances in bulk
-   *
-   * @param name
-   * @param fn A callback function that is called with instances, options
-   */
-  static afterBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before destroying instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn): void;
-  static beforeBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after destroying instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static afterBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static afterBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFind<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFind<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a count query
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeCount<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: CountOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeCount<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: CountOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFindAfterExpandIncludeAll<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFindAfterExpandIncludeAll<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query, after all option parsing is complete
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFindAfterOptions<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFindAfterOptions<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => void
-  ): HookReturn;
-
-  /**
-   * A hook that is run after a find (select) query
-   *
-   * @param name
-   * @param fn   A callback function that is called with instance(s), options
-   */
-  static afterFind<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterFind<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before sequelize.sync call
-   *
-   * @param fn   A callback function that is called with options passed to sequelize.sync
-   */
-  static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run after sequelize.sync call
-   *
-   * @param fn   A callback function that is called with options passed to sequelize.sync
-   */
-  static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run before Model.sync call
-   *
-   * @param fn   A callback function that is called with options passed to Model.sync
-   */
-  static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run after Model.sync call
-   *
-   * @param fn   A callback function that is called with options passed to Model.sync
-   */
-  static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static afterSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  static beforeAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-  static beforeAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-
-  static afterAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-  static afterAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-
-  static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
-  static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
-
-  /**
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
@@ -3819,7 +3448,7 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  * ```
  */
-export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M['_creationAttributes']>;
+export type CreationAttributes<M extends Model> = MakeNullishOptional<M['_creationAttributes']>;
 
 /**
  * Returns the creation attributes of a given Model.
@@ -3832,6 +3461,6 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  * function getValue<M extends Model>(modelClass: ModelStatic<M>, attribute: keyof Attributes<M>) {}
  * ```
  */
-export type Attributes<M extends Model | Hooks> = M['_attributes'];
+export type Attributes<M extends Model> = M['_attributes'];
 
-export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;
+export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;

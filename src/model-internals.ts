@@ -1,6 +1,7 @@
 import NodeUtil from 'util';
 import { EagerLoadingError } from './errors';
-import type { Transactionable } from './model';
+import type { ModelStatic, Transactionable } from './model';
+import type { ModelHooks } from './model-typescript.js';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
 import type { Transaction } from './index';
@@ -155,4 +156,52 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
       options.transaction = t as Transaction;
     }
   }
+}
+
+/**
+ * Wrapper around runHooks to dispatch the hook to both the model and the current Sequelize instance.
+ *
+ * @internal
+ *
+ * @param model
+ * @param hookName
+ * @param args
+ */
+export function runSyncModelHook<HookName extends keyof ModelHooks>(
+  model: ModelStatic,
+  hookName: HookName,
+  ...args: ModelHooks[HookName] extends (...args2: any) => any
+    ? Parameters<ModelHooks[HookName]>
+    : never
+): void {
+  if (!model.sequelize) {
+    throw new Error('Model must be initialized before running hooks on it.');
+  }
+
+  model.hooks.runSync(hookName, ...args);
+  model.sequelize.hooks.runSync(hookName, ...args);
+}
+
+/**
+ * Wrapper around runHooks to dispatch the hook to both the model and the current Sequelize instance.
+ *
+ * @internal
+ *
+ * @param model
+ * @param hookName
+ * @param args
+ */
+export async function runAsyncModelHook<HookName extends keyof ModelHooks>(
+  model: ModelStatic,
+  hookName: HookName,
+  ...args: ModelHooks[HookName] extends (...args2: any) => any
+  ? Parameters<ModelHooks[HookName]>
+  : never
+): Promise<void> {
+  if (!model.sequelize) {
+    throw new Error('Model must be initialized before running hooks on it.');
+  }
+
+  await model.hooks.runAsync(hookName, ...args);
+  await model.sequelize.hooks.runAsync(hookName, ...args);
 }

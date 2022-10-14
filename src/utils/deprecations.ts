@@ -15,3 +15,4 @@ export const noSequelizeDataType = deprecate(noop, `Accessing DataTypes on the S
 e.g, instead of using Sequelize.STRING, use DataTypes.STRING`, 'SEQUELIZE0010');
 export const noModelDropSchema = deprecate(noop, 'Do not use Model.dropSchema. Use Sequelize#dropSchema or QueryInterface#dropSchema instead', 'SEQUELIZE0011');
 export const movedSequelizeParam = deprecate(noop, 'The "sequelize" instance has been moved from the second parameter bag to the first parameter bag in "beforeAssociate" and "afterAssociate" hooks', 'SEQUELIZE0012');
+export const hooksReworked = deprecate(noop, 'Sequelize Hooks methods, such as addHook, runHooks, beforeFind, and afterSync… are deprecated in favor of using the methods available through "sequelize.hooks", "Sequelize.hooks" and "YourModel.hooks".', 'SEQUELIZE0013');
