@@ -448,7 +448,13 @@ export class QueryInterface {
     options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    const addColumnQueryOptions = {
+      ifNotExists: options.ifNotExists,
+    };
+
+    delete options.ifNotExists;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), options);
   }
 
   /**

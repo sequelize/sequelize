@@ -295,15 +295,20 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, attribute) {
+  addColumnQuery(table, key, attribute, options = {}) {
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
-    const checkColumnExists = attribute.checkColumnExists;
+    let ifNotExists = options.ifNotExists;
+    if (ifNotExists) {
+      ifNotExists = 'IF NOT EXISTS';
+    } else {
+      ifNotExists = '';
+    }
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${checkColumnExists && 'IF NOT EXISTS'} ${quotedKey} ${definition};`;
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
