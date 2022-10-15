@@ -24,6 +24,9 @@ export class MysqlDialect extends AbstractDialect {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
       },
+      addColumn: {
+        ifNotExists: false,
+      },
       index: {
         collate: false,
         length: true,
