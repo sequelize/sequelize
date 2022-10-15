@@ -3,6 +3,17 @@ import { Multimap } from './utils/multimap.js';
 
 export type AsyncHookReturn = Promise<void> | void;
 
+type HookParameters<Hook> = Hook extends (...args2: any) => any
+  ? Parameters<Hook>
+  : never;
+
+type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
+  eventTarget: object,
+  isAsync: boolean,
+  hookName: HookName,
+  args: HookParameters<HookConfig[HookName]>
+) => AsyncHookReturn;
+
 /**
  * @internal
  */
@@ -10,21 +21,55 @@ export class HookHandler<HookConfig extends {}> {
   #validHookNames: Array<keyof HookConfig>;
   #eventTarget: object;
   #listeners = new Multimap<PropertyKey, { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] }>();
+  #onRunHook: OnRunHook<HookConfig> | undefined;
 
-  constructor(eventTarget: object, validHookNames: Array<keyof HookConfig>) {
+  constructor(
+    eventTarget: object,
+    validHookNames: Array<keyof HookConfig>,
+    onRunHook?: OnRunHook<HookConfig>,
+  ) {
     this.#eventTarget = eventTarget;
     this.#validHookNames = validHookNames;
+    this.#onRunHook = onRunHook;
   }
 
-  removeListener(hookName: keyof HookConfig, listenerName: string): void {
+  removeListener<HookName extends keyof HookConfig>(
+    hookName: HookName,
+    listenerOrListenerName: string | HookConfig[HookName],
+  ): void {
     this.#assertValidHookName(hookName);
 
+    if (typeof listenerOrListenerName === 'string') {
+      const listener = this.#getNamedListener(hookName, listenerOrListenerName);
+      if (listener) {
+        this.#listeners.delete(hookName, listener);
+      }
+    } else {
+      const listeners = this.#listeners.getAll(hookName);
+      for (const listener of listeners) {
+        if (listener.callback === listenerOrListenerName) {
+          this.#listeners.delete(hookName, listener);
+        }
+      }
+    }
+  }
+
+  removeAllListeners() {
+    this.#listeners.clear();
+  }
+
+  #getNamedListener<HookName extends keyof HookConfig>(
+    hookName: HookName,
+    listenerName: string,
+  ): { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] } | null {
     const listeners = this.#listeners.getAll(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {
-        this.#listeners.delete(hookName, listener);
+        return listener;
       }
     }
+
+    return null;
   }
 
   hasListeners(hookName: keyof HookConfig): boolean {
@@ -50,6 +95,10 @@ export class HookHandler<HookConfig extends {}> {
         throw new Error(`${listener.listenerName ? `Listener ${listener.listenerName}` : `An unnamed listener`} of hook ${String(hookName)} on ${getName(this.#eventTarget)} returned a Promise, but the hook is synchronous.`);
       }
     }
+
+    if (this.#onRunHook) {
+      void this.#onRunHook(this.#eventTarget, false, hookName, args);
+    }
   }
 
   async runAsync<HookName extends keyof HookConfig>(
@@ -67,6 +116,10 @@ export class HookHandler<HookConfig extends {}> {
       await listener.callback(...args);
       /* eslint-enable no-await-in-loop */
     }
+
+    if (this.#onRunHook) {
+      await this.#onRunHook(this.#eventTarget, true, hookName, args);
+    }
   }
 
   addListener<HookName extends keyof HookConfig>(
@@ -76,7 +129,14 @@ export class HookHandler<HookConfig extends {}> {
   ): void {
     this.#assertValidHookName(hookName);
 
-    // TODO: throw if named hook already exists
+    if (listenerName) {
+      const existingListener = this.#getNamedListener(hookName, listenerName);
+
+      if (existingListener) {
+        throw new Error(`Named listener ${listenerName} already exists for hook ${String(hookName)} on ${getName(this.#eventTarget)}.`);
+      }
+    }
+
     this.#listeners.append(hookName, { callback: listener, listenerName });
   }
 
@@ -106,15 +166,17 @@ export class HookHandler<HookConfig extends {}> {
 export class HookHandlerBuilder<HookConfig extends {}> {
   #validHookNames: Array<keyof HookConfig>;
   #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
+  #onRunHook: OnRunHook<HookConfig> | undefined;
 
-  constructor(validHookNames: Array<keyof HookConfig>) {
+  constructor(validHookNames: Array<keyof HookConfig>, onRunHook?: OnRunHook<HookConfig>) {
     this.#validHookNames = validHookNames;
+    this.#onRunHook = onRunHook;
   }
 
   getFor(target: object): HookHandler<HookConfig> {
     let hookHandler = this.#hookHandlers.get(target);
     if (!hookHandler) {
-      hookHandler = new HookHandler<HookConfig>(target, this.#validHookNames);
+      hookHandler = new HookHandler<HookConfig>(target, this.#validHookNames, this.#onRunHook);
       this.#hookHandlers.set(target, hookHandler);
     }
 

@@ -12,12 +12,19 @@ import type {
   AfterAssociateEventData,
   AssociationOptions,
   BeforeAssociateEventData,
-  BulkCreateOptions, CountOptions,
-  CreateOptions, DestroyOptions, FindOptions,
+  BulkCreateOptions,
+  CountOptions,
+  CreateOptions,
+  DestroyOptions,
+  FindOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
   InstanceUpdateOptions,
-  Model, RestoreOptions, SyncOptions, UpdateOptions, UpsertOptions,
+  Model, ModelStatic,
+  RestoreOptions,
+  SyncOptions,
+  UpdateOptions,
+  UpsertOptions,
 } from '.';
 
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
@@ -110,7 +117,25 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'beforeAssociate', 'afterAssociate',
 ];
 
-const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHooks);
+const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHooks, async (
+  eventTarget,
+  isAsync,
+  hookName,
+  args,
+) => {
+  // This forwards hooks run on Models to the Sequelize instance's hooks.
+  const model = eventTarget as ModelStatic;
+
+  if (!model.sequelize) {
+    throw new Error('Model must be initialized before running hooks on it.');
+  }
+
+  if (isAsync) {
+    await model.sequelize.hooks.runAsync(hookName, ...args);
+  } else {
+    model.sequelize.hooks.runSync(hookName, ...args);
+  }
+});
 
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.

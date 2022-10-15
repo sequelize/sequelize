@@ -1,5 +1,4 @@
-import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, Sequelize, SyncOptions } from '..';
-import type { AbstractQuery } from '../types/dialects/abstract/query.js';
+import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
   legacyBuildAddAnyHook,
@@ -10,7 +9,9 @@ import {
 import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ModelHooks } from './model-typescript.js';
+import { validModelHooks } from './model-typescript.js';
 import type { ConnectionOptions, Options } from './sequelize.js';
+import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, Sequelize, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -79,6 +80,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
   'beforeConnect', 'afterConnect',
   'beforeDisconnect', 'afterDisconnect',
   'beforeDefine', 'afterDefine',
+  ...validModelHooks,
 ]);
 
 // DO NOT EXPORT THIS CLASS!

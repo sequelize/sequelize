@@ -1,7 +1,5 @@
 'use strict';
 
-import { runModelHook } from './model-internals';
-
 const _ = require('lodash');
 const Utils = require('./utils');
 const sequelizeError = require('./errors');
@@ -108,16 +106,16 @@ export class InstanceValidator {
    * @private
    */
   async _validateAndRunHooks() {
-    await runModelHook(this.modelInstance.constructor, 'beforeValidate', true, this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('beforeValidate', this.modelInstance, this.options);
 
     try {
       await this._validate();
     } catch (error) {
-      const newError = await runModelHook(this.modelInstance.constructor, 'validationFailed', true, this.modelInstance, this.options, error);
+      const newError = await this.modelInstance.constructor.hooks.runAsync('validationFailed', this.modelInstance, this.options, error);
       throw newError || error;
     }
 
-    await runModelHook(this.modelInstance.constructor, 'afterValidate', true, this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('afterValidate', this.modelInstance, this.options);
 
     return this.modelInstance;
   }

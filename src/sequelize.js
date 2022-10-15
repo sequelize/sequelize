@@ -5,7 +5,7 @@ import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
-import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { parseConnectionString } from './utils/url';
 

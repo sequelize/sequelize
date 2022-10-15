@@ -1,6 +1,5 @@
 'use strict';
 
-import { runAsyncModelHook } from './model-internals';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 
@@ -1292,7 +1291,7 @@ Specify a different name for either index to resolve this issue.`);
     const rawAttributes = this.fieldRawAttributesMap;
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeSync', options);
+      await this.hooks.runAsync('beforeSync', options);
     }
 
     const tableName = this.getTableName(options);
@@ -1410,7 +1409,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'afterSync', options);
+      await this.hooks.runAsync('afterSync', options);
     }
 
     return this;
@@ -1748,7 +1747,7 @@ Specify a different name for either index to resolve this issue.`);
     this._injectScope(options);
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeFind', options);
+      await this.hooks.runAsync('beforeFind', options);
       this._conformIncludes(options, this);
     }
 
@@ -1756,7 +1755,7 @@ Specify a different name for either index to resolve this issue.`);
     this._expandIncludeAll(options, options.model);
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeFindAfterExpandIncludeAll', options);
+      await this.hooks.runAsync('beforeFindAfterExpandIncludeAll', options);
     }
 
     options.originalAttributes = this._injectDependentVirtualAttributes(options.attributes);
@@ -1791,13 +1790,13 @@ Specify a different name for either index to resolve this issue.`);
     options = this._paranoidClause(this, options);
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeFindAfterOptions', options);
+      await this.hooks.runAsync('beforeFindAfterOptions', options);
     }
 
     const selectOptions = { ...options, tableNames: Object.keys(tableNames) };
     const results = await this.queryInterface.select(this, this.getTableName(selectOptions), selectOptions);
     if (options.hooks) {
-      await runAsyncModelHook(this, 'afterFind', results, options);
+      await this.hooks.runAsync('afterFind', results, options);
     }
 
     // rejectOnEmpty mode
@@ -2058,7 +2057,7 @@ Specify a different name for either index to resolve this issue.`);
 
     options.raw = true;
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeCount', options);
+      await this.hooks.runAsync('beforeCount', options);
     }
 
     let col = options.col || '*';
@@ -2543,7 +2542,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeUpsert', values, options);
+      await this.hooks.runAsync('beforeUpsert', values, options);
     }
 
     const result = await this.queryInterface.upsert(this.getTableName(options), insertValues, updateValues, instance.where(), options);
@@ -2552,7 +2551,7 @@ Specify a different name for either index to resolve this issue.`);
     record.isNewRecord = false;
 
     if (options.hooks) {
-      await runAsyncModelHook(this, 'afterUpsert', result, options);
+      await this.hooks.runAsync('afterUpsert', result, options);
 
       return result;
     }
@@ -2645,7 +2644,7 @@ Specify a different name for either index to resolve this issue.`);
 
       // Run before hook
       if (options.hooks) {
-        await runAsyncModelHook(model, 'beforeBulkCreate', instances, options);
+        await model.hooks.runAsync('beforeBulkCreate', instances, options);
       }
 
       // Validate
@@ -2902,7 +2901,7 @@ Specify a different name for either index to resolve this issue.`);
 
       // Run after hook
       if (options.hooks) {
-        await runAsyncModelHook(model, 'afterBulkCreate', instances, options);
+        await model.hooks.runAsync('afterBulkCreate', instances, options);
       }
 
       return instances;
@@ -2964,7 +2963,7 @@ Specify a different name for either index to resolve this issue.`);
 
     // Run before hook
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeBulkDestroy', options);
+      await this.hooks.runAsync('beforeBulkDestroy', options);
     }
 
     let instances;
@@ -2973,7 +2972,7 @@ Specify a different name for either index to resolve this issue.`);
       instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark });
 
       await Promise.all(instances.map(instance => {
-        return runAsyncModelHook(this, 'beforeDestroy', instance, options);
+        return this.hooks.runAsync('beforeDestroy', instance, options);
       }));
     }
 
@@ -3000,14 +2999,14 @@ Specify a different name for either index to resolve this issue.`);
     if (options.individualHooks) {
       await Promise.all(
         instances.map(instance => {
-          return runAsyncModelHook(this, 'afterDestroy', instance, options);
+          return this.hooks.runAsync('afterDestroy', instance, options);
         }),
       );
     }
 
     // Run after hook
     if (options.hooks) {
-      await runAsyncModelHook(this, 'afterBulkDestroy', options);
+      await this.hooks.runAsync('afterBulkDestroy', options);
     }
 
     return result;
@@ -3041,7 +3040,7 @@ Specify a different name for either index to resolve this issue.`);
 
     // Run before hook
     if (options.hooks) {
-      await runAsyncModelHook(this, 'beforeBulkRestore', options);
+      await this.hooks.runAsync('beforeBulkRestore', options);
     }
 
     let instances;
@@ -3050,7 +3049,7 @@ Specify a different name for either index to resolve this issue.`);
       instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark, paranoid: false });
 
       await Promise.all(instances.map(instance => {
-        return runAsyncModelHook(this, 'beforeRestore', instance, options);
+        return this.hooks.runAsync('beforeRestore', instance, options);
       }));
     }
 
@@ -3067,14 +3066,14 @@ Specify a different name for either index to resolve this issue.`);
     if (options.individualHooks) {
       await Promise.all(
         instances.map(instance => {
-          return runAsyncModelHook(this, 'afterRestore', instance, options);
+          return this.hooks.runAsync('afterRestore', instance, options);
         }),
       );
     }
 
     // Run after hook
     if (options.hooks) {
-      await runAsyncModelHook(this, 'afterBulkRestore', options);
+      await this.hooks.runAsync('afterBulkRestore', options);
     }
 
     return result;
@@ -3159,7 +3158,7 @@ Specify a different name for either index to resolve this issue.`);
     // Run before hook
     if (options.hooks) {
       options.attributes = values;
-      await runAsyncModelHook(this, 'beforeBulkUpdate', options);
+      await this.hooks.runAsync('beforeBulkUpdate', options);
       values = options.attributes;
       delete options.attributes;
     }
@@ -3195,7 +3194,8 @@ Specify a different name for either index to resolve this issue.`);
           });
 
           // Run beforeUpdate hook
-          await runAsyncModelHook(this, 'beforeUpdate', instance, options);
+          await this.hooks.runAsync('beforeUpdate', instance, options);
+          await this.hooks.runAsync('beforeSave', instance, options);
           if (!different) {
             const thisChangedValues = {};
             _.forIn(instance.dataValues, (newValue, attr) => {
@@ -3260,8 +3260,9 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     if (options.individualHooks) {
-      await Promise.all(instances.map(instance => {
-        return runAsyncModelHook(this, 'afterUpdate', instance, options);
+      await Promise.all(instances.map(async instance => {
+        await this.hooks.runAsync('afterUpdate', instance, options);
+        await this.hooks.runAsync('afterSave', instance, options);
       }));
       result[1] = instances;
     }
@@ -3269,7 +3270,7 @@ Specify a different name for either index to resolve this issue.`);
     // Run after hook
     if (options.hooks) {
       options.attributes = values;
-      await runAsyncModelHook(this, 'afterBulkUpdate', options);
+      await this.hooks.runAsync('afterBulkUpdate', options);
       delete options.attributes;
     }
 
@@ -4059,7 +4060,8 @@ Instead of specifying a Model, either:
         ignoreChanged = _.without(ignoreChanged, updatedAtAttr);
       }
 
-      await runAsyncModelHook(this.constructor, `before${hook}`, this, options);
+      await this.constructor.hooks.runAsync(`before${hook}`, this, options);
+      await this.constructor.hooks.runAsync(`beforeSave`, this, options);
       if (options.defaultFields && !this.isNewRecord) {
         afterHookValues = _.pick(this.dataValues, _.difference(this.changed(), ignoreChanged));
 
@@ -4220,7 +4222,8 @@ Instead of specifying a Model, either:
 
     // Run after hook
     if (options.hooks) {
-      await runAsyncModelHook(this.constructor, `after${hook}`, result, options);
+      await this.constructor.hooks.runAsync(`after${hook}`, result, options);
+      await this.constructor.hooks.runAsync(`afterSave`, result, options);
     }
 
     for (const field of options.fields) {
@@ -4337,7 +4340,7 @@ Instead of specifying a Model, either:
 
     // Run before hook
     if (options.hooks) {
-      await runAsyncModelHook(this.constructor, 'beforeDestroy', this, options);
+      await this.constructor.hooks.runAsync('beforeDestroy', this, options);
     }
 
     const where = this.where(true);
@@ -4363,7 +4366,7 @@ Instead of specifying a Model, either:
 
     // Run after hook
     if (options.hooks) {
-      await runAsyncModelHook(this.constructor, 'afterDestroy', this, options);
+      await this.constructor.hooks.runAsync('afterDestroy', this, options);
     }
 
     return result;
@@ -4415,7 +4418,7 @@ Instead of specifying a Model, either:
 
     // Run before hook
     if (options.hooks) {
-      await runAsyncModelHook(this.constructor, 'beforeRestore', this, options);
+      await this.constructor.hooks.runAsync('beforeRestore', this, options);
     }
 
     const deletedAtCol = this.constructor._timestampAttributes.deletedAt;
@@ -4426,7 +4429,7 @@ Instead of specifying a Model, either:
     const result = await this.save({ ...options, hooks: false, omitNull: false });
     // Run after hook
     if (options.hooks) {
-      await runAsyncModelHook(this.constructor, 'afterRestore', this, options);
+      await this.constructor.hooks.runAsync('afterRestore', this, options);
 
       return result;
     }

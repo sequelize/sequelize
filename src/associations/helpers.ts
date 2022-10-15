@@ -7,7 +7,6 @@ import omit from 'lodash/omit';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
-import { runSyncModelHook } from '../model-internals.js';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import type { OmitConstructors } from '../utils/index.js';
@@ -240,7 +239,7 @@ export function defineAssociation<
   });
 
   if (normalizedOptions.hooks) {
-    runSyncModelHook(source, 'beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
+    source.hooks.runSync('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
   }
 
   let association;
@@ -256,7 +255,7 @@ export function defineAssociation<
   }
 
   if (normalizedOptions.hooks) {
-    runSyncModelHook(source, 'afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
+    source.hooks.runSync('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
   }
 
   checkNamingCollision(source, normalizedOptions.as);

@@ -1,6 +1,10 @@
 export class Multimap<K, V> {
   #internalMap = new Map<K, V[]>();
 
+  clear() {
+    this.#internalMap.clear();
+  }
+
   append(key: K, value: V): this {
     const valueSet = this.#internalMap.get(key);
     if (valueSet != null) {
