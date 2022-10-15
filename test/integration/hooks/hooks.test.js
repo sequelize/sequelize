@@ -18,16 +18,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         allowNull: false,
       },
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
 
     this.ParanoidUser = this.sequelize.define('ParanoidUser', {
       username: DataTypes.STRING,
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     }, {
       paranoid: true,

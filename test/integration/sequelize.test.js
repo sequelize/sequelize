@@ -125,7 +125,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (error) {
-            console.log(error);
             expect(
               error.message.includes('connect ECONNREFUSED')
               || error.message.includes('invalid port number')
@@ -594,8 +593,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('drop should work', () => {
-    it('correctly succeeds', async function () {
+  describe('Model.drop', () => {
+    it('drops the table corresponding to the model', async function () {
       const User = this.sequelize.define('Users', { username: DataTypes.STRING });
       await User.sync({ force: true });
       await User.drop();

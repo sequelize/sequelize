@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
         birthdate: DataTypes.DATE,
-        meta: DataTypes.JSON,
+        meta: DataTypes.TEXT,
         deletedAt: {
           type: DataTypes.DATE,
         },
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ParanoidUser = current.define('User', {
         name: DataTypes.STRING,
         birthdate: DataTypes.DATE,
-        meta: DataTypes.JSON,
+        meta: DataTypes.TEXT,
         deletedAt: {
           type: DataTypes.DATE,
         },

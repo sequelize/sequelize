@@ -80,7 +80,7 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.15.10",
+    "esbuild": "0.15.11",
     "eslint": "8.25.0",
     "eslint-plugin-jsdoc": "39.3.6",
     "eslint-plugin-mocha": "10.1.0",
@@ -114,7 +114,7 @@
     "sqlite3": "5.1.2",
     "tedious": "15.1.0",
     "ts-node": "10.9.1",
-    "typedoc": "0.23.15",
+    "typedoc": "0.23.16",
     "typescript": "4.8.4"
   },
   "peerDependenciesMeta": {

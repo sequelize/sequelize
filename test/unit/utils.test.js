@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('multiple calls', () => {
-      const Model = Support.sequelize.define('User', {
+      const User = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
@@ -122,14 +122,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
             attributes: [
               'active',
             ],
-          }, Model),
-          Model,
+          }, User),
+          User,
         ).attributes,
       ).to.eql([
-        [
-          'created_at',
-          'createdAt',
-        ],
+        ['created_at', 'createdAt'],
       ]);
     });
   });
