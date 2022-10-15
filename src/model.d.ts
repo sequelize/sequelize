@@ -3796,14 +3796,14 @@ export type InferCreationAttributes<
  * - Excluded manually using {@link InferAttributesOptions#omit}
  */
 type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
-  // functions are always excluded
-  M[Key] extends AnyFunction ? never
   // fields inherited from Model are all excluded
-  : Key extends keyof Model ? never
-  // fields branded with NonAttribute are excluded
-  : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
+  Key extends keyof Model ? never
   // check 'omit' option is provided & exclude those listed in it
   : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
+  // functions are always excluded
+  : M[Key] extends AnyFunction ? never
+  // fields branded with NonAttribute are excluded
+  : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
   : Key;
 
 // in v7, we should be able to drop InferCreationAttributes and InferAttributes,
