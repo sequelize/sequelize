@@ -463,7 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
             order: dialectName === 'ibmi' ? ''
-              // mysql doesn't support DESC indexes (will throw)
+              // MySQL doesn't support DESC indexes (will throw)
               // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
               : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
               : `DESC`,
@@ -503,7 +503,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       switch (dialectName) {
         case 'sqlite': {
-        // PRAGMA index_info does not return the primary index
+          // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
 
@@ -553,7 +553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'postgres': {
-        // Postgres returns indexes in alphabetical order
+          // Postgres returns indexes in alphabetical order
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
@@ -588,7 +588,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            // length is a bigint
+            // length is a bigint, which is why it's returned as a string
             {
               attribute: 'fieldA',
               length: '5',
@@ -2500,7 +2500,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'sqlite': {
-          // the parser should not end up here ... see above
+            // the parser should not end up here ... see above
             expect(1).to.equal(2);
 
             break;

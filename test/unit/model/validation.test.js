@@ -448,7 +448,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions', () => {
-
     const User = current.define('user', {
       integer: {
         type: DataTypes.INTEGER,
@@ -502,7 +501,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom attribute validation function fails', async () => {
           await expect(User.create({
@@ -534,7 +532,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions returning promises', () => {
-
     const User = current.define('user', {
       name: DataTypes.STRING,
     }, {
@@ -574,7 +571,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom model validation function fails', async () => {
           await expect(User.create({
@@ -594,7 +590,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions and null values', () => {
-
     before(function () {
       this.customValidator = sinon.fake(function (value) {
         if (value === null && this.integer !== 10) {
@@ -604,7 +599,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('with allowNull set to true', () => {
-
       before(function () {
         this.User = current.define('user', {
           integer: DataTypes.INTEGER,
@@ -637,6 +631,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
             integer: 10,
@@ -660,6 +655,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
             integer: 11,
@@ -673,7 +669,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('with allowNull set to false', () => {
-
       before(function () {
         this.User = current.define('user', {
           integer: DataTypes.INTEGER,
@@ -706,6 +701,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
           await expect(this.customValidator).to.have.not.been.called;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
             integer: 99,
@@ -729,6 +725,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
             integer: 99,
@@ -738,9 +735,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           await expect(this.customValidator).to.have.been.calledOnce;
         });
       });
-
     });
-
   });
-
 });

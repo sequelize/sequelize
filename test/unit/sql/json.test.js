@@ -10,6 +10,7 @@ const sql = current.dialect.queryGenerator;
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+
 describe(Support.getTestDialectTeaser('SQL'), () => {
   if (!dialect.supports.dataTypes.JSON) {
     return;

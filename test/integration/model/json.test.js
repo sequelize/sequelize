@@ -800,5 +800,4 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
   });
-
 });
