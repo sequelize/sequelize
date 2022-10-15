@@ -1,5 +1,4 @@
 import isEmpty from 'lodash/isEmpty';
-import isPlainObject from 'lodash/isPlainObject';
 import type { DataType } from '..';
 import { getOperators } from './format';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
@@ -23,6 +22,16 @@ export function isError(val: any): val is Error {
 
 export function isString(val: any): val is string {
   return typeof val === 'string';
+}
+
+export function isPlainObject(value: unknown): value is object {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === null || prototype === Object.prototype;
 }
 
 /**
