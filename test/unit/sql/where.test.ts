@@ -2120,7 +2120,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     describeAdjacentRangeSuite(Op.noExtendLeft, '&>');
     describeAdjacentRangeSuite(Op.noExtendRight, '&<');
 
-    if (sequelize.dialect.supports.JSON) {
+    if (sequelize.dialect.supports.jsonOperations) {
       describe('JSON', () => {
         {
           // @ts-expect-error -- attribute 'doesNotExist' does not exist.
