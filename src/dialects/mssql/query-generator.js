@@ -28,7 +28,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
         CREATE_DATABASE_SUPPORTED_OPTIONS,
         options,
@@ -63,7 +63,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -666,7 +666,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

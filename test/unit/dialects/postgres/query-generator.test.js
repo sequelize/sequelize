@@ -458,7 +458,7 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" = E\'\\\\x53657175656c697a65\';',
+          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = E'\\\\x53657175656c697a65';`,
           context: QueryGenerator,
         }, {
           title: 'string in array should escape \' as \'\'',
@@ -1234,7 +1234,7 @@ if (dialect.startsWith('postgres')) {
         beforeEach(function () {
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+            dialect: this.sequelize.dialect,
           });
         });
 
@@ -1266,7 +1266,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: this.sequelize,
-          _dialect: this.sequelize.dialect,
+          dialect: this.sequelize.dialect,
         });
       });
 
@@ -1306,7 +1306,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: customSequelize,
-          _dialect: customSequelize.dialect,
+          dialect: customSequelize.dialect,
         });
       });
 

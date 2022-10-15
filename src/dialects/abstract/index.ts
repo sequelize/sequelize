@@ -112,6 +112,8 @@ export type DialectSupports = {
   IREGEXP: boolean,
   HSTORE: boolean,
   TSVECTOR: boolean,
+  /** Whether this dialect supports SQL JSON functions */
+  jsonOperations: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -126,6 +128,11 @@ export type DialectSupports = {
    * enables the ability to use backslash escapes inside of the string.
    */
   escapeStringConstants: boolean,
+
+  /**
+   * Whether this dialect supports date & time values with a precision down to at least the millisecond.
+   */
+  milliseconds: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -212,11 +219,13 @@ export abstract class AbstractDialect {
     GEOGRAPHY: false,
     HSTORE: false,
     TSVECTOR: false,
+    jsonOperations: false,
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
+    milliseconds: true,
   };
 
   declare readonly defaultVersion: string;

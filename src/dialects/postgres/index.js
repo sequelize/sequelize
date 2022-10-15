@@ -51,6 +51,7 @@ export class PostgresDialect extends AbstractDialect {
     JSONB: true,
     HSTORE: true,
     TSVECTOR: true,
+    jsonOperations: true,
     deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,
@@ -61,7 +62,7 @@ export class PostgresDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
     this.queryGenerator = new PostgresQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new PostgresQueryInterface(

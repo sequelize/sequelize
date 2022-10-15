@@ -17,8 +17,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           unique: true, // Either Primary Key/Unique Keys should be passed to upsert
         },
         mood: {
-          type: DataTypes.ENUM,
-          values: ['happy', 'sad', 'neutral'],
+          type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
         },
       });
       await this.sequelize.sync({ force: true });

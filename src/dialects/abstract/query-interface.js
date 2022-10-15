@@ -104,7 +104,7 @@ export class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 

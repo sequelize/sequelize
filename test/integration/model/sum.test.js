@@ -9,10 +9,9 @@ const { DataTypes } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
     this.Payment = this.sequelize.define('Payment', {
-      amount: DataTypes.DECIMAL,
+      amount: DataTypes.FLOAT,
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
 

@@ -40,6 +40,7 @@ export class MysqlDialect extends AbstractDialect {
       NUMERIC: true,
       GEOMETRY: true,
       JSON: true,
+      jsonOperations: true,
       REGEXP: true,
     },
   );
@@ -49,7 +50,7 @@ export class MysqlDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MySqlQueryInterface(

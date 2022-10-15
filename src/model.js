@@ -169,23 +169,23 @@ export class Model {
       }
 
       if (this.constructor._timestampAttributes.createdAt && defaults[this.constructor._timestampAttributes.createdAt]) {
-        this.dataValues[this.constructor._timestampAttributes.createdAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.createdAt], this.sequelize.options.dialect);
+        this.dataValues[this.constructor._timestampAttributes.createdAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.createdAt], this.sequelize.dialect);
         delete defaults[this.constructor._timestampAttributes.createdAt];
       }
 
       if (this.constructor._timestampAttributes.updatedAt && defaults[this.constructor._timestampAttributes.updatedAt]) {
-        this.dataValues[this.constructor._timestampAttributes.updatedAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.updatedAt], this.sequelize.options.dialect);
+        this.dataValues[this.constructor._timestampAttributes.updatedAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.updatedAt], this.sequelize.dialect);
         delete defaults[this.constructor._timestampAttributes.updatedAt];
       }
 
       if (this.constructor._timestampAttributes.deletedAt && defaults[this.constructor._timestampAttributes.deletedAt]) {
-        this.dataValues[this.constructor._timestampAttributes.deletedAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.deletedAt], this.sequelize.options.dialect);
+        this.dataValues[this.constructor._timestampAttributes.deletedAt] = Utils.toDefaultValue(defaults[this.constructor._timestampAttributes.deletedAt], this.sequelize.dialect);
         delete defaults[this.constructor._timestampAttributes.deletedAt];
       }
 
       for (key in defaults) {
         if (values[key] === undefined) {
-          this.set(key, Utils.toDefaultValue(defaults[key], this.sequelize.options.dialect), { raw: true });
+          this.set(key, Utils.toDefaultValue(defaults[key], this.sequelize.dialect), { raw: true });
           delete values[key];
         }
       }
@@ -1145,7 +1145,7 @@ Specify a different name for either index to resolve this issue.`);
       }
 
       if (Object.prototype.hasOwnProperty.call(definition, 'defaultValue')) {
-        this._defaultValues[name] = () => Utils.toDefaultValue(definition.defaultValue, this.sequelize.options.dialect);
+        this._defaultValues[name] = () => Utils.toDefaultValue(definition.defaultValue, this.sequelize.dialect);
       }
 
       if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
@@ -2509,7 +2509,7 @@ Specify a different name for either index to resolve this issue.`);
     const updatedDataValues = _.pick(instance.dataValues, changed);
     const insertValues = Utils.mapValueFieldNames(instance.dataValues, Object.keys(instance.rawAttributes), this);
     const updateValues = Utils.mapValueFieldNames(updatedDataValues, options.fields, this);
-    const now = Utils.now(this.sequelize.options.dialect);
+    const now = Utils.now(this.sequelize.dialect);
 
     // Attach createdAt
     if (createdAtAttr && !insertValues[createdAtAttr]) {
@@ -2578,7 +2578,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     const dialect = this.sequelize.options.dialect;
-    const now = Utils.now(this.sequelize.options.dialect);
+    const now = Utils.now(this.sequelize.dialect);
     options = Utils.cloneDeep(options);
 
     // Add CLS transaction
@@ -2983,7 +2983,7 @@ Specify a different name for either index to resolve this issue.`);
         [field]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };
 
-      attrValueHash[field] = Utils.now(this.sequelize.options.dialect);
+      attrValueHash[field] = Utils.now(this.sequelize.dialect);
       result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, this.rawAttributes);
     } else {
       result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
@@ -3118,7 +3118,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     if (this._timestampAttributes.updatedAt && !options.silent) {
-      values[this._timestampAttributes.updatedAt] = this._getDefaultTimestamp(this._timestampAttributes.updatedAt) || Utils.now(this.sequelize.options.dialect);
+      values[this._timestampAttributes.updatedAt] = this._getDefaultTimestamp(this._timestampAttributes.updatedAt) || Utils.now(this.sequelize.dialect);
     }
 
     options.model = this;
@@ -3275,7 +3275,7 @@ Specify a different name for either index to resolve this issue.`);
 
   static _getDefaultTimestamp(attr) {
     if (Boolean(this.rawAttributes[attr]) && Boolean(this.rawAttributes[attr].defaultValue)) {
-      return Utils.toDefaultValue(this.rawAttributes[attr].defaultValue, this.sequelize.options.dialect);
+      return Utils.toDefaultValue(this.rawAttributes[attr].defaultValue, this.sequelize.dialect);
     }
 
   }
@@ -3443,7 +3443,7 @@ Instead of specifying a Model, either:
     const updatedAtAttr = this._timestampAttributes.updatedAt;
     if (!options.silent && updatedAtAttr && !incrementAmountsByField[updatedAtAttr]) {
       const attrName = this.rawAttributes[updatedAtAttr].field || updatedAtAttr;
-      extraAttributesToBeUpdated[attrName] = this._getDefaultTimestamp(updatedAtAttr) || Utils.now(this.sequelize.options.dialect);
+      extraAttributesToBeUpdated[attrName] = this._getDefaultTimestamp(updatedAtAttr) || Utils.now(this.sequelize.dialect);
     }
 
     const tableName = this.getTableName(options);
@@ -3979,7 +3979,7 @@ Instead of specifying a Model, either:
     const versionAttr = this.constructor._versionAttribute;
     const hook = this.isNewRecord ? 'Create' : 'Update';
     const wasNewRecord = this.isNewRecord;
-    const now = Utils.now(this.sequelize.options.dialect);
+    const now = Utils.now(this.sequelize.dialect);
     let updatedAtAttr = this.constructor._timestampAttributes.updatedAt;
 
     if (updatedAtAttr && options.fields.length > 0 && !options.fields.includes(updatedAtAttr)) {
