@@ -10,7 +10,6 @@ const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
 const _ = require('lodash');
-const { createSequelizeInstance } = require('../support');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
