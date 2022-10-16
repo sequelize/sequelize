@@ -2864,8 +2864,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       case Op.anyKeyExists:
       case Op.allKeysExist: {
-        if (value instanceof Utils.Literal) {
-          return this._joinKeyValue(key, value.val, comparator, options.prefix);
+        if (value instanceof Utils.SequelizeMethod) {
+          return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
         }
 
         return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
