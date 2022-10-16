@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
 
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { Sequelize, DataTypes, Op, literal } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -324,98 +324,98 @@ describe('model', () => {
       expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
     });
 
-      it('should be able to check any of these array strings exist as top-level keys', async function () {
-        await this.User.create({
-          emergency_contact: {
-            name: 'kate',
-            gamer: true,
-            grade: 'A',
-          },
-        });
-
-        await this.User.create({
-          emergency_contact: {
-            name: 'richard',
-            programmer: true,
-            grade: 'S',
-          },
-        });
-
-        const users = await this.User.findAll({
-          where: {
-            emergency_contact: {
-              [Op.anyKeyExists]: ['gamer', 'something'],
-            },
-          },
-        });
-
-        expect(users.length).to.equal(1);
+    it('should be able to check any of these array strings exist as top-level keys', async function () {
+      await this.User.create({
+        emergency_contact: {
+          name: 'kate',
+          gamer: true,
+          grade: 'A',
+        },
       });
 
-      it('should be able to check all of these array strings exist as top-level keys', async function () {
-        await this.User.create({
-          emergency_contact: {
-            name: 'kate',
-            gamer: true,
-            grade: 'A',
-          },
-        });
-
-        await this.User.create({
-          emergency_contact: {
-            name: 'richard',
-            programmer: true,
-            grade: 'S',
-          },
-        });
-
-        const users = await this.User.findAll({
-          where: {
-            emergency_contact: {
-              [Op.allKeysExist]: ['name', 'programmer', 'grade'],
-            },
-          },
-        });
-
-        expect(users.length).to.equal(1);
+      await this.User.create({
+        emergency_contact: {
+          name: 'richard',
+          programmer: true,
+          grade: 'S',
+        },
       });
 
-      it('should be able to check any of these array strings exist as top-level keys (with literal)', async function () {
-        await this.User.create({
+      const users = await this.User.findAll({
+        where: {
           emergency_contact: {
-            name: 'kate',
-            gamer: true,
-            grade: 'A',
+            [Op.anyKeyExists]: ['gamer', 'something'],
           },
-        });
-
-        await this.User.create({
-          emergency_contact: {
-            name: 'richard',
-            programmer: true,
-            grade: 'S',
-          },
-        });
-
-        const users = await this.User.findAll({
-          where: {
-            emergency_contact: {
-              [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('["gamer","something"]'))`),
-            },
-          },
-        });
-
-        expect(users.length).to.equal(1);
-
-        const users2 = await this.User.findAll({
-          where: {
-            emergency_contact: {
-              [Op.anyKeyExists]: [literal(`'gamer'`)],
-            },
-          },
-        });
-
-        expect(users2.length).to.equal(1);
+        },
       });
+
+      expect(users.length).to.equal(1);
+    });
+
+    it('should be able to check all of these array strings exist as top-level keys', async function () {
+      await this.User.create({
+        emergency_contact: {
+          name: 'kate',
+          gamer: true,
+          grade: 'A',
+        },
+      });
+
+      await this.User.create({
+        emergency_contact: {
+          name: 'richard',
+          programmer: true,
+          grade: 'S',
+        },
+      });
+
+      const users = await this.User.findAll({
+        where: {
+          emergency_contact: {
+            [Op.allKeysExist]: ['name', 'programmer', 'grade'],
+          },
+        },
+      });
+
+      expect(users.length).to.equal(1);
+    });
+
+    it('should be able to check any of these array strings exist as top-level keys (with literal)', async function () {
+      await this.User.create({
+        emergency_contact: {
+          name: 'kate',
+          gamer: true,
+          grade: 'A',
+        },
+      });
+
+      await this.User.create({
+        emergency_contact: {
+          name: 'richard',
+          programmer: true,
+          grade: 'S',
+        },
+      });
+
+      const users = await this.User.findAll({
+        where: {
+          emergency_contact: {
+            [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('["gamer","something"]'))`),
+          },
+        },
+      });
+
+      expect(users.length).to.equal(1);
+
+      const users2 = await this.User.findAll({
+        where: {
+          emergency_contact: {
+            [Op.anyKeyExists]: [literal(`'gamer'`)],
+          },
+        },
+      });
+
+      expect(users2.length).to.equal(1);
+    });
   });
 });
