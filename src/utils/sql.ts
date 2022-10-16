@@ -114,8 +114,8 @@ export function injectReplacements(
         dialect.canBackslashEscape() ||
         // checking if this is a postgres-style E-prefixed string, which also supports backslash escaping
         dialect.supports.escapeStringConstants &&
-          // is this a E-prefixed string, such as `E'abc'` ?
-          sqlString[i - 1] === 'E' &&
+          // is this a E-prefixed string, such as `E'abc'`, `e'abc'` ?
+          (sqlString[i - 1] === 'E' || sqlString[i - 1] === 'e') &&
           // reject things such as `AE'abc'` (the prefix must be exactly E)
           canPrecedeNewToken(sqlString[i - 2]);
 
