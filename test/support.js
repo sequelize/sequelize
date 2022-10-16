@@ -351,8 +351,10 @@ function expectPerDialect(method, assertions) {
     result = error;
   }
 
-  const expectation =
-    expectations[Support.sequelize.dialect.name] ?? expectations.default;
+  const expectation = expectations[Support.sequelize.dialect.name];
+  if ((undefined, null).includes(expectation)) {
+    expectations.default;
+  }
   if (expectation === undefined) {
     throw new Error(
       `No expectation was defined for ${Support.sequelize.dialect.name} and the 'default' expectation has not been defined.`
