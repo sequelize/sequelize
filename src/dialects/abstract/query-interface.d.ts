@@ -71,6 +71,7 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
       customIndex?: boolean,
     },
   };
+  schema?: string;
 }
 
 export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
