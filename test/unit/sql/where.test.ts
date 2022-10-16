@@ -2295,7 +2295,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.anyKeyExists]: col('label'),
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[label]`,
+          default: `[jsonbAttr] ?| label`,
         });
 
         testSql({
@@ -2303,7 +2303,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: col('labels'),
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[labels]`,
+          default: `[jsonbAttr] ?& labels`,
         });
 
         testSql({
@@ -2311,7 +2311,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.anyKeyExists]: cast(col('labels'), 'STRING[]'),
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[CAST(labels AS STRING[])]`,
+          default: `[jsonbAttr] ?| CAST(labels AS STRING[])`,
         });
 
         testSql({
@@ -2319,7 +2319,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: cast(col('labels'), 'STRING[]'),
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[CAST(labels AS STRING[])]`,
+          default: `[jsonbAttr] ?& CAST(labels AS STRING[])`,
         });
 
         testSql({
@@ -2335,7 +2335,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: fn('get_labels'),
           },
         }, {
-          default: `[jsonbAttr] ?| get_labels()`,
+          default: `[jsonbAttr] ?& get_labels()`,
         });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
