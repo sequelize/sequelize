@@ -88,7 +88,7 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE json_col->>$key',
-      postgres: 'SELECT * FROM users WHERE json_col->>$1',
+      postgres: 'SELECT * FROM users WHERE json_col->>$key',
       sqlite: 'SELECT * FROM users WHERE json_col->>$key',
       mssql: 'SELECT * FROM users WHERE json_col->>@key'
     });
@@ -216,7 +216,7 @@ SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
         ),
-        postgres: "SELECT * FROM users WHERE id = '\\' $id' OR id = $1"
+        postgres: "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
       }
     );
   });
@@ -236,7 +236,7 @@ SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
         ),
-        postgres: "SELECT * FROM users WHERE id = E'\\' $id' OR id = $1"
+        postgres: "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
       }
     );
   });
@@ -256,7 +256,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
         ),
-        postgres: "SELECT * FROM users WHERE id = e'\\' $id' OR id = $1"
+        postgres: "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
       }
     );
   });
@@ -276,21 +276,20 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
   });
 
   it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
-    expectPerDialect(
-      () =>
-        injectReplacements(
-          "SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id",
-          dialect
-        ),
-      {
-        default:
-          new Error(`The following SQL query includes an unterminated string literal:
-SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
-        'mysql mariadb': toMatchSql(
-          "SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id"
-        )
-      }
-    );
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id",
+        dialect,
+        { id: 1 }
+      );
+
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
+
+      'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = 1"
+    });
   });
 
   it('does not consider the token to be a replacement if it is in a single line comment', () => {
