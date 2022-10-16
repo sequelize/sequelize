@@ -301,12 +301,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
-    let ifNotExists = options.ifNotExists;
-    if (ifNotExists) {
-      ifNotExists = 'IF NOT EXISTS';
-    } else {
-      ifNotExists = '';
-    }
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 

@@ -29,6 +29,7 @@ const { _validateIncludedElements } = require('../../model-internals');
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
 export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
+export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifNotExists']);
 
 /**
  * Abstract Query Generator

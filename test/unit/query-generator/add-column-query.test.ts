@@ -1,5 +1,8 @@
 import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { expectsql, getTestDialect, sequelize } from '../../support';
+
+const dialectName = getTestDialect();
 
 describe('QueryGenerator#addColumnQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -24,9 +27,9 @@ describe('QueryGenerator#addColumnQuery', () => {
     });
 
     expectsql(sql, {
-      default: `ALTER TABLE "public"."Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
+      default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
       postgres: `ALTER TABLE "public"."Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
-      mysql: `ALTER TABLE "public"."Users" ADD COLUMN "age" INTEGER;`,
+      mysql: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
     });
   });
 });
