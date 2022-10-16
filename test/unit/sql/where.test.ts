@@ -2294,6 +2294,54 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: `[jsonbAttr] ?& ARRAY["gamer"]`,
         });
 
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: col('label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[label]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: col('labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[labels]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[CAST(labels AS STRING[])]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[CAST(labels AS STRING[])]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: fn('get_label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| get_label()`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: fn('get_labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| get_labels()`,
+        });
+
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {
           default: '"id" = ("profile"#>>\'{id}\')',
