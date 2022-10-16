@@ -5,6 +5,7 @@
     ":semanticCommitTypeAll(meta)",
     ":semanticCommitScopeDisabled"
   ],
+  "automergeStrategy": "squash",
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "packageRules": [
