@@ -133,8 +133,8 @@ describe('QueryInterface#showAllTables', () => {
     });
   }
 
-  if (dialect.supports.schemas) {
-    describe('schema support tests', () => {
+  describe('schema support tests', () => {
+    if (dialect.supports.schemas) {
       it('shows all tables from the specified schema in the method options', async () => {
         await createSchemaAndTables(sequelize);
         const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
@@ -169,6 +169,6 @@ describe('QueryInterface#showAllTables', () => {
           expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
         });
       }
-    });
-  }
+    }
+  });
 });
