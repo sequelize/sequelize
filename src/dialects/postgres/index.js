@@ -22,6 +22,14 @@ class PostgresDialect extends AbstractDialect {
       this.queryGenerator
     );
   }
+
+  canBackslashEscape() {
+    // postgres can use \ to escape if one of these is true:
+    // - standard_conforming_strings is off
+    // - the string is prefixed with E (out of scope for this method)
+
+    return !this.sequelize.options.standardConformingStrings;
+  }
 }
 
 PostgresDialect.prototype.supports = _.merge(
@@ -65,7 +73,8 @@ PostgresDialect.prototype.supports = _.merge(
     HSTORE: true,
     TSVECTOR: true,
     deferrableConstraints: true,
-    searchPath: true
+    searchPath: true,
+    escapeStringConstants: true
   }
 );
 

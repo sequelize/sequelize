@@ -1,6 +1,15 @@
 'use strict';
 
-class AbstractDialect {}
+class AbstractDialect {
+  /**
+   * Whether this dialect can use \ in strings to escape string delimiters.
+   *
+   * @returns {boolean}
+   */
+  canBackslashEscape() {
+    return false;
+  }
+}
 
 AbstractDialect.prototype.supports = {
   'DEFAULT': true,
@@ -70,7 +79,8 @@ AbstractDialect.prototype.supports = {
    * This dialect supports marking a column's constraints as deferrable.
    * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
    */
-  deferrableConstraints: false
+  deferrableConstraints: false,
+  escapeStringConstants: false
 };
 
 module.exports = AbstractDialect;
