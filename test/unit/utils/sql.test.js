@@ -193,7 +193,7 @@ describe('injectReplacements (named replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
+SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
         )
@@ -211,7 +211,7 @@ describe('injectReplacements (named replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
+SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
 
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
@@ -232,7 +232,7 @@ describe('injectReplacements (named replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
+SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
         ),
@@ -245,18 +245,18 @@ describe('injectReplacements (named replacements)', () => {
     expectPerDialect(
       () =>
         injectReplacements(
-          'SELECT * FROM users WHERE id = e\'\\\' $id\' OR id = $id',
+          "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id",
           dialect
         ),
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
+SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
 
         'mysql mariadb': toMatchSql(
-          'SELECT * FROM users WHERE id = e\'\\\' $id\' OR id = $id'
+          "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
         ),
-        postgres: 'SELECT * FROM users WHERE id = e\'\\\' $id\' OR id = $1'
+        postgres: "SELECT * FROM users WHERE id = e'\\' $id' OR id = $1"
       }
     );
   });
@@ -285,7 +285,7 @@ describe('injectReplacements (named replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
+SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id"
         )
@@ -484,7 +484,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
+SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
 
       'mysql mariadb': toMatchSql(
         "SELECT * FROM users WHERE id = '\\' :id' OR id = 1"
@@ -503,7 +503,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
+SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
 
       'mysql mariadb postgres': toMatchSql(
         "SELECT * FROM users WHERE id = '\\' :id' OR id = 1"
@@ -522,7 +522,7 @@ describe('injectReplacements (positional replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = E'\\' :id' OR id = :id`),
+SELECT * FROM users WHERE id = E'\\' :id' OR id = :id`),
 
         'mysql mariadb postgres': toMatchSql(
           "SELECT * FROM users WHERE id = E'\\' :id' OR id = 1"
@@ -554,7 +554,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
+SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
 
       'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = 1"
     });
@@ -690,7 +690,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
+SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
 
       'mysql mariadb': toMatchSql(
         "SELECT * FROM users WHERE id = '\\' ?' OR id = 1"
@@ -709,7 +709,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
+SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
 
       'mysql mariadb postgres': toMatchSql(
         "SELECT * FROM users WHERE id = '\\' ?' OR id = 1"
@@ -728,7 +728,7 @@ describe('injectReplacements (positional replacements)', () => {
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = E'\\' ?' OR id = ?`),
+SELECT * FROM users WHERE id = E'\\' ?' OR id = ?`),
 
         'mysql mariadb postgres': toMatchSql(
           "SELECT * FROM users WHERE id = E'\\' ?' OR id = 1"
@@ -748,7 +748,7 @@ describe('injectReplacements (positional replacements)', () => {
     expectPerDialect(test, {
       default:
         new Error(`The following SQL query includes an unterminated string literal:
- SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
+SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
 
       'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = 1"
     });
