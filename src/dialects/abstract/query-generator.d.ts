@@ -153,4 +153,5 @@ export class AbstractQueryGenerator {
   listDatabasesQuery(): string;
 
   showTablesQuery(schemaName?: string): string;
+  showTablesQuery(database: string, options?: ParameterOptions): string;
 }
