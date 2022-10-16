@@ -351,10 +351,9 @@ function expectPerDialect(method, assertions) {
     result = error;
   }
 
-  const expectation = expectations[Support.sequelize.dialect.name];
-  if ((undefined, null).includes(expectation)) {
-    expectations.default;
-  }
+  let expectation = expectations[Support.sequelize.dialect.name];
+  expectation = expectation != null ? expectation : expectations.default;
+
   if (expectation === undefined) {
     throw new Error(
       `No expectation was defined for ${Support.sequelize.dialect.name} and the 'default' expectation has not been defined.`
@@ -401,7 +400,6 @@ class SqlExpectation extends Expectation {
   }
 
   assert(value) {
-    console.log({ thissql: this.sql, value });
     expect(Support.minifySql(value)).to.equal(Support.minifySql(this.sql));
   }
 }
