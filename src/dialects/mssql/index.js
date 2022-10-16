@@ -40,6 +40,8 @@ export class MssqlDialect extends AbstractDialect {
     },
     NUMERIC: true,
     tmpTableTrigger: true,
+    // TODO: add support for JSON queries https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
+    jsonOperations: false,
   });
 
   constructor(sequelize) {

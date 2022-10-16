@@ -284,7 +284,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
           { fields: ['email'], unique: true },
         ],
       });
-    }).to.throw('Sequelize tried to give the name "test_syncs_email_unique" to index');
+    }).to.throwWithCause('Sequelize tried to give the name "test_syncs_email_unique" to index');
   });
 
   it('adds missing unique indexes to existing tables (unique attribute option)', async () => {

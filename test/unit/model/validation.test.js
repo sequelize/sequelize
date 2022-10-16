@@ -380,14 +380,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
     });
 
-    describe('should throw validationerror', () => {
-
+    describe('should throw validationError', () => {
       describe('create', () => {
         it('should throw when passing string', async () => {
-          await expect(User.create({
+          const error = await expect(User.create({
             age: 'jan',
-          })).to.be.rejectedWith(Sequelize.ValidationError)
-            .which.eventually.have.property('errors')
+          })).to.be.rejectedWith(Sequelize.ValidationError, `"jan" is not a valid integer`);
+
+          expect(error).to.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
@@ -396,7 +396,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -414,7 +413,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -434,7 +432,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -452,7 +449,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               type: 'Validation error',
               path: 'age',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -462,14 +458,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions', () => {
-
     const User = current.define('user', {
-      age: {
+      integer: {
         type: DataTypes.INTEGER,
         validate: {
           customFn(val, next) {
             if (val < 0) {
-              next('age must be greater or equal zero');
+              next('integer must be greater or equal zero');
             } else {
               next();
             }
@@ -499,7 +494,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('create', () => {
         it('custom validation functions are successful', async () => {
           await expect(User.create({
-            age: 1,
+            integer: 1,
             name: 'noerror',
           })).not.to.be.rejected;
         });
@@ -508,7 +503,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('update', () => {
         it('custom validation functions are successful', async () => {
           await expect(User.update({
-            age: 1,
+            integer: 1,
             name: 'noerror',
           }, { where: {} })).not.to.be.rejected;
         });
@@ -516,11 +511,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom attribute validation function fails', async () => {
           await expect(User.create({
-            age: -1,
+            integer: -1,
           })).to.be.rejectedWith(Sequelize.ValidationError);
         });
 
@@ -534,7 +528,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('update', () => {
         it('custom attribute validation function fails', async () => {
           await expect(User.update({
-            age: -1,
+            integer: -1,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
         });
 
@@ -548,7 +542,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions returning promises', () => {
-
     const User = current.define('user', {
       name: DataTypes.STRING,
     }, {
@@ -588,7 +581,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom model validation function fails', async () => {
           await expect(User.create({
@@ -608,20 +600,18 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions and null values', () => {
-
     before(function () {
       this.customValidator = sinon.fake(function (value) {
-        if (value === null && this.age !== 10) {
-          throw new Error('name can\'t be null unless age is 10');
+        if (value === null && this.integer !== 10) {
+          throw new Error('name can\'t be null unless integer is 10');
         }
       });
     });
 
     describe('with allowNull set to true', () => {
-
       before(function () {
         this.User = current.define('user', {
-          age: DataTypes.INTEGER,
+          integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
             allowNull: true,
@@ -645,15 +635,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 10,
+            integer: 10,
             name: null,
           })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 10,
+            integer: 10,
             name: null,
           }, { where: {} })).not.to.be.rejected;
 
@@ -668,15 +659,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 11,
+            integer: 11,
             name: null,
           })).to.be.rejectedWith(Sequelize.ValidationError);
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 11,
+            integer: 11,
             name: null,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -687,10 +679,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('with allowNull set to false', () => {
-
       before(function () {
         this.User = current.define('user', {
-          age: DataTypes.INTEGER,
+          integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -714,15 +705,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 99,
+            integer: 99,
             name: null,
           })).to.be.rejectedWith(Sequelize.ValidationError);
 
           await expect(this.customValidator).to.have.not.been.called;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 99,
+            integer: 99,
             name: null,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -737,24 +729,22 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 99,
+            integer: 99,
             name: 'foo',
           })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 99,
+            integer: 99,
             name: 'foo',
           }, { where: {} })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
       });
-
     });
-
   });
-
 });
