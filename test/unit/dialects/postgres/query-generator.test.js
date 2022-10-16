@@ -458,7 +458,7 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" = E\'\\\\x53657175656c697a65\';',
+          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = E'\\\\x53657175656c697a65';`,
           context: QueryGenerator,
         }, {
           title: 'string in array should escape \' as \'\'',

@@ -688,13 +688,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           data: ['123'],
         },
       }, User), {
-        ibmi: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB(\'123\'))',
-        postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
-        snowflake: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X\'313233\');',
-        mariadb: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
-        mysql: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
-        sqlite: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
-        db2: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (\'x\'\'313233\'\'\');',
+        ibmi: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'))`,
+        db2: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('x''313233''');`,
+        postgres: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E'\\\\x313233');`,
+        snowflake: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X'313233');`,
+        'mariadb mysql sqlite': 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
         mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);',
       });
     });
