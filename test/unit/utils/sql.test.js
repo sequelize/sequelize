@@ -5,7 +5,6 @@ const {
   sequelize,
   createSequelizeInstance,
   expectPerDialect,
-  toHaveProperties,
   toMatchSql
 } = require('../../support');
 
@@ -55,9 +54,7 @@ describe('injectReplacements (named replacements)', () => {
     const sql = injectReplacements(
       'SELECT * FROM users WHERE json_col->>:key',
       dialect,
-      {
-        key: 'name'
-      }
+      { key: 'name' }
     );
 
     expectsql(sql, {
@@ -70,9 +67,7 @@ describe('injectReplacements (named replacements)', () => {
     const sql = injectReplacements(
       'SELECT * FROM users WHERE id = :id;',
       dialect,
-      {
-        id: 1
-      }
+      { id: 1 }
     );
 
     expectsql(sql, {
@@ -83,14 +78,15 @@ describe('injectReplacements (named replacements)', () => {
   it('parses bind parameters following JSONB indexing', () => {
     const sql = injectReplacements(
       'SELECT * FROM users WHERE json_col->>$key',
-      dialect
+      dialect,
+      { id: 1 }
     );
 
     expectsql(sql, {
-      default: 'SELECT * FROM users WHERE json_col->>$key',
-      postgres: 'SELECT * FROM users WHERE json_col->>$key',
-      sqlite: 'SELECT * FROM users WHERE json_col->>$key',
-      mssql: 'SELECT * FROM users WHERE json_col->>@key'
+      default: 'SELECT * FROM users WHERE json_col->>$key'
+      // postgres: "SELECT * FROM users WHERE json_col->>$key",
+      // sqlite: "SELECT * FROM users WHERE json_col->>$key",
+      // mssql: "SELECT * FROM users WHERE json_col->>@key",
     });
   });
 
@@ -101,10 +97,7 @@ describe('injectReplacements (named replacements)', () => {
       const sql = injectReplacements(
         'SELECT * FROM users WHERE id = ARRAY[:id1]::int[] OR id = ARRAY[:id1,:id2]::int[] OR id = ARRAY[:id1, :id2]::int[];',
         dialect,
-        {
-          id1: 1,
-          id2: 4
-        }
+        { id1: 1, id2: 4 }
       );
 
       expectsql(sql, {
@@ -118,9 +111,7 @@ describe('injectReplacements (named replacements)', () => {
     const sql = injectReplacements(
       'SELECT * FROM users WHERE id = :a',
       dialect,
-      {
-        a: 1
-      }
+      { a: 1 }
     );
 
     expectsql(sql, {
@@ -206,17 +197,17 @@ SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
       () =>
         injectReplacements(
           "SELECT * FROM users WHERE id = '\\' $id' OR id = $id",
-          getNonStandardConfirmingStringDialect()
+          getNonStandardConfirmingStringDialect(),
+          { id: 1 }
         ),
       {
         default:
           new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
 
-        'mysql mariadb': toMatchSql(
+        'mysql mariadb postgres': toMatchSql(
           "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
-        ),
-        postgres: "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
+        )
       }
     );
   });
@@ -246,7 +237,8 @@ SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
       () =>
         injectReplacements(
           "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id",
-          dialect
+          dialect,
+          { id: 1 }
         ),
       {
         default:
@@ -255,8 +247,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
 
         'mysql mariadb': toMatchSql(
           "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
-        ),
-        postgres: "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
+        )
       }
     );
   });
