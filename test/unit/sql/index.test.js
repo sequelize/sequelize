@@ -261,7 +261,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['email'],
           include: ['first_name', 'last_name'],
         }), {
-          mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+          default: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
         });
       });
     }
