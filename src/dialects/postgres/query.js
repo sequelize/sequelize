@@ -51,6 +51,7 @@ export class PostgresQuery extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
+        || error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
       }
