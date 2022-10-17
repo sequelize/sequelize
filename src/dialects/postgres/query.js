@@ -51,6 +51,12 @@ export class PostgresQuery extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
+
+        // If the query fails with a client-side timeout, invalidate the connection because
+        // it's probably stuck. (Note that query_timeout should be greater than
+        // statement_timeout.)
+        //
+        // https://github.com/sequelize/sequelize/pull/15144
         || error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
