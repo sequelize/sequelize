@@ -1,7 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -13,6 +16,7 @@ const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -173,7 +177,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     dataType.field = key;
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',

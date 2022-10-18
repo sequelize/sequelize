@@ -1,7 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -11,6 +14,7 @@ const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -214,7 +218,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     dataType.field = key;
 
     const query = 'ALTER TABLE <%= table %> ADD <%= attribute %>;';
