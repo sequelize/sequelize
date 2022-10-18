@@ -3567,6 +3567,17 @@ Instead of specifying a Model, either:
   }
 
   /**
+   * Removes the underlying data value
+   *
+   * @param {string} key The name of the attribute to remove.
+   */
+  removeDataValue(key) {
+    this.changed(key, true);
+
+    delete this.dataValues[key];
+  }
+
+  /**
    * If no key is given, returns all values of the instance, also invoking virtual getters.
    *
    * If key is given and a field or virtual getter is present for the key it will call that getter - else it will return the
