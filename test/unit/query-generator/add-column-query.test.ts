@@ -20,7 +20,6 @@ describe('QueryGenerator#addColumnQuery', () => {
       default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
       mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
       postgres: `ALTER TABLE "public"."Users" ADD COLUMN "age" INTEGER;`,
-      mysql: 'ALTER TABLE `Users` ADD `age` INTEGER;',
     });
   });
 
