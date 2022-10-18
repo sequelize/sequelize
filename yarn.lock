@@ -8612,10 +8612,10 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc@0.23.16:
-  version "0.23.16"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.16.tgz#09881ada725c2190ac5d3bb0edadcc5bfeda4bfe"
-  integrity sha512-rumYsCeNRXlyuZVzefD7050n7ptL2uudsCJg50dY0v/stKniqIlRpvx/F/6expC0/Q6Dbab+g/JpZuB7Sw90FA==
+typedoc@0.23.17:
+  version "0.23.17"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.17.tgz#ca644e7ecac78be85cfd556f5436917a4ac76dda"
+  integrity sha512-3rtNubo1dK0pvs6ixpMAq4pESULd5/JNUqJbdyZoeilI14reb1RNVomN4fMgIadd0RMX1aenYjJSSMBOJ+/+0Q==
   dependencies:
     lunr "^2.3.9"
     marked "^4.0.19"
