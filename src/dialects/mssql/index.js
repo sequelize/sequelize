@@ -25,6 +25,12 @@ export class MssqlDialect extends AbstractDialect {
       defaultValue: false,
       update: false,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     alterColumn: {
       unique: false,
     },

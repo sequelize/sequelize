@@ -91,6 +91,10 @@ export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
+export interface RemoveColumnQueryOptions {
+  ifExists?: boolean;
+}
+
 export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
@@ -130,6 +134,12 @@ export class AbstractQueryGenerator {
     columnName: string,
     columnDefinition: ModelAttributeColumnOptions | DataType,
     options?: AddColumnQueryOptions,
+  ): string;
+
+  removeColumnQuery(
+    table: TableName,
+    attributeName: string,
+    options?: RemoveColumnQueryOptions,
   ): string;
 
   updateQuery(

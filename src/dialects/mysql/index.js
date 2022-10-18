@@ -27,6 +27,9 @@ export class MysqlDialect extends AbstractDialect {
       addColumn: {
         ifNotExists: false,
       },
+      removeColumn: {
+        ifExists: false,
+      },
       index: {
         collate: false,
         length: true,

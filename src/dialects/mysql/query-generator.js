@@ -1,7 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -29,6 +32,7 @@ const FOREIGN_KEY_FIELDS = [
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -217,7 +221,17 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),

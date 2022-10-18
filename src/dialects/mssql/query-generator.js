@@ -5,6 +5,7 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -24,6 +25,7 @@ function throwMethodUndefined(methodName) {
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -332,7 +334,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),

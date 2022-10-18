@@ -4,6 +4,7 @@ import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
 } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
@@ -17,6 +18,7 @@ const SqlString = require('../../sql-string');
 const typeWithoutDefault = new Set(['BLOB']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -198,7 +200,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 

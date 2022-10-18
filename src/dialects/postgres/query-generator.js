@@ -314,11 +314,12 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return query;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
     const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
     const quotedAttributeName = this.quoteIdentifier(attributeName);
+    const ifExists = (options || {}).ifExists ? ' IF EXISTS' : '';
 
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
+    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
   changeColumnQuery(tableName, attributes) {
