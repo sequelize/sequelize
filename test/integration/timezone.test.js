@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require('./support');
 
 const dialect = Support.getTestDialect();
+const queryGenerator = Support.sequelize.queryInterface.queryGenerator;
 
 if (dialect !== 'sqlite' && dialect !== 'ibmi') {
   // Sqlite does not support setting timezone
@@ -21,25 +22,20 @@ if (dialect !== 'sqlite' && dialect !== 'ibmi') {
     });
 
     it('returns the same value for current timestamp', async function () {
-      let now = 'now()';
       const startQueryTime = Date.now();
 
-      if (dialect === 'mssql') {
-        now = 'GETDATE()';
-      }
+      const now = (dialect === 'mssql') ? 'GETDATE()' : 'now()';
+      const query = `SELECT ${now} as ${queryGenerator.quoteIdentifier('now')}`;
 
-      let query = `SELECT ${now} as now`;
-      if (dialect === 'db2') {
-        query = `SELECT ${now} as "now"`;
-      }
-
-      const [now1, now2] = await Promise.all([
+      const [now1, now2, now3] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT }),
+        this.sequelizeWithNamedTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT }),
       ]);
 
       const elapsedQueryTime = Date.now() - startQueryTime + 1001;
-      expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
+      expect(new Date(now1[0].now).getTime()).to.be.closeTo(new Date(now2[0].now).getTime(), elapsedQueryTime);
+      expect(new Date(now1[0].now).getTime()).to.be.closeTo(new Date(now3[0].now).getTime(), elapsedQueryTime);
     });
 
     if (['mysql', 'mariadb'].includes(dialect)) {

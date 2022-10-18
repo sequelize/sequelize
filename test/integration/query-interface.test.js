@@ -334,8 +334,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       it('should work with enums (2)', async function () {
         await this.queryInterface.addColumn('users', 'someOtherEnum', {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3'],
+          type: DataTypes.ENUM(['value1', 'value2', 'value3']),
         });
       });
     }
