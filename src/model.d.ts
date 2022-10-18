@@ -3413,6 +3413,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   setDataValue<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K]): void;
 
   /**
+   * Removes the underlying data value.
+   *
+   * @param key The name of the attribute to remove.
+   */
+  removeDataValue<K extends keyof TModelAttributes>(key: K): void;
+
+  /**
    * If no key is given, returns all values of the instance, also invoking virtual getters. If an object has child objects or if options.clone===true, the object will be a copy. Otherwise, it will reference instance.dataValues.
    *
    * If key is given and a field or virtual getter is present for the key it will call that getter - else it
