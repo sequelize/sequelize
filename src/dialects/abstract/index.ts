@@ -31,6 +31,14 @@ export type DialectSupports = {
     ifNotExists: boolean,
   },
 
+  dropColumn: {
+    /**
+     * Does this dialect support checking `IF EXISTS` before deleting/dropping column
+     * For instance, in Postgres, "DROP COLUMN IF EXISTS" only drops the column if it does exist
+     */
+    ifExists: boolean,
+  },
+
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | {
     output: boolean,
@@ -167,6 +175,9 @@ export abstract class AbstractDialect {
     finalTable: false,
     addColumn: {
       ifNotExists: false,
+    },
+    dropColumn: {
+      ifExists: false,
     },
     returnValues: false,
     autoIncrement: {

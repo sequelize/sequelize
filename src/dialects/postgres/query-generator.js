@@ -295,13 +295,13 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, attribute, options = {}) {
+  addColumnQuery(table, key, attribute, options) {
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
-    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
+    const ifNotExists = (options || {}).ifNotExists ? ' IF NOT EXISTS' : '';
 
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 

@@ -451,7 +451,7 @@ export class QueryInterface {
     const { ifNotExists, ifExists, ...rawQueryOptions } = options;
 
     let addColumnQueryOptions = null;
-    if (ifNotExists && ifExists) {
+    if (ifNotExists || ifExists) {
       addColumnQueryOptions = {
         ifNotExists,
         ifExists,
