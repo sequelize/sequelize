@@ -425,7 +425,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr};`);
+      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`);
     }
 
     const commands = [];
@@ -436,14 +436,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
       let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
-        generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF;`;
+        generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
       }
 
       commands.push(generatedQuery);
       offset += 1000;
     }
 
-    return commands.join(';');
+    return `${commands.join(';')};`;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
