@@ -361,6 +361,20 @@ export function toMatchSql(sql: string) {
   return new SqlExpectation(sql);
 }
 
+class RegexExpectation extends Expectation<string> {
+  constructor(private readonly regex: RegExp) {
+    super();
+  }
+
+  assert(value: string) {
+    expect(value).to.match(this.regex);
+  }
+}
+
+export function toMatchRegex(regex: RegExp) {
+  return new RegexExpectation(regex);
+}
+
 type HasPropertiesInput<Obj extends Record<string, unknown>> = {
   [K in keyof Obj]?: any | Expectation<Obj[K]> | Error;
 };
