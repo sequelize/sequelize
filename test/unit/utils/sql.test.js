@@ -249,7 +249,7 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
     const sql = injectReplacements(`
       SELECT * FROM users -- WHERE id = :id
       WHERE id = :id
-    `, dialect, { id: 1 } );
+    `, dialect, { id: 1 });
 
     expectsql(sql, {
       default: `
@@ -263,7 +263,7 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
     const sql = injectReplacements(`
       SELECT * FROM users -- '
       WHERE id = ' :id '
-    `, dialect, { id: 1 } );
+    `, dialect, { id: 1 });
 
     expectsql(sql, {
       default: `
@@ -279,7 +279,7 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
       WHERE id = :id
       */
       WHERE id = :id
-    `, dialect, { id: 1 } );
+    `, dialect, { id: 1 });
 
     expectsql(sql, {
       default: `
@@ -495,7 +495,7 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
       WHERE id = ?
       */
       WHERE id = ?
-    `, dialect, [1] );
+    `, dialect, [1]);
 
     expectsql(sql, {
       default: `
