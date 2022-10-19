@@ -85,6 +85,7 @@ export declare type DialectSupports = {
   tmpTableTrigger: boolean;
   indexHints: boolean;
   searchPath: boolean;
+  escapeStringConstants: boolean;
 };
 
 export declare abstract class AbstractDialect {
@@ -103,4 +104,5 @@ export declare abstract class AbstractDialect {
   readonly TICK_CHAR_RIGHT: string;
   readonly queryGenerator: unknown;
   get supports(): DialectSupports;
+  canBackslashEscape(): boolean;
 }

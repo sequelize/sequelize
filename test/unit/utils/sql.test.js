@@ -1,6 +1,12 @@
 const { injectReplacements } = require('sequelize/lib/utils/sql');
 const { expect } = require('chai');
-const { expectsql, sequelize } = require('../../support');
+const {
+  expectsql,
+  sequelize,
+  createSequelizeInstance,
+  expectPerDialect,
+  toMatchSql
+} = require('../../support');
 
 const dialect = sequelize.dialect;
 
@@ -21,7 +27,6 @@ describe('injectReplacements (named replacements)', () => {
         id: 1
       });
     }).to.throw('Named replacement ":toString" has no entry in the replacement map.');
-
   });
 
   it('parses named replacements followed by cast syntax', () => {
@@ -34,6 +39,19 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('parses named replacements following JSONB indexing', () => {
+    const sql = injectReplacements(
+      'SELECT * FROM users WHERE json_col->>:key',
+      dialect,
+      { key: 'name' }
+    );
+
+    expectsql(sql, {
+      default: "SELECT * FROM users WHERE json_col->>'name'",
+      mssql: "SELECT * FROM users WHERE json_col->>N'name'"
+    });
+  });
+
   it('parses named replacements followed by a semicolon', () => {
     const sql = injectReplacements('SELECT * FROM users WHERE id = :id;', dialect, {
       id: 1
@@ -41,6 +59,18 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE id = 1;'
+    });
+  });
+
+  it('parses bind parameters following JSONB indexing', () => {
+    const sql = injectReplacements(
+      'SELECT * FROM users WHERE json_col->>$key',
+      dialect,
+      { id: 1 }
+    );
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE json_col->>$key'
     });
   });
 
@@ -109,14 +139,82 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
-  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
-    const sql = injectReplacements('SELECT * FROM users WHERE id = \'\\\':id\' OR id = :id', dialect, {
-      id: 1
-    });
+  it('does not consider the token to be a bind parameter if it is part of a string with a backslash escaped quote, in dialects that support backslash escape', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = '\\' $id' OR id = $id",
+          dialect,
+          { id: 1 }
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
+        'mysql mariadb': toMatchSql(
+          "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
+        )
+      }
+    );
+  });
 
-    expectsql(sql, {
-      default: 'SELECT * FROM users WHERE id = \'\\\':id\' OR id = 1'
-    });
+  it('does not consider the token to be a bind parameter if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = '\\' $id' OR id = $id",
+          getNonStandardConfirmingStringDialect(),
+          { id: 1 }
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
+
+        'mysql mariadb postgres': toMatchSql(
+          "SELECT * FROM users WHERE id = '\\' $id' OR id = $id"
+        )
+      }
+    );
+  });
+
+  it('does not consider the token to be a bind parameter if it is part of an E-prefixed string with a backslash escaped quote, in dialects that support E-prefixed strings', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id",
+          dialect,
+          { id: 1 }
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
+        'mysql mariadb postgres': toMatchSql(
+          "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
+        )
+      }
+    );
+  });
+
+  it('treats strings prefixed with a lowercase e as E-prefixed strings too', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id",
+          dialect,
+          { id: 1 }
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
+
+        'mysql mariadb postgres': toMatchSql(
+          "SELECT * FROM users WHERE id = e'\\' $id' OR id = $id"
+        )
+      }
+    );
   });
 
   it('considers the token to be a replacement if it is outside a string ending with an escaped backslash', () => {
@@ -130,12 +228,19 @@ describe('injectReplacements (named replacements)', () => {
   });
 
   it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
-    const sql = injectReplacements('SELECT * FROM users WHERE id = \'\\\\\\\':id\' OR id = :id', dialect, {
-      id: 1
-    });
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id",
+        dialect,
+        { id: 1 }
+      );
 
-    expectsql(sql, {
-      default: 'SELECT * FROM users WHERE id = \'\\\\\\\':id\' OR id = 1'
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
+
+      'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = 1"
     });
   });
 
@@ -207,6 +312,19 @@ describe('injectReplacements (positional replacements)', () => {
     });
   });
 
+  it('parses named replacements following JSONB indexing', () => {
+    const sql = injectReplacements(
+      'SELECT * FROM users WHERE json_col->>?',
+      dialect,
+      ['name']
+    );
+
+    expectsql(sql, {
+      default: "SELECT * FROM users WHERE json_col->>'name'",
+      mssql: "SELECT * FROM users WHERE json_col->>N'name'"
+    });
+  });
+
   it('parses positional replacements followed by a semicolon', () => {
     const sql = injectReplacements('SELECT * FROM users WHERE id = ?;', dialect, [1]);
 
@@ -260,11 +378,61 @@ describe('injectReplacements (positional replacements)', () => {
   });
 
   it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
-    const sql = injectReplacements('SELECT * FROM users WHERE id = \'\\\'?\' OR id = ?', dialect, [1]);
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\' :id' OR id = :id",
+        dialect,
+        { id: 1 }
+      );
 
-    expectsql(sql, {
-      default: 'SELECT * FROM users WHERE id = \'\\\'?\' OR id = 1'
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
+
+      'mysql mariadb': toMatchSql(
+        "SELECT * FROM users WHERE id = '\\' :id' OR id = 1"
+      )
     });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\' :id' OR id = :id",
+        getNonStandardConfirmingStringDialect(),
+        { id: 1 }
+      );
+
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
+
+      'mysql mariadb postgres': toMatchSql(
+        "SELECT * FROM users WHERE id = '\\' :id' OR id = 1"
+      )
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of an E-prefixed string with a backslash escaped quote, in dialects that support E-prefixed strings', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = E'\\' :id' OR id = :id",
+          dialect,
+          { id: 1 }
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = E'\\' :id' OR id = :id`),
+
+        'mysql mariadb postgres': toMatchSql(
+          "SELECT * FROM users WHERE id = E'\\' :id' OR id = 1"
+        )
+      }
+    );
   });
 
   it('considers the token to be a replacement if it is outside a string ending with an escaped backslash', () => {
@@ -276,10 +444,19 @@ describe('injectReplacements (positional replacements)', () => {
   });
 
   it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
-    const sql = injectReplacements('SELECT * FROM users WHERE id = \'\\\\\\\'?\' OR id = ?', dialect, [1]);
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id",
+        dialect,
+        { id: 1 }
+      );
 
-    expectsql(sql, {
-      default: 'SELECT * FROM users WHERE id = \'\\\\\\\'?\' OR id = 1'
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
+
+      'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = 1"
     });
   });
 
@@ -369,4 +546,84 @@ describe('injectReplacements (positional replacements)', () => {
           (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`
     });
   });
+
+  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\' ?' OR id = ?",
+        dialect,
+        [1]
+      );
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
+
+      'mysql mariadb': toMatchSql(
+        "SELECT * FROM users WHERE id = '\\' ?' OR id = 1"
+      )
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\' ?' OR id = ?",
+        getNonStandardConfirmingStringDialect(),
+        [1]
+      );
+
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
+
+      'mysql mariadb postgres': toMatchSql(
+        "SELECT * FROM users WHERE id = '\\' ?' OR id = 1"
+      )
+    });
+  });
+
+  it('does not consider the token to be a replacement if it is part of an E-prefixed string with a backslash escaped quote, in dialects that support E-prefixed strings', () => {
+    expectPerDialect(
+      () =>
+        injectReplacements(
+          "SELECT * FROM users WHERE id = E'\\' ?' OR id = ?",
+          dialect,
+          [1]
+        ),
+      {
+        default:
+          new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = E'\\' ?' OR id = ?`),
+
+        'mysql mariadb postgres': toMatchSql(
+          "SELECT * FROM users WHERE id = E'\\' ?' OR id = 1"
+        )
+      }
+    );
+  });
+
+  it('does not consider the token to be a replacement if it is part of a string with an escaped backslash followed by a backslash escaped quote', () => {
+    const test = () =>
+      injectReplacements(
+        "SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?",
+        dialect,
+        [1]
+      );
+
+    expectPerDialect(test, {
+      default:
+        new Error(`The following SQL query includes an unterminated string literal:
+SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
+
+      'mysql mariadb': "SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = 1"
+    });
+  });
 });
+
+function getNonStandardConfirmingStringDialect() {
+  return createSequelizeInstance({
+    standardConformingStrings: false
+  }).dialect;
+}
