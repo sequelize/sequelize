@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
   const User = sequelize.define('User', {
@@ -20,12 +20,12 @@ describe('QueryInterface#bulkInsert', () => {
     await sequelize.getQueryInterface().bulkInsert(User.tableName, users);
 
     expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
+    const firstCall = stub.getCall(0).args[0];
 
-    expectsql(firstCall.args[0] as string, {
-      default: /INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);/,
-      ibmi: /SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)/,
-      mssql: /INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);/,
+    expectPerDialect(() => firstCall, {
+      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
+      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
+      mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
     });
   });
 
@@ -42,13 +42,14 @@ describe('QueryInterface#bulkInsert', () => {
     });
 
     expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
+    const firstCall = stub.getCall(0).args[0];
 
-    expectsql(firstCall.args[0] as string, {
-      default: `INSERT INTO [Users] ([firstName]) VALUES (':injection');`,
-      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N':injection');`,
+    expectPerDialect(() => firstCall, {
+      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
+      'mysql mariadb sqlite': toMatchSql('INSERT INTO `Users` (`firstName`) VALUES (\':injection\');'),
+      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
       // TODO: db2 should use the same system as ibmi
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
+      ibmi: toMatchSql(`SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`),
     });
   });
 });
