@@ -246,14 +246,10 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   });
 
   it('does not consider the token to be a replacement if it is in a single line comment', () => {
-    const sql = injectReplacements(
-      `
+    const sql = injectReplacements(`
       SELECT * FROM users -- WHERE id = :id
       WHERE id = :id
-    `,
-      dialect,
-      { id: 1 }
-    );
+    `, dialect, { id: 1 } );
 
     expectsql(sql, {
       default: `
@@ -264,14 +260,10 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   });
 
   it('does not consider the token to be a replacement if it is in string but a previous comment included a string delimiter', () => {
-    const sql = injectReplacements(
-      `
+    const sql = injectReplacements(`
       SELECT * FROM users -- '
       WHERE id = ' :id '
-    `,
-      dialect,
-      { id: 1 }
-    );
+    `, dialect, { id: 1 } );
 
     expectsql(sql, {
       default: `
@@ -282,16 +274,12 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   });
 
   it('does not consider the token to be a replacement if it is in a single line comment', () => {
-    const sql = injectReplacements(
-      `
+    const sql = injectReplacements(`
       SELECT * FROM users /*
       WHERE id = :id
       */
       WHERE id = :id
-    `,
-      dialect,
-      { id: 1 }
-    );
+    `, dialect, { id: 1 } );
 
     expectsql(sql, {
       default: `
@@ -304,9 +292,7 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   });
 
   it('does not interpret ::x as a replacement, as it is a cast', () => {
-    expect(injectReplacements("('foo')::string", dialect, [0])).to.equal(
-      "('foo')::string"
-    );
+    expect(injectReplacements('(\'foo\')::string', dialect, [0])).to.equal('(\'foo\')::string');
   });
 });
 
@@ -504,16 +490,12 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   });
 
   it('does not consider the token to be a replacement if it is in a single line comment', () => {
-    const sql = injectReplacements(
-      `
+    const sql = injectReplacements(`
       SELECT * FROM users /*
       WHERE id = ?
       */
       WHERE id = ?
-    `,
-      dialect,
-      [1]
-    );
+    `, dialect, [1] );
 
     expectsql(sql, {
       default: `
