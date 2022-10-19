@@ -36,7 +36,7 @@ import type {
   Where,
 } from './utils';
 import type { SetRequired } from './utils/set-required';
-import type { LOCK, Op, Optional, Transaction } from './index';
+import type { LOCK, Op, Optional, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**
@@ -926,6 +926,11 @@ export interface FindOptions<TAttributes = any>
    * Throws an error if the query would return 0 results.
    */
   rejectOnEmpty?: boolean | Error;
+
+  /**
+   * Use a table hint for the query, only supported in MSSQL.
+   */
+  tableHint?: TableHints;
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
