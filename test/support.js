@@ -127,12 +127,7 @@ const Support = {
       sequelizeOptions.storage = config.storage;
     }
 
-    return Support.getSequelizeInstance(
-      config.database,
-      config.username,
-      config.password,
-      sequelizeOptions
-    );
+    return Support.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
   getConnectionOptionsWithoutPool() {

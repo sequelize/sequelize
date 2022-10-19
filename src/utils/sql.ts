@@ -53,7 +53,7 @@ export function injectReplacements(
 
     if (isString) {
       if (
-        char === "'" &&
+        char === '\'' &&
         (!stringIsBackslashEscapable || !isBackslashEscaped(sqlString, i - 1))
       ) {
         isString = false;
