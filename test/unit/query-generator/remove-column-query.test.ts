@@ -18,7 +18,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
       postgres: `ALTER TABLE "public"."Users" DROP COLUMN "age";`,
       snowflake: `ALTER TABLE "Users" DROP "age";`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `Users_backup` (`0` a, `1` g, `2` e);INSERT INTO `Users_backup` SELECT `0`, `1`, `2` FROM `Users`;DROP TABLE `Users`;ALTER TABLE `Users_backup` RENAME TO `Users`;',
-      'mariadb mysql': 'ALTER TABLE [Users] DROP [age];',
+      'mariadb mysql': 'ALTER TABLE `Users` DROP `age`;',
     });
   });
 
