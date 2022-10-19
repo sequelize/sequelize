@@ -190,10 +190,9 @@ SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
         default:
           new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
-        'mysql mariadb': toMatchSql(
+        'mysql mariadb postgres': toMatchSql(
           "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
-        ),
-        postgres: "SELECT * FROM users WHERE id = E'\\' $id' OR id = $id"
+        )
       }
     );
   });
