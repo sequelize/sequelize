@@ -13,7 +13,7 @@ describe('QueryInterface#bulkInsert', () => {
     sinon.restore();
   });
 
-  it('uses minimal insert queries', async () => {
+  it('uses minimal insert queries when rows <=1000', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
@@ -26,6 +26,22 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
       ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
       mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
+    });
+  });
+
+  it('uses minimal insert queries when rows >1000', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    const users = range(2000).map(i => ({ firstName: `user${i}` }));
+    await sequelize.getQueryInterface().bulkInsert(User.tableName, users);
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0).args[0];
+
+    expectPerDialect(() => firstCall, {
+      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
+      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
+      mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
     });
   });
 
