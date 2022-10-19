@@ -71,9 +71,6 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE json_col->>$key'
-      // postgres: "SELECT * FROM users WHERE json_col->>$key",
-      // sqlite: "SELECT * FROM users WHERE json_col->>$key",
-      // mssql: "SELECT * FROM users WHERE json_col->>@key",
     });
   });
 
