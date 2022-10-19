@@ -296,12 +296,14 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   addColumnQuery(table, key, attribute, options) {
+    options = {} || options;
+
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
-    const ifNotExists = (options || {}).ifNotExists ? ' IF NOT EXISTS' : '';
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
@@ -315,9 +317,11 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   removeColumnQuery(tableName, attributeName, options) {
+    options = options || {};
+
     const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
     const quotedAttributeName = this.quoteIdentifier(attributeName);
-    const ifExists = (options || {}).ifExists ? ' IF EXISTS' : '';
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
     return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }

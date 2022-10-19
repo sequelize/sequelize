@@ -13,14 +13,12 @@ describe('QueryGenerator#removeColumnQuery', () => {
   }, { timestamps: false });
 
   it('generates a DROP COLUMN query in supported dialects', () => {
-    const sql = queryGenerator.removeColumnQuery(User.tableName, 'age');
-
-    expectsql(() => sql, {
+    expectsql(() => queryGenerator.removeColumnQuery(User.tableName, 'age'), {
       default: `ALTER TABLE [Users] DROP COLUMN [age];`,
       postgres: `ALTER TABLE "public"."Users" DROP COLUMN "age";`,
       snowflake: `ALTER TABLE "Users" DROP "age";`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `Users_backup` (`0` a, `1` g, `2` e);INSERT INTO `Users_backup` SELECT `0`, `1`, `2` FROM `Users`;DROP TABLE `Users`;ALTER TABLE `Users_backup` RENAME TO `Users`;',
-      'mariadb mysql': 'ALTER TABLE `Users` DROP `age`;',
+      'mariadb mysql': 'ALTER TABLE [Users] DROP [age];',
     });
   });
 

@@ -25,6 +25,9 @@ export class PostgresDialect extends AbstractDialect {
     addColumn: {
       ifNotExists: true,
     },
+    removeColumn: {
+      ifExists: true,
+    },
     lock: true,
     lockOf: true,
     lockKey: true,

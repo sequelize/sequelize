@@ -12,11 +12,9 @@ describe('QueryGenerator#addColumnQuery', () => {
   }, { timestamps: false });
 
   it('generates a ADD COLUMN query in supported dialects', () => {
-    const sql = queryGenerator.addColumnQuery(User.tableName, 'age', {
+    expectsql(() => queryGenerator.addColumnQuery(User.tableName, 'age', {
       type: DataTypes.INTEGER,
-    });
-
-    expectsql(() => sql, {
+    }), {
       default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
       mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
       postgres: `ALTER TABLE "public"."Users" ADD COLUMN "age" INTEGER;`,
