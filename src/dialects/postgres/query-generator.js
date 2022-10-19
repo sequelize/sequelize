@@ -296,7 +296,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   addColumnQuery(table, key, attribute, options) {
-    options = {} || options;
+    options = options || {};
 
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
