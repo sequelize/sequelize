@@ -134,41 +134,44 @@ describe('QueryInterface#showAllTables', () => {
   }
 
   describe('schema support tests', () => {
-    if (dialect.supports.schemas) {
-      it('shows all tables from the specified schema in the method options', async () => {
+    if (!dialect.supports.schemas) {
+      return;
+    }
+
+    it('shows all tables from the specified schema in the method options', async () => {
+      await createSchemaAndTables(sequelize);
+      const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
+        queryInterface.showAllTables({ schema: 'schema_1' }),
+        queryInterface.showAllTables({ schema: 'schema_2' })]);
+
+      expect(schemaOneTables).to.deep.equal(['schema_1_table_1', 'schema_1_table_2']);
+      expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
+    });
+
+    it('uses the schema from options instead of initialization options', async () => {
+      const { sequelize: _sequelize } = await getSequelizeInstanceWithSchema();
+      const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
+        _sequelize.queryInterface.showAllTables(),
+        _sequelize.queryInterface.showAllTables({
+          schema: 'schema_4',
+        })]);
+
+      expect(schemaThreeTables).to.deep.equal(['schema_3_table_1', 'schema_3_table_2']);
+      expect(schemaFourTables).to.deep.equal(['schema_4_table_1', 'schema_4_table_2']);
+    });
+
+    if (dialectName === 'postgres') {
+      it('defaults to the database name as the schema if it is not specified in init and method options', async () => {
         await createSchemaAndTables(sequelize);
         const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
-          queryInterface.showAllTables({ schema: 'schema_1' }),
-          queryInterface.showAllTables({ schema: 'schema_2' })]);
+          queryInterface.showAllTables(),
+          queryInterface.showAllTables({ schema: 'schema_2' }),
+        ]);
 
-        expect(schemaOneTables).to.deep.equal(['schema_1_table_1', 'schema_1_table_2']);
+        expect(schemaOneTables).to.deep.equal(['sequelize_test_table_1', 'sequelize_test_table_2']);
         expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
       });
-
-      it('uses the schema from options instead of initialization options', async () => {
-        const { sequelize: _sequelize } = await getSequelizeInstanceWithSchema();
-        const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
-          _sequelize.queryInterface.showAllTables(),
-          _sequelize.queryInterface.showAllTables({
-            schema: 'schema_4',
-          })]);
-
-        expect(schemaThreeTables).to.deep.equal(['schema_3_table_1', 'schema_3_table_2']);
-        expect(schemaFourTables).to.deep.equal(['schema_4_table_1', 'schema_4_table_2']);
-      });
-
-      if (dialectName === 'postgres') {
-        it('defaults to the database name as the schema if it is not specified in init and method options', async () => {
-          await createSchemaAndTables(sequelize);
-          const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
-            queryInterface.showAllTables(),
-            queryInterface.showAllTables({ schema: 'schema_2' }),
-          ]);
-
-          expect(schemaOneTables).to.deep.equal(['sequelize_test_table_1', 'sequelize_test_table_2']);
-          expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
-        });
-      }
     }
+
   });
 });
