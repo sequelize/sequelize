@@ -112,6 +112,8 @@ export type DialectSupports = {
   IREGEXP: boolean,
   HSTORE: boolean,
   TSVECTOR: boolean,
+  /** Whether this dialect supports SQL JSON functions */
+  jsonOperations: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -217,6 +219,7 @@ export abstract class AbstractDialect {
     GEOGRAPHY: false,
     HSTORE: false,
     TSVECTOR: false,
+    jsonOperations: false,
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,

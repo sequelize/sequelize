@@ -39,9 +39,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('with references', () => {
-      const BarUser = current.define('user', {
-        timestamps: false,
-      }).schema('bar');
+      const BarUser = current.define('user', {}, { timestamps: false }).schema('bar');
 
       const BarProject = current.define('project', {
         user_id: {
