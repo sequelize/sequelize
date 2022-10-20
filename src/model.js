@@ -2138,8 +2138,7 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     const countOptions = Utils.cloneDeep(options);
-
-    this._injectScope(options);
+    this._injectScope(countOptions);
 
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
