@@ -223,6 +223,11 @@ if (dialect.startsWith('postgres')) {
     });
 
     describe('Connection Invalidation', () => {
+      if (process.env.DIALECT === 'postgres-native') {
+        // native driver doesn't support statement_timeout or query_timeout
+        return;
+      }
+
       async function setUp(clientQueryTimeoutMs) {
         const sequelize = Support.createSequelizeInstance({
           dialectOptions: {
