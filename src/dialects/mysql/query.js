@@ -184,31 +184,6 @@ export class MySqlQuery extends AbstractQuery {
     return result;
   }
 
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MySQL Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
-  }
-
   formatError(err, errStack) {
     const errCode = err.errno || err.code;
 
