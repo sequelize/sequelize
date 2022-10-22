@@ -81,7 +81,7 @@
     "cross-env": "7.0.3",
     "delay": "5.0.0",
     "esbuild": "0.15.12",
-    "eslint": "8.25.0",
+    "eslint": "8.26.0",
     "eslint-plugin-jsdoc": "39.3.14",
     "eslint-plugin-mocha": "10.1.0",
     "expect-type": "0.13.0",
