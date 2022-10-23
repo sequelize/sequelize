@@ -82,7 +82,7 @@
     "delay": "5.0.0",
     "esbuild": "0.15.12",
     "eslint": "8.26.0",
-    "eslint-plugin-jsdoc": "39.3.19",
+    "eslint-plugin-jsdoc": "39.3.20",
     "eslint-plugin-mocha": "10.1.0",
     "expect-type": "0.13.0",
     "fast-glob": "3.2.12",
