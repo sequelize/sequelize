@@ -75,9 +75,9 @@ export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
   whereQuery(where: object, options?: ParameterOptions): string;
-  whereItemsQuery(
+  whereItemsQuery<M extends Model>(
     where: WhereOptions,
-    options: WhereItemsQueryOptions,
+    options: WhereItemsQueryOptions<M>,
     binding?: string
   ): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
