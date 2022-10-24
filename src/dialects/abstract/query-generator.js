@@ -1180,7 +1180,7 @@ export class AbstractQueryGenerator {
     @private
   */
   validate(value, field, options) {
-    if (this.typeValidation && field.type.validate && value) {
+    if (!this.noTypeValidation && field.type.validate && value) {
       try {
         if (options.isList && Array.isArray(value)) {
           for (const item of value) {

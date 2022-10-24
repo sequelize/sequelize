@@ -618,9 +618,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     ]) {
       describe('enum', () => {
         beforeEach(async function () {
-          this.sequelize = Support.createSequelizeInstance({
-            typeValidation: true,
-          });
+          this.sequelize = Support.createSequelizeInstance();
 
           this.Review = this.sequelize.define('review', { status });
           await this.Review.sync({ force: true });

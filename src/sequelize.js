@@ -188,7 +188,7 @@ export class Sequelize {
    * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {boolean}  [options.noTypeValidation=false] Disable run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
@@ -250,7 +250,7 @@ export class Sequelize {
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
       databaseVersion: 0,
-      typeValidation: false,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
@@ -385,7 +385,7 @@ export class Sequelize {
     };
 
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();

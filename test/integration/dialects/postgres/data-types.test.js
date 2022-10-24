@@ -74,8 +74,6 @@ if (dialect === 'postgres') {
     describe('DATE SQL', () => {
       // create dummy user
       it('should be able to create and update records with Infinity/-Infinity', async function () {
-        this.sequelize.options.typeValidation = true;
-
         const date = new Date();
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,
@@ -160,8 +158,6 @@ if (dialect === 'postgres') {
     describe('DATEONLY SQL', () => {
       // create dummy user
       it('should be able to create and update records with Infinity/-Infinity', async function () {
-        this.sequelize.options.typeValidation = true;
-
         const date = new Date();
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,

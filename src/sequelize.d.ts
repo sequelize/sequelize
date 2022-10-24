@@ -359,12 +359,12 @@ export interface Options extends Logging {
   transactionType?: TRANSACTION_TYPES;
 
   /**
-   * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
+   * Disable run built in type validators on insert and update, e.g. validate that arguments passed to integer
    * fields are integer-like.
    *
    * @default false
    */
-  typeValidation?: boolean;
+  noTypeValidation?: boolean;
 
   /**
    * Sets available operator aliases.
