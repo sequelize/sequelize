@@ -86,7 +86,7 @@
     "eslint-plugin-mocha": "10.1.0",
     "expect-type": "0.13.0",
     "fast-glob": "3.2.12",
-    "fs-jetpack": "5.0.0",
+    "fs-jetpack": "5.1.0",
     "husky": "8.0.1",
     "ibm_db": "3.0.0",
     "lcov-result-merger": "3.3.0",
