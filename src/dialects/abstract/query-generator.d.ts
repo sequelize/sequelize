@@ -8,7 +8,7 @@ import type {
   WhereOptions,
 } from "../../model.js";
 import type { QueryTypes } from "../../query-types.js";
-import type { Literal, SequelizeMethod } from "../../utils/index.js";
+import type { Literal, SequelizeMethod } from "../../utils";
 import type { TableName } from "./query-interface.js";
 import type { AbstractDialect } from "./index.js";
 
