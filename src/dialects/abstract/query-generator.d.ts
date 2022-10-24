@@ -7,7 +7,7 @@ import type {
   SearchPathable,
   WhereOptions,
 } from "../../model.js";
-import type { QueryTypes } from "../../query-types.js";
+import type QueryTypes from "../../query-types.js";
 import type { Literal, SequelizeMethod } from "../../utils";
 import type { TableName } from "./query-interface.js";
 import type { AbstractDialect } from "./index.js";
@@ -53,8 +53,8 @@ type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | string[];
 };
 
-export type WhereItemsQueryOptions = ParameterOptions & {
-  model?: ModelStatic;
+export type WhereItemsQueryOptions<M extends Model> = ParameterOptions & {
+  model?: ModelStatic<M>;
   type?: QueryTypes;
   prefix?: string | Literal;
   field?: ModelAttributeColumnOptions;
@@ -84,10 +84,10 @@ export class AbstractQueryGenerator {
   escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
-  handleSequelizeMethod(
+  handleSequelizeMethod<M extends Model>(
     smth: SequelizeMethod,
     tableName?: TableName,
-    factory?: ModelStatic,
+    factory?: ModelStatic<M>,
     options?: HandleSequelizeMethodOptions,
     prepend?: boolean
   ): string;
