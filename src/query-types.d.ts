@@ -12,6 +12,7 @@ declare enum QueryTypes {
   DESCRIBE = 'DESCRIBE',
   RAW = 'RAW',
   FOREIGNKEYS = 'FOREIGNKEYS',
+  SHOWCONSTRAINTS = 'SHOWCONSTRAINTS',
 }
 
 export = QueryTypes;
