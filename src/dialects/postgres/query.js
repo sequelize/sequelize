@@ -51,7 +51,6 @@ export class PostgresQuery extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
-
         // https://github.com/sequelize/sequelize/pull/15144
         || error.message === 'Query read timeout'
       ) {
