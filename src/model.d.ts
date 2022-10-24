@@ -3425,10 +3425,10 @@ export type InferCreationAttributes<
  * - Excluded manually using {@link InferAttributesOptions#omit}
  */
 type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
-  // functions are always excluded
-  M[Key] extends AnyFunction ? never
   // fields inherited from Model are all excluded
-  : Key extends keyof Model ? never
+  Key extends keyof Model ? never
+  // functions are always excluded
+  : M[Key] extends AnyFunction ? never
   // fields branded with NonAttribute are excluded
   : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
   // check 'omit' option is provided & exclude those listed in it

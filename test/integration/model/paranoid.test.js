@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.equal(1);
     });
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.jsonOperations) {
       describe('JSON Operations', () => {
         before(function () {
           this.Model = this.sequelize.define('Model', {

@@ -90,6 +90,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('path extraction', () => {
+      if (!dialect.supports.jsonOperations) {
+        return;
+      }
+
       it('condition object', () => {
         expectsql(sql.whereItemQuery(undefined, Sequelize.json({ id: 1 })), {
           postgres: '("id"#>>\'{}\') = \'1\'',
@@ -155,6 +159,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('raw json query', () => {
+      if (!dialect.supports.jsonOperations) {
+        return;
+      }
+
       if (current.dialect.name === 'postgres') {
         it('#>> operator', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
