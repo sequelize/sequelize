@@ -657,11 +657,6 @@ export class QueryInterface {
   public quoteIdentifiers(identifiers: string): string;
 
   /**
-   * Escape a value (e.g. a string, number or date)
-   */
-  public escape(value?: string | number | Date): string;
-
-  /**
    * Set option for autocommit of a transaction
    */
   public setAutocommit(transaction: Transaction, value: boolean, options?: QueryOptions): Promise<void>;
