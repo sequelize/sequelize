@@ -8,7 +8,6 @@ import {
   WhereOptions,
   Filterable,
   Poolable,
-  ModelCtor,
   ModelStatic,
   ModelType,
   CreationAttributes,
@@ -20,6 +19,7 @@ import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
+import type { AbstractQueryGenerator } from './query-generator.js';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -292,7 +292,7 @@ export class QueryInterface {
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public queryGenerator: unknown;
+  public queryGenerator: AbstractQueryGenerator;
 
   /**
    * Returns the current sequelize instance.
@@ -641,11 +641,6 @@ export class QueryInterface {
   ): Promise<void>;
 
   /**
-   * Escape a table name
-   */
-  public quoteTable(identifier: TableName): string;
-
-  /**
    * Escape an identifier (e.g. a table or attribute name). If force is true, the identifier will be quoted
    * even if the `quoteIdentifiers` option is false.
    */
@@ -655,11 +650,6 @@ export class QueryInterface {
    * Split an identifier into .-separated tokens and quote each part.
    */
   public quoteIdentifiers(identifiers: string): string;
-
-  /**
-   * Escape a value (e.g. a string, number or date)
-   */
-  public escape(value?: string | number | Date): string;
 
   /**
    * Set option for autocommit of a transaction

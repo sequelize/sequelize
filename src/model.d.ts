@@ -1650,6 +1650,20 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 }
 
+
+/**
+ * Interface to built model attribute column definition options
+ */
+export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends ModelAttributeColumnOptions<M> {
+  /**
+   * The name of the attribute (JS side).
+   */
+  fieldName: string;
+
+  references?: ModelAttributeColumnReferencesOptions;
+}
+
+
 /**
  * Interface for Attributes provided for all columns in a model
  */

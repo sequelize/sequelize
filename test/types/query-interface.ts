@@ -71,8 +71,6 @@ async function test() {
 
   await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
 
-  await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
-
   queryInterface.quoteIdentifier("foo");
   queryInterface.quoteIdentifier("foo", true);
   queryInterface.quoteIdentifiers("table.foo");
