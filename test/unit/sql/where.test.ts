@@ -1210,7 +1210,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               dateRangeAttr: { [operator]: [] },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+              default: new Error('A range must be an array with two elements'),
             });
           }
 
@@ -1236,7 +1236,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> '1'::int4`,
+          default: new Error(`1 is not a valid range`),
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -2100,7 +2100,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             dateRangeAttr: { [operator]: [] },
           }, {
-            postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+            default: new Error('A range must be an array with two elements'),
           });
         }
 
