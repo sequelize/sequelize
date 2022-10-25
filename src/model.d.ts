@@ -1774,7 +1774,8 @@ export interface ModelOptions<M extends Model = Model> {
    */
   initialAutoIncrement?: string;
 
-  /**   * An object of hook function that are called before and after certain lifecycle events.
+  /**   
+   * An object of hook function that are called before and after certain lifecycle events.
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
@@ -2066,7 +2067,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * ```js
    * Model.scope({ method: ['complexFunction' 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
-   * ``
+   * ```
    *
    * @returns Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
@@ -2077,7 +2078,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): ModelCtor<M>;
 
   /**
-   * Add a new scope to the mode
+   * Add a new scope to the model
    *
    * This is especially useful for adding scopes with includes, when the model you want to
    * include is not available at the time this model is defined. By default this will throw an
@@ -2122,7 +2123,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *       gt: 50
    *     },
    *     attr2: {
-   *       lte 45
+   *       lte: 45
    *     },
    *     attr3: {
    *       in: [1,2,3]
@@ -2259,7 +2260,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * });
    * ```
    * Because the include for `Profile` has `required` set it will result in an inner join, and only the users
-   * who have a profile will be counted. f we remove `required` from the include, both users with and
+   * who have a profile will be counted. If we remove `required` from the include, both users with and
    * without
    * profiles will be counted
    *
