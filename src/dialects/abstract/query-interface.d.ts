@@ -542,14 +542,12 @@ export class QueryInterface {
     tableName: TableName,
     triggerName: string,
     timingType: string,
-    fireOnArray: {
-      [key: string]: unknown;
-    }[],
+    fireOnArray: Array<'update' | 'insert' | 'delete' | 'truncate'>,
     functionName: string,
     functionParams: FunctionParam[],
     optionsArray: string[],
     options?: QiOptionsWithReplacements
-  ): Promise<void>;
+  ): Promise<void> | Error;
 
   /**
    * Postgres only. Drops the specified trigger.
