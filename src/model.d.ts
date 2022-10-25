@@ -1774,7 +1774,7 @@ export interface ModelOptions<M extends Model = Model> {
    */
   initialAutoIncrement?: string;
 
-  /**   
+  /**
    * An object of hook function that are called before and after certain lifecycle events.
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
