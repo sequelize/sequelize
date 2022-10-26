@@ -351,6 +351,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const ItemTag = this.sequelize.define('ItemTag', {
           tag_id: {
             type: DataTypes.INTEGER,
+            allowNull: false,
             references: {
               model: 'tags',
               key: 'id',
@@ -358,6 +359,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           taggable_id: {
             type: DataTypes.INTEGER,
+            allowNull: false,
             references: null,
           },
           taggable: {

@@ -27,8 +27,16 @@ if (dialect === 'mariadb') {
       beforeEach(function () {
         this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
         this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers',
-          { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+        this.UserTasks = this.sequelize.define('tasksusers', {
+          userId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+          taskId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+        });
 
         this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
 

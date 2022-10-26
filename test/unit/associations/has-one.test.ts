@@ -118,7 +118,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
       expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
     });
 
-    it('works when merging with an existing definition', () => {
+    it('throws when merging with an existing & incompatible definition', () => {
       const User = sequelize.define('user', {
         uid: {
           type: DataTypes.INTEGER,
@@ -132,13 +132,11 @@ describe(getTestDialectTeaser('hasOne'), () => {
         },
       });
 
-      User.hasOne(Project, { foreignKey: { allowNull: false } });
-
-      expect(Project.rawAttributes.userUid).to.be.ok;
-      expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-      expect(Project.rawAttributes.userUid.references?.model).to.equal(User.getTableName());
-      expect(Project.rawAttributes.userUid.references?.key).to.equal('uid');
-      expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
+      expect(() => {
+        User.hasOne(Project, { foreignKey: { allowNull: false } });
+      }).to.throwWithCause(`Cannot merge attributes: The property "allowNull" is already defined for attribute "project"."userUid" and is incompatible with the new definition.
+Existing value: true
+New Value: false`);
     });
   });
 

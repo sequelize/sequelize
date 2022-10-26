@@ -767,7 +767,7 @@ if (current.dialect.supports.transactions) {
 
       it('fails with SQLITE_BUSY when retry.match is changed', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
+        const User = sequelize.define('User', { id: { type: DataTypes.INTEGER, primaryKey: true, allowNull: true }, username: DataTypes.STRING });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
           const t = await sequelize.transaction({ type: Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });

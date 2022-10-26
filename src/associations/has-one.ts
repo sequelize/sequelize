@@ -135,7 +135,7 @@ export class HasOne<
     T extends Model,
     SourceKey extends AttributeNames<S>,
     TargetKey extends AttributeNames<T>,
-    >(
+  >(
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,

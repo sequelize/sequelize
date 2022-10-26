@@ -163,6 +163,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     const User = sequelize.define('testSync', {
       email: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: true,
       },
     });
@@ -184,10 +185,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     const User = sequelize.define('testSync', {
       email: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: true,
       },
       phone: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: true,
       },
     }, {
@@ -225,6 +228,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     const User = sequelize.define('testSync', {
       email: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: 'wow_my_index',
       },
     });
@@ -248,10 +252,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     const User = sequelize.define('testSync', {
       email: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: 'wow_my_index',
       },
       phone: {
         type: DataTypes.STRING,
+        allowNull: false,
         unique: 'wow_my_index',
       },
     });

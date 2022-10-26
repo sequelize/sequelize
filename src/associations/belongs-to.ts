@@ -11,6 +11,7 @@ import type {
   SaveOptions,
   AttributeNames,
   Attributes,
+  BuiltModelAttributeColumOptions,
 } from '../model';
 import { Op } from '../operators';
 import * as Utils from '../utils';
@@ -22,7 +23,6 @@ import { HasMany } from './has-many.js';
 import { HasOne } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
-  addForeignKeyConstraints,
   defineAssociation,
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
@@ -135,17 +135,34 @@ export class BelongsTo<
     }
 
     this.foreignKey = foreignKey as SourceKey;
-
-    const newForeignKeyAttribute = removeUndefined({
-      type: this.target.rawAttributes[this.targetKey].type,
-      ...foreignKeyAttributeOptions,
-      allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
-    });
+    const existingForeignKeyAttribute: BuiltModelAttributeColumOptions | undefined
+      = this.source.rawAttributes[this.foreignKey];
 
     this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
 
-    addForeignKeyConstraints(newForeignKeyAttribute, this.target, this.options, this.targetKeyField);
+    const fkAllowsNull = foreignKeyAttributeOptions?.allowNull ?? existingForeignKeyAttribute?.allowNull ?? true;
+
+    // Foreign Key options are selected like this:
+    // 1. if provided explicitly through options.foreignKey, use that
+    // 2. if the foreign key is already defined on the source model, use that
+    // 3. hardcoded default value
+    // Note: If options.foreignKey is provided, but the foreign key also exists on the source model,
+    //  mergeAttributesDefault will throw an error if the two options are incompatible.
+    const newForeignKeyAttribute = removeUndefined({
+      type: existingForeignKeyAttribute?.type ?? this.target.rawAttributes[this.targetKey].type,
+      ...foreignKeyAttributeOptions,
+      allowNull: fkAllowsNull,
+      onDelete: foreignKeyAttributeOptions?.onDelete ?? existingForeignKeyAttribute?.onDelete ?? (fkAllowsNull ? 'SET NULL' : 'CASCADE'),
+      onUpdate: foreignKeyAttributeOptions?.onUpdate ?? existingForeignKeyAttribute?.onUpdate ?? 'CASCADE',
+    });
+
+    if (options.foreignKeyConstraints !== false) {
+      newForeignKeyAttribute.references = {
+        model: this.target.getTableName(),
+        key: this.targetKeyField,
+      };
+    }
 
     this.source.mergeAttributesDefault({
       [this.foreignKey]: newForeignKeyAttribute,

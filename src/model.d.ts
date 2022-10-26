@@ -1786,6 +1786,12 @@ export interface BuiltModelAttributeColumnOptions<M extends Model = Model> exten
    */
   fieldName: string;
 
+  /** @inheritDoc */
+  allowNull: boolean;
+
+  /** @inheritDoc */
+  primaryKey: boolean;
+
   references?: ModelAttributeColumnReferencesOptions;
 }
 
@@ -2306,7 +2312,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Only use if you know what you're doing.
    *
    * Warning: Attributes are not replaced, they are merged.
-   * The existing configuration for an attribute takes priority over the new configuration.
+   * Throws if an attribute already exists and one of the properties assigned to it is incompatible.
    *
    * @param newAttributes
    */

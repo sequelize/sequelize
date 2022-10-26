@@ -93,10 +93,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         n_id: {
           type: DataTypes.CHAR(10),
           field: 'nana_id',
+          allowNull: false,
         },
         m_id: {
           type: DataTypes.CHAR(20),
           field: 'mama_id',
+          allowNull: false,
         },
       }, {
         underscored: true,

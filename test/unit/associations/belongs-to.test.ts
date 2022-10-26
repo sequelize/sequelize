@@ -74,7 +74,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     BarProject.belongsTo(BarUser, { foreignKey: 'userId' });
 
-    expect(BarProject.rawAttributes.userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
+    expect(BarProject.rawAttributes.userId.allowNull).to.eq(true, 'allowNull should be true');
   });
 
   it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {

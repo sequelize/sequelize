@@ -2463,12 +2463,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('emits an error event as the referenced table name is invalid', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { model: '4uth0r5', key: 'id' } };
-
-      const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
-
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+      const Post = this.sequelize.define('post', {
+        title: DataTypes.STRING,
+        authorId: {
+          type: DataTypes.INTEGER,
+          references: { model: '4uth0r5', key: 'id' },
+        },
+      });
 
       try {
         // The posts table gets dropped in the before filter.

@@ -96,16 +96,26 @@ export class AbstractQueryGenerator {
 
     const self = this;
 
-    return {
+    const out = {
       tableName: param.tableName || param,
       table: param.tableName || param,
       name: param.name || param,
       schema: param._schema,
       delimiter: param._schemaDelimiter || '.',
-      toString() {
+    };
+
+    // TODO: remove
+    // toString should *not* be used, but model uses it to stringify a table name and use it as object keys.
+    // until that behavior is changed, this stays
+    // it's at least non-enumerable to allow for deep comparisons
+    Object.defineProperty(out, 'toString', {
+      enumerable: false,
+      value: function toString() {
         return self.quoteTable(this);
       },
-    };
+    });
+
+    return out;
   }
 
   createSchemaQuery() {

@@ -44,7 +44,7 @@ if (dialect === 'mysql') {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           username: { type: DataTypes.STRING, primaryKey: true },
         }, { timestamps: false });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ username: 'VARCHAR(255) PRIMARY KEY' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ username: 'VARCHAR(255) NOT NULL PRIMARY KEY' });
       });
 
       it('adds timestamps', function () {
@@ -82,7 +82,7 @@ if (dialect === 'mysql') {
           foo: { type: DataTypes.STRING, primaryKey: true },
           bar: DataTypes.STRING,
         });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.primaryKeys)).to.deep.equal({ foo: 'VARCHAR(255) PRIMARY KEY' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.primaryKeys)).to.deep.equal({ foo: 'VARCHAR(255) NOT NULL PRIMARY KEY' });
       });
     });
   });

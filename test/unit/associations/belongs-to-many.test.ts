@@ -943,9 +943,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
           },
           id_user_very_long_field: {
             type: DataTypes.INTEGER(1),
+            allowNull: false,
           },
           id_group_very_long_field: {
             type: DataTypes.INTEGER(1),
+            allowNull: false,
           },
         },
         { tableName: 'table_user_group_with_very_long_name' },
@@ -984,9 +986,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
           },
           id_user_very_long_field: {
             type: DataTypes.INTEGER(1),
+            allowNull: false,
           },
           id_group_very_long_field: {
             type: DataTypes.INTEGER(1),
+            allowNull: false,
           },
         },
         { tableName: 'table_user_group_with_very_long_name' },

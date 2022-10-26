@@ -27,6 +27,12 @@ const User = sequelize.define<UserModel>(
   { tableName: 'users' },
 );
 
+// allowNull is normalized and must be defined
+expectTypeOf(User.getAttributes().username.allowNull).toEqualTypeOf<boolean>();
+
+// primaryKey is normalized and must be defined
+expectTypeOf(User.getAttributes().username.primaryKey).toEqualTypeOf<boolean>();
+
 async function test() {
   expectTypeOf<UserModel>().toMatchTypeOf(User.build());
 
