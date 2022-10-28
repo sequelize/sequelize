@@ -598,6 +598,14 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return query.trim();
   }
 
+  addIndexQuery(tableName, attributes, options, rawTablename) {
+    if ('include' in attributes && !attributes.unique) {
+      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
+    }
+
+    return super.addIndexQuery(tableName, attributes, options, rawTablename);
+  }
+
   showIndexesQuery(tableName) {
     let sql = 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = <%= tableName %>';
     let schema;
