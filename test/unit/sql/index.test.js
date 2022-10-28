@@ -1,5 +1,7 @@
 'use strict';
 
+const semver = require('semver');
+const { expect } = require('chai');
 const Support = require('../../support');
 const { Op } = require('@sequelize/core');
 
@@ -255,14 +257,53 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (current.dialect.supports.index.include) {
-      it('INCLUDE', () => {
-        expectsql(sql.addIndexQuery('User',  {
-          name: 'email_include_name',
-          fields: ['email'],
-          include: ['first_name', 'last_name'],
-        }), {
-          default: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        });
+      it('include columns with unique index', () => {
+        if (current.dialect.name === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
+          // Include columns are only supported by PostgreSQL version 11.0.0 and higher
+          expect(() => sql.addIndexQuery('User',  {
+            name: 'email_include_name',
+            fields: ['email'],
+            include: ['first_name', 'last_name'],
+            unique: true,
+          })).to.throw('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
+        } else {
+          expectsql(sql.addIndexQuery('User',  {
+            name: 'email_include_name',
+            fields: ['email'],
+            include: ['first_name', 'last_name'],
+            unique: true,
+          }), {
+            mssql: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+            default: 'CREATE UNIQUE INDEX "email_include_name" ON [User] ("email") INCLUDE ("first_name", "last_name")',
+          });
+        }
+      });
+
+      it('include columns with non-unique index', () => {
+        if (current.dialect.name === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
+          // Include columns are only supported by PostgreSQL version 11.0.0 and higher
+          expect(() => sql.addIndexQuery('User',  {
+            name: 'email_include_name',
+            fields: ['email'],
+            include: ['first_name', 'last_name'],
+          })).to.throw('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
+        } else if (current.dialect.name === 'db2') {
+          // DB2 does not support non-unique indexes with include columns
+          expect(() => sql.addIndexQuery('User',  {
+            name: 'email_include_name',
+            fields: ['email'],
+            include: ['first_name', 'last_name'],
+          })).to.throw('DB2 does not support non-unique indexes with INCLUDE syntax.');
+        } else {
+          expectsql(sql.addIndexQuery('User',  {
+            name: 'email_include_name',
+            fields: ['email'],
+            include: ['first_name', 'last_name'],
+          }), {
+            mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+            default: 'CREATE INDEX "email_include_name" ON [User] ("email") INCLUDE ("first_name", "last_name")',
+          });
+        }
       });
     }
   });
