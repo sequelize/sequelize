@@ -67,7 +67,7 @@
     "@types/chai-datetime": "0.0.37",
     "@types/lodash": "4.14.186",
     "@types/mocha": "10.0.0",
-    "@types/node": "18.11.7",
+    "@types/node": "18.11.8",
     "@types/semver": "7.3.13",
     "@types/sinon": "10.0.13",
     "@types/sinon-chai": "3.2.8",
