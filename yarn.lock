@@ -1120,7 +1120,7 @@
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.10.tgz#6dfbf5ea17142f7f9a043809f1cd4c448cb68249"
   integrity sha512-Nmh0K3iWQJzniTuPRcJn5hxXkfB1T1pgB89SBig5PlJQU5yocazeu4jATJlaA0GYFKWMqDdvYemoSnF2pXgLVA==
 
-"@types/ibm_db@^2.0.11":
+"@types/ibm_db@2.0.11":
   version "2.0.11"
   resolved "https://registry.yarnpkg.com/@types/ibm_db/-/ibm_db-2.0.11.tgz#be01a2f3a9d5710cfc42dac557dd78bae6b2ffa1"
   integrity sha512-Tlxdv4y26HzhL4fBpIS1KXNvwlHsJVlppcQ/IN9ICu0TH4zJIC2R476oEqVXi3L5rzs9f/l4LQVs0z6+PJPc4w==
@@ -1237,7 +1237,7 @@
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
   integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
 
-"@types/snowflake-sdk@^1.6.8":
+"@types/snowflake-sdk@1.6.8":
   version "1.6.8"
   resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.8.tgz#de864a197c3c0c170b077d0a9923fef1150d442e"
   integrity sha512-hf7YoxKjdk22VtKBR7/vCSYSv/YyHhbkTiZ+Dk/UnC83GMYOFaXbZktt0cIP98rmhk4V8nGpbpEivV4y6GUFNw==
@@ -6278,7 +6278,6 @@ npm@^8.3.0:
     "@npmcli/fs" "^2.1.0"
     "@npmcli/map-workspaces" "^2.0.3"
     "@npmcli/package-json" "^2.0.0"
-    "@npmcli/promise-spawn" "^3.0.0"
     "@npmcli/run-script" "^4.2.1"
     abbrev "~1.1.1"
     archy "~1.0.0"
@@ -6289,7 +6288,6 @@ npm@^8.3.0:
     cli-table3 "^0.6.2"
     columnify "^1.6.0"
     fastest-levenshtein "^1.0.12"
-    fs-minipass "^2.1.0"
     glob "^8.0.1"
     graceful-fs "^4.2.10"
     hosted-git-info "^5.1.0"
@@ -6309,7 +6307,6 @@ npm@^8.3.0:
     libnpmteam "^4.0.4"
     libnpmversion "^3.0.7"
     make-fetch-happen "^10.2.0"
-    minimatch "^5.1.0"
     minipass "^3.1.6"
     minipass-pipeline "^1.2.4"
     mkdirp "^1.0.4"
