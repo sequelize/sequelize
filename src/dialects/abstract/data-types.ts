@@ -1354,6 +1354,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     }
 
     if (value) {
+      // TODO!: add a test case for #10982
       return dayjs(value).format('YYYY-MM-DD');
     }
 

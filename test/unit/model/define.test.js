@@ -195,7 +195,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
     });
 
-    // TODO: once we have centralized logging, enable this again
+    // TODO!: once we have centralized logging, enable this again
     //  right now this test does not work because the warning has already been logged by another test & this warning
     //  is only logged once.
     //  https://github.com/sequelize/sequelize/issues/11832

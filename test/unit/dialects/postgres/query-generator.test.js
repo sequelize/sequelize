@@ -463,6 +463,7 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', { where: { aliases: { [Op.contains]: ['Queen\'s'] } } }],
+          // TODO!: check why there is the ::VARCHAR(255)[] here and if that's wanted
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\']::VARCHAR(255)[];',
         },
 
