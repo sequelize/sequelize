@@ -182,6 +182,8 @@ if (dialect.startsWith('postgres')) {
       });
 
       it('uses declared variables', async function () {
+        await this.sequelize.query('DROP FUNCTION IF EXISTS add_one;');
+
         const body = 'RETURN myVar + 1;';
         const options = { variables: [{ type: 'integer', name: 'myVar', default: 100 }] };
         await this.queryInterface.createFunction('add_one', [], 'integer', 'plpgsql', body, [], options);

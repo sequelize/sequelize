@@ -9,13 +9,13 @@ export * from './has-one';
 export * from './has-many';
 export * from './belongs-to-many';
 
-export type BeforeAssociateEventData = {
-  source: ModelStatic<Model>,
-  target: ModelStatic<Model>,
-  sequelize: Sequelize,
-  type: Class<Association>,
-};
+export interface BeforeAssociateEventData {
+  source: ModelStatic<Model>;
+  target: ModelStatic<Model>;
+  sequelize: Sequelize;
+  type: Class<Association>;
+}
 
-export type AfterAssociateEventData = BeforeAssociateEventData & {
-  association: Association,
-};
+export interface AfterAssociateEventData extends BeforeAssociateEventData {
+  association: Association;
+}
