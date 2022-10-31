@@ -10,6 +10,12 @@ const dialectName = getTestDialect();
 
 describe('QueryInterface#showAllTables', () => {
 
+  after(async () => {
+    const _sequelize = createSequelizeInstance();
+    await _sequelize.queryInterface.dropAllTables();
+    await _sequelize.dropAllSchemas();
+  });
+
   const getSequelizeInstanceWithSchema = async () => {
     const _sequelize = createSequelizeInstance({ schema: 'schema_3' });
     await createSchemaAndTables(_sequelize, ['schema_3', 'schema_4']);
@@ -159,19 +165,5 @@ describe('QueryInterface#showAllTables', () => {
       expect(schemaThreeTables).to.deep.equal(['schema_3_table_1', 'schema_3_table_2']);
       expect(schemaFourTables).to.deep.equal(['schema_4_table_1', 'schema_4_table_2']);
     });
-
-    if (dialectName === 'postgres') {
-      it('defaults to the database name as the schema if it is not specified in init and method options', async () => {
-        await createSchemaAndTables(sequelize);
-        const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
-          queryInterface.showAllTables(),
-          queryInterface.showAllTables({ schema: 'schema_2' }),
-        ]);
-
-        expect(schemaOneTables).to.deep.equal(['sequelize_test_table_1', 'sequelize_test_table_2']);
-        expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
-      });
-    }
-
   });
 });
