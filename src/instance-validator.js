@@ -106,17 +106,16 @@ export class InstanceValidator {
    * @private
    */
   async _validateAndRunHooks() {
-    const runHooks = this.modelInstance.constructor.runHooks.bind(this.modelInstance.constructor);
-    await runHooks('beforeValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('beforeValidate', this.modelInstance, this.options);
 
     try {
       await this._validate();
     } catch (error) {
-      const newError = await runHooks('validationFailed', this.modelInstance, this.options, error);
+      const newError = await this.modelInstance.constructor.hooks.runAsync('validationFailed', this.modelInstance, this.options, error);
       throw newError || error;
     }
 
-    await runHooks('afterValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('afterValidate', this.modelInstance, this.options);
 
     return this.modelInstance;
   }
