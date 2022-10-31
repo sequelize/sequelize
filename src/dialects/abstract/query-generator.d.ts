@@ -110,8 +110,8 @@ export class AbstractQueryGenerator {
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  validate(value: unknown, field?: BuiltModelAttributeColumOptions): void;
-  escape(value: unknown, field?: BuiltModelAttributeColumOptions, options?: EscapeOptions): string;
+  validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
+  escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(

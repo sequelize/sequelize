@@ -39,7 +39,6 @@ describe('ESM module', () => {
       '_clsRun',
       'name',
       'version',
-      'options',
 
       // importing the data type directly has been removed, and accessing them on the Sequelize constructor is deprecated.
       // Use DataTypes.x exclusively.
