@@ -85,10 +85,10 @@ export interface Filterable<TAttributes = any> {
 export interface Projectable {
   /**
    * If an array: a list of the attributes that you want to select.
-   * Attributes can also be raw SQL (`literal`), `fn`, and `col`
+   * Attributes can also be raw SQL (`literal`), `fn`, `col`, and `cast`
    *
    * To rename an attribute, you can pass an array, with two elements:
-   * - The first is the name of the attribute (or `literal`, `fn`, `col`),
+   * - The first is the name of the attribute (or `literal`, `fn`, `col`, `cast`),
    * - and the second is the name to give to that attribute in the returned instance.
    *
    * If `include` is used: selects all the attributes of the model,
@@ -786,7 +786,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
+export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
