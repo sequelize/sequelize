@@ -215,7 +215,7 @@ describe('DataTypes', () => {
       expect(pick(user.get(), ['tinyText', 'mediumText', 'longText'])).to.deep.eq(data);
     });
 
-    // TODO: once we have centralized logging, check a warning message has been emitted when length is not supported:
+    // TODO!: once we have centralized logging, check a warning message has been emitted when length is not supported:
     //  https://github.com/sequelize/sequelize/issues/11832
   });
 
@@ -1265,6 +1265,7 @@ describe('DataTypes', () => {
     });
   });
 
+  // TODO!: determine if we want to move these tests to enum.test.ts
   describe('ENUM', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {

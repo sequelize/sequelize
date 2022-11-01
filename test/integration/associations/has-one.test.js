@@ -615,14 +615,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
-        try {
-          await Tasks[dataType].sync({ force: true });
-          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
-        } catch (error) {
-          console.dir(error);
-          throw error;
-        }
-
+        await Tasks[dataType].sync({ force: true });
+        expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
       }));
     });
   });

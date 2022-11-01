@@ -34,16 +34,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      mssql: binaryCollationUnsupportedError,
-      postgres: binaryCollationUnsupportedError,
+      'mssql postgres': binaryCollationUnsupportedError,
     });
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      mssql: binaryCollationUnsupportedError,
-      postgres: binaryCollationUnsupportedError,
+      'mssql postgres': binaryCollationUnsupportedError,
     });
   });
 
@@ -69,32 +67,28 @@ describe('DataTypes.TEXT', () => {
       default: 'TEXT',
       'ibmi db2': 'VARCHAR(256)',
       mssql: 'NVARCHAR(256)',
-      mariadb: 'TINYTEXT',
-      mysql: 'TINYTEXT',
+      'mariadb mysql': 'TINYTEXT',
     });
 
     testDataTypeSql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
       default: 'TEXT',
       'ibmi db2': 'VARCHAR(256)',
       mssql: 'NVARCHAR(256)',
-      mariadb: 'TINYTEXT',
-      mysql: 'TINYTEXT',
+      'mariadb mysql': 'TINYTEXT',
     });
 
     testDataTypeSql('TEXT("medium")', DataTypes.TEXT('medium'), {
       default: 'TEXT',
       'ibmi db2': 'CLOB(16777216)',
       mssql: 'NVARCHAR(MAX)',
-      mariadb: 'MEDIUMTEXT',
-      mysql: 'MEDIUMTEXT',
+      'mariadb mysql': 'MEDIUMTEXT',
     });
 
     testDataTypeSql('TEXT("long")', DataTypes.TEXT('long'), {
       default: 'TEXT',
       'ibmi db2': 'CLOB(2147483647)',
       mssql: 'NVARCHAR(MAX)',
-      mariadb: 'LONGTEXT',
-      mysql: 'LONGTEXT',
+      'mariadb mysql': 'LONGTEXT',
     });
   });
 

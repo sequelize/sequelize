@@ -2919,6 +2919,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, escapeOptions), comparator, options.prefix);
     }
 
+    // TODO!: determine where this comment needs to go (or remove it)
     // 'RANGE<VALUE>' right operand is handled after this if
 
     return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);
