@@ -1,32 +1,26 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import size from 'lodash/size';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support   = require('../support');
-
-const current   = Support.sequelize;
-const _ = require('lodash');
-const { DataTypes } = require('@sequelize/core');
-
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe(getTestDialectTeaser('Model'), () => {
   describe('removeAttribute', () => {
     it('should support removing the primary key', () => {
-      const Model = current.define('m', {
+      const Model = sequelize.define('m', {
         name: DataTypes.STRING,
       });
 
       expect(Model.primaryKeyAttribute).not.to.be.undefined;
-      expect(_.size(Model.primaryKeys)).to.equal(1);
+      expect(size(Model.primaryKeys)).to.equal(1);
 
       Model.removeAttribute('id');
 
       expect(Model.primaryKeyAttribute).to.be.undefined;
-      expect(_.size(Model.primaryKeys)).to.equal(0);
+      expect(size(Model.primaryKeys)).to.equal(0);
     });
 
     it('should not add undefined attribute after removing primary key', () => {
-      const Model = current.define('m', {
+      const Model = sequelize.define('m', {
         name: DataTypes.STRING,
       });
 
