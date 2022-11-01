@@ -69,7 +69,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('dates', () => {
     it('formats the date correctly when inserting', () => {
       const timezoneSequelize = Support.createSequelizeInstance({
-        // TODO!: why do we replace CET with +00:00 instead of using two timezones that return the same result?
         timezone: ['sqlite', 'ibmi'].includes(dialect) ? '+00:00' : 'CET',
       });
 
@@ -94,7 +93,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
             sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            // TOOD!: for this test and the test below check why the result is different
+            // TODO!: for this test and the test below check why the result is different
             db2: { sequelize_1: '2015-01-20 00:00:00.000' },
             mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
             snowflake: { sequelize_1: '2015-01-20 01:00:00.000' },
