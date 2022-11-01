@@ -2919,7 +2919,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, escapeOptions), comparator, options.prefix);
     }
 
-    // TODO!: determine where this comment needs to go (or remove it)
+    // TODO!: determine whether we're missing something or that this coment can be removed; https://github.com/sequelize/sequelize/pull/14505/commits/56828b202a6f2ea11a185d1ec9d40a776cac7257#diff-54c14e4744281a47d62196b5892c4004fec6e2f3c4d90f444aa3bd0a880f2209
     // 'RANGE<VALUE>' right operand is handled after this if
 
     return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);
