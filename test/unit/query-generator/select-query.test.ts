@@ -85,12 +85,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, User);
 
     expectsql(sql, {
-      default: 'SELECT `id`, CAST(`createdAt` AS VARCHAR) AS `createdAt` FROM `Users` AS `User`;',
-      mssql: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
-      postgres: `SELECT "id", CAST("createdAt" AS VARCHAR) AS "createdAt" FROM "Users" AS "User";`,
-      snowflake: `SELECT "id", CAST("createdAt" AS VARCHAR) AS "createdAt" FROM "Users" AS "User";`,
-      ibmi: `SELECT "id", CAST("createdAt" AS VARCHAR) AS "createdAt" FROM "Users" AS "User"`,
-      db2: `SELECT "id", CAST("createdAt" AS VARCHAR) AS "createdAt" FROM "Users" AS "User";`,
+      default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
     });
   });
 
