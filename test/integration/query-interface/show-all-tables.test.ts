@@ -13,7 +13,7 @@ describe('QueryInterface#showAllTables', () => {
   after(async () => {
     const _sequelize = createSequelizeInstance();
     await _sequelize.queryInterface.dropAllTables();
-    await _sequelize.dropAllSchemas();
+    await Promise.all(['schema_1', 'schema_2', 'schema_3', 'schema_4'].map(async schema => _sequelize.dropSchema(schema)));
   });
 
   const getSequelizeInstanceWithSchema = async () => {
@@ -41,7 +41,6 @@ describe('QueryInterface#showAllTables', () => {
     const baseTestSchemas = [
       'schema_1',
       'schema_2',
-      'sequelize_test',
       ...testSchemas,
     ];
     await Promise.all(baseTestSchemas.map(async (schemaName: string) => {
@@ -144,7 +143,7 @@ describe('QueryInterface#showAllTables', () => {
       return;
     }
 
-    it('shows all tables from the specified schema in the method options', async () => {
+    it('shows all tables from the specified schema in the showAllTables options', async () => {
       await createSchemaAndTables(sequelize);
       const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
         queryInterface.showAllTables({ schema: 'schema_1' }),
@@ -154,7 +153,7 @@ describe('QueryInterface#showAllTables', () => {
       expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
     });
 
-    it('uses the schema from options instead of initialization options', async () => {
+    it('uses the schema from showAllTables options instead of initialization options', async () => {
       const { sequelize: _sequelize } = await getSequelizeInstanceWithSchema();
       const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
         _sequelize.queryInterface.showAllTables(),
