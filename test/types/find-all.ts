@@ -1,5 +1,5 @@
 import type { Attributes } from '@sequelize/core';
-import { col } from '@sequelize/core';
+import { cast, col } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
 import { User } from './models/user';
 
@@ -26,6 +26,7 @@ import { User } from './models/user';
       ['bar', 'foo'],
       'ignored',
       [col('table.id'), 'xyz'],
+      [cast(col('createdAt'), 'varchar'), 'abc'],
     ],
     raw: true,
   });
