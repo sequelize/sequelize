@@ -35,8 +35,18 @@ export class IBMiConnectionManager extends AbstractConnectionManager {
 
     // 'database' doesn't make sense in this context, but it is mapped here to
     // DSN, which is a close fit
+    //  if (config.database) {
+    //    connectionKeywords.push(`DSN=${config.database}`);
+    //  }
+
+    if (config.DSN) {
+      connectionKeywords.push(`DSN=${config.DSN}`);
+    }
+
     if (config.database) {
-      connectionKeywords.push(`DSN=${config.database}`);
+      connectionKeywords.push(`CurrentSchema=${config.database}`);
+    } else {
+      connectionKeywords.push(`CurrentSchema=QGPL`);
     }
 
     if (config.username) {

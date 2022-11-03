@@ -130,20 +130,26 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName, options) {
-    let table = tableName;
+
     let schema;
 
-    if (typeof table === 'object') {
-      schema = table.schema || undefined;
-      table = table.table;
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || undefined;
+      tableName = tableName.table;
     } else if (options.schema) {
       schema = options.schema;
     }
 
-    return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${table}"`;
+    return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${tableName}"`;
   }
 
   describeTableQuery(tableName, schema) {
+
+    if (typeof tableName === 'object') {
+      tableName = tableName.table || tableName.tableName;
+      schema = tableName.schema || schema || undefined;
+
+    }
 
     const sql
     = `SELECT

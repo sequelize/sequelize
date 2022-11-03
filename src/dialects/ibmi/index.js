@@ -39,6 +39,10 @@ export class IBMiDialect extends AbstractDialect {
   constructor(sequelize) {
     super();
     this.sequelize = sequelize;
+
+    // Attach DSN configuation to the Sequelize object
+    this.sequelize.config.DSN = sequelize.options.DSN;
+
     this.connectionManager = new IBMiConnectionManager(this, sequelize);
     this.queryGenerator = new IBMiQueryGenerator({
       dialect: this,
