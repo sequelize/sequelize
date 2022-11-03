@@ -2094,7 +2094,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
   /**
-   * Object that contains undelying model data
+   * Object that contains underlying model data
    */
   dataValues: TModelAttributes;
 
