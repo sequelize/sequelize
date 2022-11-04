@@ -741,9 +741,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       if (key === 'order') {
-        return _.union(objValue, srcValue);
+        return srcValue;
       }
-      return srcValue;
+
+      return _.union(objValue, srcValue);
     }
 
     if (['where', 'having'].includes(key)) {
