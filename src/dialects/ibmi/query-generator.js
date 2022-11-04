@@ -133,12 +133,11 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     let schema;
 
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || undefined;
+
+     if (typeof tableName === 'object') {
+      schema = tableName.schema || options.schema || undefined;
       tableName = tableName.table;
-    } else if (options.schema) {
-      schema = options.schema;
-    }
+     }
 
     return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${tableName}"`;
   }
