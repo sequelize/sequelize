@@ -1,22 +1,35 @@
 'use strict';
 
-module.exports = async function (createSequelizeInstance, log) {
-  // SSCCE for #10914
-  const { Sequelize, Op, Model, DataTypes } = require('sequelize');
-  const sequelize = createSequelizeInstance({ benchmark: true });
-  await sequelize.authenticate();
+/* eslint-disable no-console -- the point of this file is to debug :) */
 
-  const Foo = sequelize.define('foo', {
-    name: Sequelize.STRING,
-  }, {
-    defaultScope: {
-      order: [['name', 'ASC']],
-    },
+// See https://github.com/papb/sequelize-sscce as another option for running SSCCEs.
+
+const { expect } = require('chai'); // You can use `expect` on your SSCCE!
+const { createSequelizeInstance } = require('./dev/sscce-helpers');
+const { Model, DataTypes } = require('.');
+
+const sequelize = createSequelizeInstance({ benchmark: true });
+
+class User extends Model {}
+
+User.init({
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE,
+}, { sequelize, modelName: 'user' });
+
+(async () => {
+  await sequelize.sync({ force: true });
+
+  const jane = await User.create({
+    username: 'janedoe',
+    birthday: new Date(1980, 6, 20),
   });
 
-  await sequelize.sync();
+  console.log('\nJane:', jane.toJSON());
 
-  await Foo.findAll({
-    order: [['name', 'DESC']],
-  });
-};
+  await sequelize.close();
+
+  expect(jane.username).to.equal('janedoe');
+})();
+
+/* eslint-enable no-console -- the point of this file is to debug :) */
