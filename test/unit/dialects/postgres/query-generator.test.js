@@ -185,17 +185,6 @@ if (dialect.startsWith('postgres')) {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "myTable" CASCADE;',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;',
-        },
-      ],
-
       changeColumnQuery: [
         {
           arguments: ['myTable', {
