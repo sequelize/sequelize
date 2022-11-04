@@ -14,33 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
