@@ -40,8 +40,6 @@ export class IBMiDialect extends AbstractDialect {
     super();
     this.sequelize = sequelize;
 
-
-
     this.connectionManager = new IBMiConnectionManager(this, sequelize);
     this.queryGenerator = new IBMiQueryGenerator({
       dialect: this,
