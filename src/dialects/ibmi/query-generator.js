@@ -133,7 +133,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     let schema;
 
-     if (typeof tableName === 'object') {
+    if (typeof tableName === 'object') {
       schema = tableName.schema || options.schema || undefined;
       tableName = tableName.table;
      }
