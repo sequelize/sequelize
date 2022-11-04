@@ -38,10 +38,10 @@ export class IBMiConnectionManager extends AbstractConnectionManager {
     //  if (config.database) {
     //    connectionKeywords.push(`DSN=${config.database}`);
     //  }
-  
-    if (config.dialectOptions && config.dialectOptions.DSN){
+
+    if (config.dialectOptions && config.dialectOptions.DSN) {
       connectionKeywords.push(`DSN=${config.dialectOptions.DSN}`);
-     }
+    }
 
     if (config.database) {
       connectionKeywords.push(`CurrentSchema=${config.database}`);
