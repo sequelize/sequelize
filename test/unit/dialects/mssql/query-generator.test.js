@@ -245,12 +245,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('dropTableQuery', function () {
-      expectsql(this.queryGenerator.dropTableQuery('dirtyTable'), {
-        mssql: 'IF OBJECT_ID(\'[dirtyTable]\', \'U\') IS NOT NULL DROP TABLE [dirtyTable];',
-      });
-    });
-
     it('addColumnQuery', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;',

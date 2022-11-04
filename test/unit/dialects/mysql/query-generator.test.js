@@ -151,13 +151,6 @@ if (dialect === 'mysql') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS `myTable`;',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],

@@ -187,42 +187,12 @@ if (dialect.startsWith('postgres')) {
 
       dropTableQuery: [
         {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable";',
-        },
-        {
           arguments: ['myTable', { cascade: true }],
           expectation: 'DROP TABLE IF EXISTS "myTable" CASCADE;',
         },
         {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
           expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS myTable CASCADE;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable CASCADE;',
-          context: { options: { quoteIdentifiers: false } },
         },
       ],
 

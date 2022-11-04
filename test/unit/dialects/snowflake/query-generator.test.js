@@ -229,20 +229,6 @@ if (dialect === 'snowflake') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
       tableExistsQuery: [
         {
           arguments: ['myTable'],
